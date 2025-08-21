@@ -357,13 +357,9 @@ class GithubUtils {
 
                     issueBody += '\r\n';
 
-                    // Warn deployers about potential bugs with the new process
-                    issueBody +=
-                        '> 💡 **Deployer FYI:** This checklist was generated using a new process. PR list from original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled `staging`, in the `createChecklist` action. Please tag @Julesssss with any issues.\r\n\r\n';
-
                     // PR list
                     if (sortedPRList.length > 0) {
-                        issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
+                        issueBody += '**This release contains changes from the following pull requests:**\r\n';
                         sortedPRList.forEach((URL) => {
                             issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
                             issueBody += ` ${URL}\r\n`;

@@ -12,6 +12,7 @@ import {
     getTagList,
     getTagListByOrderWeight,
     getUnitRateValue,
+    isPolicyMemberWithoutPendingDelete,
     isUserInvitedToWorkspace,
     shouldShowPolicy,
     sortWorkspacesBySelected,
@@ -927,6 +928,41 @@ describe('PolicyUtils', () => {
             };
             const result = getPolicyEmployeeAccountIDs(policy);
             expect(result).toEqual([]);
+        });
+    });
+
+    describe('isPolicyMemberWithoutPendingDelete', () => {
+        it('should return true if the policy member is not pending delete', () => {
+            const policy = {
+                id: '1',
+                employeeList: {
+                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+            const result = isPolicyMemberWithoutPendingDelete(employeeEmail, policy as unknown as Policy);
+            expect(result).toBe(true);
+        });
+
+        it('should return false if the policy member is pending delete', () => {
+            const policy = {
+                id: '1',
+                employeeList: {
+                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                },
+            };
+            const result = isPolicyMemberWithoutPendingDelete(employeeEmail, policy as unknown as Policy);
+            expect(result).toBe(false);
+        });
+
+        it('should return false if the policy member is not found', () => {
+            const policy = {
+                id: '1',
+                employeeList: {
+                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+            const result = isPolicyMemberWithoutPendingDelete('fakeEmail', policy as unknown as Policy);
+            expect(result).toBe(false);
         });
     });
 });

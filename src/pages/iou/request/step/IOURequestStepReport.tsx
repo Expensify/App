@@ -137,6 +137,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         <IOURequestEditReportCommon
             backTo={backTo}
             transactionsReports={transactionReport ? [transactionReport] : []}
+            transactionIds={transaction ? [transaction.transactionID] : []}
             selectReport={selectReport}
             policyID={!isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined}
             removeFromReport={removeFromReport}

@@ -32,6 +32,7 @@ import type {
     TransactionListItemType,
     TransactionMemberGroupListItemType,
     TransactionReportGroupListItemType,
+    TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -87,7 +88,7 @@ import {
     isOpenExpenseReport,
     isSettled,
 } from './ReportUtils';
-import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getTodoSearchQuery} from './SearchQueryUtils';
+import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getCurrentSearchQueryJSON, getTodoSearchQuery} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
@@ -124,6 +125,21 @@ const taskColumnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedCreatedBy' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: 'formattedAssignee' as const,
     [CONST.SEARCH.TABLE_COLUMNS.IN]: 'parentReportID' as const,
+};
+
+const expenseStatusActionMapping = {
+    [CONST.SEARCH.STATUS.EXPENSE.DRAFTS]: (expenseReport: SearchReport) =>
+        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN,
+    [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]: (expenseReport: SearchReport) =>
+        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
+    [CONST.SEARCH.STATUS.EXPENSE.APPROVED]: (expenseReport: SearchReport) =>
+        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED,
+    [CONST.SEARCH.STATUS.EXPENSE.PAID]: (expenseReport: SearchReport) =>
+        (expenseReport?.stateNum ?? 0) >= CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED,
+    [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport: SearchReport) =>
+        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
+    [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: (expenseReport: SearchReport) => !expenseReport,
+    [CONST.SEARCH.STATUS.EXPENSE.ALL]: () => true,
 };
 
 function getExpenseStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
@@ -623,6 +639,13 @@ function isTransactionCardGroupListItemType(item: ListItem): item is Transaction
 }
 
 /**
+ * Type guard that checks if something is a TransactionWithdrawalIDGroupListItemType
+ */
+function isTransactionWithdrawalIDGroupListItemType(item: ListItem): item is TransactionWithdrawalIDGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
+}
+
+/**
  * Type guard that checks if something is a TransactionListItemType
  */
 function isTransactionListItemType(item: SearchListItem): item is TransactionListItemType {
@@ -814,8 +837,6 @@ function getTransactionsSections(
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
 
-    const shouldShowFrom = metadata?.columnsToShow?.shouldShowFromColumn;
-    const shouldShowTo = metadata?.columnsToShow?.shouldShowToColumn;
     const shouldShowCategory = metadata?.columnsToShow?.shouldShowCategoryColumn;
     const shouldShowTag = metadata?.columnsToShow?.shouldShowTagColumn;
     const shouldShowTax = metadata?.columnsToShow?.shouldShowTaxColumn;
@@ -830,81 +851,100 @@ function getTransactionsSections(
 
     const transactionsSections: TransactionListItemType[] = [];
 
+    const queryJSON = getCurrentSearchQueryJSON();
+
     for (const key of transactionKeys) {
         const transactionItem = data[key];
         const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
-        const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const shouldShowBlankTo = !report || isOpenExpenseReport(report);
 
-        const transactionViolations = getTransactionViolations(allViolations, transactionItem);
-        // Use Map.get() for faster lookups with default values
-        const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
-        const to = transactionItem.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(transactionItem.managerID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
+        let shouldShow = true;
+        if (queryJSON && !transactionItem.isActionLoading) {
+            if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+                const status = queryJSON.status;
+                if (Array.isArray(status)) {
+                    shouldShow = status.some((val) => {
+                        const expenseStatus = val as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
+                        return expenseStatusActionMapping[expenseStatus](report);
+                    });
+                } else {
+                    const expenseStatus = status as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
+                    shouldShow = expenseStatusActionMapping[expenseStatus](report);
+                }
+            }
+        }
 
-        const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
+        if (shouldShow) {
+            const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+            const shouldShowBlankTo = !report || isOpenExpenseReport(report);
 
-        const transactionSection: TransactionListItemType = {
-            action: getAction(data, allViolations, key, currentSearch, currentAccountID),
-            report,
-            from,
-            to,
-            formattedFrom,
-            formattedTo: shouldShowBlankTo ? '' : formattedTo,
-            formattedTotal,
-            formattedMerchant,
-            date,
-            shouldShowFrom,
-            shouldShowTo,
-            shouldShowMerchant,
-            shouldShowCategory,
-            shouldShowTag,
-            shouldShowTax,
-            keyForList: transactionItem.transactionID,
-            shouldShowYear: doesDataContainAPastYearTransaction,
-            isAmountColumnWide: shouldShowAmountInWideColumn,
-            isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
-            violations: transactionViolations,
+            const transactionViolations = getTransactionViolations(allViolations, transactionItem);
+            // Use Map.get() for faster lookups with default values
+            const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
+            const to = transactionItem.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(transactionItem.managerID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
 
-            // Manually copying all the properties from transactionItem
-            transactionID: transactionItem.transactionID,
-            created: transactionItem.created,
-            modifiedCreated: transactionItem.modifiedCreated,
-            amount: transactionItem.amount,
-            canDelete: transactionItem.canDelete,
-            canHold: transactionItem.canHold,
-            canUnhold: transactionItem.canUnhold,
-            modifiedAmount: transactionItem.modifiedAmount,
-            currency: transactionItem.currency,
-            modifiedCurrency: transactionItem.modifiedCurrency,
-            merchant: transactionItem.merchant,
-            modifiedMerchant: transactionItem.modifiedMerchant,
-            comment: transactionItem.comment,
-            category: transactionItem.category,
-            transactionType: transactionItem.transactionType,
-            reportType: transactionItem.reportType,
-            policyID: transactionItem.policyID,
-            parentTransactionID: transactionItem.parentTransactionID,
-            hasEReceipt: transactionItem.hasEReceipt,
-            accountID: transactionItem.accountID,
-            managerID: transactionItem.managerID,
-            reportID: transactionItem.reportID,
-            ...(transactionItem.pendingAction ? {pendingAction: transactionItem.pendingAction} : {}),
-            transactionThreadReportID: transactionItem.transactionThreadReportID,
-            isFromOneTransactionReport: transactionItem.isFromOneTransactionReport,
-            tag: transactionItem.tag,
-            receipt: transactionItem.receipt,
-            taxAmount: transactionItem.taxAmount,
-            description: transactionItem.description,
-            mccGroup: transactionItem.mccGroup,
-            modifiedMCCGroup: transactionItem.modifiedMCCGroup,
-            moneyRequestReportActionID: transactionItem.moneyRequestReportActionID,
-            pendingAction: transactionItem.pendingAction,
-            errors: transactionItem.errors,
-            isActionLoading: transactionItem.isActionLoading,
-            hasViolation: transactionItem.hasViolation,
-        };
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy, formatPhoneNumber);
 
-        transactionsSections.push(transactionSection);
+            const transactionSection: TransactionListItemType = {
+                action: getAction(data, allViolations, key, currentSearch, currentAccountID),
+                report,
+                from,
+                to,
+                formattedFrom,
+                formattedTo: shouldShowBlankTo ? '' : formattedTo,
+                formattedTotal,
+                formattedMerchant,
+                date,
+                shouldShowMerchant,
+                shouldShowCategory,
+                shouldShowTag,
+                shouldShowTax,
+                keyForList: transactionItem.transactionID,
+                shouldShowYear: doesDataContainAPastYearTransaction,
+                isAmountColumnWide: shouldShowAmountInWideColumn,
+                isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
+                violations: transactionViolations,
+
+                // Manually copying all the properties from transactionItem
+                transactionID: transactionItem.transactionID,
+                created: transactionItem.created,
+                modifiedCreated: transactionItem.modifiedCreated,
+                amount: transactionItem.amount,
+                canDelete: transactionItem.canDelete,
+                canHold: transactionItem.canHold,
+                canUnhold: transactionItem.canUnhold,
+                modifiedAmount: transactionItem.modifiedAmount,
+                currency: transactionItem.currency,
+                modifiedCurrency: transactionItem.modifiedCurrency,
+                merchant: transactionItem.merchant,
+                modifiedMerchant: transactionItem.modifiedMerchant,
+                comment: transactionItem.comment,
+                category: transactionItem.category,
+                transactionType: transactionItem.transactionType,
+                reportType: transactionItem.reportType,
+                policyID: transactionItem.policyID,
+                parentTransactionID: transactionItem.parentTransactionID,
+                hasEReceipt: transactionItem.hasEReceipt,
+                accountID: transactionItem.accountID,
+                managerID: transactionItem.managerID,
+                reportID: transactionItem.reportID,
+                ...(transactionItem.pendingAction ? {pendingAction: transactionItem.pendingAction} : {}),
+                transactionThreadReportID: transactionItem.transactionThreadReportID,
+                isFromOneTransactionReport: transactionItem.isFromOneTransactionReport,
+                tag: transactionItem.tag,
+                receipt: transactionItem.receipt,
+                taxAmount: transactionItem.taxAmount,
+                description: transactionItem.description,
+                mccGroup: transactionItem.mccGroup,
+                modifiedMCCGroup: transactionItem.modifiedMCCGroup,
+                moneyRequestReportActionID: transactionItem.moneyRequestReportActionID,
+                pendingAction: transactionItem.pendingAction,
+                errors: transactionItem.errors,
+                isActionLoading: transactionItem.isActionLoading,
+                hasViolation: transactionItem.hasViolation,
+            };
+
+            transactionsSections.push(transactionSection);
+        }
     }
     return transactionsSections;
 }
@@ -1249,6 +1289,7 @@ function getReportSections(
     // Get violations - optimize by using a Map for faster lookups
     const allViolations = getViolations(data);
 
+    const queryJSON = getCurrentSearchQueryJSON();
     const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
 
     for (const key in data) {
@@ -1259,21 +1300,40 @@ function getReportSections(
             const isIOUReport = reportItem.type === CONST.REPORT.TYPE.IOU;
             const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`];
 
-            const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
-            const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
-            reportIDToTransactions[reportKey] = {
-                ...reportItem,
-                action: getAction(data, allViolations, key, currentSearch, currentAccountID, actions),
-                groupedBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                keyForList: reportItem.reportID,
-                from: transactions.length > 0 ? data.personalDetailsList[data?.[reportKey as ReportKey]?.accountID ?? CONST.DEFAULT_NUMBER_ID] : emptyPersonalDetails,
-                to: !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
-                transactions,
-                ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
-            };
+            let shouldShow = true;
+            if (queryJSON && !reportItem.isActionLoading) {
+                if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+                    const status = queryJSON.status;
 
-            if (isIOUReport) {
-                reportIDToTransactions[reportKey].reportName = getIOUReportName(data, reportIDToTransactions[reportKey]);
+                    if (Array.isArray(status)) {
+                        shouldShow = status.some((val) => {
+                            const expenseStatus = val as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
+                            return expenseStatusActionMapping[expenseStatus](reportItem);
+                        });
+                    } else {
+                        const expenseStatus = status as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
+                        shouldShow = expenseStatusActionMapping[expenseStatus](reportItem);
+                    }
+                }
+            }
+
+            if (shouldShow) {
+                const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
+                const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
+                reportIDToTransactions[reportKey] = {
+                    ...reportItem,
+                    action: getAction(data, allViolations, key, currentSearch, currentAccountID, actions),
+                    groupedBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                    keyForList: reportItem.reportID,
+                    from: transactions.length > 0 ? data.personalDetailsList[data?.[reportKey as ReportKey]?.accountID ?? CONST.DEFAULT_NUMBER_ID] : emptyPersonalDetails,
+                    to: !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
+                    transactions,
+                    ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
+                };
+
+                if (isIOUReport) {
+                    reportIDToTransactions[reportKey].reportName = getIOUReportName(data, reportIDToTransactions[reportKey]);
+                }
             }
         } else if (isTransactionEntry(key)) {
             const transactionItem = {...data[key]};
@@ -1301,8 +1361,6 @@ function getReportSections(
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
-                shouldShowFrom: metadata?.columnsToShow?.shouldShowFromColumn,
-                shouldShowTo: metadata?.columnsToShow?.shouldShowToColumn,
                 shouldShowCategory: metadata?.columnsToShow?.shouldShowCategoryColumn,
                 shouldShowTag: metadata?.columnsToShow?.shouldShowTagColumn,
                 shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
@@ -1378,6 +1436,17 @@ function getCardSections(data: OnyxTypes.SearchResults['data']): TransactionCard
 }
 
 /**
+ * @private
+ * Organizes data into List Sections grouped by card for display, for the TransactionWithdrawalIDGroupListItemType of Search Results.
+ *
+ * Do not use directly, use only via `getSections()` facade.
+ */
+function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data']): TransactionWithdrawalIDGroupListItemType[] {
+    // Will be implemented as part of https://github.com/Expensify/App/pull/66078
+    return data ? [] : [];
+}
+
+/**
  * Returns the appropriate list item component based on the type and status of the search data.
  */
 function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: SearchGroupBy): ListItemType<typeof type, typeof status> {
@@ -1424,6 +1493,8 @@ function getSections(
                 return getMemberSections(data);
             case CONST.SEARCH.GROUP_BY.CARD:
                 return getCardSections(data);
+            case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
+                return getWithdrawalIDSections(data);
         }
     }
 
@@ -1459,6 +1530,8 @@ function getSortedSections(
                 return getSortedMemberData(data as TransactionMemberGroupListItemType[], localeCompare);
             case CONST.SEARCH.GROUP_BY.CARD:
                 return getSortedCardData(data as TransactionCardGroupListItemType[], localeCompare);
+            case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
+                return getSortedWithdrawalIDData(data as TransactionWithdrawalIDGroupListItemType[]);
         }
     }
 
@@ -1565,6 +1638,15 @@ function getSortedMemberData(data: TransactionMemberGroupListItemType[], localeC
  */
 function getSortedCardData(data: TransactionCardGroupListItemType[], localeCompare: LocaleContextProps['localeCompare']) {
     return data.sort((a, b) => localeCompare(a.displayName ?? a.login ?? '', b.displayName ?? b.login ?? ''));
+}
+
+/**
+ * @private
+ * Sorts report sections based on a specified column and sort order.
+ */
+function getSortedWithdrawalIDData(data: TransactionWithdrawalIDGroupListItemType[]) {
+    // Will be implemented as part of https://github.com/Expensify/App/pull/66078
+    return data ? [] : [];
 }
 
 /**
@@ -1702,7 +1784,7 @@ function createTypeMenuSections(
                                               if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
                                                   const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
                                                   Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID}));
                                                   });
                                                   return;
                                               }
@@ -1922,15 +2004,15 @@ function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCa
 }
 
 function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): SearchDatePreset[] {
+    const defaultPresets = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH] as SearchDatePreset[];
+
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
-            return [...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : []), CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
+            return [...defaultPresets, ...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : [])];
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
-            return [CONST.SEARCH.DATE_PRESETS.NEVER];
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
-            return [CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
+            return [...defaultPresets, CONST.SEARCH.DATE_PRESETS.NEVER];
         default:
-            return [];
+            return defaultPresets;
     }
 }
 
@@ -1948,6 +2030,7 @@ export {
     isTransactionReportGroupListItemType,
     isTransactionMemberGroupListItemType,
     isTransactionCardGroupListItemType,
+    isTransactionWithdrawalIDGroupListItemType,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,

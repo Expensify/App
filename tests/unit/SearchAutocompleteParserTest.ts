@@ -44,6 +44,7 @@ const tests = [
             ranges: [
                 {key: 'expenseType', length: 4, start: 24, value: 'cash'},
                 {key: 'expenseType', length: 4, start: 29, value: 'card'},
+                {key: 'date', length: 10, start: 69, value: '2024-06-01'},
                 {key: 'category', length: 6, start: 89, value: 'travel'},
                 {key: 'category', length: 5, start: 96, value: 'hotel'},
                 {key: 'category', length: 22, start: 102, value: 'meal & entertainment'},
@@ -66,11 +67,10 @@ const tests = [
         },
     },
     {
-        // cspell:disable-next-line
-        query: 'date>2024-01-01 amount>100 merchant:"A B" description:A,B,C ,, reportid:123456789 word',
+        query: 'date>2024-01-01 amount>100 merchant:"A B" description:A,B,C ,, report-id:123456789 word',
         expected: {
             autocomplete: null,
-            ranges: [],
+            ranges: [{key: 'date', length: 10, start: 5, value: '2024-01-01'}],
         },
     },
     {
@@ -245,6 +245,18 @@ const tests = [
                 {key: 'from', value: 'Bag ”Dog“', start: 17, length: 11},
                 {key: 'to', value: '""Unruly"" “““Glad””” """Dog""', start: 32, length: 32},
             ],
+        },
+    },
+    {
+        query: 'expense-type:per-diem',
+        expected: {
+            autocomplete: {
+                key: 'expenseType',
+                value: 'per-diem',
+                start: 13,
+                length: 8,
+            },
+            ranges: [{key: 'expenseType', value: 'per-diem', start: 13, length: 8}],
         },
     },
 ];

@@ -62,18 +62,6 @@ Onyx.connect({
     callback: (value) => (amountOwed = value),
 });
 
-let stripeCustomerId: OnyxEntry<StripeCustomerID>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-
-        stripeCustomerId = value;
-    },
-});
-
 let billingDisputePending: OnyxEntry<number>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING,
@@ -231,7 +219,7 @@ function hasAmountOwed(): boolean {
 /**
  * @returns Whether there is a card authentication error.
  */
-function hasCardAuthenticatedError() {
+function hasCardAuthenticatedError(stripeCustomerId: OnyxEntry<StripeCustomerID>) {
     return stripeCustomerId?.status === 'authentication_required' && getAmountOwed() === 0;
 }
 
@@ -372,7 +360,7 @@ type SubscriptionStatus = {
 /**
  * @returns The subscription status.
  */
-function getSubscriptionStatus(): SubscriptionStatus | undefined {
+function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod()) {
         if (hasAmountOwed()) {
             // 1. Policy owner with amount owed, within grace period
@@ -417,7 +405,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
     }
 
     // 6. Card not authenticated
-    if (hasCardAuthenticatedError()) {
+    if (hasCardAuthenticatedError(stripeCustomerId)) {
         return {
             status: PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED,
             isError: true,
@@ -469,15 +457,15 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
 /**
  * @returns Whether there is a subscription red dot error.
  */
-function hasSubscriptionRedDotError(): boolean {
-    return getSubscriptionStatus()?.isError ?? false;
+function hasSubscriptionRedDotError(stripeCustomerId: OnyxEntry<StripeCustomerID>): boolean {
+    return getSubscriptionStatus(stripeCustomerId)?.isError ?? false;
 }
 
 /**
  * @returns Whether there is a subscription green dot info.
  */
-function hasSubscriptionGreenDotInfo(): boolean {
-    return getSubscriptionStatus()?.isError === false;
+function hasSubscriptionGreenDotInfo(stripeCustomerId: OnyxEntry<StripeCustomerID>): boolean {
+    return getSubscriptionStatus(stripeCustomerId)?.isError === false;
 }
 
 /**

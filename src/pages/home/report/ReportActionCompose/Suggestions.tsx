@@ -21,7 +21,7 @@ type SuggestionProps = {
     setSelection: (newSelection: TextSelection) => void;
 
     /** Callback to update the comment draft */
-    updateComment: (newComment: string, shouldDebounceSaveComment?: boolean) => void;
+    updateComment: (newComment: string) => void;
 
     /** Measures the parent container's position and dimensions. Also add cursor coordinates */
     measureParentContainerAndReportCursor: (callback: MeasureParentContainerAndCursorCallback) => void;

@@ -48,7 +48,6 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
             onClose={onClose}
             onModalHide={onClose}
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

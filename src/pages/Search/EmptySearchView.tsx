@@ -251,7 +251,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                                           if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
                                               const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation);
                                               Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID}));
                                               });
                                           } else {
                                               Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));

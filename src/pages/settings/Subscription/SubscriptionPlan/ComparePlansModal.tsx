@@ -72,7 +72,6 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
                     onClose={onClose}
                     animationOut={isSmallScreenWidth ? animationOut : undefined}
                     innerContainerStyle={isSmallScreenWidth ? {...safeAreaPaddingBottomStyle, maxHeight} : {...styles.workspaceSection, ...safeAreaPaddingBottomStyle, maxHeight}}
-                    shouldUseReanimatedModal
                 >
                     <HeaderWithBackButton
                         title={translate('subscription.compareModal.comparePlans')}

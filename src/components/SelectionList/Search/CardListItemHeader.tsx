@@ -71,7 +71,7 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onSelectRow
                                 style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre]}
                             />
                             <TextWithTooltip
-                                text={`${cardItem.cardName} • ${cardItem.lastFourPAN}`}
+                                text={`${cardItem.cardName}${cardItem.lastFourPAN ? ` ${CONST.DOT_SEPARATOR} ` : ''}${cardItem.lastFourPAN}`}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         </View>

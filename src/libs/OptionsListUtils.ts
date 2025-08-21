@@ -77,6 +77,7 @@ import {
     getReportActionHtml,
     getReportActionMessageText,
     getRetractedMessage,
+    getRoomChangeLogMessage,
     getSortedReportActions,
     getTravelUpdateMessage,
     getUpdateRoomDescriptionMessage,
@@ -88,6 +89,7 @@ import {
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction,
+    isInviteOrRemovedAction,
     isMarkAsClosedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
@@ -831,6 +833,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = getPolicyChangeMessage(lastReportAction);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
         lastMessageTextFromReport = getTravelUpdateMessage(lastReportAction);
+    } else if (isInviteOrRemovedAction(lastReportAction)) {
+        lastMessageTextFromReport = getRoomChangeLogMessage(lastReportAction);
     } else if (isRenamedAction(lastReportAction)) {
         lastMessageTextFromReport = getRenamedAction(lastReportAction, isExpenseReport(report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {

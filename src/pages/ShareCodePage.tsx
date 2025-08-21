@@ -15,6 +15,7 @@ import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
@@ -75,6 +76,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isReport = !!report?.reportID;
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const subtitle = useMemo(() => {
         if (isReport) {
@@ -88,11 +90,11 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                     .join(' & ');
             }
 
-            return getParentNavigationSubtitle(report).workspaceName ?? getChatRoomSubtitle(report);
+            return getParentNavigationSubtitle(report, isReportArchived).workspaceName ?? getChatRoomSubtitle(report);
         }
 
         return currentUserPersonalDetails.login;
-    }, [report, currentUserPersonalDetails, isReport]);
+    }, [isReport, currentUserPersonalDetails.login, report, isReportArchived]);
 
     const title = isReport ? getReportName(report) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
