@@ -1,11 +1,18 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {canActionTask, canModifyTask, completeTestDriveTask, getFinishOnboardingTaskOnyxData} from '@libs/actions/Task';
+import {canActionTask, canModifyTask, completeTestDriveTask, createTaskAndNavigate, getFinishOnboardingTaskOnyxData} from '@libs/actions/Task';
+import * as API from '@libs/API';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
+import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
@@ -17,6 +24,27 @@ import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+// Mock API and Navigation
+jest.mock('@libs/API');
+jest.mock('@libs/Navigation/Navigation');
+jest.mock('@libs/Sound');
+jest.mock('@libs/ErrorUtils');
+jest.mock('@libs/ReportUtils');
+jest.mock('@libs/ReportActionsUtils');
+jest.mock('@libs/DateUtils');
+jest.mock('@libs/OptionsListUtils');
+jest.mock('@libs/PersonalDetailsUtils');
+jest.mock('@libs/LocalePhoneNumber');
+jest.mock('@libs/actions/Report');
+jest.mock('@libs/actions/Welcome');
+jest.mock('@userActions/OnyxDerived');
+jest.mock('@components/Icon/Expensicons');
+jest.mock('@components/LocaleContextProvider');
+
+// Mock API.write function
+const mockAPIWrite = jest.fn();
+(API.write as jest.Mock) = mockAPIWrite;
 
 OnyxUpdateManager();
 describe('actions/Task', () => {
@@ -261,6 +289,438 @@ describe('actions/Task', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport.reportID}`, reportNameValuePairs);
             await waitForBatchedUpdates();
             expect(Object.values(getFinishOnboardingTaskOnyxData('setupCategories')).length).toBe(0);
+        });
+    });
+
+    describe('createTaskAndNavigate', () => {
+        const mockParentReportID = 'parent_report_123';
+        const mockTitle = 'Test Task';
+        const mockDescription = 'This is a test task description';
+        const mockAssigneeEmail = 'assignee@example.com';
+        const mockAssigneeAccountID = 456;
+        const mockPolicyID = 'policy_123';
+        const mockCurrentUserAccountID = 123;
+        const mockCurrentUserEmail = 'creator@example.com';
+
+        beforeEach(async () => {
+            // Clear all mocks before each test
+            jest.clearAllMocks();
+            
+            // Reset the API.write mock
+            mockAPIWrite.mockClear();
+            await Onyx.clear();
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {
+                    email: mockCurrentUserEmail,
+                    accountID: mockCurrentUserAccountID,
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT}${mockParentReportID}`]: {
+                    reportID: mockParentReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [mockCurrentUserAccountID]: {
+                            accountID: mockCurrentUserAccountID,
+                            role: CONST.REPORT.ROLE.MEMBER,
+                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                        },
+                    },
+                },
+            });
+            await waitForBatchedUpdates();
+        });
+
+        it('should create task and navigate successfully with basic parameters', () => {
+            // Given: Basic task creation parameters
+            const mockAssigneeChatReport = {
+                reportID: 'assignee_chat_123',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [mockAssigneeAccountID]: {
+                        accountID: mockAssigneeAccountID,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+
+            // When: Call createTaskAndNavigate
+            createTaskAndNavigate(
+                mockParentReportID,
+                mockTitle,
+                mockDescription,
+                mockAssigneeEmail,
+                mockAssigneeAccountID,
+                mockAssigneeChatReport,
+                mockPolicyID,
+                false, // isCreatedUsingMarkdown
+                {}, // quickAction
+            );
+
+            // Then: Verify API.write was called with correct parameters
+            expect(API.write).toHaveBeenCalledWith(
+                'CreateTask',
+                expect.objectContaining({
+                    parentReportID: mockParentReportID,
+                    htmlTitle: mockTitle,
+                    description: mockDescription,
+                    assignee: mockAssigneeEmail,
+                    assigneeAccountID: mockAssigneeAccountID,
+                    assigneeChatReportID: mockAssigneeChatReport.reportID,
+                }),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: expect.stringContaining('REPORT'),
+                            value: expect.objectContaining({
+                                reportName: mockTitle,
+                                description: mockDescription,
+                                managerID: mockAssigneeAccountID,
+                                pendingFields: expect.objectContaining({
+                                    createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                    reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                    description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                    managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                }),
+                            }),
+                        }),
+                    ]),
+                    successData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: expect.stringContaining('REPORT'),
+                            value: expect.objectContaining({
+                                pendingFields: expect.objectContaining({
+                                    createChat: null,
+                                    reportName: null,
+                                    description: null,
+                                    managerID: null,
+                                }),
+                            }),
+                        }),
+                    ]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: expect.stringContaining('REPORT'),
+                            value: null,
+                        }),
+                    ]),
+                }),
+            );
+        });
+
+        it('should handle task creation without assignee chat report', () => {
+            // Given: Task creation without assignee chat report
+            const mockQuickAction = {
+                action: CONST.QUICK_ACTIONS.ASSIGN_TASK,
+                chatReportID: 'quick_action_chat_123',
+                targetAccountID: 789,
+            };
+
+            // When: Call createTaskAndNavigate without assignee chat report
+            createTaskAndNavigate(
+                mockParentReportID,
+                mockTitle,
+                mockDescription,
+                mockAssigneeEmail,
+                mockAssigneeAccountID,
+                undefined, // assigneeChatReport
+                mockPolicyID,
+                false, // isCreatedUsingMarkdown
+                mockQuickAction,
+            );
+
+            // Then: Verify API.write was called with correct parameters
+            expect(API.write).toHaveBeenCalledWith(
+                'CreateTask',
+                expect.objectContaining({
+                    parentReportID: mockParentReportID,
+                    htmlTitle: mockTitle,
+                    description: mockDescription,
+                    assignee: mockAssigneeEmail,
+                    assigneeAccountID: mockAssigneeAccountID,
+                    assigneeChatReportID: undefined,
+                    assigneeChatReportActionID: undefined,
+                    assigneeChatCreatedReportActionID: undefined,
+                }),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                            value: expect.objectContaining({
+                                action: CONST.QUICK_ACTIONS.ASSIGN_TASK,
+                                chatReportID: mockParentReportID,
+                                isFirstQuickAction: false,
+                                targetAccountID: mockAssigneeAccountID,
+                            }),
+                        }),
+                    ]),
+                }),
+            );
+        });
+
+        it('should handle task creation with markdown', () => {
+            // Given: Task creation with markdown flag
+            const mockAssigneeChatReport = {
+                reportID: 'assignee_chat_456',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [mockAssigneeAccountID]: {
+                        accountID: mockAssigneeAccountID,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+
+            // When: Call createTaskAndNavigate with markdown flag
+            createTaskAndNavigate(
+                mockParentReportID,
+                mockTitle,
+                mockDescription,
+                mockAssigneeEmail,
+                mockAssigneeAccountID,
+                mockAssigneeChatReport,
+                mockPolicyID,
+                true, // isCreatedUsingMarkdown
+                {}, // quickAction
+            );
+
+            // Then: Verify API.write was called
+            expect(API.write).toHaveBeenCalledWith('CreateTask', expect.any(Object), expect.any(Object));
+
+            // Verify that Navigation.dismissModalWithReport was NOT called (since isCreatedUsingMarkdown is true)
+            expect(Navigation.dismissModalWithReport).not.toHaveBeenCalled();
+        });
+
+        it('should handle task creation with default policy ID', () => {
+            // Given: Task creation with default policy ID
+            const mockAssigneeChatReport = {
+                reportID: 'assignee_chat_789',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [mockAssigneeAccountID]: {
+                        accountID: mockAssigneeAccountID,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+
+            // When: Call createTaskAndNavigate with default policy ID
+            createTaskAndNavigate(
+                mockParentReportID,
+                mockTitle,
+                mockDescription,
+                mockAssigneeEmail,
+                mockAssigneeAccountID,
+                mockAssigneeChatReport,
+                CONST.POLICY.OWNER_EMAIL_FAKE, // default policy ID
+                false, // isCreatedUsingMarkdown
+                {}, // quickAction
+            );
+
+            // Then: Verify API.write was called with default policy ID
+            expect(API.write).toHaveBeenCalledWith(
+                'CreateTask',
+                expect.objectContaining({
+                    parentReportID: mockParentReportID,
+                    htmlTitle: mockTitle,
+                    description: mockDescription,
+                    assignee: mockAssigneeEmail,
+                    assigneeAccountID: mockAssigneeAccountID,
+                }),
+                expect.any(Object),
+            );
+        });
+
+        it('should handle task creation with assignee as current user', () => {
+            // Given: Task creation where assignee is the current user
+            const mockAssigneeChatReport = {
+                reportID: 'assignee_chat_self',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [mockCurrentUserAccountID]: {
+                        accountID: mockCurrentUserAccountID,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+
+            // When: Call createTaskAndNavigate with assignee as current user
+            createTaskAndNavigate(
+                mockParentReportID,
+                mockTitle,
+                mockDescription,
+                mockCurrentUserEmail,
+                mockCurrentUserAccountID, // assignee is current user
+                mockAssigneeChatReport,
+                mockPolicyID,
+                false, // isCreatedUsingMarkdown
+                {}, // quickAction
+            );
+
+            // Then: Verify API.write was called with correct parameters
+            expect(API.write).toHaveBeenCalledWith(
+                'CreateTask',
+                expect.objectContaining({
+                    parentReportID: mockParentReportID,
+                    htmlTitle: mockTitle,
+                    description: mockDescription,
+                    assignee: mockCurrentUserEmail,
+                    assigneeAccountID: mockCurrentUserAccountID,
+                }),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: expect.stringContaining('REPORT'),
+                            value: expect.objectContaining({
+                                hasOutstandingChildTask: true, // Should be true when assignee is current user
+                            }),
+                        }),
+                    ]),
+                }),
+            );
+        });
+
+        it('should handle task creation with hidden parent report', async () => {
+            // Given: Parent report that is hidden for current user
+            const hiddenParentReport = {
+                reportID: mockParentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [mockCurrentUserAccountID]: {
+                        accountID: mockCurrentUserAccountID,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE, // Hidden
+                    },
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockParentReportID}`, hiddenParentReport);
+            await waitForBatchedUpdates();
+
+            const mockAssigneeChatReport = {
+                reportID: 'assignee_chat_hidden',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [mockAssigneeAccountID]: {
+                        accountID: mockAssigneeAccountID,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+
+            // When: Call createTaskAndNavigate with hidden parent report
+            createTaskAndNavigate(
+                mockParentReportID,
+                mockTitle,
+                mockDescription,
+                mockAssigneeEmail,
+                mockAssigneeAccountID,
+                mockAssigneeChatReport,
+                mockPolicyID,
+                false, // isCreatedUsingMarkdown
+                {}, // quickAction
+            );
+
+            // Then: Verify API.write was called with notification preference update
+            expect(API.write).toHaveBeenCalledWith(
+                'CreateTask',
+                expect.any(Object),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: expect.stringContaining('REPORT'),
+                            value: expect.objectContaining({
+                                participants: expect.objectContaining({
+                                    [mockCurrentUserAccountID]: expect.objectContaining({
+                                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                                    }),
+                                }),
+                            }),
+                        }),
+                    ]),
+                }),
+            );
+        });
+
+        it('should return early when parentReportID is undefined', () => {
+            // Given: Undefined parent report ID
+            const mockAssigneeChatReport = {
+                reportID: 'assignee_chat_undefined',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [mockAssigneeAccountID]: {
+                        accountID: mockAssigneeAccountID,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+
+            // When: Call createTaskAndNavigate with undefined parent report ID
+            createTaskAndNavigate(
+                undefined, // parentReportID is undefined
+                mockTitle,
+                mockDescription,
+                mockAssigneeEmail,
+                mockAssigneeAccountID,
+                mockAssigneeChatReport,
+                mockPolicyID,
+                false, // isCreatedUsingMarkdown
+                {}, // quickAction
+            );
+
+            // Then: Verify API.write was NOT called
+            expect(API.write).not.toHaveBeenCalled();
+        });
+
+        it('should handle task creation with first quick action', () => {
+            // Given: Task creation with empty quick action (first quick action)
+            const mockAssigneeChatReport = {
+                reportID: 'assignee_chat_first',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [mockAssigneeAccountID]: {
+                        accountID: mockAssigneeAccountID,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+            };
+
+            // When: Call createTaskAndNavigate with empty quick action
+            createTaskAndNavigate(
+                mockParentReportID,
+                mockTitle,
+                mockDescription,
+                mockAssigneeEmail,
+                mockAssigneeAccountID,
+                mockAssigneeChatReport,
+                mockPolicyID,
+                false, // isCreatedUsingMarkdown
+                {}, // quickAction is empty
+            );
+
+            // Then: Verify API.write was called with isFirstQuickAction: true
+            expect(API.write).toHaveBeenCalledWith(
+                'CreateTask',
+                expect.any(Object),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                            value: expect.objectContaining({
+                                action: CONST.QUICK_ACTIONS.ASSIGN_TASK,
+                                chatReportID: mockParentReportID,
+                                isFirstQuickAction: true, // Should be true for empty quick action
+                                targetAccountID: mockAssigneeAccountID,
+                            }),
+                        }),
+                    ]),
+                }),
+            );
         });
     });
 });
