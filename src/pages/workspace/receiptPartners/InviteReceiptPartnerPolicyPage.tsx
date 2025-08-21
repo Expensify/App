@@ -222,6 +222,9 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                 sections={sections}
                 headerContent={<Text style={[styles.ph5, styles.pb3]}>{translate('workspace.receiptPartners.uber.sendInvitesDescription')}</Text>}
                 shouldShowTextInputAfterHeader
+                shouldShowListEmptyContent={false}
+                shouldUpdateFocusedIndex
+                shouldShowHeaderMessageAfterHeader
                 headerMessage={headerMessage}
                 ListItem={UserListItem}
                 shouldUseDefaultRightHandSideCheckmark
