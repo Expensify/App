@@ -2907,6 +2907,20 @@ function getCardIssuedMessage({
     }
 }
 
+function getRoomChangeLogMessage(reportAction: ReportAction) {
+    if (!isInviteOrRemovedAction(reportAction)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
+    const actionText =
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM)
+            ? translateLocal('workspace.invite.invited')
+            : translateLocal('workspace.invite.removed');
+    const userText = (targetAccountIDs.length === 1 ? translateLocal('common.member') : translateLocal('common.members')).toLowerCase();
+    return `${actionText} ${targetAccountIDs.length} ${userText}`;
+}
+
 function getReportActions(report: Report) {
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
 }
@@ -3144,6 +3158,7 @@ export {
     getWorkspaceCustomUnitRateUpdatedMessage,
     getTagListNameUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
+    getRoomChangeLogMessage,
     getReportActions,
     getReopenedMessage,
     getLeaveRoomMessage,
