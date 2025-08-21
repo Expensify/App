@@ -236,7 +236,7 @@ function AttachmentPicker({
                     fileName: file.name ?? '',
                 };
             }) as [FileToCopy, ...FileToCopy[]],
-            destination: 'documentDirectory',
+            destination: 'cachesDirectory',
         });
 
         return pickedFiles.map((file) => {

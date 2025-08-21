@@ -1,3 +1,4 @@
+// Cache API only works for web/desktop, so we will return empty function here
 function init() {}
 function put() {}
 function get() {}
