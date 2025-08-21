@@ -11,6 +11,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useCurrentReportID from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDeepCompareRef from './useDeepCompareRef';
 import useDiffPrevious from './useDiffPrevious';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -176,12 +177,14 @@ function SidebarOrderedReportsContextProvider({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, policies, transactionViolations, reportNameValuePairs, reportAttributes, reportsDraftsUpdates]);
 
+    const deepComparedReportsToDisplayInLHN = useDeepCompareRef(reportsToDisplayInLHN);
+
     useEffect(() => {
         setCurrentReportsToDisplay(reportsToDisplayInLHN);
     }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
-        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, reportNameValuePairs, reportAttributes, drafts),
+        () => SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, reportNameValuePairs, reportAttributes, drafts),
         // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [reportsToDisplayInLHN, localeCompare],
