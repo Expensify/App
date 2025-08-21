@@ -77,6 +77,7 @@ import {
     getReportActionHtml,
     getReportActionMessageText,
     getRetractedMessage,
+    getRoomChangeLogMessage,
     getSortedReportActions,
     getTravelUpdateMessage,
     getUpdateRoomDescriptionMessage,
@@ -88,9 +89,11 @@ import {
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction,
+    isInviteOrRemovedAction,
     isMarkAsClosedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
+    isMovedAction,
     isMovedTransactionAction,
     isOldDotReportAction,
     isPendingRemove,
@@ -115,6 +118,7 @@ import {
     getDowngradeWorkspaceMessage,
     getIcons,
     getMoneyRequestSpendBreakdown,
+    getMovedActionMessage,
     getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
     getPolicyChangeMessage,
@@ -805,7 +809,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = getUpgradeWorkspaceMessage();
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
         lastMessageTextFromReport = getDowngradeWorkspaceMessage();
-    } else if (isActionableAddPaymentCard(lastReportAction) || isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED)) {
+    } else if (isActionableAddPaymentCard(lastReportAction)) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         lastMessageTextFromReport = getExportIntegrationLastMessageText(lastReportAction);
@@ -829,10 +833,14 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = getPolicyChangeMessage(lastReportAction);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
         lastMessageTextFromReport = getTravelUpdateMessage(lastReportAction);
+    } else if (isInviteOrRemovedAction(lastReportAction)) {
+        lastMessageTextFromReport = getRoomChangeLogMessage(lastReportAction);
     } else if (isRenamedAction(lastReportAction)) {
         lastMessageTextFromReport = getRenamedAction(lastReportAction, isExpenseReport(report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {
         lastMessageTextFromReport = getDeletedTransactionMessage(lastReportAction);
+    } else if (isMovedAction(lastReportAction)) {
+        lastMessageTextFromReport = getMovedActionMessage(lastReportAction, report);
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
