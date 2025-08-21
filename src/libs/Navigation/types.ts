@@ -190,6 +190,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
         policyID: string;
         backTo?: Routes;
@@ -1082,6 +1085,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_REIMBURSABLE_DEFAULT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
@@ -2125,9 +2131,14 @@ type AuthScreensParamList = SharedScreensParamList & {
         transactionID: string;
         readonly?: string;
         isFromReviewDuplicates?: string;
-        action?: IOUAction;
-        iouType?: IOUType;
         mergeTransactionID?: string;
+    };
+    [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: {
+        reportID: string;
+        transactionID: string;
+        action: IOUAction;
+        iouType: IOUType;
+        readonly: string;
     };
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
@@ -2170,7 +2181,6 @@ type SearchFullscreenNavigatorParamList = {
     };
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: {
         reportID: string;
-        backTo?: Routes;
     };
 };
 

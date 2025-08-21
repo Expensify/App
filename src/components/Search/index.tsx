@@ -26,7 +26,7 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import Performance from '@libs/Performance';
 import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, generateReportID, isArchivedReport} from '@libs/ReportUtils';
-import {buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     getListItem,
     getSections,
@@ -185,6 +185,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         shouldShowSelectAllMatchingItems,
         areAllMatchingItemsSelected,
         selectAllMatchingItems,
+        shouldResetSearchQuery,
+        setShouldResetSearchQuery,
     } = useSearchContext();
     const [offset, setOffset] = useState(0);
 
@@ -572,10 +574,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             Performance.markStart(CONST.TIMING.OPEN_REPORT_SEARCH);
             Timing.start(CONST.TIMING.OPEN_REPORT_SEARCH);
 
-            const backTo = Navigation.getActiveRoute();
-
             if (isTransactionGroupListItemType(item)) {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}));
                 return;
             }
 
@@ -586,7 +586,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 Navigation.navigate(
                     ROUTES.SEARCH_REPORT.getRoute({
                         reportID: generatedReportID,
-                        backTo,
                         moneyRequestReportActionID: item.moneyRequestReportActionID,
                         transactionID: item.transactionID,
                     }),
@@ -596,11 +595,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             if (isReportActionListItemType(item)) {
                 const reportActionID = item.reportActionID;
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID}));
                 return;
             }
 
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID}));
         },
         [hash, isMobileSelectionModeEnabled, toggleTransaction, queryJSON],
     );
@@ -657,6 +656,19 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     );
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
+
+    useEffect(() => {
+        const currentRoute = Navigation.getActiveRouteWithoutParams();
+        if (hasErrors && (currentRoute === '/' || (shouldResetSearchQuery && currentRoute === '/search'))) {
+            // Use requestAnimationFrame to safely update navigation params without overriding the current route
+            requestAnimationFrame(() => {
+                Navigation.setParams({q: buildCannedSearchQuery()});
+            });
+            if (shouldResetSearchQuery) {
+                setShouldResetSearchQuery(false);
+            }
+        }
+    }, [hasErrors, queryJSON, searchResults, shouldResetSearchQuery, setShouldResetSearchQuery]);
 
     const fetchMoreResults = useCallback(() => {
         if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
@@ -798,6 +810,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={onLayout}
                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
             />
         </SearchScopeProvider>
     );
