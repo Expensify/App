@@ -11258,8 +11258,6 @@ function bulkHold(
     selectedTransactionIDs: string[],
     transactions: OnyxCollection<OnyxTypes.Transaction>,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
-    searchHash: number,
-    snapshot: OnyxTypes.SearchResults | undefined,
 ) {
     const iouReport = reports?.[`${reportID}`];
     const iouReportCurrency = iouReport?.currency ?? 'none';

@@ -29,17 +29,7 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
                 if (reportActions) {
-                    bulkHold(
-                        comment,
-                        reportID,
-                        reports,
-                        Object.values(reportActions),
-                        context.selectedTransactionIDs,
-                        transactions,
-                        transactionsViolations,
-                        context.currentSearchHash,
-                        snapshot,
-                    );
+                    bulkHold(comment, reportID, reports, Object.values(reportActions), context.selectedTransactionIDs, transactions, transactionsViolations);
                 }
                 context.clearSelectedTransactions(true);
             } else {
