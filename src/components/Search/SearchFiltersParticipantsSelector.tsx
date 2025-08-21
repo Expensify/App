@@ -89,7 +89,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         }
 
         return filteredOptions;
-    }, [unselectedOptions, cleanSearchTerm, selectedOptions]);
+    }, [unselectedOptions, cleanSearchTerm, selectedOptions, countryCode]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];

@@ -1489,7 +1489,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
             // When we call filterAndOrderOptions with a search value without accent mark
-            const filteredOptions = filterAndOrderOptions(options, 'Timothee');
+            const filteredOptions = filterAndOrderOptions(options, 'Timothee', COUNTRY_CODE);
 
             // Then one personalDetails with accent mark should be returned
             expect(filteredOptions.personalDetails.length).toBe(1);
