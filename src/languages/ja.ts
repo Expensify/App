@@ -587,6 +587,7 @@ const translations = {
         network: 'ネットワーク',
         reportID: 'レポートID',
         longID: 'Long ID',
+        withdrawalID: '出金ID',
         bankAccounts: '銀行口座',
         chooseFile: 'ファイルを選択',
         chooseFiles: 'ファイルを選択',
