@@ -3,6 +3,7 @@ import type {Comment} from '@src/types/onyx/Transaction';
 type SplitTransactionSplitsParam = Array<{
     amount: number;
     transactionID: string;
+    reportID: string;
     category?: string;
     tag?: string;
     created: string;

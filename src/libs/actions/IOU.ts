@@ -12191,6 +12191,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                 created: split.created,
                 merchant: split?.merchant ?? '',
                 transactionID: split.transactionID,
+                reportID: split.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
                 comment: {
                     comment: currentDescription,
                 },
