@@ -63,6 +63,7 @@ import {
 } from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread, createDraftTransactionAndNavigateToParticipantSelector, isIOUReport} from '@libs/ReportUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
+import type * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import {buildOptimisticTransaction, getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
@@ -126,18 +127,27 @@ jest.mock('@src/libs/actions/Report', () => {
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
-jest.mock('@src/libs/SearchQueryUtils', () => ({
-    getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
-        hash: 12345,
-        query: 'test',
-        type: 'invoice',
-        status: '',
-        flatFilters: [],
-    })),
-    getTodoSearchQuery: jest.fn(),
-    getUnapprovedCashSearchQuery: jest.fn(),
-    buildSearchQueryJSON: jest.fn(),
-}));
+const unapprovedCashHash = 565065994;
+jest.mock('@src/libs/SearchQueryUtils', () => {
+    const actual = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
+            hash: unapprovedCashHash,
+            query: 'test',
+            type: 'expense',
+            status: ['drafts', 'outstanding'],
+            filters: {operator: 'eq', left: 'reimbursable', right: 'yes'},
+            flatFilters: [{key: 'reimbursable', filters: [{operator: 'eq', value: 'yes'}]}],
+            inputQuery: '',
+            recentSearchHash: 89,
+            similarSearchHash: 89,
+            sortBy: 'tag',
+            sortOrder: 'asc',
+        })),
+    };
+});
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
@@ -2498,6 +2508,81 @@ describe('actions/IOU', () => {
                 });
             });
             expect(searchSnapshot?.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]).toBe(undefined);
+        });
+
+        it('should add split transactions optimistically on search snapshot when current search filter is on unapprovedCash', async () => {
+            const chatReport: Report = {
+                ...createRandomReport(7),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            // Given a single expense
+            const expenseReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: chatReport.reportID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const transaction: Transaction = {
+                amount: 100,
+                currency: 'USD',
+                transactionID: '1',
+                reportID: expenseReport.reportID,
+                created: DateUtils.getDBTime(),
+                merchant: 'test',
+            };
+            const transactionThread: Report = {
+                ...createRandomReport(2),
+            };
+            const iouAction: ReportAction = {
+                ...buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    comment: '',
+                    participants: [],
+                    transactionID: transaction.transactionID,
+                    iouReportID: expenseReport.reportID,
+                }),
+                childReportID: transactionThread.reportID,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`, transactionThread);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [iouAction.reportActionID]: iouAction,
+            });
+            const splitTransactionID1 = '34';
+            const splitTransactionID2 = '35';
+            const draftTransaction: OnyxEntry<Transaction> = {
+                ...transaction,
+                comment: {
+                    originalTransactionID: transaction.transactionID,
+                    splitExpenses: [
+                        {amount: transaction.amount / 2, transactionID: splitTransactionID1, created: ''},
+                        {amount: transaction.amount / 2, transactionID: splitTransactionID2, created: ''},
+                    ],
+                },
+            };
+
+            // When splitting the expense
+            const hash = 1;
+            saveSplitTransactions(draftTransaction, hash);
+
+            await waitForBatchedUpdates();
+
+            // Then the split expenses/transactions should be added on the search snapshot data
+            const searchSnapshot = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+            expect(searchSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`]).toBeDefined();
+            expect(searchSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID2}`]).toBeDefined();
         });
     });
 
@@ -6410,13 +6495,9 @@ describe('actions/IOU', () => {
             // Given a transaction with a receipt
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await waitForBatchedUpdates();
-            const searchQueryJSON = {
-                hash: 12345,
-                query: 'test',
-            };
 
             // Given a snapshot of the transaction
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`, {
                 // @ts-expect-error: Allow partial record in snapshot update
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
@@ -6449,7 +6530,7 @@ describe('actions/IOU', () => {
                     waitForCollectionCallback: true,
                     callback: (snapshots) => {
                         Onyx.disconnect(connection);
-                        const newSnapshot = snapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`];
+                        const newSnapshot = snapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`];
                         resolve(newSnapshot);
                     },
                 });
@@ -6472,13 +6553,8 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const searchQueryJSON = {
-                hash: 12345,
-                query: 'test',
-            };
-
             // Given a snapshot of the transaction
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`, {
                 // @ts-expect-error: Allow partial record in snapshot update
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
@@ -6511,7 +6587,7 @@ describe('actions/IOU', () => {
                     waitForCollectionCallback: true,
                     callback: (snapshots) => {
                         Onyx.disconnect(connection);
-                        const newSnapshot = snapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`];
+                        const newSnapshot = snapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`];
                         resolve(newSnapshot);
                     },
                 });
