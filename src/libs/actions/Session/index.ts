@@ -670,6 +670,7 @@ function beginGoogleSignIn(token: string | null) {
 function signInWithShortLivedAuthToken(authToken: string) {
     const {optimisticData, finallyData} = getShortLivedLoginParams();
     API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true}, {optimisticData, finallyData});
+    NetworkStore.setLastShortAuthToken(authToken);
 }
 
 /**
