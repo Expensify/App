@@ -1,4 +1,3 @@
-import type React from 'react';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
