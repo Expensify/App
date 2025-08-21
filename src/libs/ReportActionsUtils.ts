@@ -2846,7 +2846,11 @@ function shouldShowAddMissingDetails(actionName?: ReportActionName, privatePerso
 
 function shouldShowActivateCard(actionName?: ReportActionName, card?: Card, privatePersonalDetail?: PrivatePersonalDetails) {
     const missingDetails = isMissingPrivatePersonalDetails(privatePersonalDetail);
-    return (actionName === CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED || actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS) && isCardPendingActivate(card) && !missingDetails;
+    return (
+        (actionName === CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED || actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS || actionName === CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED) &&
+        isCardPendingActivate(card) &&
+        !missingDetails
+    );
 }
 
 function getJoinRequestMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>) {
