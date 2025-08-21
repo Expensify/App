@@ -160,8 +160,6 @@ function BaseModal(
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
-    // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
-    const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -330,6 +328,7 @@ function BaseModal(
                     shouldDisableBottomSafeAreaPadding: !!shouldDisableBottomSafeAreaPadding,
                 },
                 shouldUseReanimatedModal,
+                enableEdgeToEdgeBottomSafeAreaPadding,
             ),
         [
             StyleUtils,
@@ -345,9 +344,12 @@ function BaseModal(
             modalOverlapsWithTopSafeArea,
             shouldDisableBottomSafeAreaPadding,
             shouldUseReanimatedModal,
+            enableEdgeToEdgeBottomSafeAreaPadding,
         ],
     );
 
+    // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
+    const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
     const modalPaddingStyles = useMemo(() => {
         const paddings = StyleUtils.getModalPaddingStyles({
             shouldAddBottomSafeAreaMargin,

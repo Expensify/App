@@ -7,6 +7,7 @@ import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, Vie
 import type {ModalProps} from 'react-native-modal';
 import type {SvgProps} from 'react-native-svg';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -166,14 +167,13 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** Used to locate the component in the tests */
     testID?: string;
-};
 
-const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentContainerStyle: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
-    if (shouldUseScrollView) {
-        return <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>;
-    }
-    // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{children}</>;
+    /**
+     * Temporary flag to disable safe area bottom spacing in modals and to allow edge-to-edge content.
+     * Modals should not always apply bottom safe area padding, instead it should be applied to the scrollable/bottom-docked content directly.
+     * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
+     */
+    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 };
 
 function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
@@ -188,6 +188,7 @@ function PopoverMenu(props: PopoverMenuProps) {
     }
     return <BasePopoverMenu {...props} />;
 }
+PopoverMenu.displayName = 'PopoverMenu';
 
 function BasePopoverMenu({
     menuItems,
@@ -225,6 +226,7 @@ function BasePopoverMenu({
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
     shouldAvoidSafariException = false,
+    enableEdgeToEdgeBottomSafeAreaPadding,
     testID,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
@@ -446,6 +448,7 @@ function BasePopoverMenu({
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
+            enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
         >
             <FocusTrapForModal active={isVisible}>
                 <View
@@ -454,14 +457,47 @@ function BasePopoverMenu({
                 >
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    {renderWithConditionalWrapper(shouldUseScrollView, restScrollContainerStyle, renderedMenuItems)}
+                    <PopoverMenuContent
+                        shouldUseScrollView={shouldUseScrollView}
+                        contentContainerStyle={restScrollContainerStyle}
+                        addBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
+                    >
+                        {renderedMenuItems}
+                    </PopoverMenuContent>
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
     );
 }
+BasePopoverMenu.displayName = 'BasePopoverMenu';
 
-PopoverMenu.displayName = 'PopoverMenu';
+function PopoverMenuContent({
+    shouldUseScrollView,
+    contentContainerStyle,
+    children,
+    addBottomSafeAreaPadding,
+}: {
+    shouldUseScrollView: boolean;
+    contentContainerStyle: StyleProp<ViewStyle>;
+    children: ReactNode;
+    addBottomSafeAreaPadding?: boolean;
+}): React.JSX.Element {
+    const style = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: contentContainerStyle});
+
+    if (shouldUseScrollView) {
+        return (
+            <ScrollView
+                contentContainerStyle={contentContainerStyle}
+                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+            >
+                {children}
+            </ScrollView>
+        );
+    }
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <View style={style}>{children}</View>;
+}
+PopoverMenuContent.displayName = 'PopoverMenuContent';
 
 export default React.memo(
     PopoverMenu,
