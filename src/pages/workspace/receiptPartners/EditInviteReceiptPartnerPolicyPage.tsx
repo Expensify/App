@@ -149,6 +149,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 rightElement = (
                     <Badge
                         text={badgeText}
+                        success
                         style={[styles.ml3]}
                     />
                 );
