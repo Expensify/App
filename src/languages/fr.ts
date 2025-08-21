@@ -645,11 +645,12 @@ const translations = {
         workspacesTabTitle: 'Espaces de travail',
         getTheApp: "Obtenez l'application",
         scanReceiptsOnTheGo: 'Numérisez les reçus depuis votre téléphone',
-        headsUp: 'Attention !',
+        headsUp: 'Attention!',
         submitTo: 'Envoyer à',
         forwardTo: 'Transférer à',
         merge: 'Fusionner',
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
+        actionRequired: 'Action requise',
     },
     supportalNoAccess: {
         title: 'Pas si vite',

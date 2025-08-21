@@ -649,6 +649,7 @@ const translations = {
         forwardTo: 'Doorsturen naar',
         merge: 'Samenvoegen',
         unstableInternetConnection: 'Onstabiele internetverbinding. Controleer je netwerk en probeer het opnieuw.',
+        actionRequired: 'Actie vereist',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',

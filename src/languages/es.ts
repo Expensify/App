@@ -631,6 +631,7 @@ const translations = {
         forwardTo: 'Reenviar a',
         merge: 'Fusionar',
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
+        actionRequired: 'Acción requerida',
     },
     supportalNoAccess: {
         title: 'No tan rápido',

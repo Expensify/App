@@ -641,6 +641,7 @@ const translations = {
         forwardTo: 'Forward to',
         merge: 'Merge',
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
+        actionRequired: 'Action required',
     },
     supportalNoAccess: {
         title: 'Not so fast',

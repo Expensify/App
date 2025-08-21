@@ -650,6 +650,7 @@ const translations = {
         forwardTo: 'Inoltra a',
         merge: 'Unisci',
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la tua rete e riprova.',
+        actionRequired: 'Azione richiesta',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',

@@ -649,6 +649,8 @@ const translations = {
         forwardTo: '转发到',
         merge: '合并',
         unstableInternetConnection: '互联网连接不稳定。请检查你的网络，然后重试。',
+        headsUp: '注意',
+        actionRequired: '需要操作',
     },
     supportalNoAccess: {
         title: '慢一点',
