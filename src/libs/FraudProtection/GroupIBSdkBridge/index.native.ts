@@ -26,7 +26,10 @@ function init(): Promise<void> {
         const iOSCustomerID = cidIOSMap[env] ?? cidIOSMap[CONST.ENVIRONMENT.DEV];
         const androidCustomerID = cidAndroidMap[env] ?? cidAndroidMap[CONST.ENVIRONMENT.DEV];
         const fp = FP.getInstance();
-        fp.setCustomerId(iOSCustomerID, androidCustomerID);
+        if (env === CONST.ENVIRONMENT.DEV) {
+            fp.enableDebugLogs();
+        }
+        fp.setCustomerId(iOSCustomerID, androidCustomerID);]
         fp.setTargetURL(`${oldDotURL}/api/fl`);
         fp.run();
         resolveFpInstancePromise(fp);
@@ -36,7 +39,7 @@ function init(): Promise<void> {
 function setAuthenticationData(identity: string, sessionID: string): void {
     fpInstancePromise.then((fp) => {
         fp.setAttributeTitle('user_id', identity, FPAttributeFormat.ClearText);
-        fp.setSessionId(sessionID);
+        fp.setSessionId(sessionID); 
     });
 }
 
