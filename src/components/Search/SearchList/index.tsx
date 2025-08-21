@@ -160,11 +160,7 @@ function SearchList(
     );
 
     const {translate} = useLocalize();
-<<<<<<< HEAD:src/components/Search/SearchList.tsx
     const {isOffline} = useNetwork();
-    const isFocused = useIsFocused();
-=======
->>>>>>> main:src/components/Search/SearchList/index.tsx
     const listRef = useRef<FlashList<SearchListItem>>(null);
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
@@ -277,12 +273,9 @@ function SearchList(
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
                         userBillingFundID={userBillingFundID}
-<<<<<<< HEAD:src/components/Search/SearchList.tsx
                         accountID={accountID}
                         isOffline={isOffline}
-=======
                         onFocus={onFocus}
->>>>>>> main:src/components/Search/SearchList/index.tsx
                     />
                 </Animated.View>
             );
@@ -305,12 +298,8 @@ function SearchList(
             isUserValidated,
             personalDetails,
             userBillingFundID,
-<<<<<<< HEAD:src/components/Search/SearchList.tsx
             accountID,
             isOffline,
-            setFocusedIndex,
-=======
->>>>>>> main:src/components/Search/SearchList/index.tsx
         ],
     );
 
