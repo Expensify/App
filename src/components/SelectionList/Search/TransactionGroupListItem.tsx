@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
@@ -22,7 +22,6 @@ import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
@@ -47,7 +46,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     showTooltip,
     isDisabled,
     canSelectMultiple,
-    onCheckboxPress,
+    onCheckboxPress: onCheckboxPressRow,
     onSelectRow,
     onFocus,
     onLongPressRow,
@@ -81,8 +80,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }));
     }, [isGroupByReports, transactionsSnapshot?.data, transactionsSnapshot?.search, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDs]);
     const [isExpanded, setIsExpanded] = useState(false);
-    const prevTransactionsLength = usePrevious(transactions.length);
-    const shouldForceExpand = prevTransactionsLength === 0 && transactions.length > 0 && !isGroupByReports;
 
     const isEmpty = transactions.length === 0;
     // Currently only the transaction report groups have transactions where the empty view makes sense
@@ -142,6 +139,30 @@ function TransactionGroupListItem<TItem extends ListItem>({
         COLUMNS.ACTION,
     ] satisfies Array<ValueOf<typeof COLUMNS>>;
 
+    const StyleUtils = useStyleUtils();
+    const pressableRef = useRef<View>(null);
+
+    const handleToggle = useCallback(() => {
+        setIsExpanded(!isExpanded);
+    }, [isExpanded]);
+
+    const onPress = useCallback(() => {
+        if (isGroupByReports || transactions.length === 0) {
+            onSelectRow(item);
+        }
+        if (!isGroupByReports) {
+            handleToggle();
+        }
+    }, [isGroupByReports, transactions.length, onSelectRow, item, handleToggle]);
+
+    const onLongPress = useCallback(() => {
+        onLongPressRow?.(item);
+    }, [item, onLongPressRow]);
+
+    const onCheckboxPress = useCallback((val: TItem) => {
+        onCheckboxPressRow?.(val);
+    }, [onCheckboxPressRow]);
+
     const getHeader = useMemo(() => {
         const headers: Record<SearchGroupBy, React.JSX.Element> = {
             [CONST.SEARCH.GROUP_BY.REPORTS]: (
@@ -157,7 +178,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.FROM]: (
                 <MemberListItemHeader
                     member={groupItem as TransactionMemberGroupListItemType}
-                    onSelectRow={onSelectRow}
+                    onSelectRow={onPress}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     canSelectMultiple={canSelectMultiple}
@@ -166,7 +187,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.CARD]: (
                 <CardListItemHeader
                     card={groupItem as TransactionCardGroupListItemType}
-                    onSelectRow={onSelectRow}
+                    onSelectRow={onPress}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     isFocused={isFocused}
@@ -184,33 +205,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         return headers[groupBy];
-    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, groupBy]);
-
-    const StyleUtils = useStyleUtils();
-    const pressableRef = useRef<View>(null);
-
-    useEffect(() => {
-        if (!shouldForceExpand || isExpanded) {
-            return;
-        }
-        setIsExpanded(true);
-    }, [shouldForceExpand, isExpanded]);
-
-    const handleToggle = useCallback(() => {
-        setIsExpanded(!isExpanded);
-    }, [isExpanded]);
-
-    const onPress = useCallback(() => {
-        if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS || transactions.length === 0) {
-            onSelectRow(item);
-            return;
-        }
-        handleToggle();
-    }, [groupBy, item, onSelectRow, transactions.length, handleToggle]);
-
-    const onLongPress = useCallback(() => {
-        onLongPressRow?.(item);
-    }, [item, onLongPressRow]);
+    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, onPress, groupBy]);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
@@ -239,7 +234,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     <AnimatedCollapsible
                         isExpanded={isExpanded}
                         header={getHeader}
-                        onPress={isEmpty && !shouldDisplayEmptyView ? onPress : handleToggle}
+                        onPress={() => {
+                            if (isEmpty && !shouldDisplayEmptyView) {
+                                onPress();
+                            }
+                            handleToggle();
+                        }}
                     >
                         {shouldDisplayEmptyView ? (
                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
@@ -299,11 +299,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                     </View>
                                 )}
                                 {shouldDisplayLoadingIndicator && (
-                                    <View style={[isLargeScreenWidth && styles.pl10, styles.pt3]}>
+                                    <View style={[isLargeScreenWidth && styles.pl10, !isEmpty && styles.pt3]}>
                                         <ActivityIndicator
                                             color={theme.spinner}
                                             size={25}
-                                            style={[styles.pl3, styles.alignItemsStart]}
+                                            style={[styles.pl3, !isEmpty && styles.alignItemsStart]}
                                         />
                                     </View>
                                 )}

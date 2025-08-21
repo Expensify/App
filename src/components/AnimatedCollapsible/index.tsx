@@ -49,16 +49,16 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
     const height = useSharedValue(0);
     const isAnimating = useSharedValue(false);
     const hasExpanded = useSharedValue(false);
-    const isExpanedFirstTime = useRef(false);
+    const isExpandedFirstTime = useRef(false);
 
     useEffect(() => {
-        if (!isExpanded && !isExpanedFirstTime.current) {
+        if (!isExpanded && !isExpandedFirstTime.current) {
             return;
         }
-        if (isExpanedFirstTime.current) {
+        if (isExpandedFirstTime.current) {
             hasExpanded.set(true);
         } else {
-            isExpanedFirstTime.current = true;  
+            isExpandedFirstTime.current = true;  
         }
     }, [hasExpanded, isExpanded]);
     
