@@ -71,23 +71,19 @@ const webpack = {
 };
 
 const metro = {
-    // presets: [require('@react-native/babel-preset')],
+    presets: [require('@react-native/babel-preset')],
     plugins: [
         ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
 
-        // // This is needed due to a react-native bug: https://github.com/facebook/react-native/issues/29084#issuecomment-1030732709
-        // // It is included in metro-react-native-babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
-        // '@babel/plugin-transform-flow-strip-types',
+        // This is needed due to a react-native bug: https://github.com/facebook/react-native/issues/29084#issuecomment-1030732709
+        // It is included in metro-react-native-babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
+        '@babel/plugin-transform-flow-strip-types',
 
-        // ['@babel/plugin-proposal-class-properties', {loose: true}],
-        // ['@babel/plugin-proposal-private-methods', {loose: true}],
-        // ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
-        // // The reanimated babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
-        // 'react-native-reanimated/plugin',
-
-        // 'babel-plugin-syntax-hermes-parser',
-        // ['@babel/plugin-syntax-typescript', false],
-        // '@react-native/babel-plugin-codegen',
+        ['@babel/plugin-proposal-class-properties', {loose: true}],
+        ['@babel/plugin-proposal-private-methods', {loose: true}],
+        ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
+        // The reanimated babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
+        'react-native-reanimated/plugin',
 
         /* Fullstory */
         '@fullstory/react-native',
@@ -97,46 +93,45 @@ const metro = {
                 native: true,
             },
         ],
-
         // Import alias for native devices
-        [
-            'module-resolver',
-            {
-                extensions: [
-                    '.native.js',
-                    '.native.jsx',
-                    '.native.ts',
-                    '.native.tsx',
-                    '.js',
-                    '.jsx',
-                    '.ts',
-                    '.tsx',
-                    '.ios.js',
-                    '.ios.jsx',
-                    '.ios.ts',
-                    '.ios.tsx',
-                    '.android.js',
-                    '.android.jsx',
-                    '.android.ts',
-                    '.android.tx',
-                ],
-                alias: {
-                    '@assets': './assets',
-                    '@components': './src/components',
-                    '@hooks': './src/hooks',
-                    '@libs': './src/libs',
-                    '@navigation': './src/libs/Navigation',
-                    '@pages': './src/pages',
-                    '@prompts': './prompts',
-                    '@styles': './src/styles',
-                    // This path is provide alias for files like `ONYXKEYS` and `CONST`.
-                    '@src': './src',
-                    '@userActions': './src/libs/actions',
-                    '@desktop': './desktop',
-                    '@github': './.github',
-                },
-            },
-        ],
+        // [
+        //     'module-resolver',
+        //     {
+        //         extensions: [
+        //             '.native.js',
+        //             '.native.jsx',
+        //             '.native.ts',
+        //             '.native.tsx',
+        //             '.js',
+        //             '.jsx',
+        //             '.ts',
+        //             '.tsx',
+        //             '.ios.js',
+        //             '.ios.jsx',
+        //             '.ios.ts',
+        //             '.ios.tsx',
+        //             '.android.js',
+        //             '.android.jsx',
+        //             '.android.ts',
+        //             '.android.tx',
+        //         ],
+        //         alias: {
+        //             '@assets': './assets',
+        //             '@components': './src/components',
+        //             '@hooks': './src/hooks',
+        //             '@libs': './src/libs',
+        //             '@navigation': './src/libs/Navigation',
+        //             '@pages': './src/pages',
+        //             '@prompts': './prompts',
+        //             '@styles': './src/styles',
+        //             // This path is provide alias for files like `ONYXKEYS` and `CONST`.
+        //             '@src': './src',
+        //             '@userActions': './src/libs/actions',
+        //             '@desktop': './desktop',
+        //             '@github': './.github',
+        //         },
+        //     },
+        // ],
     ],
     env: {
         production: {
@@ -173,18 +168,18 @@ if (process.env.CAPTURE_METRICS === 'true') {
 }
 
 module.exports = (api) => {
-    console.debug('babel.config.js');
-    console.debug('  - api.version:', api.version);
-    console.debug('  - api.env:', api.env());
-    console.debug('  - process.env.NODE_ENV:', process.env.NODE_ENV);
-    console.debug('  - process.env.BABEL_ENV:', process.env.BABEL_ENV);
+    // console.debug('babel.config.js');
+    // console.debug('  - api.version:', api.version);
+    // console.debug('  - api.env:', api.env());
+    // console.debug('  - process.env.NODE_ENV:', process.env.NODE_ENV);
+    // console.debug('  - process.env.BABEL_ENV:', process.env.BABEL_ENV);
 
     // For `react-native` (iOS/Android) caller will be "metro"
     // For `webpack` (Web) caller will be "@babel-loader"
     // For jest, it will be babel-jest
     // For `storybook` there won't be any config at all so we must give default argument of an empty object
     const runningIn = api.caller((args = {}) => args.name);
-    console.debug('  - running in: ', runningIn);
+    // console.debug('  - running in: ', runningIn);
 
-    return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
+    return ['metro', 'babel-jest', '@callstack/repack/babel-swc-loader'].includes(runningIn) ? metro : webpack;
 };

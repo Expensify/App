@@ -13,17 +13,11 @@ const __dirname = path.dirname(__filename);
  * Learn about Re.Pack configuration: https://re-pack.dev/docs/guides/configuration
  */
 
-export default (env) => ({
+export default Repack.defineRspackConfig({
     context: __dirname,
     entry: './index.js',
-    cache: true,
-    experiments: {
-        cache: {
-            type: 'persistent',
-        },
-    },
     resolve: {
-        ...Repack.getResolveOptions(env.platform),
+        ...Repack.getResolveOptions(),
         tsConfig: {
             configFile: path.resolve(__dirname, './tsconfig.json'),
             references: 'auto',
