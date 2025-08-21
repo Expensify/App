@@ -25,7 +25,9 @@ Onyx.connect({
 });
 
 // We subscribe to sessions changes
-Onyx.connect({
+// We do not depend on updates on the UI to call the `deactivate` function
+// So we can use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         if (!value || isSameSession(value) || !active) {
