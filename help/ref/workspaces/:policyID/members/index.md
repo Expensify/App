@@ -27,8 +27,6 @@ Invite teammates to your workspace and assign roles to control their access and 
 - Add comments, but cannot modify expenses
 - No approval or payment permissions
 
----
-
 ## Adding Members
 
 1. Under **Workspaces > [Workspace Name] > Members**, click **Invite Member**
@@ -37,8 +35,6 @@ Invite teammates to your workspace and assign roles to control their access and 
 4. Click **Invite**
 
 **Alternative:** Share the workspace URL or QR code from **Account > Profile > Share**
-
----
 
 ## Managing Members
 
@@ -54,16 +50,12 @@ Invite teammates to your workspace and assign roles to control their access and 
 2. Click **Remove from Workspace**
 3. Confirm removal
 
----
-
 ## Transfer Ownership of a Workspace
 
 1. Go to **Members** and click current **Owner**
 2. Click **Transfer Owner** 
 3. Confirm transfer
 4. You become the new owner
-
----
 
 ## Learn More
 
