@@ -72,7 +72,6 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
             const duplicate = findDuplicate(columns);
             const tagsNamesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.NAME);
             const tagsNames = tagsNamesColumn !== -1 ? spreadsheet?.data[tagsNamesColumn] : [];
-            console.log('tagsNames', tagsNames);
             const containsEmptyName = tagsNames?.some((name, index) => (!containsHeader || index > 0) && !name?.toString().trim());
 
             if (duplicate) {
