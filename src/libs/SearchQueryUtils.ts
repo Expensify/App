@@ -386,9 +386,9 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
 
         if (queryFieldValue) {
             if (Array.isArray(queryFieldValue)) {
-                queryParts.push(`${key}:${getUserFriendlyValue(queryFieldValue.join(','))}`);
+                queryParts.push(`${key}:${queryFieldValue.join(',')}`);
             } else {
-                queryParts.push(`${key}:${getUserFriendlyValue(queryFieldValue)}`);
+                queryParts.push(`${key}:${queryFieldValue}`);
             }
         }
     }
@@ -444,7 +444,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     if (groupBy) {
-        const sanitizedGroupBy = getUserFriendlyValue(sanitizeSearchValue(groupBy));
+        const sanitizedGroupBy = sanitizeSearchValue(groupBy);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
     }
 

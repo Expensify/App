@@ -511,7 +511,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
                 outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
                 wrapperFocusedStyle={styles.borderColorFocus}
-                isSearchingForReports={isSearchingForReports}
+                isSearchingForReports={!!isSearchingForReports}
                 selection={selection}
                 substitutionMap={autocompleteSubstitutions}
                 ref={textInputRef}
