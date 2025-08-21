@@ -87,6 +87,7 @@ import {
 } from '@libs/PolicyUtils';
 import {
     getAllReportActions,
+    getIOUActionForReportID,
     getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
     getLastVisibleAction,
