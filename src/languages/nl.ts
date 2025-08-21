@@ -587,6 +587,7 @@ const translations = {
         network: 'Netwerk',
         reportID: 'Rapport-ID',
         longID: 'Lang ID',
+        withdrawalID: 'Opname-ID',
         bankAccounts: 'Bankrekeningen',
         chooseFile: 'Bestand kiezen',
         chooseFiles: 'Bestanden kiezen',
@@ -1295,9 +1296,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Het lijkt erop dat je geen niet-gerapporteerde uitgaven hebt. Probeer er hieronder een aan te maken.',
         addUnreportedExpenseConfirm: 'Toevoegen aan rapport',
         explainHold: 'Leg uit waarom je deze uitgave vasthoudt.',
-        undoSubmit: 'Ongedaan maken indienen',
         retracted: 'ingetrokken',
-        undoClose: 'Sluiten ongedaan maken',
+        retract: 'Intrekken',
         reopened: 'heropend',
         reopenReport: 'Rapport heropenen',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
@@ -6393,8 +6393,9 @@ const translations = {
         levelThreeResult: 'Bericht verwijderd uit kanaal plus anonieme waarschuwing en bericht is gerapporteerd voor beoordeling.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Nodig hen uit',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Uitnodigen om onkosten in te dienen',
+        inviteToChat: 'Alleen uitnodigen om te chatten',
+        nothing: 'Niets doen',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accepteren',
@@ -7055,7 +7056,7 @@ const translations = {
         takeATestDrive: 'Maak een proefrit',
     },
     migratedUserWelcomeModal: {
-        title: 'Reizen en uitgaven, met de snelheid van chat',
+        title: 'Welkom bij New Expensify!',
         subtitle: 'Nieuwe Expensify heeft dezelfde geweldige automatisering, maar nu met geweldige samenwerking:',
         confirmText: 'Laten we gaan!',
         features: {

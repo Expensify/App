@@ -24,8 +24,8 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, generateReportID, isArchivedReport} from '@libs/ReportUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {canEditFieldOfMoneyRequest, generateReportID, selectArchivedReportsIdSet, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     getListItem,
@@ -41,10 +41,11 @@ import {
     isTransactionGroupListItemType,
     isTransactionListItemType,
     isTransactionMemberGroupListItemType,
+    isTransactionWithdrawalIDGroupListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import type {ArchivedReportsIDSet, SearchKey} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -197,35 +198,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
-        selector: (all): ArchivedReportsIDSet => {
-            const ids = new Set<string>();
-            if (!all) {
-                return ids;
-            }
-
-            const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
-            for (const [key, value] of Object.entries(all)) {
-                if (isArchivedReport(value)) {
-                    const reportID = key.slice(prefixLength);
-                    ids.add(reportID);
-                }
-            }
-            return ids;
-        },
+        selector: selectArchivedReportsIdSet,
     });
 
     // Create a selector for only the reportActions needed to determine if a report has been exported or not, grouped by report
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
         canBeMissing: true,
-        selector: (allReportActions) => {
-            return Object.fromEntries(
-                Object.entries(allReportActions ?? {}).map(([reportID, reportActionsGroup]) => {
-                    const filteredReportActions = Object.values(reportActionsGroup ?? {}).filter((action) => isExportIntegrationAction(action) || isIntegrationMessageAction(action));
-                    return [reportID, filteredReportActions];
-                }),
-            );
-        },
+        selector: selectFilteredReportActions,
     });
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
@@ -315,7 +295,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
 
-        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals});
+        const results = searchResults
+            ? getSections(type, searchResults.data, searchResults.search, accountID, formatPhoneNumber, groupBy).map((element) => element?.reportID ?? CONST.REPORT.DEFAULT_REPORT_ID)
+            : [];
+        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReports: results});
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -357,8 +340,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return [];
         }
 
-        return getSections(type, searchResults.data, searchResults.search, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
-    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON]);
+        const results = getSections(type, searchResults.data, searchResults.search, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet);
+        return results;
+    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -567,6 +551,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 return;
             }
 
+            if (isTransactionWithdrawalIDGroupListItemType(item)) {
+                return;
+            }
+
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const isTransactionItem = isTransactionListItemType(item);
 
@@ -609,7 +597,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID}));
         },
-        [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, shouldCalculateTotals, hash],
+        [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, hash],
     );
 
     const onViewableItemsChanged = useCallback(
@@ -635,7 +623,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
+    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled) && groupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
     const ListItem = getListItem(type, status, groupBy);
     const sortedSelectedData = useMemo(
         () =>
@@ -771,7 +759,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowSorting = !groupBy;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
-
     return (
         <SearchScopeProvider isOnSearch>
             <SearchList
@@ -783,6 +770,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 onAllCheckboxPress={toggleAllTransactions}
                 canSelectMultiple={canSelectMultiple}
                 shouldPreventLongPressRow={isChat || isTask}
+                isFocused={isFocused}
                 SearchTableHeader={
                     !shouldShowTableHeader ? undefined : (
                         <SearchTableHeader

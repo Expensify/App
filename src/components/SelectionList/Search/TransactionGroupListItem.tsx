@@ -16,6 +16,7 @@ import type {
     TransactionListItemType,
     TransactionMemberGroupListItemType,
     TransactionReportGroupListItemType,
+    TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
@@ -39,6 +40,7 @@ import ROUTES from '@src/ROUTES';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
+import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 
 function TransactionGroupListItem<TItem extends ListItem>({
     item,
@@ -198,8 +200,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 />
             ),
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: (
-                // Will be implemented as part of https://github.com/Expensify/App/pull/66078
-                <View />
+                <WithdrawalIDListItemHeader
+                    withdrawalID={groupItem as TransactionWithdrawalIDGroupListItemType}
+                    onSelectRow={onSelectRow}
+                    onCheckboxPress={onCheckboxPress}
+                    isDisabled={isDisabledOrEmpty}
+                    canSelectMultiple={canSelectMultiple}
+                />
             ),
         };
 
