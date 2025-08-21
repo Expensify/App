@@ -8,12 +8,14 @@ import * as AppActions from '@libs/actions/App';
 import {hasAuthToken, signOutAndRedirectToSignIn} from '@libs/actions/Session';
 // eslint-disable-next-line no-restricted-imports, no-restricted-syntax
 import * as Session from '@libs/actions/Session';
+import {getCurrentUserEmail, setLastShortAuthToken} from '@libs/Network/NetworkStore';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {createRandomReport} from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
@@ -96,6 +98,8 @@ describe('Deep linking', () => {
         await waitForNetworkPromises();
         jest.clearAllMocks();
         lastVisitedPath = undefined;
+        Linking.setInitialURL('');
+        setLastShortAuthToken(null);
     });
 
     it('should not remember the report path of the last deep link login after signing out and in again', async () => {
@@ -104,9 +108,9 @@ describe('Deep linking', () => {
         const url = getInitialURL();
         // User signs in automatically when the app is rendered because of the deep link
         Linking.setInitialURL(url);
-        render(<App />);
+        const {unmount} = render(<App />);
 
-        await waitForBatchedUpdatesWithAct();
+        await waitForBatchedUpdates();
 
         expect(lastVisitedPath).toBe(`/${ROUTES.REPORT}/${report.reportID}`);
 
@@ -124,5 +128,50 @@ describe('Deep linking', () => {
 
         expect(lastVisitedPath).toBeDefined();
         expect(lastVisitedPath).not.toBe(`/${ROUTES.REPORT}/${report.reportID}`);
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should not reuse the last deep link and log in again when signing out', async () => {
+        expect(hasAuthToken()).toBe(false);
+
+        const {unmount: unmount1} = render(<App />);
+        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID_2, TEST_USER_LOGIN_2, undefined, TEST_AUTH_TOKEN_2);
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(hasAuthToken()).toBe(true);
+        expect(getCurrentUserEmail()).toBe(TEST_USER_LOGIN_2);
+        // Unmount so we can prepare the deep link login
+        unmount1();
+
+        await waitForBatchedUpdatesWithAct();
+
+        const url = getInitialURL();
+        // User signs in automatically when the app is remounted because of the deep link.
+        // This overrides the previous sign-in.
+        Linking.setInitialURL(url);
+        const {unmount: unmount2} = render(<App />);
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(getCurrentUserEmail()).toBe(TEST_USER_LOGIN_1);
+
+        signOutAndRedirectToSignIn();
+
+        await waitForBatchedUpdatesWithAct();
+
+        // In a failing scenario, remounting triggers the sign-in with the deep link again because it still remembers it.
+        // However, we've implemented a fix so that it does not reuse the last deep link.
+        unmount2();
+        const {unmount: unmount3} = render(<App />);
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(hasAuthToken()).toBe(false);
+
+        unmount3();
+        await waitForBatchedUpdatesWithAct();
     });
 });
