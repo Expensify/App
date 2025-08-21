@@ -17,7 +17,7 @@ function RequireTwoFactorAuthenticationPage() {
 
     return (
         <ScreenWrapper testID={RequireTwoFactorAuthenticationPage.displayName}>
-            <View style={[styles.twoFARequiredContainer]}>
+            <View style={styles.twoFARequiredContainer}>
                 <View style={[styles.twoFAIllustration, styles.alignItemsCenter]}>
                     <Icon
                         src={Encryption}
@@ -26,7 +26,7 @@ function RequireTwoFactorAuthenticationPage() {
                     />
                 </View>
                 <View style={[styles.mt2, styles.mh5, styles.dFlex, styles.alignItemsCenter]}>
-                    <View style={[styles.mb5]}>
+                    <View style={styles.mb5}>
                         <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mv2]}>{translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsHeader')}</Text>
                         <Text style={[styles.textSupporting, styles.textAlignCenter]}>{translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsDescription')}</Text>
                     </View>
@@ -34,11 +34,7 @@ function RequireTwoFactorAuthenticationPage() {
                         large
                         success
                         pressOnEnter
-                        onPress={() =>
-                            Navigation.navigate(
-                                ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH, ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH)),
-                            )
-                        }
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT)}
                         text={translate('twoFactorAuth.enableTwoFactorAuth')}
                     />
                 </View>

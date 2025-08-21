@@ -15,7 +15,6 @@ function ValidateCodeActionModal({
     validateCodeActionErrorField,
     handleSubmitForm,
     clearError,
-    footer,
     sendValidateCode,
     isLoading,
     shouldHandleNavigationBack,
@@ -47,7 +46,6 @@ function ValidateCodeActionModal({
                 validatePendingAction={validatePendingAction}
                 threeDotsMenuItems={threeDotsMenuItems}
                 onThreeDotsButtonPress={onThreeDotsButtonPress}
-                footer={footer}
                 isLoading={isLoading}
             />
         </Modal>

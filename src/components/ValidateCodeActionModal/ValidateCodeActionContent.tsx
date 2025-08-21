@@ -23,7 +23,6 @@ function ValidateCodeActionContent({
     validateCodeActionErrorField,
     handleSubmitForm,
     clearError,
-    footer,
     sendValidateCode,
     isLoading,
     threeDotsMenuItems = [],
@@ -81,7 +80,6 @@ function ValidateCodeActionContent({
                     />
                 </View>
             </ScrollView>
-            {footer?.()}
         </ScreenWrapper>
     );
 }

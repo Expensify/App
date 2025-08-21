@@ -30,9 +30,6 @@ type ValidateCodeActionContentProps = {
     /** Function to clear error of the form */
     clearError: () => void;
 
-    /** A component to be rendered inside the modal */
-    footer?: () => React.JSX.Element;
-
     /** Function is called when validate code modal is mounted and on magic code resend */
     sendValidateCode: () => void;
 
