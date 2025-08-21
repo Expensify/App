@@ -7,7 +7,6 @@ import type {ValueOf} from 'type-fest';
 import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
-import BankAccount from '@libs/models/BankAccount';
 import {addTrailingForwardSlash} from '@libs/Url';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,6 +55,8 @@ const keyInputSpace = ' ';
 
 // describes if a shortcut key can cause navigation
 const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
+
+const SETUP_STATE = 'SETUP';
 
 const chatTypes = {
     POLICY_ANNOUNCE: 'policyAnnounce',
@@ -5502,12 +5503,21 @@ const CONST = {
         },
     },
 
+    BANK_ACCOUNT_STATE: {
+        PENDING: 'PENDING',
+        OPEN: 'OPEN',
+        DELETED: 'DELETED',
+        LOCKED: 'LOCKED',
+        SETUP: SETUP_STATE,
+        VERIFYING: 'VERIFYING',
+    },
+
     // We need to store this server side error in order to not show the blocking screen when the error is for invalid code
     MERGE_ACCOUNT_INVALID_CODE_ERROR: '401 Not authorized - Invalid validateCode',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
-                state: BankAccount.STATE.SETUP,
+                state: SETUP_STATE,
             },
             isLoading: false,
             errorFields: {},
