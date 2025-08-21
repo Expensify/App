@@ -1941,10 +1941,11 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
 function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
     const {status} = queryJSON ?? {};
 
-    const isDataLoaded =
-        searchResults?.data !== undefined &&
-        searchResults?.search?.type === queryJSON?.type &&
-        (Array.isArray(status) ? searchResults?.search?.status === status.join(',') : searchResults?.search?.status === status);
+    const sortedSearchResultStatus = !Array.isArray(searchResults?.search?.status)
+        ? searchResults?.search?.status.split(',').sort().join(',')
+        : searchResults?.search?.status.sort().join(',');
+    const sortedQueryJSONStatus = Array.isArray(status) ? status.sort().join(',') : status;
+    const isDataLoaded = searchResults?.data !== undefined && searchResults?.search?.type === queryJSON?.type && sortedSearchResultStatus === sortedQueryJSONStatus;
 
     return isDataLoaded;
 }
