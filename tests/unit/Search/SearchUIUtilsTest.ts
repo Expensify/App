@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import createRandomTransaction from 'tests/utils/collections/transaction';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
@@ -16,7 +15,7 @@ import IntlStore from '@src/languages/IntlStore';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchDataTypes, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {formatPhoneNumber, localeCompare} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -1697,6 +1696,7 @@ describe('SearchUIUtils', () => {
             const results: OnyxTypes.SearchResults = {
                 data: {
                     personalDetailsList: {},
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     transactions_1: {
                         accountID: 2074551,
                         amount: 0,
