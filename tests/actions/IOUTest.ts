@@ -7,6 +7,7 @@ import {deepEqual} from 'fast-equals';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import useAncestorReportActions from '@hooks/useAncestorReportActions';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import type {PerDiemExpenseTransactionParams, RequestMoneyParticipantParams} from '@libs/actions/IOU';
 import {
@@ -4704,6 +4705,7 @@ describe('actions/IOU', () => {
                 .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
                 .then(() => {
                     bulkHold(comment, iouReport, transactionCollection, {}, transactionsIOUActions);
+
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -4747,6 +4749,160 @@ describe('actions/IOU', () => {
                                 expect(unheldTotal).toEqual(200);
                                 expect(unheldNonReimbursableTotal).toEqual(0);
                                 expect(Object.keys(allReports)).toHaveLength(3);
+                            },
+                        });
+                    });
+                });
+        });
+
+        test('Bulk hold transactions with realistic transaction threads', () => {
+            const iouReport = buildOptimisticIOUReport(1, 2, 200, '1', 'USD');
+            const transaction1 = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+                existingTransactionID: '1',
+            });
+
+            const transaction2 = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 200,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+                existingTransactionID: '2',
+            });
+
+            const transactionCollection: OnyxCollection<Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+            const iouAction1: ReportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: transaction1.amount,
+                currency: transaction1.currency,
+                comment: '',
+                participants: [],
+                iouReportID: iouReport.reportID,
+                transactionID: transaction1.transactionID,
+            });
+
+            const iouAction2: ReportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: transaction2.amount,
+                currency: transaction2.currency,
+                comment: '',
+                participants: [],
+                iouReportID: iouReport.reportID,
+                transactionID: transaction2.transactionID,
+            });
+            const transaction1Thread = buildTransactionThread(iouAction1, iouReport);
+            const transaction2Thread = buildTransactionThread(iouAction2, iouReport);
+
+            const reportCollection: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transaction1Thread.reportID}`]: transaction1Thread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${transaction2Thread.reportID}`]: transaction2Thread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+            };
+
+            const actions: OnyxInputValue<ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction1.reportActionID}`]: {
+                    ...iouAction1,
+                    childReportID: transaction1Thread.reportID,
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction2.reportActionID}`]: {
+                    ...iouAction2,
+                    childReportID: transaction2Thread.reportID,
+                },
+            };
+
+            const actionCollection: ReportActionsCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions,
+            };
+            const comment = 'Bulk Hold';
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
+                .then(() => {
+                    const {result} = renderHook(() => useAncestorReportActions(iouReport.reportID));
+                    bulkHold(
+                        comment,
+                        iouReport.reportID,
+                        reportCollection,
+                        Object.values(actions),
+                        [transaction1.transactionID, transaction2.transactionID],
+                        transactionCollection,
+                        {},
+                        result.current,
+                    );
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    return new Promise<void>((resolve) => {
+                        const violationsConnection = Onyx.connect({
+                            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+                            waitForCollectionCallback: true,
+                            callback: (allTransactionsViolations) => {
+                                Onyx.disconnect(violationsConnection);
+                                resolve();
+                                expect(Object.keys(allTransactionsViolations)).toHaveLength(2);
+
+                                const expectedViolations = [
+                                    {
+                                        name: CONST.VIOLATIONS.HOLD,
+                                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                                        showInReview: true,
+                                    },
+                                ];
+                                const transaction1Violations = allTransactionsViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction1.transactionID}`];
+                                const transaction2Violations = allTransactionsViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction2.transactionID}`];
+                                expect(transaction1Violations).toMatchObject(expectedViolations);
+                                expect(transaction2Violations).toMatchObject(expectedViolations);
+                            },
+                        });
+
+                        const reportsConnection = Onyx.connect({
+                            key: ONYXKEYS.COLLECTION.REPORT,
+                            waitForCollectionCallback: true,
+                            callback: (allReports) => {
+                                Onyx.disconnect(reportsConnection);
+                                resolve();
+                                expect(Object.keys(allReports)).toHaveLength(3);
+
+                                const {unheldTotal, unheldNonReimbursableTotal} = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`] ?? {};
+                                expect(unheldTotal).toEqual(200);
+                                expect(unheldNonReimbursableTotal).toEqual(0);
+
+                                // First transaction thread
+                                const thread1LastVisibleActionCreated = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction1Thread.reportID}`]?.lastVisibleActionCreated;
+                                const connection1 = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction1Thread.reportID}`,
+                                    callback: (reportActions) => {
+                                        Onyx.disconnect(connection1);
+                                        resolve();
+                                        const lastAction = getSortedReportActions(Object.values(reportActions ?? {}), true).at(0);
+                                        const message = getReportActionMessage(lastAction);
+                                        // Then the transaction thread report lastVisibleActionCreated should equal the hold comment action created timestamp.
+                                        expect(message?.text).toBe(comment);
+                                        expect(thread1LastVisibleActionCreated).toBe(lastAction?.created);
+                                    },
+                                });
+
+                                // Second transaction thread
+                                const thread2LastVisibleActionCreated = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction2Thread.reportID}`]?.lastVisibleActionCreated;
+                                const connection2 = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction2Thread.reportID}`,
+                                    callback: (reportActions) => {
+                                        Onyx.disconnect(connection2);
+                                        resolve();
+                                        const lastAction = getSortedReportActions(Object.values(reportActions ?? {}), true).at(0);
+                                        const message = getReportActionMessage(lastAction);
+                                        expect(message?.text).toBe(comment);
+                                        expect(thread2LastVisibleActionCreated).toBe(lastAction?.created);
+                                    },
+                                });
                             },
                         });
                     });
