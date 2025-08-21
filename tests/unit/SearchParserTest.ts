@@ -47,7 +47,7 @@ const tests = [
                 right: {
                     operator: 'eq',
                     left: 'reportID',
-                    right: 'report',
+                    right: '1234',
                 },
             },
         },
@@ -85,7 +85,7 @@ const tests = [
                 right: {
                     operator: 'eq',
                     left: 'reportID',
-                    right: 'report',
+                    right: '1234',
                 },
             },
         },
