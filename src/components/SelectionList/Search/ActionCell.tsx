@@ -135,6 +135,7 @@ function ActionCell({
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 policyID={policyID || iouReport?.policyID}
                 iouReport={iouReport}
+                chatReportID={iouReport?.chatReportID}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                 onPress={(type) => confirmPayment(type as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>)}
                 style={[styles.w100]}
