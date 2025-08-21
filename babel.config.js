@@ -70,7 +70,7 @@ const webpack = {
     plugins: defaultPluginsForWebpack,
 };
 
-const metro = {
+const repack = {
     presets: [require('@react-native/babel-preset')],
     plugins: [
         ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
@@ -93,45 +93,6 @@ const metro = {
                 native: true,
             },
         ],
-        // Import alias for native devices
-        // [
-        //     'module-resolver',
-        //     {
-        //         extensions: [
-        //             '.native.js',
-        //             '.native.jsx',
-        //             '.native.ts',
-        //             '.native.tsx',
-        //             '.js',
-        //             '.jsx',
-        //             '.ts',
-        //             '.tsx',
-        //             '.ios.js',
-        //             '.ios.jsx',
-        //             '.ios.ts',
-        //             '.ios.tsx',
-        //             '.android.js',
-        //             '.android.jsx',
-        //             '.android.ts',
-        //             '.android.tx',
-        //         ],
-        //         alias: {
-        //             '@assets': './assets',
-        //             '@components': './src/components',
-        //             '@hooks': './src/hooks',
-        //             '@libs': './src/libs',
-        //             '@navigation': './src/libs/Navigation',
-        //             '@pages': './src/pages',
-        //             '@prompts': './prompts',
-        //             '@styles': './src/styles',
-        //             // This path is provide alias for files like `ONYXKEYS` and `CONST`.
-        //             '@src': './src',
-        //             '@userActions': './src/libs/actions',
-        //             '@desktop': './desktop',
-        //             '@github': './.github',
-        //         },
-        //     },
-        // ],
     ],
     env: {
         production: {
@@ -139,6 +100,52 @@ const metro = {
             plugins: IS_E2E_TESTING ? [] : [['transform-remove-console', {exclude: ['error', 'warn']}]],
         },
     },
+};
+
+const metro = {
+    ...repack,
+    plugins: [
+        ...repack.plugins,
+        [
+            // Import alias for native devices
+            'module-resolver',
+            {
+                extensions: [
+                    '.native.js',
+                    '.native.jsx',
+                    '.native.ts',
+                    '.native.tsx',
+                    '.js',
+                    '.jsx',
+                    '.ts',
+                    '.tsx',
+                    '.ios.js',
+                    '.ios.jsx',
+                    '.ios.ts',
+                    '.ios.tsx',
+                    '.android.js',
+                    '.android.jsx',
+                    '.android.ts',
+                    '.android.tx',
+                ],
+                alias: {
+                    '@assets': './assets',
+                    '@components': './src/components',
+                    '@hooks': './src/hooks',
+                    '@libs': './src/libs',
+                    '@navigation': './src/libs/Navigation',
+                    '@pages': './src/pages',
+                    '@prompts': './prompts',
+                    '@styles': './src/styles',
+                    // This path is provide alias for files like `ONYXKEYS` and `CONST`.
+                    '@src': './src',
+                    '@userActions': './src/libs/actions',
+                    '@desktop': './desktop',
+                    '@github': './.github',
+                },
+            },
+        ],
+    ],
 };
 
 if (process.env.DEBUG_BABEL_TRACE) {
@@ -168,18 +175,20 @@ if (process.env.CAPTURE_METRICS === 'true') {
 }
 
 module.exports = (api) => {
-    // console.debug('babel.config.js');
-    // console.debug('  - api.version:', api.version);
-    // console.debug('  - api.env:', api.env());
-    // console.debug('  - process.env.NODE_ENV:', process.env.NODE_ENV);
-    // console.debug('  - process.env.BABEL_ENV:', process.env.BABEL_ENV);
+    console.debug('babel.config.js');
+    console.debug('  - api.version:', api.version);
+    console.debug('  - api.env:', api.env());
+    console.debug('  - process.env.NODE_ENV:', process.env.NODE_ENV);
+    console.debug('  - process.env.BABEL_ENV:', process.env.BABEL_ENV);
 
     // For `react-native` (iOS/Android) caller will be "metro"
     // For `webpack` (Web) caller will be "@babel-loader"
     // For jest, it will be babel-jest
     // For `storybook` there won't be any config at all so we must give default argument of an empty object
     const runningIn = api.caller((args = {}) => args.name);
-    // console.debug('  - running in: ', runningIn);
+    console.debug('  - running in: ', runningIn);
 
-    return ['metro', 'babel-jest', '@callstack/repack/babel-swc-loader'].includes(runningIn) ? metro : webpack;
+    // for repack, the caller is sometimes undefined so it's hard to determine if we're using repack or metro
+    // TODO fix this
+    return repack;
 };
