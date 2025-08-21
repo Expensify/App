@@ -287,7 +287,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                         timestamp: endTime,
                     });
                 } else if ('login' in item) {
-                    navigateToAndOpenReport({userLogins: item.login ? [item.login] : [], shouldDismissModal: false, isReportArchived: !!item.private_isArchived});
+                    navigateToAndOpenReport(item.login ? [item.login] : [], false);
 
                     const endTime = Date.now();
                     Log.info('[CMD_K_DEBUG] Page user navigation handled', false, {

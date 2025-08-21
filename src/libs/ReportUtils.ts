@@ -887,14 +887,6 @@ type GetReportNameParams = {
     policies?: SearchPolicy[];
 };
 
-type GetChatByParticipantsParams = {
-    newParticipantList: number[];
-    reports?: OnyxCollection<Report>;
-    shouldIncludeGroupChats?: boolean;
-    shouldExcludeClosedReports?: boolean;
-    isReportArchived?: boolean;
-};
-
 type ReportByPolicyMap = Record<string, OnyxCollection<Report>>;
 
 let currentUserEmail: string | undefined;
@@ -8524,20 +8516,14 @@ function shouldReportBeInOptionList(params: ShouldReportBeInOptionListParams) {
 /**
  * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, expense, room, and policy expense chat.
  */
-function getChatByParticipants({
-    newParticipantList,
-    reports = allReports,
+function getChatByParticipants(
+    newParticipantList: number[],
+    reports: OnyxCollection<Report> = allReports,
     shouldIncludeGroupChats = false,
-    shouldExcludeClosedReports = false,
-    isReportArchived = false,
-}: GetChatByParticipantsParams): OnyxEntry<Report> {
+): OnyxEntry<Report> {
     const sortedNewParticipantList = newParticipantList.sort();
     return Object.values(reports ?? {}).find((report) => {
         const participantAccountIDs = Object.keys(report?.participants ?? {});
-
-        if (shouldExcludeClosedReports && isReportArchived) {
-            return false;
-        }
 
         // Skip if it's not a 1:1 chat
         if (!shouldIncludeGroupChats && !isOneOnOneChat(report) && !isSystemChat(report)) {
@@ -10299,11 +10285,7 @@ function prepareOnboardingOnyxData(
     const adminsChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = shouldPostTasksInAdminsRoom
         ? (adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID})
-        : getChatByParticipants({
-              newParticipantList: [CONST.ACCOUNT_ID.CONCIERGE, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID],
-              reports: allReports,
-              shouldIncludeGroupChats: false,
-          });
+        : getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID], allReports, false);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
     if (!targetChatReportID) {

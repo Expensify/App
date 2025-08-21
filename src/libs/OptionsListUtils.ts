@@ -2687,9 +2687,7 @@ function shouldUseBoldText(report: OptionData): boolean {
 function getManagerMcTestParticipant(): Participant | undefined {
     const managerMcTestPersonalDetails = Object.values(allPersonalDetails ?? {}).find((personalDetails) => personalDetails?.login === CONST.EMAIL.MANAGER_MCTEST);
     const managerMcTestReport =
-        managerMcTestPersonalDetails?.accountID && currentUserAccountID
-            ? getChatByParticipants({newParticipantList: [managerMcTestPersonalDetails?.accountID, currentUserAccountID]})
-            : undefined;
+        managerMcTestPersonalDetails?.accountID && currentUserAccountID ? getChatByParticipants([managerMcTestPersonalDetails?.accountID, currentUserAccountID]) : undefined;
     return managerMcTestPersonalDetails ? {...getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails), reportID: managerMcTestReport?.reportID} : undefined;
 }
 

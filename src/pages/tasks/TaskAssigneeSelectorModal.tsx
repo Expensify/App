@@ -129,7 +129,6 @@ function TaskAssigneeSelectorModal() {
         }
         return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
     }, [reports, route]);
-    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -192,7 +191,6 @@ function TaskAssigneeSelectorModal() {
                         report.reportID,
                         undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
                         isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? ''}),
-                        isReportArchived,
                     );
                     // Pass through the selected assignee
                     editTaskAssignee(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, option?.login ?? '', option?.accountID, assigneeChatReport);
