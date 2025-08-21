@@ -731,6 +731,20 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
 
                         [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: {
                             path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.route,
+                            screens: {
+                                [CONST.TAB.RECEIPT_PARTNERS.ALL]: {
+                                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_ALL,
+                                    exact: true,
+                                },
+                                [CONST.TAB.RECEIPT_PARTNERS.LINKED]: {
+                                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_LINKED,
+                                    exact: true,
+                                },
+                                [CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING]: {
+                                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_OUTSTANDING,
+                                    exact: true,
+                                },
+                            },
                         },
                         [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORY_SETTINGS.route,
