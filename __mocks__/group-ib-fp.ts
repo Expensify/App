@@ -1,32 +1,31 @@
-enum FPAttributeFormat {
-    ClearText = 1,
-}
+type FPAttributeFormat = 1;
+const FPAttributeFormatMap = {ClearText: 1 as FPAttributeFormat};
 
 class FP {
-    static getInstance(): FP {
+    static getInstance() {
         return new FP();
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    setCustomerId(): void {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setCustomerId(..._a: unknown[]) {}
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    setTargetURL(): void {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setTargetURL(..._a: unknown[]) {}
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    setSessionId(): void {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setSessionId(..._a: unknown[]) {}
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    setAttributeTitle(): void {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setAttributeTitle(..._a: unknown[]) {}
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    setLogin(): void {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setLogin(..._a: unknown[]) {}
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    setCustomEvent(): void {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setCustomEvent(..._a: unknown[]) {}
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    run(): void {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    run(..._a: unknown[]) {}
 }
 
-export default {FP, FPAttributeFormat};
+export {FP, FPAttributeFormatMap as FPAttributeFormat};
