@@ -39,17 +39,11 @@ type OriginalMessageIOU = {
     /** ID of the expense report */
     expenseReportID?: string;
 
-    /** How much was transaction */
-    amount: number;
-
     /** Was the action created automatically, not by a human */
     automaticAction?: boolean;
 
     /** Optional comment */
     comment?: string;
-
-    /** Currency of the transaction money */
-    currency: string;
 
     /** When was the `IOU` last modified */
     lastModified?: string;
@@ -69,9 +63,6 @@ type OriginalMessageIOU = {
     /** Timestamp of when the `IOU` report action was deleted */
     deleted?: string;
 
-    /** Only exists when we are sending money */
-    IOUDetails?: IOUDetails;
-
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
 
@@ -80,7 +71,28 @@ type OriginalMessageIOU = {
 
     /** The bank account id */
     bankAccountID?: number;
-};
+} & (
+    | {
+          /** How much was transaction */
+          amount: number;
+
+          /** Currency of the transaction money */
+          currency: string;
+
+          /** Only exists when we are sending money */
+          IOUDetails?: IOUDetails;
+      }
+    | {
+          /** How much was transaction */
+          amount?: number;
+
+          /** Currency of the transaction money */
+          currency?: string;
+
+          /** Only exists when we are sending money */
+          IOUDetails: IOUDetails;
+      }
+);
 
 /** Names of moderation decisions */
 type DecisionName = ValueOf<
@@ -923,6 +935,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CLOSED]: OriginalMessageClosed;
     [CONST.REPORT.ACTIONS.TYPE.CREATED]: never;
     [CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION]: OriginalMessageDismissedViolation;
+    [CONST.REPORT.ACTIONS.TYPE.EXPENSIFY_CARD_SYSTEM_MESSAGE]: never;
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV]: never;
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION]: OriginalMessageExportIntegration;
     [CONST.REPORT.ACTIONS.TYPE.FORWARDED]: OriginalMessageForwarded;

@@ -14,47 +14,13 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {buildOnyxDataForPolicyDistanceRateUpdates} from '@libs/PolicyDistanceRatesUtils';
-import {getDistanceRateCustomUnit, goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, TransactionViolation} from '@src/types/onyx';
+import type {TransactionViolation} from '@src/types/onyx';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-
-const allPolicies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!key) {
-            return;
-        }
-        if (val === null || val === undefined) {
-            // If we are deleting a policy, we have to check every report linked to that policy
-            // and unset the draft indicator (pencil icon) alongside removing any draft comments. Clearing these values will keep the newly archived chats from being displayed in the LHN.
-            // More info: https://github.com/Expensify/App/issues/14260
-            const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
-            const policyReports = ReportUtils.getAllPolicyReports(policyID);
-            const cleanUpMergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>> = {};
-            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
-            policyReports.forEach((policyReport) => {
-                if (!policyReport) {
-                    return;
-                }
-                const {reportID} = policyReport;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
-            });
-            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
-            Onyx.multiSet(cleanUpSetQueries);
-            delete allPolicies[key];
-            return;
-        }
-
-        allPolicies[key] = val;
-    },
-});
 
 /**
  * Takes array of customUnitRates and removes pendingFields and errorFields from each rate - we don't want to send those via API
@@ -81,7 +47,7 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
 }
 
-function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
+function enablePolicyDistanceRates(policyID: string, enabled: boolean, customUnit: CustomUnit | undefined) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -120,39 +86,34 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
         ],
     };
 
-    if (!enabled) {
-        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-        const customUnit = getDistanceRateCustomUnit(policy);
-        if (customUnit) {
-            const customUnitID = customUnit.customUnitID;
+    if (!enabled && customUnit) {
+        const customUnitID = customUnit.customUnitID;
+        const rateEntries = Object.entries(customUnit.rates ?? {});
+        // find the rate to be enabled after disabling the distance rate feature
+        const rateEntryToBeEnabled = rateEntries.at(0);
 
-            const rateEntries = Object.entries(customUnit.rates ?? {});
-            // find the rate to be enabled after disabling the distance rate feature
-            const rateEntryToBeEnabled = rateEntries.at(0);
-
-            onyxData.optimisticData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    customUnits: {
-                        [customUnitID]: {
-                            rates: Object.fromEntries(
-                                rateEntries.map((rateEntry) => {
-                                    const [rateID, rate] = rateEntry;
-                                    return [
-                                        rateID,
-                                        {
-                                            ...rate,
-                                            enabled: rateID === rateEntryToBeEnabled?.at(0),
-                                        },
-                                    ];
-                                }),
-                            ),
-                        },
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnitID]: {
+                        rates: Object.fromEntries(
+                            rateEntries.map((rateEntry) => {
+                                const [rateID, rate] = rateEntry;
+                                return [
+                                    rateID,
+                                    {
+                                        ...rate,
+                                        enabled: rateID === rateEntryToBeEnabled?.at(0),
+                                    },
+                                ];
+                            }),
+                        ),
                     },
                 },
-            });
-        }
+            },
+        });
     }
 
     const parameters: EnablePolicyDistanceRatesParams = {policyID, enabled};
