@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect} from 'react';
+import {InteractionManager} from 'react-native';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,7 +24,12 @@ function DeclineReasonPage({route}: DeclineReasonPageProps) {
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DECLINE_FORM>) => {
         const urlToNavigateBack = declineMoneyRequest(transactionID, reportID, values.comment);
-        Navigation.navigate(urlToNavigateBack ?? backTo);
+        Navigation.dismissModal();
+        if (urlToNavigateBack) {
+            InteractionManager.runAfterInteractions(() => {
+                Navigation.navigate(urlToNavigateBack);
+            });
+        }
     };
 
     const validate = useCallback(

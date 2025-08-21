@@ -221,9 +221,11 @@ import {
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Accountant, Attendee, Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
@@ -11957,6 +11959,10 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
     const isIOU = isIOUReport(report);
+    const searchFullScreenRoutes = navigationRef.getRootState()?.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    const lastRoute = searchFullScreenRoutes?.state?.routes?.at(-1);
+    const isUserOnSearchPage = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.ROOT;
+    const isUserOnSearchMoneyRequestReport = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
 
     if (!report || !transaction) {
         return undefined;
@@ -12036,7 +12042,13 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 },
             });
 
-            urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(transaction.reportID);
+            if (isUserOnSearchPage) {
+                // Navigate to the existing Reports > Expense view
+                urlToNavigateBack = undefined;
+            } else {
+                // Go back to the original expenses report
+                urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+            }
         } else {
             // For reports with single expense: Delete the report
             optimisticData.push({
@@ -12059,9 +12071,26 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 value: report,
             });
 
-            urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report.chatReportID);
+            if (isUserOnSearchPage) {
+                // Navigate to the existing Reports > Expense view.
+                urlToNavigateBack = undefined;
+            } else if (isUserOnSearchMoneyRequestReport) {
+                // Go back based on backTo param of the current route
+                const lastRouteParams = lastRoute?.params;
+                urlToNavigateBack = lastRouteParams && 'backTo' in lastRouteParams ? lastRouteParams?.backTo : undefined;
+            } else {
+                // Go back to the expense chat
+                urlToNavigateBack = report.chatReportID;
+            }
         }
     } else if (hasMultipleExpenses) {
+        if (isUserOnSearchPage) {
+            // Navigate to the existing Reports > Expense view.
+            urlToNavigateBack = undefined;
+        } else {
+            // Go back to the original expenses report
+            urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+        }
         // For reports with multiple expenses:
         // 1. Update report total
         // 2. Remove expense from report
@@ -12103,10 +12132,8 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                     pendingFields: {total: null},
                 },
             });
-            urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(movedToReportID ?? report.chatReportID);
         } else {
             movedToReportID = generateReportID();
-            urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report.chatReportID);
         }
         optimisticData.push(
             {
@@ -12195,7 +12222,13 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
             },
         });
 
-        urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report.chatReportID);
+        if (isUserOnSearchPage) {
+            // Navigate to the existing Reports > Expense view
+            urlToNavigateBack = undefined;
+        } else {
+            // Go back to the original expenses report
+            urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+        }
     }
 
     // Add optimistic decline actions to the child report
@@ -12359,7 +12392,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     // Make API call
     API.write(WRITE_COMMANDS.DECLINE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
 
-    return urlToNavigateBack;
+    return urlToNavigateBack as Route;
 }
 
 function markDeclineViolationAsResolved(transactionID: string, reportID?: string) {
