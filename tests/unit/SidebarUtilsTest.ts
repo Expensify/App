@@ -1271,7 +1271,6 @@ describe('SidebarUtils', () => {
                     ],
                     originalMessage: {
                         whisperedTo: [],
-                        toPolicyID: '12345',
                     },
                     actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
                     created: DateUtils.getDBTime(),
@@ -1282,9 +1281,6 @@ describe('SidebarUtils', () => {
                 const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}12345`, {
-                    name: "Three's Workspace",
-                });
                 const result = SidebarUtils.getOptionData({
                     report,
                     reportAttributes: undefined,
