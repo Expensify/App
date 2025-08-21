@@ -27,6 +27,15 @@ import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
+import saveLastSearchParams from './ReportNavigation';
+
+type OnyxSearchResponse = {
+    data: [];
+    search: {
+        offset: number;
+        hasMoreResults: boolean;
+    };
+};
 
 function handleActionButtonPress(
     hash: number,
@@ -306,11 +315,13 @@ function search({
     searchKey,
     offset,
     shouldCalculateTotals = false,
+    prevReports,
 }: {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
     offset?: number;
     shouldCalculateTotals?: boolean;
+    prevReports?: Array<string | undefined>;
 }) {
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
@@ -318,11 +329,46 @@ function search({
         ...queryJSONWithoutFlatFilters,
         searchKey,
         offset,
+        filters: queryJSONWithoutFlatFilters.filters ?? null,
         shouldCalculateTotals,
     };
     const jsonQuery = JSON.stringify(query);
 
-    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData});
+    saveLastSearchParams({
+        queryJSON,
+        offset,
+        allowPostSearchRecount: false,
+    });
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
+        const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
+        const reports = Object.keys(response?.data ?? {})
+            .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+            .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
+        if (response?.search?.offset) {
+            // Indicates that search results are extended from the Report view (with navigation between reports),
+            // using previous results to enable correct counter behavior.
+            if (prevReports) {
+                saveLastSearchParams({
+                    queryJSON,
+                    offset,
+                    hasMoreResults: !!response?.search?.hasMoreResults,
+                    previousLengthOfResults: prevReports.length,
+                    allowPostSearchRecount: false,
+                });
+            }
+        } else {
+            // Applies to all searches from the Search View
+            saveLastSearchParams({
+                queryJSON,
+                offset,
+                hasMoreResults: !!response?.search?.hasMoreResults,
+                previousLengthOfResults: reports.length,
+                allowPostSearchRecount: true,
+            });
+        }
+    });
 }
 
 /**
@@ -532,7 +578,11 @@ function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, r
 /**
  * Updates the form values for the advanced filters search form.
  */
-function updateAdvancedFilters(values: Nullable<Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>>) {
+function updateAdvancedFilters(values: Nullable<Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>>, shouldUseOnyxSetMethod = false) {
+    if (shouldUseOnyxSetMethod) {
+        Onyx.set(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
+        return;
+    }
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
