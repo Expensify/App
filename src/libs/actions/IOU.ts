@@ -181,7 +181,6 @@ import {
     isTrackExpenseReport,
     prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
-    updateOptimisticParentReportAction,
     updateReportPreview,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, getCurrentSearchQueryJSON, getTodoSearchQuery} from '@libs/SearchQueryUtils';
@@ -11258,7 +11257,8 @@ function bulkHold(
     selectedTransactionIDs: string[],
     transactions: OnyxCollection<OnyxTypes.Transaction>,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
-    ancestorReportActions: Record<string, ReportAction>,
+    searchHash: number,
+    snapshot: OnyxTypes.SearchResults | undefined,
 ) {
     const iouReport = reports?.[`${reportID}`];
     const iouReportCurrency = iouReport?.currency ?? 'none';
@@ -11351,17 +11351,10 @@ function bulkHold(
             );
         }
 
-        Object.entries(ancestorReportActions).forEach(([parentReportID, parentReportAction]) => {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-                value: {
-                    [parentReportAction.reportActionID]: updateOptimisticParentReportAction(parentReportAction, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
-                },
-            });
-        });
-
         optimisticData.push(
+            ...getOptimisticDataForParentReportAction(transactionThreadReport.reportID, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD).filter(
+                (parentActionData): parentActionData is OnyxUpdate => parentActionData !== null,
+            ),
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
@@ -11452,6 +11445,45 @@ function bulkHold(
             optimisticUnheldTotal = (optimisticUnheldTotal ?? 0) - transactionAmount;
             optimisticUnheldNonReimbursableTotal = (optimisticUnheldNonReimbursableTotal ?? 0) - transactionAmount;
         }
+
+        // Skip if the transaction is not in the search snapshot.
+        const searchTransaction = snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!searchTransaction) {
+            return;
+        }
+
+        // Skip when the search hash is still the default value
+        if (searchHash === -1) {
+            Log.warn('Search Hash (-1) is the default and not initialized, while the snapshot contains transaction: {transactionID}');
+            return;
+        }
+
+        // If we are holding from the search page, we optimistically update the transaction's snapshot that search uses so that it is kept in sync
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        canHold: false,
+                        canUnhold: true,
+                    },
+                },
+            } as Record<string, Record<string, Partial<SearchTransaction>>>,
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        canHold: searchTransaction.canHold,
+                        canUnhold: searchTransaction.canUnhold,
+                    },
+                },
+            } as Record<string, Record<string, Partial<SearchTransaction>>>,
+        });
     });
 
     if (optimisticUnheldTotal) {
