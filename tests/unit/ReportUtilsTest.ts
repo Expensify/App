@@ -34,6 +34,7 @@ import {
     canUserPerformWriteAction,
     findLastAccessedReport,
     getAllAncestorReportActions,
+    getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
     getChatByParticipants,
     getDefaultWorkspaceAvatar,
@@ -43,6 +44,7 @@ import {
     getInvoiceChatByParticipants,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
+    getParentNavigationSubtitle,
     getParticipantsList,
     getPolicyExpenseChat,
     getReasonAndReportActionThatRequiresAttention,
@@ -77,7 +79,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
@@ -943,6 +945,48 @@ describe('ReportUtils', () => {
             expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
                 'submitted via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows">delay submissions</a>',
             );
+        });
+    });
+
+    describe('getParentNavigationSubtitle', () => {
+        const baseArchivedPolicyExpenseChat = {
+            reportID: '2',
+            lastReadTime: '2024-02-01 04:56:47.233',
+            parentReportActionID: '1',
+            parentReportID: '1',
+            reportName: 'Base Report',
+            type: CONST.REPORT.TYPE.INVOICE,
+        };
+
+        const reports: Report[] = [
+            {
+                reportID: '1',
+                lastReadTime: '2024-02-01 04:56:47.233',
+                reportName: 'Report',
+                policyName: 'A workspace',
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
+            },
+            baseArchivedPolicyExpenseChat,
+        ];
+
+        beforeAll(() => {
+            const reportCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, reports, (report) => report.reportID);
+            Onyx.multiSet({
+                ...reportCollectionDataSet,
+            });
+            return waitForBatchedUpdates();
+        });
+
+        it('should return the correct parent navigation subtitle for the archived invoice report', () => {
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, true);
+            const normalizedActual = {...actual, reportName: actual.reportName?.replace(/\u00A0/g, ' ')};
+            expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
+        });
+
+        it('should return the correct parent navigation subtitle for the non archived invoice report', () => {
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, false);
+            const normalizedActual = {...actual, reportName: actual.reportName?.replace(/\u00A0/g, ' ')};
+            expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok'});
         });
     });
 
@@ -2255,7 +2299,7 @@ describe('ReportUtils', () => {
             const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, 'fake draft');
+            await Onyx.merge(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {[report.reportID]: 'fake draft'});
 
             expect(
                 shouldReportBeInOptionList({
@@ -5320,6 +5364,125 @@ describe('ReportUtils', () => {
             Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
                 expect(canSeeDefaultRoom(report, betas, false)).toBe(true);
             });
+        });
+    });
+
+    describe('getAllReportActionsErrorsAndReportActionThatRequiresAttention', () => {
+        const report: Report = {
+            ...createRandomReport(40003),
+            parentReportID: '40004',
+            parentReportActionID: '2',
+        };
+        const parentReport: Report = {
+            ...createRandomReport(40004),
+            statusNum: 0,
+        };
+        const reportAction1: ReportAction = {
+            ...createRandomReportAction(1),
+            reportID: report.reportID,
+        };
+        const parentReportAction1: ReportAction = {
+            ...createRandomReportAction(2),
+            reportID: '40004',
+            actorAccountID: currentUserAccountID,
+        };
+        const reportActions = [reportAction1, parentReportAction1].reduce<ReportActions>((acc, action) => {
+            if (action.reportActionID) {
+                acc[action.reportActionID] = action;
+            }
+            return acc;
+        }, {});
+        beforeEach(async () => {
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction1.reportID}`, {
+                [reportAction1.reportActionID]: reportAction1,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportAction1.reportID}`, {
+                [parentReportAction1.reportActionID]: parentReportAction1,
+            });
+
+            return waitForBatchedUpdates();
+        });
+        it("should return nothing when there's no actions required", () => {
+            expect(getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, false)).toEqual({
+                errors: {},
+                reportAction: undefined,
+            });
+        });
+        it("should return error with report action when there's actions required", async () => {
+            const reportActionWithError: ReportAction = {
+                ...createRandomReportAction(1),
+                reportID: report.reportID,
+                errors: {
+                    reportID: 'Error message',
+                    accountID: 'Error in accountID',
+                },
+            };
+            const reportActionsWithError = {
+                ...reportActions,
+                [reportActionWithError.reportActionID]: reportActionWithError,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionWithError.reportID}`, {
+                [reportActionWithError.reportActionID]: reportActionWithError,
+            });
+            await waitForBatchedUpdates();
+            expect(getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsWithError, false)).toEqual({
+                errors: {
+                    reportID: 'Error message',
+                    accountID: 'Error in accountID',
+                },
+                reportAction: reportActionWithError,
+            });
+        });
+        it("should return smart scan error with no report action when there's actions required and report is not archived", async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportAction1.reportID}`, {
+                [parentReportAction1.reportActionID]: {
+                    actorAccountID: currentUserAccountID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: '12345',
+                    },
+                },
+            });
+            const transaction: Transaction = {
+                ...createRandomTransaction(12345),
+                reportID: parentReport.reportID,
+                amount: 0,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, false);
+            expect(Object.keys(errors)).toHaveLength(1);
+            expect(Object.keys(errors).at(0)).toBe('smartscan');
+            expect(Object.keys(errors.smartscan ?? {})).toHaveLength(1);
+            expect(errors.smartscan?.[Object.keys(errors.smartscan)[0]]).toEqual('Transaction is missing fields');
+            expect(reportAction).toBeUndefined();
+        });
+        it("should return no error and no report action when there's actions required and report is archived", async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportAction1.reportID}`, {
+                [parentReportAction1.reportActionID]: {
+                    actorAccountID: currentUserAccountID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: '12345',
+                    },
+                },
+            });
+            const transaction: Transaction = {
+                ...createRandomTransaction(12345),
+                reportID: parentReport.reportID,
+                amount: 0,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, true);
+            expect(Object.keys(errors)).toHaveLength(0);
+            expect(reportAction).toBeUndefined();
         });
     });
 });

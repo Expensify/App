@@ -134,7 +134,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
     const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, undefined, undefined, isReportHeaderDataArchived);
     const subtitle = getChatRoomSubtitle(reportHeaderData);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(reportHeaderData);
+    const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(reportHeaderData, isReportHeaderDataArchived);
     const reportDescription = Parser.htmlToText(getReportDescription(report));
     const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = getPolicyDescriptionText(policy);
