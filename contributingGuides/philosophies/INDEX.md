@@ -5,5 +5,6 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 "OPTIONAL" are to be interpreted as described in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
 ## Contents
-* [Offline Philosophy](contributingGuides/philosophies/OFFLINE.md)
-* [Routing Philosophy](contributingGuides/philosophies/ROUTING.md)
+* [Cross-Platform Philosophy](/contributingGuides/philosophies/CROSS-PLATFORM.md)
+* [Offline Philosophy](/contributingGuides/philosophies/OFFLINE.md)
+* [Routing Philosophy](/contributingGuides/philosophies/ROUTING.md)
