@@ -2,8 +2,6 @@ import {FP, FPAttributeFormat} from 'group-ib-fp';
 import {getEnvironment, getOldDotEnvironmentURL} from '@libs/Environment/Environment';
 import CONST from '@src/CONST';
 
-const fp = FP.getInstance();
-
 const cidIOSMap: Record<string, string> = {
     [CONST.ENVIRONMENT.PRODUCTION]: 'gib-i-expensify',
     [CONST.ENVIRONMENT.STAGING]: 'gib-i-expensify-stg',
@@ -18,23 +16,34 @@ const cidAndroidMap: Record<string, string> = {
     [CONST.ENVIRONMENT.ADHOC]: 'gib-a-expensify-uat',
 };
 
+let resolveFpInstancePromise: (fp: FP) => void = () => {};
+const fpInstancePromise = new Promise<FP>((resolve) => {
+    resolveFpInstancePromise = resolve;
+});
+
 function init(): Promise<void> {
     return Promise.all([getEnvironment(), getOldDotEnvironmentURL()]).then(([env, oldDotURL]) => {
         const iOSCustomerID = cidIOSMap[env] ?? cidIOSMap[CONST.ENVIRONMENT.DEV];
         const androidCustomerID = cidAndroidMap[env] ?? cidAndroidMap[CONST.ENVIRONMENT.DEV];
+        const fp = FP.getInstance();
         fp.setCustomerId(iOSCustomerID, androidCustomerID);
         fp.setTargetURL(`${oldDotURL}/api/fl`);
         fp.run();
+        resolveFpInstancePromise(fp);
     });
 }
 
 function setAuthenticationData(identity: string, sessionID: string): void {
-    setAttribute('user_id', identity);
-    fp.setSessionId(sessionID);
+    fpInstancePromise.then((fp) => {
+        fp.setAttributeTitle('user_id', identity, FPAttributeFormat.ClearText);
+        fp.setSessionId(sessionID);
+    });
 }
 
 function setAttribute(key: string, value: string): void {
-    fp.setAttributeTitle(key, value, FPAttributeFormat.ClearText);
+    fpInstancePromise.then((fp) => {
+        fp.setAttributeTitle(key, value, FPAttributeFormat.ClearText);
+    });
 }
 
 function sendEvent(event: string): void {
