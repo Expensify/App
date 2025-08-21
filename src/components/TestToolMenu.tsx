@@ -12,6 +12,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account as AccountOnyx} from '@src/types/onyx';
+import getPlatform from '@libs/getPlatform';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -39,6 +40,7 @@ function TestToolMenu() {
     const shouldShowTransactionThreadReportToggle = isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isNative = getPlatform() !== (CONST.PLATFORM.WEB || CONST.PLATFORM.MOBILE_WEB);
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
@@ -100,14 +102,16 @@ function TestToolMenu() {
                         />
                     </TestToolRow>
 
-                    {/* Starts Biometrics test flow */}
-                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.biometricsNotRegistered')}>
+                    {/* Starts Biometrics test flow -> possible only on native */}
+                    {isNative && (
+                        <TestToolRow title={translate('initialSettingsPage.troubleshoot.biometricsNotRegistered')}>
                         <Button
                             small
                             text={translate('initialSettingsPage.troubleshoot.test')}
                             onPress={() => null}
                         />
                     </TestToolRow>
+                )}
                 </>
             )}
 
