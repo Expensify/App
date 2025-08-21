@@ -50,7 +50,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
         }
 
         setIsComingFromGlobalReimbursementsFlow(true);
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID), {forceReplace: true});
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
     };
 
     const handleSubmit = () => {
