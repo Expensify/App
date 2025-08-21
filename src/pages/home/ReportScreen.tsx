@@ -43,7 +43,6 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     getCombinedReportActions,
     getFilteredReportActionsForReportView,
-    getIOUActionForReportID,
     getOneTransactionThreadReportID,
     isCreatedAction,
     isDeletedParentAction,
@@ -52,14 +51,11 @@ import {
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {
-    buildTransactionThread,
     canEditReportAction,
     canUserPerformWriteAction,
     findLastAccessedReport,
-    generateReportID,
     getParticipantsAccountIDsForDisplay,
     getReportOfflinePendingActionAndErrors,
-    getReportTransactions,
     isChatThread,
     isConciergeChatReport,
     isGroupChat,
@@ -311,7 +307,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const reportTransactionIDs = useMemo(() => visibleTransactions?.map((transaction) => transaction.transactionID), [visibleTransactions]);
 
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [transactionThreadReportActions = getEmptyObject<OnyxTypes.ReportActions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
         canBeMissing: true,
     });
@@ -474,15 +469,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         [firstRender, shouldShowNotFoundLinkedAction, reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, currentReportIDFormRoute],
     );
 
-    const createOneTransactionThreadReport = useCallback(() => {
-        const optimisticTransactionThreadReportID = generateReportID();
-        const currentReportTransaction = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const oneTransactionID = currentReportTransaction.at(0)?.transactionID;
-        const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
-        const optimisticTransactionThread = buildTransactionThread(iouAction, report, undefined, optimisticTransactionThreadReportID);
-        openReport(optimisticTransactionThreadReportID, undefined, currentUserEmail ? [currentUserEmail] : [], optimisticTransactionThread, iouAction?.reportActionID);
-    }, [currentUserEmail, report, reportID]);
-
     const fetchReport = useCallback(() => {
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
             return;
@@ -501,13 +487,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, transactionID);
             return;
         }
-
-        // If there is one transaction thread that has not yet been created, we should create it.
-        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport && parentReportAction?.childMoneyRequestCount === 1) {
-            createOneTransactionThreadReport();
-            return;
-        }
-
         openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [
         reportMetadata.isOptimisticReport,
@@ -516,12 +495,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         route.params?.moneyRequestReportActionID,
         route.params?.transactionID,
         currentUserEmail,
-        transactionThreadReportID,
-        transactionThreadReport,
-        parentReportAction?.childMoneyRequestCount,
         reportIDFromRoute,
         reportActionIDFromRoute,
-        createOneTransactionThreadReport,
     ]);
 
     const prevTransactionThreadReportID = usePrevious(transactionThreadReportID);
