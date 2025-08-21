@@ -20,7 +20,7 @@ import {
     meetsMinimumAgeRequirement,
 } from '@src/libs/ValidationUtils';
 
-global.TextEncoder = TextEncoder;
+global.TextEncoder = TextEncoder as typeof global.TextEncoder;
 
 describe('ValidationUtils', () => {
     describe('isValidDate', () => {
@@ -45,6 +45,12 @@ describe('ValidationUtils', () => {
         test('Should return false for a date after the range', () => {
             const futureDate = '3042-07-18';
             const isValid = isValidDate(futureDate);
+            expect(isValid).toBe(false);
+        });
+
+        test('Should return false for a invalid date format', () => {
+            const validDate = '2025-07';
+            const isValid = isValidDate(validDate);
             expect(isValid).toBe(false);
         });
     });

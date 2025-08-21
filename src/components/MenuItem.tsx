@@ -10,7 +10,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
@@ -26,6 +26,7 @@ import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Avatar from './Avatar';
 import Badge from './Badge';
+import CopyTextToClipboard from './CopyTextToClipboard';
 import DisplayNames from './DisplayNames';
 import type {DisplayNameWithTooltip} from './DisplayNames/types';
 import FormHelpMessage from './FormHelpMessage';
@@ -104,7 +105,7 @@ type MenuItemBaseProps = {
     descriptionTextStyle?: StyleProp<TextStyle>;
 
     /** The fill color to pass into the icon. */
-    iconFill?: string;
+    iconFill?: string | ((isHovered: boolean) => string);
 
     /** Secondary icon to display on the left side of component, right of the icon */
     secondaryIcon?: IconAsset;
@@ -366,8 +367,11 @@ type MenuItemBaseProps = {
     /** Whether to teleport the portal to the modal layer */
     shouldTeleportPortalToModalLayer?: boolean;
 
-    /** The value to copy on secondary interaction */
+    /** The value to copy in copy to clipboard action. Must be used in conjunction with `copyable=true`. Default value is `title` prop. */
     copyValue?: string;
+
+    /** Should enable copy to clipboard action */
+    copyable?: boolean;
 
     /** Plaid image for the bank */
     plaidUrl?: string;
@@ -377,6 +381,9 @@ type MenuItemBaseProps = {
 
     /** Report ID for the avatar on the right */
     rightIconReportID?: string;
+
+    /** Whether the menu item contains nested submenu items. */
+    hasSubMenuItems?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -496,8 +503,10 @@ function MenuItem(
         shouldBreakWord = false,
         pressableTestID,
         shouldTeleportPortalToModalLayer,
-        copyValue,
         plaidUrl,
+        copyValue = title,
+        copyable = false,
+        hasSubMenuItems = false,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -508,6 +517,7 @@ function MenuItem(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
     const popoverAnchor = useRef<View>(null);
+    const deviceHasHoverSupport = hasHoverSupport();
 
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
@@ -755,14 +765,17 @@ function MenuItem(
                                                                         width={iconWidth}
                                                                         height={iconHeight}
                                                                         fill={
+                                                                            // eslint-disable-next-line no-nested-ternary
                                                                             displayInDefaultIconColor
                                                                                 ? undefined
-                                                                                : (iconFill ??
-                                                                                  StyleUtils.getIconFillColor(
-                                                                                      getButtonState(focused || isHovered, pressed, success, disabled, interactive),
-                                                                                      true,
-                                                                                      isPaneMenu,
-                                                                                  ))
+                                                                                : typeof iconFill === 'function'
+                                                                                  ? iconFill(isHovered)
+                                                                                  : (iconFill ??
+                                                                                    StyleUtils.getIconFillColor(
+                                                                                        getButtonState(focused || isHovered, pressed, success, disabled, interactive),
+                                                                                        true,
+                                                                                        isPaneMenu,
+                                                                                    ))
                                                                         }
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
@@ -936,11 +949,15 @@ function MenuItem(
                                                             styles.pointerEventsAuto,
                                                             StyleUtils.getMenuItemIconStyle(isCompact),
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
+                                                            hasSubMenuItems && styles.opacitySemiTransparent,
+                                                            hasSubMenuItems && styles.pl6,
                                                         ]}
                                                     >
                                                         <Icon
                                                             src={iconRight}
                                                             fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
+                                                            width={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
+                                                            height={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
                                                         />
                                                     </View>
                                                 )}
@@ -952,6 +969,19 @@ function MenuItem(
                                                         fill={theme.iconSuccessFill}
                                                         additionalStyles={styles.alignSelfCenter}
                                                     />
+                                                )}
+                                                {copyable && deviceHasHoverSupport && !interactive && isHovered && !!copyValue && (
+                                                    <View style={styles.justifyContentCenter}>
+                                                        <CopyTextToClipboard
+                                                            urlToCopy={copyValue}
+                                                            shouldHaveActiveBackground
+                                                            iconHeight={variables.iconSizeExtraSmall}
+                                                            iconWidth={variables.iconSizeExtraSmall}
+                                                            iconStyles={styles.t0}
+                                                            styles={styles.reportActionContextMenuMiniButton}
+                                                            shouldUseButtonBackground
+                                                        />
+                                                    </View>
                                                 )}
                                             </View>
                                         </View>
