@@ -21,7 +21,9 @@ import type {
 import type PusherModule from './types';
 
 let shouldForceOffline = false;
-// We have used `connectWithoutView` here because it is not connected to any UI
+
+// shouldForceOffline is only used to ignore pusher events when the client has been forced offline.
+// Since it's not connected to any UI, it's OK to use connectWithoutView.
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
