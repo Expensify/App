@@ -99,7 +99,8 @@ Onyx.connect({
     },
 });
 
-Onyx.connect({
+// Use connectWithoutView because it is only for fullstory initialization
+Onyx.connectWithoutView({
     key: ONYXKEYS.USER_METADATA,
     callback: Fullstory.consentAndIdentify,
 });
@@ -470,7 +471,6 @@ function beginSignIn(email: string) {
 
     const params: BeginSignInParams = {email};
 
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.read(READ_COMMANDS.BEGIN_SIGNIN, params, {optimisticData, successData, failureData});
 }
 

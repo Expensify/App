@@ -58,14 +58,6 @@ Onyx.connect({
     },
 });
 
-let preservedUserSession: OnyxTypes.Session | undefined;
-Onyx.connect({
-    key: ONYXKEYS.PRESERVED_USER_SESSION,
-    callback: (value) => {
-        preservedUserSession = value;
-    },
-});
-
 let preservedShouldUseStagingServer: boolean | undefined;
 Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
@@ -94,6 +86,16 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
+    },
+});
+
+let preservedUserSession: OnyxTypes.Session | undefined;
+
+// We called `connectWithoutView` here because it is not connected to any UI
+Onyx.connectWithoutView({
+    key: ONYXKEYS.PRESERVED_USER_SESSION,
+    callback: (value) => {
+        preservedUserSession = value;
     },
 });
 
