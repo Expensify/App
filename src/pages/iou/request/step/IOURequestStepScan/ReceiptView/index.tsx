@@ -7,7 +7,7 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import Modal from '@components/Modal';
+import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,7 +22,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type ReceiptWithTransactionIDAndSource = Receipt & ReceiptFile;
 
-type ReceiptViewModalProps = {
+type ReceiptViewProps = {
     route: {
         params: {
             transactionID: string;
@@ -31,9 +31,9 @@ type ReceiptViewModalProps = {
     };
 };
 
-function ReceiptViewModal({route}: ReceiptViewModalProps) {
+function ReceiptView({route}: ReceiptViewProps) {
     const {translate} = useLocalize();
-    const {setAttachmentError, clearAttachmentErrors} = useAttachmentErrors();
+    const {setAttachmentError} = useAttachmentErrors();
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const styles = useThemeStyles();
     const [currentReceipt, setCurrentReceipt] = useState<ReceiptWithTransactionIDAndSource | null>();
@@ -96,11 +96,8 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
     }, [route.params.backTo]);
 
     return (
-        <Modal
-            type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-            isVisible
-            onClose={handleGoBack}
-            onModalHide={clearAttachmentErrors}
+        <ScreenWrapper
+            testID={ReceiptView.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
@@ -141,10 +138,10 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
                 onBackdropPress={handleCloseConfirmModal}
                 danger
             />
-        </Modal>
+        </ScreenWrapper>
     );
 }
 
-ReceiptViewModal.displayName = 'ReceiptViewModal';
+ReceiptView.displayName = 'ReceiptView';
 
-export default ReceiptViewModal;
+export default ReceiptView;

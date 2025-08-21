@@ -2533,6 +2533,7 @@ function buildOnyxDataForTrackExpense({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                 value: {
+                    lastReadTime: actionableTrackExpenseWhisper.created,
                     lastVisibleActionCreated: actionableTrackExpenseWhisper.created,
                     lastMessageText: CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE,
                 },
@@ -3385,7 +3386,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     let iouReport: OnyxInputValue<OnyxTypes.Report> = null;
     if (moneyRequestReportID) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
-    } else {
+    } else if (!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]?.errorFields?.createChat) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
     }
 
