@@ -1879,11 +1879,7 @@ type WorkspaceSplitNavigatorParamList = {
         integration: string;
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_CONFIRM]: {
-        policyID: string;
-        integration: string;
-        backTo?: Routes;
-    };
+
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: {
         policyID: string;
         integration: string;

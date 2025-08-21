@@ -1898,15 +1898,7 @@ const ROUTES = {
             return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners/${integration}/invite/edit`, backTo);
         },
     },
-    WORKSPACE_RECEIPT_PARTNERS_INVITE_CONFIRM: {
-        route: 'workspaces/:policyID/receipt-partners/:integration/invite/confirm',
-        getRoute: (policyID: string | undefined, integration: string, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_RECEIPT_PARTNERS_INVITE_CONFIRM route');
-            }
-            return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners/${integration}/invite/confirm`, backTo);
-        },
-    },
+
     WORKSPACE_PER_DIEM_IMPORT: {
         route: 'workspaces/:policyID/per-diem/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/per-diem/import` as const,

@@ -1,6 +1,8 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
@@ -21,7 +23,6 @@ import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
@@ -34,9 +35,9 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
     const {isOffline} = useNetwork();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
+    const [isInvitationSent, setIsInvitationSent] = useState(false);
 
     const policyID = route.params?.policyID;
-    const integration = route.params?.integration;
     const policy = usePolicy(policyID);
     const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;
     const textInputLabel = shouldShowSearchInput ? translate('common.search') : undefined;
@@ -179,9 +180,33 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         const emails = selectedOptions.map((member) => member.login).filter(Boolean);
 
         inviteWorkspaceEmployeesToUber(policyID, emails);
+        setIsInvitationSent(true);
+    }, [selectedOptions, policyID]);
 
-        Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_CONFIRM.getRoute(policyID, integration));
-    }, [selectedOptions, policyID, integration]);
+    const handleGotIt = useCallback(() => {
+        Navigation.dismissModal();
+    }, []);
+
+    if (isInvitationSent) {
+        return (
+            <ScreenWrapper testID={InviteReceiptPartnerPolicyPage.displayName}>
+                <HeaderWithBackButton
+                    title={translate('workspace.receiptPartners.uber.allSet')}
+                    onBackButtonPress={() => Navigation.dismissModal()}
+                />
+                <ConfirmationPage
+                    illustration={Illustrations.ToddInCar}
+                    illustrationStyle={styles.uberConfirmationIllustrationContainer}
+                    heading={translate('workspace.receiptPartners.uber.readyToRoll')}
+                    description={translate('workspace.receiptPartners.uber.takeBusinessRideMessage')}
+                    shouldShowButton
+                    buttonText={translate('common.buttonConfirm')}
+                    onButtonPress={handleGotIt}
+                    descriptionStyle={styles.colorMuted}
+                />
+            </ScreenWrapper>
+        );
+    }
 
     return (
         <ScreenWrapper testID={InviteReceiptPartnerPolicyPage.displayName}>

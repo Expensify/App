@@ -635,7 +635,6 @@ const SCREENS = {
         PAY_AND_DOWNGRADE: 'Workspace_Pay_And_Downgrade',
         RECEIPT_PARTNERS: 'Workspace_Receipt_Partners',
         RECEIPT_PARTNERS_INVITE: 'Workspace_Receipt_Partners_Invite',
-        RECEIPT_PARTNERS_INVITE_CONFIRM: 'Workspace_Receipt_Partners_Invite_Confirm',
         RECEIPT_PARTNERS_INVITE_EDIT: 'Workspace_Receipt_Partners_Invite_Edit',
         RULES: 'Policy_Rules',
         REPORTS_DEFAULT_TITLE: 'Reports_Default_Title',
