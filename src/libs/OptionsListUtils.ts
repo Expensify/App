@@ -93,7 +93,6 @@ import {
     isMarkAsClosedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
-    isMovedAction,
     isMovedTransactionAction,
     isOldDotReportAction,
     isPendingRemove,

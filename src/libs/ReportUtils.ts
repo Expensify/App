@@ -192,7 +192,6 @@ import {
     isMarkAsClosedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
-    isMovedAction,
     isOldDotReportAction,
     isPendingRemove,
     isPolicyChangeLogAction,
