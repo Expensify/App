@@ -7,7 +7,7 @@ import useBeforeRemove from './useBeforeRemove';
  * (during the first render). Unlike `useEffect`, this hook does not re-run
  * when dependencies change, and it resets its "first render" state
  * when the component is removed from the navigation stack.
- * 
+ *
  * @example
  * useEffectOnMount(() => {
  *   console.log("Component mounted");
