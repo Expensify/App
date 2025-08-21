@@ -41,6 +41,7 @@ import {
     isTransactionGroupListItemType,
     isTransactionListItemType,
     isTransactionMemberGroupListItemType,
+    isTransactionWithdrawalIDGroupListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
@@ -542,6 +543,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 return;
             }
 
+            if (isTransactionWithdrawalIDGroupListItemType(item)) {
+                return;
+            }
+
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const isTransactionItem = isTransactionListItemType(item);
 
@@ -610,7 +615,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled) && groupBy !== CONST.SEARCH.GROUP_BY.FROM && groupBy !== CONST.SEARCH.GROUP_BY.CARD;
+    const canSelectMultiple =
+        !isChat &&
+        !isTask &&
+        (!isSmallScreenWidth || isMobileSelectionModeEnabled) &&
+        groupBy !== CONST.SEARCH.GROUP_BY.FROM &&
+        groupBy !== CONST.SEARCH.GROUP_BY.CARD &&
+        groupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
     const ListItem = getListItem(type, status, groupBy);
     const sortedSelectedData = useMemo(
         () =>
@@ -757,6 +768,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 onAllCheckboxPress={toggleAllTransactions}
                 canSelectMultiple={canSelectMultiple}
                 shouldPreventLongPressRow={isChat || isTask}
+                isFocused={isFocused}
                 SearchTableHeader={
                     !shouldShowTableHeader ? undefined : (
                         <SearchTableHeader

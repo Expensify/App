@@ -587,6 +587,7 @@ const translations = {
         network: 'Rete',
         reportID: 'ID Rapporto',
         longID: 'ID lungo',
+        withdrawalID: 'ID di prelievo',
         bankAccounts: 'Conti bancari',
         chooseFile: 'Scegli file',
         chooseFiles: 'Scegli file',
@@ -1293,9 +1294,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Sembra che non hai spese non segnalate. Prova a crearne una qui sotto.',
         addUnreportedExpenseConfirm: 'Aggiungi al report',
         explainHold: 'Spiega perché stai trattenendo questa spesa.',
-        undoSubmit: 'Annulla invio',
         retracted: 'retratato',
-        undoClose: 'Annulla chiusura',
+        retract: 'Ritirare',
         reopened: 'riaperto',
         reopenReport: 'Riapri rapporto',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
@@ -6400,8 +6400,9 @@ const translations = {
         levelThreeResult: 'Messaggio rimosso dal canale più avviso anonimo e messaggio segnalato per revisione.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invitali',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Invita a inviare le spese',
+        inviteToChat: 'Invita solo a chattare',
+        nothing: 'Non fare nulla',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accetta',
