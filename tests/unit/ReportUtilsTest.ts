@@ -5610,6 +5610,6 @@ describe('ReportUtils', () => {
 
             const result = canDeclineReportAction(report, userPolicy);
             expect(result).toBe(false);
-        })
-    })
+        });
+    });
 });
