@@ -36,12 +36,6 @@ jest.mock('@libs/API');
 jest.mock('@libs/Navigation/Navigation');
 jest.mock('@libs/Sound');
 jest.mock('@libs/ErrorUtils');
-// Do not mock ReportActionsUtils to avoid breaking other tests
-jest.mock('@libs/DateUtils');
-jest.mock('@libs/OptionsListUtils');
-jest.mock('@libs/PersonalDetailsUtils');
-jest.mock('@libs/LocalePhoneNumber');
-jest.mock('@libs/actions/Report');
 jest.mock('@libs/actions/Welcome');
 // Keep OnyxDerived real initialization below
 jest.mock('@components/Icon/Expensicons');
@@ -284,8 +278,8 @@ describe('actions/Task', () => {
     });
 
     describe('getFinishOnboardingTaskOnyxData', () => {
-        const parentReport: Report = {...getFakeReport(), type: CONST.REPORT.TYPE.CHAT};
-        const taskReport: Report = {...getFakeReport(), type: CONST.REPORT.TYPE.TASK, ownerAccountID: 1, managerID: 2, parentReportID: parentReport.reportID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+        const parentReport: Report = getFakeReport();
+        const taskReport: Report = {...getFakeReport(), type: CONST.REPORT.TYPE.TASK, ownerAccountID: 1, managerID: 2, parentReportID: parentReport.reportID};
         const reportCollectionDataSet: ReportCollectionDataSet = {
             [`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`]: taskReport,
             [`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`]: parentReport,
