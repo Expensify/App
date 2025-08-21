@@ -448,7 +448,6 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             icon: Expensicons.Bank,
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                 withdrawalType: CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT,
             }),
             get searchQueryJSON() {
