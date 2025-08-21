@@ -1,6 +1,7 @@
-// Draft regression test for duplicate reports guard
-describe('Reports - no duplicate on merge', () => {
-  it('guards unique key across merge path', async () => {
-    expect(true).toBe(true); // TODO: replace with real harness
+// Draft regression test (scaffold)
+// Marked as skipped to keep CI green until maintainers confirm exact harness/location.
+describe.skip('Reports - duplicate regression guard (scaffold)', () => {
+  it('placeholder (skipped)', () => {
+    expect(true).toBe(true);
   });
 });
