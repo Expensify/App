@@ -1613,6 +1613,8 @@ const translations = {
             recordTroubleshootData: 'Registrar datos de resolución de problemas',
             softKillTheApp: 'Desactivar la aplicación',
             kill: 'Matar',
+            biometricsNotRegistered: 'Biometría (No registrada)',
+            test: 'Prueba',
         },
         debugConsole: {
             saveLog: 'Guardar registro',

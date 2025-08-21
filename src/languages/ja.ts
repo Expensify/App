@@ -1630,6 +1630,8 @@ const translations = {
             recordTroubleshootData: 'トラブルシューティングデータの記録',
             softKillTheApp: 'アプリをソフトキル',
             kill: '殺す',
+            biometricsNotRegistered: '生体認証（未登録',
+            test: 'テスト',
         },
         debugConsole: {
             saveLog: 'ログを保存',

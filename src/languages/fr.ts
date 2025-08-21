@@ -1637,6 +1637,8 @@ const translations = {
             recordTroubleshootData: 'Enregistrement des données de dépannage',
             softKillTheApp: "Supprimer l'application",
             kill: 'Tuer',
+            biometricsNotRegistered: 'Biométrie (non enregistrée)',
+            test: 'Test',
         },
         debugConsole: {
             saveLog: 'Enregistrer le journal',
