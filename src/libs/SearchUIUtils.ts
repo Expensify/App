@@ -1188,7 +1188,7 @@ function canSubmitReportInSearch(
         !hasAllPendingRTERViolations &&
         hasTransactionWithoutRTERViolation &&
         !isReportArchived;
-        
+
     const hasBeenRetracted = hasReportBeenReopened(report, reportActions) || hasReportBeenRetracted(report, reportActions);
     if (baseCanSubmit && hasBeenRetracted) {
         return true;
