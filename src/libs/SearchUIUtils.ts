@@ -87,6 +87,7 @@ import {
     hasInvoiceReports,
     hasOnlyHeldExpenses,
     hasReportBeenReopened,
+    hasReportBeenRetracted,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
@@ -1103,24 +1104,25 @@ function getAction(
  * @private
  * Checks if a report can be submitted in the search.
  * @param report - The report to check if it can be submitted
+ * @param reportActions - The report actions associated with the report
  * @param policy - The policy associated with the report
  * @param transactions - The transactions associated with the report
- * @param allViolations - All violations associated with the transactions
+ * @param violations - Violations associated with the transactions
  * @param isReportArchived - Whether the report is archived
  */
 function canSubmitReportInSearch(
     report: OnyxEntry<OnyxTypes.Report> | SearchReport,
     policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
     transactions: SearchTransaction[],
-    allViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
+    violations: OnyxCollection<OnyxTypes.TransactionViolations>,
     reportActions: OnyxTypes.ReportAction[],
     isReportArchived: boolean,
 ) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
-    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations);
+    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, violations);
     const hasOnlyPendingCardOrScanFailTransactions = transactions.length > 0 && transactions.every((t) => isPendingCardOrScanningTransaction(t));
 
     const baseCanSubmit =
@@ -1131,8 +1133,9 @@ function canSubmitReportInSearch(
         !hasAllPendingRTERViolations &&
         hasTransactionWithoutRTERViolation &&
         !isReportArchived;
-    const hasBeenReopened = hasReportBeenReopened(report, reportActions);
-    if (baseCanSubmit && hasBeenReopened) {
+        
+    const hasBeenRetracted = hasReportBeenReopened(report, reportActions) || hasReportBeenRetracted(report, reportActions);
+    if (baseCanSubmit && hasBeenRetracted) {
         return true;
     }
     return baseCanSubmit && isManualSubmitEnabled;
