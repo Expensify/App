@@ -196,19 +196,25 @@ function SearchAutocompleteList(
         const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
         const currentType = typeFilter?.value;
 
+        let suggestedStatuses;
         switch (currentType) {
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                return Object.values(CONST.SEARCH.STATUS.EXPENSE).map((value) => getUserFriendlyValue(value));
+                suggestedStatuses = Object.values(CONST.SEARCH.STATUS.EXPENSE);
+                break;
             case CONST.SEARCH.DATA_TYPES.INVOICE:
-                return Object.values(CONST.SEARCH.STATUS.INVOICE).map((value) => getUserFriendlyValue(value));
+                suggestedStatuses = Object.values(CONST.SEARCH.STATUS.INVOICE);
+                break;
             case CONST.SEARCH.DATA_TYPES.CHAT:
-                return Object.values(CONST.SEARCH.STATUS.CHAT).map((value) => getUserFriendlyValue(value));
+                suggestedStatuses = Object.values(CONST.SEARCH.STATUS.CHAT);
+                break;
             case CONST.SEARCH.DATA_TYPES.TRIP:
-                return Object.values(CONST.SEARCH.STATUS.TRIP).map((value) => getUserFriendlyValue(value));
+                suggestedStatuses = Object.values(CONST.SEARCH.STATUS.TRIP);
+                break;
             case CONST.SEARCH.DATA_TYPES.TASK:
-                return Object.values(CONST.SEARCH.STATUS.TASK).map((value) => getUserFriendlyValue(value));
+                suggestedStatuses = Object.values(CONST.SEARCH.STATUS.TASK);
+                break;
             default:
-                return Object.values({
+                suggestedStatuses = Object.values({
                     ...CONST.SEARCH.STATUS.EXPENSE,
                     ...CONST.SEARCH.STATUS.INVOICE,
                     ...CONST.SEARCH.STATUS.CHAT,
@@ -216,6 +222,7 @@ function SearchAutocompleteList(
                     ...CONST.SEARCH.STATUS.TASK,
                 }).map((value) => getUserFriendlyValue(value));
         }
+        return suggestedStatuses.map((value) => getUserFriendlyValue(value));
     }, [autocompleteQueryValue]);
 
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
