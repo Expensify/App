@@ -30,7 +30,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import navigationRef from '@libs/Navigation/navigationRef';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -163,8 +162,6 @@ function SearchList(
 
     const {translate} = useLocalize();
     const listRef = useRef<FlashList<SearchListItem>>(null);
-    const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
-    const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const prevDataLength = usePrevious(data.length);
@@ -242,43 +239,13 @@ function SearchList(
 
             listRef.current.scrollToIndex({index, animated, viewOffset: variables.contentHeaderHeight});
         },
-
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [],
+        [data],
     );
 
-    /**
-     * Highlights the items and scrolls to the first item present in the items list.
-     *
-     * @param items - The list of items to highlight.
-     * @param timeout - The timeout in milliseconds before removing the highlight.
-     */
-    const scrollAndHighlightItem = useCallback(
-        (items: string[]) => {
-            const newItemsToHighlight = new Set<string>();
-            items.forEach((item) => {
-                newItemsToHighlight.add(item);
-            });
-            const index = data.findIndex((option) => newItemsToHighlight.has(option.keyForList ?? ''));
-            scrollToIndex(index);
-            setItemsToHighlight(newItemsToHighlight);
-
-            if (itemFocusTimeoutRef.current) {
-                clearTimeout(itemFocusTimeoutRef.current);
-            }
-
-            itemFocusTimeoutRef.current = setTimeout(() => {
-                setItemsToHighlight(null);
-            }, durationHighlightItem);
-        },
-        [data, scrollToIndex],
-    );
-
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex}), [scrollAndHighlightItem, scrollToIndex]);
+    useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
 
     const renderItem = useCallback(
         (item: SearchListItem, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
-            const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             return (
@@ -295,10 +262,7 @@ function SearchList(
                         onLongPressRow={handleLongPressRow}
                         onCheckboxPress={onCheckboxPress}
                         canSelectMultiple={canSelectMultiple}
-                        item={{
-                            shouldAnimateInHighlight: isItemHighlighted,
-                            ...item,
-                        }}
+                        item={item}
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                         queryJSONHash={hash}
                         policies={policies}
@@ -315,7 +279,6 @@ function SearchList(
             );
         },
         [
-            itemsToHighlight,
             shouldAnimate,
             styles.overflowHidden,
             hasItemsBeingRemoved,

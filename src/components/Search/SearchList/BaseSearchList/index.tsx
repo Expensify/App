@@ -130,4 +130,6 @@ function BaseSearchList({
     );
 }
 
+BaseSearchList.displayName = 'BaseSearchList';
+
 export default BaseSearchList;
