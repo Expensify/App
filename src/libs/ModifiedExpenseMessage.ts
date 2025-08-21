@@ -4,7 +4,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
-import type {SearchReport} from '@src/types/onyx/SearchResults';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
@@ -158,25 +157,11 @@ function getForExpenseMovedFromSelfDM(destinationReportID: string) {
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  */
-function getForReportAction({
-    reportOrID,
-    reportAction,
-    searchReports,
-}: {
-    reportOrID: string | SearchReport | undefined;
-    reportAction: OnyxEntry<ReportAction>;
-    searchReports?: SearchReport[];
-}): string {
+function getForReportAction({reportAction, policyID}: {reportAction: OnyxEntry<ReportAction>; policyID: string | undefined}): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
     const reportActionOriginalMessage = getOriginalMessage(reportAction);
-    let report: SearchReport | undefined | OnyxEntry<Report>;
-    if (typeof reportOrID === 'string') {
-        report = searchReports ? searchReports.find((r) => r.reportID === reportOrID) : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
-    } else {
-        report = reportOrID;
-    }
 
     if (reportActionOriginalMessage?.movedToReportID) {
         return getForExpenseMovedFromSelfDM(reportActionOriginalMessage.movedToReportID);
@@ -186,7 +171,6 @@ function getForReportAction({
         const reportName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportActionOriginalMessage?.movedFromReport}`]);
         return translateLocal('iou.movedFromReport', {reportName: reportName ?? ''});
     }
-
     const removalFragments: string[] = [];
     const setFragments: string[] = [];
     const changeFragments: string[] = [];
@@ -264,7 +248,7 @@ function getForReportAction({
 
     const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
-        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`] ?? {};
+        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
         const transactionTag = reportActionOriginalMessage?.tag ?? '';
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
         const splittedTag = getTagArrayFromName(transactionTag);
