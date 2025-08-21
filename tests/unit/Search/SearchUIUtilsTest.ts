@@ -8,6 +8,7 @@ import type {
     TransactionListItemType,
     TransactionMemberGroupListItemType,
     TransactionReportGroupListItemType,
+    TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -41,6 +42,10 @@ const transactionID3 = '3';
 const transactionID4 = '4';
 const cardID = 20202020;
 const cardID2 = 30303030;
+const entryID = 5;
+const entryID2 = 6;
+const accountNumber = 'XXXXXXXX6789';
+const accountNumber2 = 'XXXXXXXX5544';
 
 const report1 = {
     accountID: adminAccountID,
@@ -439,8 +444,6 @@ const searchResults: OnyxTypes.SearchResults = {
             shouldShowCategoryColumn: true,
             shouldShowTagColumn: false,
             shouldShowTaxColumn: false,
-            shouldShowFromColumn: true,
-            shouldShowToColumn: true,
         },
         hasMoreResults: false,
         hasResults: true,
@@ -483,10 +486,8 @@ const searchResultsGroupByFrom: OnyxTypes.SearchResults = {
     search: {
         columnsToShow: {
             shouldShowCategoryColumn: false,
-            shouldShowFromColumn: false,
             shouldShowTagColumn: false,
             shouldShowTaxColumn: false,
-            shouldShowToColumn: false,
         },
         count: 5,
         currency: 'USD',
@@ -540,10 +541,8 @@ const searchResultsGroupByCard: OnyxTypes.SearchResults = {
     search: {
         columnsToShow: {
             shouldShowCategoryColumn: false,
-            shouldShowFromColumn: false,
             shouldShowTagColumn: false,
             shouldShowTaxColumn: false,
-            shouldShowToColumn: false,
         },
         count: 10,
         currency: 'USD',
@@ -551,6 +550,46 @@ const searchResultsGroupByCard: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+        total: 60,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
+const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {},
+        [`${CONST.SEARCH.GROUP_PREFIX}${entryID}` as const]: {
+            entryID,
+            accountNumber,
+            bankName: CONST.BANK_NAMES.CHASE,
+            debitPosted: '2025-08-12 17:11:22',
+            count: 4,
+            currency: 'USD',
+            total: 40,
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}${cardID2}` as const]: {
+            entryID: entryID2,
+            accountNumber: accountNumber2,
+            bankName: CONST.BANK_NAMES.CITIBANK,
+            debitPosted: '2025-08-19 18:10:54',
+            count: 6,
+            currency: 'USD',
+            total: 20,
+        },
+    },
+    search: {
+        columnsToShow: {
+            shouldShowCategoryColumn: false,
+            shouldShowTagColumn: false,
+            shouldShowTaxColumn: false,
+        },
+        count: 10,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
         total: 60,
         isLoading: false,
         type: 'expense',
@@ -633,8 +672,6 @@ const transactionsListItems = [
         shouldShowTag: false,
         shouldShowTax: false,
         shouldShowYear: true,
-        shouldShowFrom: true,
-        shouldShowTo: true,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         tag: '',
@@ -699,8 +736,6 @@ const transactionsListItems = [
         shouldShowTag: false,
         shouldShowTax: false,
         shouldShowYear: true,
-        shouldShowFrom: true,
-        shouldShowTo: true,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         tag: '',
@@ -779,8 +814,6 @@ const transactionsListItems = [
         shouldShowCategory: true,
         shouldShowTag: false,
         shouldShowTax: false,
-        shouldShowFrom: true,
-        shouldShowTo: true,
         keyForList: '3',
         shouldShowYear: true,
         isAmountColumnWide: false,
@@ -846,8 +879,6 @@ const transactionsListItems = [
         shouldShowCategory: true,
         shouldShowTag: false,
         shouldShowTax: false,
-        shouldShowFrom: true,
-        shouldShowTo: true,
         keyForList: '3',
         shouldShowYear: true,
         isAmountColumnWide: false,
@@ -943,8 +974,6 @@ const transactionReportGroupListItems = [
                 shouldShowMerchant: true,
                 shouldShowTag: false,
                 shouldShowTax: false,
-                shouldShowFrom: true,
-                shouldShowTo: true,
                 shouldShowYear: true,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
@@ -1052,8 +1081,6 @@ const transactionReportGroupListItems = [
                 shouldShowMerchant: true,
                 shouldShowTag: false,
                 shouldShowTax: false,
-                shouldShowFrom: true,
-                shouldShowTo: true,
                 shouldShowYear: true,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
@@ -1271,6 +1298,56 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         lastFourPAN: '1234',
         login: 'admin@policy.com',
         total: 40,
+        transactions: [],
+    },
+];
+
+const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListItemType[] = [
+    {
+        bankName: CONST.BANK_NAMES.CHASE,
+        entryID,
+        accountNumber,
+        debitPosted: '2025-08-12 17:11:22',
+        count: 4,
+        currency: 'USD',
+        total: 40,
+        groupedBy: 'withdrawal-id',
+        transactions: [],
+    },
+    {
+        bankName: CONST.BANK_NAMES.CITIBANK,
+        entryID: entryID2,
+        accountNumber: accountNumber2,
+        debitPosted: '2025-08-19 18:10:54',
+        count: 6,
+        currency: 'USD',
+        total: 20,
+        groupedBy: 'withdrawal-id',
+        transactions: [],
+    },
+];
+
+const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupListItemType[] = [
+    {
+        bankName: CONST.BANK_NAMES.CITIBANK,
+        entryID: entryID2,
+        accountNumber: accountNumber2,
+        debitPosted: '2025-08-19 18:10:54',
+        count: 6,
+        currency: 'USD',
+        total: 20,
+        groupedBy: 'withdrawal-id',
+        transactions: [],
+    },
+    {
+        bankName: CONST.BANK_NAMES.CHASE,
+        entryID,
+        accountNumber,
+        debitPosted: '2025-08-12 17:11:22',
+        count: 4,
+        currency: 'USD',
+        total: 40,
+        groupedBy: 'withdrawal-id',
         transactions: [],
     },
 ];
@@ -1595,6 +1672,19 @@ describe('SearchUIUtils', () => {
                 ),
             ).toStrictEqual(transactionCardGroupListItems);
         });
+
+        it('should return getWithdrawalIDSections result when type is EXPENSE and groupBy is withdrawal-id', () => {
+            expect(
+                SearchUIUtils.getSections(
+                    CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    searchResultsGroupByWithdrawalID.data,
+                    searchResultsGroupByWithdrawalID.search,
+                    2074551,
+                    formatPhoneNumber,
+                    CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                ),
+            ).toStrictEqual(transactionWithdrawalIDGroupListItems);
+        });
     });
 
     describe('Test getSortedSections', () => {
@@ -1665,6 +1755,20 @@ describe('SearchUIUtils', () => {
             expect(
                 SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionCardGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.CARD),
             ).toStrictEqual(transactionCardGroupListItemsSorted);
+        });
+
+        it('should return getSortedWithdrawalIDData result when type is EXPENSE and groupBy is withdrawal-id', () => {
+            expect(
+                SearchUIUtils.getSortedSections(
+                    CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    '',
+                    transactionWithdrawalIDGroupListItems,
+                    localeCompare,
+                    'date',
+                    'asc',
+                    CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                ),
+            ).toStrictEqual(transactionWithdrawalIDGroupListItemsSorted);
         });
     });
 
@@ -1839,8 +1943,6 @@ describe('SearchUIUtils', () => {
                     shouldShowCategoryColumn: true,
                     shouldShowTagColumn: true,
                     shouldShowTaxColumn: true,
-                    shouldShowFromColumn: true,
-                    shouldShowToColumn: true,
                 },
             },
         };
