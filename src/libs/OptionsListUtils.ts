@@ -739,7 +739,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         const lastIOUMoneyReportAction = iouReport?.reportID
             ? allSortedReportActions[iouReport.reportID]?.find(
                   (reportAction, key): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
-                      shouldReportActionBeVisible(reportAction, key, canUserPerformWriteAction(report)) &&
+                      shouldReportActionBeVisible(reportAction, key, canUserPerformWriteAction(report, isReportArchived)) &&
                       reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                       isMoneyRequestAction(reportAction),
               )
@@ -1724,7 +1724,7 @@ function isValidReport(option: SearchOption<Report>, config: GetValidReportsConf
         return false;
     }
 
-    if (!canUserPerformWriteAction(option.item) && !includeReadOnly) {
+    if (!canUserPerformWriteAction(option.item, !!option.private_isArchived) && !includeReadOnly) {
         return false;
     }
 
