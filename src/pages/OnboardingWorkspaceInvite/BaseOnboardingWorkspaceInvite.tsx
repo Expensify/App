@@ -203,7 +203,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         });
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite]);
+    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite, countryCode]);
 
     const toggleOption = (option: MemberForList) => {
         const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
