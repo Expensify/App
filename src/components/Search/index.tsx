@@ -24,8 +24,8 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, generateReportID, isArchivedReport} from '@libs/ReportUtils';
+import {getIOUActionForTransactionID, getReportAction, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
+import {canEditFieldOfMoneyRequest, generateReportID, getReportOrDraftReport, isArchivedReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     getListItem,
@@ -49,6 +49,7 @@ import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
+import {openReport as loadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -562,6 +563,29 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const isTransactionItem = isTransactionListItemType(item);
 
+            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
+            if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                const transactionThreadReportID = generateReportID();
+                const iouReport = getReportOrDraftReport(item.report.reportID);
+                const iouAction = getReportAction(item.report.reportID, item.moneyRequestReportActionID);
+                updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReportID);
+
+                // It's possible the iou report and iou report action data isn't in the onyx yet. So we need to make sure to load it.
+                if (!iouReport || !iouAction) {
+                    loadReport(item.report.reportID);
+                }
+
+                Navigation.navigate(
+                    ROUTES.SEARCH_REPORT.getRoute({
+                        reportID: transactionThreadReportID,
+                        moneyRequestReportActionID: item.moneyRequestReportActionID,
+                        transactionID: item.transactionID,
+                        iouReportID: item.report.reportID,
+                    }),
+                );
+                return;
+            }
+
             const reportID =
                 isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
                     ? item.transactionThreadReportID
@@ -576,20 +600,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             if (isTransactionGroupListItemType(item)) {
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}));
-                return;
-            }
-
-            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionItem && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const generatedReportID = generateReportID();
-                updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, generatedReportID);
-                Navigation.navigate(
-                    ROUTES.SEARCH_REPORT.getRoute({
-                        reportID: generatedReportID,
-                        moneyRequestReportActionID: item.moneyRequestReportActionID,
-                        transactionID: item.transactionID,
-                    }),
-                );
                 return;
             }
 
