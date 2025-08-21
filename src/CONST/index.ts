@@ -1071,6 +1071,7 @@ const CONST = {
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         UNREPORTED_REPORT_ID: '0',
+        DEFAULT_REPORT_ID: '1',
         SPLIT_REPORT_ID: '-2',
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1153,6 +1154,7 @@ const CONST = {
                 DELETED_TRANSACTION: 'DELETEDTRANSACTION',
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // Deprecated OldDot Action
+                EXPENSIFY_CARD_SYSTEM_MESSAGE: 'EXPENSIFYCARDSYSTEMMESSAGE',
                 EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
                 EXPORTED_TO_INTEGRATION: 'EXPORTINTEGRATION', // OldDot Action
                 EXPORTED_TO_QUICK_BOOKS: 'EXPORTED', // Deprecated OldDot Action
@@ -1437,6 +1439,10 @@ const CONST = {
             DOWNLOAD_CSV: 'downloadCSV',
             REPORT_LEVEL_EXPORT: 'report_level_export',
             EXPENSE_LEVEL_EXPORT: 'detailed_export',
+        },
+        EXPORT_OPTION_LABELS: {
+            REPORT_LEVEL_EXPORT: 'All Data - Report Level Export',
+            EXPENSE_LEVEL_EXPORT: 'All Data - Expense Level Export',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -6280,6 +6286,7 @@ const CONST = {
 
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
+        EXITING_ANIMATION_DURATION: 200,
         DATA_TYPES: {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
@@ -6329,6 +6336,7 @@ const CONST = {
             REPORTS: 'reports',
             FROM: 'from',
             CARD: 'card',
+            WITHDRAWAL_ID: 'withdrawal-id',
         },
         BOOLEAN: {
             YES: 'yes',
@@ -6488,6 +6496,14 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             ACTION: 'action',
+        },
+
+        // Maps an internal search value to the user friendly display text, e.g. `perDiem` -> `per-diem`
+        get SEARCH_USER_FRIENDLY_VALUES_MAP() {
+            return {
+                [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
+                [this.GROUP_BY.REPORTS]: 'report',
+            };
         },
         DATE_MODIFIERS: {
             ON: 'On',
@@ -6980,6 +6996,7 @@ const CONST = {
 
     BILLING: {
         TYPE_FAILED_2018: 'failed_2018',
+        TYPE_STRIPE_FAILED_AUTHENTICATION: 'failed_stripe_authentication',
     },
 
     ONBOARDING_HELP: {

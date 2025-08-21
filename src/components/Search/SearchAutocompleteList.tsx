@@ -31,7 +31,15 @@ import {
     getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, getUserFriendlyKey, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    buildUserReadableQueryString,
+    getQueryWithoutFilters,
+    getUserFriendlyKey,
+    getUserFriendlyValue,
+    sanitizeSearchValue,
+    shouldHighlight,
+} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
@@ -181,7 +189,7 @@ function SearchAutocompleteList(
     const [isInitialRender, setIsInitialRender] = useState(true);
 
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
-    const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY);
+    const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
 
     const statusAutocompleteList = useMemo(() => {
         const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
@@ -204,7 +212,7 @@ function SearchAutocompleteList(
         }
     }, [autocompleteQueryValue]);
 
-    const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
+    const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
     const withdrawalTypes = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
     const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
 
