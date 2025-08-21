@@ -287,7 +287,17 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         } else {
             signIn(validateCode, recoveryCodeOr2faCode);
         }
-    }, [account?.isLoading, account?.errors, account?.requiresTwoFactorAuth, credentials?.validateCode, credentials?.accountID, isUsingRecoveryCode, recoveryCode, twoFactorAuthCode, validateCode]);
+    }, [
+        account?.isLoading,
+        account?.errors,
+        account?.requiresTwoFactorAuth,
+        credentials?.validateCode,
+        credentials?.accountID,
+        isUsingRecoveryCode,
+        recoveryCode,
+        twoFactorAuthCode,
+        validateCode,
+    ]);
 
     return (
         <SafariFormWrapper>
