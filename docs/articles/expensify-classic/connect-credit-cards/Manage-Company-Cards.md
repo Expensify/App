@@ -76,6 +76,14 @@ A CSV upload is a manual method for importing credit card transactions into Expe
 2. Email the forms to American Express.
 3. Submit the provided production file information to Expensify.
 
+## Brex
+1. Ask Concierge or your Account Manager for your Expensify Domain ID. 
+2. Contact your bank and request a Common Data File (CDF3) feed for Expensify.
+3. Provide the desired start date for transaction imports and give them the Domain ID as a reference number.
+4. Submit the request to Expensify via the [submission form](https://expensify.typeform.com/to/cGlCAz).
+5. Select Other, then enter Brex as the bank.
+6. Expensify will notify you once the feed is enabled.
+
 ---
 # CSV Upload: How do I import credit card transactions using a CSV?
 1. Download your card transactions from your bank in CSV, OFX, QFX, or XLS format.
