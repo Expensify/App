@@ -1293,7 +1293,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                 });
 
-                expect(result?.alternateText).toBe(`You: moved this report to the Three's Workspace workspace`);
+                expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
             });
 
             it('returns the last action message as an alternate text if the expense report is the one expense report', async () => {
