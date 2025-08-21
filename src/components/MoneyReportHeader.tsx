@@ -11,6 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePaymentOptions from '@hooks/usePaymentOptions';
+import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
@@ -175,6 +176,7 @@ function MoneyReportHeader({
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+    const {isBetaEnabled} = usePermissions();
 
     // Collate the list of user-created in-app export templates
     const customInAppTemplates = useMemo(() => {
@@ -823,8 +825,9 @@ function MoneyReportHeader({
             reportActions,
             policies,
             isChatReportArchived,
+            isNewDotUpdateSplitsBeta: isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS),
         });
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, chatReport, isChatReportArchived]);
+    }, [moneyRequestReport, chatReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isChatReportArchived, isBetaEnabled]);
 
     const secondaryExportActions = useMemo(() => {
         if (!moneyRequestReport) {

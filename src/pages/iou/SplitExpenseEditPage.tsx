@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,7 +25,7 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getTag, getTagForDisplay} from '@libs/TransactionUtils';
+import {getChildTransactions, getTag, getTagForDisplay} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,6 +37,7 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
 
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
     const report = getReportOrDraftReport(reportID);
@@ -66,6 +68,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], policy);
 
     const isCategoryRequired = !!policy?.requiresCategory;
+    const childTransactions = getChildTransactions(transactionID);
 
     const shouldShowTags = !!policy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
     const tagVisibility = useMemo(
@@ -83,7 +86,9 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     return (
         <ScreenWrapper testID={SplitExpenseEditPage.displayName}>
-            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(splitExpenseDraftTransaction) || !isSplitAvailable}>
+            <FullPageNotFoundView
+                shouldShow={!reportID || isEmptyObject(splitExpenseDraftTransaction) || !isSplitAvailable || (!!childTransactions.length && !isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS))}
+            >
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
                         title={translate('iou.splitExpenseEditTitle', {

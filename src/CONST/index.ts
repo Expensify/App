@@ -678,6 +678,8 @@ const CONST = {
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         TRACK_FLOWS: 'trackFlows',
+        NEWDOT_REVERT_SPLITS: 'newDotRevertSplits',
+        NEWDOT_UPDATE_SPLITS: 'newDotUpdateSplits',
         EUR_BILLING: 'eurBilling',
         MANUAL_DISTANCE: 'manualDistance',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',

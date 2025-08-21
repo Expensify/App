@@ -14,6 +14,7 @@ import SplitListItem from '@components/SelectionList/SplitListItem';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,6 +42,7 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
@@ -82,7 +84,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     }, [draftTransaction, transaction]);
 
     const onSaveSplitExpense = useCallback(() => {
-        if (splitExpenses.length <= 1) {
+        if (splitExpenses.length <= 1 && (!childTransactions.length || !isBetaEnabled(CONST.BETAS.NEWDOT_REVERT_SPLITS))) {
             const splitFieldDataFromOriginalTransactionWithoutID = {...splitFieldDataFromOriginalTransaction, transactionID: ''};
             const splitExpenseWithoutID = {...splitExpenses.at(0), transactionID: ''};
             // When we try to save one split during splits creation and if the data is identical to the original transaction we should close the split flow
@@ -124,6 +126,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         saveSplitTransactions(draftTransaction, currentSearchHash);
     }, [
         splitExpenses,
+        childTransactions.length,
+        isBetaEnabled,
         sumOfSplitExpenses,
         transactionDetailsAmount,
         isPerDiem,
@@ -132,7 +136,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         draftTransaction,
         currentSearchHash,
         splitFieldDataFromOriginalTransaction,
-        childTransactions.length,
         translate,
         transactionDetails?.currency,
     ]);
@@ -265,7 +268,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             keyboardAvoidingViewBehavior="height"
             shouldDismissKeyboardBeforeClose={false}
         >
-            <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
+            <FullPageNotFoundView
+                shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable || (!!childTransactions.length && !isBetaEnabled(CONST.BETAS.NEWDOT_UPDATE_SPLITS))}
+            >
                 <View style={[styles.flex1]}>
                     <HeaderWithBackButton
                         title={translate('iou.split')}
