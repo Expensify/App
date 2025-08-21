@@ -56,7 +56,6 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}}: Ti
                 onClose={hidePickerModal}
                 onModalHide={hidePickerModal}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldUseReanimatedModal
             >
                 <ScreenWrapper
                     style={styles.pb0}

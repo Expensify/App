@@ -70,7 +70,6 @@ function ValidateCodeActionModal({
             onBackdropPress={() => Navigation.dismissModal()}
             shouldUseModalPaddingStyle={false}
             animationInTiming={disableAnimation ? 1 : undefined}
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom

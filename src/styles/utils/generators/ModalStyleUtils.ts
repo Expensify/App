@@ -48,7 +48,6 @@ type GetModalStylesStyleUtil = {
             shouldDisableBottomSafeAreaPadding?: boolean;
             modalOverlapsWithTopSafeArea?: boolean;
         },
-        shouldUseReanimatedModal?: boolean,
     ) => GetModalStyles;
 };
 
@@ -61,7 +60,6 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         outerStyle = {},
         shouldUseModalPaddingStyle = true,
         safeAreaOptions = {modalOverlapsWithTopSafeArea: false, shouldDisableBottomSafeAreaPadding: false},
-        shouldUseReanimatedModal = false,
     ): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
@@ -285,27 +283,8 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     overflow: 'hidden',
                 };
 
-                if (shouldUseReanimatedModal) {
-                    animationIn = 'slideInRight';
-                    animationOut = 'slideOutRight';
-                } else {
-                    animationIn = {
-                        from: {
-                            translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
-                        },
-                        to: {
-                            translateX: 0,
-                        },
-                    };
-                    animationOut = {
-                        from: {
-                            translateX: 0,
-                        },
-                        to: {
-                            translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
-                        },
-                    };
-                }
+                animationIn = 'slideInRight';
+                animationOut = 'slideOutRight';
 
                 swipeDirection = undefined;
                 shouldAddBottomSafeAreaPadding = true;

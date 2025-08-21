@@ -98,7 +98,7 @@ function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTA
  * @example
  * getUserFriendlyValues("perDiem") // returns "per-diem"
  */
-function getUserFriendlyValue(value: string): UserFriendlyValue {
+function getUserFriendlyValue(value: string | undefined): UserFriendlyValue {
     return CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP[value as keyof typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP] ?? value;
 }
 
@@ -787,10 +787,10 @@ function buildUserReadableQueryString(
     const {type, status, groupBy, policyID} = queryJSON;
     const filters = queryJSON.flatFilters;
 
-    let title = status ? `type:${type} status:${Array.isArray(status) ? status.join(',') : status}` : `type:${type}`;
+    let title = status ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.join(',') : status}` : `type:${getUserFriendlyValue(type)}`;
 
     if (groupBy) {
-        title += ` group-by:${groupBy}`;
+        title += ` group-by:${getUserFriendlyValue(groupBy)}`;
     }
 
     if (policyID && policyID.length > 0) {

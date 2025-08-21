@@ -352,7 +352,6 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
             shouldUseCustomBackdrop
             shouldHandleNavigationBack
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={[styles.pb0]}
