@@ -1,6 +1,5 @@
 import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
-import {concat} from 'lodash';
 import cloneDeep from 'lodash/cloneDeep';
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
