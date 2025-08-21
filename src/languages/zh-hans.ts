@@ -587,7 +587,6 @@ const translations = {
         network: '网络',
         reportID: '报告 ID',
         longID: 'Long ID',
-        entryID: '条目 ID',
         withdrawalID: '提现ID',
         bankAccounts: '银行账户',
         chooseFile: '选择文件',

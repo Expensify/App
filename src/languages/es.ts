@@ -571,7 +571,6 @@ const translations = {
         network: 'La red',
         reportID: 'ID del informe',
         longID: 'ID largo',
-        entryID: 'ID de la entrada',
         withdrawalID: 'ID de retiro',
         bankAccounts: 'Cuentas bancarias',
         chooseFile: 'Elegir archivo',

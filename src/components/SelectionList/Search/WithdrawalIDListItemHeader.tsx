@@ -75,7 +75,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                                 style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre]}
                             />
                             <TextWithTooltip
-                                text={`${formattedWithdrawalDate}  ${translate('common.entryID')}: ${withdrawalIDItem.entryID}`}
+                                text={`${formattedWithdrawalDate}  ${translate('common.withdrawalID')}: ${withdrawalIDItem.entryID}`}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         </View>
