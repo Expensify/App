@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
@@ -21,7 +20,6 @@ import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
 function NewChatSelectorPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const navigation = useNavigation();
     // The focus trap container elements of the header and back button, tab bar, and active tab
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
