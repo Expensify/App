@@ -6,10 +6,10 @@ index 165bf95..e80c5b1 100644
          if (this.props.inverted && this._scrollRef && this._scrollRef.getScrollableNode) {
              const node = this._scrollRef.getScrollableNode();
              
-+            const onScrollOffset = this._scrollMetrics.offset;
++            const scrollMetricsOffset = this._scrollMetrics.offset;
 +            const contentLength = this._scrollMetrics.contentLength;
 +            const visibleLength = this._scrollMetrics.visibleLength
-+            const isOnScrollLimit = onScrollOffset <= 0 || Math.ceil(onScrollOffset) >= contentLength - visibleLength;
++            const isOnScrollLimit = scrollMetricsOffset <= 0 || Math.ceil(scrollMetricsOffset) >= contentLength - visibleLength;
 +            
 +            // Avoid recoil/rubber band effect on overscroll
 +            if (isOnScrollLimit) {
