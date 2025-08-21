@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, {useEffect, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -58,10 +58,9 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
         if (isExpandedFirstTime.current) {
             hasExpanded.set(true);
         } else {
-            isExpandedFirstTime.current = true;  
+            isExpandedFirstTime.current = true;
         }
     }, [hasExpanded, isExpanded]);
-    
 
     // Animation for content height and opacity
     const derivedHeight = useDerivedValue(() => {

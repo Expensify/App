@@ -159,9 +159,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
         onLongPressRow?.(item);
     }, [item, onLongPressRow]);
 
-    const onCheckboxPress = useCallback((val: TItem) => {
-        onCheckboxPressRow?.(val);
-    }, [onCheckboxPressRow]);
+    const onCheckboxPress = useCallback(
+        (val: TItem) => {
+            onCheckboxPressRow?.(val);
+        },
+        [onCheckboxPressRow],
+    );
 
     const getHeader = useMemo(() => {
         const headers: Record<SearchGroupBy, React.JSX.Element> = {
