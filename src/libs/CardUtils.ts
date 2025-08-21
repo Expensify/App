@@ -392,7 +392,9 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
     const feedName = getBankName(feed);
     const formattedFeedName = shouldAddCardsSuffix ? translateLocal('workspace.companyCards.feedName', {feedName}) : feedName;
 
-    return customFeedName ?? formattedFeedName;
+    // Custom feed name can be empty. Fallback to default feed name
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return customFeedName || formattedFeedName;
 }
 
 function getPlaidInstitutionIconUrl(feedName?: string) {
