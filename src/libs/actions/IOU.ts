@@ -227,7 +227,7 @@ import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/ony
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey as clearPdfByOnyxKey} from './CachedPDFPaths';
-import {getPolicyCategoriesData} from './Policy/Category';
+import {buildOptimisticPolicyRecentlyUsedCategories, getPolicyCategoriesData} from './Policy/Category';
 import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from './Policy/Member';
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from './Policy/Tag';
@@ -3609,7 +3609,7 @@ function computeDefaultPerDiemExpenseComment(customUnit: TransactionCustomUnit, 
 }
 
 function mergePolicyRecentlyUsedCategories(category: string | undefined, policyRecentlyUsedCategories: OnyxEntry<OnyxTypes.RecentlyUsedCategories>) {
-    return category ? Array.from(new Set([category, ...(Array.isArray(policyRecentlyUsedCategories) ? policyRecentlyUsedCategories : [])])) : policyRecentlyUsedCategories;
+    return category ? Array.from(new Set([category, ...(Array.isArray(policyRecentlyUsedCategories) ? policyRecentlyUsedCategories : [])])) : (policyRecentlyUsedCategories ?? []);
 }
 
 /**
