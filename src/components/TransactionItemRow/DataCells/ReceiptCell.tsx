@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
@@ -29,7 +30,8 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
         source = tryResolveUrlFromApiRoot(receiptURIs.thumbnail ?? receiptURIs.image ?? '');
-        previewSource = tryResolveUrlFromApiRoot(receiptURIs.image ?? receiptURIs.thumbnail ?? '');
+        const previewImageURI = Str.isImage(filename) ? receiptURIs.image : receiptURIs.thumbnail;
+        previewSource = tryResolveUrlFromApiRoot(previewImageURI ?? '');
     }
 
     return (
