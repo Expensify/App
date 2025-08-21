@@ -11,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setNewRoomFormLoading} from '@libs/actions/Report';
+import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,6 +55,10 @@ function NewChatSelectorPage() {
         });
     };
 
+    const navigateBack = () => {
+        Navigation.closeRHPFlow();
+    };
+
     useEffect(() => {
         setNewRoomFormLoading(false);
     }, []);
@@ -73,7 +78,7 @@ function NewChatSelectorPage() {
             >
                 <HeaderWithBackButton
                     title={translate('sidebarScreen.fabNewChat')}
-                    onBackButtonPress={navigation.goBack}
+                    onBackButtonPress={navigateBack}
                 />
             </FocusTrapContainerElement>
 
