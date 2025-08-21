@@ -5,7 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useOnyx from '@hooks/useOnyx';
-import useRunOnFirstRender from '@hooks/useRunOnFirstRender';
+import useEffectOnMount from '@hooks/useEffectOnMount';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,8 +33,12 @@ function ValidateCodeActionContent({
     const styles = useThemeStyles();
     const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffset);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
-
-    useRunOnFirstRender(sendValidateCode, validateCodeAction?.validateCodeSent);
+    useEffectOnMount(() => {
+        if (validateCodeAction?.validateCodeSent) {
+            return;
+        }
+        sendValidateCode();
+    });
 
     const hide = useCallback(() => {
         clearError();
