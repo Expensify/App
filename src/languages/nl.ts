@@ -1606,6 +1606,7 @@ const translations = {
             recordTroubleshootData: 'Probleemoplossingsgegevens opnemen',
             softKillTheApp: 'Soft kill de app',
             kill: 'Dood',
+            biometricsRegistered: 'Biometrie (geregistreerd)',
             biometricsNotRegistered: 'Biometrie (Niet geregistreerd)',
             test: 'Test',
         },

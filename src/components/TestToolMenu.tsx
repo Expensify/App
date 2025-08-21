@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -44,6 +44,14 @@ function TestToolMenu() {
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
+    const isRegistered = false; // This should be replaced with actual logic to check if biometrics are registered
+
+    const biometricsTitle = useCallback(() => {
+        if (isRegistered) {
+            return 'initialSettingsPage.troubleshoot.biometricsRegistered'
+        }
+        return 'initialSettingsPage.troubleshoot.biometricsNotRegistered'
+    }, [isRegistered])
 
     return (
         <>
@@ -104,7 +112,7 @@ function TestToolMenu() {
 
                     {/* Starts Biometrics test flow -> possible only on native */}
                     {isNative && (
-                        <TestToolRow title={translate('initialSettingsPage.troubleshoot.biometricsNotRegistered')}>
+                        <TestToolRow title={translate(biometricsTitle())}>
                         <Button
                             small
                             text={translate('initialSettingsPage.troubleshoot.test')}
