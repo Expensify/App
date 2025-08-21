@@ -1,8 +1,33 @@
 import {act, renderHook} from '@testing-library/react-native';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
 import useReportUnreadMessageScrollTracking from '@pages/home/report/useReportUnreadMessageScrollTracking';
 import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
+
+type MockSharedValue<T> = SharedValue<T> & {
+    get(): T;
+    set(v: T): void;
+};
+
+function createMockSharedValue<T>(initial: T): MockSharedValue<T> {
+    let internalValue = initial;
+
+    return {
+        get value() {
+            return internalValue;
+        },
+        set value(v: T) {
+            internalValue = v;
+        },
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        modify: jest.fn(),
+        get: () => internalValue,
+        set: (v: T) => {
+            internalValue = v;
+        },
+    };
+}
 
 jest.mock('@userActions/Report', () => {
     return {
@@ -10,27 +35,35 @@ jest.mock('@userActions/Report', () => {
     };
 });
 
+jest.mock('react-native-reanimated', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...require('react-native-reanimated/mock'),
+        useAnimatedReaction: (prepare: () => unknown, react: (a: unknown, b: unknown) => void) => {
+            const prepared = prepare();
+            react(prepared, prepared);
+        },
+    };
+});
+
 const reportID = '12345';
 const readActionRefFalse = {current: false};
-const emptyScrollEventMock = {
-    nativeEvent: {layoutMeasurement: {height: 0, width: 0}, contentSize: {width: 100, height: 100}, contentOffset: {x: 0, y: 0}},
-} as NativeSyntheticEvent<NativeScrollEvent>;
 
 describe('useReportUnreadMessageScrollTracking', () => {
     describe('on init and without any scrolling', () => {
-        const onTrackScrollingMockFn = jest.fn();
-
         it('returns floatingMessage visibility that was set to a new value', () => {
             // Given
-            const offsetRef = {current: 0};
+            const offsetY = createMockSharedValue(0);
+            const keyboardHeight = createMockSharedValue(0);
             const {result, rerender} = renderHook(() =>
                 useReportUnreadMessageScrollTracking({
                     reportID,
-                    currentVerticalScrollingOffsetRef: offsetRef,
                     readActionSkippedRef: readActionRefFalse,
                     unreadMarkerReportActionIndex: -1,
                     isInverted: true,
-                    onTrackScrolling: onTrackScrollingMockFn,
+                    currentVerticalScrollingOffset: offsetY,
+                    keyboardHeight,
+                    hasUnreadMarkerReportAction: false,
                 }),
             );
 
@@ -38,54 +71,55 @@ describe('useReportUnreadMessageScrollTracking', () => {
             act(() => {
                 result.current.setIsFloatingMessageCounterVisible(true);
             });
+
             rerender({});
 
             // Then
             expect(result.current.isFloatingMessageCounterVisible).toBe(true);
-            expect(onTrackScrollingMockFn).not.toBeCalled();
         });
     });
 
     describe('when scrolling', () => {
-        const onTrackScrollingMockFn = jest.fn();
-
         it('returns floatingMessage visibility as true when scrolling outside of threshold', () => {
             // Given
-            const offsetRef = {current: 0};
+            const offsetY = createMockSharedValue(0);
+            const keyboardHeight = createMockSharedValue(0);
             const {result, rerender} = renderHook(() =>
                 useReportUnreadMessageScrollTracking({
                     reportID,
-                    currentVerticalScrollingOffsetRef: offsetRef,
                     readActionSkippedRef: readActionRefFalse,
                     isInverted: true,
                     unreadMarkerReportActionIndex: -1,
-                    onTrackScrolling: onTrackScrollingMockFn,
+                    currentVerticalScrollingOffset: offsetY,
+                    keyboardHeight,
+                    hasUnreadMarkerReportAction: false,
                 }),
             );
 
             // When
             act(() => {
-                offsetRef.current = CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD + 100;
-                result.current.trackVerticalScrolling(emptyScrollEventMock);
+                offsetY.set(CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD + 100);
             });
+
             rerender({});
 
             // Then
             expect(result.current.isFloatingMessageCounterVisible).toBe(true);
-            expect(onTrackScrollingMockFn).toBeCalledWith(emptyScrollEventMock);
         });
 
         it('returns floatingMessage visibility as true when the unread message is not visible in the view port', () => {
             // Given
-            const offsetRef = {current: 0};
+            const offsetY = createMockSharedValue(0);
+            const keyboardHeight = createMockSharedValue(0);
             const {result} = renderHook(() =>
                 useReportUnreadMessageScrollTracking({
                     reportID,
-                    currentVerticalScrollingOffsetRef: offsetRef,
+                    currentVerticalScrollingOffset: offsetY,
                     readActionSkippedRef: readActionRefFalse,
                     isInverted: true,
                     unreadMarkerReportActionIndex: 1,
-                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasUnreadMarkerReportAction: false,
+                    keyboardHeight,
                 }),
             );
 
@@ -103,45 +137,46 @@ describe('useReportUnreadMessageScrollTracking', () => {
 
             // Then
             expect(result.current.isFloatingMessageCounterVisible).toBe(true);
-            expect(onTrackScrollingMockFn).toBeCalledWith(emptyScrollEventMock);
         });
 
         it('returns floatingMessage visibility as false when scrolling inside the threshold', () => {
             // Given
-            const offsetRef = {current: 0};
+            const offsetY = createMockSharedValue(0);
+            const keyboardHeight = createMockSharedValue(0);
             const {result} = renderHook(() =>
                 useReportUnreadMessageScrollTracking({
                     reportID,
-                    currentVerticalScrollingOffsetRef: offsetRef,
                     readActionSkippedRef: readActionRefFalse,
                     unreadMarkerReportActionIndex: -1,
                     isInverted: true,
-                    onTrackScrolling: onTrackScrollingMockFn,
+                    currentVerticalScrollingOffset: offsetY,
+                    hasUnreadMarkerReportAction: false,
+                    keyboardHeight,
                 }),
             );
 
             // When
             act(() => {
-                offsetRef.current = CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD - 100;
-                result.current.trackVerticalScrolling(emptyScrollEventMock);
+                offsetY.set(CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD - 100);
             });
 
             // Then
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
-            expect(onTrackScrollingMockFn).toBeCalledWith(emptyScrollEventMock);
         });
 
         it('returns floatingMessage visibility as false when unread message is visible', () => {
             // Given
-            const offsetRef = {current: 0};
+            const offsetY = createMockSharedValue(0);
+            const keyboardHeight = createMockSharedValue(0);
             const {result} = renderHook(() =>
                 useReportUnreadMessageScrollTracking({
                     reportID,
-                    currentVerticalScrollingOffsetRef: offsetRef,
+                    currentVerticalScrollingOffset: offsetY,
                     readActionSkippedRef: readActionRefFalse,
                     unreadMarkerReportActionIndex: 1,
                     isInverted: true,
-                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasUnreadMarkerReportAction: false,
+                    keyboardHeight,
                 }),
             );
 
@@ -157,20 +192,21 @@ describe('useReportUnreadMessageScrollTracking', () => {
 
             // Then
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
-            expect(onTrackScrollingMockFn).toBeCalledWith(emptyScrollEventMock);
         });
 
         it('calls readAction when scrolling to an extent the unread message is visible and read action skipped is true', () => {
             // Given
-            const offsetRef = {current: 0};
-            const {result} = renderHook(() =>
+            const offsetY = createMockSharedValue(0);
+            const keyboardHeight = createMockSharedValue(0);
+            const {result, rerender} = renderHook(() =>
                 useReportUnreadMessageScrollTracking({
                     reportID,
-                    currentVerticalScrollingOffsetRef: offsetRef,
+                    currentVerticalScrollingOffset: offsetY,
                     readActionSkippedRef: {current: true},
                     unreadMarkerReportActionIndex: 1,
                     isInverted: true,
-                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasUnreadMarkerReportAction: false,
+                    keyboardHeight,
                 }),
             );
 
@@ -180,6 +216,8 @@ describe('useReportUnreadMessageScrollTracking', () => {
                 result.current.onViewableItemsChanged({viewableItems: [{index: 2, key: 'reportActions_2', isViewable: true, item: {}}], changed: []});
             });
 
+            rerender({});
+
             expect(result.current.isFloatingMessageCounterVisible).toBe(true);
             expect(readNewestAction).toBeCalledTimes(0);
 
@@ -187,6 +225,8 @@ describe('useReportUnreadMessageScrollTracking', () => {
                 // scrolling so that the unread action is visible, should call readNewestAction
                 result.current.onViewableItemsChanged({viewableItems: [{index: 1, key: 'reportActions_1', isViewable: true, item: {}}], changed: []});
             });
+
+            rerender({});
 
             // Then
             expect(readNewestAction).toBeCalledTimes(1);

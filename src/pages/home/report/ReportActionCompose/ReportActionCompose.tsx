@@ -107,6 +107,12 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
 
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
+
+    /** The native ID for this component */
+    nativeID?: string;
+
+    /** Callback when layout of composer changes */
+    onLayout: (event: LayoutChangeEvent) => void;
 };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
@@ -129,6 +135,8 @@ function ReportActionCompose({
     onComposerBlur,
     didHideComposerInput,
     reportTransactions,
+    nativeID,
+    onLayout,
 }: ReportActionComposeProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
@@ -145,6 +153,7 @@ function ReportActionCompose({
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
+
     /**
      * Updates the Highlight state of the composer
      */
@@ -550,9 +559,12 @@ function ReportActionCompose({
     };
 
     return (
-        <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
+        <View
+            onLayout={onLayout}
+            style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}
+        >
             <OfflineWithFeedback pendingAction={pendingAction}>
-                {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
+                {shouldShowReportRecipientLocalTime && hasReportRecipient ? <ParticipantLocalTime participant={reportRecipient} /> : <View style={styles.chatItemComposeBoxTopSpacer} />}
             </OfflineWithFeedback>
             <View
                 onLayout={measureComposer}
@@ -662,6 +674,7 @@ function ReportActionCompose({
                                             measureParentContainer={measureContainer}
                                             onValueChange={onValueChange}
                                             didHideComposerInput={didHideComposerInput}
+                                            nativeID={nativeID}
                                         />
                                         {shouldDisplayDualDropZone && (
                                             <DualDropZone

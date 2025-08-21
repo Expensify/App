@@ -1,6 +1,8 @@
 import {PortalHost} from '@gorhom/portal';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import {InteractionManager, View} from 'react-native';
+import {KeyboardGestureArea} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
 import MoneyReportHeader from '@components/MoneyReportHeader';
@@ -76,6 +78,10 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
+    const [composerHeight, setComposerHeight] = useState<number>(CONST.CHAT_FOOTER_MIN_HEIGHT);
+    // Starts with this value to avoid a big jump while the container height is being calculated in case the screen is first rendered w/ a full size composer. It's based on the perceived concierge header height on the iPhone 16 Pro.
+    const [headerHeight, setHeaderHeight] = useState<number>(73);
+
     const reportID = report?.reportID;
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, {canBeMissing: true});
@@ -118,6 +124,11 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const isEmptyTransactionReport = visibleTransactions && visibleTransactions.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
+
+    const onComposerLayout = useCallback((height: number) => setComposerHeight(height), []);
+    const onHeaderLayout = useCallback((e: LayoutChangeEvent) => {
+        setHeaderHeight(e.nativeEvent.layout.height);
+    }, []);
 
     const reportHeaderView = useMemo(
         () =>
@@ -168,6 +179,8 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         pendingAction={reportPendingAction}
                         isComposerFullSize={!!isComposerFullSize}
                         lastReportAction={lastReportAction}
+                        onLayout={onComposerLayout}
+                        headerHeight={headerHeight}
                     />
                 ) : null}
             </View>
@@ -175,7 +188,13 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     }
 
     return (
-        <View style={styles.flex1}>
+        <KeyboardGestureArea
+            style={styles.flex1}
+            offset={composerHeight}
+            interpolator="ios"
+            textInputNativeID="composer"
+            enableSwipeToDismiss={!isComposerFullSize}
+        >
             <OfflineWithFeedback
                 pendingAction={reportPendingAction}
                 errors={reportErrors}
@@ -186,7 +205,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 errorRowStyles={[styles.ph5, styles.mv2]}
             >
                 <HeaderGap />
-                {reportHeaderView}
+                <View onLayout={onHeaderLayout}>{reportHeaderView}</View>
                 <View style={[styles.overflowHidden, styles.justifyContentEnd, styles.flex1]}>
                     {shouldDisplayMoneyRequestActionsList ? (
                         <MoneyRequestReportActionsList
@@ -198,6 +217,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             hasOlderActions={hasOlderActions}
                             hasNewerActions={hasNewerActions}
                             showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
+                            composerHeight={composerHeight}
                         />
                     ) : (
                         <ReportActionsView
@@ -208,6 +228,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             hasOlderActions={hasOlderActions}
                             parentReportAction={parentReportAction}
                             transactionThreadReportID={transactionThreadReportID}
+                            composerHeight={composerHeight}
                         />
                     )}
                     {shouldDisplayReportFooter ? (
@@ -220,13 +241,15 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                 isComposerFullSize={!!isComposerFullSize}
                                 lastReportAction={lastReportAction}
                                 reportTransactions={transactions}
+                                onLayout={onComposerLayout}
+                                headerHeight={headerHeight}
                             />
                             <PortalHost name="suggestions" />
                         </>
                     ) : null}
                 </View>
             </OfflineWithFeedback>
-        </View>
+        </KeyboardGestureArea>
     );
 }
 
