@@ -99,6 +99,15 @@ function TestToolMenu() {
                             onPress={() => expireSessionWithDelay()}
                         />
                     </TestToolRow>
+
+                    {/* Starts Biometrics test flow */}
+                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.biometricsNotRegistered')}>
+                        <Button
+                            small
+                            text={translate('initialSettingsPage.troubleshoot.test')}
+                            onPress={() => null}
+                        />
+                    </TestToolRow>
                 </>
             )}
 
