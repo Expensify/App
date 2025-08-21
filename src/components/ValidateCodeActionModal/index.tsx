@@ -1,4 +1,3 @@
-import React from 'react';
 import Modal from '@components/Modal';
 import CONST from '@src/CONST';
 import type {ValidateCodeActionModalProps} from './type';

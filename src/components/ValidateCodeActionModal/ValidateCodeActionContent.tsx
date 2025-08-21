@@ -65,8 +65,8 @@ function ValidateCodeActionContent({
                 keyboardShouldPersistTaps="handled"
             >
                 <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
-                    <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
-                    {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
+                    <Text style={themeStyles.mb3}>{descriptionPrimary}</Text>
+                    {!!descriptionSecondary && <Text style={themeStyles.mb3}>{descriptionSecondary}</Text>}
                     <ValidateCodeForm
                         isLoading={isLoading}
                         validatePendingAction={validatePendingAction}
