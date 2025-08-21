@@ -128,9 +128,6 @@ type OptionRowLHNDataProps = {
 
     /** Function to compare locale strings */
     localeCompare: LocaleContextProps['localeCompare'];
-
-    /** Whether the report is archived */
-    isReportArchived: boolean;
 };
 
 type OptionRowLHNProps = {
