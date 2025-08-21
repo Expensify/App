@@ -45,7 +45,7 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isTr
                 <RenderHTML html={translate('workspace.upgrade.completed.successMessage', {policyName, subscriptionLink})} />
             </View>
         );
-    }, [environmentURL, isCategorizing, isTravelUpgrade, policyName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
+    }, [isCategorizing, isTravelUpgrade, policyName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
 
     return (
         <ConfirmationPage
