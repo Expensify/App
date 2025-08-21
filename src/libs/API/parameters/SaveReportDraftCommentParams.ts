@@ -1,6 +1,6 @@
 type SaveReportDraftCommentParams = {
     reportID: string;
-    comment: string;
+    reportComment: string;
 };
 
 export default SaveReportDraftCommentParams;

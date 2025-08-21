@@ -103,8 +103,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     const [onboardingUserReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, {canBeMissing: true});
+    const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(onboardingUserReportedIntegration ?? undefined);
     const [error, setError] = useState('');
@@ -195,10 +197,12 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         }
 
         setOnboardingUserReportedIntegration(userReportedIntegration);
-
-        // Navigate to the next onboarding step with the selected integration
-        Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(route.params?.backTo));
-    }, [translate, userReportedIntegration, route.params?.backTo]);
+        // Navigate to Interested Features if personal details have already been provided.
+        const nextRoute = isPrivateDomainAndHasAccessiblePolicies
+            ? ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(route.params?.backTo)
+            : ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo);
+        Navigation.navigate(nextRoute);
+    }, [translate, userReportedIntegration, route.params?.backTo, isPrivateDomainAndHasAccessiblePolicies]);
 
     const handleIntegrationSelect = useCallback((integrationKey: OnboardingAccounting | null) => {
         setUserReportedIntegration(integrationKey);

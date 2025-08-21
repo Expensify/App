@@ -21,7 +21,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {getCardFeedIcon, getPlaidInstitutionIconUrl, isExpensifyCard, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getAssignedCardSortKey, getCardFeedIcon, getPlaidInstitutionIconUrl, isExpensifyCard, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
@@ -30,7 +30,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, BankAccountList, Card, CardList, CompanyCardFeed} from '@src/types/onyx';
+import type {AccountData, BankAccount, BankAccountList, Card, CardList, CompanyCardFeed} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
@@ -104,6 +104,9 @@ type PaymentMethodListProps = {
 
     /** The policy invoice's transfer bank accountID */
     invoiceTransferBankAccountID?: number;
+
+    /** Whether the bank accounts should be displayed in private and business sections */
+    shouldShowBankAccountSections?: boolean;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -166,7 +169,10 @@ function isPaymentMethodActive(actionPaymentMethodType: string, activePaymentMet
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
 }
 
-function keyExtractor(item: PaymentMethod) {
+function keyExtractor(item: PaymentMethod | string) {
+    if (typeof item === 'string') {
+        return item;
+    }
     return item.key ?? '';
 }
 
@@ -193,6 +199,7 @@ function PaymentMethodList({
     listItemStyle = {},
     shouldShowRightIcon = true,
     invoiceTransferBankAccountID,
+    shouldShowBankAccountSections = false,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -216,14 +223,15 @@ function PaymentMethodList({
             const assignedCards = Object.values(isLoadingCardList ? {} : (cardList ?? {}))
                 // Filter by active cards associated with a domain
                 .filter((card) => !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
-            const assignedCardsSorted = lodashSortBy(assignedCards, (card) => !isExpensifyCard(card.cardID));
+
+            const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
 
             const assignedCardsGrouped: PaymentMethodItem[] = [];
             assignedCardsSorted.forEach((card) => {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !!card.errors;
                 const icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations);
 
-                if (!isExpensifyCard(card.cardID)) {
+                if (!isExpensifyCard(card)) {
                     const pressHandler = onPress as CardPressHandler;
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
@@ -414,6 +422,24 @@ function PaymentMethodList({
         [shouldShowAddBankAccountButton, onPressItem, translate, onPress, buttonRef, styles.paymentMethod, listItemStyle],
     );
 
+    const itemsToRender = useMemo(() => {
+        if (!shouldShowBankAccountSections) {
+            return filteredPaymentMethods;
+        }
+        if (
+            filteredPaymentMethods.find((method) => (method as BankAccount).accountData?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL) &&
+            filteredPaymentMethods.find((method) => (method as BankAccount).accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS)
+        ) {
+            return [
+                translate('walletPage.personalBankAccounts'),
+                ...filteredPaymentMethods.filter((method) => (method as BankAccount).accountData?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL),
+                translate('walletPage.businessBankAccounts'),
+                ...filteredPaymentMethods.filter((method) => (method as BankAccount).accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS),
+            ];
+        }
+        return filteredPaymentMethods;
+    }, [filteredPaymentMethods, shouldShowBankAccountSections, translate]);
+
     const getBadgeText = useCallback(
         (item: PaymentMethodItem) => {
             if (isAccountInSetupState(item)) {
@@ -433,62 +459,75 @@ function PaymentMethodList({
      * Create a menuItem for each passed paymentMethod
      */
     const renderItem = useCallback(
-        ({item}: RenderSuggestionMenuItemProps<PaymentMethodItem>) => (
-            <OfflineWithFeedback
-                onClose={() => dismissError(item)}
-                pendingAction={item.pendingAction}
-                errors={item.errors}
-                errorRowStyles={styles.ph6}
-                canDismissError={item.canDismissError}
-            >
-                <MenuItem
-                    onPress={item.onPress}
-                    title={item.title}
-                    description={item.description}
-                    icon={item.icon}
-                    plaidUrl={item.plaidUrl}
-                    disabled={item.disabled}
-                    iconType={item.plaidUrl ? CONST.ICON_TYPE_PLAID : CONST.ICON_TYPE_ICON}
-                    displayInDefaultIconColor
-                    iconHeight={item.iconHeight ?? item.iconSize}
-                    iconWidth={item.iconWidth ?? item.iconSize}
-                    iconStyles={item.iconStyles}
-                    badgeText={getBadgeText(item)}
-                    badgeIcon={isAccountInSetupState(item) ? Expensicons.DotIndicator : undefined}
-                    badgeSuccess={isAccountInSetupState(item) ? true : undefined}
-                    wrapperStyle={[styles.paymentMethod, listItemStyle]}
-                    iconRight={item.iconRight}
-                    badgeStyle={styles.badgeBordered}
-                    shouldShowRightIcon={item.shouldShowRightIcon}
-                    shouldShowSelectedState={shouldShowSelectedState}
-                    isSelected={selectedMethodID.toString() === item.methodID?.toString()}
-                    interactive={item.interactive}
-                    brickRoadIndicator={item.brickRoadIndicator}
-                    success={item.isMethodActive}
-                />
-            </OfflineWithFeedback>
-        ),
-
+        ({item, index}: RenderSuggestionMenuItemProps<PaymentMethodItem | string>) => {
+            if (typeof item === 'string') {
+                return (
+                    <View style={[listItemStyle, index === 0 ? styles.mt4 : styles.mt6, styles.mb1]}>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>{item}</Text>
+                    </View>
+                );
+            }
+            return (
+                <OfflineWithFeedback
+                    onClose={() => dismissError(item)}
+                    pendingAction={item.pendingAction}
+                    errors={item.errors}
+                    errorRowStyles={styles.ph6}
+                    canDismissError={item.canDismissError}
+                >
+                    <MenuItem
+                        onPress={item.onPress}
+                        title={item.title}
+                        description={item.description}
+                        icon={item.icon}
+                        plaidUrl={item.plaidUrl}
+                        disabled={item.disabled}
+                        iconType={item.plaidUrl ? CONST.ICON_TYPE_PLAID : CONST.ICON_TYPE_ICON}
+                        displayInDefaultIconColor
+                        iconHeight={item.iconHeight ?? item.iconSize}
+                        iconWidth={item.iconWidth ?? item.iconSize}
+                        iconStyles={item.iconStyles}
+                        badgeText={getBadgeText(item)}
+                        badgeIcon={isAccountInSetupState(item) ? Expensicons.DotIndicator : undefined}
+                        badgeSuccess={isAccountInSetupState(item) ? true : undefined}
+                        wrapperStyle={[styles.paymentMethod, listItemStyle]}
+                        iconRight={item.iconRight}
+                        badgeStyle={styles.badgeBordered}
+                        shouldShowRightIcon={item.shouldShowRightIcon}
+                        shouldShowSelectedState={shouldShowSelectedState}
+                        isSelected={selectedMethodID.toString() === item.methodID?.toString()}
+                        interactive={item.interactive}
+                        brickRoadIndicator={item.brickRoadIndicator}
+                        success={item.isMethodActive}
+                    />
+                </OfflineWithFeedback>
+            );
+        },
         [
             styles.ph6,
             styles.paymentMethod,
             styles.badgeBordered,
+            styles.mt4,
+            styles.mt6,
+            styles.mb1,
+            styles.textLabel,
+            styles.colorMuted,
             filteredPaymentMethods,
             invoiceTransferBankAccountID,
+            userWallet?.walletLinkedAccountID,
             translate,
             listItemStyle,
             shouldShowSelectedState,
             selectedMethodID,
-            userWallet?.walletLinkedAccountID,
         ],
     );
 
     return (
         <>
             <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowAddBankAccount ? 1 : 0)) * variables.optionRowHeight}]}>
-                <FlashList
+                <FlashList<PaymentMethod | string>
                     estimatedItemSize={variables.optionRowHeight}
-                    data={filteredPaymentMethods}
+                    data={itemsToRender}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
                     ListEmptyComponent={shouldShowEmptyListMessage ? renderListEmptyComponent : null}
