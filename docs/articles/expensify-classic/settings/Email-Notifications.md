@@ -11,7 +11,7 @@ Occasionally, members may have trouble receiving Email notifications from Expens
 
 # Magic Code Login Emails
 
-Magic Code emails are sent when you log in to Expensify and are critical for account access. These emails may be delayed or blocked due to spam filtering, corporate email policies, or server-level blocks.
+Magic Code emails are sent when you log in to Expensify and are critical for account access. These emails may be delayed or blocked due to spam filtering, corporate email policies, or server-level blocks. If you choose to or are automaticalled directed to sign in via SAML/SSO, you will **not** receive a magic code.
 
 ## Quick Fixes for Users
 
@@ -25,9 +25,9 @@ If you're not receiving your Magic Code email:
 
 ## Expected Wait Times
 
-- **Normal delivery:** 1-3 minutes
+- **Normal delivery:** 0-3 minutes
 - **Delayed delivery:** Up to 10 minutes
-- **If no email after 10 minutes:** Follow troubleshooting steps below
+- **If no email after 10 minutes:** Follow the troubleshooting steps below
 
 ## When to Escalate
 
@@ -42,7 +42,7 @@ Contact Expensify Concierge if you've tried the above steps and still can't rece
 
 ## Issue: The Email or Notification Is Never Received, and No Error Message Appears
 
-Emails can sometimes be delayed and may take up to 30–60 minutes to arrive. If an expected notification has not arrived:
+Emails can sometimes be delayed and may take up to 10 minutes to arrive. If an expected notification has not arrived:
 
 - Check your **Email Preferences** via **Settings > Account > Preferences**. In the **Contact Preferences** section, ensure the relevant notification types are enabled.
 - Check your Email spam and trash folders, as Expensify messages might be filtered incorrectly.
@@ -122,42 +122,6 @@ Even if you have received Expensify Emails in the past, confirm that **expensify
 
 - **IT Administrators:** Adjust Email allowlist and safe senders settings to include **expensify.com**:
   - [Allowlists, Denylists, and Approved Senders](https://support.google.com/a/answer/60752)
-
----
-
-# User vs IT/Admin Troubleshooting Paths
-
-## Quick Steps for End Users
-
-**Before contacting IT or support, try these user-friendly fixes:**
-
-1. **Check spam/junk folders** and search for "Expensify"
-2. **Add concierge@expensify.com to your contacts**
-3. **Wait 10 minutes** for delayed Magic Codes
-4. **Try an alternate email** if you have multiple contact methods configured
-5. **Clear browser cache** and try logging in again
-
-## IT Administrator Actions
-
-**If user-level fixes don't work, IT teams should:**
-
-1. **Check email server logs** for blocked or bounced messages from expensify.com
-2. **Verify allowlist settings** include the full expensify.com domain
-3. **Review third-party filtering services** (Mimecast, Proofpoint, etc.) for blocks
-4. **Confirm SPF/DKIM verification** is enabled rather than IP-based filtering
-5. **Test email delivery** by sending a test message to receipts@expensify.com
-
-## Escalation Guidelines
-
-**End users should contact their IT team when:**
-- Using company-managed email systems
-- Error messages mention specific filtering services
-- Multiple employees report similar issues
-
-**IT teams should contact Expensify Concierge when:**
-- Domain is properly allowlisted but blocks persist
-- Need assistance with SPF/DKIM configuration
-- Require temporary bypass while resolving server issues
 
 ---
 
