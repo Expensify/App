@@ -1135,6 +1135,7 @@ const CONST = {
                 ACTIONABLE_ADD_PAYMENT_CARD: 'ACTIONABLEADDPAYMENTCARD',
                 ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
+                ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER: 'ACTIONABLEMENTIONINVITETOSUBMITEXPENSECONFIRMWHISPER',
                 ACTIONABLE_REPORT_MENTION_WHISPER: 'ACTIONABLEREPORTMENTIONWHISPER',
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 POLICY_EXPENSE_CHAT_WELCOME_WHISPER: 'POLICYEXPENSECHATWELCOMEWHISPER',
@@ -1318,7 +1319,11 @@ const CONST = {
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
+            INVITE_TO_SUBMIT_EXPENSE: 'inviteToSubmitExpense',
             NOTHING: 'nothing',
+        },
+        ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER: {
+            DONE: 'done',
         },
         ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION: {
             NOTHING: 'nothing',
@@ -5321,6 +5326,35 @@ const CONST = {
     },
 
     /**
+     * Bank account names (user friendly)
+     */
+    get BANK_NAMES_USER_FRIENDLY() {
+        return {
+            [this.BANK_NAMES.EXPENSIFY]: 'Expensify',
+            [this.BANK_NAMES.AMERICAN_EXPRESS]: 'American Express',
+            [this.BANK_NAMES.BANK_OF_AMERICA]: 'Bank of America',
+            [this.BANK_NAMES.BB_T]: 'Truist',
+            [this.BANK_NAMES.CAPITAL_ONE]: 'Capital One',
+            [this.BANK_NAMES.CHASE]: 'Chase',
+            [this.BANK_NAMES.CHARLES_SCHWAB]: 'Charles Schwab',
+            [this.BANK_NAMES.CITIBANK]: 'Citibank',
+            [this.BANK_NAMES.CITIZENS_BANK]: 'Citizens',
+            [this.BANK_NAMES.DISCOVER]: 'Discover',
+            [this.BANK_NAMES.FIDELITY]: 'Fidelity',
+            [this.BANK_NAMES.GENERIC_BANK]: 'Bank',
+            [this.BANK_NAMES.HUNTINGTON_BANK]: 'Huntington',
+            [this.BANK_NAMES.HUNTINGTON_NATIONAL]: 'Huntington National',
+            [this.BANK_NAMES.NAVY_FEDERAL_CREDIT_UNION]: 'Navy Federal Credit Union',
+            [this.BANK_NAMES.PNC]: 'PNC',
+            [this.BANK_NAMES.REGIONS_BANK]: 'Regions',
+            [this.BANK_NAMES.SUNTRUST]: 'SunTrust',
+            [this.BANK_NAMES.TD_BANK]: 'TD Bank',
+            [this.BANK_NAMES.US_BANK]: 'U.S. Bank',
+            [this.BANK_NAMES.USAA]: 'USAA',
+        };
+    },
+
+    /**
      * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items
      * rendered on every scroll.
      */
@@ -6397,6 +6431,7 @@ const CONST = {
             ASSIGNEE: 'assignee',
             IN: 'in',
             CARD: 'card',
+            WITHDRAWAL_ID: 'withdrawalID',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
