@@ -7538,6 +7538,8 @@ describe('actions/IOU', () => {
             // Set up test data
             policy = createRandomPolicy(1);
             policy.role = CONST.POLICY.ROLE.ADMIN;
+            policy.autoReporting = true;
+            policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY;
 
             chatReport = {
                 ...createRandomReport(1),
@@ -7594,7 +7596,7 @@ describe('actions/IOU', () => {
             const result = declineMoneyRequest(transaction.transactionID, iouReport.reportID, comment);
 
             // Then: Should return navigation route to chat report
-            expect(result).toBe(ROUTES.REPORT_WITH_ID.getRoute(chatReport?.reportID));
+            expect(result).toBe(ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID));
 
             await waitForBatchedUpdates();
 
