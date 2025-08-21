@@ -42,7 +42,6 @@ type SearchListItem = TransactionListItemType | TransactionGroupListItemType | R
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem;
 
 type SearchListHandle = {
-    scrollAndHighlightItem?: (items: string[]) => void;
     scrollToIndex: (index: number, animated?: boolean) => void;
 };
 
