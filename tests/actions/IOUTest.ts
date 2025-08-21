@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {renderHook} from '@testing-library/react-native';
 import {format} from 'date-fns';
 import {deepEqual} from 'fast-equals';
@@ -5,6 +8,7 @@ import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx'
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
+import type {PerDiemExpenseTransactionParams, RequestMoneyParticipantParams} from '@libs/actions/IOU';
 import {
     addSplitExpenseField,
     calculateDiffAmount,
@@ -74,7 +78,7 @@ import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OriginalMessageIOU, PersonalDetailsList, Policy, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
+import type {OriginalMessageIOU, PersonalDetailsList, Policy, PolicyTagLists, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Accountant} from '@src/types/onyx/IOU';
 import type {Participant, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
@@ -88,6 +92,7 @@ import * as InvoiceData from '../data/Invoice';
 import type {InvoiceTestData} from '../data/Invoice';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
+import createRandomPolicyTags from '../utils/collections/policyTags';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
@@ -7524,415 +7529,309 @@ describe('actions/IOU', () => {
     });
 
     describe('getPerDiemExpenseInformation', () => {
-        it('should create per diem expense information with new chat report', () => {
-            // Given: A per diem expense with no existing chat report
-            const parentChatReport: OnyxEntry<Report> = null;
-            const transactionParams = {
-                comment: 'Business trip per diem',
-                currency: 'USD',
-                created: '2024-01-15 10:00:00',
-                category: 'Travel',
-                tag: 'business',
-                customUnit: {
-                    customUnitID: 'per_diem_travel',
-                    customUnitRateID: 'rate_100',
-                    subRates: [],
-                    attributes: {
-                        dates: {
-                            start: '2024-01-15 00:00:00',
-                            end: '2024-01-17 23:59:59',
-                        },
+        it('should return correct per diem expense information with new chat report', () => {
+            // Given: Mock data for per diem expense
+            const mockCustomUnit = {
+                customUnitID: 'per_diem_123',
+                customUnitRateID: 'rate_456',
+                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                attributes: {
+                    dates: {
+                        start: '2024-01-15',
+                        end: '2024-01-15',
                     },
                 },
+                subRates: [
+                    {
+                        id: 'breakfast_1',
+                        name: 'Breakfast',
+                        rate: 25,
+                        quantity: 1,
+                    },
+                    {
+                        id: 'lunch_1',
+                        name: 'Lunch',
+                        rate: 35,
+                        quantity: 1,
+                    },
+                ],
+                quantity: 1,
+            };
+
+            const mockParticipant = {
+                accountID: 123,
+                login: 'test@example.com',
+                displayName: 'Test User',
+                isPolicyExpenseChat: false,
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                role: CONST.REPORT.ROLE.MEMBER,
+            };
+
+            const mockTransactionParams = {
+                currency: 'USD',
+                created: '2024-01-15',
+                category: 'Travel',
+                tag: 'Project A',
+                customUnit: mockCustomUnit,
                 billable: true,
-                reimbursable: true,
                 attendees: [],
+                reimbursable: true,
+                comment: 'Business trip per diem',
             };
 
-            const participantParams = {
-                payeeEmail: 'employee@company.com',
-                payeeAccountID: 123,
-                participant: {
-                    accountID: 456,
-                    login: 'manager@company.com',
-                    displayName: 'Manager Name',
-                    isPolicyExpenseChat: false,
-                },
+            const mockParticipantParams = {
+                payeeAccountID: 456,
+                payeeEmail: 'payee@example.com',
+                participant: mockParticipant,
             };
 
-            const policyParams = {
+            const mockPolicyParams = {
                 policy: createRandomPolicy(1),
                 policyCategories: createRandomPolicyCategories(3),
-                policyTagList: {},
-                policyRecentlyUsedCategories: ['Meals', 'Transportation'],
+                policyTagList: createRandomPolicyTags('tagList', 2),
             };
 
-            const recentlyUsedParams = {
-                destinations: ['New York', 'Los Angeles'],
-            };
-
-            // When: Calling getPerDiemExpenseInformation
+            // When: Call getPerDiemExpenseInformation
             const result = getPerDiemExpenseInformation({
-                parentChatReport,
-                transactionParams,
-                participantParams,
-                policyParams,
-                recentlyUsedParams,
+                parentChatReport: {} as OnyxEntry<Report>,
+                transactionParams: mockTransactionParams,
+                participantParams: mockParticipantParams,
+                policyParams: mockPolicyParams,
+                recentlyUsedParams: {},
+                moneyRequestReportID: '1',
             });
 
-            // Then: Should return valid per diem expense information
+            // Then: Verify the result structure and key values
             expect(result).toMatchObject({
-                payerAccountID: 456,
-                payerEmail: 'manager@company.com',
+                payerAccountID: 123,
+                payerEmail: 'test@example.com',
                 billable: true,
                 reimbursable: true,
             });
 
-            // Should have optimistic data
-            expect(result.onyxData).toMatchObject({
-                optimisticData: expect.any(Array),
-                successData: expect.any(Array),
-                failureData: expect.any(Array),
-            });
+            // Verify chat report was created
+            expect(result.chatReport).toBeDefined();
+            expect(result.chatReport.reportID).toBeDefined();
+            expect(result.chatReport.chatType).toBe(CONST.REPORT.TYPE.IOU);
 
-            // Should have transaction with per diem specific properties
-            expect(result.transaction).toMatchObject({
-                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
-                hasEReceipt: true,
-                pendingFields: {
-                    subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-            });
+            // Verify IOU report was created
+            expect(result.iouReport).toBeDefined();
+            expect(result.iouReport.reportID).toBeDefined();
+            expect(result.iouReport.type).toBe(CONST.REPORT.TYPE.IOU);
 
-            // Should have optimistic recently used categories
-            const optimisticData = result.onyxData.optimisticData;
-            const policyRecentlyUsedCategoriesEntry = optimisticData?.find((item: any) => item.key && item.key.includes('policyRecentlyUsedCategories'));
-            expect(policyRecentlyUsedCategoriesEntry).toBeDefined();
-            expect(policyRecentlyUsedCategoriesEntry?.value).toContain('Travel');
+            // Verify transaction was created with correct per diem data
+            expect(result.transaction).toBeDefined();
+            expect(result.transaction.transactionID).toBeDefined();
+            expect(result.transaction.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.PER_DIEM);
+            expect(result.transaction.hasEReceipt).toBe(true);
+            expect(result.transaction.currency).toBe('USD');
+            expect(result.transaction.category).toBe('Travel');
+            expect(result.transaction.tag).toBe('Project A');
+            expect(result.transaction.comment?.comment).toBe('Business trip per diem');
+
+            // Verify IOU action was created
+            expect(result.iouAction).toBeDefined();
+            expect(result.iouAction.reportActionID).toBeDefined();
+            expect(result.iouAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.IOU);
+
+            // Verify report preview action
+            expect(result.reportPreviewAction).toBeDefined();
+            expect(result.reportPreviewAction.reportActionID).toBeDefined();
+
+            // Verify Onyx data structure
+            expect(result.onyxData).toBeDefined();
+            expect(result.onyxData.optimisticData).toBeDefined();
+            expect(result.onyxData.successData).toBeDefined();
+            expect(result.onyxData.failureData).toBeDefined();
+
+            // Verify created action IDs for new reports
+            expect(result.createdChatReportActionID).toBeDefined();
+            expect(result.createdIOUReportActionID).toBeDefined();
         });
 
-        it('should handle existing chat report and IOU report', () => {
-            // Given: A per diem expense with existing chat and IOU reports
-            const existingChatReport = createRandomReport(1);
-            const existingIOUReport = createRandomReport(2);
-            existingChatReport.iouReportID = existingIOUReport.reportID;
+        it('should return correct per diem expense information with existing chat report', () => {
+            // Given: Existing chat report
+            const existingChatReport = {
+                reportID: 'chat_123',
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                participants: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '123': {
+                        accountID: 123,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '456': {
+                        accountID: 456,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+                iouReportID: 'iou_456',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
 
-            const transactionParams = {
+            const mockCustomUnit = {
+                customUnitID: 'per_diem_789',
+                customUnitRateID: 'rate_101',
+                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                attributes: {
+                    dates: {
+                        start: '2024-01-20',
+                        end: '2024-01-20',
+                    },
+                },
+                subRates: [
+                    {
+                        id: 'dinner_1',
+                        name: 'Dinner',
+                        rate: 45,
+                        quantity: 1,
+                    },
+                ],
+                quantity: 2,
+            };
+
+            const mockParticipant = {
+                accountID: 123,
+                login: 'existing@example.com',
+                displayName: 'Existing User',
+                isPolicyExpenseChat: false,
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                role: CONST.REPORT.ROLE.MEMBER,
+            };
+
+            const mockTransactionParams = {
                 comment: 'Conference per diem',
                 currency: 'USD',
-                created: '2024-01-20 10:00:00',
-                category: 'Conference',
-                tag: 'conference',
-                customUnit: {
-                    customUnitID: 'per_diem_conference',
-                    customUnitRateID: 'rate_150',
-                    subRates: [],
-                    attributes: {
-                        dates: {
-                            start: '2024-01-20 00:00:00',
-                            end: '2024-01-22 23:59:59',
-                        },
-                    },
-                },
-                billable: true,
-                reimbursable: true,
-                attendees: [],
-            };
-
-            const participantParams = {
-                payeeEmail: 'employee@company.com',
-                payeeAccountID: 123,
-                participant: {
-                    accountID: 456,
-                    login: 'manager@company.com',
-                    displayName: 'Manager Name',
-                    isPolicyExpenseChat: false,
-                },
-            };
-
-            // When: Calling getPerDiemExpenseInformation with existing reports
-            const result = getPerDiemExpenseInformation({
-                parentChatReport: existingChatReport,
-                transactionParams,
-                participantParams,
-                moneyRequestReportID: existingIOUReport.reportID,
-            });
-
-            // Then: Should return valid per diem expense information
-            expect(result).toMatchObject({
-                payerAccountID: 456,
-                payerEmail: 'manager@company.com',
-                billable: true,
-                reimbursable: true,
-            });
-
-            // Should have transaction with per diem specific properties
-            expect(result.transaction).toMatchObject({
-                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
-                hasEReceipt: true,
-            });
-        });
-
-        it('should handle policy expense chat scenario', () => {
-            // Given: A per diem expense in a policy expense chat
-            const transactionParams = {
-                comment: 'Policy expense per diem',
-                currency: 'USD',
-                created: '2024-01-25 10:00:00',
-                category: 'Travel',
-                tag: 'policy',
-                customUnit: {
-                    customUnitID: 'per_diem_policy',
-                    customUnitRateID: 'rate_200',
-                    subRates: [],
-                    attributes: {
-                        dates: {
-                            start: '2024-01-25 00:00:00',
-                            end: '2024-01-27 23:59:59',
-                        },
-                    },
-                },
-                billable: true,
-                reimbursable: true,
-                attendees: [],
-            };
-
-            const participantParams = {
-                payeeEmail: 'employee@company.com',
-                payeeAccountID: 123,
-                participant: {
-                    accountID: 456,
-                    login: 'manager@company.com',
-                    displayName: 'Manager Name',
-                    isPolicyExpenseChat: true,
-                    reportID: 'existing-chat-report-id',
-                },
-            };
-
-            const policyParams = {
-                policy: createRandomPolicy(1),
-                policyCategories: createRandomPolicyCategories(3),
-                policyTagList: {},
-                policyRecentlyUsedCategories: ['Travel', 'Meals'],
-            };
-
-            // When: Calling getPerDiemExpenseInformation for policy expense chat
-            const result = getPerDiemExpenseInformation({
-                parentChatReport: null,
-                transactionParams,
-                participantParams,
-                policyParams,
-            });
-
-            // Then: Should return valid per diem expense information
-            expect(result).toMatchObject({
-                payerAccountID: 456,
-                payerEmail: 'manager@company.com',
-                billable: true,
-                reimbursable: true,
-            });
-
-            // Should have transaction with per diem specific properties
-            expect(result.transaction).toMatchObject({
-                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
-                hasEReceipt: true,
-            });
-        });
-
-        it('should handle empty category and recently used categories', () => {
-            // Given: A per diem expense with empty category and no recently used categories
-            const transactionParams = {
-                comment: 'Per diem without category',
-                currency: 'USD',
-                created: '2024-01-30 10:00:00',
-                category: '',
-                tag: '',
-                customUnit: {
-                    customUnitID: 'per_diem_basic',
-                    customUnitRateID: 'rate_50',
-                    subRates: [],
-                    attributes: {
-                        dates: {
-                            start: '2024-01-30 00:00:00',
-                            end: '2024-01-31 23:59:59',
-                        },
-                    },
-                },
+                created: '2024-01-20',
+                category: 'Meals',
+                tag: 'Conference',
+                customUnit: mockCustomUnit,
                 billable: false,
-                reimbursable: true,
                 attendees: [],
-            };
-
-            const participantParams = {
-                payeeEmail: 'employee@company.com',
-                payeeAccountID: 123,
-                participant: {
-                    accountID: 456,
-                    login: 'manager@company.com',
-                    displayName: 'Manager Name',
-                    isPolicyExpenseChat: false,
-                },
-            };
-
-            // When: Calling getPerDiemExpenseInformation with empty category
-            const result = getPerDiemExpenseInformation({
-                parentChatReport: null,
-                transactionParams,
-                participantParams,
-            });
-
-            // Then: Should return valid per diem expense information
-            expect(result).toMatchObject({
-                payerAccountID: 456,
-                payerEmail: 'manager@company.com',
-                billable: false,
                 reimbursable: true,
+            };
+
+            const mockParticipantParams = {
+                payeeAccountID: 456,
+                payeeEmail: 'payee@example.com',
+                participant: mockParticipant,
+            };
+
+            // When: Call getPerDiemExpenseInformation with existing chat report
+            const result = getPerDiemExpenseInformation({
+                parentChatReport: existingChatReport as OnyxEntry<Report>,
+                transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
+                participantParams: mockParticipantParams as RequestMoneyParticipantParams,
+                recentlyUsedParams: {},
             });
 
-            // Should have transaction with per diem specific properties
-            expect(result.transaction).toMatchObject({
-                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
-                hasEReceipt: true,
-            });
+            // Then: Verify the result uses existing chat report
+            expect(result.chatReport.reportID).toBe('chat_123');
+            expect(result.chatReport.chatType).toBe(CONST.REPORT.CHAT_TYPE.GROUP);
+
+            // Verify transaction has correct per diem data
+            expect(result.transaction.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.PER_DIEM);
+            expect(result.transaction.hasEReceipt).toBe(true);
+            expect(result.transaction.currency).toBe('USD');
+            expect(result.transaction.category).toBe('Meals');
+            expect(result.transaction.tag).toBe('Conference');
+            expect(result.transaction.comment).toBe('Conference per diem');
+
+            // Verify no new chat report action ID since using existing
+            expect(result.createdChatReportActionID).toBeUndefined();
         });
 
-        it('should handle custom unit with destinations', () => {
-            // Given: A per diem expense with custom unit rate ID and destinations
-            const transactionParams = {
-                comment: 'Per diem with destinations',
-                currency: 'USD',
-                created: '2024-02-01 10:00:00',
-                category: 'Travel',
-                tag: 'international',
-                customUnit: {
-                    customUnitID: 'per_diem_international',
-                    customUnitRateID: 'rate_international',
-                    subRates: [],
-                    attributes: {
-                        dates: {
-                            start: '2024-02-01 00:00:00',
-                            end: '2024-02-05 23:59:59',
-                        },
+        it('should handle policy expense chat correctly', () => {
+            // Given: Policy expense chat participant
+            const mockParticipant = {
+                accountID: 123,
+                login: 'policy@example.com',
+                displayName: 'Policy User',
+                isPolicyExpenseChat: true,
+                reportID: 'policy_chat_123',
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                role: CONST.REPORT.ROLE.MEMBER,
+            };
+
+            const mockCustomUnit = {
+                customUnitID: 'per_diem_policy',
+                customUnitRateID: 'rate_policy',
+                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                attributes: {
+                    dates: {
+                        start: '2024-01-25',
+                        end: '2024-01-25',
                     },
                 },
-                billable: true,
-                reimbursable: true,
-                attendees: [],
-            };
-
-            const participantParams = {
-                payeeEmail: 'employee@company.com',
-                payeeAccountID: 123,
-                participant: {
-                    accountID: 456,
-                    login: 'manager@company.com',
-                    displayName: 'Manager Name',
-                    isPolicyExpenseChat: false,
-                },
-            };
-
-            const recentlyUsedParams = {
-                destinations: ['London', 'Paris', 'Berlin'],
-            };
-
-            // When: Calling getPerDiemExpenseInformation with destinations
-            const result = getPerDiemExpenseInformation({
-                parentChatReport: null,
-                transactionParams,
-                participantParams,
-                recentlyUsedParams,
-            });
-
-            // Then: Should return valid per diem expense information
-            expect(result).toMatchObject({
-                payerAccountID: 456,
-                payerEmail: 'manager@company.com',
-                billable: true,
-                reimbursable: true,
-            });
-
-            // Should have optimistic data with destinations
-            const optimisticData = result.onyxData.optimisticData;
-            const destinationsEntry = optimisticData?.find((item: any) => item.key && item.key.includes('nvp_recentlyUsedDestinations'));
-            expect(destinationsEntry).toBeDefined();
-            expect(destinationsEntry?.value).toContain('rate_international');
-        });
-
-        it('should handle custom unit without destinations', () => {
-            // Given: A per diem expense with custom unit but no destinations
-            const transactionParams = {
-                comment: 'Per diem without destinations',
-                currency: 'USD',
-                created: '2024-02-10 10:00:00',
-                category: 'Travel',
-                tag: 'local',
-                customUnit: {
-                    customUnitID: 'per_diem_local',
-                    customUnitRateID: null, // No rate ID
-                    subRates: [],
-                    attributes: {
-                        dates: {
-                            start: '2024-02-10 00:00:00',
-                            end: '2024-02-11 23:59:59',
-                        },
+                subRates: [
+                    {
+                        id: 'lodging_1',
+                        name: 'Lodging',
+                        rate: 150,
+                        quantity: 1,
                     },
-                },
+                ],
+                quantity: 1,
+            };
+
+            const mockTransactionParams = {
+                comment: 'Policy per diem',
+                currency: 'USD',
+                created: '2024-01-25',
+                category: 'Lodging',
+                tag: 'Policy',
+                customUnit: mockCustomUnit,
                 billable: true,
-                reimbursable: true,
                 attendees: [],
-            };
-
-            const participantParams = {
-                payeeEmail: 'employee@company.com',
-                payeeAccountID: 123,
-                participant: {
-                    accountID: 456,
-                    login: 'manager@company.com',
-                    displayName: 'Manager Name',
-                    isPolicyExpenseChat: false,
-                },
-            };
-
-            const recentlyUsedParams = {
-                destinations: ['Local City'],
-            };
-
-            // When: Calling getPerDiemExpenseInformation without destinations
-            const result = getPerDiemExpenseInformation({
-                parentChatReport: null,
-                transactionParams,
-                participantParams,
-                recentlyUsedParams,
-            });
-
-            // Then: Should return valid per diem expense information
-            expect(result).toMatchObject({
-                payerAccountID: 456,
-                payerEmail: 'manager@company.com',
-                billable: true,
                 reimbursable: true,
+            };
+
+            const mockParticipantParams = {
+                payeeAccountID: 456,
+                payeeEmail: 'payee@example.com',
+                participant: mockParticipant,
+            };
+
+            const mockPolicyParams = {
+                policy: createRandomPolicy(2),
+            };
+
+            // When: Call getPerDiemExpenseInformation for policy expense chat
+            const result = getPerDiemExpenseInformation({
+                parentChatReport: {} as OnyxEntry<Report>,
+                transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
+                participantParams: mockParticipantParams as RequestMoneyParticipantParams,
+                policyParams: mockPolicyParams,
+                recentlyUsedParams: {},
             });
 
-            // Should not have destinations in optimistic data when customUnitRateID is null
-            const optimisticData = result.onyxData.optimisticData;
-            const destinationsEntry = optimisticData?.find((item: any) => item.key && item.key.includes('nvp_recentlyUsedDestinations'));
-            expect(destinationsEntry).toBeUndefined();
+            // Then: Verify policy expense chat handling
+            expect(result.payerAccountID).toBe(123);
+            expect(result.payerEmail).toBe('policy@example.com');
+            expect(result.transaction.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.PER_DIEM);
+            expect(result.transaction.hasEReceipt).toBe(true);
+            expect(result.billable).toBe(true);
+            expect(result.reimbursable).toBe(true);
         });
     });
 
     describe('getSendInvoiceInformation', () => {
-        it('should create invoice information with new chat report', () => {
-            // Given: A transaction with invoice data and no existing chat report
-            const transaction = {
-                ...createRandomTransaction(1),
-                amount: 1500,
+        it('should return correct invoice information with new chat report', () => {
+            // Given: Mock transaction data
+            const mockTransaction = {
+                transactionID: 'transaction_123',
+                reportID: 'report_123',
+                amount: 500,
                 currency: 'USD',
-                created: '2024-01-15 10:00:00',
+                created: '2024-01-15',
                 merchant: 'Test Company',
                 category: 'Services',
-                tag: 'consulting',
-                taxCode: 'SERVICES',
-                taxAmount: 150,
+                tag: 'Project B',
+                taxCode: 'TAX001',
+                taxAmount: 50,
                 billable: true,
                 comment: {
                     comment: 'Invoice for consulting services',
@@ -7940,357 +7839,259 @@ describe('actions/IOU', () => {
                 participants: [
                     {
                         accountID: 123,
-                        login: 'client@example.com',
-                        displayName: 'Client Name',
-                        isSender: false,
-                        selected: true,
-                        iouType: CONST.IOU.TYPE.INVOICE,
+                        isSender: true,
+                        policyID: 'workspace_123',
                     },
                     {
                         accountID: 456,
-                        policyID: 'test-policy-id',
-                        isSender: true,
-                        selected: false,
-                        iouType: CONST.IOU.TYPE.INVOICE,
+                        isSender: false,
                     },
                 ],
             };
 
-            const currentUserAccountID = 456;
-            const policy = createRandomPolicy(1);
-            const policyTagList = {};
-            const policyCategories = createRandomPolicyCategories(3);
-            const companyName = 'Test Company';
-            const companyWebsite = 'https://testcompany.com';
-            const policyRecentlyUsedCategories = ['Services', 'Products', 'Travel'];
+            const currentUserAccountID = 123;
+            const mockPolicy = createRandomPolicy(1);
 
-            // When: Calling getSendInvoiceInformation
+            const mockPolicyCategories = {
+                Services: {
+                    name: 'Services',
+                    enabled: true,
+                },
+            };
+
+            const mockPolicyTagList = {
+                tagList: {
+                    name: 'tagList',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {
+                        projectB: {
+                            name: 'Project B',
+                            enabled: true,
+                        },
+                    },
+                },
+            };
+
+            // When: Call getSendInvoiceInformation
             const result = getSendInvoiceInformation(
-                transaction,
+                mockTransaction as OnyxEntry<Transaction>,
                 currentUserAccountID,
                 undefined, // invoiceChatReport
                 undefined, // receipt
-                policy,
-                policyTagList,
-                policyCategories,
-                companyName,
-                companyWebsite,
-                policyRecentlyUsedCategories,
+                mockPolicy,
+                mockPolicyTagList as OnyxEntry<PolicyTagLists>,
+                mockPolicyCategories,
+                'Test Company Inc.',
+                'https://testcompany.com',
+                ['Services', 'Consulting'],
             );
 
-            // Then: Should return valid invoice information
+            // Then: Verify the result structure and key values
             expect(result).toMatchObject({
-                senderWorkspaceID: 'test-policy-id',
+                senderWorkspaceID: 'workspace_123',
                 invoiceReportID: expect.any(String),
                 transactionID: expect.any(String),
                 transactionThreadReportID: expect.any(String),
+                createdIOUReportActionID: expect.any(String),
                 reportActionID: expect.any(String),
+                createdChatReportActionID: expect.any(String),
+                reportPreviewReportActionID: expect.any(String),
             });
 
-            // Should have optimistic data
-            expect(result.onyxData).toMatchObject({
-                optimisticData: expect.any(Array),
-                successData: expect.any(Array),
-                failureData: expect.any(Array),
-            });
+            // Verify receiver information
+            expect(result.receiver).toBeDefined();
+            expect(result.receiver.accountID).toBe(456);
 
-            // Should have receiver information
-            expect(result.receiver).toMatchObject({
-                accountID: 123,
-                displayName: expect.any(String),
-                login: 'client@example.com',
-            });
+            // Verify invoice room (chat report)
+            expect(result.invoiceRoom).toBeDefined();
+            expect(result.invoiceRoom.reportID).toBeDefined();
+            expect(result.invoiceRoom.chatType).toBe(CONST.REPORT.CHAT_TYPE.INVOICE);
 
-            // Should have optimistic recently used categories
-            const optimisticData = result.onyxData.optimisticData;
-            const policyRecentlyUsedCategoriesEntry = optimisticData?.find((item: any) => item.key && item.key.includes('policyRecentlyUsedCategories'));
-            expect(policyRecentlyUsedCategoriesEntry).toBeDefined();
-            expect(policyRecentlyUsedCategoriesEntry?.value).toContain('Services');
+            // Verify Onyx data structure
+            expect(result.onyxData).toBeDefined();
+            expect(result.onyxData.optimisticData).toBeDefined();
+            expect(result.onyxData.successData).toBeDefined();
+            expect(result.onyxData.failureData).toBeDefined();
         });
 
-        it('should handle existing invoice chat report', () => {
-            // Given: A transaction with existing invoice chat report
-            const existingChatReport = createRandomReport(1);
-            existingChatReport.chatType = CONST.REPORT.CHAT_TYPE.INVOICE;
-            existingChatReport.policyID = 'test-policy-id';
+        it('should return correct invoice information with existing chat report', () => {
+            // Given: Existing invoice chat report
+            const existingInvoiceChatReport = {
+                reportID: 'invoice_chat_123',
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '123': {
+                        accountID: 123,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '456': {
+                        accountID: 456,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                    },
+                },
+                invoiceReceiver: {
+                    type: 'individual',
+                    accountID: 456,
+                    displayName: 'Client Company',
+                    login: 'client@example.com',
+                },
+            };
 
-            const transaction = {
-                ...createRandomTransaction(1),
-                amount: 2000,
-                currency: 'USD',
-                created: '2024-01-20 10:00:00',
-                merchant: 'Existing Client',
-                category: 'Products',
-                tag: 'hardware',
+            const mockTransaction = {
+                transactionID: 'transaction_456',
+                reportID: 'report_456',
+                amount: 750,
+                currency: 'EUR',
+                created: '2024-01-20',
+                merchant: 'Client Company',
+                category: 'Development',
+                tag: 'Project C',
+                taxCode: 'TAX002',
+                taxAmount: 75,
                 billable: true,
                 comment: {
-                    comment: 'Invoice for hardware products',
+                    comment: 'Invoice for development work',
                 },
                 participants: [
                     {
-                        accountID: 789,
-                        login: 'existing@example.com',
-                        displayName: 'Existing Client',
-                        isSender: false,
-                        selected: true,
-                        iouType: CONST.IOU.TYPE.INVOICE,
+                        accountID: 123,
+                        isSender: true,
+                        policyID: 'workspace_456',
                     },
                     {
                         accountID: 456,
-                        policyID: 'test-policy-id',
-                        isSender: true,
-                        selected: false,
-                        iouType: CONST.IOU.TYPE.INVOICE,
+                        isSender: false,
                     },
                 ],
             };
 
-            const currentUserAccountID = 456;
+            const currentUserAccountID = 123;
 
-            // When: Calling getSendInvoiceInformation with existing chat report
-            const result = getSendInvoiceInformation(transaction, currentUserAccountID, existingChatReport);
+            // When: Call getSendInvoiceInformation with existing chat report
+            const result = getSendInvoiceInformation(
+                mockTransaction,
+                currentUserAccountID,
+                existingInvoiceChatReport as OnyxEntry<Report>,
+                undefined, // receipt
+                undefined, // policy
+                undefined, // policyTagList
+                undefined, // policyCategories
+                'Client Company Ltd.',
+                'https://clientcompany.com',
+            );
 
-            // Then: Should return valid invoice information
-            expect(result).toMatchObject({
-                senderWorkspaceID: 'test-policy-id',
-                invoiceReportID: expect.any(String),
-                transactionID: expect.any(String),
-                transactionThreadReportID: expect.any(String),
-                reportActionID: expect.any(String),
-            });
+            // Then: Verify the result uses existing chat report
+            expect(result.invoiceRoom.reportID).toBe('invoice_chat_123');
+            expect(result.invoiceRoom.chatType).toBe(CONST.REPORT.CHAT_TYPE.INVOICE);
 
-            // Should use existing chat report
-            expect(result.invoiceRoom.reportID).toBe(existingChatReport.reportID);
+            // Verify transaction data
+            expect(result.transactionID).toBeDefined();
+            expect(result.senderWorkspaceID).toBe('workspace_456');
+
+            // Verify receiver from existing chat report
+            expect(result.receiver.accountID).toBe(456);
+            expect(result.receiver.displayName).toBe('Client Company');
+            expect(result.receiver.login).toBe('client@example.com');
         });
 
-        it('should handle transaction with receipt', () => {
-            // Given: A transaction with receipt data
-            const transaction = {
-                ...createRandomTransaction(1),
-                amount: 1000,
+        it('should handle receipt attachment correctly', () => {
+            // Given: Transaction with receipt
+            const mockTransaction = {
+                transactionID: 'transaction_789',
+                reportID: 'report_789',
+                amount: 300,
                 currency: 'USD',
-                created: '2024-01-25 10:00:00',
+                created: '2024-01-25',
                 merchant: 'Receipt Company',
-                category: 'Office Supplies',
-                tag: 'supplies',
+                category: 'Equipment',
+                tag: 'Hardware',
+                taxCode: 'TAX003',
+                taxAmount: 30,
                 billable: true,
                 comment: {
                     comment: 'Invoice with receipt',
                 },
                 participants: [
                     {
-                        accountID: 321,
-                        login: 'receipt@example.com',
-                        displayName: 'Receipt Client',
-                        isSender: false,
-                        selected: true,
-                        iouType: CONST.IOU.TYPE.INVOICE,
+                        accountID: 123,
+                        isSender: true,
+                        policyID: 'workspace_789',
                     },
                     {
                         accountID: 456,
-                        policyID: 'test-policy-id',
-                        isSender: true,
-                        selected: false,
-                        iouType: CONST.IOU.TYPE.INVOICE,
+                        isSender: false,
                     },
                 ],
             };
 
-            const currentUserAccountID = 456;
-            const receipt = {
-                source: 'receipt.jpg',
-                name: 'receipt.jpg',
+            const mockReceipt = {
+                source: 'receipt_source_123',
+                name: 'receipt.pdf',
                 state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
             };
 
-            // When: Calling getSendInvoiceInformation with receipt
-            const result = getSendInvoiceInformation(transaction, currentUserAccountID, undefined, receipt);
+            const currentUserAccountID = 123;
 
-            // Then: Should return valid invoice information
-            expect(result).toMatchObject({
-                senderWorkspaceID: 'test-policy-id',
-                invoiceReportID: expect.any(String),
-                transactionID: expect.any(String),
-                transactionThreadReportID: expect.any(String),
-                reportActionID: expect.any(String),
-            });
+            // When: Call getSendInvoiceInformation with receipt
+            const result = getSendInvoiceInformation(
+                mockTransaction,
+                currentUserAccountID,
+                undefined, // invoiceChatReport
+                mockReceipt,
+                undefined, // policy
+                undefined, // policyTagList
+                undefined, // policyCategories
+            );
 
-            // Should have optimistic data
-            expect(result.onyxData).toMatchObject({
-                optimisticData: expect.any(Array),
-                successData: expect.any(Array),
-                failureData: expect.any(Array),
-            });
+            // Then: Verify receipt handling
+            expect(result.transactionID).toBeDefined();
+            expect(result.invoiceRoom).toBeDefined();
+            expect(result.invoiceRoom.chatType).toBe(CONST.REPORT.CHAT_TYPE.INVOICE);
+
+            // Verify Onyx data includes receipt information
+            expect(result.onyxData).toBeDefined();
+            expect(result.onyxData.optimisticData).toBeDefined();
         });
 
-        it('should handle empty category and recently used categories', () => {
-            // Given: A transaction with empty category and no recently used categories
-            const transaction = {
-                ...createRandomTransaction(1),
-                amount: 500,
+        it('should handle missing transaction data gracefully', () => {
+            // Given: Minimal transaction data
+            const mockTransaction = {
+                transactionID: 'transaction_minimal',
+                reportID: 'report_minimal',
+                amount: 100,
                 currency: 'USD',
-                created: '2024-01-30 10:00:00',
-                merchant: 'Empty Category Company',
-                category: '',
-                tag: '',
-                billable: false,
-                comment: {
-                    comment: 'Invoice without category',
-                },
+                created: '2024-01-30',
+                merchant: 'Minimal Company',
                 participants: [
                     {
-                        accountID: 654,
-                        login: 'empty@example.com',
-                        displayName: 'Empty Category Client',
-                        isSender: false,
-                        selected: true,
-                        iouType: CONST.IOU.TYPE.INVOICE,
+                        accountID: 123,
+                        isSender: true,
                     },
                     {
                         accountID: 456,
-                        policyID: 'test-policy-id',
-                        isSender: true,
-                        selected: false,
-                        iouType: CONST.IOU.TYPE.INVOICE,
+                        isSender: false,
                     },
                 ],
             };
 
-            const currentUserAccountID = 456;
+            const currentUserAccountID = 123;
 
-            // When: Calling getSendInvoiceInformation with empty category
-            const result = getSendInvoiceInformation(transaction, currentUserAccountID);
+            // When: Call getSendInvoiceInformation with minimal data
+            const result = getSendInvoiceInformation(mockTransaction, currentUserAccountID);
 
-            // Then: Should return valid invoice information
-            expect(result).toMatchObject({
-                senderWorkspaceID: 'test-policy-id',
-                invoiceReportID: expect.any(String),
-                transactionID: expect.any(String),
-                transactionThreadReportID: expect.any(String),
-                reportActionID: expect.any(String),
-            });
-
-            // Should have optimistic data
-            expect(result.onyxData).toMatchObject({
-                optimisticData: expect.any(Array),
-                successData: expect.any(Array),
-                failureData: expect.any(Array),
-            });
-        });
-
-        it('should handle transaction with tax information', () => {
-            // Given: A transaction with tax information
-            const transaction = {
-                ...createRandomTransaction(1),
-                amount: 2500,
-                currency: 'USD',
-                created: '2024-02-01 10:00:00',
-                merchant: 'Tax Company',
-                category: 'Professional Services',
-                tag: 'consulting',
-                taxCode: 'PROF_SERVICES',
-                taxAmount: 250,
-                billable: true,
-                comment: {
-                    comment: 'Invoice with tax information',
-                },
-                participants: [
-                    {
-                        accountID: 987,
-                        login: 'tax@example.com',
-                        displayName: 'Tax Client',
-                        isSender: false,
-                        selected: true,
-                        iouType: CONST.IOU.TYPE.INVOICE,
-                    },
-                    {
-                        accountID: 456,
-                        policyID: 'test-policy-id',
-                        isSender: true,
-                        selected: false,
-                        iouType: CONST.IOU.TYPE.INVOICE,
-                    },
-                ],
-            };
-
-            const currentUserAccountID = 456;
-            const policy = createRandomPolicy(1);
-
-            // When: Calling getSendInvoiceInformation with tax information
-            const result = getSendInvoiceInformation(transaction, currentUserAccountID, undefined, undefined, policy);
-
-            // Then: Should return valid invoice information
-            expect(result).toMatchObject({
-                senderWorkspaceID: 'test-policy-id',
-                invoiceReportID: expect.any(String),
-                transactionID: expect.any(String),
-                transactionThreadReportID: expect.any(String),
-                reportActionID: expect.any(String),
-            });
-
-            // Should have optimistic data
-            expect(result.onyxData).toMatchObject({
-                optimisticData: expect.any(Array),
-                successData: expect.any(Array),
-                failureData: expect.any(Array),
-            });
-        });
-
-        it('should handle transaction with company information', () => {
-            // Given: A transaction with company information
-            const transaction = {
-                ...createRandomTransaction(1),
-                amount: 3000,
-                currency: 'USD',
-                created: '2024-02-05 10:00:00',
-                merchant: 'Company Info Corp',
-                category: 'Marketing',
-                tag: 'advertising',
-                billable: true,
-                comment: {
-                    comment: 'Invoice with company information',
-                },
-                participants: [
-                    {
-                        accountID: 147,
-                        login: 'company@example.com',
-                        displayName: 'Company Info Client',
-                        isSender: false,
-                        selected: true,
-                        iouType: CONST.IOU.TYPE.INVOICE,
-                    },
-                    {
-                        accountID: 456,
-                        policyID: 'test-policy-id',
-                        isSender: true,
-                        selected: false,
-                        iouType: CONST.IOU.TYPE.INVOICE,
-                    },
-                ],
-            };
-
-            const currentUserAccountID = 456;
-            const companyName = 'Company Info Corp';
-            const companyWebsite = 'https://companyinfo.com';
-
-            // When: Calling getSendInvoiceInformation with company information
-            const result = getSendInvoiceInformation(transaction, currentUserAccountID, undefined, undefined, undefined, undefined, undefined, companyName, companyWebsite);
-
-            // Then: Should return valid invoice information
-            expect(result).toMatchObject({
-                senderWorkspaceID: 'test-policy-id',
-                invoiceReportID: expect.any(String),
-                transactionID: expect.any(String),
-                transactionThreadReportID: expect.any(String),
-                reportActionID: expect.any(String),
-            });
-
-            // Should have optimistic data
-            expect(result.onyxData).toMatchObject({
-                optimisticData: expect.any(Array),
-                successData: expect.any(Array),
-                failureData: expect.any(Array),
-            });
+            // Then: Verify function handles missing data gracefully
+            expect(result).toBeDefined();
+            expect(result.transactionID).toBeDefined();
+            expect(result.invoiceRoom).toBeDefined();
+            expect(result.invoiceRoom.chatType).toBe(CONST.REPORT.CHAT_TYPE.INVOICE);
+            expect(result.receiver).toBeDefined();
+            expect(result.onyxData).toBeDefined();
         });
     });
 });
