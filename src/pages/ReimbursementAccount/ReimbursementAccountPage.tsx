@@ -241,6 +241,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
                 hideBankAccountErrors();
             }
 
+            // Use the current page navigation object to set the param to the correct route in the stack
             navigation.setParams({stepToOpen: getRouteForCurrentStep(currentStep)});
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
