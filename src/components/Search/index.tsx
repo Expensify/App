@@ -672,12 +672,22 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         }
     }, [hasErrors, queryJSON, searchResults, shouldResetSearchQuery, setShouldResetSearchQuery]);
 
+    const isFetchingMoreRef = useRef(false);
+
     const fetchMoreResults = useCallback(() => {
-        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
+        if (isFetchingMoreRef.current || !isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
         }
-        setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
-    }, [isFocused, offset, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState]);
+        isFetchingMoreRef.current = true;
+        setOffset((prev) => prev + CONST.SEARCH.RESULTS_PAGE_SIZE);
+    }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState]);
+
+    useEffect(() => {
+        if (shouldShowLoadingMoreItems) {
+            return;
+        }
+        isFetchingMoreRef.current = false;
+    }, [shouldShowLoadingMoreItems]);
 
     const toggleAllTransactions = useCallback(() => {
         const areItemsGrouped = !!groupBy;
