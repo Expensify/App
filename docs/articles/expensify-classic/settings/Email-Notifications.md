@@ -11,7 +11,7 @@ Occasionally, members may have trouble receiving Email notifications from Expens
 
 # Magic Code Login Emails
 
-Magic Code emails are sent when you log in to Expensify and are critical for account access. These emails may be delayed or blocked due to spam filtering, corporate email policies, or server-level blocks. If you choose to or are automaticalled directed to sign in via SAML/SSO, you will **not** receive a magic code.
+Magic Code emails are sent when you log in to Expensify and are critical for account access. These emails may be delayed or blocked due to spam filtering, corporate email policies, or server-level blocks. If you choose to or are automatically directed to sign in via SAML/SSO, you will **not** receive a magic code.
 
 ## Quick Fixes for Users
 
