@@ -150,9 +150,7 @@ function completeHybridAppOnboarding() {
     });
 }
 
-// We use `connectWithoutView` here since this connection only updates a module-level variable
-// and doesn't need to trigger component re-renders.
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
     callback: (value) => {
         onboarding = value;
@@ -160,9 +158,7 @@ Onyx.connectWithoutView({
     },
 });
 
-// We use `connectWithoutView` here since this connection only to get loading flag
-// and doesn't need to trigger component re-renders.
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.IS_LOADING_REPORT_DATA,
     initWithStoredValues: false,
     callback: (value) => {
