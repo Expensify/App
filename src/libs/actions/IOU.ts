@@ -11854,6 +11854,7 @@ function dismissDeclineUseExplanation() {
  */
 function declineMoneyRequest(transactionID: string, reportID: string, comment: string): Route | undefined {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const transactionAmount = getAmount(transaction);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
@@ -11894,7 +11895,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
-                        total: (report?.total ?? 0) - (transaction?.amount ?? 0),
+                        total: (report?.total ?? 0) + transactionAmount,
                         pendingFields: {
                             total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
@@ -11984,7 +11985,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
                 value: {
                     ...movedToReport,
-                    total: (movedToReport?.total ?? 0) + (transaction?.amount ?? 0),
+                    total: (movedToReport?.total ?? 0) - transactionAmount,
                 },
             });
 
@@ -12014,7 +12015,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    total: (report?.total ?? 0) - (transaction?.amount ?? 0),
+                    total: (report?.total ?? 0) + transactionAmount,
                 },
             },
             {
