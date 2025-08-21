@@ -24,6 +24,7 @@ export default Repack.defineRspackConfig({
         },
     },
     devServer: {
+        // keep using `/.expo/.virtual-metro-entry` as entrypoint
         proxy: [
             {
                 context: ['/.expo/.virtual-metro-entry'],
@@ -33,6 +34,7 @@ export default Repack.defineRspackConfig({
     },
     resolve: {
         ...Repack.getResolveOptions(),
+        // equivalent to babel-plugin-odule-resolver
         tsConfig: {
             configFile: path.resolve(__dirname, './tsconfig.json'),
             references: 'auto',
@@ -61,7 +63,7 @@ export default Repack.defineRspackConfig({
             },
         ],
     },
-    plugins: [new Repack.RepackPlugin(), new ExpoModulesPlugin(), new ReanimatedPlugin(), process.env.RSDOCTOR && new RsdoctorRspackPlugin({})].filter(Boolean),
+    plugins: [new Repack.RepackPlugin(), new ExpoModulesPlugin(), new ReanimatedPlugin(), process.env.RSDOCTOR && new RsdoctorRspackPlugin()].filter(Boolean),
     ignoreWarnings: [
         /Module not found: Can't resolve '@react-native-masked-view\/masked-view'/,
         /Module not found: Can't resolve 'react-native-worklets-core'/,
