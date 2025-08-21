@@ -156,6 +156,3 @@ modules/*/lib/
 
 # Claude Code files
 .claude/
-
-# mise
-mise.toml
