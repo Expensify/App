@@ -1,13 +1,25 @@
+import { useMemo } from 'react';
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
+import { getAllNonDeletedTransactions } from '@libs/MoneyRequestReportUtils';
+import CONST from '@src/CONST';
 import useOnyx from './useOnyx';
+import useNetwork from './useNetwork';
+import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 
 function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInputOrEntry<ReportAction>): string | undefined {
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
+    const {isOffline} = useNetwork();
+    const {transactions: allReportTransactions} = useTransactionsAndViolationsForReport(reportID);
 
+    const visibleTransactionsIDs = useMemo(
+        () => getAllNonDeletedTransactions(allReportTransactions, Object.values(reportActions ?? {}))
+        .filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((transaction) => transaction.transactionID),
+        [allReportTransactions, reportActions, isOffline],
+    );
     if (!reportID) {
         return undefined;
     }
@@ -18,7 +30,7 @@ function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
         if (isThreadReportParentAction) {
             return report?.parentReportID;
         }
-        const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? ([] as ReportAction[]));
+        const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? ([] as ReportAction[]), isOffline, visibleTransactionsIDs);
         return transactionThreadReportID ?? reportID;
     }
     return reportID;
