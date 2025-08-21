@@ -92,7 +92,9 @@ function ReportActionAvatars({
         potentialReportID ??
         ([CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW].find((act) => act === action?.actionName) ? action?.childReportID : undefined);
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    // reportID can be an empty string causing Onyx to fetch the whole collection
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || undefined}`, {canBeMissing: true});
 
     const shouldStackHorizontally = !!horizontalStacking;
     const isHorizontalStackingAnObject = shouldStackHorizontally && typeof horizontalStacking !== 'boolean';
@@ -110,6 +112,7 @@ function ReportActionAvatars({
         shouldUseCardFeed: !!subscriptCardFeed,
         accountIDs,
         policyID,
+        fallbackDisplayName,
     });
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = notPreciseAvatarType;
@@ -124,7 +127,7 @@ function ReportActionAvatars({
 
     const [primaryAvatar, secondaryAvatar] = icons;
 
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT) {
+    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && (!!secondaryAvatar?.name || !!subscriptCardFeed)) {
         return (
             <ReportActionAvatar.Subscript
                 primaryAvatar={primaryAvatar}
@@ -155,7 +158,7 @@ function ReportActionAvatars({
         );
     }
 
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL && icons.length !== 1) {
+    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL && !!secondaryAvatar?.name) {
         return (
             <ReportActionAvatar.Multiple.Diagonal
                 shouldShowTooltip={shouldShowTooltip}

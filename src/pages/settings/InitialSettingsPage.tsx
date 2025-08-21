@@ -29,7 +29,6 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import '@libs/actions/Delegate';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -41,7 +40,7 @@ import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_T
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
-import {closeReactNativeApp} from '@userActions/HybridApp';
+import closeReactNativeApp from '@userActions/HybridApp';
 import {openExternalLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
 import {isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -94,6 +93,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const network = useNetwork();
@@ -151,7 +152,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      * @returns object with translationKey, style and items for the account section
      */
     const accountMenuItemsData: Menu = useMemo(() => {
-        const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails, vacationDelegate);
+        const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails, vacationDelegate, session?.email);
         const items: MenuData[] = [
             {
                 translationKey: 'common.profile',
@@ -187,7 +188,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 translationKey: 'allSettingsScreen.subscription',
                 icon: Expensicons.CreditCard,
                 screenName: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
-                brickRoadIndicator: !!privateSubscription?.errors || hasSubscriptionRedDotError() ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: !!privateSubscription?.errors || hasSubscriptionRedDotError(stripeCustomerId) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 badgeText: freeTrialText,
                 badgeStyle: freeTrialText ? styles.badgeSuccess : undefined,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route),
@@ -203,6 +204,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         loginList,
         privatePersonalDetails,
         vacationDelegate,
+        session?.email,
         walletBrickRoadIndicator,
         hasActivatedWallet,
         userWallet?.currentBalance,

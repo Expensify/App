@@ -240,8 +240,30 @@ jobs:
             --label "Engineering,Hourly,${{ inputs.TARGET == 'staging' && 'CP Staging' || 'CP Production' }}" \
             --base "${{ inputs.TARGET }}"
           sleep 5
+
+          # Save the Cherry-pick PR URL for Slack notification
+          PR_URL="$(gh pr view --json url --jq .url)"
+          echo "PR_URL=$PR_URL" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
+
+      - name: Announce CP conflict in #deployer
+        if: steps.cherryPick.outputs.HAS_CONFLICTS == 'true'
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: "🚨 Cherry-pick to ${{ inputs.TARGET }} has conflicts and requires manual resolution.\nOriginal PR: ${{ inputs.PULL_REQUEST_URL }}\nConflict PR: ${{ steps.createPullRequest.outputs.PR_URL }}"
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Add assignees to conflict PRs
         if: steps.cherryPick.outputs.HAS_CONFLICTS == 'true'
