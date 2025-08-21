@@ -17,6 +17,11 @@ const __dirname = path.dirname(__filename);
 export default Repack.defineRspackConfig({
     context: __dirname,
     entry: './index.js',
+    experiments: {
+        cache: {
+            type: 'persistent',
+        },
+    },
     devServer: {
         proxy: [
             {
@@ -61,5 +66,6 @@ export default Repack.defineRspackConfig({
         /Module not found: Can't resolve 'react-native-worklets-core'/,
         /Module not found: Can't resolve '@shopify\/react-native-skia'/,
         /Module not found: Can't resolve 'react-native-reanimated\/src\/reanimated2\/core'/,
+        /'`setUpTests` is available only in Jest environment\.'/,
     ],
 });
