@@ -1,6 +1,5 @@
 import * as Repack from '@callstack/repack';
 import {ExpoModulesPlugin} from '@callstack/repack-plugin-expo-modules';
-import {ReanimatedPlugin} from '@callstack/repack-plugin-reanimated';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -37,7 +36,15 @@ export default (env) => ({
             },
         },
         rules: [
-            ...Repack.getJsTransformRules({swc: {lazyImports: true}}),
+            {
+                test: /\.[cm]?[jt]sx?$/,
+                type: 'javascript/auto',
+                use: {
+                    loader: '@callstack/repack/babel-swc-loader',
+                    parallel: true,
+                    options: {},
+                },
+            },
             ...Repack.getAssetTransformRules(),
             {
                 test: /\.lottie$/,
@@ -45,25 +52,11 @@ export default (env) => ({
             },
         ],
     },
+    plugins: [new Repack.RepackPlugin(), new ExpoModulesPlugin()],
     ignoreWarnings: [
         /Module not found: Can't resolve '@react-native-masked-view\/masked-view'/,
         /Module not found: Can't resolve 'react-native-worklets-core'/,
         /Module not found: Can't resolve '@shopify\/react-native-skia'/,
         /Module not found: Can't resolve 'react-native-reanimated\/src\/reanimated2\/core'/,
-    ],
-    plugins: [
-        new Repack.RepackPlugin({
-            extraChunks: [
-                {
-                    // Matches locale files like es.ts, fr.ts, pt-BR.ts,
-                    // Excludes en.ts and anything not a 2-letter (or 2-letter + region) code
-                    test: /src[\\/]languages[\\/](?!en(?:\.ts)$)[a-z]{2}(?:-[A-Z]{2})?\.ts$/,
-                    type: 'remote',
-                    outputPath: path.join('remotes', 'languages'),
-                },
-            ],
-        }),
-        new ReanimatedPlugin(),
-        new ExpoModulesPlugin(),
     ],
 });
