@@ -145,6 +145,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.WorkspaceConfirmationModalStackNavigator}
                         />
                         <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.WORKSPACE_DUPLICATE}
+                            component={ModalStackNavigators.WorkspaceDuplicateModalStackNavigator}
+                        />
+                        <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.NEW_TASK}
                             component={ModalStackNavigators.NewTaskModalStackNavigator}
                         />
@@ -196,6 +200,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE}
                             component={ModalStackNavigators.TransactionDuplicateStackNavigator}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.MERGE_TRANSACTION}
+                            component={ModalStackNavigators.MergeTransactionStackNavigator}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.TRAVEL}
