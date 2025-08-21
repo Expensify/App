@@ -1,7 +1,6 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import {FlashList} from '@shopify/flash-list';
-import type {FlashListProps, ViewToken} from '@shopify/flash-list';
-import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {useRoute} from '@react-navigation/native';
+import type {FlashList, FlashListProps, ViewToken} from '@shopify/flash-list';
+import React, {forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -12,16 +11,16 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
-import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+import {createItemHeightCalculator} from '@components/Search/itemHeightCalculator';
+import ITEM_HEIGHTS from '@components/Search/itemHeights';
+import type {SearchQueryJSON} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ExtendedTargetedEvent, ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useInitialWindowDimensions from '@hooks/useInitialWindowDimensions';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -30,25 +29,18 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {isMobileChrome} from '@libs/Browser';
-import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
-import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
+import navigationRef from '@libs/Navigation/navigationRef';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {createItemHeightCalculator} from './itemHeightCalculator';
-import ITEM_HEIGHTS from './itemHeights';
-import type {SearchQueryJSON} from './types';
+import BaseSearchList from './BaseSearchList';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
-
-const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem;
 
 type SearchListHandle = {
-    scrollAndHighlightItem?: (items: string[]) => void;
     scrollToIndex: (index: number, animated?: boolean) => void;
 };
 
@@ -86,6 +78,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** The search query */
     queryJSON: SearchQueryJSON;
+
+    /** Whether the screen is focused */
+    isFocused: boolean;
 
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
     onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
@@ -131,6 +126,7 @@ function SearchList(
         shouldPreventDefaultFocusOnSelectRow,
         shouldPreventLongPressRow,
         queryJSON,
+        isFocused,
         onViewableItemsChanged,
         onLayout,
         shouldAnimate,
@@ -163,11 +159,7 @@ function SearchList(
     );
 
     const {translate} = useLocalize();
-    const isFocused = useIsFocused();
     const listRef = useRef<FlashList<SearchListItem>>(null);
-    const hasKeyBeenPressed = useRef(false);
-    const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
-    const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const prevDataLength = usePrevious(data.length);
@@ -193,12 +185,16 @@ function SearchList(
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
 
     const route = useRoute();
-    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
+            const currentRoute = navigationRef.current?.getCurrentRoute();
+            if (currentRoute && route.key !== currentRoute.key) {
+                return;
+            }
+
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
+            if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox) {
                 return;
             }
             // disable long press for empty expense reports
@@ -212,7 +208,7 @@ function SearchList(
             setLongPressedItem(item);
             setIsModalVisible(true);
         },
-        [isFocused, isSmallScreenWidth, onCheckboxPress, isMobileSelectionModeEnabled, shouldPreventLongPressRow],
+        [route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
     );
 
     const turnOnSelectionMode = useCallback(() => {
@@ -240,88 +236,13 @@ function SearchList(
 
             listRef.current.scrollToIndex({index, animated, viewOffset: variables.contentHeaderHeight});
         },
-
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [],
-    );
-    const setHasKeyBeenPressed = useCallback(() => {
-        if (hasKeyBeenPressed.current) {
-            return;
-        }
-        // We need to track whether a key has been pressed to enable focus syncing only if a key has been pressed.
-        // This is to avoid the default behavior of web showing blue border on click of items after a page refresh.
-        hasKeyBeenPressed.current = true;
-    }, []);
-
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
-        initialFocusedIndex: -1,
-        maxIndex: flattenedItems.length - 1,
-        isActive: isFocused,
-        onFocusedIndexChange: (index: number) => {
-            scrollToIndex(index);
-        },
-        ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
-        isFocused,
-    });
-
-    const selectFocusedOption = useCallback(() => {
-        const focusedItem = data.at(focusedIndex);
-
-        if (!focusedItem) {
-            return;
-        }
-
-        onSelectRow(focusedItem);
-    }, [data, focusedIndex, onSelectRow]);
-
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
-        captureOnInputs: true,
-        shouldBubble: false,
-        shouldPreventDefault: false,
-        isActive: isFocused && focusedIndex >= 0,
-        shouldStopPropagation: true,
-    });
-
-    useEffect(() => {
-        addKeyDownPressListener(setHasKeyBeenPressed);
-
-        return () => removeKeyDownPressListener(setHasKeyBeenPressed);
-    }, [setHasKeyBeenPressed]);
-
-    /**
-     * Highlights the items and scrolls to the first item present in the items list.
-     *
-     * @param items - The list of items to highlight.
-     * @param timeout - The timeout in milliseconds before removing the highlight.
-     */
-    const scrollAndHighlightItem = useCallback(
-        (items: string[]) => {
-            const newItemsToHighlight = new Set<string>();
-            items.forEach((item) => {
-                newItemsToHighlight.add(item);
-            });
-            const index = data.findIndex((option) => newItemsToHighlight.has(option.keyForList ?? ''));
-            scrollToIndex(index);
-            setItemsToHighlight(newItemsToHighlight);
-
-            if (itemFocusTimeoutRef.current) {
-                clearTimeout(itemFocusTimeoutRef.current);
-            }
-
-            itemFocusTimeoutRef.current = setTimeout(() => {
-                setItemsToHighlight(null);
-            }, durationHighlightItem);
-        },
-        [data, scrollToIndex],
+        [data],
     );
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex}), [scrollAndHighlightItem, scrollToIndex]);
+    useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
 
     const renderItem = useCallback(
-        // eslint-disable-next-line react/no-unused-prop-types
-        ({item, index}: {item: SearchListItem; index: number}) => {
-            const isItemFocused = focusedIndex === index;
-            const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
+        (item: SearchListItem, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             return (
@@ -335,27 +256,10 @@ function SearchList(
                         showTooltip
                         isFocused={isItemFocused}
                         onSelectRow={onSelectRow}
-                        onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
-                            // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
-                            if (isMobileChrome() && event.nativeEvent) {
-                                if (!event.nativeEvent.sourceCapabilities) {
-                                    return;
-                                }
-                                // Ignore the focus if it's caused by a touch event on mobile chrome.
-                                // For example, a long press will trigger a focus event on mobile chrome
-                                if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
-                                    return;
-                                }
-                            }
-                            setFocusedIndex(index);
-                        }}
                         onLongPressRow={handleLongPressRow}
                         onCheckboxPress={onCheckboxPress}
                         canSelectMultiple={canSelectMultiple}
-                        item={{
-                            shouldAnimateInHighlight: isItemHighlighted,
-                            ...item,
-                        }}
+                        item={item}
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                         queryJSONHash={hash}
                         policies={policies}
@@ -366,13 +270,12 @@ function SearchList(
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
                         userBillingFundID={userBillingFundID}
+                        onFocus={onFocus}
                     />
                 </Animated.View>
             );
         },
         [
-            focusedIndex,
-            itemsToHighlight,
             shouldAnimate,
             styles.overflowHidden,
             hasItemsBeingRemoved,
@@ -390,7 +293,6 @@ function SearchList(
             isUserValidated,
             personalDetails,
             userBillingFundID,
-            setFocusedIndex,
         ],
     );
 
@@ -443,39 +345,6 @@ function SearchList(
         };
     }, [calculatedListHeight, calculatedListWidth]);
 
-    const handleScroll = useCallback<NonNullable<FlashListProps<SearchListItem>['onScroll']>>(
-        (e) => {
-            if (onScroll && typeof onScroll === 'function') {
-                onScroll(e);
-            }
-
-            if (e.nativeEvent.layoutMeasurement.height > 0) {
-                saveScrollOffset(route, e.nativeEvent.contentOffset.y);
-            }
-        },
-        [onScroll, route, saveScrollOffset],
-    );
-
-    const handleLayout = useCallback(() => {
-        if (onLayout && typeof onLayout === 'function') {
-            onLayout();
-        }
-
-        const offset = getScrollOffset(route);
-        if (!offset || !listRef.current) {
-            return;
-        }
-
-        // Use requestAnimationFrame to ensure proper scrolling on iOS
-        requestAnimationFrame(() => {
-            if (!offset || !listRef.current) {
-                return;
-            }
-
-            listRef.current.scrollToOffset({offset});
-        });
-    }, [onLayout, getScrollOffset, route]);
-
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {tableHeaderVisible && (
@@ -509,26 +378,29 @@ function SearchList(
                 </View>
             )}
 
-            <AnimatedFlashListComponent
+            <BaseSearchList
                 data={data}
                 renderItem={renderItem}
+                onSelectRow={onSelectRow}
                 keyExtractor={keyExtractor}
-                onScroll={handleScroll}
+                onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
-                extraData={[focusedIndex, isFocused]}
+                scrollToIndex={scrollToIndex}
+                isFocused={isFocused}
+                flattenedItemsLength={flattenedItems.length}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
                 onViewableItemsChanged={onViewableItemsChanged}
-                onLayout={handleLayout}
+                onLayout={onLayout}
                 removeClippedSubviews
                 drawDistance={1000}
                 estimatedItemSize={estimatedItemSize}
                 overrideItemLayout={overrideItemLayout}
                 estimatedListSize={estimatedListSize}
                 contentContainerStyle={contentContainerStyle}
-                overrideProps={{estimatedHeightSize: calculatedListHeight}}
+                calculatedListHeight={calculatedListHeight}
             />
             <Modal
                 isVisible={isModalVisible}
