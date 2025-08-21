@@ -265,4 +265,205 @@ describe('OptimisticReportNames', () => {
             expect(result).toBeNull();
         });
     });
+
+    describe('Title field in rNVP functionality', () => {
+        describe('shouldComputeReportName with title field check', () => {
+            it('should return false when title field is missing from rNVP', () => {
+                const report = {
+                    reportID: '123',
+                    policyID: 'policy1',
+                    type: 'expense',
+                } as Report;
+
+                const context: UpdateContext = {
+                    allPolicies: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        policy_policy1: mockPolicy,
+                    },
+                    allReports: {},
+                    allReportNameValuePairs: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        reportNameValuePairs_123: {}, // No text_title field
+                    },
+                };
+
+                mockReportUtils.getTitleReportField.mockReturnValue(mockPolicy.fieldList?.text_title as unknown as PolicyReportField);
+
+                const result = shouldComputeReportName(report, mockPolicy, context);
+                expect(result).toBe(false);
+            });
+
+            it('should return false when title field exists but has no defaultValue', () => {
+                const report = {
+                    reportID: '123',
+                    policyID: 'policy1',
+                    type: 'expense',
+                } as Report;
+
+                const context: UpdateContext = {
+                    allPolicies: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        policy_policy1: mockPolicy,
+                    },
+                    allReports: {},
+                    allReportNameValuePairs: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        reportNameValuePairs_123: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            text_title: {
+                                defaultValue: '',
+                                deleteable: true,
+                            },
+                        },
+                    },
+                };
+
+                const result = shouldComputeReportName(report, mockPolicy, context);
+                expect(result).toBe(false);
+            });
+
+            it('should return true when title field exists with defaultValue', () => {
+                const report = {
+                    reportID: '123',
+                    policyID: 'policy1',
+                    type: 'expense',
+                } as Report;
+
+                const context: UpdateContext = {
+                    allPolicies: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        policy_policy1: mockPolicy,
+                    },
+                    allReports: {},
+                    allReportNameValuePairs: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        reportNameValuePairs_123: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            text_title: {
+                                defaultValue: 'Policy: {report:policyname}',
+                                deleteable: false,
+                            },
+                        },
+                    },
+                };
+
+                const result = shouldComputeReportName(report, mockPolicy, context);
+                expect(result).toBe(true);
+            });
+        });
+
+        describe('computeReportNameIfNeeded with title field check', () => {
+            it('should return null when title field is missing from rNVP', () => {
+                const report = {
+                    reportID: '123',
+                    policyID: 'policy1',
+                    type: 'expense',
+                    reportName: 'Existing Name',
+                } as Report;
+
+                const update = {
+                    key: 'report_123' as OnyxKey,
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    value: {total: 100},
+                };
+
+                const context: UpdateContext = {
+                    allPolicies: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        policy_policy1: mockPolicy,
+                    },
+                    allReports: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        report_123: report,
+                    },
+                    allReportNameValuePairs: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        reportNameValuePairs_123: {}, // No text_title field
+                    },
+                };
+
+                const result = computeReportNameIfNeeded(report, update, context);
+                expect(result).toBeNull();
+            });
+
+            it('should return null when title field has no defaultValue', () => {
+                const report = {
+                    reportID: '123',
+                    policyID: 'policy1',
+                    type: 'expense',
+                    reportName: 'Existing Name',
+                } as Report;
+
+                const update = {
+                    key: 'report_123' as OnyxKey,
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    value: {total: 100},
+                };
+
+                const context: UpdateContext = {
+                    allPolicies: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        policy_policy1: mockPolicy,
+                    },
+                    allReports: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        report_123: report,
+                    },
+                    allReportNameValuePairs: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        reportNameValuePairs_123: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            text_title: {
+                                defaultValue: '', // Empty defaultValue
+                                deleteable: true,
+                            },
+                        },
+                    },
+                };
+
+                const result = computeReportNameIfNeeded(report, update, context);
+                expect(result).toBeNull();
+            });
+
+            it('should compute name when title field exists with valid defaultValue', () => {
+                const report = {
+                    reportID: '123',
+                    policyID: 'policy1',
+                    type: 'expense',
+                    reportName: 'Existing Name',
+                } as Report;
+
+                const update = {
+                    key: 'report_123' as OnyxKey,
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    value: {total: 100},
+                };
+
+                const context: UpdateContext = {
+                    allPolicies: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        policy_policy1: mockPolicy,
+                    },
+                    allReports: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        report_123: report,
+                    },
+                    allReportNameValuePairs: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        reportNameValuePairs_123: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            text_title: {
+                                defaultValue: 'Policy: {report:policyname}',
+                                deleteable: false,
+                            },
+                        },
+                    },
+                };
+
+                const result = computeReportNameIfNeeded(report, update, context);
+                expect(result).toBeDefined();
+                expect(typeof result).toBe('string');
+            });
+        });
+    });
 });
