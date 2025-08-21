@@ -39,6 +39,7 @@ type UseSearchSelectorConfig = {
     onSingleSelect?: (option: OptionData) => void;
     /** Initial selected options */
     initialSelected?: OptionData[];
+    shouldInitialize?: boolean;
 };
 
 type ContactState = {
@@ -96,6 +97,7 @@ function useSearchSelector({
     onSelectionChange,
     onSingleSelect,
     initialSelected,
+    shouldInitialize = true,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {options, areOptionsInitialized} = useOptionsList();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -117,7 +119,7 @@ function useSearchSelector({
 
     // Get optimized options with heap filtering and mark selection state
     const searchOptions = useMemo(() => {
-        if (!areOptionsInitialized) {
+        if (!areOptionsInitialized || !shouldInitialize) {
             return getEmptyOptions();
         }
 
@@ -201,6 +203,7 @@ function useSearchSelector({
         shouldEnableContacts,
         memoizedContacts,
         getValidOptionsConfig,
+        shouldInitialize,
     ]);
 
     // Available options (unselected items only with proper deduplication)

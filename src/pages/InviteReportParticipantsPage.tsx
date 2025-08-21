@@ -60,6 +60,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
         includeUserToInvite: true,
         excludeLogins: excludedUsers,
         includeRecentReports: true,
+        shouldInitialize: didScreenTransitionEnd,
     });
 
     useEffect(() => {
@@ -196,7 +197,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
                 onConfirm={inviteUsers}
                 showScrollIndicator
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                showLoadingPlaceholder={!didScreenTransitionEnd || !areOptionsInitialized}
+                showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                 footerContent={footerContent}
             />
         </ScreenWrapper>
