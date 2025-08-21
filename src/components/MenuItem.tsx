@@ -10,7 +10,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
@@ -26,6 +26,7 @@ import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Avatar from './Avatar';
 import Badge from './Badge';
+import CopyTextToClipboard from './CopyTextToClipboard';
 import DisplayNames from './DisplayNames';
 import type {DisplayNameWithTooltip} from './DisplayNames/types';
 import FormHelpMessage from './FormHelpMessage';
@@ -365,8 +366,11 @@ type MenuItemBaseProps = {
     /** Whether to teleport the portal to the modal layer */
     shouldTeleportPortalToModalLayer?: boolean;
 
-    /** The value to copy on secondary interaction */
+    /** The value to copy in copy to clipboard action. Must be used in conjunction with `copyable=true`. Default value is `title` prop. */
     copyValue?: string;
+
+    /** Should enable copy to clipboard action */
+    copyable?: boolean;
 
     /** Plaid image for the bank */
     plaidUrl?: string;
@@ -391,117 +395,120 @@ const getSubscriptAvatarBackgroundColor = (isHovered: boolean, isPressed: boolea
         return hoveredBackgroundColor;
     }
 };
-function MenuItem({
-    interactive = true,
-    onPress,
-    badgeText,
-    style,
-    wrapperStyle,
-    titleWrapperStyle,
-    outerWrapperStyle,
-    containerStyle,
-    titleStyle,
-    labelStyle,
-    descriptionTextStyle,
-    badgeStyle,
-    viewMode = CONST.OPTION_MODE.DEFAULT,
-    numberOfLinesTitle = 1,
-    numberOfLinesDescription = 2,
-    icon,
-    iconFill,
-    secondaryIcon,
-    secondaryIconFill,
-    iconType = CONST.ICON_TYPE_ICON,
-    isSecondaryIconHoverable = false,
-    iconWidth,
-    iconHeight,
-    iconStyles,
-    fallbackIcon = Expensicons.FallbackAvatar,
-    shouldShowTitleIcon = false,
-    titleIcon,
-    rightIconAccountID,
-    iconAccountID,
-    shouldShowRightIcon = false,
-    iconRight = Expensicons.ArrowRight,
-    furtherDetailsIcon,
-    furtherDetails,
-    furtherDetailsNumberOfLines = 2,
-    furtherDetailsStyle,
-    furtherDetailsComponent,
-    description,
-    helperText,
-    helperTextStyle,
-    errorText,
-    errorTextStyle,
-    shouldShowRedDotIndicator,
-    hintText,
-    success = false,
-    iconReportID,
-    focused = false,
-    disabled = false,
-    title,
-    titleComponent,
-    titleContainerStyle,
-    subtitle,
-    shouldShowBasicTitle,
-    label,
-    shouldTruncateTitle = false,
-    characterLimit = 200,
-    isLabelHoverable = true,
-    rightLabel,
-    shouldShowSelectedState = false,
-    isSelected = false,
-    shouldStackHorizontally = false,
-    shouldShowDescriptionOnTop = false,
-    shouldShowRightComponent = false,
-    rightComponent,
-    rightIconReportID,
-    avatarSize = CONST.AVATAR_SIZE.DEFAULT,
-    isSmallAvatarSubscriptMenu = false,
-    brickRoadIndicator,
-    shouldRenderAsHTML = false,
-    shouldEscapeText = undefined,
-    shouldGreyOutWhenDisabled = true,
-    shouldRemoveBackground = false,
-    shouldRemoveHoverBackground = false,
-    shouldUseDefaultCursorWhenDisabled = false,
-    shouldShowLoadingSpinnerIcon = false,
-    isAnonymousAction = false,
-    shouldBlockSelection = false,
-    shouldParseTitle = false,
-    shouldParseHelperText = false,
-    shouldRenderHintAsHTML = false,
-    shouldRenderErrorAsHTML = false,
-    excludedMarkdownRules = [],
-    shouldCheckActionAllowedOnPress = true,
-    onSecondaryInteraction,
-    titleWithTooltips,
-    displayInDefaultIconColor = false,
-    contentFit = 'cover',
-    isPaneMenu = true,
-    shouldPutLeftPaddingWhenNoIcon = false,
-    onFocus,
-    onBlur,
-    avatarID,
-    shouldRenderTooltip = false,
-    shouldHideOnScroll = false,
-    tooltipAnchorAlignment,
-    tooltipWrapperStyle = {},
-    tooltipShiftHorizontal = 0,
-    tooltipShiftVertical = 0,
-    renderTooltipContent,
-    onEducationTooltipPress,
-    additionalIconStyles,
-    shouldShowSelectedItemCheck = false,
-    shouldIconUseAutoWidthStyle = false,
-    shouldBreakWord = false,
-    pressableTestID,
-    shouldTeleportPortalToModalLayer,
-    copyValue,
-    plaidUrl,
-    ref,
-    hasSubMenuItems = false,
-}: MenuItemProps) {
+function MenuItem(
+    {
+        interactive = true,
+        onPress,
+        badgeText,
+        style,
+        wrapperStyle,
+        titleWrapperStyle,
+        outerWrapperStyle,
+        containerStyle,
+        titleStyle,
+        labelStyle,
+        descriptionTextStyle,
+        badgeStyle,
+        viewMode = CONST.OPTION_MODE.DEFAULT,
+        numberOfLinesTitle = 1,
+        numberOfLinesDescription = 2,
+        icon,
+        iconFill,
+        secondaryIcon,
+        secondaryIconFill,
+        iconType = CONST.ICON_TYPE_ICON,
+        isSecondaryIconHoverable = false,
+        iconWidth,
+        iconHeight,
+        iconStyles,
+        fallbackIcon = Expensicons.FallbackAvatar,
+        shouldShowTitleIcon = false,
+        titleIcon,
+        rightIconAccountID,
+        iconAccountID,
+        shouldShowRightIcon = false,
+        iconRight = Expensicons.ArrowRight,
+        furtherDetailsIcon,
+        furtherDetails,
+        furtherDetailsNumberOfLines = 2,
+        furtherDetailsStyle,
+        furtherDetailsComponent,
+        description,
+        helperText,
+        helperTextStyle,
+        errorText,
+        errorTextStyle,
+        shouldShowRedDotIndicator,
+        hintText,
+        success = false,
+        iconReportID,
+        focused = false,
+        disabled = false,
+        title,
+        titleComponent,
+        titleContainerStyle,
+        subtitle,
+        shouldShowBasicTitle,
+        label,
+        shouldTruncateTitle = false,
+        characterLimit = 200,
+        isLabelHoverable = true,
+        rightLabel,
+        shouldShowSelectedState = false,
+        isSelected = false,
+        shouldStackHorizontally = false,
+        shouldShowDescriptionOnTop = false,
+        shouldShowRightComponent = false,
+        rightComponent,
+        rightIconReportID,
+        avatarSize = CONST.AVATAR_SIZE.DEFAULT,
+        isSmallAvatarSubscriptMenu = false,
+        brickRoadIndicator,
+        shouldRenderAsHTML = false,
+        shouldEscapeText = undefined,
+        shouldGreyOutWhenDisabled = true,
+        shouldRemoveBackground = false,
+        shouldRemoveHoverBackground = false,
+        shouldUseDefaultCursorWhenDisabled = false,
+        shouldShowLoadingSpinnerIcon = false,
+        isAnonymousAction = false,
+        shouldBlockSelection = false,
+        shouldParseTitle = false,
+        shouldParseHelperText = false,
+        shouldRenderHintAsHTML = false,
+        shouldRenderErrorAsHTML = false,
+        excludedMarkdownRules = [],
+        shouldCheckActionAllowedOnPress = true,
+        onSecondaryInteraction,
+        titleWithTooltips,
+        displayInDefaultIconColor = false,
+        contentFit = 'cover',
+        isPaneMenu = true,
+        shouldPutLeftPaddingWhenNoIcon = false,
+        onFocus,
+        onBlur,
+        avatarID,
+        shouldRenderTooltip = false,
+        shouldHideOnScroll = false,
+        tooltipAnchorAlignment,
+        tooltipWrapperStyle = {},
+        tooltipShiftHorizontal = 0,
+        tooltipShiftVertical = 0,
+        renderTooltipContent,
+        onEducationTooltipPress,
+        additionalIconStyles,
+        shouldShowSelectedItemCheck = false,
+        shouldIconUseAutoWidthStyle = false,
+        shouldBreakWord = false,
+        pressableTestID,
+        shouldTeleportPortalToModalLayer,
+        plaidUrl,
+        copyValue = title,
+        copyable = false,
+        hasSubMenuItems = false,
+        ref,
+    }: MenuItemProps,
+) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -509,6 +516,7 @@ function MenuItem({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
     const popoverAnchor = useRef<View>(null);
+    const deviceHasHoverSupport = hasHoverSupport();
 
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
@@ -960,6 +968,19 @@ function MenuItem({
                                                         fill={theme.iconSuccessFill}
                                                         additionalStyles={styles.alignSelfCenter}
                                                     />
+                                                )}
+                                                {copyable && deviceHasHoverSupport && !interactive && isHovered && !!copyValue && (
+                                                    <View style={styles.justifyContentCenter}>
+                                                        <CopyTextToClipboard
+                                                            urlToCopy={copyValue}
+                                                            shouldHaveActiveBackground
+                                                            iconHeight={variables.iconSizeExtraSmall}
+                                                            iconWidth={variables.iconSizeExtraSmall}
+                                                            iconStyles={styles.t0}
+                                                            styles={styles.reportActionContextMenuMiniButton}
+                                                            shouldUseButtonBackground
+                                                        />
+                                                    </View>
                                                 )}
                                             </View>
                                         </View>
