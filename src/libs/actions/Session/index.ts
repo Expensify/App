@@ -536,7 +536,7 @@ function signUpUser() {
 function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettings, tryNewDot?: TryNewDot) {
     const {hybridApp, ...newDotOnyxValues} = hybridAppSettings;
 
-    const clearOnyxBeforeSignIn = () => {
+    const clearOnyxIfSigningIn = () => {
         if (!hybridApp.useNewDotSignInPage) {
             return Promise.resolve();
         }
@@ -553,7 +553,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
         resetDidUserLogInDuringSession();
     };
 
-    return clearOnyxBeforeSignIn()
+    return clearOnyxIfSigningIn()
         .then(() => {
             // This section controls copilot changes
             const currentUserEmail = getCurrentUserEmail();
@@ -714,11 +714,7 @@ function signIn(validateCode: string, twoFactorAuthCode?: string) {
             params.validateCode = validateCode || credentials.validateCode;
         }
 
-        API.write(WRITE_COMMANDS.SIGN_IN_USER, params, {
-            optimisticData,
-            successData,
-            failureData,
-        });
+        API.write(WRITE_COMMANDS.SIGN_IN_USER, params, {optimisticData, successData, failureData});
     });
 }
 
