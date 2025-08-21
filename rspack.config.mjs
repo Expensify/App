@@ -17,6 +17,14 @@ const __dirname = path.dirname(__filename);
 export default Repack.defineRspackConfig({
     context: __dirname,
     entry: './index.js',
+    devServer: {
+        proxy: [
+            {
+                context: ['/.expo/.virtual-metro-entry'],
+                pathRewrite: {'^/.expo/.virtual-metro-entry': '/index'},
+            },
+        ],
+    },
     resolve: {
         ...Repack.getResolveOptions(),
         tsConfig: {
