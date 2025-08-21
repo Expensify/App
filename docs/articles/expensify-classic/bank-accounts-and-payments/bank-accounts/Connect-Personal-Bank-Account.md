@@ -60,7 +60,7 @@ Expensify requires many fields to add a Singaporean Business account (for paying
 - Account Number  
 - Clearing Code  
 
-The Swift code can generally be found by searching for your bank [here](https://wise.com/gb/swift-codes/countries). It always contains a capitalised alphanumerical string of characters that end in either XXX or the bank **Branch Code**. There is no requirement to use anything but the XXX head office option.
+The Swift code can generally be found by searching for your bank [here](https://wise.com/gb/swift-codes/countries). It always contains a capitalized alphanumerical string of characters that end in either XXX or the bank **Branch Code**. There is no requirement to use anything but the XXX head office option.
 
 The Account Number can usually be found on your statement or in your online banking portal. For example, HSBC typically includes the **Branch Code** (the final three digits of the Swift Code, e.g. HSBCSGS2XXX → 146) in the **Account Number**. If you see figures like `146172002492`, drop the first 3 digits (`146`), which form the Branch Code, and use the remainder as the Account No.
 
