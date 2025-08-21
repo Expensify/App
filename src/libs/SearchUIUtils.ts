@@ -449,6 +449,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 withdrawalType: CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT,
+                withdrawnOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
             }),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
