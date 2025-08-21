@@ -99,7 +99,9 @@ function useSearchSelector({
     initialSelected,
     shouldInitialize = true,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
-    const {options, areOptionsInitialized} = useOptionsList();
+    const {options, areOptionsInitialized} = useOptionsList({
+        shouldInitialize,
+    });
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
