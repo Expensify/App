@@ -1071,6 +1071,7 @@ const CONST = {
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         UNREPORTED_REPORT_ID: '0',
+        DEFAULT_REPORT_ID: '1',
         SPLIT_REPORT_ID: '-2',
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1153,6 +1154,7 @@ const CONST = {
                 DELETED_TRANSACTION: 'DELETEDTRANSACTION',
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // Deprecated OldDot Action
+                EXPENSIFY_CARD_SYSTEM_MESSAGE: 'EXPENSIFYCARDSYSTEMMESSAGE',
                 EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
                 EXPORTED_TO_INTEGRATION: 'EXPORTINTEGRATION', // OldDot Action
                 EXPORTED_TO_QUICK_BOOKS: 'EXPORTED', // Deprecated OldDot Action
@@ -6500,6 +6502,7 @@ const CONST = {
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
+                [this.GROUP_BY.REPORTS]: 'report',
             };
         },
         DATE_MODIFIERS: {

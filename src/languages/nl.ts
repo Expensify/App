@@ -7055,7 +7055,7 @@ const translations = {
         takeATestDrive: 'Maak een proefrit',
     },
     migratedUserWelcomeModal: {
-        title: 'Reizen en uitgaven, met de snelheid van chat',
+        title: 'Welkom bij New Expensify!',
         subtitle: 'Nieuwe Expensify heeft dezelfde geweldige automatisering, maar nu met geweldige samenwerking:',
         confirmText: 'Laten we gaan!',
         features: {
