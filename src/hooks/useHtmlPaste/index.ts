@@ -94,9 +94,9 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
      */
     const handlePastedHTML = useCallback(
         (html: string) => {
-            paste(Parser.htmlToMarkdown(html, {}, maxLength));
+            paste(Parser.htmlToMarkdown(html, {}));
         },
-        [paste, maxLength],
+        [paste],
     );
 
     /**

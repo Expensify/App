@@ -10,6 +10,8 @@ export interface Spec extends TurboModule {
     switchAccount: (newDotCurrentAccountEmail: string, authToken: string, policyID: string, accountID: string) => void;
     sendAuthToken: (authToken: string) => void;
     getHybridAppSettings: () => Promise<string | null>;
+    getInitialURL(): Promise<string | null>;
+    onURLListenerAdded: () => void;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('ReactNativeHybridApp');

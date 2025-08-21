@@ -8,6 +8,7 @@ import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
@@ -62,9 +63,6 @@ type ReportActionsViewProps = {
 
     /** If the report has older actions to load */
     hasOlderActions: boolean;
-
-    /** If this report is a transaction thread report */
-    isReportTransactionThread?: boolean;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -77,12 +75,12 @@ function ReportActionsView({
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
-    isReportTransactionThread,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
-        selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction(report), true),
+        selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction(report, isReportArchived), true),
         canBeMissing: true,
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
@@ -135,12 +133,6 @@ function ReportActionsView({
     // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(() => {
         if (!isMoneyRequestReport(report) || !allReportActions?.length) {
-            if (!allReportActions?.length && isReportTransactionThread) {
-                const optimisticCreatedReportAction = buildOptimisticCreatedReportAction(CONST.REPORT.OWNER_EMAIL_FAKE);
-                optimisticCreatedReportAction.pendingAction = null;
-                return [optimisticCreatedReportAction];
-            }
-
             return allReportActions;
         }
 
@@ -187,9 +179,7 @@ function ReportActionsView({
         }
 
         return [...actions, createdAction];
-        // We don't need to listen for changes in whole report and threadTransactionReport objects
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [allReportActions, report.reportID, reportPreviewAction?.childMoneyRequestCount, isReportTransactionThread]);
+    }, [allReportActions, report, transactionThreadReport, reportPreviewAction]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
@@ -206,7 +196,7 @@ function ReportActionsView({
         [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID],
     );
 
-    const canPerformWriteAction = canUserPerformWriteAction(report);
+    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
     const visibleReportActions = useMemo(
         () =>
             reportActions.filter(
@@ -288,7 +278,13 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    if ((isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline) ?? isLoadingApp) {
+    // Show skeleton while loading initial report actions when data is incomplete/missing and online
+    const shouldShowSkeletonForInitialLoad = isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
+
+    // Show skeleton while the app is loading and we're online
+    const shouldShowSkeletonForAppLoad = isLoadingApp && !isOffline;
+
+    if (shouldShowSkeletonForInitialLoad ?? shouldShowSkeletonForAppLoad) {
         return <ReportActionsSkeletonView />;
     }
 
