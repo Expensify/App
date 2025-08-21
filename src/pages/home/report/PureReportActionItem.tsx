@@ -1310,6 +1310,7 @@ function PureReportActionItem({
                                     action={action}
                                     draftMessage={draftMessage}
                                     reportID={reportID}
+                                    originalReportID={originalReportID}
                                     policyID={report?.policyID}
                                     index={index}
                                     ref={composerTextInputRef}
