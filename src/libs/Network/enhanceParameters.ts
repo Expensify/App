@@ -30,7 +30,9 @@ Onyx.connect({
 });
 
 let stashedSupportLogin = '';
-Onyx.connect({
+// To enhance the API parameters, we do not need to depend on the UI,
+// so it is okay to use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.STASHED_CREDENTIALS,
     callback: (val) => {
         stashedSupportLogin = val?.login ?? '';
