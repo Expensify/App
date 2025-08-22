@@ -103,10 +103,30 @@ function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, on
 
     const getInitialEphemeralDateValue = useCallback((dateModifier: SearchDateModifier | null) => (dateModifier ? dateDisplayValues[dateModifier] : undefined), [dateDisplayValues]);
     const [ephemeralDateValue, setEphemeralDateValue] = useState<string | undefined>(() => getInitialEphemeralDateValue(selectedDateModifier));
+    const [ephemeralDateModifier, setEphemeralDateModifier] = useState<SearchDateModifier | null>(selectedDateModifier);
+    
     const resetEphemeralDateValue = useCallback(
-        (dateModifier: SearchDateModifier | null) => setEphemeralDateValue(getInitialEphemeralDateValue(dateModifier)),
+        (dateModifier: SearchDateModifier | null) => {
+            setEphemeralDateValue(getInitialEphemeralDateValue(dateModifier));
+            setEphemeralDateModifier(dateModifier);
+        },
         [getInitialEphemeralDateValue],
     );
+
+    // Get display values that include ephemeral date values for better UX
+    const getDisplayValueForDateModifier = useCallback((dateModifier: SearchDateModifier) => {
+        // If we have an ephemeral value for this specific date modifier and no selected date modifier (i.e., we're in the main view),
+        // and the ephemeral value is different from the stored value, show the ephemeral value
+        if (!selectedDateModifier && ephemeralDateValue && ephemeralDateModifier === dateModifier) {
+            const storedValue = dateDisplayValues[dateModifier];
+            
+            // Show ephemeral value if it's different from the stored value
+            if (ephemeralDateValue !== storedValue) {
+                return ephemeralDateValue;
+            }
+        }
+        return dateDisplayValues[dateModifier];
+    }, [selectedDateModifier, ephemeralDateValue, ephemeralDateModifier, dateDisplayValues]);
 
     const selectDateModifier = useCallback(
         (dateModifier: SearchDateModifier | null) => {
@@ -133,6 +153,8 @@ function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, on
                 }
 
                 setDateValue(selectedDateModifier, ephemeralDateValue);
+                // Clear ephemeral state after setting the value
+                setEphemeralDateModifier(null);
             },
 
             clearDateValueOfSelectedDateModifier() {
@@ -141,6 +163,8 @@ function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, on
                 }
 
                 setDateValue(selectedDateModifier, undefined);
+                // Clear ephemeral state after clearing the value
+                setEphemeralDateModifier(null);
             },
         }),
         [selectedDateModifier, dateValues, ephemeralDateValue, setDateValue],
@@ -170,21 +194,21 @@ function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, on
                 shouldShowRightIcon
                 viewMode={CONST.OPTION_MODE.COMPACT}
                 title={translate('common.on')}
-                description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.ON]}
+                description={getDisplayValueForDateModifier(CONST.SEARCH.DATE_MODIFIERS.ON)}
                 onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.ON)}
             />
             <MenuItem
                 shouldShowRightIcon
                 viewMode={CONST.OPTION_MODE.COMPACT}
                 title={translate('common.after')}
-                description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.AFTER]}
+                description={getDisplayValueForDateModifier(CONST.SEARCH.DATE_MODIFIERS.AFTER)}
                 onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.AFTER)}
             />
             <MenuItem
                 shouldShowRightIcon
                 viewMode={CONST.OPTION_MODE.COMPACT}
                 title={translate('common.before')}
-                description={dateDisplayValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]}
+                description={getDisplayValueForDateModifier(CONST.SEARCH.DATE_MODIFIERS.BEFORE)}
                 onPress={() => selectDateModifier(CONST.SEARCH.DATE_MODIFIERS.BEFORE)}
             />
         </>
