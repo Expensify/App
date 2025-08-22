@@ -41,7 +41,8 @@ Onyx.connect({
 });
 
 let isSingleNewDotEntry: boolean | undefined;
-Onyx.connect({
+// Hybrid app config is not determined by changes in the UI, so we can use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.HYBRID_APP,
     callback: (value) => {
         if (!value) {
