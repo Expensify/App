@@ -236,10 +236,6 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                             name={tabName}
                         >
                             {() => {
-                                // Get members for this tab without search filter to determine if search should show
-                                const tabMembersWithoutSearch = filterMembers(tabName, true);
-                                const shouldShowSearch = tabMembersWithoutSearch.length > 8;
-
                                 // Get filtered members (with search if applicable)
                                 const filteredMembers = filterMembers(tabName);
 
@@ -247,7 +243,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                 const searchValue = debouncedSearchTerm.trim().toLowerCase();
                                 let currentHeaderMessage = headerMessage;
 
-                                if (filteredMembers.length === 0 && ((shouldShowSearch && searchValue) || tabMembersWithoutSearch.length === 0)) {
+                                if (filteredMembers.length === 0 && searchValue) {
                                     currentHeaderMessage = translate('common.noResultsFound');
                                 }
 
@@ -258,9 +254,9 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                             onSelectRow={() => {}}
                                             listItemWrapperStyle={styles.cursorDefault}
                                             addBottomSafeAreaPadding
-                                            textInputLabel={shouldShowSearch ? translate('common.search') : undefined}
-                                            textInputValue={shouldShowSearch ? searchTerm : undefined}
-                                            onChangeText={shouldShowSearch ? setSearchTerm : undefined}
+                                            textInputLabel={translate('common.search')}
+                                            textInputValue={searchTerm}
+                                            onChangeText={setSearchTerm}
                                             headerMessage={currentHeaderMessage}
                                             sections={buildSections(filteredMembers)}
                                             sectionListStyle={styles.pt3}
