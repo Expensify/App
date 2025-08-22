@@ -33,5 +33,4 @@ export default {
     canUseLinkPreviews,
     isBlockedFromSpotnanaTravel,
     isBetaEnabled,
-    canUseAllBetas,
 };
