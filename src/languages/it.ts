@@ -58,6 +58,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -292,6 +293,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceMembersCountParams,
@@ -587,6 +589,7 @@ const translations = {
         network: 'Rete',
         reportID: 'ID Rapporto',
         longID: 'ID lungo',
+        withdrawalID: 'ID di prelievo',
         bankAccounts: 'Conti bancari',
         chooseFile: 'Scegli file',
         chooseFiles: 'Scegli file',
@@ -1293,9 +1296,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Sembra che non hai spese non segnalate. Prova a crearne una qui sotto.',
         addUnreportedExpenseConfirm: 'Aggiungi al report',
         explainHold: 'Spiega perché stai trattenendo questa spesa.',
-        undoSubmit: 'Annulla invio',
         retracted: 'retratato',
-        undoClose: 'Annulla chiusura',
+        retract: 'Ritirare',
         reopened: 'riaperto',
         reopenReport: 'Riapri rapporto',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
@@ -1380,6 +1382,22 @@ const translations = {
         rates: 'Tariffe',
         submitsTo: ({name}: SubmitsToParams) => `Invia a ${name}`,
         moveExpenses: () => ({one: 'Sposta spesa', other: 'Sposta spese'}),
+        changeApprover: {
+            title: 'Cambia approvatore',
+            subtitle: "Scegli un'opzione per cambiare l'approvatore di questo report.",
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Puoi anche cambiare l'approvatore in modo permanente per tutti i report nelle tue <a href="${workflowSettingLink}">impostazioni del flusso di lavoro</a>.`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `ha cambiato l'approvatore in <mention-user accountID="${managerID}"/>`,
+            actions: {
+                addApprover: 'Aggiungi approvatore',
+                addApproverSubtitle: 'Aggiungi un approvatore aggiuntivo al flusso di lavoro esistente.',
+                bypassApprovers: 'Ignora approvatori',
+                bypassApproversSubtitle: 'Assegna te stesso come approvatore finale e salta gli approvatori rimanenti.',
+            },
+            addApprover: {
+                subtitle: 'Scegli un approvatore aggiuntivo per questo report prima di instradarlo attraverso il resto del flusso di lavoro di approvazione.',
+            },
+        },
     },
     transactionMerge: {
         listPage: {
@@ -3520,7 +3538,7 @@ const translations = {
             existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
                 `Poiché ti sei connesso a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} in precedenza, puoi scegliere di riutilizzare una connessione esistente o crearne una nuova.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Ultima sincronizzazione ${formattedDate}`,
-            authenticationError: ({connectionName}: AuthenticationErrorParams) => `Impossibile connettersi a ${connectionName} a causa di un errore di autenticazione`,
+            authenticationError: ({connectionName}: AuthenticationErrorParams) => `Impossibile connettersi a ${connectionName} a causa di un errore di autenticazione.`,
             learnMore: 'Scopri di più',
             memberAlternateText: 'I membri possono inviare e approvare i rapporti.',
             adminAlternateText: 'Gli amministratori hanno pieno accesso di modifica a tutti i report e alle impostazioni dello spazio di lavoro.',
@@ -5480,6 +5498,12 @@ const translations = {
                     'I tag multilivello ti aiutano a monitorare le spese con maggiore precisione. Assegna più tag a ciascuna voce, come reparto, cliente o centro di costo, per catturare il contesto completo di ogni spesa. Questo consente report più dettagliati, flussi di lavoro di approvazione ed esportazioni contabili.',
                 onlyAvailableOnPlan: 'I tag multilivello sono disponibili solo nel piano Control, a partire da',
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
+                title: 'Livelli di approvazione multipli',
+                description:
+                    'I livelli di approvazione multipli sono uno strumento di flusso di lavoro per le aziende che richiedono a più di una persona di approvare un report prima che possa essere rimborsato.',
+                onlyAvailableOnPlan: 'I livelli di approvazione multipli sono disponibili solo nel piano Control, a partire da ',
+            },
             pricing: {
                 perActiveMember: 'per membro attivo al mese.',
                 perMember: 'per membro al mese.',
@@ -6247,7 +6271,15 @@ const translations = {
                 changeType: ({oldType, newType}: ChangeTypeParams) => `cambiato tipo da ${oldType} a ${newType}`,
                 exportedToCSV: `esportato in CSV`,
                 exportedToIntegration: {
-                    automatic: ({label}: ExportedToIntegrationParams) => `esportato in ${label}`,
+                    automatic: ({label}: ExportedToIntegrationParams) => {
+                        // The label will always be in English, so we need to translate it
+                        const labelTranslations: Record<string, string> = {
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                        };
+                        const translatedLabel = labelTranslations[label] || label;
+                        return `esportato in ${translatedLabel}`;
+                    },
                     automaticActionOne: ({label}: ExportedToIntegrationParams) => `esportato su ${label} tramite`,
                     automaticActionTwo: 'impostazioni contabili',
                     manual: ({label}: ExportedToIntegrationParams) => `ha contrassegnato questo report come esportato manualmente su ${label}.`,
@@ -6392,8 +6424,9 @@ const translations = {
         levelThreeResult: 'Messaggio rimosso dal canale più avviso anonimo e messaggio segnalato per revisione.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invitali',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Invita a inviare le spese',
+        inviteToChat: 'Invita solo a chattare',
+        nothing: 'Non fare nulla',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accetta',
@@ -7056,7 +7089,7 @@ const translations = {
         takeATestDrive: 'Fai un giro di prova',
     },
     migratedUserWelcomeModal: {
-        title: 'Viaggi e spese, alla velocità della chat',
+        title: 'Benvenuto in New Expensify!',
         subtitle: 'Il nuovo Expensify ha la stessa fantastica automazione, ma ora con una collaborazione straordinaria:',
         confirmText: 'Andiamo!',
         features: {
