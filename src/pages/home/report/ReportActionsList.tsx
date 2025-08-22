@@ -178,6 +178,8 @@ function ReportActionsList({
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}`, {canBeMissing: true});
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}`, {canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: false});
+    const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
     const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
@@ -426,7 +428,7 @@ function ReportActionsList({
                 if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
                     return;
                 }
-                if (!hasNewestReportActionRef.current) {
+                if (!hasNewestReportActionRef.current && !isFromCurrentUser) {
                     if (Navigation.getReportRHPActiveRoute()) {
                         return;
                     }
@@ -663,8 +665,10 @@ function ReportActionsList({
                     emojiReactions={actionEmojiReactions}
                     allDraftMessages={draftMessage}
                     allEmojiReactions={emojiReactions}
+                    isReportArchived={isReportArchived}
                     linkedTransactionRouteError={actionLinkedTransactionRouteError}
                     userBillingFundID={userBillingFundID}
+                    isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                 />
             );
         },
@@ -690,6 +694,8 @@ function ReportActionsList({
             isUserValidated,
             personalDetailsList,
             userBillingFundID,
+            isTryNewDotNVPDismissed,
+            isReportArchived,
         ],
     );
 
@@ -699,7 +705,7 @@ function ReportActionsList({
         () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived)],
         [unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
     );
-    const hideComposer = !canUserPerformWriteAction(report);
+    const hideComposer = !canUserPerformWriteAction(report, isReportArchived);
     const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
     const canShowHeader = isOffline || hasHeaderRendered.current;
 

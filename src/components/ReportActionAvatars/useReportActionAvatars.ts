@@ -4,7 +4,7 @@ import {FallbackAvatar} from '@components/Icon/Expensicons';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getDelegateAccountIDFromReportAction, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
@@ -91,7 +91,8 @@ function useReportActionAvatars({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportIDAnnounce || chatReportIDAdmins}`, {canBeMissing: true});
 
-    const delegatePersonalDetails = action?.delegateAccountID ? personalDetails?.[action?.delegateAccountID] : undefined;
+    const delegateAccountID = getDelegateAccountIDFromReportAction(action);
+    const delegatePersonalDetails = delegateAccountID ? personalDetails?.[delegateAccountID] : undefined;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails);
 
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
@@ -272,7 +273,7 @@ function useReportActionAvatars({
         secondaryAvatar = secondUserFallbackAvatar;
     }
 
-    const shouldUseMappedAccountIDs = avatarsForAccountIDs.length > 0 && (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE || shouldUseActorAccountID);
+    const shouldUseMappedAccountIDs = avatarsForAccountIDs.length > 0 && (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE || shouldUseActorAccountID || shouldUseCardFeed);
     const shouldUsePrimaryAvatarID = isWorkspaceActor && !!primaryAvatar.id;
     const shouldUseInvoiceExpenseIcons = isWorkspaceExpense && isNestedInInvoiceReport && !!accountID;
 
@@ -315,7 +316,7 @@ function useReportActionAvatars({
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : login || defaultDisplayName || fallbackDisplayName).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
             accountID,
-            delegateAccountID: !isWorkspaceActor && delegatePersonalDetails ? actorAccountID : undefined,
+            delegateAccountID: !isWorkspaceActor && !!delegateAccountID ? actorAccountID : undefined,
         },
         source: {
             iouReport,
