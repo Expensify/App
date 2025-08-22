@@ -1,8 +1,6 @@
 import type {RefObject} from 'react';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
-import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -11,20 +9,20 @@ import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
-import type {FormattedSelectedPaymentMethod, FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
+import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
+import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
 import variables from '@styles/variables';
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
 import {setInvoicingTransferBankAccount} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AccountData} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceInvoiceVBASectionProps = {
@@ -41,9 +39,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
-    const addPaymentMethodAnchorRef = useRef(null);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
-    const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
     const [anchorPosition, setAnchorPosition] = useState({
@@ -81,25 +77,12 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     /**
      * Display the delete/default menu, or the add payment method menu
      */
-    const paymentMethodPressed = (
-        nativeEvent?: GestureResponderEvent | KeyboardEvent,
-        accountType?: string,
-        account?: AccountData,
-        icon?: FormattedSelectedPaymentMethodIcon,
-        isDefault?: boolean,
-        methodID?: string | number,
-        description?: string,
-    ) => {
-        if (shouldShowAddPaymentMenu) {
-            setShouldShowAddPaymentMenu(false);
-            return;
-        }
-
+    const paymentMethodPressed = ({event, accountData, accountType, methodID, icon, description}: PaymentMethodPressHandlerParams) => {
         if (shouldShowDefaultDeleteMenu) {
             setShouldShowDefaultDeleteMenu(false);
             return;
         }
-        paymentMethodButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
+        paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
 
         // The delete/default menu
         if (accountType) {
@@ -108,32 +91,22 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
             };
             if (accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
                 formattedSelectedPaymentMethod = {
-                    title: account?.addressName ?? '',
+                    title: accountData?.addressName ?? '',
                     icon,
-                    description: description ?? getPaymentMethodDescription(accountType, account),
+                    description: description ?? getPaymentMethodDescription(accountType, accountData),
                     type: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                 };
             }
             setPaymentMethod({
                 isSelectedPaymentMethodDefault: transferBankAccountID === methodID,
-                selectedPaymentMethod: account ?? {},
+                selectedPaymentMethod: accountData ?? {},
                 selectedPaymentMethodType: accountType,
                 formattedSelectedPaymentMethod,
                 methodID: methodID ?? CONST.DEFAULT_NUMBER_ID,
             });
             setShouldShowDefaultDeleteMenu(true);
             setMenuPosition();
-            return;
         }
-        setShouldShowAddPaymentMenu(true);
-        setMenuPosition();
-    };
-
-    /**
-     * Hide the add payment modal
-     */
-    const hideAddPaymentMenu = () => {
-        setShouldShowAddPaymentMenu(false);
     };
 
     /**
@@ -161,17 +134,12 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
         }
     }, [bankAccountList, styles, paymentMethod.selectedPaymentMethodType, paymentMethod.methodID, policyID]);
 
-    /**
-     * Navigate to the appropriate payment type addition screen
-     */
-    const addPaymentMethodTypePressed = (paymentType: string) => {
-        hideAddPaymentMenu();
-        if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
-            openPersonalBankAccountSetupView({policyID, source: 'invoice', isUserValidated});
+    const onAddBankAccountPress = () => {
+        if (shouldShowDefaultDeleteMenu) {
+            setShouldShowDefaultDeleteMenu(false);
             return;
         }
-
-        throw new Error('Invalid payment method type selected');
+        openPersonalBankAccountSetupView({policyID, source: 'invoice', isUserValidated});
     };
 
     return (
@@ -183,15 +151,12 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
             subtitleMuted
         >
             <PaymentMethodList
-                shouldShowAddBankAccountButton={!hasBankAccount}
-                shouldShowAddPaymentMethodButton={false}
-                shouldShowEmptyListMessage={false}
                 onPress={paymentMethodPressed}
+                onAddBankAccountPress={onAddBankAccountPress}
                 invoiceTransferBankAccountID={transferBankAccountID}
                 activePaymentMethodID={transferBankAccountID}
                 actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
-                buttonRef={addPaymentMethodAnchorRef}
-                style={[styles.mt5, hasBankAccount && [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
+                style={[styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}
                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
             />
             <Popover
@@ -261,17 +226,6 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 shouldShowCancelButton
                 danger
                 onModalHide={resetSelectedPaymentMethodData}
-            />
-            <AddPaymentMethodMenu
-                isVisible={shouldShowAddPaymentMenu}
-                onClose={hideAddPaymentMenu}
-                anchorPosition={{
-                    horizontal: anchorPosition.anchorPositionHorizontal,
-                    vertical: anchorPosition.anchorPositionVertical - CONST.MODAL.POPOVER_MENU_PADDING,
-                }}
-                onItemSelected={(method: string) => addPaymentMethodTypePressed(method)}
-                anchorRef={addPaymentMethodAnchorRef}
-                shouldShowPersonalBankAccountOption
             />
         </Section>
     );
