@@ -118,8 +118,7 @@ function BaseVideoPlayer({
         isOffline,
         isLocalFile: isUploading,
     });
-    const {videoPopoverMenuPlayerRef, videoPopoverMenuSource, setCurrentPlaybackSpeed, setSource: setPopoverMenuSource} = useVideoPopoverMenuContext();
-    const shouldUseNewRate = !videoPopoverMenuSource.current || videoPopoverMenuSource.current !== sourceURL;
+    const {videoPopoverMenuPlayerRef, setCurrentPlaybackSpeed, setSource: setPopoverMenuSource} = useVideoPopoverMenuContext();
 
     const togglePlayCurrentVideo = useCallback(() => {
         if (!isCurrentlyURLSet) {
@@ -185,9 +184,7 @@ function BaseVideoPlayer({
         if (!videoPlayerRef.current?.playbackRate) {
             return;
         }
-        if (shouldUseNewRate) {
-            setCurrentPlaybackSpeed(videoPlayerRef.current.playbackRate as PlaybackSpeed);
-        }
+        setCurrentPlaybackSpeed(videoPlayerRef.current.playbackRate as PlaybackSpeed);
         setIsPopoverVisible(true);
 
         setPopoverMenuSource(url);

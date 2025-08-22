@@ -16,7 +16,6 @@ type VolumeContext = {
 type VideoPopoverMenuContext = {
     menuItems: PopoverMenuItem[];
     videoPopoverMenuPlayerRef: RefObject<VideoPlayer | null>;
-    videoPopoverMenuSource: RefObject<string | null>;
     currentPlaybackSpeed: PlaybackSpeed;
     updatePlaybackSpeed: (speed: PlaybackSpeed) => void;
     setCurrentPlaybackSpeed: (speed: PlaybackSpeed) => void;
