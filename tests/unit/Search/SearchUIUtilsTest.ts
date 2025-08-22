@@ -1841,6 +1841,7 @@ describe('SearchUIUtils', () => {
                         canUnhold: false,
                         category: 'Employee Meals Remote (Fringe Benefit)',
                         action: 'approve',
+                        allActions: ['approve'],
                         comment: {
                             comment: '',
                         },
