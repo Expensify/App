@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Network from '@src/types/onyx/Network';
 import type {ConnectionChanges} from '@src/types/onyx/Network';
-import * as NetworkActions from './actions/Network';
+import {setConnectionChanges, setIsOffline, setNetWorkStatus, setPoorConnectionTimeoutID} from './actions/Network';
 import AppStateMonitor from './AppStateMonitor';
 import Log from './Log';
 
@@ -55,7 +55,7 @@ const triggerReconnectionCallbacks = throttle(
  */
 function setOfflineStatus(isCurrentlyOffline: boolean, reason = ''): void {
     trackConnectionChanges();
-    NetworkActions.setIsOffline(isCurrentlyOffline, reason);
+    setIsOffline(isCurrentlyOffline, reason);
 
     // When reconnecting, ie, going from offline to online, all the reconnection callbacks
     // are triggered (this is usually Actions that need to re-download data from the server)
@@ -155,13 +155,13 @@ function setRandomNetworkStatus(initialCall = false) {
     setOfflineStatus(randomStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE);
 
     const timeoutID = setTimeout(setRandomNetworkStatus, randomInterval);
-    NetworkActions.setPoorConnectionTimeoutID(timeoutID);
+    setPoorConnectionTimeoutID(timeoutID);
 }
 
 /** Tracks how many times the connection has changed within the time period */
 function trackConnectionChanges() {
     if (!connectionChanges?.startTime) {
-        NetworkActions.setConnectionChanges({startTime: new Date().getTime(), amount: 1});
+        setConnectionChanges({startTime: new Date().getTime(), amount: 1});
         return;
     }
 
@@ -169,7 +169,7 @@ function trackConnectionChanges() {
     const newAmount = (connectionChanges.amount ?? 0) + 1;
 
     if (diffInHours < 1) {
-        NetworkActions.setConnectionChanges({amount: newAmount});
+        setConnectionChanges({amount: newAmount});
         return;
     }
 
@@ -179,7 +179,7 @@ function trackConnectionChanges() {
         }`,
     );
 
-    NetworkActions.setConnectionChanges({startTime: new Date().getTime(), amount: 0});
+    setConnectionChanges({startTime: new Date().getTime(), amount: 0});
 }
 
 /**
