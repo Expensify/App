@@ -220,7 +220,7 @@ function SearchAutocompleteList(
                     ...CONST.SEARCH.STATUS.CHAT,
                     ...CONST.SEARCH.STATUS.TRIP,
                     ...CONST.SEARCH.STATUS.TASK,
-                }).map((value) => getUserFriendlyValue(value));
+                });
         }
         return suggestedStatuses.map((value) => getUserFriendlyValue(value));
     }, [autocompleteQueryValue]);
