@@ -318,6 +318,7 @@ const translations = {
         count: 'Liczba',
         cancel: 'Anuluj',
         dismiss: 'Odrzuć',
+        proceed: 'Proceed',
         yes: 'Tak',
         no: 'Nie',
         ok: 'OK',
@@ -587,6 +588,7 @@ const translations = {
         network: 'Sieć',
         reportID: 'ID raportu',
         longID: 'Długi identyfikator',
+        withdrawalID: 'Identyfikator wypłaty',
         bankAccounts: 'Konta bankowe',
         chooseFile: 'Wybierz plik',
         chooseFiles: 'Wybierz pliki',
@@ -1088,13 +1090,13 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `usunął wydatek (${amount} dla ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `przeniósł wydatek${reportName ? `z ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `przeniesiono ten wydatek${reportName ? `do <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `przeniósł ten wydatek do twojej <a href="${reportUrl}">przestrzeni osobistej</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
                 return `przeniósł ten raport do przestrzeni roboczej <a href="${newParentReportUrl}">${toPolicyName}</a>`;
             }
             return `przeniósł ten <a href="${movedReportUrl}">raport</a> do przestrzeni roboczej <a href="${newParentReportUrl}">${toPolicyName}</a>`;
         },
-        unreportedTransaction: 'przeniósł ten wydatek do twojej przestrzeni osobistej',
         pendingMatchWithCreditCard: 'Paragon oczekuje na dopasowanie z transakcją kartą',
         pendingMatch: 'Oczekujące dopasowanie',
         pendingMatchWithCreditCardDescription: 'Paragon oczekuje na dopasowanie z transakcją kartą. Oznacz jako gotówka, aby anulować.',
@@ -1292,9 +1294,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Wygląda na to, że nie masz żadnych niezgłoszonych wydatków. Spróbuj utworzyć jeden poniżej.',
         addUnreportedExpenseConfirm: 'Dodaj do raportu',
         explainHold: 'Wyjaśnij, dlaczego wstrzymujesz ten wydatek.',
-        undoSubmit: 'Cofnij wysłanie',
         retracted: 'wycofany',
-        undoClose: 'Cofnij zamknięcie',
+        retract: 'Wycofać',
         reopened: 'ponownie otwarty',
         reopenReport: 'Ponownie otwórz raport',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
@@ -3455,13 +3456,15 @@ const translations = {
             customField1: 'Pole niestandardowe 1',
             customField2: 'Pole niestandardowe 2',
             customFieldHint: 'Dodaj niestandardowe kodowanie, które dotyczy wszystkich wydatków tego członka.',
+            reports: 'Raporty',
             reportFields: 'Pola raportu',
             reportTitle: 'Tytuł raportu',
             reportField: 'Pole raportu',
             taxes: 'Podatki',
             bills: 'Rachunki',
             invoices: 'Faktury',
-            travel: 'Podróżować',
+            perDiem: 'Per diem',
+            travel: 'Podróże',
             members: 'Członkowie',
             accounting: 'Księgowość',
             receiptPartners: 'Partnerzy paragonów',
@@ -3473,6 +3476,7 @@ const translations = {
             testTransactions: 'Przetestuj transakcje',
             issueAndManageCards: 'Wydawaj i zarządzaj kartami',
             reconcileCards: 'Uzgodnij karty',
+            selectAll: 'Wybierz wszystkie',
             selected: () => ({
                 one: '1 wybrano',
                 other: (count: number) => `${count} wybrano`,
@@ -3486,6 +3490,8 @@ const translations = {
             memberNotFound: 'Nie znaleziono członka. Aby zaprosić nowego członka do przestrzeni roboczej, użyj przycisku zaproszenia powyżej.',
             notAuthorized: `Nie masz dostępu do tej strony. Jeśli próbujesz dołączyć do tego miejsca pracy, poproś właściciela miejsca pracy o dodanie Cię jako członka. Coś innego? Skontaktuj się z ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: 'Przejdź do przestrzeni roboczej',
+            duplicateWorkspace: 'Duplikat obszaru roboczego',
+            duplicateWorkspacePrefix: 'Duplikat',
             goToWorkspaces: 'Przejdź do przestrzeni roboczych',
             clearFilter: 'Wyczyść filtr',
             workspaceName: 'Nazwa przestrzeni roboczej',
@@ -4887,9 +4893,21 @@ const translations = {
             taxCode: 'Kod podatkowy',
             updateTaxCodeFailureMessage: 'Wystąpił błąd podczas aktualizacji kodu podatkowego, spróbuj ponownie.',
         },
+        duplicateWorkspace: {
+            title: 'Nazwij swój nowy obszar roboczy',
+            selectFeatures: 'Wybierz funkcje do skopiowania',
+            whichFeatures: 'Które funkcje chcesz skopiować do nowego obszaru roboczego?',
+            confirmDuplicate: '\n\nCzy chcesz kontynuować?',
+            categories: 'kategorie i zasady automatycznej kategoryzacji',
+            reimbursementAccount: 'konto zwrotu',
+            delayedSubmission: 'opóźnione przesłanie',
+            welcomeNote: 'Proszę rozpocząć korzystanie z mojego nowego obszaru roboczego',
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `Zamierzasz utworzyć i udostępnić ${newWorkspaceName ?? ''} członkom ${totalMembers ?? 0} z oryginalnej przestrzeni roboczej.`,
+        },
         emptyWorkspace: {
-            title: 'Utwórz przestrzeń roboczą',
-            subtitle: 'Utwórz przestrzeń roboczą do śledzenia paragonów, zwracania wydatków, zarządzania podróżami, wysyłania faktur i nie tylko — wszystko z prędkością czatu.',
+            title: 'Nie masz żadnych przestrzeni roboczych',
+            subtitle: 'Śledź paragony, zwracaj wydatki, zarządzaj podróżami, wysyłaj faktury i nie tylko.',
             createAWorkspaceCTA: 'Rozpocznij',
             features: {
                 trackAndCollect: 'Śledź i zbieraj paragony',
@@ -6225,7 +6243,15 @@ const translations = {
                 changeType: ({oldType, newType}: ChangeTypeParams) => `zmieniono typ z ${oldType} na ${newType}`,
                 exportedToCSV: `wyeksportowano do CSV`,
                 exportedToIntegration: {
-                    automatic: ({label}: ExportedToIntegrationParams) => `wyeksportowano do ${label}`,
+                    automatic: ({label}: ExportedToIntegrationParams) => {
+                        // The label will always be in English, so we need to translate it
+                        const labelTranslations: Record<string, string> = {
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                        };
+                        const translatedLabel = labelTranslations[label] || label;
+                        return `wyeksportowano do ${translatedLabel}`;
+                    },
                     automaticActionOne: ({label}: ExportedToIntegrationParams) => `wyeksportowano do ${label} przez`,
                     automaticActionTwo: 'ustawienia księgowe',
                     manual: ({label}: ExportedToIntegrationParams) => `oznaczył ten raport jako ręcznie wyeksportowany do ${label}.`,
@@ -6370,8 +6396,9 @@ const translations = {
         levelThreeResult: 'Wiadomość usunięta z kanału, dodano anonimowe ostrzeżenie, a wiadomość została zgłoszona do przeglądu.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Zaproś ich',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Zaproś do przesyłania wydatków',
+        inviteToChat: 'Zaproś tylko do czatu',
+        nothing: 'Nie rób nic',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Akceptuj',
@@ -6522,8 +6549,7 @@ const translations = {
         overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Kwota przekraczająca limit ${formattedLimit}/przejazd`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Kwota przekracza limit ${formattedLimit}/osobę`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Kwota przekracza dzienny limit ${formattedLimit}/osoba dla kategorii`,
-        receiptNotSmartScanned:
-            'Paragon i szczegóły wydatku dodane ręcznie. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Dowiedz się więcej</a>.',
+        receiptNotSmartScanned: 'Paragon i szczegóły wydatku dodane ręcznie.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Wymagany paragon';
             if (formattedLimit ?? category) {
@@ -7033,7 +7059,7 @@ const translations = {
         takeATestDrive: 'Wypróbuj wersję demonstracyjną',
     },
     migratedUserWelcomeModal: {
-        title: 'Podróże i wydatki, z prędkością czatu',
+        title: 'Witamy w New Expensify!',
         subtitle: 'Nowy Expensify ma tę samą świetną automatyzację, ale teraz z niesamowitą współpracą:',
         confirmText: 'Zaczynajmy!',
         features: {

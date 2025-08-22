@@ -6,6 +6,8 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
+// eslint-disable-next-line no-restricted-syntax
+import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, getAllReportErrors, getDisplayNameForParticipant, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -32,6 +34,12 @@ jest.mock('@libs/DraftCommentUtils', () => ({
     getDraftComment: jest.fn(),
     isValidDraftComment: jest.fn(),
     prepareDraftComment: jest.fn(),
+}));
+
+// Mock PolicyUtils
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    getConnectedIntegration: jest.fn(() => true),
 }));
 
 describe('SidebarUtils', () => {
@@ -1251,7 +1259,7 @@ describe('SidebarUtils', () => {
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
-                expect(result?.alternateText).toBe(`You invited 1 member`);
+                expect(result?.alternateText).toBe(`You: invited 1 member`);
             });
             it('returns the last action message as an alternate text if the action is MOVED type', async () => {
                 const report: Report = {

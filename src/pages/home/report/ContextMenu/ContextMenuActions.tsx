@@ -108,6 +108,7 @@ import {
     getRejectedReportMessage,
     getReportName,
     getReportPreviewMessage,
+    getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
     getWorkspaceNameUpdatedMessage,
     isExpenseReport,
@@ -197,6 +198,7 @@ type ContextMenuActionPayload = {
     moneyRequestAction: ReportAction | undefined;
     card?: Card;
     originalReport: OnyxEntry<ReportType>;
+    isTryNewDotNVPDismissed?: boolean;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -494,7 +496,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fall back to
         // the `text` and `icon`
-        onPress: (closePopover, {reportAction, transaction, selection, report, reportID, card, originalReport}) => {
+        onPress: (closePopover, {reportAction, transaction, selection, report, reportID, card, originalReport, isTryNewDotNVPDismissed}) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
             const messageHtml = getActionHtml(reportAction);
             const messageText = getReportActionMessageText(reportAction);
@@ -576,7 +578,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
                     Clipboard.setString(getPolicyChangeLogDefaultTitleEnforcedMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-                    Clipboard.setString(translateLocal('iou.unreportedTransaction'));
+                    setClipboardMessage(getUnreportedTransactionMessage());
                 } else if (isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(getReimbursementQueuedActionMessage({reportAction, reportOrID: reportID, shouldUseShortDisplayName: false}));
                 } else if (isActionableMentionWhisper(reportAction)) {
@@ -653,7 +655,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
                     setClipboardMessage(getReopenedMessage());
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
-                    setClipboardMessage(getIntegrationSyncFailedMessage(reportAction, report?.policyID));
+                    setClipboardMessage(getIntegrationSyncFailedMessage(reportAction, report?.policyID, isTryNewDotNVPDismissed));
                 } else if (isCardIssuedAction(reportAction)) {
                     setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, expensifyCard: card}));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION)) {
