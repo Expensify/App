@@ -13,7 +13,6 @@ import {setMoneyRequestCurrency} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import KeyboardUtils from '@src/utils/keyboard';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -58,16 +57,6 @@ function IOURequestStepCurrency({
         Navigation.setNavigationActionToMicrotaskQueue(() => navigateBack(option.currencyCode));
     };
 
-    // The screen height doesn't update immediately when the keyboard transitions from open to closed
-    // on native so need to keyboard is fully dismissed before triggering navigation.
-    const handlePlatformConfirmCurrencySelection = (option: CurrencyListItem) => {
-        if (isNative) {
-            KeyboardUtils.dismiss().then(() => confirmCurrencySelection(option));
-        } else {
-            confirmCurrencySelection(option);
-        }
-    };
-
     return (
         <StepScreenWrapper
             shouldEnableKeyboardAvoidingView={!isNative}
@@ -85,7 +74,7 @@ function IOURequestStepCurrency({
                         if (!didScreenTransitionEnd) {
                             return;
                         }
-                        handlePlatformConfirmCurrencySelection(option);
+                        confirmCurrencySelection(option);
                     }}
                     initiallySelectedCurrencyCode={currency.toUpperCase()}
                 />
