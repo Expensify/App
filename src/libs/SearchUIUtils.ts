@@ -865,11 +865,13 @@ function getTransactionsSections(
                 if (Array.isArray(status)) {
                     shouldShow = status.some((val) => {
                         const expenseStatus = val as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
-                        return expenseStatusActionMapping[expenseStatus](report);
+                        const mappingFunction = expenseStatusActionMapping[expenseStatus];
+                        return mappingFunction ? mappingFunction(report) : false;
                     });
                 } else {
                     const expenseStatus = status as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
-                    shouldShow = expenseStatusActionMapping[expenseStatus](report);
+                    const mappingFunction = expenseStatusActionMapping[expenseStatus];
+                    shouldShow = mappingFunction ? mappingFunction(report) : false;
                 }
             }
         }
@@ -1313,11 +1315,13 @@ function getReportSections(
                     if (Array.isArray(status)) {
                         shouldShow = status.some((val) => {
                             const expenseStatus = val as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
-                            return expenseStatusActionMapping[expenseStatus](reportItem);
+                            const mappingFunction = expenseStatusActionMapping[expenseStatus];
+                            return mappingFunction ? mappingFunction(reportItem) : false;
                         });
                     } else {
                         const expenseStatus = status as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
-                        shouldShow = expenseStatusActionMapping[expenseStatus](reportItem);
+                        const mappingFunction = expenseStatusActionMapping[expenseStatus];
+                        shouldShow = mappingFunction ? mappingFunction(reportItem) : false;
                     }
                 }
             }
