@@ -80,6 +80,7 @@ export type {default as SignInWithSupportAuthTokenParams} from './SignInWithSupp
 export type {default as UnlinkLoginParams} from './UnlinkLoginParams';
 export type {default as UpdateAutomaticTimezoneParams} from './UpdateAutomaticTimezoneParams';
 export type {default as UpdateChatPriorityModeParams} from './UpdateChatPriorityModeParams';
+export type {default as DuplicateWorkspaceParams} from './DuplicateWorkspaceParams';
 export type {default as UpdateDateOfBirthParams} from './UpdateDateOfBirthParams';
 export type {default as UpdateDisplayNameParams} from './UpdateDisplayNameParams';
 export type {default as UpdateChatNameParams} from './UpdateChatNameParams';
@@ -419,3 +420,4 @@ export type {default as ReopenReportParams} from './ReopenReportParams';
 export type {default as OpenUnreportedExpensesPageParams} from './OpenUnreportedExpensesPageParams';
 export type {default as VerifyTestDriveRecipientParams} from './VerifyTestDriveRecipientParams';
 export type {default as ExportSearchWithTemplateParams} from './ExportSearchWithTemplateParams';
+export type {default as SaveReportDraftCommentParams} from './SaveReportDraftCommentParams';
