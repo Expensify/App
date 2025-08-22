@@ -1914,8 +1914,8 @@ function createTypeMenuSections(
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
-                    title: 'search.searchResults.emptyUnapprovedResults.title',
-                    subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
+                    title: 'search.searchResults.emptyStatementsResults.title',
+                    subtitle: 'search.searchResults.emptyStatementsResults.subtitle',
                 },
             });
         }
