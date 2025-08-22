@@ -1026,6 +1026,9 @@ function IOURequestStepConfirmation({
         showPreviousTransaction();
     };
 
+    const shouldEnableDropAndDrop =
+        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isPerDiemRequest && (!isMovingTransactionFromTrackExpenseIOUUtils(action) || isPaidGroupPolicy(policy));
+
     const shouldShowSmartScanFields =
         !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
 
@@ -1035,7 +1038,10 @@ function IOURequestStepConfirmation({
             testID={IOURequestStepConfirmation.displayName}
             headerGapStyles={isDraggingOver ? [styles.dropWrapper] : []}
         >
-            <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
+            <DragAndDropProvider
+                setIsDraggingOver={setIsDraggingOver}
+                isDisabled={!shouldEnableDropAndDrop}
+            >
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
