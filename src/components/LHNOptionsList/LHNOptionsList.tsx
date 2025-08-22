@@ -19,7 +19,6 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isValidDraftComment} from '@libs/DraftCommentUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
@@ -53,7 +52,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: false});
+    const [draftComments] = useOnyx(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
@@ -62,7 +61,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate, preferredLocale, localeCompare} = useLocalize();
     const estimatedListSize = useLHNEstimatedListSize();
     const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     const shouldShowEmptyLHN = data.length === 0;
@@ -189,9 +188,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 ? (getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
                 : CONST.DEFAULT_NUMBER_ID;
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            const hasDraftComment = isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
+            const hasDraftComment = !!draftComments?.[reportID];
 
-            const canUserPerformWrite = canUserPerformWriteAction(item);
+            const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
+            const canUserPerformWrite = canUserPerformWriteAction(item, isReportArchived);
             const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
             const lastReportAction = sortedReportActions.at(0);
 
@@ -246,6 +246,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     isFullscreenVisible={isFullscreenVisible}
                     isReportsSplitNavigatorLast={isReportsSplitNavigatorLast}
                     isScreenFocused={isScreenFocused}
+                    localeCompare={localeCompare}
+                    isReportArchived={isReportArchived}
                 />
             );
         },
@@ -271,6 +273,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             isFullscreenVisible,
             isReportsSplitNavigatorLast,
             isScreenFocused,
+            localeCompare,
         ],
     );
 
@@ -284,7 +287,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             policy,
             personalDetails,
             data.length,
-            draftComments,
             optionMode,
             preferredLocale,
             transactions,
@@ -301,7 +303,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             policy,
             personalDetails,
             data.length,
-            draftComments,
             optionMode,
             preferredLocale,
             transactions,
@@ -380,7 +381,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     animationStyles={styles.emptyLHNAnimation}
                     animationWebStyle={styles.emptyLHNAnimation}
                     title={translate('common.emptyLHN.title')}
-                    shouldShowLink={false}
                     CustomSubtitle={emptyLHNSubtitle}
                     accessibilityLabel={translate('common.emptyLHN.title')}
                 />

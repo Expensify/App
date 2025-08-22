@@ -1,7 +1,7 @@
 import React, {memo, useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
-import {isChatThread, isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActionsDrafts, Transaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -92,6 +92,9 @@ type ReportActionsListItemRendererProps = {
 
     /** All emoji reactions collection */
     allEmojiReactions?: OnyxCollection<ReportActionReactions>;
+
+    /** Whether the report is archived */
+    isReportArchived: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -123,6 +126,7 @@ function ReportActionsListItemRenderer({
     personalDetails,
     allDraftMessages,
     allEmojiReactions,
+    isReportArchived = false,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -219,6 +223,7 @@ function ReportActionsListItemRenderer({
                 allEmojiReactions={allEmojiReactions}
                 linkedTransactionRouteError={linkedTransactionRouteError}
                 userBillingFundID={userBillingFundID}
+                isReportArchived={isReportArchived}
             />
         );
     }
@@ -238,16 +243,6 @@ function ReportActionsListItemRenderer({
             displayAsGroup={displayAsGroup}
             transactions={transactions}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
-            shouldShowSubscriptAvatar={
-                (isPolicyExpenseChat(report) || isInvoiceRoom(report)) &&
-                [
-                    CONST.REPORT.ACTIONS.TYPE.IOU,
-                    CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                    CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                    CONST.REPORT.ACTIONS.TYPE.FORWARDED,
-                ].some((type) => type === reportAction.actionName)
-            }
             isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}
             isFirstVisibleReportAction={isFirstVisibleReportAction}

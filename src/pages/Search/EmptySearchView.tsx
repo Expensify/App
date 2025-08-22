@@ -1,7 +1,7 @@
 import React, {useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
-import {InteractionManager, Linking, View} from 'react-native';
+import {Linking, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BookTravelButton from '@components/BookTravelButton';
@@ -29,11 +29,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
-import {completeTestDriveTask} from '@libs/actions/Task';
+import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasSeenTourSelector} from '@libs/onboardingSelectors';
-import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
+import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy, isPolicyMember} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -151,6 +151,11 @@ function EmptySearchViewContent({
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         canBeMissing: true,
     });
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
+    const [isUserPaidPolicyMember = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        canBeMissing: true,
+        selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
+    });
 
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
@@ -247,20 +252,8 @@ function EmptySearchViewContent({
             }
         }
 
-        const startTestDrive = () => {
-            InteractionManager.runAfterInteractions(() => {
-                if (
-                    introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
-                    introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER ||
-                    introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ||
-                    (introSelected?.choice === CONST.ONBOARDING_CHOICES.SUBMIT && introSelected.inviteType === CONST.ONBOARDING_INVITE_TYPES.WORKSPACE)
-                ) {
-                    completeTestDriveTask(viewTourReport, viewTourReportID);
-                    Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
-                } else {
-                    Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
-                }
-            });
+        const startTestDriveAction = () => {
+            startTestDrive(introSelected, false, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember);
         };
 
         // If we are grouping by reports, show a custom message rather than a type-specific message
@@ -282,7 +275,7 @@ function EmptySearchViewContent({
                         ? [
                               {
                                   buttonText: translate('emptySearchView.takeATestDrive'),
-                                  buttonAction: startTestDrive,
+                                  buttonAction: startTestDriveAction,
                               },
                           ]
                         : []),
@@ -311,7 +304,7 @@ function EmptySearchViewContent({
                                           if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
                                               const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation);
                                               Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID}));
                                               });
                                           } else {
                                               Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
@@ -349,7 +342,7 @@ function EmptySearchViewContent({
                                 ? [
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
-                                          buttonAction: startTestDrive,
+                                          buttonAction: startTestDriveAction,
                                       },
                                   ]
                                 : []),
@@ -380,7 +373,7 @@ function EmptySearchViewContent({
                                 ? [
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
-                                          buttonAction: startTestDrive,
+                                          buttonAction: startTestDriveAction,
                                       },
                                   ]
                                 : []),
@@ -422,8 +415,7 @@ function EmptySearchViewContent({
         styles.emptyStateFolderWebStyles,
         styles.textAlignLeft,
         styles.tripEmptyStateLottieWebView,
-        introSelected?.choice,
-        introSelected?.inviteType,
+        introSelected,
         hasResults,
         defaultViewItemHeader,
         hasSeenTour,
@@ -433,9 +425,9 @@ function EmptySearchViewContent({
         currentUserPersonalDetails,
         tripViewChildren,
         shouldRedirectToExpensifyClassic,
-        viewTourReport,
-        viewTourReportID,
         transactions,
+        tryNewDot?.hasBeenAddedToNudgeMigration,
+        isUserPaidPolicyMember,
     ]);
 
     return (

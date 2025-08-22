@@ -13,6 +13,7 @@ const mockReportItemWithHold = {
     shouldAnimateInHighlight: false,
     accountID: 1206,
     action: 'approve',
+    allActions: ['approve'],
     chatReportID: '2108006919825366',
     created: '2024-12-04 23:18:33',
     currency: 'USD',
@@ -64,8 +65,12 @@ const mockReportItemWithHold = {
     },
     transactions: [
         {
+            report: {
+                reportID: '1350959062018695',
+            },
             accountID: 1206,
             action: 'view',
+            allActions: ['view'],
             amount: -1200,
             canDelete: true,
             canHold: false,
@@ -139,8 +144,12 @@ const mockReportItemWithHold = {
             shouldAnimateInHighlight: false,
         },
         {
+            report: {
+                reportID: '1350959062018695',
+            },
             accountID: 1206,
             action: 'view',
+            allActions: ['view'],
             amount: -12300,
             canDelete: true,
             canHold: true,
@@ -187,9 +196,6 @@ const mockReportItemWithHold = {
             shouldShowCategory: true,
             shouldShowTag: false,
             shouldShowTax: false,
-            shouldShowTo: true,
-            shouldShowFrom: true,
-            shouldShowDescription: false,
             keyForList: '5345995386715609966',
             shouldShowYear: false,
             isAmountColumnWide: false,
