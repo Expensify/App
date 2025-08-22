@@ -744,7 +744,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
-                    hash={hash}
+                    similarSearchHash={similarSearchHash}
                     type={type}
                     groupBy={groupBy}
                     hasResults={searchResults.search.hasResults}
