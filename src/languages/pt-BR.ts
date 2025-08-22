@@ -318,6 +318,7 @@ const translations = {
         count: 'Contagem',
         cancel: 'Cancelar',
         dismiss: 'Dispensar',
+        proceed: 'Proceed',
         yes: 'Sim',
         no: 'Não',
         ok: 'OK',
@@ -588,6 +589,7 @@ const translations = {
         network: 'Network',
         reportID: 'ID do Relatório',
         longID: 'ID longo',
+        withdrawalID: 'ID de retirada',
         bankAccounts: 'Contas bancárias',
         chooseFile: 'Escolher arquivo',
         chooseFiles: 'Escolher arquivos',
@@ -1293,9 +1295,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Parece que você não tem nenhuma despesa não relatada. Tente criar uma abaixo.',
         addUnreportedExpenseConfirm: 'Adicionar ao relatório',
         explainHold: 'Explique por que você está retendo esta despesa.',
-        undoSubmit: 'Desfazer envio',
         retracted: 'retraído',
-        undoClose: 'Desfazer fechamento',
+        retract: 'Retrair',
         reopened: 'reaberto',
         reopenReport: 'Reabrir relatório',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
@@ -3460,12 +3461,14 @@ const translations = {
             customField1: 'Campo personalizado 1',
             customField2: 'Campo personalizado 2',
             customFieldHint: 'Adicione uma codificação personalizada que se aplique a todos os gastos deste membro.',
+            reports: 'Relatórios',
             reportFields: 'Campos do relatório',
             reportTitle: 'Título do relatório',
             reportField: 'Campo de relatório',
             taxes: 'Impostos',
             bills: 'Faturas',
             invoices: 'Faturas',
+            perDiem: 'Per diem',
             travel: 'Viagem',
             members: 'Membros',
             accounting: 'Contabilidade',
@@ -3478,6 +3481,7 @@ const translations = {
             testTransactions: 'Testar transações',
             issueAndManageCards: 'Emitir e gerenciar cartões',
             reconcileCards: 'Conciliar cartões',
+            selectAll: 'Selecionar todos',
             selected: () => ({
                 one: '1 selecionado',
                 other: (count: number) => `${count} selecionado(s)`,
@@ -3491,6 +3495,8 @@ const translations = {
             memberNotFound: 'Membro não encontrado. Para convidar um novo membro para o espaço de trabalho, por favor, use o botão de convite acima.',
             notAuthorized: `Você não tem acesso a esta página. Se você está tentando entrar neste espaço de trabalho, basta pedir ao proprietário do espaço de trabalho para adicioná-lo como membro. Algo mais? Entre em contato com ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: 'Ir para o espaço de trabalho',
+            duplicateWorkspace: 'Espaço de trabalho duplicado',
+            duplicateWorkspacePrefix: 'Duplicado',
             goToWorkspaces: 'Ir para espaços de trabalho',
             clearFilter: 'Limpar filtro',
             workspaceName: 'Nome do espaço de trabalho',
@@ -4893,6 +4899,18 @@ const translations = {
             taxCode: 'Código fiscal',
             updateTaxCodeFailureMessage: 'Ocorreu um erro ao atualizar o código de imposto, por favor, tente novamente.',
         },
+        duplicateWorkspace: {
+            title: 'Nomeie seu novo espaço de trabalho',
+            selectFeatures: 'Selecione os recursos a serem copiados',
+            whichFeatures: 'Quais recursos você deseja copiar para o seu novo espaço de trabalho?',
+            confirmDuplicate: '\n\nVocê quer continuar?',
+            categories: 'categorias e suas regras de categorização automática',
+            reimbursementAccount: 'conta de reembolso',
+            delayedSubmission: 'envio atrasado',
+            welcomeNote: 'Comece a usar meu novo espaço de trabalho',
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `Você está prestes a criar e compartilhar ${newWorkspaceName ?? ''} com ${totalMembers ?? 0} membros do espaço de trabalho original.`,
+        },
         emptyWorkspace: {
             title: 'Você não tem espaços de trabalho',
             subtitle: 'Acompanhe recibos, reembolse despesas, gerencie viagens, envie faturas e muito mais.',
@@ -6239,7 +6257,15 @@ const translations = {
                 changeType: ({oldType, newType}: ChangeTypeParams) => `alterado o tipo de ${oldType} para ${newType}`,
                 exportedToCSV: `exportado para CSV`,
                 exportedToIntegration: {
-                    automatic: ({label}: ExportedToIntegrationParams) => `exportado para ${label}`,
+                    automatic: ({label}: ExportedToIntegrationParams) => {
+                        // The label will always be in English, so we need to translate it
+                        const labelTranslations: Record<string, string> = {
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                        };
+                        const translatedLabel = labelTranslations[label] || label;
+                        return `exportado para ${translatedLabel}`;
+                    },
                     automaticActionOne: ({label}: ExportedToIntegrationParams) => `exportado para ${label} via`,
                     automaticActionTwo: 'configurações de contabilidade',
                     manual: ({label}: ExportedToIntegrationParams) => `marcou este relatório como exportado manualmente para ${label}.`,
@@ -6384,7 +6410,8 @@ const translations = {
         levelThreeResult: 'Mensagem removida do canal, além de um aviso anônimo, e a mensagem foi relatada para revisão.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Convide-os',
+        inviteToSubmitExpense: 'Convidar para enviar despesas',
+        inviteToChat: 'Convidar apenas para conversar',
         nothing: 'Não faça nada',
     },
     actionableMentionJoinWorkspaceOptions: {
@@ -7045,7 +7072,7 @@ const translations = {
         takeATestDrive: 'Faça um test drive',
     },
     migratedUserWelcomeModal: {
-        title: 'Viagens e despesas, na velocidade do chat',
+        title: 'Bem-vindo ao New Expensify!',
         subtitle: 'O novo Expensify tem a mesma ótima automação, mas agora com uma colaboração incrível:',
         confirmText: 'Vamos lá!',
         features: {
