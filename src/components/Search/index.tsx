@@ -17,17 +17,18 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {openSearch, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
+import {openSearch} from '@libs/actions/Search';
 import Timing from '@libs/actions/Timing';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {getIOUActionForTransactionID, getReportAction, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, generateReportID, getReportOrDraftReport, isArchivedReport} from '@libs/ReportUtils';
+import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
+import {canEditFieldOfMoneyRequest, isArchivedReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
+    createAndOpenTransactionThreadReport,
     getListItem,
     getSections,
     getSortedSections,
@@ -49,7 +50,6 @@ import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
-import {openReport as loadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -542,6 +542,19 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 return;
             }
 
+            const isTransactionItem = isTransactionListItemType(item);
+
+            // if (isTransactionGroupListItemType(item) && item.isOneTransactionReport &&  transactions?.[0]?.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            //     createAndOpenTransactionThreadReport(item.transactions[0], hash);
+            //     return;
+            // }
+
+            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
+            if (isTransactionItem && item.isOneTransactionReport && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                createAndOpenTransactionThreadReport(item, hash);
+                return;
+            }
+
             if (isTransactionMemberGroupListItemType(item)) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
                 newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.accountID}]});
@@ -561,30 +574,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             }
 
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            const isTransactionItem = isTransactionListItemType(item);
-
-            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const transactionThreadReportID = generateReportID();
-                const iouReport = getReportOrDraftReport(item.report.reportID);
-                const iouAction = getReportAction(item.report.reportID, item.moneyRequestReportActionID);
-                updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReportID);
-
-                // It's possible the iou report and iou report action data isn't in the onyx yet. So we need to make sure to load it.
-                if (!iouReport || !iouAction) {
-                    loadReport(item.report.reportID);
-                }
-
-                Navigation.navigate(
-                    ROUTES.SEARCH_REPORT.getRoute({
-                        reportID: transactionThreadReportID,
-                        moneyRequestReportActionID: item.moneyRequestReportActionID,
-                        transactionID: item.transactionID,
-                        iouReportID: item.report.reportID,
-                    }),
-                );
-                return;
-            }
 
             const reportID =
                 isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID

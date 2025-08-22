@@ -400,6 +400,9 @@ type SearchTransaction = {
     /** The ID of the report the transaction is associated with */
     reportID: string;
 
+    /** Whether the report the transaction is associated with has a single transaction */
+    isOneTransactionReport?: boolean;
+
     /** The report ID of the transaction thread associated with the transaction */
     transactionThreadReportID: string;
 

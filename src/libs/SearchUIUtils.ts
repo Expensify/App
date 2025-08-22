@@ -57,7 +57,8 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
-import {createNewReport} from './actions/Report';
+import {createNewReport, openReport} from './actions/Report';
+import {updateSearchResultsWithTransactionThreadReportID} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
@@ -68,10 +69,19 @@ import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {arePaymentsEnabled, canSendInvoice, getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
-import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
+import {
+    getOriginalMessage,
+    getReportAction,
+    isCreatedAction,
+    isDeletedAction,
+    isMoneyRequestAction,
+    isResolvedActionableWhisper,
+    isWhisperActionTargetedToOthers,
+} from './ReportActionsUtils';
 import {canReview} from './ReportPreviewActionUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
+    generateReportID,
     getIcons,
     getPersonalDetailsForAccountID,
     getReportName,
@@ -1017,6 +1027,30 @@ function getReviewerPermissionFlags(
         isAdmin: policy.role === CONST.POLICY.ROLE.ADMIN,
         isApprover: report.managerID === currentAccountID,
     };
+}
+
+/** Creates a transaction thread report and navigates the user to it */
+function createAndOpenTransactionThreadReport(transactionItem: TransactionListItemType, searchHash: number, backTo?: string) {
+    const {report, moneyRequestReportActionID, transactionID} = transactionItem;
+    const transactionThreadReportID = generateReportID();
+    const iouReport = getReportOrDraftReport(report.reportID);
+    const iouAction = getReportAction(report.reportID, moneyRequestReportActionID);
+    updateSearchResultsWithTransactionThreadReportID(searchHash, transactionID, transactionThreadReportID);
+
+    // It's possible the iou report and iou report action data isn't in the onyx yet. So we need to make sure to load it.
+    if (!iouReport || !iouAction) {
+        openReport(report.reportID);
+    }
+
+    Navigation.navigate(
+        ROUTES.SEARCH_REPORT.getRoute({
+            reportID: transactionThreadReportID,
+            moneyRequestReportActionID,
+            transactionID,
+            iouReportID: report.reportID,
+            backTo,
+        }),
+    );
 }
 
 /**
@@ -2055,6 +2089,7 @@ export {
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
     getDatePresets,
+    createAndOpenTransactionThreadReport,
     getWithdrawalTypeOptions,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
