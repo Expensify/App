@@ -26,6 +26,7 @@ import {
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
     getCardIssuedMessage,
+    getChangedApproverActionMessage,
     getDeletedApprovalRuleMessage,
     getExportIntegrationMessageHTML,
     getIntegrationSyncFailedMessage,
@@ -674,6 +675,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedApprovalRuleMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
                     setClipboardMessage(getUpdatedManualApprovalThresholdMessage(reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+                    setClipboardMessage(getChangedApproverActionMessage(reportAction));
                 } else if (isMovedAction(reportAction)) {
                     setClipboardMessage(getMovedActionMessage(reportAction, originalReport));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
