@@ -58,8 +58,8 @@ function PlaybackContextProvider({children}: ChildrenProps) {
 
     const shareVideoPlayerElements: PlaybackContextValues['shareVideoPlayerElements'] = useCallback(
         (
-            playerRef: VideoPlayer | null,
-            viewRef: VideoView | null,
+            videoPlayerRef: VideoPlayer | null,
+            videoViewRef: VideoView | null,
             parent: View | HTMLDivElement | null,
             child: View | HTMLDivElement | null,
             shouldNotAutoPlay: boolean,
@@ -69,14 +69,13 @@ function PlaybackContextProvider({children}: ChildrenProps) {
                 return;
             }
 
-            video.updateRefs(playerRef, viewRef);
+            video.updateRefs(videoPlayerRef, videoViewRef);
             setOriginalParent(parent);
             setSharedElement(child);
             // Prevents autoplay when uploading the attachment
             if (!shouldNotAutoPlay) {
                 // causes 'The request is not allowed by the user agent or the platform in the current context, possibly because the user denied permission.'
                 // video.play();
-                
             }
         },
         [currentRouteReportID, currentlyPlayingURL, video],
