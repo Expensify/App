@@ -29,7 +29,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {shouldRenderSecondaryOverlay, secondOverlayProgress} = useContext(WideRHPContext);
+    const {shouldRenderSecondaryOverlay, secondOverlayProgress, dismissToWideReport} = useContext(WideRHPContext);
 
     const screenListeners = useMemo(
         () => ({
@@ -256,7 +256,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <Overlay
                         marginRight
                         progress={secondOverlayProgress}
-                        onPress={handleOverlayPress}
+                        onPress={dismissToWideReport}
                     />
                 )}
             </NoDropZone>
