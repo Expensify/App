@@ -962,7 +962,7 @@ function initMoneyRequest({
     };
     let requestCategory: string | null = null;
 
-    // Add initial empty waypoints when starting a distance expense
+    // Set up initial distance expense state
     if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL) {
         if (!isFromGlobalCreate) {
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
