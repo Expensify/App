@@ -8,6 +8,7 @@ import type {
     TransactionListItemType,
     TransactionMemberGroupListItemType,
     TransactionReportGroupListItemType,
+    TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -41,6 +42,10 @@ const transactionID3 = '3';
 const transactionID4 = '4';
 const cardID = 20202020;
 const cardID2 = 30303030;
+const entryID = 5;
+const entryID2 = 6;
+const accountNumber = 'XXXXXXXX6789';
+const accountNumber2 = 'XXXXXXXX5544';
 
 const report1 = {
     accountID: adminAccountID,
@@ -275,6 +280,7 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID}`]: {
             accountID: adminAccountID,
             action: 'view',
+            allActions: ['view'],
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -315,6 +321,7 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID2}`]: {
             accountID: adminAccountID,
             action: 'view',
+            allActions: ['view'],
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -357,6 +364,7 @@ const searchResults: OnyxTypes.SearchResults = {
             accountID: adminAccountID,
             amount: 1200,
             action: 'view',
+            allActions: ['view'],
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -397,6 +405,7 @@ const searchResults: OnyxTypes.SearchResults = {
             accountID: adminAccountID,
             amount: 3200,
             action: 'view',
+            allActions: ['view'],
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -551,6 +560,46 @@ const searchResultsGroupByCard: OnyxTypes.SearchResults = {
     },
 };
 
+const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {},
+        [`${CONST.SEARCH.GROUP_PREFIX}${entryID}` as const]: {
+            entryID,
+            accountNumber,
+            bankName: CONST.BANK_NAMES.CHASE,
+            debitPosted: '2025-08-12 17:11:22',
+            count: 4,
+            currency: 'USD',
+            total: 40,
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}${cardID2}` as const]: {
+            entryID: entryID2,
+            accountNumber: accountNumber2,
+            bankName: CONST.BANK_NAMES.CITIBANK,
+            debitPosted: '2025-08-19 18:10:54',
+            count: 6,
+            currency: 'USD',
+            total: 20,
+        },
+    },
+    search: {
+        columnsToShow: {
+            shouldShowCategoryColumn: false,
+            shouldShowTagColumn: false,
+            shouldShowTaxColumn: false,
+        },
+        count: 10,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        total: 60,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
 const reportActionListItems = [
     {
         accountID: 18439984,
@@ -588,6 +637,7 @@ const transactionsListItems = [
     {
         accountID: 18439984,
         action: 'submit',
+        allActions: ['submit'],
         amount: -5000,
         report: report1,
         canDelete: true,
@@ -653,6 +703,7 @@ const transactionsListItems = [
     {
         accountID: 18439984,
         action: 'review',
+        allActions: ['review', 'approve'],
         amount: -5000,
         report: report2,
         canDelete: true,
@@ -724,6 +775,7 @@ const transactionsListItems = [
         accountID: 18439984,
         amount: 1200,
         action: 'view',
+        allActions: ['view'],
         report: report3,
         canDelete: true,
         canHold: true,
@@ -789,6 +841,7 @@ const transactionsListItems = [
         accountID: 18439984,
         amount: 3200,
         action: 'view',
+        allActions: ['view'],
         report: report3,
         canDelete: true,
         canHold: true,
@@ -857,6 +910,7 @@ const transactionReportGroupListItems = [
         groupedBy: 'reports',
         accountID: 18439984,
         action: 'submit',
+        allActions: ['submit'],
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
@@ -889,6 +943,7 @@ const transactionReportGroupListItems = [
             {
                 accountID: 18439984,
                 action: 'submit',
+                allActions: ['submit'],
                 report: report1,
                 amount: -5000,
                 canDelete: true,
@@ -959,6 +1014,7 @@ const transactionReportGroupListItems = [
         groupedBy: 'reports',
         accountID: 18439984,
         action: 'review',
+        allActions: ['review', 'approve'],
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
@@ -991,6 +1047,7 @@ const transactionReportGroupListItems = [
             {
                 accountID: 18439984,
                 action: 'review',
+                allActions: ['review', 'approve'],
                 report: report2,
                 amount: -5000,
                 canDelete: true,
@@ -1087,6 +1144,7 @@ const transactionReportGroupListItems = [
         type: 'iou',
         unheldTotal: 4400,
         action: 'pay',
+        allActions: ['pay'],
         keyForList: '99999',
         from: {
             accountID: 18439984,
@@ -1106,6 +1164,7 @@ const transactionReportGroupListItems = [
         groupedBy: 'reports',
         accountID: 18439984,
         action: 'view',
+        allActions: ['view'],
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
@@ -1257,6 +1316,56 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
     },
 ];
 
+const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListItemType[] = [
+    {
+        bankName: CONST.BANK_NAMES.CHASE,
+        entryID,
+        accountNumber,
+        debitPosted: '2025-08-12 17:11:22',
+        count: 4,
+        currency: 'USD',
+        total: 40,
+        groupedBy: 'withdrawal-id',
+        transactions: [],
+    },
+    {
+        bankName: CONST.BANK_NAMES.CITIBANK,
+        entryID: entryID2,
+        accountNumber: accountNumber2,
+        debitPosted: '2025-08-19 18:10:54',
+        count: 6,
+        currency: 'USD',
+        total: 20,
+        groupedBy: 'withdrawal-id',
+        transactions: [],
+    },
+];
+
+const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupListItemType[] = [
+    {
+        bankName: CONST.BANK_NAMES.CITIBANK,
+        entryID: entryID2,
+        accountNumber: accountNumber2,
+        debitPosted: '2025-08-19 18:10:54',
+        count: 6,
+        currency: 'USD',
+        total: 20,
+        groupedBy: 'withdrawal-id',
+        transactions: [],
+    },
+    {
+        bankName: CONST.BANK_NAMES.CHASE,
+        entryID,
+        accountNumber,
+        debitPosted: '2025-08-12 17:11:22',
+        count: 4,
+        currency: 'USD',
+        total: 40,
+        groupedBy: 'withdrawal-id',
+        transactions: [],
+    },
+];
+
 describe('SearchUIUtils', () => {
     beforeAll(async () => {
         Onyx.init({
@@ -1266,15 +1375,15 @@ describe('SearchUIUtils', () => {
     });
     describe('Test getAction', () => {
         test('Should return `View` action for an invalid key', () => {
-            const action = SearchUIUtils.getAction(searchResults.data, {}, 'invalid_key', CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, 'invalid_key', CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
         test('Should return `Submit` action for transaction on policy with delayed submission and no violations', () => {
-            let action = SearchUIUtils.getAction(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            let action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
 
-            action = SearchUIUtils.getAction(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            action = SearchUIUtils.getActions(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
@@ -1297,10 +1406,10 @@ describe('SearchUIUtils', () => {
                     managerID: adminAccountID,
                 },
             };
-            expect(SearchUIUtils.getAction(localSearchResults, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, submitterAccountID)).toStrictEqual(
+            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, submitterAccountID).at(0)).toStrictEqual(
                 CONST.SEARCH.ACTION_TYPES.VIEW,
             );
-            expect(SearchUIUtils.getAction(localSearchResults, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, submitterAccountID)).toStrictEqual(
+            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, submitterAccountID).at(0)).toStrictEqual(
                 CONST.SEARCH.ACTION_TYPES.VIEW,
             );
         });
@@ -1317,15 +1426,15 @@ describe('SearchUIUtils', () => {
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`, searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`]);
 
-            const action = SearchUIUtils.getAction(searchResults.data, duplicateViolation, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            const action = SearchUIUtils.getActions(searchResults.data, duplicateViolation, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
         });
 
         test('Should return `Review` action for transaction on policy with delayed submission and with violations', () => {
-            let action = SearchUIUtils.getAction(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            let action = SearchUIUtils.getActions(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
 
-            action = SearchUIUtils.getAction(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            action = SearchUIUtils.getActions(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
         });
 
@@ -1344,7 +1453,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getAction(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
         });
 
@@ -1368,7 +1477,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getAction(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
         });
 
@@ -1384,7 +1493,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
 
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
@@ -1402,7 +1511,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
 
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.DONE);
         });
@@ -1417,12 +1526,12 @@ describe('SearchUIUtils', () => {
                     errors: {error: 'An error'},
                 },
             };
-            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${errorReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${errorReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
         });
 
         test('Should return `View` action for non-money request reports', () => {
-            const action = SearchUIUtils.getAction(searchResults.data, {}, `report_${reportID4}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID4}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
@@ -1436,7 +1545,7 @@ describe('SearchUIUtils', () => {
                     reportID: 'non_existent_report',
                 },
             };
-            const action = SearchUIUtils.getAction(localSearchResults, {}, `transactions_${orphanedTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${orphanedTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `View` action for a transaction in a multi-transaction report', () => {
@@ -1449,7 +1558,7 @@ describe('SearchUIUtils', () => {
                     isFromOneTransactionReport: false,
                 },
             };
-            const action = SearchUIUtils.getAction(localSearchResults, {}, `transactions_${multiTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${multiTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `Review` action if report export has failed', () => {
@@ -1466,7 +1575,7 @@ describe('SearchUIUtils', () => {
                     exportFailedTime: '2024-01-01',
                 },
             };
-            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${failedExportReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${failedExportReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
         });
         test('Should return `Review` action if transaction has errors', () => {
@@ -1479,14 +1588,14 @@ describe('SearchUIUtils', () => {
                     errors: {error: 'An error'},
                 },
             };
-            const action = SearchUIUtils.getAction(localSearchResults, {}, `transactions_${errorTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${errorTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
         });
         test('Should return `Pay` action for an IOU report ready to be paid', async () => {
             Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
             await waitForBatchedUpdates();
             const iouReportKey = `report_${reportID3}`;
-            const action = SearchUIUtils.getAction(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
     });
@@ -1577,6 +1686,19 @@ describe('SearchUIUtils', () => {
                 ),
             ).toStrictEqual(transactionCardGroupListItems);
         });
+
+        it('should return getWithdrawalIDSections result when type is EXPENSE and groupBy is withdrawal-id', () => {
+            expect(
+                SearchUIUtils.getSections(
+                    CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    searchResultsGroupByWithdrawalID.data,
+                    searchResultsGroupByWithdrawalID.search,
+                    2074551,
+                    formatPhoneNumber,
+                    CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                ),
+            ).toStrictEqual(transactionWithdrawalIDGroupListItems);
+        });
     });
 
     describe('Test getSortedSections', () => {
@@ -1648,6 +1770,20 @@ describe('SearchUIUtils', () => {
                 SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionCardGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.CARD),
             ).toStrictEqual(transactionCardGroupListItemsSorted);
         });
+
+        it('should return getSortedWithdrawalIDData result when type is EXPENSE and groupBy is withdrawal-id', () => {
+            expect(
+                SearchUIUtils.getSortedSections(
+                    CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    '',
+                    transactionWithdrawalIDGroupListItems,
+                    localeCompare,
+                    'date',
+                    'asc',
+                    CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                ),
+            ).toStrictEqual(transactionWithdrawalIDGroupListItemsSorted);
+        });
     });
 
     describe('Test createTypeMenuItems', () => {
@@ -1695,10 +1831,10 @@ describe('SearchUIUtils', () => {
         Onyx.merge(ONYXKEYS.SESSION, {accountID: overlimitApproverAccountID});
         searchResults.data[`policy_${policyID}`].role = CONST.POLICY.ROLE.USER;
         return waitForBatchedUpdates().then(() => {
-            let action = SearchUIUtils.getAction(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, overlimitApproverAccountID);
+            let action = SearchUIUtils.getActions(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, overlimitApproverAccountID).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
 
-            action = SearchUIUtils.getAction(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, overlimitApproverAccountID);
+            action = SearchUIUtils.getActions(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, overlimitApproverAccountID).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
     });
@@ -1783,6 +1919,7 @@ describe('SearchUIUtils', () => {
                     canUnhold: false,
                     category: 'Employee Meals Remote (Fringe Benefit)',
                     action: 'approve',
+                    allActions: ['approve'],
                     comment: {
                         comment: '',
                     },
@@ -1825,7 +1962,7 @@ describe('SearchUIUtils', () => {
             },
         };
         return waitForBatchedUpdates().then(() => {
-            const action = SearchUIUtils.getAction(result.data, allViolations, 'report_6523565988285061', CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID);
+            const action = SearchUIUtils.getActions(result.data, allViolations, 'report_6523565988285061', CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.APPROVE);
         });
     });
