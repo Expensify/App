@@ -1,8 +1,9 @@
-import {findFocusedRoute, useNavigation, useRoute} from '@react-navigation/native';
+import {findFocusedRoute, StackActions, useNavigation, useRoute} from '@react-navigation/native';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, Dimensions, InteractionManager} from 'react-native';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationRoute} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -32,6 +33,9 @@ type WideRHPContextType = {
 
     // Check if reportID is marked as expense
     isReportIDMarkedAsExpense: (reportID: string) => boolean;
+
+    // Navigate to the last element in wideRHPRouteKeys array
+    dismissToWideReport: () => void;
 };
 
 const expandedRHPProgress = new Animated.Value(0);
@@ -58,6 +62,7 @@ const WideRHPContext = createContext<WideRHPContextType>({
     cleanWideRHPRouteKey: () => {},
     markReportIDAsExpense: () => {},
     isReportIDMarkedAsExpense: () => false,
+    dismissToWideReport: () => {},
 });
 
 function WideRHPContextProvider({children}: React.PropsWithChildren) {
@@ -128,6 +133,23 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         [expenseReportIDs],
     );
 
+    const dismissToWideReport = useCallback(() => {
+        const rootState = navigationRef.getRootState();
+        if (!rootState) {
+            return;
+        }
+
+        const rhpStateKey = rootState.routes.findLast((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.state?.key;
+
+        if (!rhpStateKey) {
+            return;
+        }
+
+        // In the current navigation structure, hardcoding popTo SCREENS.RIGHT_MODAL.SEARCH_REPORT works exactly as we want.
+        // It may change in the future and we may need to improve this function to handle more complex configurations.
+        navigationRef.dispatch({...StackActions.popTo(SCREENS.RIGHT_MODAL.SEARCH_REPORT), target: rhpStateKey});
+    }, []);
+
     useEffect(() => {
         if (wideRHPRouteKeys.length > 0) {
             Animated.timing(expandedRHPProgress, {
@@ -192,8 +214,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             shouldRenderSecondaryOverlay,
             markReportIDAsExpense,
             isReportIDMarkedAsExpense,
+            dismissToWideReport,
         }),
-        [wideRHPRouteKeys, showWideRHPVersion, cleanWideRHPRouteKey, shouldRenderSecondaryOverlay, markReportIDAsExpense, isReportIDMarkedAsExpense],
+        [wideRHPRouteKeys, showWideRHPVersion, cleanWideRHPRouteKey, shouldRenderSecondaryOverlay, markReportIDAsExpense, isReportIDMarkedAsExpense, dismissToWideReport],
     );
 
     return <WideRHPContext.Provider value={value}>{children}</WideRHPContext.Provider>;
