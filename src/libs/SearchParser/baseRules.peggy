@@ -74,9 +74,10 @@ total = "total"i {return "total"; }
 // Value transformation rules
 values
   = perDiem
+  / report
 
-perDiem
-  = "perDiem"i / "per-diem"i { return "perDiem"; }
+perDiem = "perDiem"i / "per-diem"i { return "perDiem"; }
+report = "reports"i / "report"i {return "reports"; }
 
 operator "operator"
   = (":" / "=") { return "eq"; }
