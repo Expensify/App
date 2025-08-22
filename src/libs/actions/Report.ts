@@ -843,7 +843,7 @@ function addAttachment(reportID: string, file: FileObject, timezoneParam: Timezo
 }
 
 /** Add a single comment to a report */
-function addComment(reportID: string, text: string, timezoneParam: Timezone, shouldPlaySound?: boolean) {
+function addComment(reportID: string, text: string, timezoneParam = CONST.DEFAULT_TIME_ZONE, shouldPlaySound?: boolean) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
