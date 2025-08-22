@@ -55,6 +55,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
     const handleTabChange = useCallback(() => {
         setSearchTerm('');
     }, [setSearchTerm]);
+
     const uberEmployeesByEmail = useMemo<Record<string, {status?: string}>>(() => {
         const policyWithEmployees = policy as typeof policy & {
             receiptPartners?: {
