@@ -69,41 +69,41 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
 ];
 
 type ClearDelegatorErrorsParams = {
-    delegatedAccess: DelegatedAccess;
+    delegatedAccess: DelegatedAccess | undefined;
 };
 
 type AddDelegateProps = {
     email: string;
     role: DelegateRole;
     validateCode: string;
-    delegatedAccess: DelegatedAccess;
+    delegatedAccess: DelegatedAccess | undefined;
 };
 
 type RemoveDelegateProps = {
     email: string;
-    delegatedAccess: DelegatedAccess;
+    delegatedAccess: DelegatedAccess | undefined;
 };
 
 type ClearDelegateErrorsByFieldProps = {
     email: string;
     fieldName: string;
-    delegatedAccess: DelegatedAccess;
+    delegatedAccess: DelegatedAccess | undefined;
 };
 
 type UpdateDelegateRoleProps = {
     email: string;
     role: DelegateRole;
     validateCode: string;
-    delegatedAccess: DelegatedAccess;
+    delegatedAccess: DelegatedAccess | undefined;
 };
 
 type IsConnectedAsDelegateProps = {
-    delegatedAccess: DelegatedAccess;
+    delegatedAccess: DelegatedAccess | undefined;
 };
 
 type ConnectProps = {
     email: string;
-    delegatedAccess: DelegatedAccess;
+    delegatedAccess: DelegatedAccess | undefined;
     isFromOldDot?: boolean;
 };
 
@@ -320,6 +320,10 @@ function requestValidationCode() {
 }
 
 function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegateProps) {
+    if (!delegatedAccess?.delegates) {
+        return;
+    }
+
     const existingDelegate = delegatedAccess?.delegates?.find((delegate) => delegate.email === email);
 
     const optimisticDelegateData = (): Delegate[] => {
@@ -470,7 +474,7 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePr
 }
 
 function removeDelegate({email, delegatedAccess}: RemoveDelegateProps) {
-    if (!email) {
+    if (!email || !delegatedAccess?.delegates) {
         return;
     }
 
@@ -727,12 +731,12 @@ function openSecuritySettingsPage() {
 type UpdateDelegateRoleOptimisticallyProps = {
     email: string;
     role: DelegateRole;
-    delegatedAccess: DelegatedAccess;
+    delegatedAccess: DelegatedAccess | undefined;
 };
 
 type ClearDelegateRolePendingActionProps = {
     email: string;
-    delegatedAccess: DelegatedAccess;
+    delegatedAccess: DelegatedAccess | undefined;
 };
 
 export {

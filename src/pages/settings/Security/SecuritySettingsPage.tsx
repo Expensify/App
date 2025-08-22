@@ -242,7 +242,7 @@ function SecuritySettingsPage() {
                         shouldShowRightIcon: true,
                         pendingAction,
                         shouldForceOpacity: !!pendingAction,
-                        onPendingActionDismiss: () => clearDelegateErrorsByField(email, 'addDelegate'),
+                        onPendingActionDismiss: () => clearDelegateErrorsByField({email, fieldName: 'addDelegate', delegatedAccess: account?.delegatedAccess}),
                         error,
                         onPress,
                         success: selectedEmail === email,
@@ -427,7 +427,7 @@ function SecuritySettingsPage() {
                                 prompt={translate('delegate.removeCopilotConfirmation')}
                                 danger
                                 onConfirm={() => {
-                                    removeDelegate(selectedDelegate?.email ?? '');
+                                    removeDelegate({email: selectedDelegate?.email ?? '', delegatedAccess: account?.delegatedAccess});
                                     setShouldShowRemoveDelegateModal(false);
                                     setSelectedDelegate(undefined);
                                 }}
