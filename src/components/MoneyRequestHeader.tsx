@@ -305,7 +305,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
             >
                 {(!shouldUseNarrowLayout || shouldDisplayWideRHPVersion) && (
-                    <View style={[styles.flexRow, styles.gap2]}>
+                    <View style={[styles.flexRow, styles.gap2, shouldDisplayTransactionNavigation && styles.mr3]}>
                         {!!primaryAction && primaryActionImplementation[primaryAction]}
                         {!!applicableSecondaryActions.length && (
                             <ButtonWithDropdownMenu
