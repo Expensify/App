@@ -83,7 +83,7 @@ import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getMemberAccountIDsForWorkspace, goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace, goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage, navigateToReceiptPartnersPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
@@ -2820,6 +2820,25 @@ function openPolicyReceiptPartnersPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE, params);
 }
 
+function dismissReceiptPartnersBanner(policyID?: string) {
+    const parameters: SetNameValuePairParams = {
+        name: `${ONYXKEYS.COLLECTION.DISMISSED_UBER_FOR_BUSINESS_BANNER}${policyID}`,
+        value: true,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DISMISSED_UBER_FOR_BUSINESS_BANNER}${policyID}`,
+            value: true,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+        optimisticData,
+    });
+}
+
 function removePolicyReceiptPartnersConnection(policyID: string, partnerName: string, receiptPartnerData?: UberReceiptPartner) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3648,7 +3667,7 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
     }
 }
 
-function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
+function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldNavigateToReceiptPartnersPage?: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -3690,6 +3709,11 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
     const parameters: TogglePolicyReceiptPartnersParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS, parameters, onyxData);
+
+    if (enabled && shouldNavigateToReceiptPartnersPage) {
+        navigateToReceiptPartnersPage(policyID);
+        return;
+    }
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);
@@ -6235,6 +6259,7 @@ export {
     getAdminPoliciesConnectedToSageIntacct,
     hasInvoicingDetails,
     clearAllPolicies,
+    dismissReceiptPartnersBanner,
     enablePolicyRules,
     setPolicyDefaultReportTitle,
     clearQBDErrorField,

@@ -1,0 +1,75 @@
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import Button from '@components/Button';
+import {Close} from '@components/Icon/Expensicons';
+import {Car} from '@components/Icon/Illustrations';
+import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {dismissReceiptPartnersBanner, enablePolicyReceiptPartners} from '@libs/actions/Policy/Policy';
+import {navigateToReceiptPartnersPage} from '@libs/PolicyUtils';
+import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
+import type {Policy} from '@src/types/onyx';
+
+type WorkspaceReceiptPartnersBannerProps = {
+    policy: OnyxEntry<Policy>;
+};
+
+function WorkspaceReceiptPartnersPromotionBanner({policy}: WorkspaceReceiptPartnersBannerProps) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const StyleUtils = useStyleUtils();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const policyID = policy?.id;
+    const areReceiptPartnersEnabled = policy?.areReceiptPartnersEnabled;
+
+    const handleLearnMore = useCallback(() => {
+        if (!policyID) {
+            return;
+        }
+
+        if (areReceiptPartnersEnabled) {
+            navigateToReceiptPartnersPage(policyID);
+            return;
+        }
+
+        enablePolicyReceiptPartners(policyID, true, true);
+    }, [policyID, areReceiptPartnersEnabled]);
+
+    const rightComponent = useMemo(() => {
+        const smallScreenStyle = shouldUseNarrowLayout ? [styles.flex0, styles.flexBasis100, styles.justifyContentCenter] : [];
+        return (
+            <View style={[styles.flexRow, styles.gap2, smallScreenStyle]}>
+                <Button
+                    success
+                    onPress={handleLearnMore}
+                    style={shouldUseNarrowLayout && styles.flex1}
+                    text={translate('workspace.receiptPartners.connect')}
+                />
+            </View>
+        );
+    }, [styles, shouldUseNarrowLayout, translate, handleLearnMore]);
+
+    return (
+        <View style={[styles.ph4, styles.mb4]}>
+            <BillingBanner
+                icon={Car}
+                title={translate('workspace.receiptPartners.uber.bannerTitle')}
+                titleStyle={StyleUtils.getTextColorStyle(theme.text)}
+                subtitle={translate('workspace.receiptPartners.uber.bannerDescription')}
+                subtitleStyle={[styles.mt1, styles.textLabel]}
+                style={[styles.borderRadiusComponentLarge]}
+                rightComponent={rightComponent}
+                rightIcon={Close}
+                rightIconAccessibilityLabel={translate('common.close')}
+                onRightIconPress={() => dismissReceiptPartnersBanner(policyID)}
+            />
+        </View>
+    );
+}
+
+export default WorkspaceReceiptPartnersPromotionBanner;

@@ -3555,11 +3555,14 @@ const translations = {
             deepDiveExpensifyCard: `<muted-text-label>Les transactions Expensify Card seront automatiquement exportées vers un « Expensify Card Liability Account » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
         },
         receiptPartners: {
+            connect: 'Connectez-vous maintenant',
             uber: {
                 subtitle: 'Automatisez les dépenses de déplacement et de livraison de repas dans toute votre organisation.',
                 autoRemove: "Inviter de nouveaux membres de l'espace de travail sur Uber",
                 autoInvite: "Désactiver les membres supprimés de l'espace de travail sur Uber",
                 manageInvites: 'Gérer les invitations',
+                bannerTitle: 'Expensify + Uber pour les entreprises',
+                bannerDescription: 'Connectez Uber for Business pour automatiser les frais de déplacement et de livraison de repas dans toute votre organisation.',
             },
         },
         perDiem: {

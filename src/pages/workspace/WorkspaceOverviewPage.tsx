@@ -18,6 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,6 +43,7 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
+import WorkspaceReceiptPartnersPromotionBanner from '@pages/workspace/receiptPartners/WorkspaceReceiptPartnersPromotionBanner';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -59,7 +61,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
-
+    const {isBetaEnabled} = usePermissions();
     const backTo = route.params.backTo;
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {
@@ -71,6 +73,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
+    const [dismissedUber4BusinessBanner] = useOnyx(`${ONYXKEYS.COLLECTION.DISMISSED_UBER_FOR_BUSINESS_BANNER}${policy?.id}`, {canBeMissing: true});
 
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const outputCurrency = policy?.outputCurrency ?? '';
@@ -84,6 +87,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         selector: filterInactiveCards,
         canBeMissing: true,
     });
+    const shouldShowReceiptPartnersPromotionBanner = isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS) && !policy?.areReceiptPartnersEnabled && !dismissedUber4BusinessBanner;
     const hasCardFeedOrExpensifyCard =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.workspaceAccountID);
@@ -292,6 +296,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{getHeaderButtons()}</View>}
+                    {shouldShowReceiptPartnersPromotionBanner && <WorkspaceReceiptPartnersPromotionBanner policy={policy} />}
                     <Section
                         isCentralPane
                         title=""

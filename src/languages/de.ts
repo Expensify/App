@@ -3547,11 +3547,14 @@ const translations = {
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card-Transaktionen werden automatisch in ein mit <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">unserer Integration</a> erstelltes „Expensify Card Liability Account“ exportiert.</muted-text-label>`,
         },
         receiptPartners: {
+            connect: 'Jetzt verbinden',
             uber: {
                 subtitle: 'Automatisieren Sie die Reisekosten und Essenslieferungskosten in Ihrem gesamten Unternehmen.',
                 autoRemove: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
                 autoInvite: 'Entfernte Workspace-Mitglieder von Uber for Business deaktivieren',
                 manageInvites: 'Einladungen verwalten',
+                bannerTitle: 'Expensify + Uber ren pekin angang',
+                bannerDescription: 'Kopwe riri ngeni Uber ren Business pwe epwe otot ren monien sai me mongo non unusen om mwicheich.',
             },
         },
         perDiem: {
