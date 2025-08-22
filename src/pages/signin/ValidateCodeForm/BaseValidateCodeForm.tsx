@@ -238,7 +238,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             clearAccountMessages();
         }
         const requiresTwoFactorAuth = account?.requiresTwoFactorAuth;
-        if (requiresTwoFactorAuth) {
+        if (requiresTwoFactorAuth && !!credentials?.validateCode) {
             if (input2FARef.current) {
                 input2FARef.current.blur();
             }
@@ -287,7 +287,17 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         } else {
             signIn(validateCode, recoveryCodeOr2faCode);
         }
-    }, [account?.isLoading, account?.errors, account?.requiresTwoFactorAuth, isUsingRecoveryCode, recoveryCode, twoFactorAuthCode, credentials?.accountID, validateCode]);
+    }, [
+        account?.isLoading,
+        account?.errors,
+        account?.requiresTwoFactorAuth,
+        credentials?.validateCode,
+        credentials?.accountID,
+        isUsingRecoveryCode,
+        recoveryCode,
+        twoFactorAuthCode,
+        validateCode,
+    ]);
 
     return (
         <SafariFormWrapper>

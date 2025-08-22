@@ -7,12 +7,11 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import Modal from '@components/Modal';
+import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getTransactionOrDraftTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {removeDraftTransaction, removeTransactionReceipt, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -23,7 +22,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type ReceiptWithTransactionIDAndSource = Receipt & ReceiptFile;
 
-type ReceiptViewModalProps = {
+type ReceiptViewProps = {
     route: {
         params: {
             transactionID: string;
@@ -32,12 +31,11 @@ type ReceiptViewModalProps = {
     };
 };
 
-function ReceiptViewModal({route}: ReceiptViewModalProps) {
+function ReceiptView({route}: ReceiptViewProps) {
     const {translate} = useLocalize();
-    const {setAttachmentError, clearAttachmentErrors} = useAttachmentErrors();
+    const {setAttachmentError} = useAttachmentErrors();
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const styles = useThemeStyles();
-
     const [currentReceipt, setCurrentReceipt] = useState<ReceiptWithTransactionIDAndSource | null>();
     const [page, setPage] = useState<number>(-1);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
@@ -49,7 +47,8 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
                 .filter((receipt): receipt is ReceiptWithTransactionIDAndSource => !!receipt),
         canBeMissing: true,
     });
-
+    const secondTransactionID = receipts.at(1)?.transactionID;
+    const [secondTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`, {canBeMissing: true});
     useEffect(() => {
         if (!receipts || receipts.length === 0) {
             return;
@@ -74,16 +73,14 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
                     return;
                 }
 
-                const secondTransactionID = receipts.at(1)?.transactionID;
-                const secondTransaction = secondTransactionID ? getTransactionOrDraftTransaction(secondTransactionID) : undefined;
-                replaceDefaultDraftTransaction(secondTransaction);
+                replaceDefaultDraftTransaction(secondTransactionID ? secondTransaction : undefined);
                 return;
             }
             removeDraftTransaction(currentReceipt.transactionID);
         });
 
         Navigation.goBack();
-    }, [currentReceipt, receipts]);
+    }, [currentReceipt, receipts.length, secondTransaction, secondTransactionID]);
 
     const handleCloseConfirmModal = () => {
         setIsDeleteReceiptConfirmModalVisible(false);
@@ -99,11 +96,8 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
     }, [route.params.backTo]);
 
     return (
-        <Modal
-            type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-            isVisible
-            onClose={handleGoBack}
-            onModalHide={clearAttachmentErrors}
+        <ScreenWrapper
+            testID={ReceiptView.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
@@ -144,10 +138,10 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
                 onBackdropPress={handleCloseConfirmModal}
                 danger
             />
-        </Modal>
+        </ScreenWrapper>
     );
 }
 
-ReceiptViewModal.displayName = 'ReceiptViewModal';
+ReceiptView.displayName = 'ReceiptView';
 
-export default ReceiptViewModal;
+export default ReceiptView;
