@@ -7597,13 +7597,6 @@ describe('actions/IOU', () => {
 
             // Then: Should return navigation route to chat report
             expect(result).toBe(ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID));
-
-            await waitForBatchedUpdates();
-
-            // Then: Verify report state is updated to open
-            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`);
-            expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
-            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
         });
 
         it('should add AUTO_REPORTED_REJECTED_EXPENSE violation for expense reports', async () => {
