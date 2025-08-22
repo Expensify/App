@@ -89,7 +89,8 @@ Onyx.connect({
     },
 });
 
-Onyx.connect({
+// Use connectWithoutView because it is only for fullstory initialization
+Onyx.connectWithoutView({
     key: ONYXKEYS.USER_METADATA,
     callback: Fullstory.consentAndIdentify,
 });
@@ -580,11 +581,11 @@ function signInAfterTransitionFromOldDot(hybridAppSettings: string) {
             .then(() => Onyx.merge(ONYXKEYS.IS_LOADING_APP, null));
     };
 
+    // This section controls copilot changes
+    const currentUserEmail = getCurrentUserEmail();
+
     return clearOnyxForNewAccount()
         .then(() => {
-            // This section controls copilot changes
-            const currentUserEmail = getCurrentUserEmail();
-
             // If OD is in copilot, stash the original account data
             if (oldDotOriginalAccountEmail && oldDotOriginalAccountEmail !== email) {
                 return Onyx.multiSet({
@@ -621,8 +622,13 @@ function signInAfterTransitionFromOldDot(hybridAppSettings: string) {
                     classicRedirect: {completedHybridAppOnboarding},
                     nudgeMigration: nudgeMigrationTimestamp ? {timestamp: new Date(nudgeMigrationTimestamp)} : undefined,
                 },
-                [ONYXKEYS.ACCOUNT]: {shouldUseStagingServer: isStaging},
             })
+                .then(() => {
+                    if (email === currentUserEmail) {
+                        return;
+                    }
+                    return Onyx.set(ONYXKEYS.ACCOUNT, {shouldUseStagingServer: isStaging});
+                })
                 .then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin, requiresTwoFactorAuth, needsTwoFactorAuthSetup}))
                 .then(() => Onyx.merge(ONYXKEYS.HYBRID_APP, {isSingleNewDotEntry, closingReactNativeApp: false})),
         )
