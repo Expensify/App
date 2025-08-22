@@ -86,8 +86,8 @@ type ReportActionItemParentActionProps = {
     /** User billing fund ID */
     userBillingFundID: number | undefined;
 
-    /** User who has in its tryNewDot NVP */
-    hasInTryNewDot: boolean | undefined;
+    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
+    isTryNewDotNVPDismissed: boolean | undefined;
 
     /** Whether the report is archived */
     isReportArchived: boolean;
@@ -112,7 +112,7 @@ function ReportActionItemParentAction({
     allEmojiReactions,
     linkedTransactionRouteError,
     userBillingFundID,
-    hasInTryNewDot = false,
+    isTryNewDotNVPDismissed = false,
     isReportArchived = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
@@ -229,7 +229,7 @@ function ReportActionItemParentAction({
                             emojiReactions={actionEmojiReactions}
                             linkedTransactionRouteError={linkedTransactionRouteError}
                             userBillingFundID={userBillingFundID}
-                            hasInTryNewDot={hasInTryNewDot}
+                            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                         />
                     </OfflineWithFeedback>
                 );

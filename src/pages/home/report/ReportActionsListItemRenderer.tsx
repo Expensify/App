@@ -93,8 +93,8 @@ type ReportActionsListItemRendererProps = {
     /** All emoji reactions collection */
     allEmojiReactions?: OnyxCollection<ReportActionReactions>;
 
-    /** User who has in its tryNewDot NVP */
-    hasInTryNewDot: boolean | undefined;
+    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
+    isTryNewDotNVPDismissed: boolean | undefined;
     /** Whether the report is archived */
     isReportArchived: boolean;
 };
@@ -128,7 +128,7 @@ function ReportActionsListItemRenderer({
     personalDetails,
     allDraftMessages,
     allEmojiReactions,
-    hasInTryNewDot = false,
+    isTryNewDotNVPDismissed = false,
     isReportArchived = false,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
@@ -226,7 +226,7 @@ function ReportActionsListItemRenderer({
                 allEmojiReactions={allEmojiReactions}
                 linkedTransactionRouteError={linkedTransactionRouteError}
                 userBillingFundID={userBillingFundID}
-                hasInTryNewDot={hasInTryNewDot}
+                isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                 isReportArchived={isReportArchived}
             />
         );
@@ -259,7 +259,7 @@ function ReportActionsListItemRenderer({
             emojiReactions={emojiReactions}
             linkedTransactionRouteError={linkedTransactionRouteError}
             userBillingFundID={userBillingFundID}
-            hasInTryNewDot={hasInTryNewDot}
+            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
         />
     );
 }
