@@ -70,6 +70,14 @@ assignee = "assignee"i { return "assignee"; }
 createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
 action = "action"i { return "action"; }
 
+// Value transformation rules
+values
+  = perDiem
+  / report
+
+perDiem = "perDiem"i / "per-diem"i { return "perDiem"; }
+report = "reports"i / "report"i {return "reports"; }
+
 operator "operator"
   = (":" / "=") { return "eq"; }
   / "!=" { return "neq"; }
