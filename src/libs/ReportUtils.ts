@@ -7649,7 +7649,7 @@ function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedVio
 function buildOptimisticChangeApproverReportAction(managerID: number, actorAccountID: number): OptimisticChangedApproverReportAction {
     const created = DateUtils.getDBTime();
     return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+        actionName: managerID === actorAccountID ? CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL : CONST.REPORT.ACTIONS.TYPE.ACTION_REROUTE,
         actorAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),

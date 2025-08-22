@@ -1001,6 +1001,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.ACTION_REROUTE]: never;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessagePolicyChangeLog;
     } & {
