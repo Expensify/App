@@ -309,7 +309,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                     </View>
                                 )}
                                 {shouldDisplayLoadingIndicator && (
-                                    <View style={[isLargeScreenWidth && styles.pl10, styles.pt3, !isEmpty && styles.pb3]}>
+                                    <View style={[isLargeScreenWidth && styles.pl10, styles.pt3, isEmpty && styles.pb3]}>
                                         <ActivityIndicator
                                             color={theme.spinner}
                                             size={25}
