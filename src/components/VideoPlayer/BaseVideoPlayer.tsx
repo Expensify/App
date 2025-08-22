@@ -2,11 +2,10 @@ import {useEvent, useEventListener} from 'expo';
 import type {MutedChangeEventPayload, PlayingChangeEventPayload, StatusChangeEventPayload, TimeUpdateEventPayload, VideoPlayer} from 'expo-video';
 import {useVideoPlayer, VideoView} from 'expo-video';
 import debounce from 'lodash/debounce';
-import {platform} from 'node:os';
 import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -47,7 +46,7 @@ function BaseVideoPlayer({
     // but current workaround is just not to use it here for now. This causes not displaying the video controls when
     // user hovers the mouse over the carousel arrows, but this UI bug feels much less troublesome for now.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // isVideoHovered = false,
+    isVideoHovered = false,
     isPreview,
     reportID,
 }: VideoPlayerProps & {reportID: string}) {
@@ -71,8 +70,6 @@ function BaseVideoPlayer({
     const [isEnded, setIsEnded] = useState(false);
     const [hasError, setHasError] = useState(false);
     const [isFirstLoad, setIsFirstLoad] = useState(true);
-    // const newSourceURL1 = `https://dev.new.expensify.com:8082${sourceURL}`;
-    // const sourceURL = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4';
     // we add "#t=0.001" at the end of the URL to skip first millisecond of the video and always be able to show proper video preview when video is paused at the beginning
     const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url), 0.001));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
@@ -118,7 +115,7 @@ function BaseVideoPlayer({
     const {updateVolume, lastNonZeroVolume} = useVolumeContext();
     useHandleNativeVideoControls({
         videoViewRef,
-        isOffline: true,
+        isOffline,
         isLocalFile: isUploading,
     });
     const {videoPopoverMenuPlayerRef, videoPopoverMenuSource, setCurrentPlaybackSpeed, setSource: setPopoverMenuSource} = useVideoPopoverMenuContext();
@@ -368,7 +365,7 @@ function BaseVideoPlayer({
                                 }}
                                 style={[styles.flex1, styles.noSelect]}
                             >
-                                {shouldUseSharedVideoElement || false ? (
+                                {shouldUseSharedVideoElement ? (
                                     <>
                                         <View
                                             ref={sharedVideoPlayerParentRef as RefObject<View | null>}
@@ -440,7 +437,7 @@ function BaseVideoPlayer({
                                 <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />
                             )}
                             {isLoading && (isOffline || !isBuffering) && <AttachmentOfflineIndicator isPreview={isPreview} />}
-                            {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
+                            {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
                                 <VideoPlayerControls
                                     duration={duration ?? 0}
                                     position={currentTime ?? 0}
