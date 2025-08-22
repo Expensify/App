@@ -41,7 +41,9 @@ Onyx.connect({
 });
 
 let isLoadingApp = false;
-Onyx.connect({
+// `isLoadingApp` is not dependent on any changes on the UI,
+// so it is okay to use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.IS_LOADING_APP,
     callback: (value) => {
         isLoadingApp = value ?? false;
