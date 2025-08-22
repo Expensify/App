@@ -2043,6 +2043,63 @@ describe('SearchUIUtils', () => {
             expect(accountingSection).toBeUndefined();
         });
 
+        it('should show reconciliation for ACH-only scenario (payments enabled, active VBBA, reimburser set, areExpensifyCardsEnabled = false)', () => {
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'ACH Only Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: false,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                },
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false);
+
+            const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
+            expect(accountingSection).toBeDefined();
+
+            const menuItemKeys = accountingSection?.menuItems.map((item) => item.key) ?? [];
+            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+        });
+
+        it('should not show reconciliation for card-only scenario without card feeds (areExpensifyCardsEnabled = true but no card feeds)', () => {
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Card Only Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: true,
+                },
+            };
+
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false);
+            const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
+
+            expect(accountingSection).toBeDefined();
+            const menuItemKeys = accountingSection?.menuItems.map((item) => item.key) ?? [];
+            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+        });
+
         it('should generate correct routes', () => {
             const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, {}, false)
                 .map((section) => section.menuItems)
