@@ -11123,7 +11123,7 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
     if (isIOUReport(report)) {
         return isPaidGroupPolicyPolicyUtils(newPolicy) && isWorkspacePayer(managerLogin ?? '', newPolicy);
     }
-    return isPaidGroupPolicyPolicyUtils(newPolicy) && (isPolicyMember(submitterEmail, newPolicy?.id) || isPolicyAdmin(newPolicy?.id, policies));
+    return isPaidGroupPolicyPolicyUtils(newPolicy) && (isPolicyMember(newPolicy, submitterEmail) || isPolicyAdmin(newPolicy?.id, policies));
 }
 
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {

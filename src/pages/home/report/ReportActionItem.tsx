@@ -89,6 +89,7 @@ function ReportActionItem({
     const originalReportID = useMemo(() => getOriginalReportID(reportID, action), [reportID, action]);
     const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`];
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
@@ -112,6 +113,7 @@ function ReportActionItem({
             action={action}
             report={report}
             policy={policy}
+            currentUserAccountID={currentUserAccountID}
             draftMessage={draftMessage}
             iouReport={iouReport}
             taskReport={taskReport}
