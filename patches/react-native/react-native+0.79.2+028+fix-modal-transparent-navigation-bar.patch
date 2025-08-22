@@ -6,11 +6,11 @@ index 139a1c1..f6d1faa 100644
        // Navigation bar cannot be translucent without status bar being translucent too
        dialogWindow.setSystemBarsTranslucency(navigationBarTranslucent)
  
-+      // If enforceNavigationBarContrast is explicitly set in the modal style (Theme.Theme_FullScreenDialog),
++      // If enforceNavigationBarContrast is explicitly set in the app theme (AppTheme),
 +      // we need to override the default behaviour for edge-to-edge mode in WindowUtils.setSystemBarsTranslucency.
 +      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 +        val attrs = intArrayOf(android.R.attr.enforceNavigationBarContrast)
-+        val ta = context.obtainStyledAttributes(R.style.Theme_FullScreenDialog, attrs)
++        val ta = context.obtainStyledAttributes(R.style.AppTheme, attrs)
 +
 +        if (ta.length() == 1) {
 +          val enforceNavigationBarContrastStyleValue = ta.getBoolean(0, false)
