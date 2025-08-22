@@ -1236,7 +1236,7 @@ function MoneyReportHeader({
                 shouldShowBorderBottom={false}
                 shouldEnableDetailPageNavigation
             >
-                {!shouldDisplayNarrowVersion && (
+                {(!shouldDisplayNarrowVersion || shouldDisplayWideRHPVersion) && (
                     <View style={[styles.flexRow, styles.gap2]}>
                         {!!primaryAction && !shouldShowSelectedTransactionsButton && primaryActionsImplementation[primaryAction]}
                         {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && KYCMoreDropdown}
@@ -1254,7 +1254,7 @@ function MoneyReportHeader({
                     </View>
                 )}
             </HeaderWithBackButton>
-            {shouldDisplayNarrowVersion && !shouldShowSelectedTransactionsButton && (
+            {shouldDisplayNarrowVersion && !shouldShowSelectedTransactionsButton && !shouldDisplayWideRHPVersion && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     {!!primaryAction && <View style={[styles.flex1]}>{primaryActionsImplementation[primaryAction]}</View>}
                     {!!applicableSecondaryActions.length && KYCMoreDropdown}
