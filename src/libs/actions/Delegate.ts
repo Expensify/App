@@ -20,12 +20,6 @@ import {getCurrentUserAccountID} from './Report';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
 
-let credentials: Credentials = {};
-Onyx.connect({
-    key: ONYXKEYS.CREDENTIALS,
-    callback: (value) => (credentials = value ?? {}),
-});
-
 let stashedCredentials: Credentials = {};
 Onyx.connect({
     key: ONYXKEYS.STASHED_CREDENTIALS,
@@ -104,6 +98,7 @@ type IsConnectedAsDelegateProps = {
 type ConnectProps = {
     email: string;
     delegatedAccess: DelegatedAccess | undefined;
+    credentials: Credentials | undefined;
     isFromOldDot?: boolean;
 };
 
@@ -111,12 +106,12 @@ type ConnectProps = {
  * Connects the user as a delegate to another account.
  * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
  */
-function connect({email, delegatedAccess, isFromOldDot = false}: ConnectProps) {
+function connect({email, delegatedAccess, credentials, isFromOldDot = false}: ConnectProps) {
     if (!delegatedAccess?.delegators && !isFromOldDot) {
         return;
     }
 
-    Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials);
+    Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials ?? {});
     Onyx.set(ONYXKEYS.STASHED_SESSION, session);
 
     const previousAccountID = getCurrentUserAccountID();
