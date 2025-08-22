@@ -23,18 +23,20 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
-import type {ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerivedValue} from './DerivedValues';
+import type {OutstandingReportsByPolicyIDDerivedValue, ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerivedValue} from './DerivedValues';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
+import type DraftReportComments from './DraftReportComments';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
+import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
-import type IntegrationServerExportTemplate from './IntegrationServerExportTemplate';
+import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -46,6 +48,7 @@ import type LockAccountDetails from './LockAccountDetails';
 import type {LoginList} from './Login';
 import type Login from './Login';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
@@ -85,6 +88,7 @@ import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
+import type LastSearchParams from './ReportNavigation';
 import type ReportNextStep from './ReportNextStep';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type {ReportFieldsViolations, ReportViolationName} from './ReportViolation';
@@ -211,6 +215,7 @@ export type {
     TaxRates,
     TaxRatesWithDefault,
     Transaction,
+    MergeTransaction,
     TransactionViolation,
     TransactionViolations,
     TravelSettings,
@@ -249,6 +254,7 @@ export type {
     SaveSearch,
     RecentSearchItem,
     ImportedSpreadsheet,
+    ImportedSpreadsheetMemberData,
     Onboarding,
     OnboardingPurpose,
     ValidateMagicCodeAction,
@@ -260,12 +266,15 @@ export type {
     TravelProvisioning,
     SidePanel,
     LastPaymentMethodType,
+    LastSearchParams,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
+    OutstandingReportsByPolicyIDDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,
     BillingReceiptDetails,
-    IntegrationServerExportTemplate,
+    ExportTemplate,
     HybridApp,
+    DraftReportComments,
 };

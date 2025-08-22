@@ -40,6 +40,7 @@ import {
     canSendInvoice as canSendInvoicePolicyUtils,
     getGroupPaidPoliciesWithExpenseChatEnabled,
     isPaidGroupPolicy,
+    isPolicyMember,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
@@ -136,6 +137,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         canBeMissing: true,
     });
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
+    const [isUserPaidPolicyMember = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        canBeMissing: true,
+        selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
+    });
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
@@ -189,9 +194,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     }, [isValidReport, quickActionAvatars, personalDetails, quickAction?.action]);
 
     const quickActionSubtitle = useMemo(() => {
-        if (quickAction?.action === CONST.QUICK_ACTIONS.CREATE_REPORT) {
-            return quickActionPolicy?.name;
-        }
         return !hideQABSubtitle ? (getReportName(quickActionReport) ?? translate('quickAction.updateDestination')) : '';
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -334,7 +336,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                         showDelegateNoAccessModal();
                         return;
                     }
-                    navigateToQuickAction(isValidReport, quickAction, currentUserPersonalDetails, quickActionPolicy?.id, selectOption);
+                    navigateToQuickAction(isValidReport, quickAction, selectOption);
                 });
             };
             return [
@@ -386,7 +388,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         policyChatForActivePolicy,
         quickActionTitle,
         quickActionSubtitle,
-        currentUserPersonalDetails,
         quickActionPolicy,
         quickActionReport,
         isValidReport,
@@ -470,7 +471,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   Navigation.setNavigationActionToMicrotaskQueue(() => {
                                       Navigation.navigate(
                                           isSearchTopmostFullScreenRoute()
-                                              ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
+                                              ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID})
                                               : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()),
                                       );
                                   });
@@ -526,7 +527,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       iconStyles: styles.popoverIconCircle,
                       iconFill: theme.icon,
                       text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
-                      onSelected: () => interceptAnonymousUser(() => startTestDrive(introSelected, isAnonymousUser(), tryNewDot?.hasBeenAddedToNudgeMigration)),
+                      onSelected: () =>
+                          interceptAnonymousUser(() => startTestDrive(introSelected, isAnonymousUser(), tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember)),
                   },
               ]
             : []),

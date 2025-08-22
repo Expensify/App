@@ -27,6 +27,7 @@ import useFilesValidation from '@hooks/useFilesValidation';
 import useIOUUtils from '@hooks/useIOUUtils';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -93,6 +94,7 @@ function IOURequestStepScan({
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
     const {isLoaderVisible, setIsLoaderVisible} = useFullScreenLoader();
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
@@ -113,6 +115,7 @@ function IOURequestStepScan({
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const platform = getPlatform(true);
     const [mutedPlatforms = getEmptyObject<Partial<Record<Platform, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS, {canBeMissing: true});
     const isPlatformMuted = mutedPlatforms[platform];
@@ -121,6 +124,7 @@ function IOURequestStepScan({
     const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
     const [cameraKey, setCameraKey] = useState(0);
     const {shouldStartLocationPermissionFlow} = useIOUUtils();
+    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) || !account?.shouldBlockTransactionThreadReportCreation;
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
@@ -131,9 +135,9 @@ function IOURequestStepScan({
         canBeMissing: true,
     });
     const transactions = useMemo(() => {
-        const allTransactions = initialTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? (optimisticTransactions ?? []) : [initialTransaction];
+        const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
-    }, [initialTransaction, initialTransactionID, optimisticTransactions]);
+    }, [initialTransaction, optimisticTransactions]);
 
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
 
@@ -296,6 +300,7 @@ function IOURequestStepScan({
                 policy: OnyxEntry<Policy>;
             },
             billable?: boolean,
+            reimbursable = true,
         ) => {
             files.forEach((receiptFile: ReceiptFile, index) => {
                 const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
@@ -317,6 +322,7 @@ function IOURequestStepScan({
                             created: transaction?.created,
                             receipt,
                             billable,
+                            reimbursable,
                             ...(gpsPoints ?? {}),
                         },
                         ...(policyParams ?? {}),
@@ -343,11 +349,12 @@ function IOURequestStepScan({
                         },
                         shouldHandleNavigation: index === files.length - 1,
                         backToReport,
+                        shouldGenerateTransactionThreadReport,
                     });
                 }
             });
         },
-        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions],
+        [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions, shouldGenerateTransactionThreadReport],
     );
 
     const navigateToConfirmationStep = useCallback(
