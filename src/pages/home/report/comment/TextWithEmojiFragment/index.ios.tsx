@@ -13,8 +13,8 @@ function TextWithEmojiFragment({message = '', style, alignCustomEmoji = false}: 
     return (
         <Text style={style}>
             {processedTextArray.map(({text, isEmoji}, index) => {
-                if (isEmoji && containsOnlyCustomEmoji(text)) {
-                    if (alignCustomEmoji) {
+                if (isEmoji) {
+                    if (alignCustomEmoji && containsOnlyCustomEmoji(text)) {
                         return (
                             <Text
                                 // eslint-disable-next-line react/no-array-index-key
@@ -24,16 +24,16 @@ function TextWithEmojiFragment({message = '', style, alignCustomEmoji = false}: 
                                 {text}
                             </Text>
                         );
+                    } else if (!alignCustomEmoji) {
+                        return (
+                            <View
+                                // eslint-disable-next-line react/no-array-index-key
+                                key={index}
+                            >
+                                <Text style={[styles.emojisWithTextFontSizeAligned, containsCustomEmoji(text) && styles.customEmojiFontAlignment]}>{text}</Text>
+                            </View>
+                        );
                     }
-
-                    return (
-                        <View
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={index}
-                        >
-                            <Text style={[styles.emojisWithTextFontSizeAligned, containsCustomEmoji(text) && styles.customEmojiFontAlignment]}>{text}</Text>
-                        </View>
-                    );
                 }
                 return convertToLTR(text);
             })}
