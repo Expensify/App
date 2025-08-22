@@ -74,6 +74,7 @@ function SearchPage({route}: SearchPageProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const newReportID = generateReportID();
     const [newReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReportID}`, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReport?.parentReportID}`, {canBeMissing: true});
@@ -174,6 +175,7 @@ function SearchPage({route}: SearchPageProps) {
                         clearSelectedTransactions(undefined, true);
                     },
                     shouldCloseModalOnSelect: true,
+                    shouldCallAfterModalHide: true,
                 },
                 {
                     text: translate('export.expenseLevelExport'),
@@ -300,7 +302,7 @@ function SearchPage({route}: SearchPageProps) {
             !isOffline &&
             !isAnyTransactionOnHold &&
             (selectedReports.length
-                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.APPROVE)
+                ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.APPROVE))
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
 
         if (shouldShowApproveOption) {
@@ -331,7 +333,9 @@ function SearchPage({route}: SearchPageProps) {
             !isOffline &&
             !isAnyTransactionOnHold &&
             (selectedReports.length
-                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods))
+                ? selectedReports.every(
+                      (report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
+                  )
                 : selectedTransactionsKeys.every(
                       (id) =>
                           selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
@@ -544,6 +548,7 @@ function SearchPage({route}: SearchPageProps) {
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             report: newReport,
             parentReport: newParentReport,
+            currentDate,
         });
 
         const newReceiptFiles: ReceiptFile[] = [];
