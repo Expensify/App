@@ -48,7 +48,6 @@ function cropImageToAspectRatio(
     verticalAlignTop?: boolean,
 ): Promise<ImageObject> {
     return ImageSize.getSize(image.source)
-        .catch(() => null)
         .then((imageSize) => {
             const isRotated = imageSize?.rotation === 90 || imageSize?.rotation === 270;
             const imageWidth = isRotated ? imageSize?.height : imageSize?.width;
@@ -61,15 +60,14 @@ function cropImageToAspectRatio(
             const crop = calculateCropRect(imageWidth, imageHeight, aspectRatioWidth, aspectRatioHeight, verticalAlignTop);
             const croppedFilename = `receipt_cropped_${Date.now()}.${IMAGE_TYPE}`;
 
-            return cropOrRotateImage(image.source, [{crop}], {compress: 1, name: croppedFilename, type: IMAGE_TYPE})
-                .catch(() => null)
-                .then((croppedImage) => {
-                    if (!croppedImage?.uri || !croppedImage?.name) {
-                        return image;
-                    }
-                    return {file: croppedImage, filename: croppedImage.name, source: croppedImage.uri};
-                });
-        });
+            return cropOrRotateImage(image.source, [{crop}], {compress: 1, name: croppedFilename, type: IMAGE_TYPE}).then((croppedImage) => {
+                if (!croppedImage?.uri || !croppedImage?.name) {
+                    return image;
+                }
+                return {file: croppedImage, filename: croppedImage.name, source: croppedImage.uri};
+            });
+        })
+        .catch(() => image);
 }
 
 export type {ImageObject};
