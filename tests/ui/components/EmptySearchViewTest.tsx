@@ -58,6 +58,7 @@ describe('EmptySearchView', () => {
                     />
                 </Wrapper>,
             );
+            await waitForBatchedUpdates();
 
             // Then it should display create expenses and take a test drive buttons
             expect(await screen.findByText(translateLocal('iou.createExpense'))).toBeVisible();
