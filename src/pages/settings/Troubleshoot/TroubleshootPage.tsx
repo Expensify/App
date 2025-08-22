@@ -32,7 +32,6 @@ import {clearOnyxAndResetApp} from '@userActions/App';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import getLightbulbIllustrationStyle from './getLightbulbIllustrationStyle';
 
 type BaseMenuItem = {
     translationKey: TranslationPaths;
@@ -47,7 +46,6 @@ function TroubleshootPage() {
     const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrationStyle = getLightbulbIllustrationStyle();
     const [isLoading, setIsLoading] = useState(false);
     const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
     const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE, {canBeMissing: true});
@@ -118,7 +116,6 @@ function TroubleshootPage() {
                         isCentralPane
                         subtitleMuted
                         illustration={LottieAnimations.Desk}
-                        illustrationStyle={illustrationStyle}
                         titleStyles={styles.accountSettingsSectionTitle}
                         renderSubtitle={() => (
                             <View style={[styles.renderHTML, styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
