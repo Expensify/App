@@ -221,7 +221,7 @@ function ReportActionCompose({
         canBeMissing: true,
     });
 
-    const personalDetail = useCurrentUserPersonalDetails()
+    const personalDetail = useCurrentUserPersonalDetails();
 
     const iouAction = reportActions ? Object.values(reportActions).find((action) => isMoneyRequestAction(action)) : null;
     const linkedTransactionID = iouAction && !isExpensesReport ? getLinkedTransactionID(iouAction) : undefined;

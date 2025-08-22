@@ -835,7 +835,7 @@ function addActions(reportID: string, timezoneParam: Timezone, text = '', file?:
 }
 
 /** Add an attachment and optional comment. */
-function addAttachment(reportID: string, file: FileObject, timezoneParam: Timezone, text = '', shouldPlaySound?: boolean) {
+function addAttachment(reportID: string, file: FileObject, timezoneParam = CONST.DEFAULT_TIME_ZONE as Timezone, text = '', shouldPlaySound?: boolean) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
@@ -843,7 +843,7 @@ function addAttachment(reportID: string, file: FileObject, timezoneParam: Timezo
 }
 
 /** Add a single comment to a report */
-function addComment(reportID: string, text: string, timezoneParam = CONST.DEFAULT_TIME_ZONE, shouldPlaySound?: boolean) {
+function addComment(reportID: string, text: string, timezoneParam = CONST.DEFAULT_TIME_ZONE as Timezone, shouldPlaySound?: boolean) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
