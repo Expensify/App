@@ -7133,6 +7133,10 @@ const translations = {
         },
         callScheduled: 'Appel programmé',
     },
+    signingOutPage: {
+        title: 'Déconnexion...',
+        subtitle: 'Un moment, s\'il vous plaît.',
+    },
     autoSubmitModal: {
         title: 'Tout est clair et soumis !',
         description: 'Tous les avertissements et infractions ont été levés, donc :',
