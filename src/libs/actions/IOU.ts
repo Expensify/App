@@ -2246,6 +2246,7 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
                     : {}),
                 [chat.reportPreviewAction.reportActionID]: {
                     pendingAction: null,
+                    isOptimisticAction: null,
                 },
             },
         },
