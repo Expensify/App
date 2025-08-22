@@ -16,9 +16,9 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as Delegate from '@userActions/Delegate';
+import {getLatestError} from '@libs/ErrorUtils';
+import {isValidValidateCode} from '@libs/ValidationUtils';
+import {clearDelegateErrorsByField, requestValidationCode, updateDelegateRole} from '@userActions/Delegate';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,7 +67,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
 
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === delegate);
     const errorFields = account?.delegatedAccess?.errorFields ?? {};
-    const validateLoginError = ErrorUtils.getLatestError(errorFields.updateDelegateRole?.[currentDelegate?.email ?? '']);
+    const validateLoginError = getLatestError(errorFields.updateDelegateRole?.[currentDelegate?.email ?? '']);
 
     const shouldDisableResendValidateCode = !!isOffline || currentDelegate?.isLoading;
 
@@ -115,7 +115,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
         if (!login) {
             return;
         }
-        Delegate.requestValidationCode();
+        requestValidationCode();
 
         inputValidateCodeRef.current?.clear();
     };
@@ -128,7 +128,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
             setValidateCode(text);
             setFormError({});
             if (validateLoginError) {
-                Delegate.clearDelegateErrorsByField({email: currentDelegate?.email ?? '', fieldName: 'updateDelegateRole', delegatedAccess: account?.delegatedAccess});
+                clearDelegateErrorsByField({email: currentDelegate?.email ?? '', fieldName: 'updateDelegateRole', delegatedAccess: account?.delegatedAccess});
             }
         },
         [currentDelegate?.email, validateLoginError, account?.delegatedAccess],
@@ -143,14 +143,14 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
             return;
         }
 
-        if (!ValidationUtils.isValidValidateCode(validateCode)) {
+        if (!isValidValidateCode(validateCode)) {
             setFormError({validateCode: 'validateCodeForm.error.incorrectMagicCode'});
             return;
         }
 
         setFormError({});
 
-        Delegate.updateDelegateRole({email: delegate, role, validateCode, delegatedAccess: account?.delegatedAccess});
+        updateDelegateRole({email: delegate, role, validateCode, delegatedAccess: account?.delegatedAccess});
     }, [delegate, role, validateCode, account?.delegatedAccess]);
 
     return (
