@@ -128,7 +128,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
             })
             .catch((error) => {
                 console.error('Failed to load XLSX library:', error);
-                setUploadFileError(true, 'spreadsheet.importFailedTitle', 'spreadsheet.spreadSheetLibraryError');
+                setUploadFileError(true, 'spreadsheet.importFailedTitle', 'spreadsheet.importSpreadsheetLibraryError');
                 setIsReadingFile(false);
             });
     };
