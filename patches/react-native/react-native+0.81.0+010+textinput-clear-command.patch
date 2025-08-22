@@ -119,10 +119,10 @@ index 47adc53..407d46e 100644
  RCT_EXPORT_VIEW_PROPERTY(onSelectionChange, RCTDirectEventBlock)
  RCT_EXPORT_VIEW_PROPERTY(onScroll, RCTDirectEventBlock)
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-index fef4ed3..44c8737 100644
+index b5d7242..3f6c980 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-@@ -560,6 +560,19 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
+@@ -555,6 +555,19 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
    [_backedTextInputView resignFirstResponder];
  }
  
@@ -233,10 +233,27 @@ index 0000000..0c142a0
 +  }
 +}
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.kt
-index 42c13a1..f47c87a 100644
+index 42c13a1..35cd70f 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.kt
-@@ -133,6 +133,8 @@ public open class ReactTextInputManager public constructor() :
+@@ -13,6 +13,7 @@ import android.graphics.BlendModeColorFilter
+ import android.graphics.Paint
+ import android.graphics.PorterDuff
+ import android.os.Build
++import android.text.Editable
+ import android.text.InputFilter
+ import android.text.InputFilter.LengthFilter
+ import android.text.InputType
+@@ -48,6 +49,8 @@ import com.facebook.react.uimanager.ReactStylesDiffMap
+ import com.facebook.react.uimanager.StateWrapper
+ import com.facebook.react.uimanager.ThemedReactContext
+ import com.facebook.react.uimanager.UIManagerHelper
++import com.facebook.react.uimanager.UIManagerHelper.getReactContext
++import com.facebook.react.uimanager.UIManagerHelper.getSurfaceId
+ import com.facebook.react.uimanager.ViewDefaults
+ import com.facebook.react.uimanager.ViewProps
+ import com.facebook.react.uimanager.annotations.ReactProp
+@@ -133,6 +136,8 @@ public open class ReactTextInputManager public constructor() :
      val eventTypeConstants = baseEventTypeConstants ?: mutableMapOf()
      eventTypeConstants.putAll(
          mapOf(getJSEventName(ScrollEventType.SCROLL) to mapOf("registrationName" to "onScroll")))
@@ -245,13 +262,13 @@ index 42c13a1..f47c87a 100644
      return eventTypeConstants
    }
  
-@@ -175,6 +177,26 @@ public open class ReactTextInputManager public constructor() :
+@@ -175,6 +180,26 @@ public open class ReactTextInputManager public constructor() :
          }
          reactEditText.maybeSetSelection(mostRecentEventCount, start, end)
        }
 +      "clear" -> {
 +        // Capture the current text
-+        val text: Editable = reactEditText.text
++        val text: Editable? = reactEditText.text
 +
 +        // Reset the edit text
 +        val textUpdate = getReactTextUpdate("", reactEditText.incrementAndGetEventCounter())
@@ -260,7 +277,7 @@ index 42c13a1..f47c87a 100644
 +
 +        // Dispatch the clear event
 +        val eventDispatcher = getEventDispatcher(getReactContext(reactEditText), reactEditText)
-+        eventDispatcher.dispatchEvent(
++        eventDispatcher?.dispatchEvent(
 +            ReactTextClearEvent(
 +                getSurfaceId(reactEditText),
 +                reactEditText.id,

@@ -9,7 +9,7 @@ index a3af28d..9c0282a 100644
 -        {.children =
 -             std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(
 -                 children)});
-+        {.children = std::make_shared<ShadowNode::ListOfShared>(children),
++        {.children = std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(children),
 +         .state = parentNode.getState()});
    }
  

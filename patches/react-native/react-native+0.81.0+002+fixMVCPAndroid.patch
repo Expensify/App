@@ -19,7 +19,7 @@ index 6813434..2dde13e 100644
      // On Fabric this will be called internally in `didMountItems`.
 -    if (scrollView == null || getUIManagerType(scrollView.id) == UIManagerType.FABRIC) {
 -      return
-+    if (getUIManagerType(scrollView.id) != UIManagerType.FABRIC) {
++    if (scrollView != null && getUIManagerType(scrollView.id) != UIManagerType.FABRIC) {
 +      didMountItemsInternal()
      }
 -    updateScrollPositionInternal()
@@ -35,13 +35,13 @@ index 6813434..2dde13e 100644
    }
  
 -  private fun computeTargetView() {
-+  private fun onScroll() {
++  fun onScroll() {
      val config = config ?: return
      val scrollView = scrollView ?: return
      val contentView = contentView ?: return
  
      val currentScroll = if (horizontal) scrollView.scrollX else scrollView.scrollY
-+    var firstVisibleView = null;
++    var firstVisibleView: View? = null;
 +    // We cannot assume that the views will be in position order because of things like z-index
 +    // which will change the order of views in their parent. This means we need to iterate through
 +    // the full children array and find the view with the smallest position that is bigger than
@@ -61,7 +61,7 @@ index 6813434..2dde13e 100644
 -        prevFirstVisibleFrame = frame
 -        break
 +      if ((position > currentScroll && position < firstVisibleViewPosition) ||
-+              (firstVisibleView == null && i == contentView.getChildCount() - 1) {
++              (firstVisibleView == null && i == contentView.getChildCount() - 1)) {
 +        firstVisibleView = child
 +        firstVisibleViewPosition = position
 +      }
@@ -70,13 +70,13 @@ index 6813434..2dde13e 100644
 +  }
 +
 +  private fun willMountItemsInternal() {
-+    var firstVisibleView: View? = firstVisibleViewRef.get()
++    var firstVisibleView: View? = firstVisibleViewRef?.get()
 +
 +    // If we don't have a first visible view because no scroll happened call onScroll
 +    // to update it.
 +    if (firstVisibleView == null) {
 +      onScroll()
-+      firstVisibleView = firstVisibleViewRef.get()
++      firstVisibleView = firstVisibleViewRef?.get()
 +
 +      // There are cases where it is possible for this to still be null so just bail out.
 +      if (firstVisibleView == null) {
@@ -86,9 +86,9 @@ index 6813434..2dde13e 100644
 +    val frame = Rect()
 +    firstVisibleView.getHitRect(frame)
 +    if (frame.width() > 0 || frame.height() > 0) {
-+        mPrevFirstVisibleFrame = frame
++        prevFirstVisibleFrame = frame
 +    } else {
-+        mPrevFirstVisibleFrame = null
++        prevFirstVisibleFrame = null
 +    }
    }
  
