@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
-import React, {forwardRef, useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -11,7 +11,6 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
-import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
@@ -178,7 +177,6 @@ function SearchList(
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
 
     const route = useRoute();
-    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
@@ -294,39 +292,6 @@ function SearchList(
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length;
 
-    const handleScroll = useCallback<NonNullable<FlashListProps<SearchListItem>['onScroll']>>(
-        (e) => {
-            if (onScroll && typeof onScroll === 'function') {
-                onScroll(e);
-            }
-
-            if (e.nativeEvent.layoutMeasurement.height > 0) {
-                saveScrollOffset(route, e.nativeEvent.contentOffset.y);
-            }
-        },
-        [onScroll, route, saveScrollOffset],
-    );
-
-    const handleLayout = useCallback(() => {
-        if (onLayout && typeof onLayout === 'function') {
-            onLayout();
-        }
-
-        const offset = getScrollOffset(route);
-        if (!offset || !listRef.current) {
-            return;
-        }
-
-        // Use requestAnimationFrame to ensure proper scrolling on iOS
-        requestAnimationFrame(() => {
-            if (!offset || !listRef.current) {
-                return;
-            }
-
-            listRef.current.scrollToOffset({offset});
-        });
-    }, [onLayout, getScrollOffset, route]);
-
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {tableHeaderVisible && (
@@ -365,7 +330,8 @@ function SearchList(
                 renderItem={renderItem}
                 onSelectRow={onSelectRow}
                 keyExtractor={keyExtractor}
-                onScroll={handleScroll}
+                onScroll={onScroll}
+                showsVerticalScrollIndicator={false}
                 ref={listRef}
                 scrollToIndex={scrollToIndex}
                 isFocused={isFocused}
@@ -374,7 +340,7 @@ function SearchList(
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
                 onViewableItemsChanged={onViewableItemsChanged}
-                onLayout={handleLayout}
+                onLayout={onLayout}
                 contentContainerStyle={contentContainerStyle}
             />
             <Modal
