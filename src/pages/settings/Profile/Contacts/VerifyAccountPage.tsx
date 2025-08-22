@@ -22,7 +22,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const contactMethod = account?.primaryLogin ?? '';
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const loginData = loginList?.[contactMethod];
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     const isUserValidated = account?.validated ?? false;
@@ -37,9 +37,9 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber, true);
+            validateSecondaryLogin(loginList, contactMethod, validateCode, true);
         },
-        [loginList, contactMethod, formatPhoneNumber],
+        [loginList, contactMethod],
     );
 
     const clearError = useCallback(() => {

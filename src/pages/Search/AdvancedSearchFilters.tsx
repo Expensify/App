@@ -246,7 +246,7 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
     return [...feedNames, ...cardNames].join(', ');
 }
 
-function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails: PersonalDetailsList | undefined, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
+function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails: PersonalDetailsList | undefined) {
     const selectedPersonalDetails = accountIDs.map((id) => personalDetails?.[id]);
 
     return selectedPersonalDetails
@@ -255,7 +255,7 @@ function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails:
                 return '';
             }
 
-            return createDisplayName(personalDetail.login ?? '', personalDetail, formatPhoneNumber);
+            return createDisplayName(personalDetail.login ?? '', personalDetail);
         })
         .filter(Boolean)
         .join(', ');
@@ -420,7 +420,7 @@ function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, _:
 }
 
 function AdvancedSearchFilters() {
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
@@ -514,8 +514,8 @@ function AdvancedSearchFilters() {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate);
-            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE) {
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails, formatPhoneNumber);
+                                } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE) {
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
