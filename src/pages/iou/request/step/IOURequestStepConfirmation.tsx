@@ -28,7 +28,12 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep, shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {
+    isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
+    navigateToStartMoneyRequestStep,
+    shouldShowReceiptEmptyState,
+    shouldUseTransactionDraft,
+} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
@@ -1026,8 +1031,7 @@ function IOURequestStepConfirmation({
         showPreviousTransaction();
     };
 
-    const shouldEnableDragAndDrop =
-        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isPerDiemRequest && (!isMovingTransactionFromTrackExpenseIOUUtils(action) || isPaidGroupPolicy(policy));
+    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
     const shouldShowSmartScanFields =
         !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
@@ -1040,7 +1044,7 @@ function IOURequestStepConfirmation({
         >
             <DragAndDropProvider
                 setIsDraggingOver={setIsDraggingOver}
-                isDisabled={!shouldEnableDragAndDrop}
+                isDisabled={!showReceiptEmptyState}
             >
                 <View style={styles.flex1}>
                     <HeaderWithBackButton

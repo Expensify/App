@@ -2,12 +2,14 @@ import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, Report} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, Policy, Report} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import Performance from './Performance';
+import {isPaidGroupPolicy} from './PolicyUtils';
 import {getReportTransactions} from './ReportUtils';
 import {getCurrency, getTagArrayFromName} from './TransactionUtils';
 
@@ -183,6 +185,10 @@ function isMovingTransactionFromTrackExpense(action?: IOUAction) {
     return false;
 }
 
+function shouldShowReceiptEmptyState(iouType: IOUType, action: IOUAction, policy: OnyxInputOrEntry<Policy> | SearchPolicy, isPerDiemRequest: boolean) {
+    return (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isPerDiemRequest && (!isMovingTransactionFromTrackExpense(action) || isPaidGroupPolicy(policy));
+}
+
 function shouldUseTransactionDraft(action: IOUAction | undefined, type?: IOUType) {
     return action === CONST.IOU.ACTION.CREATE || type === CONST.IOU.TYPE.SPLIT_EXPENSE || isMovingTransactionFromTrackExpense(action);
 }
@@ -216,4 +222,5 @@ export {
     updateIOUOwnerAndTotal,
     formatCurrentUserToAttendee,
     navigateToParticipantPage,
+    shouldShowReceiptEmptyState,
 };
