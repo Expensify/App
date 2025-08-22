@@ -34,7 +34,7 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
     const [isEncryptedPDF, setIsEncryptedPDF] = useState(false);
     const fileName = useMemo(() => {
         const rawFileName = getFileName(source);
-        return cleanFileName(rawFileName ?? '');
+        return cleanFileName(rawFileName);
     }, [source]);
 
     if (typeof source === 'string' && Str.isVideo(source)) {
