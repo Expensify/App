@@ -107,7 +107,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
-
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const previousAuthenticated = usePrevious(authenticated);
 
     const initialState = useMemo(() => {
@@ -141,6 +141,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                     currentOnboardingPurposeSelected,
                     currentOnboardingCompanySize,
                     onboardingInitialPath,
+                    onboardingValues,
                 }),
                 linkingConfig.config,
             );
