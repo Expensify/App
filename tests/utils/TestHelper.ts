@@ -358,18 +358,6 @@ async function navigateToSidebarOption(index: number): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 }
 
-function assertSidebarOptionsAlphabetical() {
-    const firstElement = screen.queryByTestId('DisplayNames-0');
-    const secondElement = screen.queryByTestId('DisplayNames-1');
-    const thirdElement = screen.queryByTestId('DisplayNames-2');
-    const fourthElement = screen.queryByTestId('DisplayNames-3');
-
-    expect(firstElement).toHaveTextContent('Email Five');
-    expect(secondElement).toHaveTextContent('Email Four');
-    expect(thirdElement).toHaveTextContent('Email Three');
-    expect(fourthElement).toHaveTextContent('Email Two');
-}
-
 /**
  * @private
  * This is a custom collator only for testing purposes.
@@ -399,6 +387,5 @@ export {
     getNavigateToChatHintRegex,
     formatPhoneNumber,
     localeCompare,
-    assertSidebarOptionsAlphabetical,
     STRIPE_CUSTOMER_ID,
 };

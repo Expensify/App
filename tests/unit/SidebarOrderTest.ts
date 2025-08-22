@@ -29,6 +29,18 @@ jest.mock('@react-navigation/native', () => ({
     useFocusEffect: () => undefined,
 }));
 
+function assertSidebarOptionsAlphabetical() {
+    const firstElement = screen.queryByTestId('DisplayNames-0');
+    const secondElement = screen.queryByTestId('DisplayNames-1');
+    const thirdElement = screen.queryByTestId('DisplayNames-2');
+    const fourthElement = screen.queryByTestId('DisplayNames-3');
+
+    expect(firstElement).toHaveTextContent('Email Five');
+    expect(secondElement).toHaveTextContent('Email Four');
+    expect(thirdElement).toHaveTextContent('Email Three');
+    expect(fourthElement).toHaveTextContent('Email Two');
+}
+
 describe('Sidebar', () => {
     beforeAll(() => {
         Onyx.init({
@@ -752,7 +764,7 @@ describe('Sidebar', () => {
 
                     // Then they are still in alphabetical order
                     .then(() => {
-                        TestHelper.assertSidebarOptionsAlphabetical();
+                        assertSidebarOptionsAlphabetical();
                     })
             );
         });
@@ -824,7 +836,7 @@ describe('Sidebar', () => {
 
                     // Then they are still in alphabetical order
                     .then(() => {
-                        TestHelper.assertSidebarOptionsAlphabetical();
+                        assertSidebarOptionsAlphabetical();
                     })
             );
         });
@@ -972,7 +984,7 @@ describe('Sidebar', () => {
 
                     // Then they are still in alphabetical order
                     .then(() => {
-                        TestHelper.assertSidebarOptionsAlphabetical();
+                        assertSidebarOptionsAlphabetical();
                     })
             );
         });
