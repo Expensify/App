@@ -563,6 +563,7 @@ function MoneyRequestReportActionsList({
             userBillingFundID,
             emojiReactions,
             draftMessage,
+            isReportArchived,
         ],
     );
 
