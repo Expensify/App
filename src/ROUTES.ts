@@ -401,7 +401,15 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, moneyRequestReportActionID?: string, transactionID?: string, backTo?: string) => {
+        getRoute: (
+            reportID: string | undefined,
+            reportActionID?: string,
+            referrer?: string,
+            moneyRequestReportActionID?: string,
+            transactionID?: string,
+            backTo?: string,
+            iouReportID?: string,
+        ) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
             }
@@ -413,9 +421,10 @@ const ROUTES = {
             }
 
             // When we are opening a transaction thread but don't have the transaction report created yet we need to pass the moneyRequestReportActionID and transactionID so we can send those to the OpenReport call and create the transaction report
-            if (moneyRequestReportActionID && transactionID) {
+            if (moneyRequestReportActionID && transactionID && iouReportID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
                 queryParams.push(`transactionID=${transactionID}`);
+                queryParams.push(`iouReportID=${iouReportID}`);
             }
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
