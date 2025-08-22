@@ -196,4 +196,4 @@
 - Reason: This patch fixes an issue where it is not possible to enable a transparent navigation bar on Android
 - Upstream PR/issue: 🛑
 - E/App issue: [Slack thread](https://margelo.slack.com/archives/C08CZDJFJ77/p1744187707721529)
-- PR introducing patch: [#57181](https://github.com/Expensify/App/pull/57181)
+- PR introducing patch: [#69004](https://github.com/Expensify/App/pull/69004)
