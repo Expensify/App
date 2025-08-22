@@ -1026,7 +1026,7 @@ function IOURequestStepConfirmation({
         showPreviousTransaction();
     };
 
-    const shouldEnableDropAndDrop =
+    const shouldEnableDragAndDrop =
         (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isPerDiemRequest && (!isMovingTransactionFromTrackExpenseIOUUtils(action) || isPaidGroupPolicy(policy));
 
     const shouldShowSmartScanFields =
@@ -1040,7 +1040,7 @@ function IOURequestStepConfirmation({
         >
             <DragAndDropProvider
                 setIsDraggingOver={setIsDraggingOver}
-                isDisabled={!shouldEnableDropAndDrop}
+                isDisabled={!shouldEnableDragAndDrop}
             >
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
