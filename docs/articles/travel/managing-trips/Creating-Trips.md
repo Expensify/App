@@ -31,7 +31,6 @@ Each trip includes:
 - A **$25 trip fee** when travel agent support books or manages your trip on your behalf
     - Note: The travel agent support fee, if assessed after the $15 trip fee has been charged, will only result in an additional $10 charge, bringing the trip fee up to $25.
 
-
 ---
 
 ## How to create a trip during checkout
