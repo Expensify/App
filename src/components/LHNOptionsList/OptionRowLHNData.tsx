@@ -82,6 +82,7 @@ function OptionRowLHNData({
             invoiceReceiverPolicy,
             card,
             localeCompare,
+            isReportArchived,
             movedFromOrToReportMessage,
         });
         // eslint-disable-next-line react-compiler/react-compiler
@@ -117,6 +118,7 @@ function OptionRowLHNData({
         reportAttributes,
         card,
         localeCompare,
+        isReportArchived,
         movedFromOrToReportMessage,
     ]);
 
