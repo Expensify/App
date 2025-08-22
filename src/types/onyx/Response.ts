@@ -98,6 +98,9 @@ type Response = {
 
     /** Whether the account already exists */
     accountExists?: boolean;
+
+    /** Pin for Activated card */
+    pin?: string;
 };
 
 export default Response;

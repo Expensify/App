@@ -28,7 +28,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import {revealVirtualCardDetails} from '@userActions/Card';
+import {clearActivatedCardPin, revealVirtualCardDetails} from '@userActions/Card';
 import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -72,7 +72,7 @@ function ExpensifyCardPage({
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-
+    const [pin] = useOnyx(ONYXKEYS.ACTIVATED_CARD_PIN, {canBeMissing: true});
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -94,6 +94,12 @@ function ExpensifyCardPage({
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
+
+    useEffect(() => {
+        return () => {
+            clearActivatedCardPin();
+        };
+    }, []);
 
     useEffect(() => {
         setIsNotFound(!cardsToShow);
@@ -339,7 +345,7 @@ function ExpensifyCardPage({
                                 />
                                 <MenuItemWithTopDescription
                                     description={translate('cardPage.physicalCardPin')}
-                                    title={maskPin(currentPhysicalCard?.pin)}
+                                    title={maskPin(pin)}
                                     interactive={false}
                                     titleStyle={styles.walletCardNumber}
                                 />
