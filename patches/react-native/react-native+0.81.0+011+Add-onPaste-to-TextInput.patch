@@ -407,7 +407,7 @@ index 0000000..bfb5819
 + * ReactTextEdit This is used by the ReactTextInputManager to forward events
 + * from the EditText to JS
 + */
-+interface PasteWatcher {
++public interface PasteWatcher {
 +  public void onPaste(String type, String data);
 +}
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
@@ -425,11 +425,12 @@ index 42f6e03..ffba031 100644
  import android.content.Context
  import android.content.res.Configuration
  import android.graphics.Canvas
-@@ -15,6 +19,7 @@ import android.graphics.Color
+@@ -15,6 +19,8 @@ import android.graphics.Color
  import android.graphics.Paint
  import android.graphics.Rect
  import android.graphics.drawable.Drawable
 +import android.net.Uri
++import com.facebook.react.uimanager.UIManagerHelper.getReactContext
  import android.os.Build
  import android.os.Bundle
  import android.text.Editable
@@ -441,7 +442,7 @@ index 42f6e03..ffba031 100644
    private var keyListener: InternalKeyListener? = null
    private var detectScrollMovement = false
    private var onKeyPress = false
-@@ -212,6 +218,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -212,6 +219,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
        keyListener = InternalKeyListener()
      }
      scrollWatcher = null
@@ -449,14 +450,14 @@ index 42f6e03..ffba031 100644
      textAttributes = TextAttributes()
  
      applyTextAttributes()
-@@ -356,9 +363,50 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -356,9 +364,50 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
     * Called when a context menu option for the text view is selected.
     * React Native replaces copy (as rich text) with copy as plain text.
     */
 -  override fun onTextContextMenuItem(id: Int): Boolean =
 -      super.onTextContextMenuItem(
 -          if (id == android.R.id.paste) android.R.id.pasteAsPlainText else id)
-+  override fun onTextContextMenuItem(id: Int): Boolean  {
++  override fun onTextContextMenuItem(id: Int): Boolean {
 +    val modifiedId = if (id == android.R.id.paste || id == android.R.id.pasteAsPlainText) {
 +        android.R.id.pasteAsPlainText
 +    } else {
@@ -477,8 +478,8 @@ index 42f6e03..ffba031 100644
 +              type = cr.getType(itemUri)
 +              if (type != null && type != ClipDescription.MIMETYPE_TEXT_PLAIN) {
 +                  data = itemUri.toString()
-+                  if (mPasteWatcher != null) {
-+                      mPasteWatcher.onPaste(type, data)
++                  if (pasteWatcher != null) {
++                      pasteWatcher?.onPaste(type, data)
 +                  }
 +                  // Prevents default behavior to avoid inserting raw binary data into the text field
 +                  return true
@@ -490,16 +491,16 @@ index 42f6e03..ffba031 100644
 +              val text: CharSequence? = item.text
 +              if (text != null) {
 +                  data = text.toString()
-+                  if (mPasteWatcher != null) {
-+                      mPasteWatcher.onPaste(type, data)
++                  if (pasteWatcher != null) {
++                      pasteWatcher?.onPaste(type, data)
 +                  }
 +              // Don't return - let the system proceed with default text pasting behavior
 +          }
 +      }
 +    }
-+
-+    return super.onTextContextMenuItem(id)
 +  }
++    return super.onTextContextMenuItem(id)
++ }
  
    internal fun clearFocusAndMaybeRefocus() {
      if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P || !isInTouchMode) {
@@ -549,7 +550,7 @@ index f47c87a..3588df6 100644
  
 +  private class ReactPasteWatcher(editText: ReactEditText) : PasteWatcher {
 +    private val mReactEditText: ReactEditText = editText
-+    private val mEventDispatcher: EventDispatcher
++    private val mEventDispatcher: EventDispatcher?
 +    private val mSurfaceId: Int
 +
 +    init {
@@ -559,7 +560,7 @@ index f47c87a..3588df6 100644
 +    }
 +
 +    override fun onPaste(type: String, data: String) {
-+      mEventDispatcher.dispatchEvent(
++      mEventDispatcher?.dispatchEvent(
 +        ReactTextInputPasteEvent(mSurfaceId, mReactEditText.id, type, data)
 +      )
 +    }
@@ -593,9 +594,9 @@ index 0000000..98bb63f
 +/**
 + * Event emitted by EditText native view when clipboard content is pasted
 + */
-+class ReactTextInputPasteEvent : Event<ReactTextInputPasteEvent> {
++public class ReactTextInputPasteEvent : Event<ReactTextInputPasteEvent> {
 +
-+    companion object {
++    public companion object {
 +        private const val EVENT_NAME = "topPaste"
 +    }
 +
@@ -603,10 +604,10 @@ index 0000000..98bb63f
 +    private val mData: String
 +
 +    @Deprecated("Use constructor with surfaceId")
-+    constructor(viewId: Int, type: String, data: String) :
++    public constructor(viewId: Int, type: String, data: String) :
 +        this(ViewUtil.NO_SURFACE_ID, viewId, type, data)
 +
-+    constructor(surfaceId: Int, viewId: Int, type: String, data: String) :
++    public constructor(surfaceId: Int, viewId: Int, type: String, data: String) :
 +        super(surfaceId, viewId) {
 +        mType = type
 +        mData = data
