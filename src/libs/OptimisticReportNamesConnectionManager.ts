@@ -1,6 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Transaction} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
@@ -11,15 +12,17 @@ type UpdateContext = {
     allReports: Record<string, Report>;
     allPolicies: Record<string, Policy>;
     allReportNameValuePairs: Record<string, ReportNameValuePairs>;
+    allTransactions: Record<string, Transaction>;
 };
 
 let betas: OnyxEntry<Beta[]>;
 let allReports: Record<string, Report>;
 let allPolicies: Record<string, Policy>;
 let allReportNameValuePairs: Record<string, ReportNameValuePairs>;
+let allTransactions: Record<string, Transaction>;
 let isInitialized = false;
 let connectionsInitializedCount = 0;
-const totalConnections = 4;
+const totalConnections = 5;
 let initializationPromise: Promise<void> | null = null;
 
 /**
@@ -89,6 +92,16 @@ function initialize(): Promise<void> {
                 checkAndMarkInitialized();
             },
         });
+
+        // Connect to all TRANSACTIONS
+        Onyx.connectWithoutView({
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
+            waitForCollectionCallback: true,
+            callback: (val) => {
+                allTransactions = (val as Record<string, Transaction>) ?? {};
+                checkAndMarkInitialized();
+            },
+        });
     });
 
     return initializationPromise;
@@ -108,6 +121,7 @@ function getUpdateContext(): UpdateContext {
         allReports: allReports ?? {},
         allPolicies: allPolicies ?? {},
         allReportNameValuePairs: allReportNameValuePairs ?? {},
+        allTransactions: allTransactions ?? {},
     };
 }
 

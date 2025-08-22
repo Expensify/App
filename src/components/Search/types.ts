@@ -45,6 +45,7 @@ type SelectedReports = {
     reportID: string;
     policyID: string | undefined;
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
+    allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
     total: number;
 };
 
