@@ -10,6 +10,7 @@ import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {
+    AddReportApproverParams,
     ApproveMoneyRequestParams,
     AssignReportToMeParams,
     CategorizeTrackedExpenseParams as CategorizeTrackedExpenseApiParams,
@@ -12523,8 +12524,9 @@ function addReportApprover(report: OnyxEntry<OnyxTypes.Report>, newApproverEmail
         ],
     };
 
-    const params = {
+    const params: AddReportApproverParams = {
         reportID: report.reportID,
+        reportActionID: takeControlReportAction.reportActionID,
         newApproverEmail,
     };
 

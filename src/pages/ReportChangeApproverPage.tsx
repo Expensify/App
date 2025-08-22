@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,7 +32,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
-
+    const currentUserDetails = useCurrentUserPersonalDetails();
     const [selectedApproverType, setSelectedApproverType] = useState<string>();
 
     const changeApprover = useCallback(() => {
@@ -52,9 +53,9 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID, Navigation.getActiveRoute()));
             return;
         }
-        assignReportToMe(report, session.accountID);
+        assignReportToMe(report, currentUserDetails.accountID);
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    }, [selectedApproverType, policy, report, reportID]);
+    }, [selectedApproverType, report, currentUserDetails.accountID, reportID, policy]);
 
     const sections = useMemo(() => {
         const data = [
