@@ -855,8 +855,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 testID="report-actions-view-wrapper"
                             >
-                                {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
-                                {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
+                                {!report && <ReportActionsSkeletonView />}
+                                {!!report && !shouldDisplayMoneyRequestActionsList ? (
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}
@@ -865,6 +865,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         hasOlderActions={hasOlderActions}
                                         parentReportAction={parentReportAction}
                                         transactionThreadReportID={transactionThreadReportID}
+                                        isReportTransactionThread={isTransactionThreadView}
                                     />
                                 ) : null}
                                 {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
