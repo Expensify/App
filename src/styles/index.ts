@@ -5135,11 +5135,6 @@ const styles = (theme: ThemeColors) =>
             marginTop: 12,
         },
 
-        workspaceEditInviteListItemCard: {
-            backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusNormal,
-        },
-
         onboardingAccountingItem: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,

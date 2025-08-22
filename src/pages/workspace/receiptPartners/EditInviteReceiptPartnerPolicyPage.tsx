@@ -6,8 +6,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import UserListItem from '@components/SelectionList/UserListItem';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -254,16 +254,16 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                 return (
                                     <TabScreenWithFocusTrapWrapper>
                                         <SelectionList
-                                            ListItem={InviteMemberListItem}
+                                            ListItem={UserListItem}
                                             onSelectRow={() => {}}
-                                            listItemWrapperStyle={[styles.cursorDefault, styles.workspaceEditInviteListItemCard, styles.mb2]}
+                                            listItemWrapperStyle={styles.cursorDefault}
                                             addBottomSafeAreaPadding
                                             textInputLabel={shouldShowSearch ? translate('common.search') : undefined}
                                             textInputValue={shouldShowSearch ? searchTerm : undefined}
                                             onChangeText={shouldShowSearch ? setSearchTerm : undefined}
                                             headerMessage={currentHeaderMessage}
                                             sections={buildSections(filteredMembers)}
-                                            sectionListStyle={[shouldShowSearch ? styles.pt3 : styles.pt4, styles.ph5]}
+                                            sectionListStyle={styles.pt3}
                                         />
                                     </TabScreenWithFocusTrapWrapper>
                                 );
