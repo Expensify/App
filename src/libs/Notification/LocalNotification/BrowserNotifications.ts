@@ -9,7 +9,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import type {Report, ReportAction} from '@src/types/onyx';
 import focusApp from './focusApp';
-import type {LocalNotificationClickHandler, LocalNotificationData} from './types';
+import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpenseParams} from './types';
 
 const notificationCache: Record<string, Notification> = {};
 
@@ -129,9 +129,17 @@ export default {
         push(title, body, icon, data, onClick);
     },
 
-    pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
+    pushModifiedExpenseNotification({
+        report,
+        reportAction,
+        movedFromOrToReportMessage,
+        onClick,
+        usesIcon = false,
+    }: LocalNotificationModifiedExpenseParams & {
+        usesIcon: boolean;
+    }) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
-        const body = ModifiedExpenseMessage.getForReportAction({reportAction, policyID: report.policyID});
+        const body = ModifiedExpenseMessage.getForReportAction(reportAction, report.policyID, movedFromOrToReportMessage);
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
         const data = {
             reportID: report.reportID,

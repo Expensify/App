@@ -86,6 +86,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 localeCompare,
+                movedFromOrToReportMessage: undefined,
             }),
         );
     });

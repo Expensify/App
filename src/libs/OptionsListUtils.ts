@@ -700,7 +700,13 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  */
-function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>, isReportArchived = false): string {
+function getLastMessageTextForReport(
+    report: OnyxEntry<Report>,
+    lastActorDetails: Partial<PersonalDetails> | null,
+    movedFromOrToReportMessage: string | undefined,
+    policy?: OnyxEntry<Policy>,
+    isReportArchived = false,
+): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
     const lastVisibleMessage = getLastVisibleMessage(report?.reportID);
@@ -765,7 +771,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${translateLocal('common.attachment')}]`;
     } else if (isModifiedExpenseAction(lastReportAction)) {
-        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportAction: lastReportAction, policyID: report?.policyID});
+        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction(lastReportAction, report?.policyID, movedFromOrToReportMessage);
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
         const movedTransactionOriginalMessage = getOriginalMessage(lastReportAction) ?? {};
@@ -982,7 +988,12 @@ function createOption(
         const lastActorAccountID = lastAction?.actorAccountID || report.lastActorAccountID;
         const lastActorDetails = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
         const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
-        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, undefined, !!result.private_isArchived);
+
+        const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(lastAction, 'movedFrom')}`];
+        const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(lastAction, 'movedTo')}`];
+        const movedFromOrToReportMessage = ModifiedExpenseMessage.getMovedFromOrToReportMessage(movedFromReport, movedToReport);
+
+        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, movedFromOrToReportMessage, undefined, !!result.private_isArchived);
         let lastMessageText = lastMessageTextFromReport;
 
         const shouldDisplayLastActorName =

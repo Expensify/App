@@ -28,13 +28,6 @@ Onyx.connect({
     },
 });
 
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
-});
-
 /**
  * Builds the partial message fragment for a modified field on the expense.
  */
@@ -129,8 +122,7 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
     });
 }
 
-function getForExpenseMovedFromSelfDM(destinationReportID: string) {
-    const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
+function getForExpenseMovedFromSelfDM(destinationReport: OnyxEntry<Report>) {
     const rootParentReport = getRootParentReport({report: destinationReport});
     // In OldDot, expenses could be moved to a self-DM. Return the corresponding message for this case.
     if (isSelfDM(rootParentReport)) {
@@ -151,26 +143,42 @@ function getForExpenseMovedFromSelfDM(destinationReportID: string) {
     });
 }
 
+function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: 'movedTo' | 'movedFrom'): string | undefined {
+    if (!isModifiedExpenseAction(reportAction)) {
+        return undefined;
+    }
+    const reportActionOriginalMessage = getOriginalMessage(reportAction);
+
+    return type === 'movedTo' ? reportActionOriginalMessage?.movedToReportID : reportActionOriginalMessage?.movedFromReport;
+}
+
+function getMovedFromOrToReportMessage(movedFromReport: OnyxEntry<Report> | undefined, movedToReport: OnyxEntry<Report> | undefined): string | undefined {
+    if (movedToReport) {
+        return getForExpenseMovedFromSelfDM(movedToReport);
+    }
+
+    if (movedFromReport) {
+        const originReportName = getReportName(movedFromReport);
+        return translateLocal('iou.movedFromReport', {reportName: originReportName ?? ''});
+    }
+}
+
 /**
  * Get the report action message when expense has been modified.
  *
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  */
-function getForReportAction({reportAction, policyID}: {reportAction: OnyxEntry<ReportAction>; policyID: string | undefined}): string {
+function getForReportAction(reportAction: OnyxEntry<ReportAction>, policyID: string | undefined, movedFromOrToReportMessage: string | undefined): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
     const reportActionOriginalMessage = getOriginalMessage(reportAction);
 
-    if (reportActionOriginalMessage?.movedToReportID) {
-        return getForExpenseMovedFromSelfDM(reportActionOriginalMessage.movedToReportID);
+    if (movedFromOrToReportMessage) {
+        return movedFromOrToReportMessage;
     }
 
-    if (reportActionOriginalMessage?.movedFromReport) {
-        const reportName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportActionOriginalMessage?.movedFromReport}`]);
-        return translateLocal('iou.movedFromReport', {reportName: reportName ?? ''});
-    }
     const removalFragments: string[] = [];
     const setFragments: string[] = [];
     const changeFragments: string[] = [];
@@ -345,4 +353,6 @@ function getForReportAction({reportAction, policyID}: {reportAction: OnyxEntry<R
 
 export default {
     getForReportAction,
+    getMovedReportID,
+    getMovedFromOrToReportMessage,
 };

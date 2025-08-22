@@ -5377,7 +5377,11 @@ function getReportNameInternal({
         }
         if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
             const policyID = reports?.find((r) => r.reportID === report?.reportID)?.policyID;
-            const modifiedMessage = ModifiedExpenseMessage.getForReportAction({reportAction: parentReportAction, policyID});
+
+            const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(parentReportAction, 'movedFrom')}`];
+            const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(parentReportAction, 'movedTo')}`];
+            const movedFromOrToReportMessage = ModifiedExpenseMessage.getMovedFromOrToReportMessage(movedFromReport, movedToReport);
+            const modifiedMessage = ModifiedExpenseMessage.getForReportAction(parentReportAction, policyID, movedFromOrToReportMessage);
             return formatReportLastMessageText(modifiedMessage);
         }
         if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {

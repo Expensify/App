@@ -76,6 +76,7 @@ import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
+import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
@@ -3221,7 +3222,11 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     const onClick = () => close(() => navigateFromNotification(reportID));
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
-        LocalNotification.showModifiedExpenseNotification(report, reportAction, onClick);
+        const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(reportAction, 'movedFrom')}`];
+        const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(reportAction, 'movedTo')}`];
+        const movedFromOrToReportMessage = ModifiedExpenseMessage.getMovedFromOrToReportMessage(movedFromReport, movedToReport);
+
+        LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromOrToReportMessage});
     } else {
         LocalNotification.showCommentNotification(report, reportAction, onClick);
     }

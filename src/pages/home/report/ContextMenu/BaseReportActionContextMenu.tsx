@@ -22,6 +22,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
@@ -159,6 +160,11 @@ function BaseReportActionContextMenu({
         }
         return reportActions[reportActionID];
     }, [reportActions, reportActionID]);
+
+    const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(reportAction, 'movedFrom')}`, {canBeMissing: true});
+    const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(reportAction, 'movedTo')}`, {canBeMissing: true});
+
+    const movedFromOrToReportMessage = useMemo(() => ModifiedExpenseMessage.getMovedFromOrToReportMessage(movedFromReport, movedToReport), [movedFromReport, movedToReport]);
 
     const sourceID = getSourceIDFromReportAction(reportAction);
 
@@ -352,6 +358,7 @@ function BaseReportActionContextMenu({
                             moneyRequestAction,
                             card,
                             originalReport,
+                            movedFromOrToReportMessage,
                         };
 
                         if ('renderContent' in contextAction) {

@@ -2,11 +2,14 @@ import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
+import useOnyx from '@hooks/useOnyx';
 import {getSortedReportActions, shouldReportActionBeVisibleAsLastAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
+import ModifiedExpenseMessage from '@src/libs/ModifiedExpenseMessage';
 import type {OptionData} from '@src/libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -59,6 +62,11 @@ function OptionRowLHNData({
         return reportActionsForDisplay.at(-1);
     }, [reportActions, fullReport, isReportArchived]);
 
+    const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(lastAction, 'movedFrom')}`, {canBeMissing: true});
+    const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(lastAction, 'movedTo')}`, {canBeMissing: true});
+
+    const movedFromOrToReportMessage = useMemo(() => ModifiedExpenseMessage.getMovedFromOrToReportMessage(movedFromReport, movedToReport), [movedToReport, movedFromReport]);
+
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
@@ -74,6 +82,7 @@ function OptionRowLHNData({
             invoiceReceiverPolicy,
             card,
             localeCompare,
+            movedFromOrToReportMessage,
         });
         // eslint-disable-next-line react-compiler/react-compiler
         if (deepEqual(item, optionItemRef.current)) {
@@ -108,6 +117,7 @@ function OptionRowLHNData({
         reportAttributes,
         card,
         localeCompare,
+        movedFromOrToReportMessage,
     ]);
 
     return (
