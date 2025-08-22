@@ -584,7 +584,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         const lastIOUMoneyReportAction = iouReport?.reportID
             ? allSortedReportActions[iouReport.reportID]?.find(
                   (reportAction, key): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
-                      shouldReportActionBeVisible(reportAction, key, canUserPerformWriteAction(report)) &&
+                      shouldReportActionBeVisible(reportAction, key, canUserPerformWriteAction(report, isReportArchived)) &&
                       reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                       isMoneyRequestAction(reportAction),
               )
@@ -1541,7 +1541,7 @@ function isValidReport(option: SearchOption<Report>, config: GetValidReportsConf
         return false;
     }
 
-    if (!canUserPerformWriteAction(option.item) && !includeReadOnly) {
+    if (!canUserPerformWriteAction(option.item, !!option.private_isArchived) && !includeReadOnly) {
         return false;
     }
 
@@ -1894,6 +1894,7 @@ function getSearchOptions(
     maxResults?: number,
     includeUserToInvite?: boolean,
     includeRecentReports = true,
+    includeCurrentUser = false,
 ): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -1912,6 +1913,7 @@ function getSearchOptions(
         shouldBoldTitleByDefault: !isUsedInChatFinder,
         excludeHiddenThreads: true,
         maxElements: maxResults,
+        includeCurrentUser,
         searchString: searchQuery,
         includeUserToInvite,
     });
