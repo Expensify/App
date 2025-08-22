@@ -70,6 +70,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         selector: (session) => session?.accountID,
         canBeMissing: true,
     });
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW, {canBeMissing: true});
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
 
@@ -273,7 +274,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
         const isCurrentUserAdmin = policy?.employeeList?.[currentUserPersonalDetails?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
         const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
-        if (isCurrentUserAdmin && !isCurrentUserOwner && shouldRenderTransferOwnerButton()) {
+        if (isCurrentUserAdmin && !isCurrentUserOwner && shouldRenderTransferOwnerButton(fundList)) {
             secondaryActions.push({
                 value: 'transferOwner',
                 text: translate('workspace.people.transferOwner'),
