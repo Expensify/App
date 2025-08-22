@@ -2018,6 +2018,12 @@ const styles = (theme: ThemeColors) =>
             marginBottom: -20,
         },
 
+        emptyWorkspaceListIllustrationStyle: {
+            marginTop: 12,
+            marginBottom: -20,
+            height: '100%',
+        },
+
         overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
             ({
                 ...positioning.pFixed,

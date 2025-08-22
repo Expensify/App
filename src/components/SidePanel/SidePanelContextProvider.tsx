@@ -74,20 +74,30 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     }, [shouldHideSidePanel, shouldApplySidePanelOffset]);
 
     const openSidePanel = useCallback(() => {
+        // User shouldn't be able to open side panel if side panel NVP is undefined
+        if (!sidePanelNVP) {
+            return;
+        }
+
         setIsSidePanelTransitionEnded(false);
         KeyboardUtils.dismiss();
         SidePanelActions.openSidePanel(!isExtraLargeScreenWidth);
-    }, [isExtraLargeScreenWidth]);
+    }, [isExtraLargeScreenWidth, sidePanelNVP]);
 
     const closeSidePanel = useCallback(
         (shouldUpdateNarrow = false) => {
+            // User shouldn't be able to close side panel if side panel NVP is undefined
+            if (!sidePanelNVP) {
+                return;
+            }
+
             setIsSidePanelTransitionEnded(false);
             SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth || shouldUpdateNarrow);
 
             // Focus the composer after closing the Side Panel
             focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
         },
-        [isExtraLargeScreenWidth],
+        [isExtraLargeScreenWidth, sidePanelNVP],
     );
 
     const value = useMemo(
