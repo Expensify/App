@@ -20,7 +20,7 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
 
     return (
         <FullPageOfflineBlockingView>
-            <View style={styles.m5}>
+            <View style={styles.mh5}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankAccount.bankAccountPurposeTitle')}</Text>
                 <MenuItem
                     icon={Illustrations.WalletAlt2}
