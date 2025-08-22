@@ -17,7 +17,7 @@ import {getCurrency, getReimbursable, isCardTransaction} from './TransactionUtil
 const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 
 // Define the specific merge fields we want to handle
-const MERGE_FIELDS = ['amount', 'currency', 'merchant', 'category', 'tag', 'description', 'reimbursable', 'billable'] as const;
+const MERGE_FIELDS = ['amount', 'currency', 'merchant', 'created', 'category', 'tag', 'description', 'reimbursable', 'billable'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
 type MergeFieldOption = {
     transaction: Transaction;
@@ -40,6 +40,7 @@ const MERGE_FIELD_TRANSLATION_KEYS = {
     description: 'common.description',
     reimbursable: 'common.reimbursable',
     billable: 'common.billable',
+    created: 'common.date',
 } as const;
 
 // Get the filename from the receipt
@@ -261,6 +262,8 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         billable: mergeTransaction.billable,
         filename: getReceiptFileName(mergeTransaction.receipt),
         receipt: mergeTransaction.receipt,
+        created: mergeTransaction.created,
+        modifiedCreated: mergeTransaction.created,
     };
 }
 

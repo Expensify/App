@@ -44,6 +44,9 @@ type MergeTransaction = {
 
     /** The receipt object associated with the transaction */
     receipt?: Receipt;
+
+    /** The date of the transaction */
+    created: string;
 };
 
 export default MergeTransaction;
