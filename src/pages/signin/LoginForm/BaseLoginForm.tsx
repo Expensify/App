@@ -23,6 +23,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
+import getCurrentUrl from '@libs/Navigation/currentUrl';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import StringUtils from '@libs/StringUtils';
 import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
@@ -34,6 +35,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
 import type LoginFormProps from './types';
@@ -151,7 +153,14 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
         // resetting account.isLoading will cause the app to briefly display the session expiration page.
 
         if (isFocused && isVisible) {
-            clearAccountMessages();
+            const currentUrl = getCurrentUrl();
+            const isInTransitionRoute = currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
+            
+            // Don't clear account messages if we're in the transition route to prevent showing SessionExpiredPage
+            // during account validation flows
+            if (!isInTransitionRoute) {
+                clearAccountMessages();
+            }
         }
         if (!canFocusInputOnScreenFocus() || !input.current || !isVisible || !isFocused) {
             return;
