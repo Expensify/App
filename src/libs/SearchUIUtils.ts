@@ -143,6 +143,10 @@ const expenseStatusActionMapping = {
     [CONST.SEARCH.STATUS.EXPENSE.ALL]: () => true,
 };
 
+function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE> {
+    return typeof status === 'string' && status in expenseStatusActionMapping;
+}
+
 function getExpenseStatusOptions(): Array<MultiSelectItem<SingularSearchStatus>> {
     return [
         {text: translateLocal('common.unreported'), value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
@@ -863,15 +867,11 @@ function getTransactionsSections(
             if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
                 const status = queryJSON.status;
                 if (Array.isArray(status)) {
-                    shouldShow = status.some((val) => {
-                        const expenseStatus = val as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
-                        const mappingFunction = expenseStatusActionMapping[expenseStatus];
-                        return mappingFunction ? mappingFunction(report) : false;
+                    shouldShow = status.some((expenseStatus) => {
+                        return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report) : false;
                     });
                 } else {
-                    const expenseStatus = status as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
-                    const mappingFunction = expenseStatusActionMapping[expenseStatus];
-                    shouldShow = mappingFunction ? mappingFunction(report) : false;
+                    shouldShow = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](report) : false;
                 }
             }
         }
@@ -1313,15 +1313,11 @@ function getReportSections(
                     const status = queryJSON.status;
 
                     if (Array.isArray(status)) {
-                        shouldShow = status.some((val) => {
-                            const expenseStatus = val as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
-                            const mappingFunction = expenseStatusActionMapping[expenseStatus];
-                            return mappingFunction ? mappingFunction(reportItem) : false;
+                        shouldShow = status.some((expenseStatus) => {
+                            return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](reportItem) : false;
                         });
                     } else {
-                        const expenseStatus = status as ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
-                        const mappingFunction = expenseStatusActionMapping[expenseStatus];
-                        shouldShow = mappingFunction ? mappingFunction(reportItem) : false;
+                        shouldShow = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](reportItem) : false;
                     }
                 }
             }
