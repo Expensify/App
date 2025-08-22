@@ -1,7 +1,6 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
-import {formatPhoneNumber} from './LocalePhoneNumber';
 import {getDisplayNameForParticipant} from './ReportUtils';
 
 /**
@@ -25,7 +24,7 @@ function hasEnoughSpaceForLargeSuggestionMenu(listHeight: number, composerHeight
 }
 
 function getDisplayName(details: PersonalDetails) {
-    const displayNameFromAccountID = getDisplayNameForParticipant({formatPhoneNumber, accountID: details.accountID});
+    const displayNameFromAccountID = getDisplayNameForParticipant({accountID: details.accountID});
     if (!displayNameFromAccountID) {
         return details.login?.length ? details.login : '';
     }
