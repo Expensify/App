@@ -1,13 +1,14 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceConfirmationAvatar from '@hooks/useWorkspaceConfirmationAvatar';
 import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {addErrorMessage} from '@libs/ErrorUtils';
+import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
@@ -15,7 +16,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import Avatar from './Avatar';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
 import CurrencyPicker from './CurrencyPicker';
 import FormProvider from './Form/FormProvider';
@@ -26,13 +26,6 @@ import * as Expensicons from './Icon/Expensicons';
 import ScrollView from './ScrollView';
 import Text from './Text';
 import TextInput from './TextInput';
-
-function getFirstAlphaNumericCharacter(str = '') {
-    return str
-        .normalize('NFD')
-        .replace(/[^0-9a-z]/gi, '')
-        .toUpperCase()[0];
-}
 
 type WorkspaceConfirmationSubmitFunctionParams = {
     name: string;
@@ -91,15 +84,6 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
     const userCurrency = allPersonalDetails?.[session?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.localCurrencyCode ?? CONST.CURRENCY.USD;
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
-    const route = useRoute();
-    const currencyParam = route.params && 'currency' in route.params && !!route.params.currency ? (route.params.currency as string) : undefined;
-    const currencyValue = !!currencyList && currencyParam && currencyParam in currencyList ? currencyParam : userCurrency;
-    const [currency] = useState(currencyValue);
-
-    useEffect(() => {
-        Navigation.setParams({currency});
-    }, [currency]);
 
     const [workspaceAvatar, setWorkspaceAvatar] = useState<{avatarUri: string | null; avatarFileName?: string | null; avatarFileType?: string | null}>({
         avatarUri: null,
@@ -110,22 +94,12 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
 
     const stashedLocalAvatarImage = workspaceAvatar?.avatarUri ?? undefined;
 
-    const DefaultAvatar = useCallback(
-        () => (
-            <Avatar
-                containerStyles={styles.avatarXLarge}
-                imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
-                source={workspaceAvatar?.avatarUri || getDefaultWorkspaceAvatar(workspaceNameFirstCharacter)}
-                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                size={CONST.AVATAR_SIZE.X_LARGE}
-                name={workspaceNameFirstCharacter}
-                avatarID={policyID}
-                type={CONST.ICON_TYPE_WORKSPACE}
-            />
-        ),
-        [workspaceAvatar?.avatarUri, workspaceNameFirstCharacter, styles.alignSelfCenter, styles.avatarXLarge, policyID],
-    );
+    const DefaultAvatar = useWorkspaceConfirmationAvatar({
+        policyID,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
+        source: stashedLocalAvatarImage || getDefaultWorkspaceAvatar(workspaceNameFirstCharacter),
+        name: workspaceNameFirstCharacter,
+    });
 
     return (
         <>
@@ -205,9 +179,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                                 InputComponent={CurrencyPicker}
                                 inputID={INPUT_IDS.CURRENCY}
                                 label={translate('workspace.editor.currencyInputLabel')}
-                                defaultValue={currency}
-                                shouldSyncPickerVisibilityWithNavigation
-                                shouldSaveCurrencyInNavigation
+                                defaultValue={userCurrency}
                             />
                         </View>
                     </View>
