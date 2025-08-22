@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
@@ -1153,7 +1154,10 @@ describe('SidebarUtils', () => {
 
                 expect(optionData?.alternateText).toBe(
                     formatReportLastMessageText(
-                        translateLocal('iou.payerSpentAmount', {payer: getDisplayNameForParticipant({accountID: iouReport.ownerAccountID}) ?? '', amount: formattedAmount}),
+                        translateLocal('iou.payerSpentAmount', {
+                            payer: getDisplayNameForParticipant({formatPhoneNumber, accountID: iouReport.ownerAccountID}) ?? '',
+                            amount: formattedAmount,
+                        }),
                     ),
                 );
             });
