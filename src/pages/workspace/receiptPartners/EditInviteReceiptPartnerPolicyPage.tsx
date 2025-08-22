@@ -51,6 +51,10 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
     const policy = usePolicy(policyID);
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+
+    const handleTabChange = useCallback(() => {
+        setSearchTerm('');
+    }, [setSearchTerm]);
     const uberEmployeesByEmail = useMemo<Record<string, {status?: string}>>(() => {
         const policyWithEmployees = policy as typeof policy & {
             receiptPartners?: {
@@ -224,6 +228,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                     id={CONST.TAB.RECEIPT_PARTNERS.NAVIGATOR_ID}
                     tabBar={TabSelector}
                     equalWidth
+                    onTabSelected={handleTabChange}
                 >
                     {TAB_NAMES.map((tabName) => (
                         <TopTab.Screen
@@ -242,7 +247,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                 const searchValue = debouncedSearchTerm.trim().toLowerCase();
                                 let currentHeaderMessage = headerMessage;
 
-                                if (shouldShowSearch && searchValue && filteredMembers.length === 0) {
+                                if (filteredMembers.length === 0 && ((shouldShowSearch && searchValue) || tabMembersWithoutSearch.length === 0)) {
                                     currentHeaderMessage = translate('common.noResultsFound');
                                 }
 
