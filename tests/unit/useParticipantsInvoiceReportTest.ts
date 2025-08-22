@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import useInvoiceChatByParticipants from '@hooks/useInvoiceChatByParticipants';
+import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
@@ -43,7 +43,7 @@ const mockArchivedIndividualInvoiceReport = {...createInvoiceRoom(archivedReport
 const mockActiveBusinessInvoiceReport = {...createInvoiceRoom(activeBusinessReportID), invoiceReceiver: activeBusinessInvoiceReceiver, policyID: activeBusinessPolicyID};
 const mockArchivedBusinessInvoiceReport = {...createInvoiceRoom(archivedBusinessReportID), invoiceReceiver: archivedBusinessInvoiceReceiver, policyID: archivedBusinessPolicyID};
 
-describe('useInvoiceChatByParticipants', () => {
+describe('useParticipantsInvoiceReport', () => {
     describe('Individual Invoice Receiver', () => {
         beforeEach(() => {
             Onyx.init({keys: ONYXKEYS});
@@ -58,7 +58,7 @@ describe('useInvoiceChatByParticipants', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockActiveIndividualInvoiceReport?.reportID}`, mockActiveIndividualInvoiceReport);
 
             // When sending invoice to the same receiver from FAB flow (outside of invoice room)
-            const {result, rerender} = renderHook(({receiverID, receiverType, policyID}) => useInvoiceChatByParticipants(receiverID, receiverType, policyID), {
+            const {result, rerender} = renderHook(({receiverID, receiverType, policyID}) => useParticipantsInvoiceReport(receiverID, receiverType, policyID), {
                 initialProps: {receiverID: accountID, receiverType: activeIndividualInvoiceReceiver.type, policyID: mockPolicyID},
             });
 
@@ -82,7 +82,7 @@ describe('useInvoiceChatByParticipants', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockArchivedIndividualInvoiceReport?.reportID}`, archivedReportNameValuePairs);
 
             // When sending invoice to the same receiver from FAB flow (outside of invoice room)
-            const {result} = renderHook(({receiverID, receiverType, policyID}) => useInvoiceChatByParticipants(receiverID, receiverType, policyID), {
+            const {result} = renderHook(({receiverID, receiverType, policyID}) => useParticipantsInvoiceReport(receiverID, receiverType, policyID), {
                 initialProps: {receiverID: archivedIndividualReportInvoiceReceiver.accountID, receiverType: archivedIndividualReportInvoiceReceiver.type, policyID: mockPolicyID},
             });
 
@@ -94,7 +94,7 @@ describe('useInvoiceChatByParticipants', () => {
             const expenseReport = {...createExpenseReport(5645), invoiceReceiver: activeIndividualInvoiceReceiver, policyID: mockPolicyID};
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-            const {result} = renderHook(({receiverID, receiverType, policyID}) => useInvoiceChatByParticipants(receiverID, receiverType, policyID), {
+            const {result} = renderHook(({receiverID, receiverType, policyID}) => useParticipantsInvoiceReport(receiverID, receiverType, policyID), {
                 initialProps: {receiverID: accountID, receiverType: activeIndividualInvoiceReceiver.type, policyID: mockPolicyID},
             });
 
@@ -116,7 +116,7 @@ describe('useInvoiceChatByParticipants', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockActiveBusinessInvoiceReport?.reportID}`, mockActiveBusinessInvoiceReport);
 
             // When paying invoice as a business from an individual invoice room
-            const {result, rerender} = renderHook(({receiverID, receiverType, policyID}) => useInvoiceChatByParticipants(receiverID, receiverType, policyID), {
+            const {result, rerender} = renderHook(({receiverID, receiverType, policyID}) => useParticipantsInvoiceReport(receiverID, receiverType, policyID), {
                 initialProps: {receiverID: activeBusinessInvoiceReceiver.policyID, receiverType: activeBusinessInvoiceReceiver.type, policyID: activeBusinessPolicyID},
             });
 
@@ -135,7 +135,7 @@ describe('useInvoiceChatByParticipants', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockArchivedBusinessInvoiceReport?.reportID}`, archivedReportNameValuePairs);
 
             // When paying invoice as a business from an individual invoice room
-            const {result} = renderHook(({receiverID, receiverType, policyID}) => useInvoiceChatByParticipants(receiverID, receiverType, policyID), {
+            const {result} = renderHook(({receiverID, receiverType, policyID}) => useParticipantsInvoiceReport(receiverID, receiverType, policyID), {
                 initialProps: {receiverID: archivedBusinessInvoiceReceiver.policyID, receiverType: archivedBusinessInvoiceReceiver.type, policyID: archivedBusinessPolicyID},
             });
 

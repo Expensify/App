@@ -14,7 +14,7 @@ const reportNameValuePairsSelector = (reportNameValuePairs: OnyxEntry<ReportName
         private_isArchived: reportNameValuePairs.private_isArchived,
     }) as ReportNameValuePairsSelector;
 
-function useInvoiceChatByParticipants(receiverID: string | number | undefined, receiverType: InvoiceReceiverType, policyID?: string): OnyxEntry<Report> {
+function useParticipantsInvoiceReport(receiverID: string | number | undefined, receiverType: InvoiceReceiverType, policyID?: string): OnyxEntry<Report> {
     const reportSelector = (report: OnyxEntry<Report>): Report | undefined => {
         if (!report || !isInvoiceRoom(report)) {
             return;
@@ -52,4 +52,4 @@ function useInvoiceChatByParticipants(receiverID: string | number | undefined, r
     return invoiceReport;
 }
 
-export default useInvoiceChatByParticipants;
+export default useParticipantsInvoiceReport;
