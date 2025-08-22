@@ -118,6 +118,7 @@ import {
     canSendInvoiceFromWorkspace,
     getActivePolicies,
     getCleanedTagName,
+    getConnectedIntegration,
     getForwardsToAccount,
     getManagerAccountEmail,
     getManagerAccountID,
@@ -8321,6 +8322,11 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         ...reportActionErrors,
     };
 
+    const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    if (reportErrorFields.export && !getConnectedIntegration(reportPolicy)) {
+        delete errorSources.export;
+    }
+
     // Combine all error messages keyed by microtime into one object
     const errorSourcesArray = Object.values(errorSources ?? {});
     const allReportErrors = {};
@@ -11139,7 +11145,7 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
     if (isIOUReport(report)) {
         return isPaidGroupPolicyPolicyUtils(newPolicy) && isWorkspacePayer(managerLogin ?? '', newPolicy);
     }
-    return isPaidGroupPolicyPolicyUtils(newPolicy) && (isPolicyMember(submitterEmail, newPolicy?.id) || isPolicyAdmin(newPolicy?.id, policies));
+    return isPaidGroupPolicyPolicyUtils(newPolicy) && (isPolicyMember(newPolicy, submitterEmail) || isPolicyAdmin(newPolicy?.id, policies));
 }
 
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {

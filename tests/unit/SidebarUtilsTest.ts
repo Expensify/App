@@ -7,6 +7,8 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
+// eslint-disable-next-line no-restricted-syntax
+import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, getAllReportErrors, getDisplayNameForParticipant, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -33,6 +35,12 @@ jest.mock('@libs/DraftCommentUtils', () => ({
     getDraftComment: jest.fn(),
     isValidDraftComment: jest.fn(),
     prepareDraftComment: jest.fn(),
+}));
+
+// Mock PolicyUtils
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    getConnectedIntegration: jest.fn(() => true),
 }));
 
 describe('SidebarUtils', () => {
