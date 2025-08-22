@@ -11,6 +11,7 @@ import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {SidePanel} from '@src/types/onyx';
 import KeyboardUtils from '@src/utils/keyboard';
 
 type SidePanelContextProps = {
@@ -24,6 +25,7 @@ type SidePanelContextProps = {
     sidePanelTranslateX: RefObject<Animated.Value>;
     openSidePanel: () => void;
     closeSidePanel: () => void;
+    sidePanelNVP?: SidePanel;
 };
 
 const SidePanelContext = createContext<SidePanelContextProps>({
@@ -48,7 +50,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
 
     const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(true);
-    const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, isSidePanelHiddenOrLargeScreen} = useSidePanelDisplayStatus();
+    const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, isSidePanelHiddenOrLargeScreen, sidePanelNVP} = useSidePanelDisplayStatus();
     const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
 
     const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
@@ -112,6 +114,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             sidePanelTranslateX,
             openSidePanel,
             closeSidePanel,
+            sidePanelNVP,
         }),
         [
             closeSidePanel,
@@ -122,6 +125,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             shouldHideSidePanel,
             shouldHideSidePanelBackdrop,
             shouldHideToolTip,
+            sidePanelNVP,
         ],
     );
 

@@ -38,6 +38,7 @@ function useSidePanelDisplayStatus() {
     const shouldHideSidePanelBackdrop = shouldHideSidePanel || isExtraLargeScreenWidth || shouldUseNarrowLayout;
 
     return {
+        sidePanelNVP,
         shouldHideSidePanel,
         isSidePanelHiddenOrLargeScreen,
         shouldHideHelpButton,
