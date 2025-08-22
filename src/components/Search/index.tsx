@@ -17,15 +17,15 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {openSearch} from '@libs/actions/Search';
+import {openSearch, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
 import Timing from '@libs/actions/Timing';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, isArchivedReport} from '@libs/ReportUtils';
+import {getIOUActionForTransactionID, getReportAction, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
+import {buildTransactionThread, canEditFieldOfMoneyRequest, generateReportID, getReportOrDraftReport, isArchivedReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenTransactionThreadReport,
@@ -50,6 +50,7 @@ import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
+import {openReport as createReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -195,6 +196,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
 
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
@@ -544,11 +546,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             const isTransactionItem = isTransactionListItemType(item);
 
-            // if (isTransactionGroupListItemType(item) && item.isOneTransactionReport &&  transactions?.[0]?.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-            //     createAndOpenTransactionThreadReport(item.transactions[0], hash);
-            //     return;
-            // }
-
             // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && item.isOneTransactionReport && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 createAndOpenTransactionThreadReport(item, hash);
@@ -588,6 +585,26 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             Timing.start(CONST.TIMING.OPEN_REPORT_SEARCH);
 
             if (isTransactionGroupListItemType(item)) {
+                const oneTransaction = item.transactions.at(0);
+                if (item.isOneTransactionReport && oneTransaction?.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                    const {report, moneyRequestReportActionID, transactionID} = oneTransaction;
+                    const transactionThreadReportID = generateReportID();
+                    const iouReport = getReportOrDraftReport(report.reportID);
+                    const iouAction = getReportAction(report.reportID, moneyRequestReportActionID);
+                    const optimisticTransactionThread = buildTransactionThread(iouAction, iouReport, undefined, transactionThreadReportID);
+                    updateSearchResultsWithTransactionThreadReportID(hash, transactionID, transactionThreadReportID);
+                    createReport(
+                        transactionThreadReportID,
+                        undefined,
+                        currentUserEmail ? [currentUserEmail] : [],
+                        optimisticTransactionThread,
+                        moneyRequestReportActionID,
+                        false,
+                        [],
+                        undefined,
+                        transactionID,
+                    );
+                }
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}));
                 return;
             }
@@ -600,7 +617,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID}));
         },
-        [hash, isMobileSelectionModeEnabled, toggleTransaction, queryJSON],
+        [hash, isMobileSelectionModeEnabled, toggleTransaction, queryJSON, currentUserEmail],
     );
 
     const onViewableItemsChanged = useCallback(
