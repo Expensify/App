@@ -14,33 +14,40 @@ const reportNameValuePairsSelector = (reportNameValuePairs: OnyxEntry<ReportName
         private_isArchived: reportNameValuePairs.private_isArchived,
     }) as ReportNameValuePairsSelector;
 
-const reportSelector = (report: OnyxEntry<Report>): Report | undefined => report?.invoiceReceiver && report;
-
 function useInvoiceChatByParticipants(receiverID: string | number | undefined, receiverType: InvoiceReceiverType, policyID?: string): OnyxEntry<Report> {
+    const reportSelector = (report: OnyxEntry<Report>): Report | undefined => {
+        if (!report || !isInvoiceRoom(report)) {
+            return;
+        }
+
+        const isSameReceiver =
+            report.invoiceReceiver &&
+            report.invoiceReceiver.type === receiverType &&
+            (('accountID' in report.invoiceReceiver && report.invoiceReceiver.accountID === receiverID) ||
+                ('policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === receiverID));
+
+        const isSameInvoiceRoom = report.policyID === policyID && isSameReceiver;
+        if (isSameInvoiceRoom) {
+            return report;
+        }
+    };
+
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: (c) => mapOnyxCollectionItems(c, reportSelector)});
-    const [allReportNameValuePair] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true, selector: (c) => mapOnyxCollectionItems(c, reportNameValuePairsSelector)});
+    const existingInvoiceReport = Object.values(allReports ?? {}).find((report) => !!report);
+    const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${existingInvoiceReport?.reportID}`, {
+        canBeMissing: true,
+        selector: reportNameValuePairsSelector,
+    });
 
     const invoiceReport = useMemo(() => {
-        return Object.values(allReports ?? {}).find((report) => {
-            if (!report || !isInvoiceRoom(report)) {
-                return false;
-            }
-            const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
-            const isReportArchived = isArchivedReport(reportNameValuePairs);
+        const isReportArchived = isArchivedReport(reportNameValuePair);
 
-            if (isArchivedNonExpenseReport(report, isReportArchived)) {
-                return false;
-            }
+        if (isArchivedNonExpenseReport(existingInvoiceReport, isReportArchived)) {
+            return;
+        }
 
-            const isSameReceiver =
-                report.invoiceReceiver &&
-                report.invoiceReceiver.type === receiverType &&
-                (('accountID' in report.invoiceReceiver && report.invoiceReceiver.accountID === receiverID) ||
-                    ('policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === receiverID));
-
-            return report.policyID === policyID && isSameReceiver;
-        });
-    }, [receiverID, receiverType, policyID, allReports, allReportNameValuePair]);
+        return existingInvoiceReport;
+    }, [reportNameValuePair, existingInvoiceReport]);
 
     return invoiceReport;
 }
