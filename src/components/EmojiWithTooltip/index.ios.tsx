@@ -14,8 +14,6 @@ function EmojiWithTooltip({emojiCode, style = {}, isMedium = false}: EmojiWithTo
     const flattenedStyle = StyleSheet.flatten(style);
     const textDecorationStyles = {
         textDecorationLine: flattenedStyle?.textDecorationLine,
-        textDecorationStyle: flattenedStyle?.textDecorationStyle,
-        textDecorationColor: flattenedStyle?.textDecorationColor,
     };
 
     return isMedium ? (
