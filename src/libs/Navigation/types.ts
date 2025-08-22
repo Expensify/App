@@ -190,6 +190,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
         policyID: string;
         backTo?: Routes;
@@ -1084,6 +1087,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES_REIMBURSABLE_DEFAULT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
         policyID: string;
     };
@@ -1437,7 +1443,7 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.RECEIPT_VIEW_MODAL]: {
+    [SCREENS.MONEY_REQUEST.RECEIPT_VIEW]: {
         transactionID: string;
         backTo: Routes;
     };
@@ -1562,6 +1568,15 @@ type MoneyRequestNavigatorParamList = {
 type WorkspaceConfirmationNavigatorParamList = {
     [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: {
         backTo?: Routes;
+    };
+};
+
+type WorkspaceDuplicateNavigatorParamList = {
+    [SCREENS.WORKSPACE_DUPLICATE.ROOT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE_DUPLICATE.SELECT_FEATURES]: {
+        policyID: string;
     };
 };
 
@@ -1759,6 +1774,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: NavigatorScreenParams<RoomMembersNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: NavigatorScreenParams<MoneyRequestNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION]: NavigatorScreenParams<WorkspaceConfirmationNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.WORKSPACE_DUPLICATE]: NavigatorScreenParams<WorkspaceDuplicateNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_TASK]: NavigatorScreenParams<NewTaskNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: NavigatorScreenParams<TeachersUniteNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TASK_DETAILS]: NavigatorScreenParams<TaskDetailsNavigatorParamList>;
@@ -2125,9 +2141,14 @@ type AuthScreensParamList = SharedScreensParamList & {
         transactionID: string;
         readonly?: string;
         isFromReviewDuplicates?: string;
-        action?: IOUAction;
-        iouType?: IOUType;
         mergeTransactionID?: string;
+    };
+    [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: {
+        reportID: string;
+        transactionID: string;
+        action: IOUAction;
+        iouType: IOUType;
+        readonly: string;
     };
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
@@ -2352,6 +2373,7 @@ export type {
     WorkspaceSplitNavigatorParamList,
     MigratedUserModalNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
+    WorkspaceDuplicateNavigatorParamList,
     TwoFactorAuthNavigatorParamList,
     ConsoleNavigatorParamList,
     ScheduleCallParamList,

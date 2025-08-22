@@ -115,7 +115,7 @@ function ReportFooter({
 
     // If a user just signed in and is viewing a public report, optimistically show the composer while loading the report, since they will have write access when the response comes back.
     const shouldShowComposerOptimistically = !isAnonymousUser && isPublicRoom(report) && !!reportMetadata?.isLoadingInitialReportActions;
-    const canPerformWriteAction = canUserPerformWriteAction(report) ?? shouldShowComposerOptimistically;
+    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived) ?? shouldShowComposerOptimistically;
     const shouldHideComposer = !canPerformWriteAction || isBlockedFromChat;
     const canWriteInReport = canWriteInReportUtil(report);
     const isSystemChat = isSystemChatUtil(report);
