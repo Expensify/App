@@ -85,7 +85,7 @@ const repack = {
         'react-native-reanimated/plugin',
 
         /* Fullstory */
-        '@fullstory/react-native',
+        // '@fullstory/react-native',
         [
             '@fullstory/babel-plugin-annotate-react',
             {
