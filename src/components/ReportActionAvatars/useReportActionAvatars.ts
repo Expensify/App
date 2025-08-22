@@ -1,7 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -45,7 +44,6 @@ function useReportActionAvatars({
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
     });
-    const {formatPhoneNumber} = useLocalize();
 
     const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
 
@@ -182,7 +180,8 @@ function useReportActionAvatars({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const accountID = reportPreviewSenderID || (actorAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const {avatar, fallbackIcon, login} = personalDetails?.[delegatePersonalDetails ? delegatePersonalDetails.accountID : accountID] ?? {};
-    const defaultDisplayName = getDisplayNameForParticipant({formatPhoneNumber, accountID, personalDetailsData: personalDetails}) ?? '';
+
+    const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails}) ?? '';
     const invoiceReport = [iouReport, chatReport, reportChatReport].find((susReport) => isInvoiceReport(susReport) || susReport?.chatType === CONST.REPORT.TYPE.INVOICE);
     const isNestedInInvoiceReport = !!invoiceReport;
     const isWorkspaceActor = isAInvoiceReport || (isAWorkspaceChat && (!actorAccountID || displayAllActors));
