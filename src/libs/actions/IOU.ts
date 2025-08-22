@@ -73,7 +73,6 @@ import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
     getCorrectedAutoReportingFrequency,
     getDistanceRateCustomUnit,
-    getDistanceRateCustomUnitRate,
     getMemberAccountIDsForWorkspace,
     getPerDiemCustomUnit,
     getPerDiemRateCustomUnitRate,
@@ -771,17 +770,19 @@ Onyx.connect({
             const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
             const policyReports = getAllPolicyReports(policyID);
             const cleanUpMergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>> = {};
-            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
+            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
+            const cleanUpDrafts: Record<string, null> = {};
             policyReports.forEach((policyReport) => {
                 if (!policyReport) {
                     return;
                 }
                 const {reportID} = policyReport;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
+                cleanUpDrafts[reportID] = null;
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
             });
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
             Onyx.multiSet(cleanUpSetQueries);
+            Onyx.merge(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, cleanUpDrafts);
             delete allPolicies[key];
             return;
         }
@@ -2532,6 +2533,7 @@ function buildOnyxDataForTrackExpense({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                 value: {
+                    lastReadTime: actionableTrackExpenseWhisper.created,
                     lastVisibleActionCreated: actionableTrackExpenseWhisper.created,
                     lastMessageText: CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE,
                 },
@@ -3384,7 +3386,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     let iouReport: OnyxInputValue<OnyxTypes.Report> = null;
     if (moneyRequestReportID) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
-    } else {
+    } else if (!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]?.errorFields?.createChat) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
     }
 
@@ -9834,6 +9836,7 @@ function reopenReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
             lastMessageHtml: getReportActionHtml(optimisticReopenedReportAction),
             stateNum: predictedNextState,
             statusNum: predictedNextStatus,
+            hasReportBeenReopened: true,
             pendingFields: {
                 partial: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
@@ -9890,6 +9893,7 @@ function reopenReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
             value: {
                 stateNum: expenseReport.stateNum,
                 statusNum: expenseReport.statusNum,
+                hasReportBeenReopened: false,
             },
         },
     ];
@@ -9956,6 +9960,7 @@ function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
             lastMessageHtml: getReportActionHtml(optimisticRetractReportAction),
             stateNum: predictedNextState,
             statusNum: predictedNextStatus,
+            hasReportBeenRetracted: true,
             pendingFields: {
                 partial: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
@@ -10007,6 +10012,7 @@ function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
             value: {
                 stateNum: expenseReport.stateNum,
                 statusNum: expenseReport.stateNum,
+                hasReportBeenRetracted: false,
             },
         },
         {
@@ -12142,19 +12148,6 @@ function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Tra
     });
 }
 
-/**
- * Clear errors from split transaction draft
- */
-function clearSplitTransactionDraftErrors(transactionID: string | undefined) {
-    if (!transactionID) {
-        return;
-    }
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {
-        errors: null,
-    });
-}
-
 function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, hash: number) {
     const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
@@ -12171,23 +12164,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     const policyTags = getPolicyTagsData(expenseReport?.policyID);
     const participants = getMoneyRequestParticipantsFromReport(expenseReport);
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
-
-    // Validate distance rate before proceeding with split
-    const customUnitRateID = originalTransaction?.comment?.customUnit?.customUnitRateID;
-    if (customUnitRateID && policy) {
-        const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-
-        // If the rate doesn't exist or is disabled, show an error and return early
-        if (!customUnitRate || !customUnitRate.enabled) {
-            const errorMessage = !customUnitRate ? 'iou.error.invalidRate' : 'iou.error.genericEditFailureMessage';
-
-            // Show error to user
-            Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
-                errors: getMicroSecondOnyxErrorWithTranslationKey(errorMessage),
-            });
-            return;
-        }
-    }
 
     const splits: SplitTransactionSplitsParam =
         splitExpenses.map((split) => {
@@ -12495,6 +12471,5 @@ export {
     reopenReport,
     retractReport,
     startDistanceRequest,
-    clearSplitTransactionDraftErrors,
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};
