@@ -1,3 +1,4 @@
+import {session} from 'electron';
 import debounce from 'lodash/debounce';
 import React, {useCallback, useMemo, useState} from 'react';
 import Badge from '@components/Badge';
@@ -11,11 +12,12 @@ import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import Text from '@components/Text';
 import type {SelectionListApprover} from '@components/WorkspaceMembersSelectionList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {changeReportApprover} from '@libs/actions/Report';
+import {addReportApprover} from '@libs/actions/IOU';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -42,6 +44,8 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+
+    const currentUserDetails = useCurrentUserPersonalDetails();
 
     const [allApprovers, setAllApprovers] = useState<SelectionListApprover[]>([]);
     const shouldShowTextInput = allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
@@ -106,9 +110,9 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
         if (!selectedApproverEmail || !employeeAccountID) {
             return;
         }
-        changeReportApprover(report, selectedApproverEmail, Number(employeeAccountID));
+        addReportApprover(report, selectedApproverEmail, Number(employeeAccountID), currentUserDetails.accountID);
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-    }, [allApprovers, selectedApproverEmail, report]);
+    }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID]);
 
     const button = useMemo(() => {
         return (
