@@ -31,7 +31,8 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
         selector: (allTransactionsViolations) =>
             context.selectedTransactionIDs.map((transactionID) => allTransactionsViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]),
     });
-
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
@@ -40,7 +41,7 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
                 }
                 context.clearSelectedTransactions(true);
             } else {
-                holdMoneyRequestOnSearch(context.currentSearchHash, Object.keys(context.selectedTransactions), comment);
+                holdMoneyRequestOnSearch(context.currentSearchHash, Object.keys(context.selectedTransactions), comment, allTransactions, allReportActions);
                 context.clearSelectedTransactions();
             }
 

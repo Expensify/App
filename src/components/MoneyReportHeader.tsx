@@ -23,11 +23,12 @@ import {deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
+import Log from '@libs/Log';
 import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
-import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
+import {getReportNextStep} from '@libs/NextStepUtils';
 import {isSecondaryActionAPaymentOption, selectPaymentType} from '@libs/PaymentUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {getConnectedIntegration, getValidConnectedIntegration} from '@libs/PolicyUtils';
@@ -40,7 +41,6 @@ import {
     getArchiveReason,
     getIntegrationExportIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
-    getNextApproverAccountID,
     getNonHeldAndFullAmount,
     getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
@@ -50,7 +50,6 @@ import {
     isExported as isExportedUtils,
     isInvoiceReport as isInvoiceReportUtil,
     isProcessingReport,
-    isReportOwner,
     navigateOnDeleteExpense,
     navigateToDetailsPage,
 } from '@libs/ReportUtils';
@@ -114,6 +113,7 @@ import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
+import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
 import type {PopoverMenuItem} from './PopoverMenu';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
@@ -362,12 +362,7 @@ function MoneyReportHeader({
     const shouldShowStatusBar =
         hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions || hasDuplicates;
 
-    // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
-    // We should always show this optimistic message for policies with preventSelfApproval
-    // to avoid any flicker during transitions between online/offline states
-    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
-    const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
-    const optimisticNextStep = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
+    const optimisticNextStep = getReportNextStep(nextStep, moneyRequestReport, transactions, policy);
 
     const shouldShowNextStep = isFromPaidPolicy && !isInvoiceReport && !shouldShowStatusBar;
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
@@ -377,6 +372,7 @@ function MoneyReportHeader({
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
+    const isReportInSearch = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
 
     const confirmPayment = useCallback(
         (type?: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
@@ -974,6 +970,18 @@ function MoneyReportHeader({
                 Navigation.navigate(ROUTES.REPORT_WITH_ID_CHANGE_WORKSPACE.getRoute(moneyRequestReport.reportID, Navigation.getActiveRoute()));
             },
         },
+        [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER]: {
+            text: translate('iou.changeApprover.title'),
+            icon: Expensicons.Workflows,
+            value: CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER,
+            onSelected: () => {
+                if (!moneyRequestReport) {
+                    Log.warn('Change approver secondary action triggered without moneyRequestReport data.');
+                    return;
+                }
+                Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER.getRoute(moneyRequestReport.reportID, Navigation.getActiveRoute()));
+            },
+        },
         [CONST.REPORT.SECONDARY_ACTIONS.DELETE]: {
             text: translate('common.delete'),
             icon: Expensicons.Trashcan,
@@ -987,7 +995,7 @@ function MoneyReportHeader({
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
-            text: translate('iou.undoSubmit'),
+            text: translate('iou.retract'),
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
             onSelected: () => {
@@ -995,7 +1003,7 @@ function MoneyReportHeader({
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
-            text: translate('iou.undoClose'),
+            text: translate('iou.retract'),
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.REOPEN,
             onSelected: () => {
@@ -1122,40 +1130,13 @@ function MoneyReportHeader({
         </KYCWall>
     );
 
-    const moreContentUnfiltered = [
-        shouldShowSelectedTransactionsButton && shouldDisplayNarrowVersion && (
-            <View
-                style={[styles.dFlex, styles.w100, styles.pb3]}
-                key="1"
-            >
-                <ButtonWithDropdownMenu
-                    onPress={() => null}
-                    options={selectedTransactionsOptions}
-                    customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                    isSplitButton={false}
-                    shouldAlwaysShowDropdownMenu
-                    wrapperStyle={styles.w100}
-                />
-            </View>
-        ),
-        shouldShowNextStep && !!optimisticNextStep?.message?.length && (
-            <MoneyReportHeaderStatusBar
-                nextStep={optimisticNextStep}
-                key="2"
-            />
-        ),
-        shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline && <MoneyReportHeaderStatusBarSkeleton key="3" />,
-        !!statusBarProps && (
-            <MoneyRequestHeaderStatusBar
-                icon={statusBarProps.icon}
-                description={statusBarProps.description}
-                key="4"
-            />
-        ),
-    ];
-    const moreContent = moreContentUnfiltered.filter(Boolean);
-    const isMoreContentShown = moreContent.length > 0;
-    const shouldAddGapToContents = moreContent.length > 1;
+    const headerNavigation = isReportInSearch ? (
+        <MoneyRequestReportNavigation
+            reportID={moneyRequestReport?.reportID}
+            shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
+            backTo={route.params?.backTo}
+        />
+    ) : undefined;
 
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
@@ -1187,13 +1168,40 @@ function MoneyReportHeader({
                     </View>
                 )}
             </HeaderWithBackButton>
-            {shouldDisplayNarrowVersion && !shouldShowSelectedTransactionsButton && (
-                <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    {!!primaryAction && <View style={[styles.flex1]}>{primaryActionsImplementation[primaryAction]}</View>}
-                    {!!applicableSecondaryActions.length && KYCMoreDropdown}
+
+            {shouldDisplayNarrowVersion &&
+                (shouldShowSelectedTransactionsButton ? (
+                    <View style={[styles.dFlex, styles.w100, styles.ph5]}>
+                        <ButtonWithDropdownMenu
+                            onPress={() => null}
+                            options={selectedTransactionsOptions}
+                            customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                            isSplitButton={false}
+                            shouldAlwaysShowDropdownMenu
+                            wrapperStyle={styles.w100}
+                        />
+                    </View>
+                ) : (
+                    <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        {!!primaryAction && <View style={[styles.flex1]}>{primaryActionsImplementation[primaryAction]}</View>}
+                        {!!applicableSecondaryActions.length && KYCMoreDropdown}
+                    </View>
+                ))}
+
+            <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
+                <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
+                    {shouldShowNextStep && !!optimisticNextStep?.message?.length && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
+                    {shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline && <MoneyReportHeaderStatusBarSkeleton />}
+                    {!!statusBarProps && (
+                        <MoneyRequestHeaderStatusBar
+                            icon={statusBarProps.icon}
+                            description={statusBarProps.description}
+                        />
+                    )}
                 </View>
-            )}
-            {isMoreContentShown && <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5]}>{moreContent}</View>}
+                {headerNavigation}
+            </View>
+
             <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />
             {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
