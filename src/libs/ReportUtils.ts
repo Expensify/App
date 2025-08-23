@@ -3351,6 +3351,24 @@ function getIcons(
     return getIconsForParticipants(participantAccountIDs, personalDetails);
 }
 
+const getIconDisplayName = (icon: Icon, personalDetails: OnyxInputOrEntry<PersonalDetailsList>) =>
+    icon.id ? (personalDetails?.[icon.id]?.displayName ?? personalDetails?.[icon.id]?.login ?? '') : '';
+
+function sortIconsByName(icons: Icon[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>, localeCompare: LocaleContextProps['localeCompare']) {
+    return icons.sort((first, second) => {
+        // First sort by displayName/login
+        const displayNameLoginOrder = localeCompare(getIconDisplayName(first, personalDetails), getIconDisplayName(second, personalDetails));
+        if (displayNameLoginOrder !== 0) {
+            return displayNameLoginOrder;
+        }
+
+        // Then fallback on accountID as the final sorting criteria.
+        // This will ensure that the order of avatars with same login/displayName
+        // stay consistent across all users and devices
+        return Number(first?.id) - Number(second?.id);
+    });
+}
+
 function getDisplayNamesWithTooltips(
     personalDetailsList: PersonalDetails[] | PersonalDetailsList | OptionData[],
     shouldUseShortForm: boolean,
@@ -11583,6 +11601,7 @@ export {
     getUpgradeWorkspaceMessage,
     getDowngradeWorkspaceMessage,
     getIcons,
+    sortIconsByName,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
     getLastVisibleMessage,

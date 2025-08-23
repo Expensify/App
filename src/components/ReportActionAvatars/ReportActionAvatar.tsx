@@ -7,7 +7,6 @@ import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import {WorkspaceBuilding} from '@components/Icon/WorkspaceDefaultAvatars';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -19,14 +18,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedIcon} from '@libs/CardUtils';
-import {getUserDetailTooltipText} from '@libs/ReportUtils';
+import {getUserDetailTooltipText, sortIconsByName} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeed, OnyxInputOrEntry, PersonalDetailsList} from '@src/types/onyx';
+import type {CompanyCardFeed} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
 type SortingOptions = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
@@ -285,23 +284,6 @@ function ReportActionAvatarSubscript({
             )}
         </View>
     );
-}
-const getIconDisplayName = (icon: IconType, personalDetails: OnyxInputOrEntry<PersonalDetailsList>) =>
-    icon.id ? (personalDetails?.[icon.id]?.displayName ?? personalDetails?.[icon.id]?.login ?? '') : '';
-
-function sortIconsByName(icons: IconType[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>, localeCompare: LocaleContextProps['localeCompare']) {
-    return icons.sort((first, second) => {
-        // First sort by displayName/login
-        const displayNameLoginOrder = localeCompare(getIconDisplayName(first, personalDetails), getIconDisplayName(second, personalDetails));
-        if (displayNameLoginOrder !== 0) {
-            return displayNameLoginOrder;
-        }
-
-        // Then fallback on accountID as the final sorting criteria.
-        // This will ensure that the order of avatars with same login/displayName
-        // stay consistent across all users and devices
-        return Number(first?.id) - Number(second?.id);
-    });
 }
 
 function ReportActionAvatarMultipleHorizontal({
