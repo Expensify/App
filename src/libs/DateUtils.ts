@@ -85,7 +85,11 @@ Onyx.connect({
 let networkTimeSkew = 0;
 let isOffline: boolean | undefined;
 
-Onyx.connect({
+/**
+ * We use Onyx.connectWithoutView because we do not use this in React components and this logic is not tied to the UI.
+ *
+ */
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (val) => {
         networkTimeSkew = val?.timeSkew ?? 0;
