@@ -384,5 +384,5 @@ const getOnboardingMessages = (locale?: Locale) => {
     };
 };
 
-export type {OnboardingMessage, OnboardingTask, OnboardingTaskLinks, OnboardingPurpose, OnboardingCompanySize};
+export type {OnboardingMessage, OnboardingTask, OnboardingTaskLinks, OnboardingPurpose, OnboardingCompanySize, GetOnboardingInitialPathParamsType};
 export {getOnboardingInitialPath, startOnboardingFlow, getOnboardingMessages};
