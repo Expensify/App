@@ -19,16 +19,17 @@ function cacheAttachment(attachmentID: string, uri: string, type?: string) {
                 fileType = getMimeType(contentType);
             }
 
-            return response.text();
+            return response.arrayBuffer();
         })
-        .then((finalData) => {
+        .then((bufferData) => {
+            const finalData = btoa(String.fromCharCode(...new Uint8Array(bufferData)));
             // If fileType is not set properly, then we need to exit
             if (!fileType) {
                 return;
             }
             const fileName = `${attachmentID}.${fileType}`;
             const filePath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
-            RNFS.writeFile(filePath, finalData, 'utf8').then(() => {
+            RNFS.writeFile(filePath, finalData, 'base64').then(() => {
                 // If it's markdown attachment, then we need to set the remoteSource accordingly
                 if (isMarkdownAttachemnt) {
                     Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
