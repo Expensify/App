@@ -11253,16 +11253,13 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
 function bulkHold(
     comment: string,
     reportID: string,
-    reports: OnyxCollection<OnyxTypes.Report>,
+    report: OnyxEntry<OnyxTypes.Report>,
     reportActions: ReportAction[],
     selectedTransactionIDs: string[],
     transactions: OnyxCollection<OnyxTypes.Transaction>,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
 ) {
-    const iouReport = reports?.[`${reportID}`];
-    const iouReportCurrency = iouReport?.currency ?? 'none';
-
-    const isExpenseReport = isExpenseReportUtils(iouReport);
+    const isExpenseReport = isExpenseReportUtils(reportID);
     const coefficient = isExpenseReport ? -1 : 1;
 
     let optimisticUnheldNonReimbursableTotal = 0;
@@ -11272,6 +11269,10 @@ function bulkHold(
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
     const holdData: HoldData = {};
+
+    if (!report) {
+        return report;
+    }
 
     selectedTransactionIDs.forEach((transactionID) => {
         const iouAction = getIOUActionForTransactionID(reportActions, transactionID);
@@ -11286,7 +11287,7 @@ function bulkHold(
         const createdCommentTime = DateUtils.addMillisecondsFromDateTime(createdTime, 1);
         const createdReportActionComment = buildOptimisticHoldReportActionComment(comment, createdCommentTime);
 
-        const transactionThreadReport = buildTransactionThread(iouAction, iouReport, iouAction?.childReportID);
+        const transactionThreadReport = buildTransactionThread(iouAction, report, reportID, iouAction?.childReportID);
 
         holdData[transactionID] = {
             holdReportActionID: createdReportAction.reportActionID,
@@ -11439,7 +11440,7 @@ function bulkHold(
 
         const transaction = transactions?.[`${transactionID}`];
 
-        if (transaction?.reimbursable && transaction?.currency === iouReportCurrency) {
+        if (transaction?.reimbursable && report?.currency === transaction?.currency) {
             const transactionAmount = getAmount(transaction, isExpenseReport) * coefficient;
             optimisticUnheldTotal = (optimisticUnheldTotal ?? 0) - transactionAmount;
             optimisticUnheldNonReimbursableTotal = (optimisticUnheldNonReimbursableTotal ?? 0) - transactionAmount;
@@ -11460,8 +11461,8 @@ function bulkHold(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                unheldTotal: iouReport?.unheldTotal ?? null,
-                unheldNonReimbursableTotal: iouReport?.unheldNonReimbursableTotal ?? null,
+                unheldTotal: report?.unheldTotal ?? null,
+                unheldNonReimbursableTotal: report?.unheldNonReimbursableTotal ?? null,
             },
         });
     }

@@ -4691,7 +4691,7 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
                 .then(() => {
-                    bulkHold(comment, iouReport.reportID, reportCollection, Object.values(actions), [transaction1.transactionID, transaction2.transactionID], transactionCollection, {});
+                    bulkHold(comment, iouReport.reportID, iouReport, Object.values(actions), [transaction1.transactionID, transaction2.transactionID], transactionCollection, {});
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -4812,7 +4812,7 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
                 .then(() => {
-                    bulkHold(comment, iouReport.reportID, reportCollection, Object.values(actions), [transaction1.transactionID, transaction2.transactionID], transactionCollection, {});
+                    bulkHold(comment, iouReport.reportID, iouReport, Object.values(actions), [transaction1.transactionID, transaction2.transactionID], transactionCollection, {});
                     return waitForBatchedUpdates();
                 })
                 .then(() => {

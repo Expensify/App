@@ -17,19 +17,26 @@ import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 
 function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>>) {
     const {translate} = useLocalize();
-    const {backTo = '', reportID} = route.params ?? {};
+    const {backTo = '', reportID} = route.params;
     const context = useSearchContext();
-    const [reports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`, {canBeMissing: false});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: false});
-    const [transactions] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}`, {canBeMissing: false});
-    const [transactionsViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true});
-    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${context.currentSearchHash}`, {canBeMissing: true});
+    const [transactions] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}`, {
+        canBeMissing: false,
+        selector: (allTransactions) => context.selectedTransactionIDs.map((transactionID) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]),
+    });
+
+    const [transactionsViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {
+        canBeMissing: false,
+        selector: (allTransactionsViolations) =>
+            context.selectedTransactionIDs.map((transactionID) => allTransactionsViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]),
+    });
 
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                if (reportActions) {
-                    bulkHold(comment, reportID, reports, Object.values(reportActions), context.selectedTransactionIDs, transactions, transactionsViolations);
+                if (report !== undefined && reportActions && transactions === undefined && transactionsViolations === undefined) {
+                    bulkHold(comment, reportID, report, Object.values(reportActions), context.selectedTransactionIDs, transactions, transactionsViolations);
                 }
                 context.clearSelectedTransactions(true);
             } else {
@@ -39,7 +46,7 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
 
             Navigation.goBack();
         },
-        [route.name, reportID, reports, reportActions, context, transactions, transactionsViolations, snapshot],
+        [route.name, reportID, report, reportActions, context, transactions, transactionsViolations],
     );
 
     const validate = useCallback(
