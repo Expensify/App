@@ -6,7 +6,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attachment} from '@src/types/onyx';
 
-function cacheAttachment(attachmentID: string, uri: string) {
+// We only need `type` for native platform
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function cacheAttachment(attachmentID: string, uri: string, type?: string) {
     fetch(uri)
         .then((response) => {
             if (!response.ok) {

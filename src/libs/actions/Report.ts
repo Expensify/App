@@ -684,7 +684,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
         const attachment = buildOptimisticAddCommentReportAction({text, file, reportID, attachmentID});
         attachmentAction = attachment.reportAction;
-        cacheAttachment(attachmentID, file.uri ?? '');
+        cacheAttachment(attachmentID, file.uri ?? '', file.type);
     }
 
     if (text && file) {

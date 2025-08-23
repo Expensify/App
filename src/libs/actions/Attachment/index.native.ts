@@ -1,30 +1,48 @@
-import RNFetchBlob from 'react-native-blob-util';
+import RNFS from 'react-native-fs';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {getMimeType} from '@libs/fileDownload/FileUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attachment} from '@src/types/onyx';
 
-function cacheAttachment(attachmentID: string, uri: string) {
-    if (uri.startsWith('file://')) {
-        Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
-            attachmentID,
-            source: uri,
-        });
-        return;
-    }
-
-    RNFetchBlob.config({fileCache: true, path: `${RNFetchBlob.fs.dirs.DocumentDir}/${attachmentID}`})
-        .fetch('GET', uri)
+function cacheAttachment(attachmentID: string, uri: string, type?: string) {
+    const isMarkdownAttachemnt = !uri.startsWith('file://');
+    let fileType = type;
+    fetch(uri)
         .then((response) => {
-            const filePath = response.path();
-            Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
-                attachmentID,
-                source: `file://${filePath}`,
-                remoteSource: uri,
-            });
+            if (!response.ok) {
+                throw new Error('Failed to store attachment');
+            }
+
+            const contentType = response.headers.get('content-type');
+            if (isMarkdownAttachemnt && contentType) {
+                fileType = getMimeType(contentType);
+            }
+
+            return response.text();
         })
-        .catch(() => {
-            throw new Error('Failed to store attachment');
+        .then((finalData) => {
+            // If fileType is not set properly, then we need to exit
+            if (!fileType) {
+                return;
+            }
+            const fileName = `${attachmentID}.${fileType}`;
+            const filePath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+            RNFS.writeFile(filePath, finalData, 'utf8').then(() => {
+                // If it's markdown attachment, then we need to set the remoteSource accordingly
+                if (isMarkdownAttachemnt) {
+                    Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
+                        attachmentID,
+                        source: filePath,
+                        remoteSource: uri,
+                    });
+                    return;
+                }
+                Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
+                    attachmentID,
+                    source: filePath,
+                });
+            });
         });
 }
 
