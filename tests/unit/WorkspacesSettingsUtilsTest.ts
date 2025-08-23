@@ -28,7 +28,6 @@ describe('WorkspacesSettingsUtils', () => {
     });
     describe('getBrickRoadForPolicy', () => {
         it('Should return "error"', async () => {
-            // Given mock data for reports, transaction violations, sessions, and report actions.
             const report = Object.values(mockData.reports)?.at(0);
             const transactionViolations = mockData.transactionViolations;
             const reports = mockData.reports;
@@ -47,7 +46,6 @@ describe('WorkspacesSettingsUtils', () => {
             await waitForBatchedUpdates();
             const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
-            // When calling getBrickRoadForPolicy with a reportID
             // eslint-disable-next-line rulesdir/no-default-id-values
             const result = getBrickRoadForPolicy(report?.reportID ?? '', reportAttributes?.reports);
 
@@ -56,7 +54,6 @@ describe('WorkspacesSettingsUtils', () => {
         });
 
         it('Should return "undefined"', async () => {
-            // Given mock data for reports, sessions, and report actions. Note: Transaction data is intentionally excluded.
             const report = Object.values(mockData.reports)?.at(0);
             const reports = mockData.reports;
             const session = mockData.session;
@@ -71,7 +68,6 @@ describe('WorkspacesSettingsUtils', () => {
             await waitForBatchedUpdates();
             const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
-            // When calling getBrickRoadForPolicy with a reportID
             // eslint-disable-next-line rulesdir/no-default-id-values
             const result = getBrickRoadForPolicy(report?.reportID ?? '', reportAttributes?.reports);
 
@@ -82,7 +78,6 @@ describe('WorkspacesSettingsUtils', () => {
 
     describe('getChatTabBrickRoadReportID', () => {
         it('Should return "error"', async () => {
-            // Given mock data for reports, transaction violations, sessions, and report actions.
             const transactionViolations = mockData.transactionViolations;
             const reports = mockData.reports;
             const session = mockData.session;
@@ -102,15 +97,13 @@ describe('WorkspacesSettingsUtils', () => {
             await waitForBatchedUpdates();
             const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
-            // When calling getChatTabBrickRoadReportID with reportIDs
             const result = getChatTabBrickRoadReportID(reportIDs, reportAttributes?.reports);
 
-            // The result should be '4286515777714555'.
+            // The result should be '4286515777714555' as it is the reportID associated with the violation.
             expect(result).toBe('4286515777714555');
         });
 
         it('Should return "undefined"', async () => {
-            // Given mock data for reports, sessions, and report actions. Note: Transaction data is intentionally excluded.
             const reports = mockData.reports;
             const session = mockData.session;
             const reportActions = mockData.reportActions;
@@ -126,7 +119,6 @@ describe('WorkspacesSettingsUtils', () => {
             await waitForBatchedUpdates();
             const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
-            // When calling getChatTabBrickRoadReportID with reportIDs
             const result = getChatTabBrickRoadReportID(reportIDs, reportAttributes?.reports);
 
             // Then the result should be 'undefined' since no IOU action is linked to a transaction with a violation.
@@ -136,7 +128,6 @@ describe('WorkspacesSettingsUtils', () => {
 
     describe('getChatTabBrickRoad', () => {
         it('Should return reportID which has "error"', async () => {
-            // Given mock data for reports, transaction violations, sessions, and report actions.
             const transactionViolations = mockData.transactionViolations;
             const reports = mockData.reports;
             const session = mockData.session;
@@ -156,15 +147,13 @@ describe('WorkspacesSettingsUtils', () => {
             await waitForBatchedUpdates();
             const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
-            // When calling getChatTabBrickRoad with reportIDs
             const result = getChatTabBrickRoad(reportIDs, reportAttributes?.reports);
 
-            // The result should be 'error'.
+            // The result should be 'error' due to violation present in the reports.
             expect(result).toBe('error');
         });
 
         it('Should return "undefined"', async () => {
-            // Given mock data for reports, sessions, and report actions. Note: Transaction data is intentionally excluded.
             const reports = mockData.reports;
             const session = mockData.session;
             const reportActions = mockData.reportActions;
@@ -180,7 +169,6 @@ describe('WorkspacesSettingsUtils', () => {
             await waitForBatchedUpdates();
             const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
-            // When calling getChatTabBrickRoad with reportIDs
             const result = getChatTabBrickRoad(reportIDs, reportAttributes?.reports);
 
             // Then the result should be 'undefined' since no IOU action is linked to a transaction with a violation.
