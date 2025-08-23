@@ -1919,7 +1919,7 @@ const translations = {
         validateCardTitle: 'Verifichiamo che sei tu',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Inserisci il codice magico inviato a ${contactMethod} per visualizzare i dettagli della tua carta. Dovrebbe arrivare entro un minuto o due.`,
-        missingPrivateDetails: 'Aggiorna i tuoi dati personali privati in Impostazioni > Profilo e riprova',
+        missingPrivateDetails: 'Aggiungi i tuoi dati personali in Account > Profilo > Privato e riprova.',
     },
     workflowsPage: {
         workflowTitle: 'Spendere',
