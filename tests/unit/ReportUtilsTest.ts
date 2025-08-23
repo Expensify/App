@@ -339,7 +339,7 @@ describe('ReportUtils', () => {
                 '1',
             );
 
-            expect(title).toBeCalledWith(
+            expect(title).toHaveBeenCalledWith(
                 expect.objectContaining<OnboardingTaskLinks>({
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     testDriveURL: expect.any(String),
@@ -368,7 +368,7 @@ describe('ReportUtils', () => {
                 '1',
             );
 
-            expect(description).toBeCalledWith(
+            expect(description).toHaveBeenCalledWith(
                 expect.objectContaining<OnboardingTaskLinks>({
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     testDriveURL: expect.any(String),
