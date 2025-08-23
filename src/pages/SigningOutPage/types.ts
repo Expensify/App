@@ -1,4 +1,6 @@
-/** Type for the SigningOutPage function */
-type SigningOutPageType = () => void;
+/** Type for the resetSigningOutContentShown function */
+type SignOutPageType = (() => JSX.Element) & {
+    displayName?: string;
+};
 
-export default SigningOutPageType;
+export default SignOutPageType;
