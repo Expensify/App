@@ -58,6 +58,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -143,6 +144,7 @@ import type {
     MergeFailureUncreatedAccountDescriptionParams,
     MergeSuccessDescriptionParams,
     MissingPropertyParams,
+    MovedActionParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
     MovedTransactionParams,
@@ -291,8 +293,10 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
+    WorkspaceMembersCountParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
@@ -585,6 +589,7 @@ const translations = {
         network: 'Netzwerk',
         reportID: 'Berichts-ID',
         longID: 'Lange ID',
+        withdrawalID: 'Auszahlungs-ID',
         bankAccounts: 'Bankkonten',
         chooseFile: 'Datei auswählen',
         chooseFiles: 'Dateien auswählen',
@@ -644,6 +649,8 @@ const translations = {
         getTheApp: 'Hole dir die App',
         scanReceiptsOnTheGo: 'Scannen Sie Belege von Ihrem Telefon aus',
         headsUp: 'Achtung!',
+        submitTo: 'Einreichen an',
+        forwardTo: 'Weiterleiten an',
         merge: 'Zusammenführen',
         unstableInternetConnection: 'Instabile Internetverbindung. Bitte überprüfe dein Netzwerk und versuche es erneut.',
     },
@@ -988,6 +995,11 @@ const translations = {
             'Die Datei, die Sie hochgeladen haben, ist entweder leer oder enthält ungültige Daten. Bitte stellen Sie sicher, dass die Datei korrekt formatiert ist und die notwendigen Informationen enthält, bevor Sie sie erneut hochladen.',
         importSpreadsheet: 'Tabellenkalkulation importieren',
         downloadCSV: 'CSV herunterladen',
+        importMemberConfirmation: () => ({
+            one: `Bitte bestätige die folgenden Angaben für ein neues Workspace-Mitglied, das mit diesem Upload hinzugefügt wird. Bestehende Mitglieder erhalten keine Rollenaktualisierungen oder Einladungshinweise.`,
+            other: (count: number) =>
+                `Bitte bestätige die folgenden Angaben für die ${count} neuen Workspace-Mitglieder, die mit diesem Upload hinzugefügt werden. Bestehende Mitglieder erhalten keine Rollenaktualisierungen oder Einladungshinweise.`,
+        }),
     },
     receipt: {
         upload: 'Beleg hochladen',
@@ -1083,7 +1095,13 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `hat eine Ausgabe gelöscht (${amount} für ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `verschob eine Ausgabe${reportName ? `von ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `verschob diese Ausgabe${reportName ? `to <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        unreportedTransaction: 'diese Ausgabe in Ihren persönlichen Bereich verschoben',
+        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `diese Ausgabe in Ihren <a href="${reportUrl}">persönlichen Bereich</a> verschoben`,
+        movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
+            if (shouldHideMovedReportUrl) {
+                return `hat diesen Bericht in den <a href="${newParentReportUrl}">${toPolicyName}</a> Workspace verschoben`;
+            }
+            return `hat diesen <a href="${movedReportUrl}">Bericht</a> in den <a href="${newParentReportUrl}">${toPolicyName}</a> Workspace verschoben`;
+        },
         pendingMatchWithCreditCard: 'Beleg steht aus, um mit Kartentransaktion abgeglichen zu werden',
         pendingMatch: 'Ausstehende Übereinstimmung',
         pendingMatchWithCreditCardDescription: 'Beleg wartet auf Abgleich mit Kartentransaktion. Als Barzahlung markieren, um abzubrechen.',
@@ -1282,9 +1300,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Es sieht so aus, als hätten Sie keine nicht gemeldeten Ausgaben. Versuchen Sie, unten eine zu erstellen.',
         addUnreportedExpenseConfirm: 'Zum Bericht hinzufügen',
         explainHold: 'Erklären Sie, warum Sie diese Ausgabe zurückhalten.',
-        undoSubmit: 'Senden rückgängig machen',
         retracted: 'zurückgezogen',
-        undoClose: 'Schließen rückgängig machen',
+        retract: 'Zurückziehen',
         reopened: 'wieder geöffnet',
         reopenReport: 'Bericht wieder öffnen',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
@@ -1369,6 +1386,22 @@ const translations = {
         rates: 'Preise',
         submitsTo: ({name}: SubmitsToParams) => `Übermittelt an ${name}`,
         moveExpenses: () => ({one: 'Ausgabe verschieben', other: 'Ausgaben verschieben'}),
+        changeApprover: {
+            title: 'Genehmiger ändern',
+            subtitle: 'Wählen Sie eine Option, um den Genehmiger für diesen Bericht zu ändern.',
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Sie können den Genehmiger auch dauerhaft für alle Berichte in Ihren <a href="${workflowSettingLink}">Workflow-Einstellungen</a> ändern.`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `änderte den Genehmiger zu <mention-user accountID="${managerID}"/>`,
+            actions: {
+                addApprover: 'Genehmiger hinzufügen',
+                addApproverSubtitle: 'Fügen Sie dem bestehenden Workflow einen zusätzlichen Genehmiger hinzu.',
+                bypassApprovers: 'Genehmiger umgehen',
+                bypassApproversSubtitle: 'Weisen Sie sich selbst als endgültigen Genehmiger zu und überspringen Sie alle verbleibenden Genehmiger.',
+            },
+            addApprover: {
+                subtitle: 'Wählen Sie einen zusätzlichen Genehmiger für diesen Bericht, bevor wir ihn durch den Rest des Genehmigungs-Workflows leiten.',
+            },
+        },
     },
     transactionMerge: {
         listPage: {
@@ -1587,6 +1620,7 @@ const translations = {
             testCrash: 'Testabsturz',
             resetToOriginalState: 'Auf den ursprünglichen Zustand zurücksetzen',
             usingImportedState: 'Sie verwenden importierten Status. Drücken Sie hier, um ihn zu löschen.',
+            shouldBlockTransactionThreadReportCreation: 'Erstellung von Transaktions-Thread-Berichten blockieren',
             debugMode: 'Debug-Modus',
             invalidFile: 'Ungültige Datei',
             invalidFileDescription: 'Die Datei, die Sie importieren möchten, ist ungültig. Bitte versuchen Sie es erneut.',
@@ -2373,13 +2407,13 @@ const translations = {
                     `![Team einladen](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
             },
             setupCategoriesAndTags: {
-                title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) => `Richte [Kategorien](${workspaceCategoriesLink}) und [Tags](${workspaceMoreFeaturesLink}) ein`,
+                title: ({workspaceCategoriesLink, workspaceTagsLink}) => `Richte [Kategorien](${workspaceCategoriesLink}) und [Tags](${workspaceTagsLink}) ein`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
                     '*Richte Kategorien und Tags ein*, damit dein Team Ausgaben einfach zuordnen kann.\n\n' +
                     `Importiere sie automatisch durch [Verbindung deiner Buchhaltungssoftware](${workspaceAccountingLink}) oder richte sie manuell in den [Workspace-Einstellungen](${workspaceCategoriesLink}) ein.`,
             },
             setupTagsTask: {
-                title: ({workspaceMoreFeaturesLink}) => `Richte [Tags](${workspaceMoreFeaturesLink}) ein`,
+                title: ({workspaceTagsLink}) => `Richte [Tags](${workspaceTagsLink}) ein`,
                 description: ({workspaceMoreFeaturesLink}) =>
                     'Verwende Tags, um zusätzliche Ausgabendetails wie Projekte, Kunden, Standorte und Abteilungen hinzuzufügen. Für mehrere Tag-Ebenen kannst du auf den Control-Plan upgraden.\n\n' +
                     '1. Klicke auf *Workspaces*.\n' +
@@ -3527,6 +3561,9 @@ const translations = {
         receiptPartners: {
             uber: {
                 subtitle: 'Automatisieren Sie die Reisekosten und Essenslieferungskosten in Ihrem gesamten Unternehmen.',
+                autoRemove: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
+                autoInvite: 'Entfernte Workspace-Mitglieder von Uber for Business deaktivieren',
+                manageInvites: 'Einladungen verwalten',
             },
         },
         perDiem: {
@@ -4663,6 +4700,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Uber trennen',
                 disconnectText: 'Um diese Funktion zu deaktivieren, trennen Sie bitte zuerst die Uber for Business Integration.',
+                description: 'Möchten Sie diese Integration wirklich trennen?',
                 confirmText: 'Verstanden',
             },
             workflowWarningModal: {
@@ -4862,9 +4900,8 @@ const translations = {
             updateTaxCodeFailureMessage: 'Beim Aktualisieren des Steuercodes ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
         },
         emptyWorkspace: {
-            title: 'Erstellen Sie einen Arbeitsbereich',
-            subtitle:
-                'Erstellen Sie einen Arbeitsbereich, um Belege zu verfolgen, Ausgaben zu erstatten, Reisen zu verwalten, Rechnungen zu senden und mehr – alles in der Geschwindigkeit eines Chats.',
+            title: 'Sie haben keine Arbeitsbereiche',
+            subtitle: 'Verfolgen Sie Belege, erstatten Sie Ausgaben, verwalten Sie Reisen, senden Sie Rechnungen und mehr.',
             createAWorkspaceCTA: 'Loslegen',
             features: {
                 trackAndCollect: 'Belege verfolgen und sammeln',
@@ -4912,7 +4949,7 @@ const translations = {
             },
             addedWithPrimary: 'Einige Mitglieder wurden mit ihren primären Anmeldungen hinzugefügt.',
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Hinzugefügt durch sekundären Login ${secondaryLogin}.`,
-            membersListTitle: 'Verzeichnis aller Arbeitsbereichsmitglieder.',
+            workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `Gesamtanzahl der Arbeitsbereichsmitglieder: ${count}`,
             importMembers: 'Mitglieder importieren',
         },
         card: {
@@ -5448,6 +5485,12 @@ const translations = {
                     'Mehrstufige Tags helfen Ihnen, Ausgaben präziser zu verfolgen. Weisen Sie jedem Posten mehrere Tags zu – wie Abteilung, Kunde oder Kostenstelle – um den vollständigen Kontext jeder Ausgabe zu erfassen. Dies ermöglicht detailliertere Berichte, Genehmigungs-Workflows und Buchhaltungsexporte.',
                 onlyAvailableOnPlan: 'Mehrstufige Tags sind nur im Control-Plan verfügbar, beginnend bei',
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
+                title: 'Mehrere Genehmigungsstufen',
+                description:
+                    'Mehrere Genehmigungsstufen ist ein Workflow-Tool für Unternehmen, die mehr als eine Person benötigen, um einen Bericht zu genehmigen, bevor er erstattet werden kann.',
+                onlyAvailableOnPlan: 'Mehrere Genehmigungsstufen sind nur im Control-Plan verfügbar, beginnend bei ',
+            },
             pricing: {
                 perActiveMember: 'pro aktivem Mitglied pro Monat.',
                 perMember: 'pro Mitglied pro Monat.',
@@ -5546,6 +5589,17 @@ const translations = {
                     one: '1 Tag',
                     other: (count: number) => `${count} Tage`,
                 }),
+                cashExpenseDefault: 'Bargeldausgabe standard',
+                cashExpenseDefaultDescription:
+                    'Wählen Sie, wie Bargeldausgaben erstellt werden sollen. Eine Ausgabe gilt als Bargeldausgabe, wenn sie keine importierte Firmenkartentransaktion ist. Dazu gehören manuell erstellte Ausgaben, Belege, Pauschalen, Kilometer- und Zeitaufwand.',
+                reimbursableDefault: 'Erstattungsfähig',
+                reimbursableDefaultDescription: 'Ausgaben werden meistens an Mitarbeiter zurückgezahlt',
+                nonReimbursableDefault: 'Nicht erstattungsfähig',
+                nonReimbursableDefaultDescription: 'Ausgaben werden gelegentlich an Mitarbeiter zurückgezahlt',
+                alwaysReimbursable: 'Immer erstattungsfähig',
+                alwaysReimbursableDescription: 'Ausgaben werden immer an Mitarbeiter zurückgezahlt',
+                alwaysNonReimbursable: 'Nie erstattungsfähig',
+                alwaysNonReimbursableDescription: 'Ausgaben werden nie an Mitarbeiter zurückgezahlt',
                 billableDefault: 'Abrechnungsstandard',
                 billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
                     `<muted-text>Wählen Sie aus, ob Bar- und Kreditkartenausgaben standardmäßig abrechnungsfähig sein sollen. Abrechnungsfähige Ausgaben werden in <a href="${tagsPageLink}">Tags</a> aktiviert oder deaktiviert.</muted-text>`,
@@ -5837,6 +5891,7 @@ const translations = {
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `aktualisiert "Kosten an Kunden weiterberechnen" auf "${newValue}" (vorher "${oldValue}")`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `aktualisiert "Bargeldausgabe Standard" auf "${newValue}" (vorher "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `"Standardberichtstitel erzwingen" ${value ? 'on' : 'aus'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `hat den Namen dieses Arbeitsbereichs in "${newName}" geändert (vorher "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6013,6 +6068,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Niemals',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Letzter Monat',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Dieser Monat',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Letzte Erklärung',
                 },
             },
@@ -6040,18 +6096,19 @@ const translations = {
             },
             current: 'Aktuell',
             past: 'Vergangenheit',
-            submitted: 'Eingereichtes Datum',
-            approved: 'Genehmigtes Datum',
-            paid: 'Zahlungsdatum',
-            exported: 'Exportiertes Datum',
-            posted: 'Buchungsdatum',
+            submitted: 'Eingereicht',
+            approved: 'Genehmigt',
+            paid: 'Bezahlt',
+            exported: 'Exportiert',
+            posted: 'Gepostet',
             withdrawn: 'Storniert',
             billable: 'Abrechenbar',
             reimbursable: 'Erstattungsfähig',
             groupBy: {
-                reports: 'Bericht',
-                from: 'Von',
-                card: 'Karte',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Bericht',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -6198,7 +6255,15 @@ const translations = {
                 changeType: ({oldType, newType}: ChangeTypeParams) => `Typ von ${oldType} zu ${newType} geändert`,
                 exportedToCSV: `in CSV exportiert`,
                 exportedToIntegration: {
-                    automatic: ({label}: ExportedToIntegrationParams) => `exportiert nach ${label}`,
+                    automatic: ({label}: ExportedToIntegrationParams) => {
+                        // The label will always be in English, so we need to translate it
+                        const labelTranslations: Record<string, string> = {
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                        };
+                        const translatedLabel = labelTranslations[label] || label;
+                        return `exportiert nach ${translatedLabel}`;
+                    },
                     automaticActionOne: ({label}: ExportedToIntegrationParams) => `exportiert nach ${label} über`,
                     automaticActionTwo: 'Buchhaltungseinstellungen',
                     manual: ({label}: ExportedToIntegrationParams) => `hat diesen Bericht als manuell exportiert nach ${label} markiert.`,
@@ -6343,7 +6408,8 @@ const translations = {
         levelThreeResult: 'Nachricht aus dem Kanal entfernt, anonyme Warnung gesendet und Nachricht zur Überprüfung gemeldet.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Lade sie ein',
+        inviteToSubmitExpense: 'Zum Einreichen von Ausgaben einladen',
+        inviteToChat: 'Nur zum Chatten einladen',
         nothing: 'Nichts tun',
     },
     actionableMentionJoinWorkspaceOptions: {
@@ -6496,8 +6562,7 @@ const translations = {
         overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Betrag über ${formattedLimit}/Fahrtgrenze`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Betrag über dem Limit von ${formattedLimit}/Person`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Betrag über dem täglichen ${formattedLimit}/Personen-Kategorielimit`,
-        receiptNotSmartScanned:
-            'Beleg und Ausgabendetails manuell hinzugefügt. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Erfahren Sie mehr</a>.',
+        receiptNotSmartScanned: 'Beleg und Ausgabendetails manuell hinzugefügt.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Beleg erforderlich';
             if (formattedLimit ?? category) {
@@ -6672,9 +6737,9 @@ const translations = {
                     `Sie haben die Belastung von ${amountOwed} auf der Karte mit der Endung ${cardEnding} angefochten. Ihr Konto wird gesperrt, bis der Streit mit Ihrer Bank geklärt ist.`,
             },
             cardAuthenticationRequired: {
-                title: 'Ihre Karte konnte nicht belastet werden.',
+                title: 'Ihre Zahlungskarte wurde nicht vollständig authentifiziert.',
                 subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) =>
-                    `Ihre Zahlungskarte wurde nicht vollständig authentifiziert. Bitte schließen Sie den Authentifizierungsprozess ab, um Ihre Zahlungskarte mit der Endung ${cardEnding} zu aktivieren.`,
+                    `Bitte schließen Sie den Authentifizierungsprozess ab, um Ihre Zahlungskarte mit der Endung ${cardEnding} zu aktivieren.`,
             },
             insufficientFunds: {
                 title: 'Ihre Karte konnte nicht belastet werden.',
@@ -7013,7 +7078,7 @@ const translations = {
         takeATestDrive: 'Machen Sie eine Probefahrt',
     },
     migratedUserWelcomeModal: {
-        title: 'Reisen und Ausgaben, in der Geschwindigkeit des Chats',
+        title: 'Willkommen bei New Expensify!',
         subtitle: 'New Expensify hat die gleiche großartige Automatisierung, aber jetzt mit erstaunlicher Zusammenarbeit:',
         confirmText: "Los geht's!",
         features: {
