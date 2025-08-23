@@ -2,17 +2,14 @@ import React, {useMemo} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {getEarliestErrorField} from '@libs/ErrorUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import AddressPage from '@pages/AddressPage';
 import type {FormOnyxValues} from '@src/components/Form/types';
 import type {Country} from '@src/CONST';
-import {
-    clearAddressStreetError,
-    updateAddress as updateAddressPersonalDetails
-} from '@src/libs/actions/PersonalDetails';
+import {clearAddressStreetError, updateAddress as updateAddressPersonalDetails} from '@src/libs/actions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import {getEarliestErrorField} from "@libs/ErrorUtils";
 
 /**
  * Submit form to update user's first and last legal name

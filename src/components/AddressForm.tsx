@@ -1,5 +1,7 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
@@ -16,8 +18,6 @@ import type {FormOnyxValues} from './Form/types';
 import type {State} from './StateSelector';
 import StateSelector from './StateSelector';
 import TextInput from './TextInput';
-import {useOnyx} from "react-native-onyx";
-import OfflineWithFeedback from "@components/OfflineWithFeedback";
 
 type CountryZipRegex = {
     regex?: RegExp;
@@ -74,7 +74,7 @@ function AddressForm({
     street2 = '',
     submitButtonText = '',
     zip = '',
-    onClearAddressStreetError = () => {}
+    onClearAddressStreetError = () => {},
 }: AddressFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

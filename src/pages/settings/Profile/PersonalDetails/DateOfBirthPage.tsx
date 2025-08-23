@@ -7,18 +7,18 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getEarliestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAgeRequirementError, getFieldRequiredErrors} from '@libs/ValidationUtils';
 import {clearDateOfBirthError, updateDateOfBirth} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DateOfBirthForm';
-import {getEarliestErrorField} from "@libs/ErrorUtils";
-import OfflineWithFeedback from "@components/OfflineWithFeedback";
 
 function DateOfBirthPage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
