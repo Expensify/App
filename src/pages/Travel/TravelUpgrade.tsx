@@ -67,7 +67,6 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
                     Navigation.dismissModal();
                 }}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldUseReanimatedModal
             >
                 <ScreenWrapper
                     style={[styles.pb0]}
