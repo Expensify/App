@@ -4,7 +4,9 @@ import {reconnectApp} from './actions/App';
 import Log from './Log';
 
 let lastFullReconnectTime = '';
-Onyx.connect({
+// We do not depend on updates on the UI to determine the last full reconnect time,
+// so we can use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
     callback: (value) => {
         lastFullReconnectTime = value ?? '';
