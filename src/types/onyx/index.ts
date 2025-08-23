@@ -28,7 +28,6 @@ import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
 import type DraftReportComments from './DraftReportComments';
-import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type ExportTemplate from './ExportTemplate';
@@ -146,7 +145,6 @@ export type {
     CurrencyList,
     CustomStatusDraft,
     DismissedReferralBanners,
-    DuplicateWorkspace,
     Download,
     WorkspaceCardsList,
     ExpensifyCardSettings,
