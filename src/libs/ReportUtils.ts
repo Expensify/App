@@ -144,6 +144,7 @@ import {
     getActionableJoinRequestPendingReportAction,
     getAllReportActions,
     getCardIssuedMessage,
+    getChangedApproverActionMessage,
     getDismissedViolationMessageText,
     getExportIntegrationLastMessageText,
     getIntegrationSyncFailedMessage,
@@ -735,6 +736,12 @@ type OptimisticIOUReport = Pick<
     | 'fieldList'
     | 'parentReportActionID'
 >;
+
+type OptimisticChangedApproverReportAction = Pick<
+    ReportAction,
+    'actionName' | 'actorAccountID' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'
+>;
+
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
 
 type CustomIcon = {
@@ -5260,6 +5267,10 @@ function getReportNameInternal({
         return getPolicyChangeMessage(parentReportAction);
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+        return getChangedApproverActionMessage(parentReportAction);
+    }
+
     if (parentReportAction?.actionName && isTagModificationAction(parentReportAction?.actionName)) {
         return getCleanedTagName(getWorkspaceTagUpdateMessage(parentReportAction) ?? '');
     }
@@ -7636,6 +7647,38 @@ function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedVio
     };
 }
 
+function buildOptimisticChangeApproverReportAction(managerID: number, actorAccountID: number): OptimisticChangedApproverReportAction {
+    const created = DateUtils.getDBTime();
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+        actorAccountID,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                text: `changed the approver to ${getDisplayNameForParticipant({accountID: managerID})}`,
+                html: `changed the approver to <mention-user accountID="${managerID}"/>`,
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        originalMessage: {
+            isNewDot: true,
+            lastModified: created,
+            mentionedAccountIDs: [managerID],
+        },
+        shouldShow: false,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        reportActionID: rand64(),
+    };
+}
+
 function buildOptimisticAnnounceChat(policyID: string, accountIDs: number[]): OptimisticAnnounceChat {
     const announceReport = getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -8517,23 +8560,10 @@ function shouldReportBeInOptionList(params: ShouldReportBeInOptionListParams) {
 /**
  * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, expense, room, and policy expense chat.
  */
-function getChatByParticipants(
-    newParticipantList: number[],
-    reports: OnyxCollection<Report> = allReports,
-    shouldIncludeGroupChats = false,
-    shouldExcludeClosedReports = false,
-): OnyxEntry<Report> {
+function getChatByParticipants(newParticipantList: number[], reports: OnyxCollection<Report> = allReports, shouldIncludeGroupChats = false): OnyxEntry<Report> {
     const sortedNewParticipantList = newParticipantList.sort();
     return Object.values(reports ?? {}).find((report) => {
         const participantAccountIDs = Object.keys(report?.participants ?? {});
-
-        // This will get removed as part of https://github.com/Expensify/App/issues/59961
-        // eslint-disable-next-line deprecation/deprecation
-        const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-
-        if (shouldExcludeClosedReports && isArchivedReport(reportNameValuePairs)) {
-            return false;
-        }
 
         // Skip if it's not a 1:1 chat
         if (!shouldIncludeGroupChats && !isOneOnOneChat(report) && !isSystemChat(report)) {
@@ -10300,7 +10330,7 @@ function prepareOnboardingOnyxData(
     const adminsChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = shouldPostTasksInAdminsRoom
         ? (adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID})
-        : getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID], allReports, false, true);
+        : getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID], allReports, false);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
     if (!targetChatReportID) {
@@ -11515,6 +11545,7 @@ export {
     buildOptimisticDetachReceipt,
     buildParticipantsFromAccountIDs,
     buildReportNameFromParticipantNames,
+    buildOptimisticChangeApproverReportAction,
     buildTransactionThread,
     canAccessReport,
     isReportNotFound,
