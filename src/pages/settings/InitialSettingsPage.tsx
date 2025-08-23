@@ -206,6 +206,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         styles.accountSettingsSectionContainer,
         styles.badgeSuccess,
         privateSubscription?.errors,
+        stripeCustomerId,
         freeTrialText,
     ]);
 
