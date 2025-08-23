@@ -163,7 +163,7 @@ function ReportFooter({
             createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID, true, quickAction);
             return true;
         },
-        [allPersonalDetails, availableLoginsList, currentUserEmail, report.policyID, report.reportID],
+        [allPersonalDetails, availableLoginsList, currentUserEmail, quickAction, report.policyID, report.reportID],
     );
 
     const onSubmitComment = useCallback(
