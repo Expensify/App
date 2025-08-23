@@ -16,7 +16,6 @@ import type {
     CreateDistanceRequestParams,
     CreatePerDiemRequestParams,
     CreateWorkspaceParams,
-    DeclineMoneyRequestParams,
     DeleteMoneyRequestParams,
     DetachReceiptParams,
     HoldMoneyRequestParams,
@@ -24,6 +23,7 @@ import type {
     MergeDuplicatesParams,
     PayInvoiceParams,
     PayMoneyRequestParams,
+    RejectMoneyRequestParams,
     ReopenReportParams,
     ReplaceReceiptParams,
     RequestMoneyParams,
@@ -115,8 +115,6 @@ import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
-    buildOptimisticDeclinedReportActionComment,
-    buildOptimisticDeclineReportAction,
     buildOptimisticDetachReceipt,
     buildOptimisticDismissedViolationReportAction,
     buildOptimisticExpenseReport,
@@ -129,7 +127,8 @@ import {
     buildOptimisticModifiedExpenseReportAction,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticMovedTransactionAction,
-    buildOptimisticRemoveReportAction,
+    buildOptimisticRejectReportAction,
+    buildOptimisticRejectReportActionComment,
     buildOptimisticReopenedReportAction,
     buildOptimisticReportPreview,
     buildOptimisticResolvedDuplicatesReportAction,
@@ -11926,16 +11925,16 @@ function getSearchOnyxUpdate({
     }
 }
 
-function dismissDeclineUseExplanation() {
+function dismissRejectUseExplanation() {
     const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.NVP_DISMISSED_DECLINE_USE_EXPLANATION,
+        name: ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION,
         value: true,
     };
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_DISMISSED_DECLINE_USE_EXPLANATION,
+            key: ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION,
             value: true,
         },
     ];
@@ -11946,13 +11945,13 @@ function dismissDeclineUseExplanation() {
 }
 
 /**
- * Decline a money request
- * @param transactionID - The ID of the transaction to decline
- * @param reportID - The ID of the expense report to decline
- * @param comment - The comment to add to the decline action
+ * Reject a money request
+ * @param transactionID - The ID of the transaction to reject
+ * @param reportID - The ID of the expense report to reject
+ * @param comment - The comment to add to the reject action
  * @returns The route to navigate back to
  */
-function declineMoneyRequest(transactionID: string, reportID: string, comment: string): Route | undefined {
+function rejectMoneyRequest(transactionID: string, reportID: string, comment: string): Route | undefined {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionAmount = getAmount(transaction);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -11974,7 +11973,6 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     let movedToReport;
     let movedToReportID;
     let urlToNavigateBack;
-    let optimisticRemoveReportAction;
 
     const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
 
@@ -11984,8 +11982,8 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     // Create system messages in both expense report and expense thread
     // The "declined this expense" action should come before the decline comment
     const baseTimestamp = DateUtils.getDBTime();
-    const optimisticDeclineReportAction = buildOptimisticDeclineReportAction(baseTimestamp);
-    const optimisticDeclineReportActionComment = buildOptimisticDeclinedReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
+    const optimisticRejectReportAction = buildOptimisticRejectReportAction(baseTimestamp);
+    const optimisticRejectReportActionComment = buildOptimisticRejectReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
 
     // Build successData and failureData to prevent duplication
     const successData: OnyxUpdate[] = [];
@@ -12265,8 +12263,8 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
         value: {
-            [optimisticDeclineReportAction.reportActionID]: optimisticDeclineReportAction,
-            [optimisticDeclineReportActionComment.reportActionID]: optimisticDeclineReportActionComment,
+            [optimisticRejectReportAction.reportActionID]: optimisticRejectReportAction,
+            [optimisticRejectReportActionComment.reportActionID]: optimisticRejectReportActionComment,
         },
     });
 
@@ -12275,9 +12273,9 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
         value: {
-            [optimisticDeclineReportAction.reportActionID]: null, // Remove optimistic decline action
-            [optimisticDeclineReportActionComment.reportActionID]: {
-                ...optimisticDeclineReportActionComment,
+            [optimisticRejectReportAction.reportActionID]: null, // Remove optimistic decline action
+            [optimisticRejectReportActionComment.reportActionID]: {
+                ...optimisticRejectReportActionComment,
                 pendingAction: null,
             },
         },
@@ -12288,8 +12286,8 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
         value: {
-            [optimisticDeclineReportAction.reportActionID]: null, // Remove optimistic decline action
-            [optimisticDeclineReportActionComment.reportActionID]: null,
+            [optimisticRejectReportAction.reportActionID]: null, // Remove optimistic decline action
+            [optimisticRejectReportActionComment.reportActionID]: null,
         },
     });
 
@@ -12319,45 +12317,13 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`,
             value: currentTransactionViolations,
         });
-
-        optimisticRemoveReportAction = buildOptimisticRemoveReportAction(transaction, childReportID ?? reportAction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [optimisticRemoveReportAction.reportActionID]: optimisticRemoveReportAction,
-            },
-        });
-
-        // Add successData for the remove action - remove optimistic action to avoid duplicates with server response
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [optimisticRemoveReportAction.reportActionID]: null,
-            },
-        });
-
-        // Add failureData for the remove action
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [optimisticRemoveReportAction.reportActionID]: null,
-            },
-        });
-
-        reportsToUpdate.push({
-            reportID,
-            lastVisibleActionCreated: optimisticRemoveReportAction.created,
-        });
     }
 
     // Child report (where decline actions are added)
     if (childReportID) {
         reportsToUpdate.push({
             reportID: childReportID,
-            lastVisibleActionCreated: optimisticDeclineReportActionComment.created,
+            lastVisibleActionCreated: optimisticRejectReportActionComment.created,
         });
     }
 
@@ -12365,11 +12331,11 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     if (movedToReportID && movedToReportID !== reportID) {
         reportsToUpdate.push({
             reportID: movedToReportID,
-            lastVisibleActionCreated: optimisticDeclineReportActionComment.created,
+            lastVisibleActionCreated: optimisticRejectReportActionComment.created,
         });
     }
 
-    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(optimisticDeclineReportAction.created, 1);
+    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(optimisticRejectReportAction.created, 1);
     // Add optimistic data for all reports
     reportsToUpdate.forEach(({reportID: targetReportID, lastVisibleActionCreated}) => {
         optimisticData.push({
@@ -12408,23 +12374,22 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     });
 
     // Build API parameters
-    const parameters: DeclineMoneyRequestParams = {
+    const parameters: RejectMoneyRequestParams = {
         transactionID,
         reportID,
         comment,
         movedToReportID,
-        removedFromReportActionID: optimisticRemoveReportAction?.reportActionID,
-        declinedActionReportActionID: optimisticDeclineReportAction.reportActionID,
-        declinedCommentReportActionID: optimisticDeclineReportActionComment.reportActionID,
+        rejectedActionReportActionID: optimisticRejectReportAction.reportActionID,
+        rejectedCommentReportActionID: optimisticRejectReportActionComment.reportActionID,
     };
 
     // Make API call
-    API.write(WRITE_COMMANDS.DECLINE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.REJECT_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
 
     return urlToNavigateBack as Route;
 }
 
-function markDeclineViolationAsResolved(transactionID: string, reportID?: string) {
+function markRejectViolationAsResolved(transactionID: string, reportID?: string) {
     if (!reportID) {
         return;
     }
@@ -13035,9 +13000,9 @@ export {
     canSubmitReport,
     submitPerDiemExpense,
     calculateDiffAmount,
-    dismissDeclineUseExplanation,
-    declineMoneyRequest,
-    markDeclineViolationAsResolved,
+    dismissRejectUseExplanation,
+    rejectMoneyRequest,
+    markRejectViolationAsResolved,
     setMoneyRequestReimbursable,
     computePerDiemExpenseAmount,
     initSplitExpense,

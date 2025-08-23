@@ -77,10 +77,10 @@ import {
     cancelPayment,
     canIOUBePaid as canIOUBePaidAction,
     deleteMoneyRequest,
-    dismissDeclineUseExplanation,
+    dismissRejectUseExplanation,
     getNavigationUrlOnMoneyRequestDelete,
     initSplitExpense,
-    markDeclineViolationAsResolved,
+    markRejectViolationAsResolved,
     payInvoice,
     payMoneyRequest,
     reopenReport,
@@ -219,7 +219,7 @@ function MoneyReportHeader({
         canBeMissing: true,
     });
 
-    const [dismissedDeclineUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_DECLINE_USE_EXPLANATION, {canBeMissing: true});
+    const [dismissedDeclineUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
 
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
@@ -451,7 +451,7 @@ function MoneyReportHeader({
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (isMarkAsResolvedAction(moneyRequestReport, transactionViolations)) {
-            return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.decline.declinedStatus')};
+            return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.reject.rejectedStatus')};
         }
 
         if (isPayAtEndExpense) {
@@ -506,7 +506,7 @@ function MoneyReportHeader({
     const statusBarProps = getStatusBarProps();
     const dismissModalAndUpdateUseDecline = () => {
         setIsDeclineEducationalModalVisible(false);
-        dismissDeclineUseExplanation();
+        dismissRejectUseExplanation();
         if (requestParentReportAction) {
             declineMoneyRequestReason(requestParentReportAction);
         }
@@ -806,9 +806,9 @@ function MoneyReportHeader({
                     if (!transaction?.transactionID) {
                         return;
                     }
-                    markDeclineViolationAsResolved(transaction?.transactionID, transactionThreadReport?.reportID);
+                    markRejectViolationAsResolved(transaction?.transactionID, transactionThreadReport?.reportID);
                 }}
-                text={translate('iou.decline.markAsResolved')}
+                text={translate('iou.reject.markAsResolved')}
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES]: (

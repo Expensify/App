@@ -7,7 +7,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MoneyRequestNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import {clearErrorFields, clearErrors} from '@userActions/FormActions';
-import {declineMoneyRequest} from '@userActions/IOU';
+import {rejectMoneyRequest} from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
@@ -23,7 +23,7 @@ function DeclineReasonPage({route}: DeclineReasonPageProps) {
     const {transactionID, reportID, backTo} = route.params;
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DECLINE_FORM>) => {
-        const urlToNavigateBack = declineMoneyRequest(transactionID, reportID, values.comment);
+        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment);
         Navigation.dismissModal();
         if (urlToNavigateBack) {
             InteractionManager.runAfterInteractions(() => {

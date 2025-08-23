@@ -15,15 +15,15 @@ import {
     canUnapproveIOU,
     completeSplitBill,
     createDistanceRequest,
-    declineMoneyRequest,
     deleteMoneyRequest,
     getIOUReportActionToApproveOrPay,
     initMoneyRequest,
     initSplitExpense,
-    markDeclineViolationAsResolved,
+    markRejectViolationAsResolved,
     mergeDuplicates,
     payMoneyRequest,
     putOnHold,
+    rejectMoneyRequest,
     replaceReceipt,
     requestMoney,
     resolveDuplicates,
@@ -7593,7 +7593,7 @@ describe('actions/IOU', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            const result = declineMoneyRequest(transaction.transactionID, iouReport.reportID, comment);
+            const result = rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment);
 
             // Then: Should return navigation route to chat report
             expect(result).toBe(ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID));
@@ -7609,7 +7609,7 @@ describe('actions/IOU', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            declineMoneyRequest(transaction.transactionID, iouReport.reportID, comment);
+            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is added
@@ -7628,7 +7628,7 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('markDeclineViolationAsResolved', () => {
+    describe('markRejectViolationAsResolved', () => {
         let transaction: OnyxEntry<Transaction>;
         let iouReport: OnyxEntry<Report>;
 
@@ -7658,7 +7658,7 @@ describe('actions/IOU', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            markDeclineViolationAsResolved(transaction.transactionID, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, iouReport.reportID);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is removed

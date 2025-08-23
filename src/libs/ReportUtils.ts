@@ -487,7 +487,7 @@ type OptimisticHoldReportAction = Pick<
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
 
-type OptimisticDeclineReportAction = Pick<
+type OptimisticRejectReportAction = Pick<
     ReportAction,
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
@@ -4490,7 +4490,7 @@ const declineMoneyRequestReason = (reportAction: OnyxEntry<ReportAction>): void 
     }
 
     const activeRoute = encodeURIComponent(Navigation.getActiveRoute());
-    Navigation.navigate(ROUTES.DECLINE_MONEY_REQUEST_REASON.getRoute(transactionID, moneyRequestReportID, activeRoute));
+    Navigation.navigate(ROUTES.REJECT_MONEY_REQUEST_REASON.getRoute(transactionID, moneyRequestReportID, activeRoute));
 };
 
 /**
@@ -5047,11 +5047,11 @@ function getReportActionMessage({
     }
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.DECLINEDTRANSACTION_THREAD) {
-        return translateLocal('iou.decline.reportActions.declinedExpense');
+        return translateLocal('iou.reject.reportActions.rejectedExpense');
     }
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED) {
-        return translateLocal('iou.decline.reportActions.markedAsResolved');
+        return translateLocal('iou.reject.reportActions.markedAsResolved');
     }
 
     if (isApprovedOrSubmittedReportAction(reportAction) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
@@ -11388,7 +11388,7 @@ function findReportIDForAction(action?: ReportAction): string | undefined {
         })
         ?.replace(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, '');
 }
-function canDeclineReportAction(report: Report, policy?: Policy): boolean {
+function canRejectReportAction(report: Report, policy?: Policy): boolean {
     const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserManager = managerID === currentUserAccountID;
     const isReportApprover = isApproverUtils(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
@@ -11498,11 +11498,11 @@ function selectFilteredReportActions(
  * Returns the necessary reportAction onyx data to indicate that the transaction has been removed from the report
  * @param [created] - Action created time
  */
-function buildOptimisticRemoveReportAction(transaction: Transaction, reportID: string, created = DateUtils.getDBTime()): OptimisticDeclineReportAction {
+function buildOptimisticRemoveReportAction(transaction: Transaction, reportID: string, created = DateUtils.getDBTime()): OptimisticRejectReportAction {
     const amount = convertToDisplayString(Math.abs(transaction.amount ?? 0), transaction.currency ?? '');
     const merchant = transaction.merchant ?? '';
     const linkToReport = `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`;
-    const htmlForComment = translateLocal('iou.decline.reportActions.removedFromReport', {
+    const htmlForComment = translateLocal('iou.reject.reportActions.removedFromReport', {
         amount,
         merchant,
         linkToReport,
@@ -11542,10 +11542,10 @@ function buildOptimisticRemoveReportAction(transaction: Transaction, reportID: s
 }
 
 /**
- * Returns the necessary reportAction onyx data to indicate that the transaction has been declined optimistically
+ * Returns the necessary reportAction onyx data to indicate that the transaction has been rejected optimistically
  * @param [created] - Action created time
  */
-function buildOptimisticDeclineReportAction(created = DateUtils.getDBTime()): OptimisticDeclineReportAction {
+function buildOptimisticRejectReportAction(created = DateUtils.getDBTime()): OptimisticRejectReportAction {
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.DECLINEDTRANSACTION_THREAD,
@@ -11555,7 +11555,7 @@ function buildOptimisticDeclineReportAction(created = DateUtils.getDBTime()): Op
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'normal',
-                text: translateLocal('iou.decline.reportActions.declinedExpense'),
+                text: translateLocal('iou.reject.reportActions.rejectedExpense'),
             },
         ],
         person: [
@@ -11576,7 +11576,7 @@ function buildOptimisticDeclineReportAction(created = DateUtils.getDBTime()): Op
  * Returns the necessary reportAction onyx data to indicate that the transaction has been declined optimistically
  * @param [created] - Action created time
  */
-function buildOptimisticDeclinedReportActionComment(comment: string, created = DateUtils.getDBTime()): OptimisticDeclineReportAction {
+function buildOptimisticRejectReportActionComment(comment: string, created = DateUtils.getDBTime()): OptimisticRejectReportAction {
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -11607,7 +11607,7 @@ function buildOptimisticDeclinedReportActionComment(comment: string, created = D
  * Returns the necessary reportAction onyx data to indicate that the transaction has been marked as resolved optimistically
  * @param [created] - Action created time
  */
-function buildOptimisticMarkedAsResolvedReportAction(created = DateUtils.getDBTime()): OptimisticDeclineReportAction {
+function buildOptimisticMarkedAsResolvedReportAction(created = DateUtils.getDBTime()): OptimisticRejectReportAction {
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED,
@@ -11617,7 +11617,7 @@ function buildOptimisticMarkedAsResolvedReportAction(created = DateUtils.getDBTi
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'normal',
-                text: translateLocal('iou.decline.reportActions.markedAsResolved'),
+                text: translateLocal('iou.reject.reportActions.markedAsResolved'),
             },
         ],
         person: [
@@ -11716,8 +11716,8 @@ export {
     buildOptimisticCardAssignedReportAction,
     buildOptimisticDetachReceipt,
     buildOptimisticRemoveReportAction,
-    buildOptimisticDeclineReportAction,
-    buildOptimisticDeclinedReportActionComment,
+    buildOptimisticRejectReportAction,
+    buildOptimisticRejectReportActionComment,
     buildOptimisticMarkedAsResolvedReportAction,
     buildParticipantsFromAccountIDs,
     buildReportNameFromParticipantNames,
@@ -12058,7 +12058,7 @@ export {
     isWorkspaceEligibleForReportChange,
     pushTransactionViolationsOnyxData,
     navigateOnDeleteExpense,
-    canDeclineReportAction,
+    canRejectReportAction,
     hasReportBeenReopened,
     hasReportBeenRetracted,
     getMoneyReportPreviewName,

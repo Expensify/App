@@ -1364,25 +1364,26 @@ const translations = {
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
 
-        decline: {
-            educationalTitle: '¿Deberías Retener o Rechazar?',
-            educationalText: 'Si no estás listo para aprobar o pagar un gasto, puedes retenerlo o rechazarlo:',
-            holdExpenseTitle: 'Retener un gasto para pedir más detalles antes de aprobarlo o pagarlo.',
+        reject: {
+            educationalTitle: '¿Debes retener o rechazar?',
+            educationalText: 'Si no estás listo para aprobar o pagar un gasto, puedes retenerlo o rechazarlo.',
+            holdExpenseTitle: 'Retén un gasto para pedir más detalles antes de aprobarlo o pagarlo.',
             heldExpenseLeftBehindTitle: 'Los gastos retenidos se dejan atrás cuando apruebas un informe completo.',
-            declineExpenseTitle: 'Rechazar un gasto que no piensas aprobar o pagar.',
+            declineExpenseTitle: 'Rechaza un gasto que no tienes intención de aprobar o pagar.',
             reasonPageTitle: 'Rechazar gasto',
-            reasonPageDescription1: 'Rechaza un gasto si no piensas aprobarlo o pagarlo en ningún momento. De lo contrario, utiliza "Retener" para pausar el gasto y pedir más contexto.',
+            reasonPageDescription1: 'Rechaza un gasto si no planeas aprobarlo o pagarlo nunca. De lo contrario, utiliza "Retener" para pausar el gasto y pedir más contexto.',
             reasonPageDescription2: 'Si vas a rechazar el gasto, por favor añade un comentario para explicar el motivo:',
-            declineReason: 'Motivo del rechazo',
+            rejectReason: 'Motivo del rechazo',
             markAsResolved: 'Marcar como resuelto',
-            declinedStatus: 'Este gasto fue rechazado. Estamos esperando que soluciones el/los problema(s) y lo marques como resuelto para poder enviarlo.',
+            rejectedStatus: 'Este gasto fue rechazado. Esperando a que soluciones el(los) problema(s) y lo marques como resuelto para habilitar el envío.',
             reportActions: {
                 removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
-                    `eliminado <a href="${linkToReport}">${amount}${merchant ? ` de ${merchant}` : ''}</a>`,
-                declinedExpense: `rechazó este gasto`,
-                markedAsResolved: `marcó el motivo del rechazo como resuelto`,
+                    `eliminó <a href="${linkToReport}">${amount}${merchant ? ` de ${merchant}` : ''}</a>`,
+                rejectedExpense: 'rechazó este gasto',
+                markedAsResolved: 'marcó el motivo del rechazo como resuelto',
             },
         },
+
         moveExpenses: () => ({one: 'Mover gasto', other: 'Mover gastos'}),
     },
     transactionMerge: {

@@ -38,12 +38,12 @@ function DeclineReasonFormView({backTo, validate, onSubmit}: DeclineReasonFormVi
             testID={DeclineReasonFormView.displayName}
         >
             <HeaderWithBackButton
-                title={translate('iou.decline.reasonPageTitle')}
+                title={translate('iou.reject.reasonPageTitle')}
                 onBackButtonPress={() => Navigation.goBack(backTo)}
             />
             <FormProvider
                 formID="moneyDeclineReasonForm"
-                submitButtonText={translate('iou.decline.reasonPageTitle')}
+                submitButtonText={translate('iou.reject.reasonPageTitle')}
                 style={[styles.flexGrow1, styles.ph5]}
                 onSubmit={onSubmit}
                 validate={validate}
@@ -52,8 +52,8 @@ function DeclineReasonFormView({backTo, validate, onSubmit}: DeclineReasonFormVi
                 isSubmitActionDangerous
             >
                 <View>
-                    <Text style={styles.mb6}>{translate('iou.decline.reasonPageDescription1')}</Text>
-                    <Text style={styles.mb6}>{translate('iou.decline.reasonPageDescription2')}</Text>
+                    <Text style={styles.mb6}>{translate('iou.reject.reasonPageDescription1')}</Text>
+                    <Text style={styles.mb6}>{translate('iou.reject.reasonPageDescription2')}</Text>
                 </View>
                 <View>
                     <InputWrapper
@@ -62,8 +62,8 @@ function DeclineReasonFormView({backTo, validate, onSubmit}: DeclineReasonFormVi
                         valueType="string"
                         name="comment"
                         defaultValue={undefined}
-                        label={translate('iou.decline.declineReason')}
-                        accessibilityLabel={translate('iou.decline.declineReason')}
+                        label={translate('iou.reject.rejectReason')}
+                        accessibilityLabel={translate('iou.reject.rejectReason')}
                         ref={inputCallbackRef}
                     />
                 </View>

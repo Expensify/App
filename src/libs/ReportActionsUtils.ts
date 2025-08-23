@@ -3001,7 +3001,7 @@ function getDeclinedTransactionRemoveMessage(action: OnyxEntry<ReportAction>): s
     const merchant = originalMessage?.merchant ?? '';
     const messageReportID = originalMessage?.transactionThreadReportID?.toString() ?? '';
     const linkToReport = messageReportID ? `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(messageReportID)}` : '';
-    return translateLocal('iou.decline.reportActions.removedFromReport', {
+    return translateLocal('iou.reject.reportActions.removedFromReport', {
         amount,
         merchant: merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? merchant : undefined,
         linkToReport,

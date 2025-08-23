@@ -1383,24 +1383,25 @@ const translations = {
         rates: 'Preise',
         submitsTo: ({name}: SubmitsToParams) => `Übermittelt an ${name}`,
         moveExpenses: () => ({one: 'Ausgabe verschieben', other: 'Ausgaben verschieben'}),
-        decline: {
-            educationalTitle: 'Sollten Sie halten oder ablehnen?',
-            educationalText: 'Wenn Sie nicht bereit sind, eine Ausgabe zu genehmigen oder zu bezahlen, können Sie sie halten oder ablehnen.',
-            holdExpenseTitle: 'Halten Sie eine Ausgabe, um vor der Genehmigung oder Zahlung nach weiteren Details zu fragen.',
-            heldExpenseLeftBehindTitle: 'Gehaltene Ausgaben werden zurückgelassen, wenn Sie einen gesamten Bericht genehmigen.',
-            declineExpenseTitle: 'Lehnen Sie eine Ausgabe ab, die Sie nicht genehmigen oder bezahlen möchten.',
+        reject: {
+            educationalTitle: 'Solltest du halten oder ablehnen?',
+            educationalText: 'Wenn du noch nicht bereit bist, eine Ausgabe zu genehmigen oder zu bezahlen, kannst du sie halten oder ablehnen.',
+            holdExpenseTitle: 'Halte eine Ausgabe zurück, um vor der Genehmigung oder Zahlung weitere Details anzufordern.',
+            heldExpenseLeftBehindTitle: 'Zurückgehaltene Ausgaben bleiben zurück, wenn du einen gesamten Bericht genehmigst.',
+            declineExpenseTitle: 'Lehne eine Ausgabe ab, die du nicht genehmigen oder bezahlen möchtest.',
             reasonPageTitle: 'Ausgabe ablehnen',
             reasonPageDescription1:
-                'Lehnen Sie eine Ausgabe ab, wenn Sie sie niemals genehmigen oder bezahlen möchten. Verwenden Sie ansonsten "halten", um die Ausgabe zu pausieren und nach mehr Kontext zu fragen.',
-            reasonPageDescription2: 'Wenn Sie die Ausgabe ablehnen möchten, fügen Sie bitte einen Kommentar hinzu, um zu erklären warum:',
-            declineReason: 'Ablehnungsgrund',
+                'Lehne eine Ausgabe ab, wenn du sie niemals genehmigen oder bezahlen möchtest. Andernfalls verwende "Halten", um die Ausgabe zu pausieren und nach mehr Kontext zu fragen.',
+            reasonPageDescription2: 'Wenn du die Ausgabe ablehnen willst, füge bitte einen Kommentar hinzu, um den Grund zu erklären:',
+            rejectReason: 'Ablehnungsgrund',
             markAsResolved: 'Als gelöst markieren',
-            declinedStatus: 'Diese Ausgabe wurde abgelehnt. Warten auf Sie, um das Problem zu beheben und als gelöst zu markieren, um die Einreichung zu ermöglichen.',
+            rejectedStatus:
+                'Diese Ausgabe wurde abgelehnt. Es wird darauf gewartet, dass du das Problem/die Probleme behebst und sie als gelöst markierst, um die Einreichung zu ermöglichen.',
             reportActions: {
                 removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
-                    `entfernt <a href="${linkToReport}">${amount}${merchant ? ` von ${merchant}` : ''}</a>`,
-                declinedExpense: 'diese Ausgabe abgelehnt',
-                markedAsResolved: 'den Ablehnungsgrund als gelöst markiert',
+                    `entfernte <a href="${linkToReport}">${amount}${merchant ? ` von ${merchant}` : ''}</a>`,
+                rejectedExpense: 'lehnte diese Ausgabe ab',
+                markedAsResolved: 'markierte den Ablehnungsgrund als gelöst',
             },
         },
     },

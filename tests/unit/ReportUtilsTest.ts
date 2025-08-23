@@ -20,7 +20,7 @@ import {
     buildReportNameFromParticipantNames,
     buildTransactionThread,
     canAddTransaction,
-    canDeclineReportAction,
+    canRejectReportAction,
     canDeleteReportAction,
     canDeleteTransaction,
     canEditMoneyRequest,
@@ -5532,7 +5532,7 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('canDeclineReportAction', () => {
+    describe('canRejectReportAction', () => {
         const managerAccountID = 1;
         const adminAccountID = 3;
         const submitterAccountID = 5;
@@ -5557,7 +5557,7 @@ describe('ReportUtils', () => {
                 managerID: managerAccountID,
             };
 
-            const result = canDeclineReportAction(report, testPolicy);
+            const result = canRejectReportAction(report, testPolicy);
             expect(result).toBe(true);
         });
 
@@ -5576,7 +5576,7 @@ describe('ReportUtils', () => {
                 managerID: managerAccountID,
             };
 
-            const result = canDeclineReportAction(report, testPolicy);
+            const result = canRejectReportAction(report, testPolicy);
             expect(result).toBe(true);
         });
 
@@ -5591,7 +5591,7 @@ describe('ReportUtils', () => {
                 managerID: managerAccountID,
             };
 
-            const result = canDeclineReportAction(report, adminPolicy);
+            const result = canRejectReportAction(report, adminPolicy);
             expect(result).toBe(true);
         });
 
@@ -5608,7 +5608,7 @@ describe('ReportUtils', () => {
                 managerID: managerAccountID,
             };
 
-            const result = canDeclineReportAction(report, userPolicy);
+            const result = canRejectReportAction(report, userPolicy);
             expect(result).toBe(false);
         });
     });

@@ -31,15 +31,15 @@ type HoldOrDeclineEducationalModalProps = {
 const menuSections: SectionMenuItem[] = [
     {
         icon: Illustrations.Stopwatch,
-        titleTranslationKey: 'iou.decline.holdExpenseTitle',
+        titleTranslationKey: 'iou.reject.holdExpenseTitle',
     },
     {
         icon: Illustrations.RealtimeReport,
-        titleTranslationKey: 'iou.decline.heldExpenseLeftBehindTitle',
+        titleTranslationKey: 'iou.reject.heldExpenseLeftBehindTitle',
     },
     {
         icon: Illustrations.ThumbsDown,
-        titleTranslationKey: 'iou.decline.declineExpenseTitle',
+        titleTranslationKey: 'iou.reject.declineExpenseTitle',
     },
 ];
 
@@ -51,8 +51,8 @@ function HoldOrDeclineEducationalModal({onClose, onConfirm}: HoldOrDeclineEducat
 
     return (
         <FeatureTrainingModal
-            title={translate('iou.decline.educationalTitle')}
-            description={translate('iou.decline.educationalText')}
+            title={translate('iou.reject.educationalTitle')}
+            description={translate('iou.reject.educationalText')}
             confirmText={translate('common.buttonConfirm')}
             image={Illustrations.ModalHoldOrDecline}
             contentFitImage="cover"
