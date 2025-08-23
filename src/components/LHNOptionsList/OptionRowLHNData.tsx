@@ -2,13 +2,11 @@ import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
-import useOnyx from '@hooks/useOnyx';
 import {getSortedReportActions, shouldReportActionBeVisibleAsLastAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -37,6 +35,7 @@ function OptionRowLHNData({
     transactionViolations,
     lastMessageTextFromReport,
     localeCompare,
+    isReportArchived = false,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
@@ -45,22 +44,20 @@ function OptionRowLHNData({
 
     const optionItemRef = useRef<OptionData | undefined>(undefined);
 
-    const [reportActionsData] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
-
     const lastAction = useMemo(() => {
-        if (!reportActionsData || !fullReport) {
+        if (!reportActions || !fullReport) {
             return undefined;
         }
 
-        const canUserPerformWriteAction = canUserPerformWriteActionUtil(fullReport);
-        const actionsArray = getSortedReportActions(Object.values(reportActionsData));
+        const canUserPerformWriteAction = canUserPerformWriteActionUtil(fullReport, isReportArchived);
+        const actionsArray = getSortedReportActions(Object.values(reportActions));
 
         const reportActionsForDisplay = actionsArray.filter(
             (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
         );
 
         return reportActionsForDisplay.at(-1);
-    }, [reportActionsData, fullReport]);
+    }, [reportActions, fullReport, isReportArchived]);
 
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
     const optionItem = useMemo(() => {
@@ -77,6 +74,7 @@ function OptionRowLHNData({
             invoiceReceiverPolicy,
             card,
             localeCompare,
+            isReportArchived,
         });
         // eslint-disable-next-line react-compiler/react-compiler
         if (deepEqual(item, optionItemRef.current)) {
@@ -111,6 +109,7 @@ function OptionRowLHNData({
         reportAttributes,
         card,
         localeCompare,
+        isReportArchived,
     ]);
 
     return (
