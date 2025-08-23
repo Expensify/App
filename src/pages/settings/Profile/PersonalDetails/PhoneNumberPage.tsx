@@ -105,18 +105,12 @@ function PhoneNumberPage() {
                                 InputComponent={TextInput}
                                 ref={inputCallbackRef}
                                 inputID={INPUT_IDS.PHONE_NUMBER}
-                                name="legalFirstName"
+                                name="phoneNumber"
                                 label={translate('common.phoneNumber')}
                                 aria-label={translate('common.phoneNumber')}
                                 role={CONST.ROLE.PRESENTATION}
                                 defaultValue={phoneNumber}
                                 spellCheck={false}
-                                onBlur={() => {
-                                    if (!validateLoginError) {
-                                        return;
-                                    }
-                                    clearPhoneNumberError();
-                                }}
                             />
                         </OfflineWithFeedback>
                     </FormProvider>

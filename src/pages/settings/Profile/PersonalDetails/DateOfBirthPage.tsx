@@ -13,16 +13,20 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAgeRequirementError, getFieldRequiredErrors} from '@libs/ValidationUtils';
-import {updateDateOfBirth} from '@userActions/PersonalDetails';
+import {clearDateOfBirthError, updateDateOfBirth} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DateOfBirthForm';
+import {getEarliestErrorField} from "@libs/ErrorUtils";
+import OfflineWithFeedback from "@components/OfflineWithFeedback";
 
 function DateOfBirthPage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const validateLoginError = getEarliestErrorField(privatePersonalDetails, 'dob');
+
     /**
      * @returns An object containing the errors for each inputID
      */
@@ -58,20 +62,32 @@ function DateOfBirthPage() {
                         style={[styles.flexGrow1, styles.ph5]}
                         formID={ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}
                         validate={validate}
-                        onSubmit={updateDateOfBirth}
+                        onSubmit={(values: FormOnyxValues<typeof ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM>) => {
+                            // Clear the error when the user tries to submit the form
+                            if (validateLoginError) {
+                                clearDateOfBirthError();
+                            }
+                            updateDateOfBirth(values);
+                        }}
                         submitButtonText={translate('common.save')}
                         enabledWhenOffline
                         shouldHideFixErrorsAlert
                     >
-                        <InputWrapper
-                            InputComponent={DatePicker}
-                            inputID={INPUT_IDS.DOB}
-                            label={translate('common.date')}
-                            defaultValue={privatePersonalDetails?.dob ?? ''}
-                            minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
-                            maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
-                            autoFocus
-                        />
+                        <OfflineWithFeedback
+                            errors={validateLoginError}
+                            errorRowStyles={styles.mt2}
+                            onClose={() => clearDateOfBirthError()}
+                        >
+                            <InputWrapper
+                                InputComponent={DatePicker}
+                                inputID={INPUT_IDS.DOB}
+                                label={translate('common.date')}
+                                defaultValue={privatePersonalDetails?.dob ?? ''}
+                                minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
+                                maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
+                                autoFocus
+                            />
+                        </OfflineWithFeedback>
                     </FormProvider>
                 )}
             </DelegateNoAccessWrapper>
