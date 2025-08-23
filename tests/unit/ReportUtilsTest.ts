@@ -395,7 +395,7 @@ describe('ReportUtils', () => {
     });
 
     describe('sortIconsByName', () => {
-        it('returns sorted avatar source', () => {
+        it('returns sorted avatar source by name, then accountID', () => {
             const participants = getIconsForParticipants([1, 2, 3, 4, 5], participantsPersonalDetails);
             const sortedParticipants = sortIconsByName(participants, participantsPersonalDetails, localeCompare);
             expect(sortedParticipants).toHaveLength(5);
