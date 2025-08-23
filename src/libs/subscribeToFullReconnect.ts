@@ -13,7 +13,9 @@ Onyx.connect({
 });
 
 let reconnectAppIfFullReconnectBefore = '';
-Onyx.connect({
+// We do not depend on updates on the UI to determine if we should reconnect the app,
+// so we can use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE,
     callback: (value) => {
         reconnectAppIfFullReconnectBefore = value ?? '';
