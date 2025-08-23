@@ -21,12 +21,10 @@ function SearchTransactionsChangeReport() {
 
     const firstTransactionKey = selectedTransactionsKeys.at(0);
     const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
-    const firstTransactionPolicyID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.policyID : undefined;
     const selectedReportID =
         Object.values(selectedTransactions).every((transaction) => transaction.reportID === firstTransactionReportID) && firstTransactionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
             ? firstTransactionReportID
             : undefined;
-    const selectedPolicyID = Object.values(selectedTransactions).every((transaction) => transaction.policyID === firstTransactionPolicyID) ? firstTransactionPolicyID : undefined;
 
     const selectReport = (item: TransactionGroupListItem) => {
         if (selectedTransactionsKeys.length === 0) {
@@ -54,7 +52,6 @@ function SearchTransactionsChangeReport() {
             backTo={undefined}
             transactionIDs={selectedTransactionsKeys}
             selectedReportID={selectedReportID}
-            selectedPolicyID={selectedPolicyID}
             selectReport={selectReport}
             removeFromReport={removeFromReport}
             isEditing
