@@ -35,8 +35,8 @@ function isMissingValidAddress(street: string, city: string, postalCode: string,
     );
 }
 
-function isMissingValidBusinessContactInformation(contactNumber: string, contactEmail: string) {
-    return contactNumber === '' || contactEmail === '' || !isValidPhoneInternational(contactNumber) || !isValidEmail(contactEmail);
+function isMissingValidBusinessContactInformation(contactNumber: string, contactEmail: string, countryCode: number) {
+    return contactNumber === '' || contactEmail === '' || !isValidPhoneInternational(contactNumber, countryCode) || !isValidEmail(contactEmail);
 }
 
 function isMissingValidRegistrationNumber(registrationNumber: string, country: string) {
@@ -50,7 +50,7 @@ function isMissingValidTaxIDEINNumber(taxIDEINNumber: string, country: string) {
 /**
  * Returns the initial subStep for the Business info step based on already existing data
  */
-function getInitialSubStepForBusinessInfoStep(data: Record<string, string>): number {
+function getInitialSubStepForBusinessInfoStep(data: Record<string, string>, countryCode: number): number {
     if (isMissingValidCompanyName(data[BUSINESS_INFO_STEP_KEYS.COMPANY_NAME])) {
         return 0;
     }
@@ -71,7 +71,7 @@ function getInitialSubStepForBusinessInfoStep(data: Record<string, string>): num
         return 2;
     }
 
-    if (isMissingValidBusinessContactInformation(data[BUSINESS_INFO_STEP_KEYS.BUSINESS_CONTACT_NUMBER], data[BUSINESS_INFO_STEP_KEYS.BUSINESS_CONFIRMATION_EMAIL])) {
+    if (isMissingValidBusinessContactInformation(data[BUSINESS_INFO_STEP_KEYS.BUSINESS_CONTACT_NUMBER], data[BUSINESS_INFO_STEP_KEYS.BUSINESS_CONFIRMATION_EMAIL], countryCode)) {
         return 3;
     }
 

@@ -26,6 +26,7 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
     const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const primaryLogin = account?.primaryLogin ?? '';
 
     const phoneNumberDefaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_CONTACT_NUMBER] ?? '';
@@ -35,7 +36,7 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors = getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (values[BUSINESS_CONTACT_NUMBER] && !isValidPhoneInternational(values[BUSINESS_CONTACT_NUMBER])) {
+            if (values[BUSINESS_CONTACT_NUMBER] && !isValidPhoneInternational(values[BUSINESS_CONTACT_NUMBER], countryCode ?? 1)) {
                 errors[BUSINESS_CONTACT_NUMBER] = translate('common.error.phoneNumber');
             }
 
@@ -45,7 +46,7 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
 
             return errors;
         },
-        [translate],
+        [countryCode, translate],
     );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
