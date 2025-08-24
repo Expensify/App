@@ -2477,8 +2477,7 @@ const translations = {
                 title: ({workspaceSettingsLink}) => `Rivedi le [impostazioni dello spazio di lavoro](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
                     'Ecco come rivedere e aggiornare le impostazioni dello spazio di lavoro:\n' +
-                    '1. Clicca sulla scheda delle impostazioni.\n' +
-                    '2. Clicca su *Spazi di lavoro* > [Il tuo spazio di lavoro].\n' +
+                    '1. Clicca su *Spazi di lavoro* > [Il tuo spazio di lavoro].\n' +
                     `[Vai al tuo spazio di lavoro](${workspaceSettingsLink}). Le tracceremo nella stanza #admins.`,
             },
             createReportTask: {
