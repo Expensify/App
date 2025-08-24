@@ -114,7 +114,7 @@ function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Tran
         (!isTransactionDataReady || (isStillLoadingData && transactions?.length === 0)) &&
         !isTransactionThreadView &&
         report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
-        !reportMetadata?.hasOnceLoadedReportActions
+        (!reportMetadata?.hasOnceLoadedReportActions || !!reportMetadata?.isLoadingInitialReportActions)
     );
 }
 
