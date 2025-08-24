@@ -258,6 +258,7 @@ function TransactionItemRow({
                             parentAction={transactionItem.parentTransactionID}
                             goToItem={onButtonPress}
                             isLoading={isActionLoading}
+                            isDisabled={isPendingDelete}
                         />
                     )}
                 </View>
