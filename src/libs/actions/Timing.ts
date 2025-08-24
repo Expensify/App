@@ -5,6 +5,7 @@ import * as Environment from '@libs/Environment/Environment';
 import Firebase from '@libs/Firebase';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+import telemetry from '@libs/Telemetry';
 import pkg from '../../../package.json';
 
 type TimestampData = {
@@ -43,6 +44,9 @@ function end(eventName: string, secondaryName = '', maxExecutionTime = 0) {
     const {startTime, shouldUseFirebase} = timestampData[eventName];
 
     const eventTime = performance.now() - startTime;
+
+    const histogram = telemetry.meter.createHistogram(eventName, { unit: 'ms' });
+    histogram.record(eventTime);
 
     if (shouldUseFirebase) {
         Firebase.stopTrace(eventName);
