@@ -58,6 +58,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -292,6 +293,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceMembersCountParams,
@@ -588,6 +590,7 @@ const translations = {
         network: 'Network',
         reportID: 'ID do Relatório',
         longID: 'ID longo',
+        withdrawalID: 'ID de retirada',
         bankAccounts: 'Contas bancárias',
         chooseFile: 'Escolher arquivo',
         chooseFiles: 'Escolher arquivos',
@@ -1379,6 +1382,22 @@ const translations = {
         rates: 'Taxas',
         submitsTo: ({name}: SubmitsToParams) => `Envia para ${name}`,
         moveExpenses: () => ({one: 'Mover despesa', other: 'Mover despesas'}),
+        changeApprover: {
+            title: 'Alterar aprovador',
+            subtitle: 'Escolha uma opção para alterar o aprovador deste relatório.',
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Você também pode alterar o aprovador permanentemente para todos os relatórios em suas <a href="${workflowSettingLink}">configurações de fluxo de trabalho</a>.`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `alterou o aprovador para <mention-user accountID="${managerID}"/>`,
+            actions: {
+                addApprover: 'Adicionar aprovador',
+                addApproverSubtitle: 'Adicionar um aprovador adicional ao fluxo de trabalho existente.',
+                bypassApprovers: 'Ignorar aprovadores',
+                bypassApproversSubtitle: 'Atribua-se como aprovador final e pule quaisquer aprovadores restantes.',
+            },
+            addApprover: {
+                subtitle: 'Escolha um aprovador adicional para este relatório antes de o encaminharmos através do restante do fluxo de trabalho de aprovação.',
+            },
+        },
     },
     transactionMerge: {
         listPage: {
@@ -5475,6 +5494,12 @@ const translations = {
                     'As Tags de Múltiplos Níveis ajudam você a rastrear despesas com maior precisão. Atribua várias tags a cada item de linha — como departamento, cliente ou centro de custo — para capturar o contexto completo de cada despesa. Isso permite relatórios mais detalhados, fluxos de trabalho de aprovação e exportações contábeis.',
                 onlyAvailableOnPlan: 'As tags de múltiplos níveis estão disponíveis apenas no plano Control, a partir de',
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
+                title: 'Vários níveis de aprovação',
+                description:
+                    'Vários níveis de aprovação são uma ferramenta de fluxo de trabalho para empresas que exigem que mais de uma pessoa aprove um relatório antes que ele possa ser reembolsado.',
+                onlyAvailableOnPlan: 'Vários níveis de aprovação estão disponíveis apenas no plano Control, a partir de ',
+            },
             pricing: {
                 perActiveMember: 'por membro ativo por mês.',
                 perMember: 'por membro por mês.',
@@ -6391,7 +6416,8 @@ const translations = {
         levelThreeResult: 'Mensagem removida do canal, além de um aviso anônimo, e a mensagem foi relatada para revisão.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Convide-os',
+        inviteToSubmitExpense: 'Convidar para enviar despesas',
+        inviteToChat: 'Convidar apenas para conversar',
         nothing: 'Não faça nada',
     },
     actionableMentionJoinWorkspaceOptions: {

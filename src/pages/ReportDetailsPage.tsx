@@ -766,7 +766,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
-            deleteTask(report);
+            deleteTask(report, isReportArchived);
             return;
         }
 
@@ -792,6 +792,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         removeTransaction,
         report,
         requestParentReportAction,
+        isReportArchived,
     ]);
 
     // A flag to indicate whether the user chose to delete the transaction or not

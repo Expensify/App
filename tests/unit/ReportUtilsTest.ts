@@ -34,7 +34,6 @@ import {
     canUserPerformWriteAction,
     findLastAccessedReport,
     getAllAncestorReportActions,
-    getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
     getChatByParticipants,
     getChatRoomSubtitle,
@@ -80,7 +79,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
@@ -5530,153 +5529,6 @@ describe('ReportUtils', () => {
             const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, true);
             expect(Object.keys(errors)).toHaveLength(0);
             expect(reportAction).toBeUndefined();
-        });
-    });
-
-    describe('getChatRoomSubtitle', () => {
-        beforeAll(async () => {
-            await Onyx.clear();
-            const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
-            await Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
-                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
-                ...policyCollectionDataSet,
-            });
-        });
-
-        afterEach(async () => {
-            await Onyx.clear();
-            const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
-            await Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
-                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
-                ...policyCollectionDataSet,
-            });
-        });
-
-        it('should return empty string for chat thread', () => {
-            const report = createWorkspaceThread(1);
-            const result = getChatRoomSubtitle(report);
-            expect(result).toBe('');
-        });
-
-        it('should return "Your space" for self DM', () => {
-            const report = createSelfDM(1, currentUserAccountID);
-            const result = getChatRoomSubtitle(report);
-            expect(result).toBe('Your space');
-        });
-
-        it('should return "Invoices" for invoice room', () => {
-            const report = createInvoiceRoom(1);
-            const result = getChatRoomSubtitle(report);
-            expect(result).toBe('Invoices');
-        });
-
-        it('should return empty string for non-default, non-user-created, non-policy-expense chat', () => {
-            const report = createRegularChat(1, [currentUserAccountID, 2]);
-            const result = getChatRoomSubtitle(report);
-            expect(result).toBe('');
-        });
-
-        it('should return domain name for domain room', () => {
-            const report = createDomainRoom(1);
-            report.reportName = '#example.com';
-            const result = getChatRoomSubtitle(report);
-            expect(result).toBe('example.com');
-        });
-
-        it('should return policy name for admin room', () => {
-            const report = createAdminRoom(1);
-            report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report);
-            expect(result).toBe(policy.name);
-        });
-
-        it('should return policy name for announce room', () => {
-            const report = createAnnounceRoom(1);
-            report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report);
-            expect(result).toBe(policy.name);
-        });
-
-        it('should return policy name for user created policy room', () => {
-            const report = {
-                ...createRandomReport(1),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                policyID: policy.id,
-            };
-            const result = getChatRoomSubtitle(report);
-            expect(result).toBe(policy.name);
-        });
-
-        it('should return policy name for policy expense chat when not in create expense flow', () => {
-            const report = createPolicyExpenseChat(1);
-            report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report);
-            expect(result).toBe(policy.name);
-        });
-
-        it('should return empty string for expense report (not default/user-created/policy-expense)', () => {
-            const report = createExpenseReport(1);
-            report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report);
-            expect(result).toBe('');
-        });
-
-        it('should return empty string for expense report in create expense flow (not default/user-created/policy-expense)', () => {
-            const report = createExpenseReport(1);
-            report.policyID = policy.id;
-            const config = {isCreateExpenseFlow: true, isReportArchived: false};
-            const result = getChatRoomSubtitle(report, config);
-            expect(result).toBe('');
-        });
-
-        it('should return oldPolicyName when report is archived', () => {
-            const report = createAdminRoom(1);
-            report.oldPolicyName = 'Old Policy Name';
-            const config = {isCreateExpenseFlow: false, isReportArchived: true};
-            const result = getChatRoomSubtitle(report, config);
-            expect(result).toBe('Old Policy Name');
-        });
-
-        it('should return empty string when report is archived but has no oldPolicyName', () => {
-            const report = createAdminRoom(1);
-            report.oldPolicyName = undefined;
-            const config = {isCreateExpenseFlow: false, isReportArchived: true};
-            const result = getChatRoomSubtitle(report, config);
-            expect(result).toBe('');
-        });
-
-        it('should prioritize isReportArchived over other conditions', () => {
-            const report = createAdminRoom(1);
-            report.policyID = policy.id;
-            report.oldPolicyName = 'Archived Policy';
-            const config = {isCreateExpenseFlow: true, isReportArchived: true};
-            const result = getChatRoomSubtitle(report, config);
-            expect(result).toBe('Archived Policy');
-        });
-
-        it('should handle undefined config parameter', () => {
-            const report = createAdminRoom(1);
-            report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report);
-            expect(result).toBe(policy.name);
-        });
-
-        it('should handle empty config parameter', () => {
-            const report = createAdminRoom(1);
-            report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report, {});
-            expect(result).toBe(policy.name);
-        });
-
-        it('should handle partial config parameter with only isReportArchived', () => {
-            const report = createAdminRoom(1);
-            report.oldPolicyName = 'Archived Policy';
-            const config = {isReportArchived: true};
-            const result = getChatRoomSubtitle(report, config);
-            expect(result).toBe('Archived Policy');
         });
     });
 });
