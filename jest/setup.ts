@@ -40,17 +40,6 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
     },
 }));
 
-// Turn off the console logs for timing events. They are not relevant for unit tests and create a lot of noise
-jest.spyOn(console, 'debug').mockImplementation((...params: string[]) => {
-    if (params.at(0)?.startsWith('Timing:')) {
-        return;
-    }
-
-    // Send the message to console.log but don't re-used console.debug or else this mock method is called in an infinite loop. Instead, just prefix the output with the word "DEBUG"
-    // eslint-disable-next-line no-console
-    console.log('DEBUG', ...params);
-});
-
 // This mock is required for mocking file systems when running tests
 jest.mock('react-native-fs', () => ({
     unlink: jest.fn(
@@ -160,3 +149,12 @@ jest.mock('@src/hooks/useWorkletStateMachine/executeOnUIRuntimeSync', () => ({
 jest.mock('react-native-nitro-sqlite', () => ({
     open: jest.fn(),
 }));
+
+global.console = {
+    ...global.console,
+    warn: jest.fn(),
+    error: jest.fn(),
+    info: jest.fn(),
+    log: jest.fn(),
+    debug: jest.fn(),
+};
