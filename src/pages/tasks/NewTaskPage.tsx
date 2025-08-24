@@ -41,7 +41,6 @@ function NewTaskPage({route}: NewTaskPageProps) {
         false,
         localeCompare,
     );
-
     const shareDestination = useMemo(
         () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare) : undefined),
         [task?.shareDestination, reports, personalDetails, localeCompare],
