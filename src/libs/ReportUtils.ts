@@ -1797,11 +1797,20 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
 
 function findSelfDMReportID(): string | undefined {
     if (!allReports) {
+        Log.hmmm('[findSelfDMReportID] allReports is null/undefined - reports not loaded yet', {
+            allReports,
+        });
         return;
     }
 
     const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
-    return selfDMReport?.reportID;
+    const reportID = selfDMReport?.reportID;
+
+    if (!reportID) {
+        Log.hmmm('[findSelfDMReportID] Self-DM report not found in allReports collection');
+    }
+
+    return reportID;
 }
 
 /**
