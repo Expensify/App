@@ -43,7 +43,8 @@ import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
-    isPending,
+    isPendingCardOrIncompleteTransaction,
+    isPendingCardOrScanningTransaction,
     isScanning,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
@@ -83,7 +84,7 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
 
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPendingCardOrIncompleteTransaction(transaction))) {
         return false;
     }
 
@@ -128,7 +129,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
         return false;
     }
 
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPendingCardOrScanningTransaction(transaction))) {
         return false;
     }
 
@@ -320,16 +321,16 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
+    if (isApproveAction(report, reportTransactions, policy)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
+    }
+
     if (isRemoveHoldAction(report, chatReport, reportTransactions) || isPayActionWithAllExpensesHeld) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
     if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
-    }
-
-    if (isApproveAction(report, reportTransactions, policy)) {
-        return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
     }
 
     if (isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy)) {
