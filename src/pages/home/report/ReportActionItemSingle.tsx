@@ -6,9 +6,11 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import useReportActionAvatars from '@components/ReportActionAvatars/useReportActionAvatars';
+import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,9 +18,10 @@ import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getManagerOnVacation, getReportActionMessage, getSubmittedTo, getVacationer} from '@libs/ReportActionsUtils';
+import {getDelegateAccountIDFromReportAction, getManagerOnVacation, getReportActionMessage, getSubmittedTo, getVacationer} from '@libs/ReportActionsUtils';
 import {isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -78,6 +81,10 @@ function ReportActionItemSingle({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        canBeMissing: true,
+    });
+
     const {avatarType, avatars, details, source} = useReportActionAvatars({report: potentialIOUReport ?? report, action});
 
     const reportID = source.chatReport?.reportID;
@@ -85,7 +92,15 @@ function ReportActionItemSingle({
 
     const [primaryAvatar, secondaryAvatar] = avatars;
 
-    const accountOwnerDetails = getPersonalDetailByEmail(details.login ?? '');
+    const reportPreviewSenderID = useReportPreviewSenderID({
+        iouReport: potentialIOUReport,
+        action,
+        chatReport: source.chatReport,
+    });
+    const delegateAccountID = getDelegateAccountIDFromReportAction(action);
+    const mainAccountID = delegateAccountID ? (reportPreviewSenderID ?? potentialIOUReport?.ownerAccountID ?? action?.childOwnerAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID);
+    const mainAccountLogin = mainAccountID ? (personalDetails?.[mainAccountID]?.login ?? details.login) : details.login;
+    const accountOwnerDetails = getPersonalDetailByEmail(String(mainAccountLogin ?? ''));
 
     // Vacation delegate details for submitted action
     const vacationer = getVacationer(action);
@@ -210,9 +225,7 @@ function ReportActionItemSingle({
                         <ReportActionItemDate created={action?.created ?? ''} />
                     </View>
                 ) : null}
-                {!!action?.delegateAccountID && (
-                    <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', {delegator: accountOwnerDetails?.displayName ?? ''})}</Text>
-                )}
+                {!!delegateAccountID && <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', {delegator: accountOwnerDetails?.displayName ?? ''})}</Text>}
                 {!!vacationer && !!submittedTo && (
                     <Text style={[styles.chatDelegateMessage]}>
                         {translate('statusPage.toAsVacationDelegate', {
