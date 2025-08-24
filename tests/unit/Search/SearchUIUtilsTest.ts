@@ -1833,7 +1833,7 @@ describe('SearchUIUtils', () => {
                 data: {
                     personalDetailsList: {},
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    transactions_1: {
+                    transactions_1805965960759424086: {
                         accountID: 2074551,
                         amount: 0,
                         canDelete: false,
