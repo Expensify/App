@@ -31,7 +31,6 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
         selector: (allTransactionsViolations) =>
             context.selectedTransactionIDs.map((transactionID) => allTransactionsViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]),
     });
-
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
