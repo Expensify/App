@@ -209,9 +209,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         </View>
                     ) : (
                         groupItem.transactions.map((transaction) => (
-                            <OfflineWithFeedback pendingAction={transaction.pendingAction}>
+                            <OfflineWithFeedback
+                                key={transaction.transactionID}
+                                pendingAction={transaction.pendingAction}
+                            >
                                 <TransactionItemRow
-                                    key={transaction.transactionID}
                                     report={transaction.report}
                                     transactionItem={transaction}
                                     isSelected={!!transaction.isSelected}
