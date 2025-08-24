@@ -2,7 +2,7 @@ import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isW
 import {PUBLIC_DOMAINS_SET, Str, Url} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
