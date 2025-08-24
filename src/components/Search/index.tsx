@@ -623,9 +623,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         groupBy !== CONST.SEARCH.GROUP_BY.CARD &&
         groupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
     const ListItem = getListItem(type, status, groupBy);
+
+    // PERFORMANCE TEST: Toggle this to enable EReceipt duplication for performance testing
+    const ENABLE_ERECEIPT_PERFORMANCE_TEST = true;
+    const TARGET_ERECEIPT_COUNT = 100;
+
     const sortedSelectedData = useMemo(
-        () =>
-            getSortedSections(type, status, data, localeCompare, sortBy, sortOrder, groupBy).map((item) => {
+        () => {
+            let processedData = getSortedSections(type, status, data, localeCompare, sortBy, sortOrder, groupBy).map((item) => {
                 const baseKey = isChat
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
@@ -645,8 +650,42 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
                 return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
-            }),
-        [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare],
+            });
+
+            // PERFORMANCE TEST: Duplicate EReceipts for performance testing
+            if (ENABLE_ERECEIPT_PERFORMANCE_TEST && !isChat && !isTask) {
+                // Filter for transactions with EReceipts
+                const eReceiptTransactions = processedData.filter(
+                    (item) => isTransactionListItemType(item) && item.hasEReceipt
+                );
+
+                if (eReceiptTransactions.length > 0) {
+                    // Calculate how many duplicates we need per original transaction
+                    const duplicatesPerTransaction = Math.ceil((TARGET_ERECEIPT_COUNT - eReceiptTransactions.length) / eReceiptTransactions.length);
+
+                    // Duplicate each EReceipt transaction
+                    const duplicatedTransactions = eReceiptTransactions.flatMap((transaction, index) =>
+                        Array.from({length: duplicatesPerTransaction}, (_, dupIndex) => ({
+                            ...transaction,
+                            keyForList: `${transaction.keyForList}_perf_${index}_${dupIndex}`,
+                            transactionID: `${(transaction as TransactionListItemType).transactionID}_perf_${index}_${dupIndex}`,
+                            amount: (transaction as TransactionListItemType).amount + (dupIndex * 5), // Vary amount slightly
+                            merchant: `${(transaction as TransactionListItemType).merchant} (Test ${index}-${dupIndex})`,
+                            shouldAnimateInHighlight: false,
+                        }))
+                    );
+
+                    // Add duplicated transactions to the list
+                    processedData = [...processedData, ...duplicatedTransactions];
+
+                    // Log for verification
+                    console.log(`[PERF TEST] Created ${duplicatedTransactions.length + eReceiptTransactions.length} EReceipts from ${eReceiptTransactions.length} originals`);
+                }
+            }
+
+            return processedData;
+        },
+        [type, status, data, sortBy, sortOrder, groupBy, isChat, isTask, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare],
     );
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;

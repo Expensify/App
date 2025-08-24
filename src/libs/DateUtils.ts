@@ -732,6 +732,78 @@ const getTimeValidationErrorKey = (inputTime: Date): string => {
 };
 
 /**
+ * Pre-cached Intl.DateTimeFormat instances for common date formats
+ * This provides significant performance improvements over creating new formatters each time
+ */
+const CACHED_DATE_FORMATTERS = {
+    MONTH_DAY_YEAR_FULL: new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    }),
+    MONTH_DAY_YEAR_SHORT: new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    }),
+    MONTH_DAY: new Intl.DateTimeFormat('en-US', {
+        day: 'numeric',
+        month: 'short'
+    }),
+} as const;
+
+/**
+ * Maps date-fns format strings to pre-cached formatter keys
+ */
+const FORMAT_TO_FORMATTER_KEY = new Map<string, keyof typeof CACHED_DATE_FORMATTERS>([
+    ['MMMM d, yyyy', 'MONTH_DAY_YEAR_FULL'],
+    ['MMM d, yyyy', 'MONTH_DAY_YEAR_SHORT'],
+    ['MMM d', 'MONTH_DAY'],
+]);
+
+/**
+ * Maps date-fns format strings to Intl.DateTimeFormat options
+ */
+function getIntlFormatterOptions(dateFormat: string): Intl.DateTimeFormatOptions | null {
+    const formatMap = new Map<string, Intl.DateTimeFormatOptions>([
+        ['MMMM d, yyyy', { year: 'numeric', month: 'long', day: 'numeric' }],
+        ['MMM d, yyyy', { year: 'numeric', month: 'short', day: 'numeric' }],
+        ['MMM d', { day: 'numeric', month: 'short' }],
+        ['MM/dd/yyyy', { year: 'numeric', month: '2-digit', day: '2-digit' }],
+        ['MM-dd', { month: '2-digit', day: '2-digit' }],
+        ['yyyy-MM-dd', { year: 'numeric', month: '2-digit', day: '2-digit' }],
+    ]);
+    return formatMap.get(dateFormat) ?? null;
+}
+
+/**
+ * Fast path date formatting using cached Intl.DateTimeFormat instances
+ */
+function formatDateWithCachedFormatter(date: Date, dateFormat: string): string | null {
+    // Check if we have a pre-cached formatter
+    const formatterKey = FORMAT_TO_FORMATTER_KEY.get(dateFormat);
+    const cachedFormatter = formatterKey ? CACHED_DATE_FORMATTERS[formatterKey] : null;
+
+    if (cachedFormatter) {
+        return cachedFormatter.format(date);
+    }
+
+    // Try to create a formatter on-demand for supported formats
+    const intlOptions = getIntlFormatterOptions(dateFormat);
+    if (intlOptions) {
+        try {
+            const formatter = new Intl.DateTimeFormat('en-US', intlOptions);
+            return formatter.format(date);
+        } catch (error) {
+            // Fall back if Intl formatting fails
+            return null;
+        }
+    }
+
+    return null;
+}
+
+/**
  *
  * Get a date and format this date using the UTC timezone.
  * param datetime
@@ -739,20 +811,29 @@ const getTimeValidationErrorKey = (inputTime: Date): string => {
  * returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
  */
 function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING) {
-    const date = toDate(datetime, {timeZone: 'UTC'});
+    // Try fast path: native Date parsing + cached formatters
+    const date = new Date(datetime.replace(' ', 'T')); // Simple normalization for "YYYY-MM-DD HH:mm:ss"
 
-    if (isValid(date)) {
-        return tzFormat(toZonedTime(date, 'UTC'), dateFormat);
+    if (!Number.isNaN(date.getTime())) {
+        // Try cached Intl formatter (fastest for common formats)
+        const fastResult = formatDateWithCachedFormatter(date, dateFormat);
+        if (fastResult !== null) {
+            return fastResult;
+        }
+
+        return format(date, dateFormat);
     }
 
-    return '';
+    // Original implementation as fallback
+    const dateFromTz = toDate(datetime, {timeZone: 'UTC'});
+    return isValid(dateFromTz) ? tzFormat(toZonedTime(dateFromTz, 'UTC'), dateFormat) : '';
 }
 
 /**
  *
- * @param timezone
  * Convert unsupported old timezone to app supported timezone
  * @returns Timezone
+ * @param timezoneInput
  */
 function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
     if (!timezoneInput?.selected) {

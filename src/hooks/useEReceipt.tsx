@@ -2,7 +2,7 @@ import {useMemo} from 'react';
 import * as eReceiptBGs from '@components/Icon/EReceiptBGs';
 import * as MCCIcons from '@components/Icon/MCCIcons';
 import type {TransactionListItemType} from '@components/SelectionList/types';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import {getMCCGroup} from '@libs/TransactionUtils';
 import {getTripEReceiptIcon} from '@libs/TripReservationUtils';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
@@ -25,8 +25,7 @@ export default function useEReceipt(transactionData: Transaction | TransactionLi
     const primaryColor = colorStyles?.backgroundColor;
     const secondaryColor = colorStyles?.color;
     const titleColor = colorStyles?.titleColor;
-    const transactionDetails = getTransactionDetails(transactionData);
-    const transactionMCCGroup = transactionDetails?.mccGroup;
+    const transactionMCCGroup = transactionData ? getMCCGroup(transactionData) : undefined;
     const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
     const tripIcon = getTripEReceiptIcon(transactionData);
 
