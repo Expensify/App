@@ -11,7 +11,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
@@ -42,13 +41,12 @@ function NewTaskPage({route}: NewTaskPageProps) {
         false,
         localeCompare,
     );
-    const parentReport = useMemo(() => (task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined), [reports, task?.shareDestination]);
-    const isReportArchived = useReportIsArchived(parentReport?.reportID);
 
     const shareDestination = useMemo(
-        () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare, isReportArchived) : undefined),
-        [task?.shareDestination, reports, personalDetails, localeCompare, isReportArchived],
+        () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare) : undefined),
+        [task?.shareDestination, reports, personalDetails, localeCompare],
     );
+    const parentReport = useMemo(() => (task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined), [reports, task?.shareDestination]);
     const [errorMessage, setErrorMessage] = useState('');
 
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;

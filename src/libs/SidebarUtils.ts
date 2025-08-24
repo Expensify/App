@@ -677,7 +677,6 @@ function getOptionData({
 
     const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
     const personalDetail = participantPersonalDetailList.at(0) ?? ({} as PersonalDetails);
-    const isReportArchived = isArchivedReport(reportNameValuePairs);
 
     result.isThread = isChatThread(report);
     result.isChatRoom = isChatRoom(report);
