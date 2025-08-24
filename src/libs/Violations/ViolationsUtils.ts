@@ -290,8 +290,18 @@ const ViolationsUtils = {
                     : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyTagList, hasDependentTags);
         }
 
-        if (updatedTransaction?.comment?.customUnit?.customUnitRateID && !!getDistanceRateCustomUnitRate(policy, updatedTransaction?.comment?.customUnit?.customUnitRateID)) {
-            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
+        const customUnitRateID = updatedTransaction?.comment?.customUnit?.customUnitRateID;
+        if (customUnitRateID && customUnitRateID.length > 0) {
+            const distanceRateCustomRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
+            if (distanceRateCustomRate) {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
+            } else {
+                newTransactionViolations.push({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                });
+            }
         }
 
         const isControlPolicy = policy.type === CONST.POLICY.TYPE.CORPORATE;

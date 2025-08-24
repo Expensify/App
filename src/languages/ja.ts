@@ -58,6 +58,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -291,6 +292,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceMembersCountParams,
@@ -586,6 +588,7 @@ const translations = {
         network: 'ネットワーク',
         reportID: 'レポートID',
         longID: 'Long ID',
+        withdrawalID: '出金ID',
         bankAccounts: '銀行口座',
         chooseFile: 'ファイルを選択',
         chooseFiles: 'ファイルを選択',
@@ -1293,9 +1296,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: '未報告の経費はないようです。以下で新しく作成してみてください。',
         addUnreportedExpenseConfirm: 'レポートに追加',
         explainHold: 'この経費を保留している理由を説明してください。',
-        undoSubmit: '送信を取り消す',
         retracted: '撤回されました',
-        undoClose: '閉じるを元に戻す',
+        retract: '取り消す',
         reopened: '再開されました',
         reopenReport: 'レポートを再開する',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
@@ -1397,6 +1399,22 @@ const translations = {
                     `<a href="${linkToReport}">${amount}${merchant ? `（${merchant} から）` : ''}</a> を削除しました`,
                 rejectedExpense: 'この経費を却下しました',
                 markedAsResolved: '却下理由を解決済みとしてマークしました',
+            },
+        },
+        changeApprover: {
+            title: '承認者を変更',
+            subtitle: 'このレポートの承認者を変更するオプションを選択してください。',
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `<a href="${workflowSettingLink}">ワークフロー設定</a>で、すべてのレポートの承認者を恒久的に変更することもできます。`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `<mention-user accountID="${managerID}"/> に承認者を変更しました`,
+            actions: {
+                addApprover: '承認者を追加',
+                addApproverSubtitle: '既存のワークフローに承認者を追加します。',
+                bypassApprovers: '承認者をバイパス',
+                bypassApproversSubtitle: '最終承認者として自分自身を割り当て、残りの承認者をスキップします。',
+            },
+            addApprover: {
+                subtitle: '承認ワークフローの残りの部分を経由する前に、このレポートの追加の承認者を選択してください。',
             },
         },
     },
@@ -5468,6 +5486,11 @@ const translations = {
                     'マルチレベルタグは、経費をより正確に追跡するのに役立ちます。各項目に部門、クライアント、コストセンターなどの複数のタグを割り当てることで、すべての経費の完全なコンテキストを把握できます。これにより、より詳細なレポート作成、承認ワークフロー、および会計エクスポートが可能になります。',
                 onlyAvailableOnPlan: 'マルチレベルタグは、Controlプランでのみ利用可能です。開始価格は',
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
+                title: '複数の承認レベル',
+                description: '複数の承認レベルは、払い戻しが行われる前に複数の人がレポートを承認する必要がある企業向けのワークフローツールです。',
+                onlyAvailableOnPlan: '複数の承認レベルは、Controlプランでのみ利用可能です。料金は ',
+            },
             pricing: {
                 perActiveMember: 'アクティブメンバー1人あたり月額。',
                 perMember: 'メンバーごとに月額。',
@@ -6376,7 +6399,8 @@ const translations = {
         levelThreeResult: 'チャンネルからメッセージが削除され、匿名の警告が行われ、メッセージがレビューのために報告されました。',
     },
     actionableMentionWhisperOptions: {
-        invite: '招待する',
+        inviteToSubmitExpense: '経費の提出に招待する',
+        inviteToChat: 'チャットのみ招待',
         nothing: '何もしない',
     },
     actionableMentionJoinWorkspaceOptions: {

@@ -857,6 +857,10 @@ type MergeFailureDescriptionGenericParams = {
     email: string;
 };
 
+type ChangedApproverMessageParams = {managerID: number};
+
+type WorkflowSettingsParam = {workflowSettingLink: string};
+
 type IndividualExpenseRulesSubtitleParams = {
     categoriesPageLink: string;
     tagsPageLink: string;
@@ -1176,6 +1180,8 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    ChangedApproverMessageParams,
+    WorkflowSettingsParam,
     MovedActionParams,
     IndividualExpenseRulesSubtitleParams,
     BillableDefaultDescriptionParams,

@@ -1609,6 +1609,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                     },
                 },
+                [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: {
+                    screens: {
+                        [SCREENS.REPORT_CHANGE_APPROVER.ROOT]: ROUTES.REPORT_CHANGE_APPROVER.route,
+                    },
+                },
             },
         },
 
