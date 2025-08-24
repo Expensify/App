@@ -242,15 +242,16 @@ function SearchList(
     useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
 
     const renderItem = useCallback(
-        (item: SearchListItem, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
+        (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            const shouldApplyAnimation = shouldAnimate && index < data.length - 1;
 
             return (
                 <Animated.View
-                    exiting={shouldAnimate ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
+                    exiting={shouldApplyAnimation ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
                     entering={undefined}
                     style={styles.overflowHidden}
-                    layout={shouldAnimate && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
+                    layout={shouldApplyAnimation && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
                 >
                     <ListItem
                         showTooltip
@@ -277,6 +278,7 @@ function SearchList(
         },
         [
             shouldAnimate,
+            data.length,
             styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,

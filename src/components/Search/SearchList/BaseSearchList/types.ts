@@ -24,7 +24,7 @@ type BaseSearchListProps = Pick<
     data: SearchListItem[];
 
     /** The function to render each item in the list */
-    renderItem: (item: SearchListItem, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => React.JSX.Element;
+    renderItem: (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => React.JSX.Element;
 
     /** The length of the flattened items in the list */
     flattenedItemsLength: number;
