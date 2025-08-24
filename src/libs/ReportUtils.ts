@@ -4052,6 +4052,14 @@ function getTransactionDetails(
     };
 }
 
+function getTransactionDetailsAmount(transaction: OnyxInputOrEntry<Transaction>) {
+    if (!transaction) {
+        return 0;
+    }
+    const report = getReportOrDraftReport(transaction?.reportID);
+    return getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+}
+
 function getTransactionCommentObject(transaction: OnyxEntry<Transaction>): Comment {
     return {
         ...transaction?.comment,
@@ -11651,6 +11659,7 @@ export {
     canDeleteCardTransactionByLiabilityType,
     getTaskAssigneeChatOnyxData,
     getTransactionDetails,
+    getTransactionDetailsAmount,
     getTransactionReportName,
     getDisplayedReportID,
     getTransactionsWithReceipts,
