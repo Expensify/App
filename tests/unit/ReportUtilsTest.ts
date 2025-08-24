@@ -22,7 +22,6 @@ import {
     canAddTransaction,
     canDeleteReportAction,
     canDeleteTransaction,
-    canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canEditReportDescription,
     canEditRoomVisibility,
@@ -44,6 +43,7 @@ import {
     getInvoiceChatByParticipants,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
+    getParentNavigationSubtitle,
     getParticipantsList,
     getPolicyExpenseChat,
     getReasonAndReportActionThatRequiresAttention,
@@ -314,71 +314,6 @@ describe('ReportUtils', () => {
         return waitForBatchedUpdates();
     });
     beforeEach(() => IntlStore.load(CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
-
-    describe('canEditFieldOfMoneyRequest', () => {
-        const reportActionID = 2;
-        const IOUReportID = '1234';
-        const IOUTransactionID = '123';
-        const randomReportAction = createRandomReportAction(reportActionID);
-        const policyID = '2424';
-        const amount = 39;
-
-        const policy1 = {...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM), areInvoicesEnabled: true, role: CONST.POLICY.ROLE.ADMIN};
-
-        // Given that there is at least one outstanding expense report in a policy
-        const outstandingExpenseReport = {
-            ...createExpenseReport(483),
-            policyID,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            ownerAccountID: currentUserAccountID,
-        };
-
-        // When a user creates an invoice in the same policy
-
-        const reportAction = {
-            ...randomReportAction,
-            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            actorAccountID: currentUserAccountID,
-            childStateNum: CONST.REPORT.STATE_NUM.OPEN,
-            childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            originalMessage: {
-                // eslint-disable-next-line deprecation/deprecation
-                ...randomReportAction.originalMessage,
-                IOUReportID,
-                IOUTransactionID,
-                type: CONST.IOU.ACTION.CREATE,
-                amount,
-                currency: CONST.CURRENCY.USD,
-            },
-        };
-
-        const moneyRequestTransaction = {...createRandomTransaction(Number(IOUTransactionID)), reportID: IOUReportID, transactionID: IOUTransactionID, amount};
-
-        const invoiceReport = {
-            ...createInvoiceReport(Number(IOUReportID)),
-            policyID,
-            ownerAccountID: currentUserAccountID,
-            state: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-            managerID: 8723,
-        };
-
-        beforeAll(() => {
-            Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`, moneyRequestTransaction);
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, invoiceReport);
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${483}`, outstandingExpenseReport);
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy1);
-            return waitForBatchedUpdates();
-        });
-
-        // Then the user should be able to move the invoice to the outstanding expense report
-        it('should return true for invoice report action given that there is a minimum of one outstanding report', () => {
-            const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
-            expect(canEditReportField).toBe(true);
-        });
-    });
 
     describe('prepareOnboardingOnyxData', () => {
         it('provides test drive url to task title', () => {
@@ -983,6 +918,48 @@ describe('ReportUtils', () => {
             expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
                 'submitted via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows">delay submissions</a>',
             );
+        });
+    });
+
+    describe('getParentNavigationSubtitle', () => {
+        const baseArchivedPolicyExpenseChat = {
+            reportID: '2',
+            lastReadTime: '2024-02-01 04:56:47.233',
+            parentReportActionID: '1',
+            parentReportID: '1',
+            reportName: 'Base Report',
+            type: CONST.REPORT.TYPE.INVOICE,
+        };
+
+        const reports: Report[] = [
+            {
+                reportID: '1',
+                lastReadTime: '2024-02-01 04:56:47.233',
+                reportName: 'Report',
+                policyName: 'A workspace',
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
+            },
+            baseArchivedPolicyExpenseChat,
+        ];
+
+        beforeAll(() => {
+            const reportCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, reports, (report) => report.reportID);
+            Onyx.multiSet({
+                ...reportCollectionDataSet,
+            });
+            return waitForBatchedUpdates();
+        });
+
+        it('should return the correct parent navigation subtitle for the archived invoice report', () => {
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, true);
+            const normalizedActual = {...actual, reportName: actual.reportName?.replace(/\u00A0/g, ' ')};
+            expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
+        });
+
+        it('should return the correct parent navigation subtitle for the non archived invoice report', () => {
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, false);
+            const normalizedActual = {...actual, reportName: actual.reportName?.replace(/\u00A0/g, ' ')};
+            expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok'});
         });
     });
 
@@ -1941,7 +1918,7 @@ describe('ReportUtils', () => {
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                currentUserAccountID: {
+                [currentUserAccountID]: {
                     accountID: currentUserAccountID,
                     displayName: currentUserEmail,
                     login: currentUserEmail,
@@ -2010,6 +1987,46 @@ describe('ReportUtils', () => {
             const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, true);
 
             expect(canEditRequest).toEqual(false);
+        });
+
+        it('it should return true for pay iou action with IOUDetails which is linked to send money flow', async () => {
+            const expenseReport: Report = {
+                reportID: '1',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const transaction = createRandomTransaction(22);
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '3',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: expenseReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    IOUDetails: {
+                        amount: 530,
+                        currency: CONST.CURRENCY.USD,
+                        comment: '',
+                    },
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 5.30 expense',
+                        text: 'USD 5.30 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, true);
+
+            expect(canEditRequest).toEqual(true);
         });
     });
 
@@ -2295,7 +2312,7 @@ describe('ReportUtils', () => {
             const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, 'fake draft');
+            await Onyx.merge(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {[report.reportID]: 'fake draft'});
 
             expect(
                 shouldReportBeInOptionList({
@@ -4247,6 +4264,40 @@ describe('ReportUtils', () => {
             // Then it should return false
             expect(result).toBe(false);
         });
+        it('should return false for announce room when the role of the employee is admin and report is archived', async () => {
+            // Given a policy announce room of a policy that the user has an admin role
+            const workspace: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.ADMIN};
+            const policyAnnounceRoom: Report = {
+                ...createRandomReport(50001),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+                policyID: policy.id,
+                writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspace.id}`, workspace);
+
+            const result = canUserPerformWriteAction(policyAnnounceRoom, true);
+
+            expect(result).toBe(false);
+        });
+        it('should return true for announce room when the role of the employee is admin and report is not archived', async () => {
+            // Given a policy announce room of a policy that the user has an admin role
+            const workspace: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.ADMIN};
+            const policyAnnounceRoom: Report = {
+                ...createRandomReport(50001),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+                policyID: policy.id,
+                writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspace.id}`, workspace);
+
+            const result = canUserPerformWriteAction(policyAnnounceRoom, false);
+
+            expect(result).toBe(true);
+        });
     });
 
     describe('shouldDisableRename', () => {
@@ -5303,6 +5354,30 @@ describe('ReportUtils', () => {
             expect(getReportStatusTranslation(undefined, undefined)).toBe('');
             expect(getReportStatusTranslation(CONST.REPORT.STATE_NUM.OPEN, undefined)).toBe('');
             expect(getReportStatusTranslation(undefined, CONST.REPORT.STATUS_NUM.OPEN)).toBe('');
+        });
+    });
+
+    describe('buildOptimisticReportPreview', () => {
+        it('should include childOwnerAccountID and childManagerAccountID that matches with iouReport data', () => {
+            const chatReport: Report = {
+                ...createRandomReport(100),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(200),
+                parentReportID: '1',
+                type: CONST.REPORT.TYPE.IOU,
+                chatType: undefined,
+                ownerAccountID: 1,
+                managerID: 2,
+            };
+
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport);
+
+            expect(reportPreviewAction.childOwnerAccountID).toBe(iouReport.ownerAccountID);
+            expect(reportPreviewAction.childManagerAccountID).toBe(iouReport.managerID);
         });
     });
     describe('canSeeDefaultRoom', () => {
