@@ -37,9 +37,11 @@ function EnvironmentProvider({children}: EnvironmentProviderProps): ReactElement
     }, []);
 
     const adjustExpensifyLinksForEnv = useCallback(
-        (html: string) => {
-            return html.replace(/<a\s+[^>]*href="https:\/\/new\.expensify\.com([^"]*)"/g, (match, path) => {
-                return match.replace(/href="https:\/\/new\.expensify\.com[^"]*"/, `href="${environmentURL}${path}"`);
+        (html: string): string => {
+            return html.replace(/<a\s+([^>]*?)href="https:\/\/new\.expensify\.com([^"]*)"(.*?)>/g, (_fullMatch: string, before: string, path: string, after: string): string => {
+                const normalizedURL = environmentURL.replace(/\/+$/, '');
+                const normalizedPath = path.replace(/^\/+/, '');
+                return `<a ${before}href="${normalizedURL}/${normalizedPath}"${after}>`;
             });
         },
         [environmentURL],
