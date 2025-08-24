@@ -996,7 +996,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                 });
 
-                expect(optionData?.alternateText).toBe(`test message`);
+                expect(optionData?.alternateText).toBe(`One: test message`);
             });
             it('The text should not contain the policy name at prefix if we only have a workspace', async () => {
                 const policy: Policy = {
