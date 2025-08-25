@@ -334,6 +334,9 @@ type TaskListItemType = ListItem &
 type TransactionGroupListItemType = ListItem & {
     /** List of grouped transactions */
     transactions: TransactionListItemType[];
+
+    /** Whether the report has a single transaction */
+    isOneTransactionReport?: boolean;
 };
 
 type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.REPORTS} & SearchReport & {
