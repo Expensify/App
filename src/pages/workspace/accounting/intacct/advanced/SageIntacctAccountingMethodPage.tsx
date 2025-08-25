@@ -80,6 +80,7 @@ function SageIntacctAccountingMethodPage({policy, route}: WithPolicyConnectionsP
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID, backTo))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             pendingAction={pendingAction}
+            shouldBeBlocked={!config?.autoSync?.enabled}
         />
     );
 }
