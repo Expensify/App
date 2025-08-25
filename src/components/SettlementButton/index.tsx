@@ -294,14 +294,18 @@ function SettlementButton({
                             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                             onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
                         },
-                        {
-                            text: translate('bankAccount.addBankAccount'),
-                            icon: Expensicons.Bank,
-                            onSelected: () => {
-                                const bankAccountRoute = getBankAccountRoute(chatReport);
-                                Navigation.navigate(bankAccountRoute);
-                            },
-                        },
+                        ...(isInvoiceReport && !isCurrencySupported
+                            ? []
+                            : [
+                                  {
+                                      text: translate('bankAccount.addBankAccount'),
+                                      icon: Expensicons.Bank,
+                                      onSelected: () => {
+                                          const bankAccountRoute = getBankAccountRoute(chatReport);
+                                          Navigation.navigate(bankAccountRoute);
+                                      },
+                                  },
+                              ]),
                     ],
                 });
             }
@@ -313,14 +317,18 @@ function SettlementButton({
                 backButtonText: translate('iou.business'),
                 subMenuItems: [
                     ...(isCurrencySupported ? getPaymentSubitems(true) : []),
-                    {
-                        text: translate('bankAccount.addBankAccount'),
-                        icon: Expensicons.Bank,
-                        onSelected: () => {
-                            const bankAccountRoute = getBankAccountRoute(chatReport);
-                            Navigation.navigate(bankAccountRoute);
-                        },
-                    },
+                    ...(isInvoiceReport && !isCurrencySupported
+                        ? []
+                        : [
+                              {
+                                  text: translate('bankAccount.addBankAccount'),
+                                  icon: Expensicons.Bank,
+                                  onSelected: () => {
+                                      const bankAccountRoute = getBankAccountRoute(chatReport);
+                                      Navigation.navigate(bankAccountRoute);
+                                  },
+                              },
+                          ]),
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
                         icon: Expensicons.Cash,
