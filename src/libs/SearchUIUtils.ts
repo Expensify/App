@@ -908,7 +908,7 @@ function getTransactionsSections(
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
                 violations: transactionViolations,
-
+                filename: transactionItem.filename,
                 // Manually copying all the properties from transactionItem
                 transactionID: transactionItem.transactionID,
                 created: transactionItem.created,
@@ -946,6 +946,8 @@ function getTransactionsSections(
                 errors: transactionItem.errors,
                 isActionLoading: transactionItem.isActionLoading,
                 hasViolation: transactionItem.hasViolation,
+                cardID: transactionItem.cardID,
+                cardName: transactionItem.cardName,
             };
 
             transactionsSections.push(transactionSection);
