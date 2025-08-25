@@ -54,10 +54,11 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
     const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const firstRenderRef = useRef(true);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
 
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
@@ -96,7 +97,10 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         return {...inviteOptions, recentReports: [], currentUserOption: null};
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
 
-    const inviteOptions = useMemo(() => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}), [debouncedSearchTerm, defaultOptions, excludedUsers]);
+    const inviteOptions = useMemo(
+        () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {excludeLogins: excludedUsers}),
+        [debouncedSearchTerm, defaultOptions, excludedUsers, countryCode],
+    );
 
     useEffect(() => {
         if (!areOptionsInitialized) {
