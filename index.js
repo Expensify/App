@@ -7,7 +7,7 @@ import Config from './src/CONFIG';
 import additionalAppSetup from './src/setup';
 
 // Define EXPO_OS before any imports to prevent console errors from Expo DOM components
-if (!process.env.EXPO_OS) {
+if (!process.env.EXPO_OS && __DEV__) {
     const {Platform} = require('react-native');
     // Create a new process.env object with EXPO_OS defined
     const originalEnv = process.env;
