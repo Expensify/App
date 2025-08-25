@@ -11314,7 +11314,8 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
 }
 
 /**
- * Put Expenses on HOLD in Bulk
+ * Put expenses on HOLD in Bulk
+ *
  *
  */
 function bulkHold(
@@ -11328,6 +11329,9 @@ function bulkHold(
         return;
     }
 
+    let optimisticUnheldNonReimbursableTotal: number | undefined = undefined;
+    let optimisticUnheldTotal: number | undefined = undefined;
+    
     const isExpenseReport = isExpenseReportUtils(report);
     const coefficient = isExpenseReport ? -1 : 1;
     const reportID = report.reportID;
@@ -11336,9 +11340,6 @@ function bulkHold(
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
     const holdData: HoldData = {};
-
-    let optimisticUnheldNonReimbursableTotal = 0;
-    let optimisticUnheldTotal = 0;
 
     Object.entries(transactionsIOUActions).forEach(([transactionID, iouAction]) => {
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -11353,10 +11354,12 @@ function bulkHold(
             commentReportActionID: createdReportActionComment.reportActionID,
         };
 
-        if (transaction?.reimbursable && transaction?.currency === report?.currency) {
+        if (transaction?.currency === report?.currency) {
             const transactionAmount = getAmount(transaction, isExpenseReport) * coefficient;
             optimisticUnheldTotal = (optimisticUnheldTotal ?? 0) - transactionAmount;
-            optimisticUnheldNonReimbursableTotal = (optimisticUnheldNonReimbursableTotal ?? 0) - transactionAmount;
+            if (!transaction?.reimbursable) {
+                optimisticUnheldNonReimbursableTotal = (optimisticUnheldNonReimbursableTotal ?? 0) - transactionAmount;
+            }
         }
 
         if (!iouAction?.childReportID) {
@@ -11504,13 +11507,13 @@ function bulkHold(
         });
     });
 
-    if (optimisticUnheldTotal) {
+    if (optimisticUnheldTotal !== report?.unheldTotal || optimisticUnheldNonReimbursableTotal !== report?.unheldNonReimbursableTotal) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                unheldTotal: optimisticUnheldTotal,
-                unheldNonReimbursableTotal: optimisticUnheldNonReimbursableTotal,
+                unheldTotal: optimisticUnheldTotal ?? null,
+                unheldNonReimbursableTotal: optimisticUnheldNonReimbursableTotal ?? null,
             },
         });
 
