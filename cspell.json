@@ -252,7 +252,6 @@
         "genkey",
         "GEOLOCATION",
         "getprop",
-        "gibsdk",
         "glcode",
         "gödecke",
         "googleusercontent",
@@ -503,6 +502,7 @@
         "Pressables",
         "prettierrc",
         "proguard",
+        "Proofpoint",
         "Protip",
         "purchaseamount",
         "purchasecurrency",
@@ -790,8 +790,7 @@
         "tests/unit/currencyList.json",
         "tests/unit/ValidationUtilsTest.ts",
         "src/CONST/index.ts",
-        "src/libs/SearchParser/*",
-        "modules/group-ib-fp"
+        "src/libs/SearchParser/*"
     ],
     "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true

@@ -1,2 +1,0 @@
-configurations.maybeCreate("default")
-artifacts.add("default", file('gibsdk-androidx-2.0.1335201224.aar'))

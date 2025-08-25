@@ -28,7 +28,12 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep, shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {
+    isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
+    navigateToStartMoneyRequestStep,
+    shouldShowReceiptEmptyState,
+    shouldUseTransactionDraft,
+} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
@@ -66,6 +71,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {RecentlyUsedCategories} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -133,6 +139,7 @@ function IOURequestStepConfirmation({
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${realPolicyID}`, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     /*
@@ -519,7 +526,7 @@ function IOURequestStepConfirmation({
     );
 
     const submitPerDiemExpense = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string) => {
+        (selectedParticipants: Participant[], trimmedComment: string, policyRecentlyUsedCategoriesParam?: RecentlyUsedCategories) => {
             if (!transaction) {
                 return;
             }
@@ -539,6 +546,7 @@ function IOURequestStepConfirmation({
                     policy,
                     policyTagList: policyTags,
                     policyCategories,
+                    policyRecentlyUsedCategories: policyRecentlyUsedCategoriesParam,
                 },
                 recentlyUsedParams: {
                     destinations: recentlyUsedDestinations,
@@ -790,7 +798,18 @@ function IOURequestStepConfirmation({
             }
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                sendInvoice(currentUserPersonalDetails.accountID, transaction, report, currentTransactionReceiptFile, policy, policyTags, policyCategories);
+                sendInvoice(
+                    currentUserPersonalDetails.accountID,
+                    transaction,
+                    report,
+                    currentTransactionReceiptFile,
+                    policy,
+                    policyTags,
+                    policyCategories,
+                    undefined,
+                    undefined,
+                    policyRecentlyUsedCategories,
+                );
                 return;
             }
 
@@ -835,7 +854,7 @@ function IOURequestStepConfirmation({
             }
 
             if (isPerDiemRequest) {
-                submitPerDiemExpense(selectedParticipants, trimmedComment);
+                submitPerDiemExpense(selectedParticipants, trimmedComment, policyRecentlyUsedCategories);
                 return;
             }
 
@@ -902,9 +921,10 @@ function IOURequestStepConfirmation({
             policy,
             policyTags,
             policyCategories,
+            policyRecentlyUsedCategories,
             trackExpense,
-            submitPerDiemExpense,
             userLocation,
+            submitPerDiemExpense,
         ],
     );
 
@@ -1026,6 +1046,8 @@ function IOURequestStepConfirmation({
         showPreviousTransaction();
     };
 
+    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
+
     const shouldShowSmartScanFields =
         !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
 
@@ -1035,7 +1057,10 @@ function IOURequestStepConfirmation({
             testID={IOURequestStepConfirmation.displayName}
             headerGapStyles={isDraggingOver ? [styles.dropWrapper] : []}
         >
-            <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
+            <DragAndDropProvider
+                setIsDraggingOver={setIsDraggingOver}
+                isDisabled={!showReceiptEmptyState}
+            >
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}

@@ -182,7 +182,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                   policyName: '',
                   policyID: generatePolicyID(),
                   engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-                  currency: '',
+                  currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
                   file: undefined,
                   shouldAddOnboardingTasks: false,
                   companySize: onboardingCompanySize,
@@ -249,6 +249,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         selectedFeatures,
         currentUserPersonalDetails?.firstName,
         currentUserPersonalDetails?.lastName,
+        currentUserPersonalDetails?.localCurrencyCode,
     ]);
 
     // Create items for enabled features

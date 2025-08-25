@@ -42,11 +42,19 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>((props, ref) => {
             }
         >
             <Suspense fallback={<FullScreenLoadingIndicator />}>
-                <MapViewImpl
-                    ref={ref}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                />
+                {!isOffline ? (
+                    <MapViewImpl
+                        ref={ref}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                    />
+                ) : (
+                    <PendingMapView
+                        title={translate('distance.mapPending.title')}
+                        subtitle={translate('distance.mapPending.subtitle')}
+                        style={styles.mapEditView}
+                    />
+                )}
             </Suspense>
         </ErrorBoundary>
     );

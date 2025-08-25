@@ -15,11 +15,6 @@ project(':react-native-plaid-link-sdk').projectDir = new File(rootProject.projec
 include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
 
-include ':gibsdk'
-project(':gibsdk').projectDir = new File(rootProject.projectDir, '../node_modules/group-ib-fp/android/gibsdk')
-include ':package'
-project(':package').projectDir = new File(rootProject.projectDir, '../node_modules/group-ib-fp/android/package')
-
 if(settings.extensions.patchedArtifacts.buildFromSource) {
     includeBuild('../node_modules/react-native') {
         dependencySubstitution {

@@ -1526,6 +1526,14 @@ function isUserInvitedToWorkspace(): boolean {
     );
 }
 
+function isMemberPolicyAdmin(policy: OnyxEntry<Policy>, memberEmail: string | undefined): boolean {
+    if (!policy || !memberEmail) {
+        return false;
+    }
+    const admins = getAdminEmployees(policy);
+    return admins.some((admin) => admin.email === memberEmail);
+}
+
 export {
     canEditTaxRate,
     escapeTagName,
@@ -1678,6 +1686,7 @@ export {
     getLengthOfTag,
     isPolicyMemberWithoutPendingDelete,
     getPolicyEmployeeAccountIDs,
+    isMemberPolicyAdmin,
 };
 
 export type {MemberEmailsToAccountIDs};

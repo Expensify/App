@@ -86,12 +86,12 @@ const getMockForStatus = (status: string) =>
             // eslint-disable-next-line @typescript-eslint/naming-convention
             card123: {
                 bank: 'OTHER_BANK',
-                lastScrapeResult: status === CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR ? 500 : 200,
+                lastScrapeResult: status === CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR ? 403 : 200,
             },
             // eslint-disable-next-line @typescript-eslint/naming-convention
             card456: {
                 bank: 'ANOTHER_BANK',
-                lastScrapeResult: status === CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR ? 500 : 200,
+                lastScrapeResult: status === CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR ? 403 : 200,
             },
         },
         [ONYXKEYS.SESSION]: {

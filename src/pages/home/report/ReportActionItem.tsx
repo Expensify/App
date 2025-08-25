@@ -66,6 +66,9 @@ type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'lin
 
     /** User billing fund ID */
     userBillingFundID: number | undefined;
+
+    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
+    isTryNewDotNVPDismissed?: boolean;
 };
 
 function ReportActionItem({
@@ -81,6 +84,7 @@ function ReportActionItem({
     personalDetails,
     linkedTransactionRouteError,
     userBillingFundID,
+    isTryNewDotNVPDismissed,
     ...props
 }: ReportActionItemProps) {
     const reportID = report?.reportID;
@@ -145,6 +149,7 @@ function ReportActionItem({
             clearAllRelatedReportActionErrors={clearAllRelatedReportActionErrors}
             dismissTrackExpenseActionableWhisper={dismissTrackExpenseActionableWhisper}
             userBillingFundID={userBillingFundID}
+            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
         />
     );
 }
