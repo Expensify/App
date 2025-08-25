@@ -49,6 +49,7 @@ function getPolicyIDFromKey(key: string): string {
 /**
  * Extract transaction ID from an Onyx key
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- this will be used in near future
 function getTransactionIDFromKey(key: string): string {
     return key.replace(ONYXKEYS.COLLECTION.TRANSACTION, '');
 }
@@ -282,7 +283,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     const {betas, allReports} = context;
 
     // Check if the feature is enabled
-    if (!Permissions.canUseCustomReportNames(betas)) {
+    if (!Permissions.isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas)) {
         Performance.markEnd(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
         Timing.end(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
         return updates;
@@ -366,22 +367,20 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
         }
     }
 
-    const updatedSet = [...updates, ...additionalUpdates];
+    Log.info('[OptimisticReportNames] Processing completed', false, {
+        additionalUpdatesCount: additionalUpdates.length,
+        totalUpdatesReturned: updates.length + additionalUpdates.length,
+    });
 
     Performance.markEnd(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
     Timing.end(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
 
-    Log.info('[OptimisticReportNames] Finished processing report names', false, {
-        originalUpdatesCount: updates.length,
-        additionalUpdatesCount: additionalUpdates.length,
-        totalUpdatesCount: updatedSet.length,
-    });
-
-    return updatedSet;
+    return updates.concat(additionalUpdates);
 }
 
 /**
- * Create an update context for testing or external use
+ * Creates update context for optimistic report name processing.
+ * This should be called before processing optimistic updates
  */
 function createUpdateContext(): Promise<UpdateContext> {
     return getUpdateContextAsync();

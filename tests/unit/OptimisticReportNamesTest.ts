@@ -15,50 +15,31 @@ jest.mock('@libs/ReportUtils', () => ({
 }));
 
 jest.mock('@libs/CurrencyUtils', () => ({
-    getCurrencySymbol: jest.fn(() => '$'),
-}));
-
-jest.mock('@libs/Performance', () => ({
-    markStart: jest.fn(),
-    markEnd: jest.fn(),
-}));
-
-jest.mock('@libs/actions/Timing', () => ({
-    start: jest.fn(),
-    end: jest.fn(),
-}));
-
-jest.mock('@libs/Log', () => ({
-    info: jest.fn(),
-}));
-
-jest.mock('@libs/Permissions', () => ({
-    canUseCustomReportNames: jest.fn(() => true),
+    getCurrencySymbol: jest.fn().mockReturnValue('$'),
 }));
 
 const mockReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
 
 describe('OptimisticReportNames', () => {
-    const mockReport: Report = {
-        reportID: '123',
-        type: 'expense',
-        policyID: 'policy123',
-        reportName: 'Original Report Name',
-        currency: 'USD',
-        total: 5000,
-    };
-
-    const mockPolicy: Policy = {
-        id: 'policy123',
-        name: 'Test Workspace',
+    const mockPolicy = {
+        id: 'policy1',
         fieldList: {
-            title: {
-                type: 'text',
-                key: 'title',
-                defaultValue: 'Report from {report:policyname}',
-            } as PolicyReportField,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            text_title: {
+                defaultValue: '{report:type} - {report:total}',
+            },
         },
-    };
+    } as unknown as Policy;
+
+    const mockReport = {
+        reportID: '123',
+        reportName: 'Old Name',
+        policyID: 'policy1',
+        total: -10000,
+        currency: 'USD',
+        lastVisibleActionCreated: '2025-01-15T10:30:00Z',
+        type: 'expense',
+    } as Report;
 
     const mockContext: UpdateContext = {
         betas: ['authAutoReportTitle'],
@@ -68,7 +49,7 @@ describe('OptimisticReportNames', () => {
         },
         allPolicies: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            policy_policy123: mockPolicy,
+            policy_policy1: mockPolicy,
         },
         allReportNameValuePairs: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -81,202 +62,209 @@ describe('OptimisticReportNames', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockReportUtils.isExpenseReport.mockReturnValue(true);
+        mockReportUtils.getTitleReportField.mockReturnValue(mockPolicy.fieldList?.text_title);
     });
 
-    describe('shouldComputeReportName', () => {
-        beforeEach(() => {
-            mockReportUtils.getTitleReportField.mockReturnValue({
-                defaultValue: 'Report from {report:policyname}',
-            } as PolicyReportField);
-        });
-
-        test('should return true for valid expense report with policy title field', () => {
+    describe('shouldComputeReportName()', () => {
+        test('should return true for expense report with title field formula', () => {
             const result = shouldComputeReportName(mockReport, mockPolicy);
             expect(result).toBe(true);
         });
 
-        test('should return false for report without policy', () => {
+        test('should return false for reports with unsupported type', () => {
+            mockReportUtils.isExpenseReport.mockReturnValue(false);
+
+            const result = shouldComputeReportName(
+                {
+                    ...mockReport,
+                    type: 'iou',
+                } as Report,
+                mockPolicy,
+            );
+            expect(result).toBe(false);
+        });
+
+        test('should return false when no policy', () => {
             const result = shouldComputeReportName(mockReport, undefined);
             expect(result).toBe(false);
         });
 
-        test('should return false for unsupported report type', () => {
-            const chatReport = {...mockReport, type: 'chat'};
-            const result = shouldComputeReportName(chatReport, mockPolicy);
-            expect(result).toBe(false);
-        });
-
-        test('should return false when policy has no title field', () => {
+        test('should return false when no title field', () => {
             mockReportUtils.getTitleReportField.mockReturnValue(undefined);
             const result = shouldComputeReportName(mockReport, mockPolicy);
             expect(result).toBe(false);
         });
+
+        test('should return true when title field has no formula', () => {
+            const policyWithoutFormula = {
+                ...mockPolicy,
+                fieldList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    text_title: {defaultValue: 'Static Title'},
+                },
+            } as unknown as Policy;
+            mockReportUtils.getTitleReportField.mockReturnValue(policyWithoutFormula.fieldList?.text_title);
+            const result = shouldComputeReportName(mockReport, policyWithoutFormula);
+            expect(result).toBe(true);
+        });
     });
 
-    describe('computeReportNameIfNeeded', () => {
-        beforeEach(() => {
-            mockReportUtils.getTitleReportField.mockReturnValue({
-                defaultValue: 'Report from {report:policyname}',
-            } as PolicyReportField);
-        });
-
-        test('should compute new report name when formula changes', () => {
+    describe('computeReportNameIfNeeded()', () => {
+        test('should compute name when report data changes', () => {
             const update = {
                 key: 'report_123' as OnyxKey,
                 onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    total: 10000,
-                },
+                value: {total: -20000},
             };
 
             const result = computeReportNameIfNeeded(mockReport, update, mockContext);
-
-            expect(result).toBe('Report from Test Workspace');
+            expect(result).toEqual('Expense Report - $200.00');
         });
 
-        test('should return null when no computation is needed', () => {
-            mockReportUtils.getTitleReportField.mockReturnValue(undefined);
-
+        test('should return null when name would not change', () => {
             const update = {
-                key: 'report_123' as OnyxKey,
+                key: 'report_456' as OnyxKey,
                 onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    total: 10000,
+                value: {description: 'Updated description'},
+            };
+
+            const result = computeReportNameIfNeeded(
+                {
+                    ...mockReport,
+                    reportName: 'Expense Report - $100.00',
                 },
-            };
-
-            const result = computeReportNameIfNeeded(mockReport, update, mockContext);
-
-            expect(result).toBeNull();
-        });
-
-        test('should handle new report creation', () => {
-            const newReport = {
-                ...mockReport,
-                reportID: 'new456',
-                reportName: '',
-            };
-
-            const update = {
-                key: 'report_new456' as OnyxKey,
-                onyxMethod: Onyx.METHOD.SET,
-                value: newReport,
-            };
-
-            const result = computeReportNameIfNeeded(undefined, update, mockContext);
-
-            expect(result).toBe('Report from Test Workspace');
-        });
-
-        test('should return null when computed name matches current name', () => {
-            const reportWithComputedName = {
-                ...mockReport,
-                reportName: 'Report from Test Workspace',
-            };
-
-            const update = {
-                key: 'report_123' as OnyxKey,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    total: 8000,
-                },
-            };
-
-            const result = computeReportNameIfNeeded(reportWithComputedName, update, mockContext);
-
+                update,
+                mockContext,
+            );
             expect(result).toBeNull();
         });
     });
 
-    describe('updateOptimisticReportNamesFromUpdates', () => {
-        beforeEach(() => {
-            mockReportUtils.getTitleReportField.mockReturnValue({
-                defaultValue: 'Report from {report:policyname}',
-            } as PolicyReportField);
-        });
-
-        test('should process report updates and add name updates', () => {
-            const updates = [
-                {
-                    key: 'report_123' as OnyxKey,
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    value: {
-                        total: 7500,
-                    },
-                },
-            ];
-
-            const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
-
-            expect(result).toHaveLength(2);
-            expect(result.at(0)).toEqual(updates.at(0));
-            expect(result.at(1)?.key).toBe('report_123');
-            expect(result.at(1)?.value).toEqual({
-                reportName: 'Report from Test Workspace',
-            });
-        });
-
-        test('should process policy updates and update affected reports', () => {
-            const updates = [
-                {
-                    key: 'policy_policy123' as OnyxKey,
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    value: {
-                        name: 'Updated Workspace',
-                    },
-                },
-            ];
-
-            const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
-
-            expect(result).toHaveLength(2);
-            expect(result.at(0)).toEqual(updates.at(0));
-            expect(result.at(1)?.key).toBe('report_123');
-        });
-
-        test('should return original updates when no changes needed', () => {
-            mockReportUtils.getTitleReportField.mockReturnValue(undefined);
-
+    describe('updateOptimisticReportNamesFromUpdates()', () => {
+        test('should detect new report creation and add name update', () => {
             const updates = [
                 {
                     key: 'report_456' as OnyxKey,
-                    onyxMethod: Onyx.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.SET,
                     value: {
-                        total: 3000,
+                        reportID: '456',
+                        policyID: 'policy1',
+                        total: -15000,
+                        currency: 'USD',
+                        type: 'expense',
                     },
                 },
             ];
 
             const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
-
-            expect(result).toEqual(updates);
+            expect(result).toHaveLength(2); // Original + name update
+            expect(result.at(1)).toEqual({
+                key: 'report_456',
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {reportName: 'Expense Report - $150.00'},
+            });
         });
 
-        test('should handle empty updates array', () => {
-            const result = updateOptimisticReportNamesFromUpdates([], mockContext);
-
-            expect(result).toEqual([]);
-        });
-
-        test('should return original updates when feature is disabled', () => {
-            const contextWithDisabledFeature = {
-                ...mockContext,
-                betas: [],
-            };
-
+        test('should handle existing report updates', () => {
             const updates = [
                 {
                     key: 'report_123' as OnyxKey,
                     onyxMethod: Onyx.METHOD.MERGE,
-                    value: {
-                        total: 7500,
-                    },
+                    value: {total: -25000},
                 },
             ];
 
-            const result = updateOptimisticReportNamesFromUpdates(updates, contextWithDisabledFeature);
+            const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
+            expect(result).toHaveLength(2); // Original + name update
+            expect(result.at(1)?.value).toEqual({reportName: 'Expense Report - $250.00'});
+        });
 
-            expect(result).toEqual(updates);
+        test('should handle policy updates affecting multiple reports', () => {
+            const contextWithMultipleReports = {
+                ...mockContext,
+                allReports: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    report_123: {...mockReport, reportID: '123'},
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    report_456: {...mockReport, reportID: '456'},
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    report_789: {...mockReport, reportID: '789'},
+                },
+                allReportNameValuePairs: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    reportNameValuePairs_123: {private_isArchived: ''},
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    reportNameValuePairs_456: {private_isArchived: ''},
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    reportNameValuePairs_789: {private_isArchived: ''},
+                },
+            };
+            mockReportUtils.getTitleReportField.mockReturnValue({defaultValue: 'Policy: {report:policyname}'} as unknown as PolicyReportField);
+
+            const updates = [
+                {
+                    key: 'policy_policy1' as OnyxKey,
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    value: {name: 'Updated Policy Name'},
+                },
+            ];
+
+            const result = updateOptimisticReportNamesFromUpdates(updates, contextWithMultipleReports);
+
+            expect(result).toHaveLength(4);
+
+            // Assert the original policy update
+            expect(result.at(0)).toEqual({
+                key: 'policy_policy1',
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {name: 'Updated Policy Name'},
+            });
+
+            // Assert individual report name updates
+            expect(result.at(1)).toEqual({
+                key: 'report_123',
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {reportName: 'Policy: Updated Policy Name'},
+            });
+
+            expect(result.at(2)).toEqual({
+                key: 'report_456',
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {reportName: 'Policy: Updated Policy Name'},
+            });
+
+            expect(result.at(3)).toEqual({
+                key: 'report_789',
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {reportName: 'Policy: Updated Policy Name'},
+            });
+        });
+
+        test('should handle unknown object types gracefully', () => {
+            const updates = [
+                {
+                    key: 'unknown_123' as OnyxKey,
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    value: {someData: 'value'},
+                },
+            ];
+
+            const result = updateOptimisticReportNamesFromUpdates(updates, mockContext);
+            expect(result).toEqual(updates); // Unchanged
+        });
+    });
+
+    describe('Edge Cases', () => {
+        test('should handle missing report gracefully', () => {
+            const update = {
+                key: 'report_999' as OnyxKey,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {total: -10000},
+            };
+
+            const result = computeReportNameIfNeeded(undefined, update, mockContext);
+            expect(result).toBeNull();
         });
     });
 
