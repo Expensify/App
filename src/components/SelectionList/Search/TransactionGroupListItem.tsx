@@ -9,6 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchGroupBy} from '@components/Search/types';
+import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {
     ListItem,
     TransactionCardGroupListItemType,
@@ -38,7 +39,6 @@ import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavig
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
