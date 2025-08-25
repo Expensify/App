@@ -1138,7 +1138,6 @@ type TwoFactorAuthNavigatorParamList = {
         backTo?: Routes;
         forwardTo?: string;
     };
-    [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.VERIFY]: {
         backTo?: Routes;
         forwardTo?: string;
