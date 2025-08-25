@@ -315,7 +315,7 @@ describe('MergeTransactionUtils', () => {
             const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
 
             // Only the different values are in the conflict fields
-            expect(result.conflictFields).toEqual(['amount', 'created','description', 'reimbursable']);
+            expect(result.conflictFields).toEqual(['amount', 'created', 'description', 'reimbursable']);
 
             // The same values or either target or source has value are in the mergeable data
             expect(result.mergeableData).toEqual({
