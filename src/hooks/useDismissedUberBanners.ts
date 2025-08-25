@@ -3,7 +3,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
 function useDismissedUberBanners({policyID}: {policyID?: string}): {isDismissed: boolean; setAsDismissed: () => void} {
-    const [dismissedUberBanners, metadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_UBER_BANNERS);
+    const [dismissedUberBanners, metadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_UBER_BANNERS, {canBeMissing: true});
     const isDismissed = (!!policyID && !!dismissedUberBanners?.[policyID]) || metadata.status !== 'loaded';
 
     const setAsDismissed = () => {
