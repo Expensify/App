@@ -71,7 +71,7 @@ This will enable the connection between QuickBooks Online and import your settin
 
 # FAQ 
 
-# Why do I see a red dot next to the QuickBooks Online connection?
+## Why do I see a red dot next to the QuickBooks Online connection?
 
 A red dot means there’s a connection error. You’ll see this:
 
