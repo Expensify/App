@@ -334,35 +334,28 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_ALIAS: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
           ANDROID_UPLOAD_KEY_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
 
-      - name: Build Android app
-        id: build
-        env:
-          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
-          ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
-          ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
-        run: bundle exec fastlane android build_adhoc_hybrid
-
-      - name: Configure AWS Credentials
-        # v4
-        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Upload Android AdHoc build to S3
-        run: bundle exec fastlane android upload_s3
-        env:
-          S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          S3_BUCKET: ad-hoc-expensify-cash
-          S3_REGION: us-east-1
-
-      - name: Export S3 path
-        id: exportAndroidS3Path
+      - name: Convert keystore to base64
+        id: keystore-base64
         run: |
-          # $s3APKPath is set from within the Fastfile, android upload_s3 lane
-          echo "S3_APK_PATH=$s3APKPath" >> "$GITHUB_OUTPUT"
+          echo "keystore_content=$(base64 -w 0 Mobile-Expensify/Android/upload-key.keystore)" >> $GITHUB_OUTPUT 
+
+      - name: AdHoc RNEF Remote Build - Android
+        # rnef v2
+        uses: callstackincubator/android@d9a81f860e436ff2971323990244e32830dcabd1
+        env:
+          IS_HYBRID_APP: true
+        with:
+          variant: 'Adhoc'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          re-sign: true
+          # ad-hoc: true
+          keystore-base64: ${{ steps.keystore-base64.outputs.keystore_content }}
+          keystore-store-file: 'upload-key.keystore'
+          keystore-store-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          keystore-key-alias: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
+          keystore-key-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+          comment-bot: true
+          rnef-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
 
   iosHybrid:
     name: Build and deploy iOS for testing
@@ -447,34 +440,36 @@ jobs:
           op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
           op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
-      - name: Build AdHoc app
-        run: bundle exec fastlane ios build_adhoc_hybrid
-
-      - name: Configure AWS Credentials
-        # v4
-        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Upload AdHoc build to S3
-        run: bundle exec fastlane ios upload_s3
-        env:
-          S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          S3_BUCKET: ad-hoc-expensify-cash
-          S3_REGION: us-east-1
-
-      - name: Export iOS path
-        id: export-ios-path
+      - name: Load certificate and convert to base64
+        id: load-certificate
         run: |
-          content_ios="$(cat ./ios_paths.json)"
-          content_ios="${content_ios//'%'/'%25'}"
-          content_ios="${content_ios//$'\n'/'%0A'}"
-          content_ios="${content_ios//$'\r'/'%0D'}"
-          ios_path=$(echo "$content_ios" | jq -r '.html_path')
-          echo "IOS_PATH=$ios_path" >> "$GITHUB_OUTPUT"
+          echo "certificate-base64=$(base64 -i ./Certificates.p12)" >> "$GITHUB_OUTPUT"
+      - name: Load provisioning profile and convert to base64
+        id: load-provisioning-profile
+        run: |
+          echo "profile-base64=$(base64 -i ./OldApp_AdHoc.mobileprovision)" >> "$GITHUB_OUTPUT"
+
+      - name: RNEF Remote Build - iOS
+        # rnef v2
+        uses: callstackincubator/ios@7847e0676242cefa801cba8ede6736140b7bae91 
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          IS_HYBRID_APP: true
+        with:
+          destination: device
+          github-token: ${{ github.token }}
+          re-sign: true
+          # ad-hoc: true
+          scheme: 'Expensify AdHoc'
+          configuration: 'DebugAdHoc'
+          certificate-base64: ${{ steps.load-certificate.outputs.certificate-base64}}
+          # not sure if we have in the secrets on gh
+          certificate-password: ${{ secrets.CERTIFICATE_PASSWORD || '' }}
+          provisioning-profile-base64: ${{ steps.load-provisioning-profile.outputs.profile-base64}}
+          # not sure if we have in the secrets on gh
+          keychain-password: ${{ secrets.KEYCHAIN_PASSWORD || '' }}
+          provisioning-profile-name: '(OldApp) AdHoc'
+          comment-bot: true
 
   postGithubComment:
     runs-on: ubuntu-latest
