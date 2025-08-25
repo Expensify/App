@@ -27,6 +27,7 @@ type SidebarOrderedReportsContextProviderProps = {
 
 type SidebarOrderedReportsContextValue = {
     orderedReports: OnyxTypes.Report[];
+    orderedReportIDs: string[];
     currentReportID: string | undefined;
     policyMemberAccountIDs: number[];
 };
@@ -35,6 +36,7 @@ type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherTh
 
 const SidebarOrderedReportsContext = createContext<SidebarOrderedReportsContextValue>({
     orderedReports: [],
+    orderedReportIDs: [],
     currentReportID: '',
     policyMemberAccountIDs: [],
 });
@@ -225,6 +227,7 @@ function SidebarOrderedReportsContextProvider({
             const updatedReports = getOrderedReports(updatedReportIDs);
             return {
                 orderedReports: updatedReports,
+                orderedReportIDs: updatedReportIDs,
                 currentReportID: derivedCurrentReportID,
                 policyMemberAccountIDs,
             };
@@ -232,6 +235,7 @@ function SidebarOrderedReportsContextProvider({
 
         return {
             orderedReports,
+            orderedReportIDs,
             currentReportID: derivedCurrentReportID,
             policyMemberAccountIDs,
         };
