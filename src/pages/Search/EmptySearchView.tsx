@@ -44,7 +44,7 @@ import type {Policy} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
-    hash: number;
+similarSearchHash: number;
     groupBy?: SearchGroupBy | undefined;
     type: SearchDataTypes;
     hasResults: boolean;
@@ -74,7 +74,7 @@ const tripsFeatures: FeatureListItem[] = [
     },
 ];
 
-function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps) {
+function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySearchViewProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -183,7 +183,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         // Begin by going through all of our To-do searches, and returning their empty state
         // if it exists
         for (const menuItem of typeMenuItems) {
-            if (menuItem.hash === hash && menuItem.emptyState) {
+            if (menuItem.similarSearchHash === similarSearchHash && menuItem.emptyState) {
                 return {
                     headerMedia: menuItem.emptyState.headerMedia,
                     title: translate(menuItem.emptyState.title),
@@ -353,7 +353,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         groupBy,
         type,
         typeMenuItems,
-        hash,
+        similarSearchHash,
         translate,
         StyleUtils,
         theme.todoBG,

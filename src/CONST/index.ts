@@ -1064,6 +1064,7 @@ const CONST = {
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
+    RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
         ROLE: {
             ADMIN: 'admin',
@@ -1072,7 +1073,6 @@ const CONST = {
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         UNREPORTED_REPORT_ID: '0',
-        DEFAULT_REPORT_ID: '1',
         SPLIT_REPORT_ID: '-2',
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1083,6 +1083,7 @@ const CONST = {
             HOLD: 'hold',
             DOWNLOAD_PDF: 'downloadPDF',
             CHANGE_WORKSPACE: 'changeWorkspace',
+            CHANGE_APPROVER: 'changeApprover',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
             RETRACT: 'retract',
@@ -1550,6 +1551,9 @@ const CONST = {
         SKELETON_ANIMATION_SPEED: 3,
         SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',
         DEBOUNCE_HANDLE_SEARCH: 'debounce_handle_search',
+        FAST_SEARCH_TREE_CREATION: 'fast_search_tree_creation',
+        SHOW_HOVER_PREVIEW_DELAY: 270,
+        SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -2814,15 +2818,6 @@ const CONST = {
         'zeHirHirs',
         'callMeByMyName',
     ],
-
-    // Map updated pronouns key to deprecated pronouns
-    DEPRECATED_PRONOUNS_LIST: {
-        heHimHis: 'He/him',
-        sheHerHers: 'She/her',
-        theyThemTheirs: 'They/them',
-        zeHirHirs: 'Ze/hir',
-        callMeByMyName: 'Call me by my name',
-    },
 
     POLICY: {
         TYPE: {
@@ -6539,6 +6534,7 @@ const CONST = {
             return {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
                 [this.GROUP_BY.REPORTS]: 'report',
+                [this.STATUS.EXPENSE.DRAFTS]: 'draft',
             };
         },
         DATE_MODIFIERS: {
@@ -6576,6 +6572,7 @@ const CONST = {
             STATEMENTS: 'statements',
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_CARD: 'unapprovedCard',
+            RECONCILIATION: 'reconciliation',
         },
         GROUP_PREFIX: 'group_',
     },
@@ -6716,6 +6713,14 @@ const CONST = {
                 name: 'Advanced Approvals' as const,
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
+                icon: 'AdvancedApprovalsSquare',
+            },
+            multiApprovalLevels: {
+                id: 'multiApprovalLevels' as const,
+                alias: 'multi-approval-levels' as const,
+                name: 'Multiple approval levels' as const,
+                title: `workspace.upgrade.multiApprovalLevels.title` as const,
+                description: `workspace.upgrade.multiApprovalLevels.description` as const,
                 icon: 'AdvancedApprovalsSquare',
             },
             glCodes: {
