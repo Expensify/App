@@ -49,10 +49,10 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import WorkspaceReceiptPartnersPromotionBanner from './receiptPartners/WorkspaceReceiptPartnersPromotionBanner';
 import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
-import WorkspaceReceiptPartnersPromotionBanner from './WorkspaceReceiptPartnersPromotionBanner';
 
 type WorkspaceOverviewPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 
