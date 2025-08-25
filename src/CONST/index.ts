@@ -7075,6 +7075,9 @@ const CONST = {
         REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
         INVITE_ACCOUNTANT: 'inviteAccountant',
     },
+    POLICY_ERROR_MESSAGES: {
+        PENDING_REPORTS: '402 User has reports pending their approval, cannot leave',
+    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [

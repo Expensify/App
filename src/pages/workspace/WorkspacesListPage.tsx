@@ -36,7 +36,16 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {calculateBillNewDot, clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
+import {
+    calculateBillNewDot,
+    clearDeleteWorkspaceError,
+    clearErrors,
+    deleteWorkspace,
+    leaveWorkspace,
+    removePendingApproverMemberErrorMessage,
+    removeWorkspace,
+    updateDefaultPolicy,
+} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -154,6 +163,7 @@ function WorkspacesListPage() {
     const personalDetails = usePersonalDetails();
     const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
     const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
+    const [isCannotLeaveWorkspaceWithPendingReportsModalOpen, setIsCannotLeaveWorkspaceWithPendingReportsModalOpen] = useState(false);
     const [policyIDToLeave, setPolicyIDToLeave] = useState<string>();
     const policyToLeave = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToLeave}`];
 
@@ -186,6 +196,10 @@ function WorkspacesListPage() {
         const technicalContact = currentPolicy?.technicalContact;
         const isCurrentUserReimburser = isUserReimburserForPolicy(policies, policyIDToLeave, session?.email);
         const userEmail = session?.email ?? '';
+
+        if (isCannotLeaveWorkspaceWithPendingReportsModalOpen) {
+            return translate('common.cannotLeaveWorkspaceOutstandingReport');
+        }
 
         if (isCurrentUserReimburser) {
             return translate('common.leaveWorkspaceReimburser');
@@ -378,13 +392,31 @@ function WorkspacesListPage() {
      */
     const workspaces = useMemo(() => {
         const reimbursementAccountBrickRoadIndicator = !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+
         if (isEmptyObject(policies)) {
             return [];
         }
 
         return Object.values(policies)
-            .filter((policy): policy is PolicyType => shouldShowPolicy(policy, isOffline, session?.email))
+            .filter((policy): policy is PolicyType => {
+                return shouldShowPolicy(policy, isOffline, session?.email);
+            })
             .map((policy): WorkspaceItem => {
+                if (shouldShowPolicy(policy, isOffline, session?.email)) {
+                    if (policy.employeeList && session?.email && policy.employeeList?.[session?.email]) {
+                        const employee = policy.employeeList[session.email];
+
+                        if (employee.errors && employee.pendingAction === 'delete') {
+                            const hasApprovalError = Object.values(employee.errors).some((error) => typeof error === 'string' && error.includes(CONST.POLICY_ERROR_MESSAGES.PENDING_REPORTS));
+                            if (hasApprovalError) {
+                                setIsCannotLeaveWorkspaceWithPendingReportsModalOpen(true);
+                                // Clear the error after showing the modal to prevent it from triggering again
+                                removePendingApproverMemberErrorMessage(policy.id, employee.errors);
+                            }
+                        }
+                    }
+                }
+
                 if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
                     const policyInfo = Object.values(policy.policyDetailsForNonMembers).at(0) as PolicyDetailsForNonMembers;
                     const id = Object.keys(policy.policyDetailsForNonMembers).at(0);
@@ -583,8 +615,12 @@ function WorkspacesListPage() {
             />
             <ConfirmModal
                 title={translate('common.leaveWorkspace')}
-                isVisible={isCannotLeaveWorkspaceModalOpen}
+                isVisible={isCannotLeaveWorkspaceModalOpen || isCannotLeaveWorkspaceWithPendingReportsModalOpen}
                 onConfirm={() => {
+                    if (isCannotLeaveWorkspaceWithPendingReportsModalOpen) {
+                        setIsCannotLeaveWorkspaceWithPendingReportsModalOpen(false);
+                        return;
+                    }
                     setIsCannotLeaveWorkspaceModalOpen(false);
                 }}
                 prompt={confirmModalPrompt()}
