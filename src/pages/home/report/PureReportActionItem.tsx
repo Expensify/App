@@ -38,6 +38,7 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -441,6 +442,7 @@ function PureReportActionItem({
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, datetimeToCalendarTime, formatPhoneNumber, localeCompare} = useLocalize();
+    const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
     const theme = useTheme();
@@ -737,7 +739,7 @@ function PureReportActionItem({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
-                    resolveConciergeCategoryOptions(reportID, originalReportID, action.reportActionID, option);
+                    resolveConciergeCategoryOptions(reportID, originalReportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
                 },
             }));
         }
@@ -865,6 +867,7 @@ function PureReportActionItem({
         currentUserAccountID,
         reportID,
         originalReportID,
+        personalDetail.timezone,
         isBetaEnabled,
         createDraftTransactionAndNavigateToParticipantSelector,
         dismissTrackExpenseActionableWhisper,

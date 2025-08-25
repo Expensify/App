@@ -11,6 +11,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SwipeableView from '@components/SwipeableView';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -88,6 +89,7 @@ function ReportFooter({
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const personalDetail = useCurrentUserPersonalDetails();
 
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
@@ -172,7 +174,7 @@ function ReportFooter({
             if (isTaskCreated) {
                 return;
             }
-            addComment(report.reportID, text, true);
+            addComment(report.reportID, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [report.reportID, handleCreateTask],

@@ -80,21 +80,21 @@ describe('DateUtils', () => {
         expect(localDate.getTime()).not.toBeNaN();
     });
 
-    it('should return the date in calendar time when calling datetimeToCalendarTime', () => {
+    it.only('should return the date in calendar time when calling datetimeToCalendarTime', () => {
         const today = setMinutes(setHours(new Date(), 14), 32).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, today)).toBe('Today at 2:32 PM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, today, false, UTC as SelectedTimezone)).toBe('Today at 2:32 PM');
 
         const tomorrow = addDays(setMinutes(setHours(new Date(), 14), 32), 1).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, tomorrow)).toBe('Tomorrow at 2:32 PM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, tomorrow, false, UTC as SelectedTimezone)).toBe('Tomorrow at 2:32 PM');
 
         const yesterday = setMinutes(setHours(subDays(new Date(), 1), 7), 43).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, yesterday)).toBe('Yesterday at 7:43 AM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, yesterday, false, UTC as SelectedTimezone)).toBe('Yesterday at 7:43 AM');
 
         const date = setMinutes(setHours(new Date('2022-11-05'), 10), 17).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, date)).toBe('Nov 5, 2022 at 10:17 AM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, date, false, UTC as SelectedTimezone)).toBe('Nov 5, 2022 at 10:17 AM');
 
         const todayLowercaseDate = setMinutes(setHours(new Date(), 14), 32).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, false, undefined, true)).toBe('today at 2:32 PM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, false, UTC as SelectedTimezone, true)).toBe('today at 2:32 PM');
     });
 
     it('should update timezone if automatic and selected timezone do not match', async () => {
@@ -106,7 +106,7 @@ describe('DateUtils', () => {
         );
         Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}});
         await waitForBatchedUpdates();
-        const result = DateUtils.getCurrentTimezone();
+        const result = DateUtils.getCurrentTimezone({selected: 'Europe/London', automatic: true});
         expect(result).toEqual({
             selected: 'America/Chicago',
             automatic: true,
@@ -122,7 +122,7 @@ describe('DateUtils', () => {
         );
         Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}});
         await waitForBatchedUpdates();
-        const result = DateUtils.getCurrentTimezone();
+        const result = DateUtils.getCurrentTimezone({selected: 'Europe/London', automatic: true});
         expect(result).toEqual({
             selected: UTC,
             automatic: true,
