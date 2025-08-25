@@ -367,10 +367,11 @@ function ReportActionsList({
         if (isTransactionThread(parentReportAction)) {
             // In a transaction thread, we want to scroll to the end of the list
             reportScrollManager.scrollToEnd(true);
-        } else {
-            // On remaining reports, we want to scroll to the bottom of the inverted FlatList which is the top of the list (offset: 0)
-            reportScrollManager.scrollToBottom();
+            return;
         }
+
+        // On remaining reports, we want to scroll to the bottom of the inverted FlatList which is the top of the list (offset: 0)
+        reportScrollManager.scrollToBottom();
     }, [parentReportAction, reportScrollManager]);
 
     useEffect(() => {
