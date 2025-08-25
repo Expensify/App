@@ -91,6 +91,8 @@ const connectionsVideoPaths = {
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
+const brokenConnectionScrapeStatuses: number[] = [200, 531, 530, 500, 666];
+
 // Hide not issued or not activated cards (states 2, 4) from card filter options in search, as no transactions can be made on cards in these states
 const cardHiddenFromSearchStates: number[] = [2, 4];
 
@@ -664,7 +666,6 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         ASAP_SUBMIT: 'asapSubmit',
-        AUTH_AUTO_REPORT_TITLE: 'authAutoReportTitle',
         DEFAULT_ROOMS: 'defaultRooms',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
@@ -1082,6 +1083,7 @@ const CONST = {
             HOLD: 'hold',
             DOWNLOAD_PDF: 'downloadPDF',
             CHANGE_WORKSPACE: 'changeWorkspace',
+            CHANGE_APPROVER: 'changeApprover',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
             RETRACT: 'retract',
@@ -1528,9 +1530,6 @@ const CONST = {
         APPLY_AIRSHIP_UPDATES: 'apply_airship_updates',
         APPLY_PUSHER_UPDATES: 'apply_pusher_updates',
         APPLY_HTTPS_UPDATES: 'apply_https_updates',
-        COMPUTE_REPORT_NAME: 'compute_report_name',
-        COMPUTE_REPORT_NAME_FOR_NEW_REPORT: 'compute_report_name_for_new_report',
-        UPDATE_OPTIMISTIC_REPORT_NAMES: 'update_optimistic_report_names',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
@@ -3273,6 +3272,7 @@ const CONST = {
         MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
     },
     COMPANY_CARDS: {
+        BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
         CONNECTION_ERROR: 'connectionError',
         STEP: {
             SELECT_BANK: 'SelectBank',
@@ -6712,6 +6712,14 @@ const CONST = {
                 name: 'Advanced Approvals' as const,
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
+                icon: 'AdvancedApprovalsSquare',
+            },
+            multiApprovalLevels: {
+                id: 'multiApprovalLevels' as const,
+                alias: 'multi-approval-levels' as const,
+                name: 'Multiple approval levels' as const,
+                title: `workspace.upgrade.multiApprovalLevels.title` as const,
+                description: `workspace.upgrade.multiApprovalLevels.description` as const,
                 icon: 'AdvancedApprovalsSquare',
             },
             glCodes: {
