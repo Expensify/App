@@ -29,7 +29,7 @@ describe('AttachmentStorage', () => {
         // Mock global fetch and response for attachment
         global.fetch = TestHelper.getGlobalFetchMock({
             headers: new Headers({
-                'content-type': 'image/jpeg',
+                'Content-Type': 'image/jpeg',
             }),
             arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
         });
@@ -142,7 +142,6 @@ describe('AttachmentStorage', () => {
     it('should store/cache for old markdown attachment', async () => {
         // Given the attachment data consisting of sourceURL and markdown comment text
         const sourceURL = 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500';
-        const markdownTextLinkAttachment = `![](${sourceURL})`;
 
         let attachments: OnyxCollection<Attachment>;
 
@@ -170,6 +169,7 @@ describe('AttachmentStorage', () => {
         expect(updatedAttachment).toEqual({
             attachmentID,
             source: `/mock/documents/${attachmentID}.jpg`,
+            remoteSource: sourceURL,
         });
     });
     it('should re-cache when markdown image link is changed', async () => {

@@ -6,7 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attachment} from '@src/types/onyx';
 
 function cacheAttachment(attachmentID: string, uri: string, type?: string) {
-    const isMarkdownAttachemnt = !uri.startsWith('file://');
+    const isMarkdownAttachment = !uri.startsWith('file://');
     let mimeType = type;
     fetch(uri)
         .then((response) => {
@@ -32,7 +32,7 @@ function cacheAttachment(attachmentID: string, uri: string, type?: string) {
             const filePath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
             RNFS.writeFile(filePath, finalData, 'base64').then(() => {
                 // If it's markdown attachment, then we need to set the remoteSource accordingly
-                if (isMarkdownAttachemnt) {
+                if (isMarkdownAttachment) {
                     Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
                         attachmentID,
                         source: filePath,
