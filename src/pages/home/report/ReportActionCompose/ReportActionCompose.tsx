@@ -2,7 +2,7 @@ import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
@@ -114,8 +114,6 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
-
-const isNative = Platform.OS === CONST.PLATFORM.IOS || Platform.OS === CONST.PLATFORM.ANDROID;
 
 // eslint-disable-next-line import/no-mutable-exports
 let onSubmitAction = noop;
@@ -401,10 +399,10 @@ function ReportActionCompose({
     }>({clear: undefined});
 
     const handleSendMessage = useCallback(
-        (caller: 'SendButton' | 'Composer') => {
+        (isJsThread?: boolean) => {
             'worklet';
 
-            const clearComposer = isNative ? composerRef.current?.clear : composerRefShared.get().clear;
+            const clearComposer = isJsThread ? composerRef.current?.clear : composerRefShared.get().clear;
             if (!clearComposer) {
                 throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
             }
@@ -414,7 +412,7 @@ function ReportActionCompose({
             }
 
             // This will cause onCleared to be triggered where we actually send the message
-            if (isNative && caller === 'Composer') {
+            if (isJsThread) {
                 runOnUI(clearComposer)();
             } else {
                 clearComposer();
