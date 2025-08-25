@@ -194,7 +194,19 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
         cardID,
     };
 
-    API.write(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, {optimisticData, successData, failureData});
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    }).then((response) => {
+        if (!response) {
+            return;
+        }
+        if (response.pin) {
+            Onyx.merge(ONYXKEYS.ACTIVATED_CARD_PIN, response.pin);
+        }
+    });
 }
 
 /**
@@ -202,6 +214,13 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
  */
 function clearCardListErrors(cardID: number) {
     Onyx.merge(ONYXKEYS.CARD_LIST, {[cardID]: {errors: null, isLoading: false}});
+}
+
+/**
+ * Clears pin for Activated card
+ */
+function clearActivatedCardPin() {
+    Onyx.set(ONYXKEYS.ACTIVATED_CARD_PIN, '');
 }
 
 function clearReportVirtualCardFraudForm() {
@@ -968,6 +987,7 @@ export {
     configureExpensifyCardsForPolicy,
     issueExpensifyCard,
     openCardDetailsPage,
+    clearActivatedCardPin,
     toggleContinuousReconciliation,
     updateExpensifyCardLimitType,
     updateSelectedFeed,

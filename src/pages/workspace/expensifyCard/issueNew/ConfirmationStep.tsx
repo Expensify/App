@@ -11,6 +11,7 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
@@ -50,6 +51,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
     const defaultFundID = useDefaultFundID(policyID);
+    const {isBetaEnabled} = usePermissions();
 
     const submitButton = useRef<View>(null);
 
@@ -74,7 +76,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
     }, [backTo, policyID, isSuccessful]);
 
     const submit = (validateCode: string) => {
-        issueExpensifyCard(defaultFundID, policyID, CONST.COUNTRY.US, validateCode, data);
+        issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, validateCode, data);
     };
 
     const errorMessage = getLatestErrorMessage(issueNewCard);
@@ -122,7 +124,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.limit')}
-                    title={convertToShortDisplayString(data?.limit)}
+                    title={convertToShortDisplayString(data?.limit, data?.currency)}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT)}
                 />
