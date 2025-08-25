@@ -8295,11 +8295,7 @@ type ReportErrorsAndReportActionThatRequiresAttention = {
     reportAction?: OnyxEntry<ReportAction>;
 };
 
-function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
-    report: OnyxEntry<Report>,
-    reportActions: OnyxEntry<ReportActions>,
-    isReportArchived = false,
-): ReportErrorsAndReportActionThatRequiresAttention {
+function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): ReportErrorsAndReportActionThatRequiresAttention {
     const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action));
     const reportActionErrors: ErrorFields = {};
     let reportAction: OnyxEntry<ReportAction>;
@@ -8318,7 +8314,11 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
             ? undefined
             : allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
 
-    if (!isReportArchived) {
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
+    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
+
+    if (!isArchivedReport(reportNameValuePairs)) {
         if (wasActionTakenByCurrentUser(parentReportAction) && isTransactionThread(parentReportAction)) {
             const transactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : null;
             const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -8346,9 +8346,9 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
 /**
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  */
-function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>, isReportArchived = false): Errors {
+function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): Errors {
     const reportErrorFields = report?.errorFields ?? {};
-    const {errors: reportActionErrors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, isReportArchived);
+    const {errors: reportActionErrors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
     const errorSources = {
@@ -11350,13 +11350,13 @@ function generateReportAttributes({
     chatReport,
     reportActions,
     transactionViolations,
-    isReportArchived = false,
+    reportNameValuePairs,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
     reportActions?: OnyxCollection<ReportActions>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
-    isReportArchived: boolean;
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
 }) {
     const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
@@ -11365,10 +11365,11 @@ function generateReportAttributes({
     const doesReportHasViolations = hasReportViolations(report?.reportID);
     const hasViolationsToDisplayInLHN = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
     const hasAnyTypeOfViolations = hasViolationsToDisplayInLHN || (!isReportSettled && isCurrentUserReportOwner && doesReportHasViolations);
-    const reportErrors = getAllReportErrors(report, reportActionsList, isReportArchived);
+    const reportErrors = getAllReportErrors(report, reportActionsList);
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
+    const isReportArchived = !!reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]?.private_isArchived;
     const requiresAttention = requiresAttentionFromCurrentUser(report, parentReportAction, isReportArchived);
 
     return {
@@ -11380,6 +11381,7 @@ function generateReportAttributes({
         oneTransactionThreadReportID,
         parentReportAction,
         requiresAttention,
+        isReportArchived,
     };
 }
 
