@@ -128,7 +128,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                         buttonRef.current = el ?? null;
                     }
                 }}
-                style={(state) => [
+                style={[
                     styles.h100,
                     styles.navigationTabBarItem,
 
