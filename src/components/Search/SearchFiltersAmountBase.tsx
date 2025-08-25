@@ -70,7 +70,6 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
                         inputID={`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`}
                         name={`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`}
                         defaultValue={greaterThanFormattedAmount}
-                        shouldUseDefaultValue
                         label={translate('search.filters.amount.greaterThan')}
                         accessibilityLabel={translate('search.filters.amount.greaterThan')}
                         role={CONST.ROLE.PRESENTATION}
@@ -84,7 +83,6 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
                         inputID={`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`}
                         name={`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`}
                         defaultValue={lessThanFormattedAmount}
-                        shouldUseDefaultValue
                         label={translate('search.filters.amount.lessThan')}
                         accessibilityLabel={translate('search.filters.amount.lessThan')}
                         role={CONST.ROLE.PRESENTATION}
