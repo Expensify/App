@@ -5773,6 +5773,10 @@ const styles = (theme: ThemeColors) =>
             minHeight: 200,
         },
 
+        receiptCellLoadingContainer: {
+            backgroundColor: theme.activeComponentBG,
+        },
+
         wideRHPMoneyRequestReceiptViewContainer: {
             backgroundColor: theme.appBG,
             width: receiptPaneRHPWidth,
