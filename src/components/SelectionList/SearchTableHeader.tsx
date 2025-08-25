@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import type {SearchColumnType, SearchGroupBy, SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getShouldShowMerchant} from '@libs/SearchUIUtils';
