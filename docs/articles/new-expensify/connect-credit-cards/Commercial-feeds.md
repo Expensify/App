@@ -74,6 +74,23 @@ To set up an Amex Corporate Feed, you’ll need to complete and email their requ
 
 ---
 
+# Set Up a Brex CDF Feed
+
+To enable a Brex feed, your Brex Customer Success Manager must arrange to have data sent to Expensify.
+
+1. Ask Concierge or your Account Manager for your Expensify Domain ID. 
+2. Ask your Brex Customer Success Manager to send your CDF3 (Common Data File) to Expensify 
+3. Specify the earliest transaction date needed and give them the Domain ID as a reference number.
+4. Brex will initiate delivery and let you know the feed is set up.
+5. In Expensify, go to Workspaces > [Workspace Name] > Company Cards > Add Cards.
+6. Select your bank or choose Other, then select Mastercard Commercial Cards.
+7. Submit your Domain ID.
+8. Message Concierge to specify that it’s for a Brex Mastercard. 
+9. Alternatively, you can message your account manager with all the details.
+10. Expensify will activate the feed and notify you when setup is complete.
+
+---
+
 # Assign Company Cards
 
 Once a commercial feed is connected:
