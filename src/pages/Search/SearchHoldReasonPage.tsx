@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect} from 'react';
-import {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
@@ -16,7 +16,7 @@ import {bulkHold} from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
-import {ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 
 function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>>) {
     const {translate} = useLocalize();
@@ -25,14 +25,15 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [transactions] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}`, {
         canBeMissing: false,
-        selector: (transctionsCollection) => {
+        selector: (allTransactions) => {
             const selectedTransactions: OnyxCollection<Transaction> = {};
-            if (!transctionsCollection) {
+            if (!allTransactions) {
                 return selectedTransactions;
             }
 
             context.selectedTransactionIDs.forEach((transactionID) => {
-                selectedTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = transctionsCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+                selectedTransactions[key] = allTransactions?.[key];
             });
 
             return selectedTransactions;
@@ -40,7 +41,7 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
     });
 
     const [transactionsViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {
-        canBeMissing: false,
+        canBeMissing: true,
         selector: (allTransactionsViolations) => {
             const selectedTransactionsViolations: OnyxCollection<TransactionViolations> = {};
             if (!allTransactionsViolations) {
@@ -48,15 +49,15 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
             }
 
             context.selectedTransactionIDs.forEach((transactionID) => {
-                selectedTransactionsViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] =
-                    allTransactionsViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                const key = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
+                selectedTransactionsViolations[key] = allTransactionsViolations?.[key];
             });
 
             return selectedTransactionsViolations;
         },
     });
 
-    const [transactionsIOUActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+    const [transactionsIOUActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, {
         canBeMissing: false,
         selector: (allReportActions) => {
             const selectedTransactionsIOUActions: Record<string, ReportAction> = {};
@@ -68,7 +69,7 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
                 if (!transaction) {
                     return;
                 }
-                const reportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+                const reportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`];
                 if (!reportActions) {
                     return;
                 }
@@ -88,17 +89,16 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
             if (transactions !== undefined && transactionsIOUActions !== undefined) {
                 if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                    bulkHold(comment, report, context.selectedTransactionIDs, transactions, transactionsViolations, transactionsIOUActions);
+                    bulkHold(comment, report, transactions, transactionsViolations, transactionsIOUActions);
                     context.clearSelectedTransactions(true);
                 } else {
                     holdMoneyRequestOnSearch(context.currentSearchHash, Object.keys(context.selectedTransactions), comment, transactions, transactionsIOUActions);
                     context.clearSelectedTransactions();
                 }
             }
-
             Navigation.goBack();
         },
-        [route.name, reportID, report, context, transactions, transactionsViolations, transactionsIOUActions],
+        [route.name, report, context, transactions, transactionsViolations, transactionsIOUActions],
     );
 
     const validate = useCallback(
