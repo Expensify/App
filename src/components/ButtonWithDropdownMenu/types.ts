@@ -159,6 +159,13 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Whether to display the option icon when only one option is available */
     shouldUseOptionIcon?: boolean;
+
+    /** Reference to the outer element */
+    ref?: React.Ref<ButtonWithDropdownMenuRef>;
+};
+
+type ButtonWithDropdownMenuRef = {
+    setIsMenuVisible: (visible: boolean) => void;
 };
 
 export type {
@@ -171,4 +178,5 @@ export type {
     WorkspaceTaxRatesBulkActionType,
     ReportExportType,
     OnboardingHelpType,
+    ButtonWithDropdownMenuRef,
 };
