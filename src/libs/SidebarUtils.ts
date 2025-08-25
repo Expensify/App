@@ -475,20 +475,20 @@ function sortCategorizedReports(
     };
 
     // Sort each group of reports accordingly
-    const sortedPinnedAndGBRReports = pinnedAndGBRReports.toSorted(compareDisplayNames);
-    const sortedErrorReports = errorReports.toSorted(compareDisplayNames);
-    const sortedDraftReports = draftReports.toSorted(compareDisplayNames);
+    const sortedPinnedAndGBRReports = pinnedAndGBRReports.sort(compareDisplayNames);
+    const sortedErrorReports = errorReports.sort(compareDisplayNames);
+    const sortedDraftReports = draftReports.sort(compareDisplayNames);
 
     let sortedNonArchivedReports: MiniReport[];
     let sortedArchivedReports: MiniReport[];
 
     if (isInDefaultMode) {
-        sortedNonArchivedReports = nonArchivedReports.toSorted(compareNonArchivedDefault);
+        sortedNonArchivedReports = nonArchivedReports.sort(compareNonArchivedDefault);
         // For archived reports ensure that most recent reports are at the top by reversing the order
-        sortedArchivedReports = archivedReports.toSorted(compareDatesDesc);
+        sortedArchivedReports = archivedReports.sort(compareDatesDesc);
     } else {
-        sortedNonArchivedReports = nonArchivedReports.toSorted(compareDisplayNames);
-        sortedArchivedReports = archivedReports.toSorted(compareDisplayNames);
+        sortedNonArchivedReports = nonArchivedReports.sort(compareDisplayNames);
+        sortedArchivedReports = archivedReports.sort(compareDisplayNames);
     }
 
     return {
