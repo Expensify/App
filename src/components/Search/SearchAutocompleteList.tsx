@@ -139,6 +139,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
             <SearchQueryListItem
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
+                shouldDisplayRBR
             />
         );
     }
@@ -147,6 +148,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
             pressableStyle={[styles.br2, styles.ph3]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            shouldDisplayRBR
         />
     );
 }
