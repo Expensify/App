@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {FlashList, FlashListProps, ViewToken} from '@shopify/flash-list';
-import React, {forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -11,6 +11,7 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {createItemHeightCalculator} from '@components/Search/itemHeightCalculator';
 import ITEM_HEIGHTS from '@components/Search/itemHeights';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -185,6 +186,7 @@ function SearchList(
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
 
     const route = useRoute();
+    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
@@ -238,6 +240,54 @@ function SearchList(
         },
         [data],
     );
+
+    const handleScrollOffset = useCallback(
+        (e: Parameters<NonNullable<FlashListProps<SearchListItem>['onScroll']>>[0]) => {
+            if (e.nativeEvent.layoutMeasurement.height <= 0) {
+                return;
+            }
+            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+        },
+        [route, saveScrollOffset],
+    );
+
+    const combinedOnScroll = useMemo(() => {
+        if (!onScroll) {
+            return handleScrollOffset;
+        }
+
+        // If onScroll is a regular function, we can combine them easily
+        if (typeof onScroll === 'function') {
+            return (e: Parameters<NonNullable<FlashListProps<SearchListItem>['onScroll']>>[0]) => {
+                onScroll(e);
+                handleScrollOffset(e);
+            };
+        }
+
+        // For worklets, return the original worklet
+        // Note: Scroll offset saving won't work with worklets using this approach
+        return onScroll;
+    }, [onScroll, handleScrollOffset]);
+
+    const handleLayout = useCallback(() => {
+        if (onLayout && typeof onLayout === 'function') {
+            onLayout();
+        }
+
+        const offset = getScrollOffset(route);
+        if (!offset || !listRef.current) {
+            return;
+        }
+
+        // Use requestAnimationFrame to ensure proper scrolling on iOS
+        requestAnimationFrame(() => {
+            if (!offset || !listRef.current) {
+                return;
+            }
+
+            listRef.current.scrollToOffset({offset});
+        });
+    }, [onLayout, getScrollOffset, route]);
 
     useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
 
@@ -383,7 +433,7 @@ function SearchList(
                 renderItem={renderItem}
                 onSelectRow={onSelectRow}
                 keyExtractor={keyExtractor}
-                onScroll={onScroll}
+                onScroll={combinedOnScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
                 scrollToIndex={scrollToIndex}
@@ -393,7 +443,7 @@ function SearchList(
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
                 onViewableItemsChanged={onViewableItemsChanged}
-                onLayout={onLayout}
+                onLayout={handleLayout}
                 removeClippedSubviews
                 drawDistance={1000}
                 estimatedItemSize={estimatedItemSize}
