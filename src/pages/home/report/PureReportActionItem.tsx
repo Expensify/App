@@ -61,6 +61,7 @@ import {
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
     getChangedApproverActionMessage,
+    getDeclinedTransactionRemoveMessage,
     getDeletedApprovalRuleMessage,
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
@@ -1132,6 +1133,16 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getReportActionText(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldExpense')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.DECLINEDTRANSACTION_THREAD) {
+            children = <ReportActionItemBasicMessage message={translate('iou.reject.reportActions.rejectedExpense')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED) {
+            children = <ReportActionItemBasicMessage message={translate('iou.reject.reportActions.markedAsResolved')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.DECLINED_TRANSACTION) {
+            children = (
+                <ReportActionItemBasicMessage>
+                    <RenderHTML html={`<comment><muted-text>${getDeclinedTransactionRemoveMessage(action)}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
             children = <ReportActionItemBasicMessage message={translate('iou.retracted')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {

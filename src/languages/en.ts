@@ -259,7 +259,6 @@ import type {
     UserIsAlreadyMemberParams,
     UserSplitParams,
     VacationDelegateParams,
-    ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsCustomRulesParams,
@@ -1369,6 +1368,25 @@ const translations = {
         dates: 'Dates',
         rates: 'Rates',
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
+        reject: {
+            educationalTitle: 'Should you hold or reject?',
+            educationalText: "If you're not ready to approve or pay an expense, you can hold or reject it.",
+            holdExpenseTitle: 'Hold an expense to ask for more details before approval or payment.',
+            heldExpenseLeftBehindTitle: 'Held expenses are left behind when you approve an entire report.',
+            declineExpenseTitle: "Reject an expense that you don't intend to approve or pay.",
+            reasonPageTitle: 'Reject expense',
+            reasonPageDescription1: 'Reject an expense if you don\'t ever plan on approving or paying it. Otherwise, use "hold" to pause the expense and ask for more context.',
+            reasonPageDescription2: "If you're going to reject the expense, please add a comment to explain why:",
+            rejectReason: 'Rejection reason',
+            markAsResolved: 'Mark as resolved',
+            rejectedStatus: 'This expense was rejected. Waiting on you to fix the issue(s) and mark as resolved to enable submission.',
+            reportActions: {
+                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
+                    `removed <a href="${linkToReport}">${amount}${merchant ? ` from ${merchant}` : ''}</a>`,
+                rejectedExpense: 'rejected this expense',
+                markedAsResolved: 'marked the rejection reason as resolved',
+            },
+        },
         moveExpenses: () => ({one: 'Move expense', other: 'Move expenses'}),
         changeApprover: {
             title: 'Change approver',
@@ -6497,7 +6515,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'All tags required',
-        autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rejected this expense with the comment "${rejectReason}"`,
+        autoReportedRejectedExpense: 'This expense was declined.',
         billableExpense: 'Billable no longer valid',
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Receipt required${formattedLimit ? ` over ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Category no longer valid',

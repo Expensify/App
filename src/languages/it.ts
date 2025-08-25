@@ -270,7 +270,6 @@ import type {
     UserIsAlreadyMemberParams,
     UserSplitParams,
     VacationDelegateParams,
-    ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsCustomRulesParams,
@@ -1382,6 +1381,26 @@ const translations = {
         rates: 'Tariffe',
         submitsTo: ({name}: SubmitsToParams) => `Invia a ${name}`,
         moveExpenses: () => ({one: 'Sposta spesa', other: 'Sposta spese'}),
+        reject: {
+            educationalTitle: 'Devi trattenere o rifiutare?',
+            educationalText: 'Se non sei pronto ad approvare o pagare una spesa, puoi trattenerla o rifiutarla.',
+            holdExpenseTitle: 'Trattieni una spesa per chiedere maggiori dettagli prima dell’approvazione o del pagamento.',
+            heldExpenseLeftBehindTitle: 'Le spese trattenute vengono lasciate indietro quando approvi un intero report.',
+            declineExpenseTitle: 'Rifiuta una spesa che non intendi approvare o pagare.',
+            reasonPageTitle: 'Rifiuta spesa',
+            reasonPageDescription1:
+                'Rifiuta una spesa se non hai intenzione di approvarla o pagarla mai. Altrimenti, utilizza "Trattenere" per metterla in pausa e chiedere maggior contesto.',
+            reasonPageDescription2: 'Se stai per rifiutare la spesa, aggiungi per favore un commento per spiegare il motivo:',
+            rejectReason: 'Motivo del rifiuto',
+            markAsResolved: 'Segna come risolto',
+            rejectedStatus: 'Questa spesa è stata rifiutata. In attesa che tu risolva il/i problema/i e la segni come risolta per abilitare l’invio.',
+            reportActions: {
+                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
+                    `ha rimosso <a href="${linkToReport}">${amount}${merchant ? ` da ${merchant}` : ''}</a>`,
+                rejectedExpense: 'ha rifiutato questa spesa',
+                markedAsResolved: 'ha segnato il motivo del rifiuto come risolto',
+            },
+        },
         changeApprover: {
             title: 'Cambia approvatore',
             subtitle: "Scegli un'opzione per cambiare l'approvatore di questo report.",
@@ -6542,7 +6561,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Tutti i tag richiesti',
-        autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} ha rifiutato questa spesa con il commento "${rejectReason}"`,
+        autoReportedRejectedExpense: 'Questa spesa è stata rifiutata.',
         billableExpense: 'Fatturabile non più valido',
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Receipt required${formattedLimit ? `oltre ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Categoria non più valida',

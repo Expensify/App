@@ -270,7 +270,6 @@ import type {
     UserIsAlreadyMemberParams,
     UserSplitParams,
     VacationDelegateParams,
-    ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsCustomRulesParams,
@@ -1383,6 +1382,25 @@ const translations = {
         rates: '料金',
         submitsTo: ({name}: SubmitsToParams) => `${name}に送信`,
         moveExpenses: () => ({one: '経費を移動', other: '経費を移動'}),
+        reject: {
+            educationalTitle: '保留しますか、それとも却下しますか？',
+            educationalText: '経費を承認または支払う準備ができていない場合は、保留または却下できます。',
+            holdExpenseTitle: '承認または支払いの前に詳細を確認するため、経費を保留にします。',
+            heldExpenseLeftBehindTitle: 'レポート全体を承認すると、保留中の経費は除外されます。',
+            declineExpenseTitle: '承認または支払うつもりのない経費を却下します。',
+            reasonPageTitle: '経費を却下',
+            reasonPageDescription1: '経費を承認または支払う予定がない場合は却下してください。そうでない場合は「保留」を使って一時停止し、追加の文脈を求めてください。',
+            reasonPageDescription2: '経費を却下する場合は、その理由を説明するコメントを追加してください：',
+            rejectReason: '却下の理由',
+            markAsResolved: '解決済みにする',
+            rejectedStatus: 'この経費は却下されました。問題を解決し、解決済みにマークすることで提出が可能になります。',
+            reportActions: {
+                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
+                    `<a href="${linkToReport}">${amount}${merchant ? `（${merchant} から）` : ''}</a> を削除しました`,
+                rejectedExpense: 'この経費を却下しました',
+                markedAsResolved: '却下理由を解決済みとしてマークしました',
+            },
+        },
         changeApprover: {
             title: '承認者を変更',
             subtitle: 'このレポートの承認者を変更するオプションを選択してください。',
@@ -6498,7 +6516,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'すべてのタグが必要です。',
-        autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy}はこの経費を却下しました。コメント: "${rejectReason}"`,
+        autoReportedRejectedExpense: 'この経費は却下されました。',
         billableExpense: '課金対象は無効になりました',
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Receipt required${formattedLimit ? `${formattedLimit} を超える` : ''}`,
         categoryOutOfPolicy: 'カテゴリが無効になりました。',

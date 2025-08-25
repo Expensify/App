@@ -270,7 +270,6 @@ import type {
     UserIsAlreadyMemberParams,
     UserSplitParams,
     VacationDelegateParams,
-    ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsCustomRulesParams,
@@ -1382,6 +1381,25 @@ const translations = {
         rates: 'Taxas',
         submitsTo: ({name}: SubmitsToParams) => `Envia para ${name}`,
         moveExpenses: () => ({one: 'Mover despesa', other: 'Mover despesas'}),
+        reject: {
+            educationalTitle: 'Você deve reter ou rejeitar?',
+            educationalText: 'Se você não estiver pronto para aprovar ou pagar uma despesa, pode retê-la ou rejeitá-la.',
+            holdExpenseTitle: 'Retenha uma despesa para pedir mais detalhes antes da aprovação ou do pagamento.',
+            heldExpenseLeftBehindTitle: 'As despesas retidas ficam de fora quando você aprova um relatório inteiro.',
+            declineExpenseTitle: 'Rejeite uma despesa que você não pretende aprovar ou pagar.',
+            reasonPageTitle: 'Rejeitar despesa',
+            reasonPageDescription1: 'Rejeite uma despesa se você nunca planeja aprová-la ou pagá-la. Caso contrário, use "Reter" para pausar a despesa e pedir mais contexto.',
+            reasonPageDescription2: 'Se você for rejeitar a despesa, por favor adicione um comentário explicando o motivo:',
+            rejectReason: 'Motivo da rejeição',
+            markAsResolved: 'Marcar como resolvido',
+            rejectedStatus: 'Esta despesa foi rejeitada. Aguardando você corrigir o(s) problema(s) e marcar como resolvido para permitir o envio.',
+            reportActions: {
+                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
+                    `removeu <a href="${linkToReport}">${amount}${merchant ? ` de ${merchant}` : ''}</a>`,
+                rejectedExpense: 'rejeitou esta despesa',
+                markedAsResolved: 'marcou o motivo da rejeição como resolvido',
+            },
+        },
         changeApprover: {
             title: 'Alterar aprovador',
             subtitle: 'Escolha uma opção para alterar o aprovador deste relatório.',
@@ -6534,7 +6552,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Todas as tags são obrigatórias',
-        autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rejeitou esta despesa com o comentário "${rejectReason}"`,
+        autoReportedRejectedExpense: 'Esta despesa foi rejeitada.',
         billableExpense: 'Faturável não é mais válido',
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Receipt required${formattedLimit ? `acima de ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Categoria não é mais válida',
