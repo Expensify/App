@@ -301,6 +301,7 @@ import type {
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
+    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -949,6 +950,7 @@ const translations = {
         distance: '距离',
         manual: '手册',
         scan: '扫描',
+        map: '地图',
     },
     spreadsheet: {
         upload: '上传电子表格',
@@ -1235,6 +1237,7 @@ const translations = {
             invalidCategoryLength: '类别名称超过255个字符。请缩短或选择不同的类别。',
             invalidTagLength: '标签名称超过255个字符。请缩短它或选择一个不同的标签。',
             invalidAmount: '请在继续之前输入有效金额',
+            invalidDistance: '请在继续之前输入有效的距离',
             invalidIntegerAmount: '请在继续之前输入一个完整的美元金额',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `最大税额为${amount}`,
             invalidSplit: '拆分的总和必须等于总金额',
@@ -4909,6 +4912,7 @@ const translations = {
                 limit: '限制',
                 limitType: '限制类型',
                 name: '名称',
+                disabledApprovalForSmartLimitError: '请在<strong>工作流程 > 添加审批</strong>中启用审批，然后再设置智能限制',
             },
             deactivateCardModal: {
                 deactivate: '停用',
@@ -5408,11 +5412,8 @@ const translations = {
                 perActiveMember: '每位活跃成员每月。',
                 perMember: '每位成员每月。',
             },
-            note: {
-                upgradeWorkspace: '升级您的工作区以访问此功能，或',
-                learnMore: '了解更多',
-                aboutOurPlans: '关于我们的计划和定价。',
-            },
+            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+                `<muted-text>升级您的工作区即可使用该功能，或<a href="${subscriptionLink}">进一步了解</a>我们的计划和定价。</muted-text>`,
             upgradeToUnlock: '解锁此功能',
             completed: {
                 headline: `您的工作区已升级！`,
@@ -5936,6 +5937,7 @@ const translations = {
         statements: '发言',
         unapprovedCash: '未经批准的现金',
         unapprovedCard: '未批准的卡',
+        reconciliation: '对账',
         saveSearch: '保存搜索',
         deleteSavedSearch: '删除已保存的搜索',
         deleteSavedSearchConfirm: '您确定要删除此搜索吗？',
