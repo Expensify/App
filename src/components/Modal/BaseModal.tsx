@@ -273,7 +273,7 @@ function BaseModal(
             return;
         }
         const {paddingTop} = StyleUtils.getPlatformSafeAreaPadding(insets);
-        const availableHeight = windowHeight - modalHeight - keyboardStateContextValue.keyboardActiveHeight - paddingTop;
+        const availableHeight = windowHeight - modalHeight - (keyboardStateContextValue.keyboardActiveHeight ?? 0) - paddingTop;
         setModalOverlapsWithTopSafeArea((keyboardStateContextValue.isKeyboardAnimatingRef.current || keyboardStateContextValue.isKeyboardActive) && Math.floor(availableHeight) <= 0);
     }, [
         StyleUtils,
