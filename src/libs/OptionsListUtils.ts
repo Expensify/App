@@ -58,7 +58,7 @@ import {
     getCountOfEnabledTagsOfList,
     getCountOfRequiredTagLists,
     getSubmitToAccountID,
-    isUserInvitedToWorkspace,
+    isUserMemberToWorkspace,
 } from './PolicyUtils';
 import {
     getChangedApproverActionMessage,
@@ -1887,7 +1887,7 @@ function getRestrictedLogins(config: GetOptionsConfig, options: OptionList, canS
             !canShowManagerMcTest ||
             (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) ||
             !Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST, config.betas) ||
-            isUserInvitedToWorkspace(),
+            isUserMemberToWorkspace(),
     };
 }
 
