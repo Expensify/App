@@ -43,7 +43,6 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
-import WorkspaceReceiptPartnersPromotionBanner from '@pages/workspace/receiptPartners/WorkspaceReceiptPartnersPromotionBanner';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -53,6 +52,7 @@ import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
+import WorkspaceReceiptPartnersPromotionBanner from './WorkspaceReceiptPartnersPromotionBanner';
 
 type WorkspaceOverviewPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 
@@ -73,7 +73,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
-    const [dismissedUber4BusinessBanner] = useOnyx(`${ONYXKEYS.COLLECTION.DISMISSED_UBER_FOR_BUSINESS_BANNER}${policy?.id}`, {canBeMissing: true});
+    const [dismissedUber4BusinessBanner, metadata] = useOnyx(`${ONYXKEYS.COLLECTION.DISMISSED_UBER_FOR_BUSINESS_BANNER}${policy?.id}`, {canBeMissing: true});
 
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const outputCurrency = policy?.outputCurrency ?? '';
@@ -87,7 +87,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         selector: filterInactiveCards,
         canBeMissing: true,
     });
-    const shouldShowReceiptPartnersPromotionBanner = isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS) && !policy?.areReceiptPartnersEnabled && !dismissedUber4BusinessBanner;
     const hasCardFeedOrExpensifyCard =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.workspaceAccountID);
@@ -143,6 +142,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const shouldShowAddress = !readOnly || !!formattedAddress;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const shouldShowReceiptPartnersPromotionBanner =
+        isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS) && !policy?.areReceiptPartnersEnabled && !dismissedUber4BusinessBanner && !readOnly && metadata.status === 'loaded';
 
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {

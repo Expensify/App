@@ -27,7 +27,7 @@ function WorkspaceReceiptPartnersPromotionBanner({policy}: WorkspaceReceiptPartn
     const policyID = policy?.id;
     const areReceiptPartnersEnabled = policy?.areReceiptPartnersEnabled;
 
-    const handleLearnMore = useCallback(() => {
+    const handleConnectUber = useCallback(() => {
         if (!policyID) {
             return;
         }
@@ -46,13 +46,13 @@ function WorkspaceReceiptPartnersPromotionBanner({policy}: WorkspaceReceiptPartn
             <View style={[styles.flexRow, styles.gap2, smallScreenStyle]}>
                 <Button
                     success
-                    onPress={handleLearnMore}
+                    onPress={handleConnectUber}
                     style={shouldUseNarrowLayout && styles.flex1}
                     text={translate('workspace.receiptPartners.connect')}
                 />
             </View>
         );
-    }, [styles, shouldUseNarrowLayout, translate, handleLearnMore]);
+    }, [styles, shouldUseNarrowLayout, translate, handleConnectUber]);
 
     return (
         <View style={[styles.ph4, styles.mb4]}>
