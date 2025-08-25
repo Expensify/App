@@ -70,6 +70,7 @@ import getDistanceInMeters from './getDistanceInMeters';
 
 type TransactionParams = {
     amount: number;
+    modifiedAmount?: number;
     currency: string;
     reportID: string | undefined;
     comment?: string;
@@ -244,6 +245,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     const {originalTransactionID = '', existingTransactionID, existingTransaction, policy, transactionParams, isDemoTransactionParam} = params;
     const {
         amount,
+        modifiedAmount,
         currency,
         reportID,
         comment = '',
@@ -311,6 +313,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         tag,
         taxCode,
         taxAmount,
+        modifiedAmount,
         billable,
         reimbursable,
         inserted: DateUtils.getDBTime(),

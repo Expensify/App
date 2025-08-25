@@ -1035,6 +1035,14 @@ function getTodoSearchQuery(action: TodoSearchType, userAccountID: number | unde
     }
 }
 
+function getUnapprovedCashSearchQuery() {
+    return buildQueryStringFromFilterFormValues({
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+        reimbursable: CONST.SEARCH.BOOLEAN.YES,
+    });
+}
+
 /**
  * Extracts the query text without the filter parts.
  * This is used to determine if a user's core search terms have changed,
@@ -1088,6 +1096,7 @@ export {
     shouldHighlight,
     getAllPolicyValues,
     getTodoSearchQuery,
+    getUnapprovedCashSearchQuery,
     getUserFriendlyValue,
     getUserFriendlyKey,
 };
