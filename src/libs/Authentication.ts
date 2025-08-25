@@ -32,7 +32,10 @@ type Parameters = {
 
 let isAuthenticatingWithShortLivedToken = false;
 let isSupportAuthTokenUsed = false;
-Onyx.connect({
+
+// These session values are only used to help the user authentication with the API.
+// Since they aren't connected to a UI anywhere, it's OK to use connectWithoutView()
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         isAuthenticatingWithShortLivedToken = !!value?.isAuthenticatingWithShortLivedToken;

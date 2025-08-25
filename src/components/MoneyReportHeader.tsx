@@ -23,11 +23,12 @@ import {deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
+import Log from '@libs/Log';
 import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
-import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
+import {getReportNextStep} from '@libs/NextStepUtils';
 import {isSecondaryActionAPaymentOption, selectPaymentType} from '@libs/PaymentUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {getConnectedIntegration, getValidConnectedIntegration} from '@libs/PolicyUtils';
@@ -40,7 +41,6 @@ import {
     getArchiveReason,
     getIntegrationExportIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
-    getNextApproverAccountID,
     getNonHeldAndFullAmount,
     getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
@@ -50,7 +50,6 @@ import {
     isExported as isExportedUtils,
     isInvoiceReport as isInvoiceReportUtil,
     isProcessingReport,
-    isReportOwner,
     navigateOnDeleteExpense,
     navigateToDetailsPage,
 } from '@libs/ReportUtils';
@@ -363,12 +362,7 @@ function MoneyReportHeader({
     const shouldShowStatusBar =
         hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions || hasDuplicates;
 
-    // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
-    // We should always show this optimistic message for policies with preventSelfApproval
-    // to avoid any flicker during transitions between online/offline states
-    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
-    const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
-    const optimisticNextStep = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
+    const optimisticNextStep = getReportNextStep(nextStep, moneyRequestReport, transactions, policy);
 
     const shouldShowNextStep = isFromPaidPolicy && !isInvoiceReport && !shouldShowStatusBar;
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
@@ -976,6 +970,18 @@ function MoneyReportHeader({
                 Navigation.navigate(ROUTES.REPORT_WITH_ID_CHANGE_WORKSPACE.getRoute(moneyRequestReport.reportID, Navigation.getActiveRoute()));
             },
         },
+        [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER]: {
+            text: translate('iou.changeApprover.title'),
+            icon: Expensicons.Workflows,
+            value: CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER,
+            onSelected: () => {
+                if (!moneyRequestReport) {
+                    Log.warn('Change approver secondary action triggered without moneyRequestReport data.');
+                    return;
+                }
+                Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER.getRoute(moneyRequestReport.reportID, Navigation.getActiveRoute()));
+            },
+        },
         [CONST.REPORT.SECONDARY_ACTIONS.DELETE]: {
             text: translate('common.delete'),
             icon: Expensicons.Trashcan,
@@ -989,7 +995,7 @@ function MoneyReportHeader({
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
-            text: translate('iou.undoSubmit'),
+            text: translate('iou.retract'),
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
             onSelected: () => {
@@ -997,7 +1003,7 @@ function MoneyReportHeader({
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
-            text: translate('iou.undoClose'),
+            text: translate('iou.retract'),
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.REOPEN,
             onSelected: () => {
