@@ -1,13 +1,14 @@
+/* eslint-disable no-restricted-syntax */
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
-import {WRITE_COMMANDS} from '@libs/API/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
-import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import * as PersonalDetailsActions from '../../src/libs/actions/PersonalDetails';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -32,7 +33,7 @@ describe('actions/PersonalDetails', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        
+
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -42,7 +43,7 @@ describe('actions/PersonalDetails', () => {
 
     describe('updateLegalName', () => {
         const mockFormatPhoneNumber = jest.fn((phoneNumber: string) => phoneNumber);
-        
+
         beforeEach(() => {
             return Onyx.set(ONYXKEYS.SESSION, {
                 email: 'test@example.com',
@@ -75,7 +76,7 @@ describe('actions/PersonalDetails', () => {
                             },
                         },
                     ],
-                }
+                },
             );
         });
 
@@ -101,7 +102,7 @@ describe('actions/PersonalDetails', () => {
                 lastName: '',
             };
             const expectedDisplayName = 'Alice Johnson';
-            
+
             mockPersonalDetailsUtils.createDisplayName.mockReturnValue(expectedDisplayName);
 
             PersonalDetailsActions.updateLegalName(legalFirstName, legalLastName, mockFormatPhoneNumber, currentUserPersonalDetail);
@@ -133,7 +134,7 @@ describe('actions/PersonalDetails', () => {
                             },
                         },
                     ],
-                }
+                },
             );
         });
 
@@ -154,7 +155,7 @@ describe('actions/PersonalDetails', () => {
                     firstName: legalFirstName,
                     lastName: legalLastName,
                 },
-                mockFormatPhoneNumber
+                mockFormatPhoneNumber,
             );
         });
 
@@ -183,7 +184,7 @@ describe('actions/PersonalDetails', () => {
                             },
                         },
                     ],
-                }
+                },
             );
             expect(mockPersonalDetailsUtils.createDisplayName).not.toHaveBeenCalled();
         });
@@ -213,7 +214,7 @@ describe('actions/PersonalDetails', () => {
                             },
                         },
                     ],
-                }
+                },
             );
             expect(mockPersonalDetailsUtils.createDisplayName).not.toHaveBeenCalled();
         });
@@ -255,7 +256,7 @@ describe('actions/PersonalDetails', () => {
                             },
                         },
                     ],
-                }
+                },
             );
         });
 
@@ -293,7 +294,7 @@ describe('actions/PersonalDetails', () => {
                             },
                         },
                     ],
-                }
+                },
             );
         });
 
@@ -340,7 +341,7 @@ describe('actions/PersonalDetails', () => {
                             },
                         },
                     ],
-                }
+                },
             );
         });
     });
@@ -422,7 +423,7 @@ describe('actions/PersonalDetails', () => {
                             },
                         },
                     ],
-                }
+                },
             );
         });
 
@@ -497,7 +498,7 @@ describe('actions/PersonalDetails', () => {
                             },
                         },
                     ],
-                }
+                },
             );
         });
 
@@ -534,7 +535,7 @@ describe('actions/PersonalDetails', () => {
                             },
                         },
                     ],
-                })
+                }),
             );
         });
 
@@ -575,45 +576,41 @@ describe('actions/PersonalDetails', () => {
                 fallbackIcon: 'fallback-icon.jpg',
             };
             const expectedDefaultAvatar = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
-            
+
             mockUserUtils.getDefaultAvatarURL.mockReturnValue(expectedDefaultAvatar);
 
             PersonalDetailsActions.deleteAvatar(currentUserPersonalDetail);
             await waitForBatchedUpdates();
 
             expect(mockUserUtils.getDefaultAvatarURL).toHaveBeenCalledWith(123);
-            expect(mockAPI.write).toHaveBeenCalledWith(
-                WRITE_COMMANDS.DELETE_USER_AVATAR,
-                null,
-                {
-                    optimisticData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    avatar: expectedDefaultAvatar,
-                                    fallbackIcon: null,
-                                },
+            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_USER_AVATAR, null, {
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            123: {
+                                avatar: expectedDefaultAvatar,
+                                fallbackIcon: null,
                             },
                         },
-                    ],
-                    failureData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    avatar: currentUserPersonalDetail.avatar,
-                                    fallbackIcon: currentUserPersonalDetail.fallbackIcon,
-                                },
+                    },
+                ],
+                failureData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            123: {
+                                avatar: currentUserPersonalDetail.avatar,
+                                fallbackIcon: currentUserPersonalDetail.fallbackIcon,
                             },
                         },
-                    ],
-                }
-            );
+                    },
+                ],
+            });
         });
 
         it('should handle null fallbackIcon in failure data', async () => {
@@ -622,7 +619,7 @@ describe('actions/PersonalDetails', () => {
                 fallbackIcon: undefined,
             };
             const expectedDefaultAvatar = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
-            
+
             mockUserUtils.getDefaultAvatarURL.mockReturnValue(expectedDefaultAvatar);
 
             PersonalDetailsActions.deleteAvatar(currentUserPersonalDetail);
@@ -645,7 +642,7 @@ describe('actions/PersonalDetails', () => {
                             },
                         },
                     ],
-                })
+                }),
             );
         });
 
@@ -680,7 +677,7 @@ describe('actions/PersonalDetails', () => {
                 fallbackIcon: 'fallback-icon.jpg',
             };
             const expectedDefaultAvatar = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png';
-            
+
             mockUserUtils.getDefaultAvatarURL.mockReturnValue(expectedDefaultAvatar);
 
             PersonalDetailsActions.deleteAvatar(currentUserPersonalDetail);
@@ -704,7 +701,7 @@ describe('actions/PersonalDetails', () => {
                             },
                         },
                     ],
-                })
+                }),
             );
         });
     });
