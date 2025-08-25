@@ -44,7 +44,7 @@ import type {Policy} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
-similarSearchHash: number;
+    similarSearchHash: number;
     groupBy?: SearchGroupBy | undefined;
     type: SearchDataTypes;
     hasResults: boolean;
