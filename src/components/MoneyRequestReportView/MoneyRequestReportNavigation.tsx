@@ -61,7 +61,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, bac
     const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === allReports.length - 1;
     const hidePrevButton = currentIndex === 0;
     const styles = useThemeStyles();
-    const shouldDisplayNavigationArrows = allReports && allReports.length > 1;
+    const shouldDisplayNavigationArrows = allReports && allReports.length > 1 && !(currentIndex === -1 || !lastSearchQuery?.queryJSON);
 
     useEffect(() => {
         if (!lastSearchQuery?.queryJSON) {
@@ -98,7 +98,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, bac
     };
 
     const goToNextReport = () => {
-        if (currentIndex === -1 || allReports.length === 0) {
+        if (currentIndex === -1 || allReports.length === 0 || !lastSearchQuery?.queryJSON) {
             return '';
         }
         if (currentIndex > allReports.length * 0.75 && lastSearchQuery?.hasMoreResults) {
