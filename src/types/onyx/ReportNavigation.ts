@@ -23,7 +23,7 @@ type LastSearchParams = {
     /**
      * The full query JSON object that was used in the last search.
      */
-    queryJSON: SearchQueryJSON;
+    queryJSON?: SearchQueryJSON;
     /**
      * The current offset used in pagination for fetching the previous set of results.
      */
