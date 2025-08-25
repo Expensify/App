@@ -6062,6 +6062,7 @@ const translations = {
         statements: 'Dichiarazioni',
         unapprovedCash: 'Contanti non approvati',
         unapprovedCard: 'Carta non approvata',
+        reconciliation: 'Riconciliazione',
         saveSearch: 'Salva ricerca',
         deleteSavedSearch: 'Elimina ricerca salvata',
         deleteSavedSearchConfirm: 'Sei sicuro di voler eliminare questa ricerca?',

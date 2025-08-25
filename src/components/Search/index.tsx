@@ -243,7 +243,12 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return false;
         }
 
-        const eligibleSearchKeys: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD];
+        const eligibleSearchKeys: Partial<SearchKey[]> = [
+            CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
+            CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
+            CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
+            CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
+        ];
         return eligibleSearchKeys.includes(searchKey);
     }, [offset, searchKey]);
 
@@ -756,7 +761,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
-                    hash={hash}
+                    similarSearchHash={similarSearchHash}
                     type={type}
                     groupBy={groupBy}
                     hasResults={searchResults.search.hasResults}
