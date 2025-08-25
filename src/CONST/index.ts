@@ -6426,6 +6426,7 @@ const CONST = {
             TITLE: 'title',
             ASSIGNEE: 'assignee',
             IN: 'in',
+            EXPAND: 'expand',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawalID',
         },

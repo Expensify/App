@@ -1,10 +1,15 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {ActivityIndicator, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import AnimatedCollapsible from '@components/AnimatedCollapsible';
+import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
+import Checkbox from '@components/Checkbox';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchGroupBy} from '@components/Search/types';
+import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {
     ListItem,
     TransactionCardGroupListItemType,
@@ -19,16 +24,20 @@ import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {search} from '@libs/actions/Search';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getSections, getWideAmountIndicators, shouldShowYear as shouldShowYearUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
@@ -41,33 +50,74 @@ function TransactionGroupListItem<TItem extends ListItem>({
     showTooltip,
     isDisabled,
     canSelectMultiple,
-    onCheckboxPress,
+    onCheckboxPress: onCheckboxPressRow,
     onSelectRow,
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
     groupBy,
+    accountID,
+    isOffline,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const isEmpty = groupItem.transactions.length === 0;
+    const {translate, formatPhoneNumber} = useLocalize();
+    const {selectedTransactions, currentSearchHash} = useSearchContext();
+    const selectedTransactionIDs = Object.keys(selectedTransactions);
+    const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash ?? currentSearchHash}`, {canBeMissing: true});
+    const transactionsSnapshotMetadata = useMemo(() => {
+        return transactionsSnapshot?.search;
+    }, [transactionsSnapshot]);
+    const isGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
+    const transactions = useMemo(() => {
+        if (isGroupByReports) {
+            return groupItem.transactions;
+        }
+        if (!transactionsSnapshot?.data) {
+            return [];
+        }
+        const sectionData = getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, transactionsSnapshot?.data, transactionsSnapshot?.search, accountID, formatPhoneNumber) as TransactionListItemType[];
+        return sectionData.map((transactionItem) => ({
+            ...transactionItem,
+            isSelected: selectedTransactionIDs.includes(transactionItem.transactionID),
+        }));
+    }, [isGroupByReports, transactionsSnapshot?.data, transactionsSnapshot?.search, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDs]);
+
+    const selectedItemsLength = useMemo(() => {
+        return transactions.reduce((acc, transaction) => {
+            return transaction.isSelected ? acc + 1 : acc;
+        }, 0);
+    }, [transactions]);
+
+    const transactionsWithoutPendingDelete = useMemo(() => {
+        return transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    }, [transactions]);
+
+    const isSelectAllChecked = useMemo(() => {
+        return selectedItemsLength === transactions.length && transactions.length > 0;
+    }, [selectedItemsLength, transactions.length]);
+
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    const isEmpty = transactions.length === 0;
     // Currently only the transaction report groups have transactions where the empty view makes sense
-    const shouldDisplayEmptyView = isEmpty && groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
+    const shouldDisplayEmptyView = isEmpty && isGroupByReports;
     const isDisabledOrEmpty = isEmpty || isDisabled;
+    const shouldDisplayShowMoreButton = !isGroupByReports && !!transactionsSnapshotMetadata?.hasMoreResults;
+    const shouldDisplayLoadingIndicator = !isGroupByReports && !!transactionsSnapshotMetadata?.isLoading;
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
-        const isAmountColumnWide = groupItem.transactions.some((transaction) => transaction.isAmountColumnWide);
-        const isTaxAmountColumnWide = groupItem.transactions.some((transaction) => transaction.isTaxAmountColumnWide);
-        const shouldShowYearForSomeTransaction = groupItem.transactions.some((transaction) => transaction.shouldShowYear);
+        const isAmountColumnWide = transactions.some((transaction) => transaction.isAmountColumnWide);
+        const isTaxAmountColumnWide = transactions.some((transaction) => transaction.isTaxAmountColumnWide);
+        const shouldShowYearForSomeTransaction = transactions.some((transaction) => transaction.shouldShowYear);
         return {
             amountColumnSize: isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             taxAmountColumnSize: isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             dateColumnSize: shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
         };
-    }, [groupItem.transactions]);
+    }, [transactions]);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -76,13 +126,15 @@ function TransactionGroupListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
-    const pressableStyle = [styles.transactionGroupListItemStyle, item.isSelected && styles.activeComponentBG];
+    const isItemSelected = isSelectAllChecked || item?.isSelected;
+
+    const pressableStyle = [styles.transactionGroupListItemStyle, isItemSelected && styles.activeComponentBG];
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const backTo = Navigation.getActiveRoute();
 
         const reportID = getReportIDForTransaction(transactionItem);
-        const siblingTransactionThreadIDs = groupItem.transactions.map(getReportIDForTransaction);
+        const siblingTransactionThreadIDs = transactions.map(getReportIDForTransaction);
 
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
@@ -91,7 +143,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         });
     };
 
-    const sampleTransaction = groupItem.transactions.at(0);
+    const sampleTransaction = transactions.at(0);
     const {COLUMNS} = CONST.REPORT.TRANSACTION_LIST;
 
     const columns = [
@@ -108,6 +160,40 @@ function TransactionGroupListItem<TItem extends ListItem>({
         COLUMNS.ACTION,
     ] satisfies Array<ValueOf<typeof COLUMNS>>;
 
+    const StyleUtils = useStyleUtils();
+    const pressableRef = useRef<View>(null);
+
+    const handleToggle = useCallback(() => {
+        setIsExpanded(!isExpanded);
+    }, [isExpanded]);
+
+    const onPress = useCallback(() => {
+        if (isGroupByReports || transactions.length === 0) {
+            onSelectRow(item);
+        }
+        if (!isGroupByReports) {
+            handleToggle();
+        }
+    }, [isGroupByReports, transactions.length, onSelectRow, item, handleToggle]);
+
+    const onLongPress = useCallback(() => {
+        onLongPressRow?.(item);
+    }, [item, onLongPressRow]);
+
+    const onCheckboxPress = useCallback(
+        (val: TItem) => {
+            onCheckboxPressRow?.(val, isGroupByReports ? undefined : transactions);
+        },
+        [onCheckboxPressRow, transactions, isGroupByReports],
+    );
+
+    const groupItemWithSelected = useMemo(() => {
+        return {
+            ...groupItem,
+            isSelected: isSelectAllChecked,
+        };
+    }, [groupItem, isSelectAllChecked]);
+
     const getHeader = useMemo(() => {
         const headers: Record<SearchGroupBy, React.JSX.Element> = {
             [CONST.SEARCH.GROUP_BY.REPORTS]: (
@@ -122,8 +208,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
             ),
             [CONST.SEARCH.GROUP_BY.FROM]: (
                 <MemberListItemHeader
-                    member={groupItem as TransactionMemberGroupListItemType}
-                    onSelectRow={onSelectRow}
+                    member={groupItemWithSelected as TransactionMemberGroupListItemType}
+                    onSelectRow={onPress}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     canSelectMultiple={canSelectMultiple}
@@ -131,8 +217,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
             ),
             [CONST.SEARCH.GROUP_BY.CARD]: (
                 <CardListItemHeader
-                    card={groupItem as TransactionCardGroupListItemType}
-                    onSelectRow={onSelectRow}
+                    card={groupItemWithSelected as TransactionCardGroupListItemType}
+                    onSelectRow={onPress}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     isFocused={isFocused}
@@ -155,23 +241,15 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         return headers[groupBy];
-    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, groupBy]);
+    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, groupItemWithSelected, onPress, groupBy]);
 
-    const StyleUtils = useStyleUtils();
-    const pressableRef = useRef<View>(null);
-
-    const onPress = useCallback(() => {
-        onSelectRow(item);
-    }, [item, onSelectRow]);
-
-    const onLongPress = useCallback(() => {
-        onLongPressRow?.(item);
-    }, [item, onLongPressRow]);
+    const shouldShowYear = shouldShowYearUtil(transactions);
+    const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(transactions);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const pendingAction =
-        (item.pendingAction ?? groupItem.transactions.every((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
+        (item.pendingAction ?? (transactions.length > 0 && transactions.every((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)))
             ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
             : undefined;
 
@@ -181,60 +259,131 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 ref={pressableRef}
                 onLongPress={onLongPress}
                 onPress={onPress}
-                disabled={isDisabled && !item.isSelected}
+                disabled={isDisabled && !isItemSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
+                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={item.keyForList ?? ''}
                 style={[
                     pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[styles.mb2, styles.mh5, animatedHighlightStyle, styles.userSelectNone]}
             >
                 <View style={styles.flex1}>
-                    {getHeader}
-                    {shouldDisplayEmptyView ? (
-                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
-                            <Text
-                                style={[styles.textLabelSupporting]}
-                                numberOfLines={1}
-                            >
-                                {translate('search.moneyRequestReport.emptyStateTitle')}
-                            </Text>
-                        </View>
-                    ) : (
-                        groupItem.transactions.map((transaction) => (
-                            <OfflineWithFeedback
-                                key={transaction.transactionID}
-                                pendingAction={transaction.pendingAction}
-                            >
-                                <TransactionItemRow
-                                    report={transaction.report}
-                                    transactionItem={transaction}
-                                    isSelected={!!transaction.isSelected}
-                                    dateColumnSize={dateColumnSize}
-                                    amountColumnSize={amountColumnSize}
-                                    taxAmountColumnSize={taxAmountColumnSize}
-                                    shouldShowTooltip={showTooltip}
-                                    shouldUseNarrowLayout={!isLargeScreenWidth}
-                                    shouldShowCheckbox={!!canSelectMultiple}
-                                    onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                    columns={columns}
-                                    onButtonPress={() => {
-                                        openReportInRHP(transaction);
-                                    }}
-                                    style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
-                                    isReportItemChild
-                                    isInSingleTransactionReport={groupItem.transactions.length === 1}
-                                />
-                            </OfflineWithFeedback>
-                        ))
-                    )}
+                    <AnimatedCollapsible
+                        isExpanded={isExpanded}
+                        header={getHeader}
+                        onPress={() => {
+                            if (isEmpty && !shouldDisplayEmptyView) {
+                                onPress();
+                            }
+                            handleToggle();
+                        }}
+                    >
+                        {shouldDisplayEmptyView ? (
+                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
+                                <Text
+                                    style={[styles.textLabelSupporting]}
+                                    numberOfLines={1}
+                                >
+                                    {translate('search.moneyRequestReport.emptyStateTitle')}
+                                </Text>
+                            </View>
+                        ) : (
+                            <>
+                                {!!transactionsSnapshot?.data && !!transactionsSnapshotMetadata && isLargeScreenWidth && (
+                                    <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader, styles.bgTransparent, styles.ph3]}>
+                                        <Checkbox
+                                            accessibilityLabel={translate('workspace.people.selectAll')}
+                                            isChecked={isSelectAllChecked}
+                                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length}
+                                            onPress={() => {
+                                                onCheckboxPressRow?.(item, isGroupByReports ? undefined : transactions);
+                                            }}
+                                            disabled={transactions.length === 0}
+                                        />
+                                        <SearchTableHeader
+                                            canSelectMultiple
+                                            data={transactionsSnapshot?.data}
+                                            metadata={transactionsSnapshotMetadata}
+                                            onSortPress={() => {}}
+                                            sortOrder={undefined}
+                                            sortBy={undefined}
+                                            shouldShowYear={shouldShowYear}
+                                            isAmountColumnWide={shouldShowAmountInWideColumn}
+                                            isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
+                                            shouldShowSorting={false}
+                                            shouldShowExpand={false}
+                                        />
+                                    </View>
+                                )}
+                                {transactions.map((transaction) => (
+                                    <OfflineWithFeedback
+                                        key={transaction.transactionID}
+                                        pendingAction={transaction.pendingAction}
+                                    >
+                                        <TransactionItemRow
+                                            report={transaction.report}
+                                            transactionItem={transaction}
+                                            isSelected={!!transaction.isSelected}
+                                            dateColumnSize={dateColumnSize}
+                                            amountColumnSize={amountColumnSize}
+                                            taxAmountColumnSize={taxAmountColumnSize}
+                                            shouldShowTooltip={showTooltip}
+                                            shouldUseNarrowLayout={!isLargeScreenWidth}
+                                            shouldShowCheckbox={!!canSelectMultiple}
+                                            onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                            columns={columns}
+                                            onButtonPress={() => {
+                                                openReportInRHP(transaction);
+                                            }}
+                                            style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
+                                            isReportItemChild
+                                            isInSingleTransactionReport={transactions.length === 1}
+                                        />
+                                    </OfflineWithFeedback>
+                                ))}
+                                {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (
+                                    <View style={[styles.w100, styles.flexRow, isLargeScreenWidth && styles.pl10]}>
+                                        <Button
+                                            text={translate('common.showMore')}
+                                            onPress={() => {
+                                                if (!!isOffline || !groupItem.transactionsQueryJSON) {
+                                                    return;
+                                                }
+                                                search({
+                                                    queryJSON: groupItem.transactionsQueryJSON,
+                                                    searchKey: undefined,
+                                                    offset: (transactionsSnapshotMetadata?.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE,
+                                                    shouldCalculateTotals: false,
+                                                });
+                                            }}
+                                            link
+                                            shouldUseDefaultHover={false}
+                                            isNested
+                                            medium
+                                            innerStyles={[styles.ph3]}
+                                            textStyles={[styles.fontSizeNormal]}
+                                        />
+                                    </View>
+                                )}
+                                {shouldDisplayLoadingIndicator && (
+                                    <View style={[isLargeScreenWidth && styles.pl10, styles.pt3, isEmpty && styles.pb3]}>
+                                        <ActivityIndicator
+                                            color={theme.spinner}
+                                            size={25}
+                                            style={[styles.pl3, !isEmpty && styles.alignItemsStart]}
+                                        />
+                                    </View>
+                                )}
+                            </>
+                        )}
+                    </AnimatedCollapsible>
                 </View>
             </PressableWithFeedback>
         </OfflineWithFeedback>

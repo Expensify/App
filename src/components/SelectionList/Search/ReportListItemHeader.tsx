@@ -133,7 +133,6 @@ function HeaderFirstRow<TItem extends ListItem>({
 }
 
 function ReportListItemHeader<TItem extends ListItem>({report: reportItem, onSelectRow, onCheckboxPress, isDisabled, isFocused, canSelectMultiple}: ReportListItemHeaderProps<TItem>) {
-    const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {currentSearchHash, currentSearchKey} = useSearchContext();
@@ -189,9 +188,6 @@ function ReportListItemHeader<TItem extends ListItem>({report: reportItem, onSel
                 handleOnButtonPress={handleOnButtonPress}
                 avatarBorderColor={avatarBorderColor}
             />
-            <View style={[styles.pv2, styles.ph3]}>
-                <View style={[styles.borderBottom]} />
-            </View>
         </View>
     );
 }

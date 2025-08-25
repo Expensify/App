@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import type {SearchColumnType, SearchGroupBy, SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getShouldShowMerchant} from '@libs/SearchUIUtils';
@@ -37,6 +37,7 @@ const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnF
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: () => false,
     // This column is never displayed on Search
     [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.EXPAND]: () => true,
 };
 
 const expenseHeaders: SearchColumnConfig[] = [
@@ -153,8 +154,8 @@ type SearchTableHeaderProps = {
     isAmountColumnWide: boolean;
     isTaxAmountColumnWide: boolean;
     shouldShowSorting: boolean;
-    canSelectMultiple: boolean;
-    groupBy: SearchGroupBy | undefined;
+    canSelectMultiple?: boolean;
+    shouldShowExpand?: boolean;
 };
 
 function SearchTableHeader({
@@ -168,7 +169,7 @@ function SearchTableHeader({
     canSelectMultiple,
     isAmountColumnWide,
     isTaxAmountColumnWide,
-    groupBy,
+    shouldShowExpand,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -177,31 +178,32 @@ function SearchTableHeader({
 
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
-            if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
-                return columnName === CONST.SEARCH.TABLE_COLUMNS.FROM || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
-            }
-            if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
-                return columnName === CONST.SEARCH.TABLE_COLUMNS.CARD || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
-            }
-            if (groupBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID) {
-                return columnName === CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
-            }
-
             const shouldShowFun = shouldShowColumnConfig[columnName];
-            return shouldShowFun(data, metadata);
+            return shouldShowFun?.(data, metadata);
         },
-        [data, metadata, groupBy],
+        [data, metadata],
     );
 
     if (displayNarrowVersion) {
         return;
     }
 
-    const columnConfig = SearchColumns[metadata.type];
-
-    if (!columnConfig) {
+    if (!SearchColumns[metadata.type]) {
         return;
     }
+
+    const columnConfig = [
+        ...(SearchColumns[metadata.type] ?? []),
+        ...(shouldShowExpand
+            ? [
+                  {
+                      columnName: CONST.SEARCH.TABLE_COLUMNS.EXPAND,
+                      translationKey: undefined,
+                      isColumnSortable: false,
+                  },
+              ]
+            : []),
+    ];
 
     return (
         <SortableTableHeader
