@@ -104,6 +104,7 @@ function useOnboardingFlowRouter() {
                         currentOnboardingCompanySize,
                         currentOnboardingPurposeSelected,
                         onboardingInitialPath,
+                        onboardingValues,
                     });
                 }
             }
@@ -118,6 +119,7 @@ function useOnboardingFlowRouter() {
                     currentOnboardingCompanySize,
                     currentOnboardingPurposeSelected,
                     onboardingInitialPath,
+                    onboardingValues,
                 });
             }
         });
