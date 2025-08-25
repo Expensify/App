@@ -13,7 +13,6 @@ import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration} from '@libs/PolicyUtils';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {buildOptimisticExportIntegrationAction, hasHeldExpenses, isExpenseReport, isInvoiceReport, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
@@ -23,7 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {LastPaymentMethod, LastPaymentMethodType, Policy, ReportActions, Transaction} from '@src/types/onyx';
+import type {LastPaymentMethod, LastPaymentMethodType, Policy, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -387,12 +386,20 @@ function updateSearchResultsWithTransactionThreadReportID(hash: number, transact
     Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, onyxUpdate);
 }
 
-function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string, allTransactions: OnyxCollection<Transaction>, allReportActions: OnyxCollection<ReportActions>) {
+function holdMoneyRequestOnSearch(
+    hash: number,
+    transactionIDList: string[],
+    comment: string,
+    transactions: OnyxCollection<Transaction>,
+    transactionsIOUActions: Record<string, ReportAction>,
+) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
     transactionIDList.forEach((transactionID) => {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {};
-        const iouReportAction = getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID);
+        if (!transactions) {
+            return;
+        }
+        const transaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        const iouReportAction = transactionsIOUActions[transactionID];
         if (iouReportAction) {
             optimisticData.push({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`,
