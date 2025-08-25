@@ -22,7 +22,7 @@ interface FSPageLikeConstructor {
     new (name: string, properties: PropertiesWithoutPageName): FSPageLike;
 }
 
-type GetChatFSClass = (context: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>) => string;
+type GetChatFSClass = (context: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>) => ValueOf<typeof CONST.FULLSTORY.CLASS>;
 
 type Fullstory = {
     /**
