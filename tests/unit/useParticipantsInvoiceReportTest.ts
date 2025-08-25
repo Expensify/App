@@ -54,15 +54,13 @@ describe('useParticipantsInvoiceReport', () => {
         });
 
         it('should return the invoice report when there is an active individual invoice report', async () => {
-            // Given that there is an active (not archived) individual invoice room with a matching invoice receiver
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockActiveIndividualInvoiceReport?.reportID}`, mockActiveIndividualInvoiceReport);
 
-            // When sending invoice to the same receiver from FAB flow (outside of invoice room)
             const {result, rerender} = renderHook(({receiverID, receiverType, policyID}) => useParticipantsInvoiceReport(receiverID, receiverType, policyID), {
                 initialProps: {receiverID: accountID, receiverType: activeIndividualInvoiceReceiver.type, policyID: mockPolicyID},
             });
 
-            // Then invoice should be sent in the same invoice room
+            // Should return the active individual invoice report when receiverID, receiverType, and policyID match
             expect(result.current).toEqual(mockActiveIndividualInvoiceReport);
 
             // Should return undefined when the receiverID does not match
@@ -77,16 +75,14 @@ describe('useParticipantsInvoiceReport', () => {
         });
 
         it('should return undefined when the invoice report is archived', async () => {
-            // Given that there is an archived individual invoice room with a matching invoice receiver
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockArchivedIndividualInvoiceReport?.reportID}`, mockArchivedIndividualInvoiceReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockArchivedIndividualInvoiceReport?.reportID}`, archivedReportNameValuePairs);
 
-            // When sending invoice to the same receiver from FAB flow (outside of invoice room)
             const {result} = renderHook(({receiverID, receiverType, policyID}) => useParticipantsInvoiceReport(receiverID, receiverType, policyID), {
                 initialProps: {receiverID: archivedIndividualReportInvoiceReceiver.accountID, receiverType: archivedIndividualReportInvoiceReceiver.type, policyID: mockPolicyID},
             });
 
-            // Then invoice should not be sent in the archived invoice room
+            // Should return undefined when the invoice report is archived
             expect(result.current).toBeUndefined();
         });
 
@@ -112,15 +108,13 @@ describe('useParticipantsInvoiceReport', () => {
         });
 
         it('should return the invoice report when there is an active business invoice report', async () => {
-            // Given that there is an active (not archived) business invoice room with a matching invoice receiver
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockActiveBusinessInvoiceReport?.reportID}`, mockActiveBusinessInvoiceReport);
 
-            // When paying invoice as a business from an individual invoice room
             const {result, rerender} = renderHook(({receiverID, receiverType, policyID}) => useParticipantsInvoiceReport(receiverID, receiverType, policyID), {
                 initialProps: {receiverID: activeBusinessInvoiceReceiver.policyID, receiverType: activeBusinessInvoiceReceiver.type, policyID: activeBusinessPolicyID},
             });
 
-            // The paid invoice should be sent in the business invoice room
+            // Should return the active business invoice report when receiverID, receiverType, and policyID match
             expect(result.current).toEqual(mockActiveBusinessInvoiceReport);
 
             // Should return undefined when business policyID does not match
@@ -130,16 +124,14 @@ describe('useParticipantsInvoiceReport', () => {
         });
 
         it('should return undefined when the invoice report is archived', async () => {
-            // Given that there is an archived business invoice room with a matching invoice receiver
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockArchivedBusinessInvoiceReport?.reportID}`, mockArchivedBusinessInvoiceReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockArchivedBusinessInvoiceReport?.reportID}`, archivedReportNameValuePairs);
 
-            // When paying invoice as a business from an individual invoice room
             const {result} = renderHook(({receiverID, receiverType, policyID}) => useParticipantsInvoiceReport(receiverID, receiverType, policyID), {
                 initialProps: {receiverID: archivedBusinessInvoiceReceiver.policyID, receiverType: archivedBusinessInvoiceReceiver.type, policyID: archivedBusinessPolicyID},
             });
 
-            // Then invoice should not be sent in the archived invoice room
+            // Should return undefined when the business invoice report is archived
             expect(result.current).toBeUndefined();
         });
     });
