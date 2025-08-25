@@ -4,7 +4,6 @@ import SCREENS from '@src/SCREENS';
 
 const isReportInSearchContext = (): boolean => {
     const rootState = navigationRef.getRootState() as State<RootNavigatorParamList> | undefined;
-
     if (!rootState) {
         return false;
     }

@@ -469,7 +469,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
                               if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
                                   // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
-                                  Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION, {forceReplace: isReportInSearch});
+                                  Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
                                   return;
                               }
 
