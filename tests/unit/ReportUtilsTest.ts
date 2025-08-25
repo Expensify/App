@@ -424,6 +424,8 @@ describe('ReportUtils', () => {
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: {}});
             expect(name).toBe('Fallback Report Name');
+        });
+    });
 
     describe('sortIconsByName', () => {
         it('returns sorted avatar source by name, then accountID', () => {
