@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
@@ -94,6 +94,9 @@ function ReportActionItem({
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`];
+    const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(action, 'movedFrom')}`];
+    const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(action, 'movedTo')}`];
+    const movedFromOrToReportMessage = useMemo(() => ModifiedExpenseMessage.getMovedFromOrToReportMessage(movedFromReport, movedToReport), [movedFromReport, movedToReport]);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -142,7 +145,11 @@ function ReportActionItem({
                 action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
                 report,
             )}
-            modifiedExpenseMessage={ModifiedExpenseMessage.getForReportAction({reportOrID: reportID, reportAction: action})}
+            modifiedExpenseMessage={ModifiedExpenseMessage.getForReportAction({
+                reportAction: action,
+                policyID: report?.policyID,
+                movedFromOrToReportMessage,
+            })}
             getTransactionsWithReceipts={getTransactionsWithReceipts}
             clearError={clearError}
             clearAllRelatedReportActionErrors={clearAllRelatedReportActionErrors}

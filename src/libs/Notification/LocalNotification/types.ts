@@ -10,8 +10,15 @@ type LocalNotificationData = {
 type LocalNotificationModule = {
     showCommentNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) => void;
     showUpdateAvailableNotification: () => void;
-    showModifiedExpenseNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) => void;
+    showModifiedExpenseNotification: (params: LocalNotificationModifiedExpenseParams) => void;
     clearReportNotifications: ClearReportNotifications;
 };
 
-export type {LocalNotificationModule, LocalNotificationClickHandler, LocalNotificationData};
+type LocalNotificationModifiedExpenseParams = {
+    report: Report;
+    reportAction: ReportAction;
+    onClick: LocalNotificationClickHandler;
+    movedFromOrToReportMessage: string | undefined;
+};
+
+export type {LocalNotificationModule, LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpenseParams};
