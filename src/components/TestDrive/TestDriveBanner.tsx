@@ -24,7 +24,7 @@ function TestDriveBanner({onPress}: TestDriveBannerProps) {
     // Without this, the OS-level drag region overlap clickable elements,
     // making them unresponsive until the container is refreshed.
     // For more context: https://github.com/Expensify/App/issues/68139
-    const key = useRefreshKeyAfterInteraction('key');
+    const key = useRefreshKeyAfterInteraction('test-drive-banner');
 
     return (
         <View
