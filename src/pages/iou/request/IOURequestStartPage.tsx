@@ -21,7 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getPerDiemCustomUnit, getPerDiemCustomUnits} from '@libs/PolicyUtils';
+import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {IOURequestType} from '@userActions/IOU';
@@ -60,7 +60,6 @@ function IOURequestStartPage({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -85,9 +84,11 @@ function IOURequestStartPage({
     };
 
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
-    const perDiemCustomUnits = getPerDiemCustomUnits(allPolicies, session?.email);
-    const doesPerDiemPolicyExist = perDiemCustomUnits.length > 0;
-    const moreThanOnePerDiemExist = perDiemCustomUnits.length > 1;
+    const policiesWithPerDiemEnabled = useMemo(() => {
+        return Object.values(allPolicies ?? {})?.filter((p) => p?.arePerDiemRatesEnabled);
+    }, [allPolicies]);
+    const doesPerDiemPolicyExist = policiesWithPerDiemEnabled.length > 0;
+    const moreThanOnePerDiemExist = policiesWithPerDiemEnabled.length > 1;
     const currentPolicyPerDiemUnit = getPerDiemCustomUnit(policy);
     const doesCurrentPolicyPerDiemExist = !isEmptyObject(currentPolicyPerDiemUnit) && !!currentPolicyPerDiemUnit.enabled;
     const shouldShowPerDiemOption =
@@ -290,7 +291,7 @@ function IOURequestStartPage({
                                                 ) : (
                                                     <IOURequestStepDestination
                                                         openedFromStartPage
-                                                        explicitPolicyID={moreThanOnePerDiemExist ? undefined : perDiemCustomUnits.at(0)?.policyID}
+                                                        explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabled.at(0)?.id}
                                                         route={route}
                                                         navigation={navigation}
                                                     />
