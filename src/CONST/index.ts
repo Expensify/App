@@ -1840,7 +1840,7 @@ const CONST = {
     ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE: 'data-expensify-width',
     ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE: 'data-expensify-height',
     ATTACHMENT_DURATION_ATTRIBUTE: 'data-expensify-duration',
-
+    ATTACHMENT_IMAGE_DEFAULT_NAME: 'shared_image.png',
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
         IMAGE: 'image',
@@ -1879,6 +1879,7 @@ const CONST = {
         MSWORD: 'application/msword',
         ZIP: 'application/zip',
         RFC822: 'message/rfc822',
+        HEIC: 'image/heic',
     },
 
     SHARE_FILE_MIMETYPE: {
@@ -1889,6 +1890,7 @@ const CONST = {
         WEBP: 'image/webp',
         TIF: 'image/tif',
         TIFF: 'image/tiff',
+        HEIC: 'image/heic',
         IMG: 'image/*',
         PDF: 'application/pdf',
         MSWORD: 'application/msword',
