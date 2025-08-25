@@ -4,6 +4,7 @@ import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/
 import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import waitForNetworkPromises from 'tests/utils/waitForNetworkPromises';
 import {translateLocal} from '@libs/Localize';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import {setSidebarLoaded} from '@userActions/App';
@@ -12,7 +13,6 @@ import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
-import waitForNetworkPromises from 'tests/utils/waitForNetworkPromises';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
