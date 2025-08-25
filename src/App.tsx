@@ -18,6 +18,7 @@ import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
+import {KeyboardStateProvider} from './components/KeyboardState';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import NavigationBar from './components/NavigationBar';
 import OnyxListItemProvider from './components/OnyxListItemProvider';
@@ -34,7 +35,6 @@ import {PlaybackContextProvider} from './components/VideoPlayerContexts/Playback
 import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
 import {EnvironmentProvider} from './components/withEnvironment';
-import {KeyboardStateProvider} from './components/withKeyboardState';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import Expensify from './Expensify';
