@@ -64,7 +64,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                 changeReportPolicy(report, policy, reportNextStep, isReportArchived);
             }
         },
-        [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber],
+        [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportArchived],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
