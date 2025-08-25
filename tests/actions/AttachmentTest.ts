@@ -29,7 +29,7 @@ describe('AttachmentStorage', () => {
         // Mock global fetch and response for attachment
         global.fetch = TestHelper.getGlobalFetchMock({
             headers: new Headers({
-                'Content-Type': 'image/jpeg',
+                ['Content-Type']: 'image/jpeg',
             }),
             arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
         });
