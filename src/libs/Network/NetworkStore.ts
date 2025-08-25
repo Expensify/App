@@ -6,6 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type Credentials from '@src/types/onyx/Credentials';
 
 let credentials: Credentials | null | undefined;
+let lastShortAuthToken: string | null | undefined;
 let authToken: string | null | undefined;
 let authTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null;
 let currentUserEmail: string | null = null;
@@ -100,6 +101,14 @@ function getAuthToken(): string | null | undefined {
     return authToken;
 }
 
+function getLastShortAuthToken(): string | null | undefined {
+    return lastShortAuthToken;
+}
+
+function setLastShortAuthToken(newLastAuthToken: string | null) {
+    lastShortAuthToken = newLastAuthToken;
+}
+
 function isSupportRequest(command: string): boolean {
     return [
         WRITE_COMMANDS.OPEN_APP,
@@ -169,4 +178,6 @@ export {
     checkRequiredData,
     isSupportAuthToken,
     isSupportRequest,
+    getLastShortAuthToken,
+    setLastShortAuthToken,
 };
