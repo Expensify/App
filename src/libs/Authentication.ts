@@ -12,6 +12,17 @@ import {post} from './Network';
 import {getCredentials, hasReadRequiredDataFromStorage, setAuthToken, setIsAuthenticating} from './Network/NetworkStore';
 import requireParameters from './requireParameters';
 
+let isNetworkOffline = false;
+let networkShouldForceOffline: boolean | undefined;
+// We use connectWithoutView here because this is middleware-level functionality and is not connected with UI
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NETWORK,
+    callback: (network) => {
+        isNetworkOffline = network?.isOffline ?? false;
+        networkShouldForceOffline = network?.shouldForceOffline ?? false;
+    },
+});
+
 type Parameters = {
     useExpensifyLogin?: boolean;
     partnerName: string;
@@ -46,7 +57,7 @@ function Authenticate(parameters: Parameters): Promise<Response | void> {
         Log.hmmm('Redirecting to Sign In because we failed to reauthenticate', {
             error: errorMessage,
         });
-        redirectToSignIn(errorMessage);
+        redirectToSignIn({errorMessage, isOffline: isNetworkOffline, shouldForceOffline: networkShouldForceOffline});
         return Promise.resolve();
     }
 
@@ -133,7 +144,7 @@ function reauthenticate(command = ''): Promise<boolean> {
                     command,
                     error: errorMessage,
                 });
-                redirectToSignIn(errorMessage);
+                redirectToSignIn({errorMessage, isOffline: isNetworkOffline, shouldForceOffline: networkShouldForceOffline});
                 return false;
             }
 

@@ -1,5 +1,19 @@
+import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {signOutAndRedirectToSignIn} from '@libs/actions/Session';
+import {isOffline} from '@libs/Network/NetworkStore';
 import type {Middleware} from '@libs/Request';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Network} from '@src/types/onyx';
+
+let networkState: OnyxEntry<Network>;
+// We use connectWithoutView here because this is middleware-level functionality and is not connected with UI
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NETWORK,
+    callback: (network) => {
+        networkState = network;
+    },
+});
 
 /**
  * Handles the case when the user's copilot has been deleted.
@@ -12,7 +26,14 @@ const handleDeletedAccount: Middleware = (requestResponse) =>
         if (response?.jsonCode !== 408 || !response?.message?.includes('The account you are trying to use is deleted.')) {
             return response;
         }
-        signOutAndRedirectToSignIn(true, false, false, true);
+        signOutAndRedirectToSignIn({
+            shouldResetToHome: true,
+            shouldStashSession: false,
+            shouldSignOutFromOldDot: false,
+            shouldForceUseStashedSession: true,
+            isOffline: isOffline(),
+            shouldForceOffline: networkState?.shouldForceOffline,
+        });
     });
 
 export default handleDeletedAccount;

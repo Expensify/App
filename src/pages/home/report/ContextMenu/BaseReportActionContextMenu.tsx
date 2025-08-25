@@ -137,7 +137,7 @@ function BaseReportActionContextMenu({
     const menuItemRefs = useRef<MenuItemRefs>({});
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
-    const {isOffline} = useNetwork();
+    const {isOffline, shouldForceOffline} = useNetwork();
     const {isProduction} = useEnvironment();
     const threeDotRef = useRef<View>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -270,7 +270,11 @@ function BaseReportActionContextMenu({
             hideContextMenu(false);
 
             InteractionManager.runAfterInteractions(() => {
-                signOutAndRedirectToSignIn();
+                signOutAndRedirectToSignIn({
+                    shouldSignOutFromOldDot: true,
+                    isOffline,
+                    shouldForceOffline,
+                });
             });
         } else {
             callback();

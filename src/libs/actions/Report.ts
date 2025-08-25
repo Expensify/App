@@ -333,11 +333,13 @@ Onyx.connect({
 
 let isNetworkOffline = false;
 let networkStatus: NetworkStatus;
+let networkShouldForceOffline: boolean | undefined;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (value) => {
         isNetworkOffline = value?.isOffline ?? false;
         networkStatus = value?.networkStatus ?? CONST.NETWORK.NETWORK_STATUS.UNKNOWN;
+        networkShouldForceOffline = value?.shouldForceOffline;
     },
 });
 
@@ -3424,7 +3426,7 @@ function openReportFromDeepLink(
 
                     Navigation.waitForProtectedRoutes().then(() => {
                         if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
-                            signOutAndRedirectToSignIn(true);
+                            signOutAndRedirectToSignIn({shouldResetToHome: true, isOffline: isNetworkOffline, shouldForceOffline: networkShouldForceOffline});
                             return;
                         }
 
