@@ -14,7 +14,9 @@ import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripCommaFro
 import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually';
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
+import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
+import * as Expensicons from './Icon/Expensicons';
 import TextInput from './TextInput';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
@@ -51,6 +53,18 @@ type NumberWithSymbolFormProps = {
 
     /** Whether to wrap the input in a container */
     shouldWrapInputInContainer?: boolean;
+
+    /** Whether the amount is negative */
+    isNegative?: boolean;
+
+    /** Function to toggle the amount to negative */
+    toggleNegative?: () => void;
+
+    /** Function to clear the negative amount */
+    clearNegative?: () => void;
+
+    /** Whether to allow flipping amount */
+    allowFlippingAmount?: boolean;
 
     /** Reference to the outer element */
     forwardedRef?: ForwardedRef<BaseTextInputRef>;
@@ -109,10 +123,14 @@ function NumberWithSymbolForm({
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
     forwardedRef,
+    isNegative = false,
+    allowFlippingAmount = false,
+    toggleNegative,
+    clearNegative,
     ...props
 }: NumberWithSymbolFormProps) {
     const styles = useThemeStyles();
-    const {toLocaleDigit, numberFormat} = useLocalize();
+    const {toLocaleDigit, numberFormat, translate} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberRef = useRef<string | undefined>(undefined);
@@ -287,6 +305,11 @@ function NumberWithSymbolForm({
      */
     const textInputKeyPress = (event: NativeSyntheticEvent<KeyboardEvent>) => {
         const key = event.nativeEvent.key.toLowerCase();
+
+        if (!textInput.current?.value && key === 'backspace' && isNegative) {
+            clearNegative?.();
+        }
+
         if (isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
             // Optimistically anticipate forward-delete on iOS Safari (in cases where the Mac Accessibility keyboard is being
             // used for input). If the Control-D shortcut doesn't get sent, the ref will still be reset on the next key press.
@@ -400,6 +423,8 @@ function NumberWithSymbolForm({
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
+            isNegative={isNegative}
+            toggleNegative={toggleNegative}
         />
     );
 
@@ -422,6 +447,17 @@ function NumberWithSymbolForm({
                 </View>
             ) : (
                 textInputComponent
+            )}
+            {allowFlippingAmount && canUseTouchScreen && (
+                <Button
+                    shouldShowRightIcon
+                    small
+                    iconRight={Expensicons.PlusMinus}
+                    onPress={toggleNegative}
+                    style={styles.minWidth18}
+                    isContentCentered
+                    text={translate('iou.flip')}
+                />
             )}
             {shouldShowBigNumberPad || !!footer ? (
                 <View

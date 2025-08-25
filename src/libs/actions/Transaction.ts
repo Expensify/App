@@ -23,6 +23,7 @@ import {
     buildTransactionThread,
     findSelfDMReportID,
     getReportTransactions,
+    shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {getAmount, isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -833,10 +834,12 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
             }
         }
 
+        const allowNegative = shouldEnableNegative(newReport);
+
         // 3. Keep track of the new report totals
         const isUnreported = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const targetReportID = isUnreported ? selfDMReportID : reportID;
-        const transactionAmount = getAmount(transaction);
+        const transactionAmount = getAmount(transaction, undefined, undefined, allowNegative);
 
         if (oldReport) {
             updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : (oldReport?.total ?? 0)) + transactionAmount;
