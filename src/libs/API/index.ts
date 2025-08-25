@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import type {SetRequired} from 'type-fest';
 import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts} from '@libs/actions/RequestConflictUtils';
 import type {EnablePolicyFeatureCommand, RequestMatcher} from '@libs/actions/RequestConflictUtils';
+import {getFinishOnboardingTaskOnyxData} from '@libs/actions/Task';
 import Log from '@libs/Log';
 import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx} from '@libs/Middleware';
 import {isOffline} from '@libs/Network/NetworkStore';
@@ -145,7 +146,84 @@ function write<TCommand extends WriteCommand>(
     conflictResolver: RequestConflictResolver = {},
 ): Promise<void | Response> {
     Log.info('[API] Called API write', false, {command, ...apiCommandParameters});
-    const request = prepareRequest(command, CONST.API_REQUEST_TYPE.WRITE, apiCommandParameters, onyxData, conflictResolver);
+
+    // List of commands linked to workspace settings that should complete the reviewWorkspaceSettings onboarding task.
+    const workspaceCommands: WriteCommand[] = [
+        WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY,
+        WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET,
+        WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE,
+        WRITE_COMMANDS.SET_WORKSPACE_PAYER,
+        WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT,
+        WRITE_COMMANDS.ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE,
+        WRITE_COMMANDS.VERIFY_SETUP_INTENT_AND_REQUEST_POLICY_OWNER_CHANGE,
+        WRITE_COMMANDS.UPDATE_WORKSPACE_AVATAR,
+        WRITE_COMMANDS.DELETE_WORKSPACE_AVATAR,
+        WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS,
+        WRITE_COMMANDS.UPDATE_WORKSPACE_DESCRIPTION,
+        WRITE_COMMANDS.UPDATE_POLICY_ADDRESS,
+        WRITE_COMMANDS.DISCONNECT_WORKSPACE_RECEIPT_PARTNER,
+        WRITE_COMMANDS.POLICY_UBER_AUTO_INVITE,
+        WRITE_COMMANDS.POLICY_UBER_AUTO_REMOVE,
+        WRITE_COMMANDS.REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE,
+        WRITE_COMMANDS.UPDATE_POLICY_MEMBERS_CUSTOM_FIELDS,
+        WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
+        WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS,
+        WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX,
+        WRITE_COMMANDS.SET_POLICY_CUSTOM_TAX_NAME,
+        WRITE_COMMANDS.SET_POLICY_TAXES_CURRENCY_DEFAULT,
+        WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT,
+        WRITE_COMMANDS.DOWNGRADE_TO_TEAM,
+        WRITE_COMMANDS.SET_WORKSPACE_DEFAULT_SPEND_CATEGORY,
+        WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT_NO_RECEIPT,
+        WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT,
+        WRITE_COMMANDS.SET_POLICY_PROHIBITED_EXPENSES,
+        WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AGE,
+        WRITE_COMMANDS.UPDATE_CUSTOM_RULES,
+        WRITE_COMMANDS.SET_POLICY_BILLABLE_MODE,
+        WRITE_COMMANDS.SET_POLICY_REIMBURSABLE_MODE,
+        WRITE_COMMANDS.DISABLE_POLICY_BILLABLE_MODE,
+        WRITE_COMMANDS.SET_WORKSPACE_ERECEIPTS_ENABLED,
+        WRITE_COMMANDS.SET_POLICY_ATTENDEE_TRACKING_ENABLED,
+        WRITE_COMMANDS.SET_POLICY_DEFAULT_REPORT_TITLE,
+        WRITE_COMMANDS.SET_POLICY_PREVENT_MEMBER_CREATED_TITLE,
+        WRITE_COMMANDS.SET_POLICY_PREVENT_SELF_APPROVAL,
+        WRITE_COMMANDS.SET_POLICY_AUTOMATIC_APPROVAL_LIMIT,
+        WRITE_COMMANDS.SET_POLICY_AUTOMATIC_APPROVAL_RATE,
+        WRITE_COMMANDS.ENABLE_POLICY_AUTO_APPROVAL_OPTIONS,
+        WRITE_COMMANDS.SET_POLICY_AUTO_REIMBURSEMENT_LIMIT,
+        WRITE_COMMANDS.ENABLE_POLICY_AUTO_REIMBURSEMENT_LIMIT,
+        WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_NAME,
+        WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_WEBSITE,
+        WRITE_COMMANDS.PAY_AND_DOWNGRADE,
+        WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM,
+        WRITE_COMMANDS.UPGRADE_TO_CORPORATE,
+        WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES,
+        WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
+        WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
+        WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS,
+        WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
+        WRITE_COMMANDS.ENABLE_POLICY_TAGS,
+        WRITE_COMMANDS.ENABLE_POLICY_TAXES,
+        WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS,
+        WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
+        WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
+        WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
+    ];
+
+    let onyxDataWithOnboardingData: OnyxData | undefined;
+    // Check if this command is linked to setting a workspace which should complete the reviewWorkspaceSettings task.
+    if (workspaceCommands.includes(command)) {
+        const {optimisticData, successData, failureData} = getFinishOnboardingTaskOnyxData(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS, true);
+
+        onyxDataWithOnboardingData = {
+            ...onyxData,
+            optimisticData: [...(onyxData.optimisticData ?? []), ...(optimisticData ?? [])],
+            successData: [...(onyxData.successData ?? []), ...(successData ?? [])],
+            failureData: [...(onyxData.failureData ?? []), ...(failureData ?? [])],
+        };
+    }
+
+    const request = prepareRequest(command, CONST.API_REQUEST_TYPE.WRITE, apiCommandParameters, onyxDataWithOnboardingData ?? onyxData, conflictResolver);
     return processRequest(request, CONST.API_REQUEST_TYPE.WRITE);
 }
 
