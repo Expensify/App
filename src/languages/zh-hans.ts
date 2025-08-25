@@ -4909,6 +4909,7 @@ const translations = {
                 limit: '限制',
                 limitType: '限制类型',
                 name: '名称',
+                disabledApprovalForSmartLimitError: '请在<strong>工作流程 > 添加审批</strong>中启用审批，然后再设置智能限制',
             },
             deactivateCardModal: {
                 deactivate: '停用',
@@ -5936,6 +5937,7 @@ const translations = {
         statements: '发言',
         unapprovedCash: '未经批准的现金',
         unapprovedCard: '未批准的卡',
+        reconciliation: '对账',
         saveSearch: '保存搜索',
         deleteSavedSearch: '删除已保存的搜索',
         deleteSavedSearchConfirm: '您确定要删除此搜索吗？',

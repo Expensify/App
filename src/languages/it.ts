@@ -4996,6 +4996,7 @@ const translations = {
                 limit: 'Limite',
                 limitType: 'Tipo di limite',
                 name: 'Nome',
+                disabledApprovalForSmartLimitError: 'Abilita le approvazioni in <strong>Flussi di lavoro > Aggiungi approvazioni</strong> prima di impostare i limiti intelligenti',
             },
             deactivateCardModal: {
                 deactivate: 'Disattiva',
@@ -6061,6 +6062,7 @@ const translations = {
         statements: 'Dichiarazioni',
         unapprovedCash: 'Contanti non approvati',
         unapprovedCard: 'Carta non approvata',
+        reconciliation: 'Riconciliazione',
         saveSearch: 'Salva ricerca',
         deleteSavedSearch: 'Elimina ricerca salvata',
         deleteSavedSearchConfirm: 'Sei sicuro di voler eliminare questa ricerca?',

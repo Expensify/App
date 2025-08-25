@@ -120,8 +120,6 @@ function initializePusher() {
 }
 let timezone: Timezone | null;
 let currentAccountID = -1;
-let isLoadingApp = false;
-let lastUpdateIDAppliedToClient: OnyxEntry<number>;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -163,21 +161,7 @@ Onyx.connect({
     },
 });
 
-Onyx.connect({
-    key: ONYXKEYS.IS_LOADING_APP,
-    callback: (value) => {
-        isLoadingApp = !!value;
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value) => {
-        lastUpdateIDAppliedToClient = value;
-    },
-});
-
-function handleNetworkReconnect() {
+function handleNetworkReconnect(lastUpdateIDAppliedToClient: number | undefined, isLoadingApp: boolean) {
     if (isLoadingApp) {
         App.openApp();
     } else {
@@ -229,6 +213,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {toggleSearch} = useSearchRouterContext();
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
@@ -301,7 +287,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         }
 
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(handleNetworkReconnect);
+        NetworkConnection.onReconnect(() => handleNetworkReconnect(lastUpdateIDAppliedToClient, !!isLoadingApp));
         PusherConnectionManager.init();
         initializePusher();
         // Sometimes when we transition from old dot to new dot, the client is not the leader
