@@ -2626,20 +2626,20 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC: {
         route: 'workspaces/:policyID/accounting/sage-intacct/advanced/autosync',
-        getRoute: (policyID: string | undefined, backTo?: string) => {
+        getRoute: (policyID: string | undefined) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC route');
             }
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/advanced/autosync` as const, backTo);
+            return `workspaces/${policyID}/accounting/sage-intacct/advanced/autosync` as const;
         },
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD: {
         route: 'workspaces/:policyID/accounting/sage-intacct/advanced/autosync/accounting-method',
-        getRoute: (policyID: string | undefined, backTo?: string) => {
+        getRoute: (policyID: string | undefined) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD route');
             }
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/advanced/autosync/accounting-method` as const, backTo);
+            return `workspaces/${policyID}/accounting/sage-intacct/advanced/autosync/accounting-method` as const;
         },
     },
     ADD_UNREPORTED_EXPENSE: {

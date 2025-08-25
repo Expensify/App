@@ -16,21 +16,15 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
-type SageIntacctAccountingMethodPageRouteParams = {
-    backTo?: Route;
-};
-
-function SageIntacctAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
+function SageIntacctAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id;
-    const {backTo} = route.params as SageIntacctAccountingMethodPageRouteParams;
     const styles = useThemeStyles();
     const config = policy?.connections?.intacct?.config;
     const accountingMethod = config?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
@@ -60,9 +54,9 @@ function SageIntacctAccountingMethodPage({policy, route}: WithPolicyConnectionsP
             if (row.value !== accountingMethod) {
                 updateSageIntacctAccountingMethod(policyID, row.value, accountingMethod);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID, backTo));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID));
         },
-        [accountingMethod, policyID, backTo],
+        [accountingMethod, policyID],
     );
 
     return (
@@ -77,7 +71,7 @@ function SageIntacctAccountingMethodPage({policy, route}: WithPolicyConnectionsP
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID, backTo))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             pendingAction={pendingAction}
             shouldBeBlocked={!config?.autoSync?.enabled}

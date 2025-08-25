@@ -17,26 +17,20 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {clearSageIntacctErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 
-type SageIntacctAutoSyncPageRouteParams = {
-    backTo?: Route;
-};
-
-function SageIntacctAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
+function SageIntacctAutoSyncPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = policy?.id;
     const config = policy?.connections?.intacct?.config;
     const {autoSync, pendingFields} = config ?? {};
-    const {backTo} = route.params as SageIntacctAutoSyncPageRouteParams;
     const accountingMethod = config?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const pendingAction = settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC], pendingFields) ?? settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.ACCOUNTING_METHOD], pendingFields);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
-    }, [policyID, backTo]);
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
+    }, [policyID]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -77,7 +71,7 @@ function SageIntacctAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                             }
                             description={translate('workspace.sageIntacct.accountingMethods.label')}
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD.getRoute(policyID, backTo))}
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD.getRoute(policyID))}
                         />
                     </OfflineWithFeedback>
                 )}
