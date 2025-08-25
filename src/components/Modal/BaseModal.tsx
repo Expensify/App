@@ -37,10 +37,12 @@ const REANIMATED_MODAL_TYPES: Array<ValueOf<typeof CONST.MODAL.MODAL_TYPE>> = [
     CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED,
     CONST.MODAL.MODAL_TYPE.FULLSCREEN,
     CONST.MODAL.MODAL_TYPE.POPOVER,
+    CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
     CONST.MODAL.MODAL_TYPE.CENTERED,
     CONST.MODAL.MODAL_TYPE.CENTERED_SMALL,
     CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
     CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT,
+    CONST.MODAL.MODAL_TYPE.CONFIRM,
 ];
 
 type ModalComponentProps = (ReactNativeModalProps | ReanimatedModalProps) & {
@@ -174,7 +176,7 @@ function BaseModal(
     const {sidePanelOffset} = useSidePanel();
     const sidePanelStyle = !shouldUseReanimatedModal && shouldApplySidePanelOffset && !isSmallScreenWidth ? {paddingRight: sidePanelOffset.current} : undefined;
     const sidePanelAnimatedStyle =
-        (shouldUseReanimatedModal || type === CONST.MODAL.MODAL_TYPE.POPOVER) && shouldApplySidePanelOffset && !isSmallScreenWidth
+        (shouldUseReanimatedModal || type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED) && shouldApplySidePanelOffset && !isSmallScreenWidth
             ? {transform: [{translateX: Animated.multiply(sidePanelOffset.current, -1)}]}
             : undefined;
     const keyboardStateContextValue = useKeyboardState();
@@ -329,7 +331,6 @@ function BaseModal(
                     modalOverlapsWithTopSafeArea,
                     shouldDisableBottomSafeAreaPadding: !!shouldDisableBottomSafeAreaPadding,
                 },
-                shouldUseReanimatedModal,
             ),
         [
             StyleUtils,
@@ -344,7 +345,6 @@ function BaseModal(
             shouldUseModalPaddingStyle,
             modalOverlapsWithTopSafeArea,
             shouldDisableBottomSafeAreaPadding,
-            shouldUseReanimatedModal,
         ],
     );
 

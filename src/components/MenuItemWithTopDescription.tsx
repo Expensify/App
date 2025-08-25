@@ -1,6 +1,4 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef} from 'react';
-import type {View} from 'react-native';
+import React from 'react';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
 import MenuItem from './MenuItem';
@@ -11,7 +9,7 @@ type MenuItemWithTopDescriptionProps = MenuItemProps & {
     highlighted?: boolean;
 };
 
-function MenuItemWithTopDescription({highlighted, outerWrapperStyle, ...props}: MenuItemWithTopDescriptionProps, ref: ForwardedRef<View>) {
+function MenuItemWithTopDescription({highlighted, outerWrapperStyle, ref, ...props}: MenuItemWithTopDescriptionProps) {
     const theme = useTheme();
     const highlightedOuterWrapperStyle = useAnimatedHighlightStyle({
         shouldHighlight: highlighted ?? false,
@@ -33,4 +31,4 @@ function MenuItemWithTopDescription({highlighted, outerWrapperStyle, ...props}: 
 
 MenuItemWithTopDescription.displayName = 'MenuItemWithTopDescription';
 
-export default forwardRef(MenuItemWithTopDescription);
+export default MenuItemWithTopDescription;
