@@ -3,13 +3,17 @@ import React from 'react';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import NavigationTabBarAvatar from '@pages/home/sidebar/NavigationTabBarAvatar';
 import CONST from '@src/CONST';
-import lightTheme from '@styles/theme/themes/light';
+import colors from '@styles/theme/colors';
+
 
 // Mock responsive layout to force wide layout
-jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: false}));
+jest.mock('@hooks/useResponsiveLayout', () => (): {shouldUseNarrowLayout: boolean} => ({shouldUseNarrowLayout: false}));
 
 // Silence reanimated warnings
-jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+jest.mock('react-native-reanimated', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return require('react-native-reanimated/mock');
+});
 
 describe('NavigationTabBarAvatar hover', () => {
     const onPress = jest.fn();
@@ -33,7 +37,7 @@ describe('NavigationTabBarAvatar hover', () => {
         // Before hover, ring should not have border styles
         const ring = screen.getByTestId('avatar-ring');
         expect(ring).not.toHaveStyle({
-            borderColor: lightTheme.success,
+            borderColor: colors.green400,
             borderWidth: 2,
         });
 
@@ -41,13 +45,13 @@ describe('NavigationTabBarAvatar hover', () => {
 
         // After hover, ring should have correct styles
         expect(ring).toHaveStyle({
-            borderColor: lightTheme.success,
+            borderColor: colors.green400,
             borderWidth: 2,
         });
 
         fireEvent(button, 'hoverOut');
         expect(ring).not.toHaveStyle({
-            borderColor: lightTheme.success,
+            borderColor: colors.green400,
             borderWidth: 2,
         });
     });

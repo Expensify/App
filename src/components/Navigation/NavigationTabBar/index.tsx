@@ -53,6 +53,16 @@ type NavigationTabBarProps = {
 function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar = false}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+
+    const getIconFill = useCallback((isSelected: boolean, isHovered: boolean) => {
+        if (isSelected) {
+            return theme.iconMenu;
+        }
+        if (isHovered) {
+            return theme.successHover;
+        }
+        return theme.icon;
+    }, [theme]);
     const {translate, preferredLocale} = useLocalize();
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {orderedReports} = useSidebarOrderedReports();
@@ -237,7 +247,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                         <View>
                                             <Icon
                                                 src={Expensicons.Inbox}
-                                                fill={selectedTab === NAVIGATION_TABS.HOME ? theme.iconMenu : hovered ? theme.successHover : theme.icon}
+                                                fill={getIconFill(selectedTab === NAVIGATION_TABS.HOME, hovered)}
                                                 width={variables.iconBottomBar}
                                                 height={variables.iconBottomBar}
                                             />
@@ -279,7 +289,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                     <View>
                                         <Icon
                                             src={Expensicons.MoneySearch}
-                                            fill={selectedTab === NAVIGATION_TABS.SEARCH ? theme.iconMenu : hovered ? theme.successHover : theme.icon}
+                                            fill={getIconFill(selectedTab === NAVIGATION_TABS.SEARCH, hovered)}
                                             width={variables.iconBottomBar}
                                             height={variables.iconBottomBar}
                                         />
@@ -313,7 +323,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                     <View>
                                         <Icon
                                             src={Expensicons.Buildings}
-                                            fill={selectedTab === NAVIGATION_TABS.WORKSPACES ? theme.iconMenu : hovered ? theme.successHover : theme.icon}
+                                            fill={getIconFill(selectedTab === NAVIGATION_TABS.WORKSPACES, hovered)}
                                             width={variables.iconBottomBar}
                                             height={variables.iconBottomBar}
                                         />

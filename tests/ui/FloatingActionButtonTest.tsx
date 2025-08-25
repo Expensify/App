@@ -3,12 +3,17 @@ import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import FloatingActionButton from '@components/FloatingActionButton';
 import CONST from '@src/CONST';
-import lightTheme from '@styles/theme/themes/light';
+import colors from '@styles/theme/colors';
+
 
 // FloatingActionButton relies on ProductTrainingContext, so provide a minimal mock.
 jest.mock('@components/ProductTrainingContext', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    useProductTrainingContext: () => ({
+    useProductTrainingContext: (): {
+        renderProductTrainingTooltip: () => null;
+        shouldShowProductTrainingTooltip: boolean;
+        hideProductTrainingTooltip: () => void;
+    } => ({
         renderProductTrainingTooltip: () => null,
         shouldShowProductTrainingTooltip: false,
         hideProductTrainingTooltip: () => {},
@@ -16,13 +21,16 @@ jest.mock('@components/ProductTrainingContext', () => ({
 }));
 
 // useResponsiveLayout determines LHB visibility. Mock a wide layout to keep behaviour deterministic.
-jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: false}));
+jest.mock('@hooks/useResponsiveLayout', () => (): {shouldUseNarrowLayout: boolean} => ({shouldUseNarrowLayout: false}));
 
 // Mock useIsHomeRouteActive to avoid navigation state issues
-jest.mock('@navigation/helpers/useIsHomeRouteActive', () => () => false);
+jest.mock('@navigation/helpers/useIsHomeRouteActive', () => (): boolean => false);
 
 // Silence react-native-reanimated warnings in Jest
-jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+jest.mock('react-native-reanimated', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return require('react-native-reanimated/mock');
+});
 
 describe('FloatingActionButton hover', () => {
     const onPress = jest.fn();
@@ -48,14 +56,14 @@ describe('FloatingActionButton hover', () => {
         const animatedContainer = screen.getByTestId('fab-animated-container');
 
         // Before hover, should not have successHover background
-        expect(animatedContainer).not.toHaveStyle({backgroundColor: lightTheme.successHover});
+        expect(animatedContainer).not.toHaveStyle({backgroundColor: colors.greenHover});
         
         // Test hover in
         fireEvent(fab, 'hoverIn');
-        expect(animatedContainer).toHaveStyle({backgroundColor: lightTheme.successHover});
+        expect(animatedContainer).toHaveStyle({backgroundColor: colors.greenHover});
         
         // Test hover out
         fireEvent(fab, 'hoverOut');
-        expect(animatedContainer).not.toHaveStyle({backgroundColor: lightTheme.successHover});
+        expect(animatedContainer).not.toHaveStyle({backgroundColor: colors.greenHover});
     });
 });
