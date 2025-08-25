@@ -29,8 +29,7 @@ function WorkspaceReceiptPartnersPromotionBanner({policy, readOnly}: WorkspaceRe
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
     const policyID = policy?.id;
-    const {setAsDismissed} = useDismissedUberBanners({policyID});
-    const {isDismissed} = useDismissedUberBanners({policyID: policy?.id});
+    const {setAsDismissed, isDismissed} = useDismissedUberBanners({policyID});
     const shouldShowReceiptPartnersPromotionBanner = isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS) && !policy?.areReceiptPartnersEnabled && !isDismissed && !readOnly;
 
     const handleConnectUber = useCallback(() => {
