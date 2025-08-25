@@ -180,6 +180,10 @@ function isAccountInSetupState(account: PaymentMethodItem) {
     return account.accountData && 'state' in account.accountData && account.accountData.state === CONST.BANK_ACCOUNT.STATE.SETUP;
 }
 
+function isAccountLocked(account: PaymentMethodItem) {
+    return account.accountData && 'state' in account.accountData && account.accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED;
+}
+
 function PaymentMethodList({
     actionPaymentMethodType = '',
     activePaymentMethodID = '',
@@ -362,6 +366,7 @@ function PaymentMethodList({
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
+                // TODO this icon should not be responsive for locked accounts
                 iconRight: Expensicons.ThreeDots,
                 shouldShowRightIcon,
             };
@@ -442,6 +447,9 @@ function PaymentMethodList({
 
     const getBadgeText = useCallback(
         (item: PaymentMethodItem) => {
+            if (isAccountLocked(item)) {
+                return translate('common.locked');
+            }
             if (isAccountInSetupState(item)) {
                 return translate('common.actionRequired');
             }
@@ -488,8 +496,9 @@ function PaymentMethodList({
                         iconWidth={item.iconWidth ?? item.iconSize}
                         iconStyles={item.iconStyles}
                         badgeText={getBadgeText(item)}
-                        badgeIcon={isAccountInSetupState(item) ? Expensicons.DotIndicator : undefined}
+                        badgeIcon={(isAccountInSetupState(item) ?? isAccountLocked(item)) ? Expensicons.DotIndicator : undefined}
                         badgeSuccess={isAccountInSetupState(item) ? true : undefined}
+                        badgeError={isAccountLocked(item) ? true : undefined}
                         wrapperStyle={[styles.paymentMethod, listItemStyle]}
                         iconRight={item.iconRight}
                         badgeStyle={styles.badgeBordered}
@@ -512,10 +521,7 @@ function PaymentMethodList({
             styles.mb1,
             styles.textLabel,
             styles.colorMuted,
-            filteredPaymentMethods,
-            invoiceTransferBankAccountID,
-            userWallet?.walletLinkedAccountID,
-            translate,
+            getBadgeText,
             listItemStyle,
             shouldShowSelectedState,
             selectedMethodID,

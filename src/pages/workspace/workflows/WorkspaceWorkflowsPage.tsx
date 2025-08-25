@@ -48,7 +48,9 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+import {pressedOnLockedBankAccount} from '@userActions/BankAccounts';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -156,11 +158,22 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const {addressName, bankName, bankAccountID, state} = policy?.achAccount ?? {};
         const shouldShowBankAccount = !!bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
         const isAccountInSetupState = state === CONST.BANK_ACCOUNT.STATE.SETUP;
+        const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
         const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
 
         const hasReimburserError = !!policy?.errorFields?.reimburser;
         const hasApprovalError = !!policy?.errorFields?.approvalMode;
         const hasDelayedSubmissionError = !!(policy?.errorFields?.autoReporting ?? policy?.errorFields?.autoReportingFrequency);
+        const getBadgeText = (accountState: string | undefined) => {
+            switch (accountState) {
+                case CONST.BANK_ACCOUNT.STATE.SETUP:
+                    return translate('common.actionRequired');
+                case CONST.BANK_ACCOUNT.STATE.LOCKED:
+                    return translate('common.locked');
+                default:
+                    return undefined;
+            }
+        };
 
         return [
             {
@@ -271,6 +284,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         showLockedAccountModal();
                                         return;
                                     }
+                                    if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID) {
+                                        // TODO initiating this should only by done by reimburser
+                                        pressedOnLockedBankAccount(bankAccountID);
+                                        navigateToConciergeChat();
+                                    }
                                     if (
                                         !isCurrencySupportedForGlobalReimbursement(
                                             (policy?.outputCurrency ?? '') as CurrencyType,
@@ -287,9 +305,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 iconWidth={shouldShowBankAccount ? (bankIcon.iconWidth ?? bankIcon.iconSize) : 20}
                                 iconStyles={shouldShowBankAccount ? bankIcon.iconStyles : undefined}
                                 disabled={isOffline || !isPolicyAdmin}
-                                badgeText={isAccountInSetupState ? translate('common.actionRequired') : undefined}
-                                badgeIcon={isAccountInSetupState ? Expensicons.DotIndicator : undefined}
+                                badgeText={getBadgeText(state)}
+                                badgeIcon={(isAccountInSetupState ?? isBusinessBankAccountLocked) ? Expensicons.DotIndicator : undefined}
                                 badgeSuccess={isAccountInSetupState ? true : undefined}
+                                badgeError={isBusinessBankAccountLocked ? true : undefined}
                                 shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                                 displayInDefaultIconColor={shouldShowBankAccount}

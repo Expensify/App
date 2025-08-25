@@ -106,6 +106,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
+    const hasLockedBankAccount = bankAccountList ? Object.values(bankAccountList).some((bankAccount) => bankAccount.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) : false;
 
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
@@ -118,7 +119,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
     const walletBrickRoadIndicator =
-        hasPaymentMethodError(bankAccountList, fundList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection ? 'error' : undefined;
+        hasPaymentMethodError(bankAccountList, fundList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection || hasLockedBankAccount
+            ? 'error'
+            : undefined;
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 

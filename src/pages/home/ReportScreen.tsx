@@ -76,6 +76,7 @@ import {
 } from '@libs/ReportUtils';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+import {clearInitiatingBankAccountUnlock, initiateBankAccountUnlock} from '@userActions/BankAccounts';
 import {setShouldShowComposeInput} from '@userActions/Composer';
 import {
     clearDeleteTransactionNavigateBackUrl,
@@ -277,6 +278,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // wrapping in useMemo because this is array operation and can cause performance issues
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`, {canBeMissing: true});
+    const [initiatingBankAccountUnlock] = useOnyx(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK);
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
@@ -328,6 +330,18 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata);
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
+
+    useEffect(() => {
+        if (!isConciergeChatReport(report) || !initiatingBankAccountUnlock?.bankAccountIDToUnlock) {
+            return;
+        }
+
+        initiateBankAccountUnlock(initiatingBankAccountUnlock.bankAccountIDToUnlock);
+
+        if (initiatingBankAccountUnlock?.isSuccess) {
+            clearInitiatingBankAccountUnlock();
+        }
+    }, [initiatingBankAccountUnlock, report]);
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
