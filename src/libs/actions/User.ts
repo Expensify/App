@@ -1387,25 +1387,6 @@ function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'],
     });
 }
 
-function dismissTrackTrainingModal() {
-    const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
-        value: true,
-    };
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
-            value: true,
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
-        optimisticData,
-    });
-}
-
 /**
  * Dismiss the Auto-Submit explanation modal
  * @param shouldDismiss Whether the user selected "Don't show again"
@@ -1476,7 +1457,6 @@ function lockAccount() {
 export {
     closeAccount,
     dismissReferralBanner,
-    dismissTrackTrainingModal,
     dismissASAPSubmitExplanation,
     resendValidateCode,
     requestContactMethodValidateCode,

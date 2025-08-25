@@ -14,12 +14,10 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import useCardFeeds from '@hooks/useCardFeeds';
-import useDismissedUberBanners from '@hooks/useDismissedUberBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -62,7 +60,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
-    const {isBetaEnabled} = usePermissions();
     const backTo = route.params.backTo;
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {
@@ -142,8 +139,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const shouldShowAddress = !readOnly || !!formattedAddress;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
-    const {isDismissed} = useDismissedUberBanners({policyID: policy?.id});
-    const shouldShowReceiptPartnersPromotionBanner = isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS) && !policy?.areReceiptPartnersEnabled && !isDismissed && !readOnly;
 
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
@@ -297,7 +292,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{getHeaderButtons()}</View>}
-                    {shouldShowReceiptPartnersPromotionBanner && <WorkspaceReceiptPartnersPromotionBanner policy={policy} />}
+                    <WorkspaceReceiptPartnersPromotionBanner
+                        policy={policy}
+                        readOnly={readOnly}
+                    />
                     <Section
                         isCentralPane
                         title=""

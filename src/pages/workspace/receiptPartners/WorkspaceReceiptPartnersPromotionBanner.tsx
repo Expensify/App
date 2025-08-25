@@ -3,29 +3,35 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import {Close} from '@components/Icon/Expensicons';
-import {Car} from '@components/Icon/Illustrations';
+import {PinkCar} from '@components/Icon/Illustrations';
 import useDismissedUberBanners from '@hooks/useDismissedUberBanners';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {enablePolicyReceiptPartners} from '@libs/actions/Policy/Policy';
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
+import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 
 type WorkspaceReceiptPartnersBannerProps = {
     policy: OnyxEntry<Policy>;
+    readOnly?: boolean;
 };
 
-function WorkspaceReceiptPartnersPromotionBanner({policy}: WorkspaceReceiptPartnersBannerProps) {
+function WorkspaceReceiptPartnersPromotionBanner({policy, readOnly}: WorkspaceReceiptPartnersBannerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
     const policyID = policy?.id;
     const {setAsDismissed} = useDismissedUberBanners({policyID});
+    const {isDismissed} = useDismissedUberBanners({policyID: policy?.id});
+    const shouldShowReceiptPartnersPromotionBanner = isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS) && !policy?.areReceiptPartnersEnabled && !isDismissed && !readOnly;
 
     const handleConnectUber = useCallback(() => {
         if (!policyID) {
@@ -49,10 +55,14 @@ function WorkspaceReceiptPartnersPromotionBanner({policy}: WorkspaceReceiptPartn
         );
     }, [styles, shouldUseNarrowLayout, translate, handleConnectUber]);
 
+    if (shouldShowReceiptPartnersPromotionBanner) {
+        return null;
+    }
+
     return (
         <View style={[styles.ph4, styles.mb4]}>
             <BillingBanner
-                icon={Car}
+                icon={PinkCar}
                 title={translate('workspace.receiptPartners.uber.bannerTitle')}
                 titleStyle={StyleUtils.getTextColorStyle(theme.text)}
                 subtitle={translate('workspace.receiptPartners.uber.bannerDescription')}
