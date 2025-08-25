@@ -32,25 +32,10 @@ import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
-jest.mock('react-native-blob-util', () => {
-    const mockFetch = jest.fn(() =>
-        Promise.resolve({
-            path: jest.fn(() => '/mocked/path/to/file'),
-        }),
-    );
-
-    return {
-        config: jest.fn(() => ({
-            fetch: mockFetch,
-        })),
-        fs: {
-            dirs: {
-                DocumentDir: '/mocked/document/dir',
-            },
-        },
-        fetch: mockFetch,
-    };
-});
+jest.mock('react-native-fs', () => ({
+    DocumentDirectoryPath: '/mock/documents',
+    writeFile: jest.fn(() => Promise.resolve()),
+}));
 
 jest.mock('@libs/NextStepUtils', () => ({
     buildNextStep: jest.fn(),
@@ -1078,7 +1063,14 @@ describe('actions/Report', () => {
     });
 
     it('should send not DeleteComment request and remove AddAttachment accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        // Mock global fetch and response for sending attachment
+        global.fetch = TestHelper.getGlobalFetchMock({
+            headers: new Headers({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'image/jpeg',
+            }),
+            arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+        });
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
@@ -1147,7 +1139,14 @@ describe('actions/Report', () => {
     });
 
     it('should send not DeleteComment request and remove AddTextAndAttachment accordingly', async () => {
-        global.fetch = TestHelper.getGlobalFetchMock();
+        // Mock global fetch and response for attachment
+        global.fetch = TestHelper.getGlobalFetchMock({
+            headers: new Headers({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'image/jpeg',
+            }),
+            arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+        });
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
