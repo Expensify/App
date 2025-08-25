@@ -4998,6 +4998,7 @@ const translations = {
                 limit: 'Limiet',
                 limitType: 'Limiettype',
                 name: 'Naam',
+                disabledApprovalForSmartLimitError: 'Schakel goedkeuringen in <strong>Workflows > Goedkeuringen toevoegen</strong> in voordat u slimme limieten instelt',
             },
             deactivateCardModal: {
                 deactivate: 'Deactiveren',

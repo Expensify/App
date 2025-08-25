@@ -4,6 +4,7 @@ import type {ValueOf} from 'type-fest';
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
+import Checkbox from '@components/Checkbox';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -31,12 +32,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSections} from '@libs/SearchUIUtils';
+import {getSections, getWideAmountIndicators, shouldShowYear as shouldShowYearUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
@@ -61,9 +63,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {selectedTransactions} = useSearchContext();
+    const {selectedTransactions, currentSearchHash} = useSearchContext();
     const selectedTransactionIDs = Object.keys(selectedTransactions);
-    const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`, {canBeMissing: true});
+    const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash ?? currentSearchHash}`, {canBeMissing: true});
     const transactionsSnapshotMetadata = useMemo(() => {
         return transactionsSnapshot?.search;
     }, [transactionsSnapshot]);
@@ -81,6 +83,21 @@ function TransactionGroupListItem<TItem extends ListItem>({
             isSelected: selectedTransactionIDs.includes(transactionItem.transactionID),
         }));
     }, [isGroupByReports, transactionsSnapshot?.data, transactionsSnapshot?.search, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDs]);
+
+    const selectedItemsLength = useMemo(() => {
+        return transactions.reduce((acc, transaction) => {
+            return transaction.isSelected ? acc + 1 : acc;
+        }, 0);
+    }, [transactions]);
+
+    const transactionsWithoutPendingDelete = useMemo(() => {
+        return transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    }, [transactions]);
+
+    const isSelectAllChecked = useMemo(() => {
+        return selectedItemsLength === transactions.length;
+    }, [selectedItemsLength, transactions.length]);
+
     const [isExpanded, setIsExpanded] = useState(false);
 
     const isEmpty = transactions.length === 0;
@@ -109,7 +126,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
-    const pressableStyle = [styles.transactionGroupListItemStyle, item.isSelected && styles.activeComponentBG];
+    const isItemSelected = isSelectAllChecked || item?.isSelected;
+
+    const pressableStyle = [styles.transactionGroupListItemStyle, isItemSelected && styles.activeComponentBG];
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const backTo = Navigation.getActiveRoute();
@@ -163,10 +182,17 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const onCheckboxPress = useCallback(
         (val: TItem) => {
-            onCheckboxPressRow?.(val);
+            onCheckboxPressRow?.(val, isGroupByReports ? undefined : transactions);
         },
-        [onCheckboxPressRow],
+        [onCheckboxPressRow, transactions, isGroupByReports],
     );
+
+    const groupItemWithSelected = useMemo(() => {
+        return {
+            ...groupItem,
+            isSelected: isSelectAllChecked,
+        };
+    }, [groupItem, isSelectAllChecked]);
 
     const getHeader = useMemo(() => {
         const headers: Record<SearchGroupBy, React.JSX.Element> = {
@@ -182,7 +208,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             ),
             [CONST.SEARCH.GROUP_BY.FROM]: (
                 <MemberListItemHeader
-                    member={groupItem as TransactionMemberGroupListItemType}
+                    member={groupItemWithSelected as TransactionMemberGroupListItemType}
                     onSelectRow={onPress}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
@@ -191,7 +217,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             ),
             [CONST.SEARCH.GROUP_BY.CARD]: (
                 <CardListItemHeader
-                    card={groupItem as TransactionCardGroupListItemType}
+                    card={groupItemWithSelected as TransactionCardGroupListItemType}
                     onSelectRow={onPress}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
@@ -215,7 +241,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         return headers[groupBy];
-    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, onPress, groupBy]);
+    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, groupItemWithSelected, onPress, groupBy]);
+
+    const shouldShowYear = shouldShowYearUtil(transactions);
+    const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(transactions);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
@@ -225,17 +254,17 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 ref={pressableRef}
                 onLongPress={onLongPress}
                 onPress={onPress}
-                disabled={isDisabled && !item.isSelected}
+                disabled={isDisabled && !isItemSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
+                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={item.keyForList ?? ''}
                 style={[
                     pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[styles.mb2, styles.mh5, animatedHighlightStyle, styles.userSelectNone]}
@@ -262,6 +291,32 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             </View>
                         ) : (
                             <>
+                                {!!transactionsSnapshot?.data && !!transactionsSnapshotMetadata && isLargeScreenWidth && (
+                                    <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader, styles.bgTransparent, styles.ph3]}>
+                                        <Checkbox
+                                            accessibilityLabel={translate('workspace.people.selectAll')}
+                                            isChecked={isSelectAllChecked}
+                                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length}
+                                            onPress={() => {
+                                                onCheckboxPressRow?.(item, isGroupByReports ? undefined : transactions);
+                                            }}
+                                            disabled={transactions.length === 0}
+                                        />
+                                        <SearchTableHeader
+                                            canSelectMultiple
+                                            data={transactionsSnapshot?.data}
+                                            metadata={transactionsSnapshotMetadata}
+                                            onSortPress={() => {}}
+                                            sortOrder={undefined}
+                                            sortBy={undefined}
+                                            shouldShowYear={shouldShowYear}
+                                            isAmountColumnWide={shouldShowAmountInWideColumn}
+                                            isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
+                                            shouldShowSorting={false}
+                                            shouldShowExpand={false}
+                                        />
+                                    </View>
+                                )}
                                 {transactions.map((transaction) => (
                                     <TransactionItemRow
                                         key={transaction.transactionID}

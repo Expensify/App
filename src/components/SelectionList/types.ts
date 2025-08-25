@@ -71,7 +71,7 @@ type CommonListItemProps<TItem extends ListItem> = {
     onSelectRow: (item: TItem) => void;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    onCheckboxPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
@@ -276,11 +276,20 @@ type TransactionListItemType = ListItem &
         /** Key used internally by React */
         keyForList: string;
 
+        /** The name of the file used for a receipt */
+        filename?: string;
+
         /** Attendees in the transaction */
         attendees?: Attendee[];
 
         /** Precomputed violations */
         violations?: TransactionViolation[];
+
+        /** The CC for this transaction */
+        cardID?: number;
+
+        /** The display name of the purchaser card, if any */
+        cardName?: string;
     };
 
 type ReportActionListItemType = ListItem &

@@ -156,7 +156,6 @@ type SearchTableHeaderProps = {
     shouldShowSorting: boolean;
     canSelectMultiple?: boolean;
     shouldShowExpand?: boolean;
-    groupBy: SearchGroupBy | undefined;
 };
 
 function SearchTableHeader({
@@ -171,7 +170,6 @@ function SearchTableHeader({
     isAmountColumnWide,
     isTaxAmountColumnWide,
     shouldShowExpand,
-    groupBy,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -180,30 +178,10 @@ function SearchTableHeader({
 
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
-            if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
-                return (
-                    columnName === CONST.SEARCH.TABLE_COLUMNS.FROM ||
-                    columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT ||
-                    columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION ||
-                    columnName === CONST.SEARCH.TABLE_COLUMNS.EXPAND
-                );
-            }
-            if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
-                return (
-                    columnName === CONST.SEARCH.TABLE_COLUMNS.CARD ||
-                    columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT ||
-                    columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION ||
-                    columnName === CONST.SEARCH.TABLE_COLUMNS.EXPAND
-                );
-            }
-            if (groupBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID) {
-                return columnName === CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
-            }
-
             const shouldShowFun = shouldShowColumnConfig[columnName];
             return shouldShowFun?.(data, metadata);
         },
-        [data, metadata, groupBy],
+        [data, metadata],
     );
 
     if (displayNarrowVersion) {
