@@ -14,7 +14,6 @@ import {
     getValidConnectedIntegration,
     hasIntegrationAutoSync,
     isInstantSubmitEnabled,
-    isMemberPolicyAdmin,
     isPolicyAdmin,
     isPolicyMember,
     isPreferredExporter,
@@ -681,14 +680,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 
-    // @todo we will remove checking whether current manager is admin in PR #68353
-    // When report manager is not the policy admin and current user is policy admin, allow changing the approver
-    if (
-        !isMemberPolicyAdmin(policy, getLoginByAccountID(report.managerID ?? CONST.DEFAULT_NUMBER_ID)) &&
-        isExpenseReportUtils(report) &&
-        isProcessingReportUtils(report) &&
-        isPolicyAdmin(policy)
-    ) {
+    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }
 
