@@ -58,6 +58,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -292,6 +293,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceMembersCountParams,
@@ -318,7 +320,6 @@ const translations = {
         count: 'Compter',
         cancel: 'Annuler',
         dismiss: 'Ignorer',
-        proceed: 'Procéder',
         yes: 'Oui',
         no: 'No',
         ok: "D'accord",
@@ -1388,6 +1389,22 @@ const translations = {
         rates: 'Tarifs',
         submitsTo: ({name}: SubmitsToParams) => `Soumet à ${name}`,
         moveExpenses: () => ({one: 'Déplacer la dépense', other: 'Déplacer les dépenses'}),
+        changeApprover: {
+            title: "Modifier l'approbateur",
+            subtitle: "Choisissez une option pour modifier l'approbateur de ce rapport.",
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Vous pouvez également modifier l'approbateur de manière permanente pour tous les rapports dans vos <a href="${workflowSettingLink}">paramètres de flux de travail</a>.`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `a changé l'approbateur en <mention-user accountID="${managerID}"/>`,
+            actions: {
+                addApprover: 'Ajouter un approbateur',
+                addApproverSubtitle: 'Ajouter un approbateur supplémentaire au flux de travail existant.',
+                bypassApprovers: 'Contourner les approbateurs',
+                bypassApproversSubtitle: 'Vous désigner comme approbateur final et ignorer les autres approbateurs.',
+            },
+            addApprover: {
+                subtitle: "Choisissez un approbateur supplémentaire pour ce rapport avant de le faire passer par le reste du flux de travail d'approbation.",
+            },
+        },
     },
     transactionMerge: {
         listPage: {
@@ -3451,14 +3468,12 @@ const translations = {
             customField1: 'Champ personnalisé 1',
             customField2: 'Champ personnalisé 2',
             customFieldHint: "Ajoutez un codage personnalisé qui s'applique à toutes les dépenses de ce membre.",
-            reports: 'Rapports',
             reportFields: 'Champs de rapport',
             reportTitle: 'Titre du rapport',
             reportField: 'Champ de rapport',
             taxes: 'Taxes',
             bills: 'Bills',
             invoices: 'Factures',
-            perDiem: 'Per diem',
             travel: 'Voyage',
             members: 'Membres',
             accounting: 'Comptabilité',
@@ -3471,7 +3486,6 @@ const translations = {
             testTransactions: 'Tester les transactions',
             issueAndManageCards: 'Émettre et gérer des cartes',
             reconcileCards: 'Rapprocher les cartes',
-            selectAll: 'Sélectionner tout',
             selected: () => ({
                 one: '1 sélectionné',
                 other: (count: number) => `${count} sélectionné(s)`,
@@ -3485,8 +3499,6 @@ const translations = {
             memberNotFound: "Membre introuvable. Pour inviter un nouveau membre à l'espace de travail, veuillez utiliser le bouton d'invitation ci-dessus.",
             notAuthorized: `Vous n'avez pas accès à cette page. Si vous essayez de rejoindre cet espace de travail, demandez simplement au propriétaire de l'espace de travail de vous ajouter en tant que membre. Autre chose ? Contactez ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: "Aller à l'espace de travail",
-            duplicateWorkspace: 'Dupliquer l’espace de travail',
-            duplicateWorkspacePrefix: 'Dupliquer',
             goToWorkspaces: 'Aller aux espaces de travail',
             clearFilter: 'Effacer le filtre',
             workspaceName: "Nom de l'espace de travail",
@@ -4903,18 +4915,6 @@ const translations = {
             taxCode: 'Code fiscal',
             updateTaxCodeFailureMessage: "Une erreur s'est produite lors de la mise à jour du code fiscal, veuillez réessayer.",
         },
-        duplicateWorkspace: {
-            title: 'Nombra tu nuevo espacio de trabajo',
-            selectFeatures: 'Selecciona las funciones que quieres copiar',
-            whichFeatures: '¿Qué funciones quieres copiar a tu nuevo espacio de trabajo?',
-            confirmDuplicate: '\n\nVoulez-vous continuer?',
-            categories: 'Categorías y tus reglas de categorización automática',
-            reimbursementAccount: 'Cuenta de reembolso',
-            delayedSubmission: 'Envío retrasado',
-            welcomeNote: 'Empieza a usar mi nuevo espacio de trabajo',
-            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
-                `Vous êtes sur le point de créer et de partager ${newWorkspaceName ?? ''} avec ${totalMembers ?? 0} membres de l'espace de travail d'origine.`,
-        },
         emptyWorkspace: {
             title: "Vous n'avez aucun espace de travail",
             subtitle: 'Suivez les reçus, remboursez les dépenses, gérez les déplacements, envoyez des factures, et plus encore.',
@@ -4997,6 +4997,8 @@ const translations = {
                 limit: 'Limite',
                 limitType: 'Limiter le type',
                 name: 'Nom',
+                disabledApprovalForSmartLimitError:
+                    'Veuillez activer les approbations dans <strong>Workflows > Ajouter des approbations</strong> avant de configurer les limites intelligentes',
             },
             deactivateCardModal: {
                 deactivate: 'Désactiver',
@@ -5239,7 +5241,7 @@ const translations = {
             autoSync: 'Synchronisation automatique',
             autoSyncDescription: 'Synchronisez NetSuite et Expensify automatiquement, chaque jour. Exportez le rapport finalisé en temps réel.',
             reimbursedReports: 'Synchroniser les rapports remboursés',
-            cardReconciliation: 'Rapprochement de carte',
+            cardReconciliation: 'Rapprochement',
             reconciliationAccount: 'Compte de réconciliation',
             continuousReconciliation: 'Réconciliation Continue',
             saveHoursOnReconciliation:
@@ -5498,6 +5500,12 @@ const translations = {
                 description:
                     "Les balises multi-niveaux vous aident à suivre les dépenses avec plus de précision. Assignez plusieurs balises à chaque poste—comme le département, le client ou le centre de coût—pour capturer le contexte complet de chaque dépense. Cela permet des rapports plus détaillés, des flux de travail d'approbation et des exportations comptables.",
                 onlyAvailableOnPlan: 'Les balises multi-niveaux sont uniquement disponibles sur le plan Control, à partir de',
+            },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
+                title: "Niveaux d'approbation multiples",
+                description:
+                    "Les niveaux d'approbation multiples sont un outil de flux de travail pour les entreprises qui exigent que plus d'une personne approuve un rapport avant qu'il ne puisse être remboursé.",
+                onlyAvailableOnPlan: "Les niveaux d'approbation multiples sont uniquement disponibles sur le plan Control, à partir de ",
             },
             pricing: {
                 perActiveMember: 'par membre actif par mois.',
@@ -6052,6 +6060,7 @@ const translations = {
         statements: 'Relevés',
         unapprovedCash: 'Espèces non approuvées',
         unapprovedCard: 'Carte non approuvée',
+        reconciliation: 'Reconciliation',
         saveSearch: 'Enregistrer la recherche',
         deleteSavedSearch: 'Supprimer la recherche enregistrée',
         deleteSavedSearchConfirm: 'Êtes-vous sûr de vouloir supprimer cette recherche ?',
