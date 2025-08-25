@@ -5161,10 +5161,6 @@ function setPolicyAutomaticApprovalLimit(policyID: string, limit: string) {
         return;
     }
 
-    // Don't automatically change the show flag when setting limits from NewDot UI
-    // The show flag should only be controlled by the explicit enable/disable toggle
-    // or by OldDot sync (which will be handled separately)
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5314,7 +5310,10 @@ function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
         return;
     }
 
-    const autoApprovalValues = {auditRate: CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE, limit: enabled ? 10000 : 0};
+    const autoApprovalValues = {
+        auditRate: enabled ? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE : 0,
+        limit: enabled ? 10000 : 0,
+    };
     const autoApprovalFailureValues = {autoApproval: {limit: policy?.autoApproval?.limit, auditRate: policy?.autoApproval?.auditRate, pendingFields: null}};
     const optimisticData: OnyxUpdate[] = [
         {
