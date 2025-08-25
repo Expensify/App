@@ -1,4 +1,3 @@
-import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -50,6 +49,7 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
 
     /** Whether to allow flipping the amount */
     allowFlippingAmount?: boolean;
+
     /** The chatReportID of the request */
     chatReportID?: string;
 };
@@ -61,26 +61,24 @@ const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmoun
 /**
  * Wrapper around MoneyRequestAmountInput with money request flow-specific logics.
  */
-function MoneyRequestAmountForm(
-    {
-        amount = 0,
-        taxAmount = 0,
-        currency = CONST.CURRENCY.USD,
-        isCurrencyPressable = true,
-        isEditing = false,
-        skipConfirmation = false,
-        iouType = CONST.IOU.TYPE.SUBMIT,
-        policyID = '',
-        onCurrencyButtonPress,
-        onSubmitButtonPress,
-        selectedTab = CONST.TAB_REQUEST.MANUAL,
-        shouldKeepUserInput = false,
-        allowFlippingAmount = false,
-        chatReportID,
-        hideCurrencySymbol = false,
-    }: MoneyRequestAmountFormProps,
-    forwardedRef: ForwardedRef<BaseTextInputRef>,
-) {
+function MoneyRequestAmountForm({
+    amount = 0,
+    taxAmount = 0,
+    currency = CONST.CURRENCY.USD,
+    isCurrencyPressable = true,
+    isEditing = false,
+    skipConfirmation = false,
+    iouType = CONST.IOU.TYPE.SUBMIT,
+    policyID = '',
+    onCurrencyButtonPress,
+    onSubmitButtonPress,
+    selectedTab = CONST.TAB_REQUEST.MANUAL,
+    shouldKeepUserInput = false,
+    chatReportID,
+    hideCurrencySymbol = false,
+    allowFlippingAmount = false,
+    forwardedRef,
+}: MoneyRequestAmountFormProps) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -252,11 +250,11 @@ function MoneyRequestAmountForm(
                     setFormError('');
                 }}
                 shouldShowBigNumberPad={canUseTouchScreen}
-                ref={(ref) => {
+                forwardedRef={(ref) => {
                     if (typeof forwardedRef === 'function') {
                         forwardedRef(ref);
                     } else if (forwardedRef && 'current' in forwardedRef) {
-                        // eslint-disable-next-line no-param-reassign
+                        // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
                         forwardedRef.current = ref;
                     }
                     textInput.current = ref;
@@ -280,5 +278,5 @@ function MoneyRequestAmountForm(
 
 MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
 
-export default React.forwardRef(MoneyRequestAmountForm);
+export default MoneyRequestAmountForm;
 export type {CurrentMoney, MoneyRequestAmountFormProps};
