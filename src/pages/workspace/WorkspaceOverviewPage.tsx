@@ -14,6 +14,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useDismissedUberBanners from '@hooks/useDismissedUberBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -73,7 +74,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
-    const [dismissedUber4BusinessBanner, metadata] = useOnyx(`${ONYXKEYS.COLLECTION.DISMISSED_UBER_FOR_BUSINESS_BANNER}${policy?.id}`, {canBeMissing: true});
 
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const outputCurrency = policy?.outputCurrency ?? '';
@@ -142,8 +142,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const shouldShowAddress = !readOnly || !!formattedAddress;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
-    const shouldShowReceiptPartnersPromotionBanner =
-        isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS) && !policy?.areReceiptPartnersEnabled && !dismissedUber4BusinessBanner && !readOnly && metadata.status === 'loaded';
+    const {isDismissed} = useDismissedUberBanners({policyID: policy?.id});
+    const shouldShowReceiptPartnersPromotionBanner = isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS) && !policy?.areReceiptPartnersEnabled && !isDismissed && !readOnly;
 
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {

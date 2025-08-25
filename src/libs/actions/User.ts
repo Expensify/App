@@ -3,6 +3,7 @@ import {isBefore} from 'date-fns';
 import debounce from 'lodash/debounce';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {OnyxKey} from 'react-native-onyx/dist/types';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
@@ -1358,6 +1359,34 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     );
 }
 
+function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value']) {
+    const parameters: SetNameValuePairParams = {
+        name,
+        value,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: name,
+            value,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: name,
+            value: revertedValue,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+        optimisticData,
+        failureData,
+    });
+}
+
 function dismissTrackTrainingModal() {
     const parameters: SetNameValuePairParams = {
         name: ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
@@ -1474,6 +1503,7 @@ export {
     updateDraftCustomStatus,
     clearDraftCustomStatus,
     requestRefund,
+    setNameValuePair,
     clearUnvalidatedNewContactMethodAction,
     clearPendingContactActionErrors,
     requestValidateCodeAction,

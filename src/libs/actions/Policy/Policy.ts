@@ -2520,25 +2520,6 @@ function openPolicyReceiptPartnersPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE, params);
 }
 
-function dismissReceiptPartnersBanner(policyID?: string) {
-    const parameters: SetNameValuePairParams = {
-        name: `${ONYXKEYS.COLLECTION.DISMISSED_UBER_FOR_BUSINESS_BANNER}${policyID}`,
-        value: true,
-    };
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DISMISSED_UBER_FOR_BUSINESS_BANNER}${policyID}`,
-            value: true,
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
-        optimisticData,
-    });
-}
-
 function removePolicyReceiptPartnersConnection(policyID: string, partnerName: string, receiptPartnerData?: UberReceiptPartner) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -5959,7 +5940,6 @@ export {
     getAdminPoliciesConnectedToSageIntacct,
     hasInvoicingDetails,
     clearAllPolicies,
-    dismissReceiptPartnersBanner,
     enablePolicyRules,
     setPolicyDefaultReportTitle,
     clearQBDErrorField,

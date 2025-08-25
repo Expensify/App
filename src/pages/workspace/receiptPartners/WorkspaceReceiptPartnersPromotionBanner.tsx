@@ -4,12 +4,13 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import {Close} from '@components/Icon/Expensicons';
 import {Car} from '@components/Icon/Illustrations';
+import useDismissedUberBanners from '@hooks/useDismissedUberBanners';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {dismissReceiptPartnersBanner, enablePolicyReceiptPartners} from '@libs/actions/Policy/Policy';
+import {enablePolicyReceiptPartners} from '@libs/actions/Policy/Policy';
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
 import type {Policy} from '@src/types/onyx';
 
@@ -24,6 +25,7 @@ function WorkspaceReceiptPartnersPromotionBanner({policy}: WorkspaceReceiptPartn
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const policyID = policy?.id;
+    const {setAsDismissed} = useDismissedUberBanners({policyID});
 
     const handleConnectUber = useCallback(() => {
         if (!policyID) {
@@ -59,7 +61,7 @@ function WorkspaceReceiptPartnersPromotionBanner({policy}: WorkspaceReceiptPartn
                 rightComponent={rightComponent}
                 rightIcon={Close}
                 rightIconAccessibilityLabel={translate('common.close')}
-                onRightIconPress={() => dismissReceiptPartnersBanner(policyID)}
+                onRightIconPress={setAsDismissed}
             />
         </View>
     );
