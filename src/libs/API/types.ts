@@ -11,6 +11,7 @@ import type UpdateBeneficialOwnersForBankAccountParams from './parameters/Update
 type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 
 const WRITE_COMMANDS = {
+    SAVE_REPORT_DRAFT_COMMENT: 'SaveReportDraftComment',
     CLEAN_POLICY_TAGS: 'ClearPolicyTags',
     IMPORT_MULTI_LEVEL_TAGS: 'ImportMultiLevelTags',
     SET_WORKSPACE_AUTO_REPORTING_FREQUENCY: 'SetWorkspaceAutoReportingFrequency',
@@ -499,6 +500,7 @@ const WRITE_COMMANDS = {
     TRAVEL_SIGNUP_REQUEST: 'RequestTravelAccess',
     DELETE_VACATION_DELEGATE: 'DeleteVacationDelegate',
     IMPORT_PLAID_ACCOUNTS: 'ImportPlaidAccounts',
+    ASSIGN_REPORT_TO_ME: 'AssignReportToMe',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -861,6 +863,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING]: Parameters.FinishCorpayBankAccountOnboardingParams;
     [WRITE_COMMANDS.DELETE_VACATION_DELEGATE]: null;
     [WRITE_COMMANDS.REOPEN_REPORT]: Parameters.ReopenReportParams;
+    [WRITE_COMMANDS.SAVE_REPORT_DRAFT_COMMENT]: Parameters.SaveReportDraftCommentParams;
 
     [WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH]: Parameters.DeleteMoneyRequestOnSearchParams;
     [WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH]: Parameters.HoldMoneyRequestOnSearchParams;
@@ -1017,6 +1020,7 @@ type WriteCommandParameters = {
     // Change transaction report
     [WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT]: Parameters.ChangeTransactionsReportParams;
     [WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST]: null;
+    [WRITE_COMMANDS.ASSIGN_REPORT_TO_ME]: Parameters.AssignReportToMeParams;
 };
 
 const READ_COMMANDS = {
@@ -1186,6 +1190,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     COMPLETE_HYBRID_APP_ONBOARDING: 'CompleteHybridAppOnboarding',
     CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP: 'ConnectPolicyToQuickbooksDesktop',
     MERGE_INTO_ACCOUNT_AND_LOGIN: 'MergeIntoAccountAndLogIn',
+    SEARCH: 'Search',
 
     // PayMoneyRequestOnSearch only works online (pattern C) and we need to play the success sound only when the request is successful
     PAY_MONEY_REQUEST_ON_SEARCH: 'PayMoneyRequestOnSearch',

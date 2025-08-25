@@ -3,7 +3,7 @@ import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import Animated, {FadeInRight, FadeOutRight} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -66,7 +66,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {inputQuery: originalInputQuery} = queryJSON;
     const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
-    const [shouldUseAnimation, setShouldUseAnimation] = useState(false);
     const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies);
 
     // The actual input text that the user sees
@@ -120,7 +119,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             return;
         }
         setShowPopupButton(true);
-        setShouldUseAnimation(true);
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchRouterListVisible]);
@@ -373,13 +371,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             />
                         </Animated.View>
                         {showPopupButton && (
-                            <Animated.View
-                                entering={shouldUseAnimation ? FadeInRight : undefined}
-                                exiting={isFocused && searchRouterListVisible ? FadeOutRight : undefined}
-                                style={[styles.pl3]}
-                            >
+                            <View style={[styles.pl3]}>
                                 <SearchTypeMenuPopover queryJSON={queryJSON} />
-                            </Animated.View>
+                            </View>
                         )}
                     </View>
                     {!!searchRouterListVisible && (

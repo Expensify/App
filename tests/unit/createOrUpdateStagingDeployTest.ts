@@ -209,7 +209,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
             title: `Deploy Checklist: New Expensify ${fns.format(new Date(), 'yyyy-MM-dd')}`,
-            labels: [CONST.LABELS.STAGING_DEPLOY],
+            labels: [CONST.LABELS.STAGING_DEPLOY, CONST.LABELS.LOCK_DEPLOY],
             html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
             assignees: [CONST.APPLAUSE_BOT],
             body:
@@ -259,7 +259,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
             title: `Deploy Checklist: New Expensify ${fns.format(new Date(), 'yyyy-MM-dd')}`,
-            labels: [CONST.LABELS.STAGING_DEPLOY],
+            labels: [CONST.LABELS.STAGING_DEPLOY, CONST.LABELS.LOCK_DEPLOY],
             html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
             assignees: [CONST.APPLAUSE_BOT],
             body:
