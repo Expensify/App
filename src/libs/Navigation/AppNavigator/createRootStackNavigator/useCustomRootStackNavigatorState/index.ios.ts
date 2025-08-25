@@ -8,6 +8,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 // Swiping back on iOS does not work properly when the preloaded route has gestureEnabled set to false.
 // Therefore, on screens where swiping should work, preloadedRoutes will be an empty array during rendering to ensure swiping works properly.
 // Once this bug is fixed, this file should be deleted and index.android.ts renamed to index.native.ts.
+// https://github.com/react-navigation/react-navigation/issues/12683
 function getShouldHidePreloadedRoutes(route?: NavigationRoute) {
     if (!route) {
         return false;
