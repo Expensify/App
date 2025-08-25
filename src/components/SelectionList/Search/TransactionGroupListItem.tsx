@@ -2,6 +2,7 @@ import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchGroupBy} from '@components/Search/types';
@@ -19,6 +20,7 @@ import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
@@ -26,6 +28,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {canAddTransaction as canAddTransactionUtil, getAddExpenseDropdownOptions} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
@@ -52,11 +55,14 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isEmpty = groupItem.transactions.length === 0;
+    const isEmpty = groupItem.transactions.length !== 0;
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayEmptyView = isEmpty && groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
     const isDisabledOrEmpty = isEmpty || isDisabled;
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const policy = usePolicy(groupItem.policyID);
+    const addExpenseDropdownOptions = useMemo(() => getAddExpenseDropdownOptions(groupItem.reportID, policy), [groupItem.reportID, policy]);
+    const canAddTransaction = canAddTransactionUtil(groupItem as TransactionReportGroupListItemType);
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = groupItem.transactions.some((transaction) => transaction.isAmountColumnWide);
@@ -199,13 +205,23 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <View style={styles.flex1}>
                     {getHeader}
                     {shouldDisplayEmptyView ? (
-                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13, styles.gap2, canAddTransaction && styles.mv3]}>
                             <Text
                                 style={[styles.textLabelSupporting]}
                                 numberOfLines={1}
                             >
                                 {translate('search.moneyRequestReport.emptyStateTitle')}
                             </Text>
+                            {canAddTransaction && (
+                                <ButtonWithDropdownMenu
+                                    onPress={() => {}}
+                                    shouldAlwaysShowDropdownMenu
+                                    customText={translate('iou.addExpense')}
+                                    options={addExpenseDropdownOptions}
+                                    isSplitButton={false}
+                                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                                />
+                            )}
                         </View>
                     ) : (
                         groupItem.transactions.map((transaction) => (

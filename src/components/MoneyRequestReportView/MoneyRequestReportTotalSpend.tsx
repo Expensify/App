@@ -36,7 +36,7 @@ function MoneyRequestReportTotalSpend({hasComments, isLoadingReportActions, isEm
     const isFocused = useIsFocused();
 
     return (
-        <View style={[styles.dFlex, styles.flexRow, styles.ph5, styles.justifyContentBetween, styles.mb2]}>
+        <View style={[styles.dFlex, styles.flexRow, styles.justifyContentBetween]}>
             <Animated.Text
                 style={[styles.textLabelSupporting]}
                 entering={hasComments ? undefined : FadeIn}

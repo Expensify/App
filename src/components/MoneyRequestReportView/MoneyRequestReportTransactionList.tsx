@@ -2,7 +2,9 @@ import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -22,7 +24,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
+import {canAddTransaction, getAddExpenseDropdownOptions, getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
 import {compareValues, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
@@ -40,6 +42,9 @@ import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyS
 
 type MoneyRequestReportTransactionListProps = {
     report: OnyxTypes.Report;
+
+    /** Policy that the report belongs to */
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
@@ -95,6 +100,7 @@ function MoneyRequestReportTransactionList({
     hasComments,
     isLoadingInitialReportActions: isLoadingReportActions,
     scrollToNewTransaction,
+    policy,
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
     const styles = useThemeStyles();
@@ -110,6 +116,8 @@ function MoneyRequestReportTransactionList({
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
+
+    const addExpenseDropdownOptions = useMemo(() => getAddExpenseDropdownOptions(report?.reportID, policy), [report?.reportID, policy]);
 
     const hasPendingAction = useMemo(() => {
         return transactions.some(getTransactionPendingAction);
@@ -324,14 +332,26 @@ function MoneyRequestReportTransactionList({
                     ))}
                 </View>
             )}
-            <MoneyRequestReportTotalSpend
-                hasComments={hasComments}
-                isLoadingReportActions={!!isLoadingReportActions}
-                isEmptyTransactions={isEmptyTransactions}
-                totalDisplaySpend={totalDisplaySpend}
-                report={report}
-                hasPendingAction={hasPendingAction}
-            />
+            <View style={[styles.dFlex, styles.flexRow, styles.justifyContentBetween, styles.gap2, styles.ph5, styles.mb2, styles.alignItemsCenter]}>
+                {canAddTransaction(report) && (
+                    <ButtonWithDropdownMenu
+                        onPress={() => {}}
+                        shouldAlwaysShowDropdownMenu
+                        customText={translate('iou.addExpense')}
+                        options={addExpenseDropdownOptions}
+                        isSplitButton={false}
+                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                    />
+                )}
+                <MoneyRequestReportTotalSpend
+                    hasComments={hasComments}
+                    isLoadingReportActions={!!isLoadingReportActions}
+                    isEmptyTransactions={isEmptyTransactions}
+                    totalDisplaySpend={totalDisplaySpend}
+                    report={report}
+                    hasPendingAction={hasPendingAction}
+                />
+            </View>
             <Modal
                 isVisible={isModalVisible}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
