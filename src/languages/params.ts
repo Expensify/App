@@ -612,6 +612,15 @@ type SpreadSheetColumnParams = {
     name: string;
 };
 
+type TermsOfUseRouteParams = {
+    termsURL: string;
+    privacyURL: string;
+};
+
+type LicensesParams = {
+    licensesURL: string;
+};
+
 type SpreadFieldNameParams = {
     fieldName: string;
 };
@@ -1045,6 +1054,7 @@ export type {
     SetTheRequestParams,
     SettleExpensifyCardParams,
     SettledAfterAddedBankAccountParams,
+    TermsOfUseRouteParams,
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
@@ -1072,6 +1082,7 @@ export type {
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
     ViolationsReceiptRequiredParams,
+    LicensesParams,
     ViolationsCustomRulesParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
