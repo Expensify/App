@@ -4,7 +4,6 @@ import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/
 import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import waitForNetworkPromises from 'tests/utils/waitForNetworkPromises';
 import {translateLocal} from '@libs/Localize';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import {setSidebarLoaded} from '@userActions/App';
@@ -18,6 +17,7 @@ import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(60000);
@@ -319,8 +319,6 @@ describe('Pagination', () => {
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 1);
         TestHelper.expectAPICommandToHaveBeenCalledWith('GetOlderActions', 0, {reportID: REPORT_ID, reportActionID: '4'});
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
-
-        await waitForBatchedUpdatesWithAct();
 
         await waitForNetworkPromises();
 
