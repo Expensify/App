@@ -25,9 +25,11 @@ A trip groups together all related bookings for the same journey in one bucket. 
 
 Each trip includes:
 - A **trip ID**
-- A **start and end date** (based on your round-trip flight)
-- A **$15 trip fee**
 - An **activity log**, booking details, and optional traveler notes
+- A **start and end date** (based on your round-trip flight)
+- A **$15 trip fee** when booking or managing the trip yourself in Expensify Travel on web or mobile, OR,
+- A **$25 trip fee** when travel agent support books or manages your trip on your behalf
+    - Note: The travel agent support fee, if assessed after the $15 trip fee has been charged, will only result in an additional $10 charge, bringing the trip fee up to $25.
 
 ---
 
