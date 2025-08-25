@@ -263,7 +263,7 @@ import {
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
 } from './TransactionUtils';
-import {addTrailingForwardSlash} from './Url';
+import addTrailingForwardSlash from './UrlUtils';
 import type {AvatarSource} from './UserUtils';
 import {generateAccountID, getDefaultAvatarURL} from './UserUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
