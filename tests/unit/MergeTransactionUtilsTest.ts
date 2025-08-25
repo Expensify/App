@@ -295,6 +295,7 @@ describe('MergeTransactionUtils', () => {
                 reimbursable: true,
                 billable: false,
                 managedCard: false,
+                created: '2025-01-01T00:00:00.000Z',
             };
             const sourceTransaction = {
                 ...createRandomTransaction(1),
@@ -308,12 +309,13 @@ describe('MergeTransactionUtils', () => {
                 reimbursable: false, // Different
                 billable: undefined, // Undefined value
                 managedCard: false,
+                created: '2025-01-02T00:00:00.000Z',
             };
 
             const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
 
             // Only the different values are in the conflict fields
-            expect(result.conflictFields).toEqual(['amount', 'description', 'reimbursable']);
+            expect(result.conflictFields).toEqual(['amount', 'created','description', 'reimbursable']);
 
             // The same values or either target or source has value are in the mergeable data
             expect(result.mergeableData).toEqual({
@@ -395,6 +397,7 @@ describe('MergeTransactionUtils', () => {
                 reimbursable: false,
                 billable: true,
                 receipt: {receiptID: 1235, source: 'merged.jpg'},
+                created: '2025-01-02T00:00:00.000Z',
             };
 
             const result = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -417,6 +420,8 @@ describe('MergeTransactionUtils', () => {
                 billable: true,
                 filename: 'merged.jpg',
                 receipt: {receiptID: 1235, source: 'merged.jpg'},
+                created: '2025-01-02T00:00:00.000Z',
+                modifiedCreated: '2025-01-02T00:00:00.000Z',
             });
         });
     });
