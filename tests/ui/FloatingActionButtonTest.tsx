@@ -47,7 +47,7 @@ describe('FloatingActionButton hover', () => {
             </NavigationContainer>,
         );
 
-    it('changes background colour on hover', () => {
+    it('changes background color on hover', () => {
         renderFAB();
         const fab = screen.getByTestId('floating-action-button');
 
