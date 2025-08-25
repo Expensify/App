@@ -36,7 +36,7 @@ describe('SidebarUtils', () => {
     });
 
     afterAll(async () => {
-        Onyx.clear();
+        await Onyx.clear();
         await waitForBatchedUpdates();
     });
 
@@ -894,7 +894,7 @@ describe('SidebarUtils', () => {
 
         describe('Alternative text', () => {
             afterEach(async () => {
-                Onyx.clear();
+                await Onyx.clear();
                 await waitForBatchedUpdates();
             });
             it('The text should not contain the policy name at prefix if the report is not related to a workspace', async () => {

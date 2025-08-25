@@ -80,9 +80,9 @@ describe('WorkspacePageWithSections', () => {
             return waitForBatchedUpdates();
         });
 
-        afterEach(() => {
+        afterEach(async () => {
             jest.clearAllMocks();
-            return Onyx.clear();
+            await Onyx.clear();
         });
 
         it('should not display FullScreenLoadingIndicator when user is offline', async () => {

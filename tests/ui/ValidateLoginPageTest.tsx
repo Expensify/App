@@ -26,9 +26,9 @@ const renderPage = (initialParams: PublicScreensParamList[typeof SCREENS.VALIDAT
 };
 
 describe('ValidateLoginPage', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
-        Onyx.clear();
+        await Onyx.clear();
     });
 
     it('Should show not found view when the magic code is invalid and there is an exitTo param', async () => {

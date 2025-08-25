@@ -19,10 +19,11 @@ describe('actions/Policy', () => {
     });
 
     let mockFetch: MockFetch;
-    beforeEach(() => {
+    beforeEach(async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
         mockFetch = fetch as MockFetch;
-        return Onyx.clear().then(waitForBatchedUpdates);
+        await Onyx.clear();
+        await waitForBatchedUpdates();
     });
 
     describe('SetPolicyRequiresTag', () => {

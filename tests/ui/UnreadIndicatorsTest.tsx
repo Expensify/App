@@ -185,9 +185,9 @@ describe('Unread Indicators', () => {
         PusherHelper.setup();
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
-        Onyx.clear();
+        await Onyx.clear();
 
         // Unsubscribe to pusher channels
         PusherHelper.teardown();

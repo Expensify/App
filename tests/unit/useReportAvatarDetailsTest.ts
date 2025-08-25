@@ -62,17 +62,17 @@ describe('useReportAvatarDetails', () => {
         jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockImplementation((email) => personalDetails[mockedEmailToID[email]]);
     });
 
-    beforeEach(() => {
-        Onyx.multiSet({
+    beforeEach(async () => {
+        await Onyx.multiSet({
             ...reportActionCollectionDataSet,
             ...transactionCollectionDataSet,
         });
-        return waitForBatchedUpdates();
+        await waitForBatchedUpdates();
     });
 
-    afterEach(() => {
-        Onyx.clear();
-        return waitForBatchedUpdates();
+    afterEach(async () => {
+        await Onyx.clear();
+        await waitForBatchedUpdates();
     });
 
     it('returns avatar with no reportPreviewSenderID when action is not a report preview', async () => {

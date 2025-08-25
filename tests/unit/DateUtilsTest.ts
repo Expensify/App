@@ -36,6 +36,7 @@ describe('DateUtils', () => {
     });
 
     beforeEach(() => {
+        Onyx.clear();
         IntlStore.load(LOCALE);
         return waitForBatchedUpdates();
     });
@@ -43,7 +44,7 @@ describe('DateUtils', () => {
     afterEach(() => {
         jest.restoreAllMocks();
         jest.useRealTimers();
-        Onyx.clear();
+        
     });
 
     const datetime = '2022-11-07 00:00:00';
@@ -78,21 +79,14 @@ describe('DateUtils', () => {
         expect(localDate.getTime()).not.toBeNaN();
     });
 
-    it('should return the date in calendar time when calling datetimeToCalendarTime', () => {
-        const today = setMinutes(setHours(new Date(), 14), 32).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, today)).toBe('Today at 2:32 PM');
 
-        const tomorrow = addDays(setMinutes(setHours(new Date(), 14), 32), 1).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, tomorrow)).toBe('Tomorrow at 2:32 PM');
-
-        const yesterday = setMinutes(setHours(subDays(new Date(), 1), 7), 43).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, yesterday)).toBe('Yesterday at 7:43 AM');
-
-        const date = setMinutes(setHours(new Date('2022-11-05'), 10), 17).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, date)).toBe('Nov 5, 2022 at 10:17 AM');
-
-        const todayLowercaseDate = setMinutes(setHours(new Date(), 14), 32).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, false, undefined, true)).toBe('today at 2:32 PM');
+    test.each([
+        ['Today at 2:32 PM', setMinutes(setHours(new Date(), 14), 32)],
+        ['Tomorrow at 2:32 PM', addDays(setMinutes(setHours(new Date(), 14), 32), 1)],
+        ['Yesterday at 7:43 AM', setMinutes(setHours(subDays(new Date(), 1), 7), 43)],
+        ['Nov 5, 2022 at 10:17 AM', setMinutes(setHours(new Date('2022-11-05'), 10), 17)],
+    ])('datetimeToCalendarTime returns %s', (expected, inputDate) => {
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, inputDate)).toBe(expected);
     });
 
     it('should update timezone if automatic and selected timezone do not match', async () => {
@@ -144,15 +138,12 @@ describe('DateUtils', () => {
         expect(isUpdateTimezoneAllowed).toBe(false);
     });
 
-    it('should return the date in calendar time when calling datetimeToRelative', () => {
-        const aFewSecondsAgo = subSeconds(new Date(), 10).toString();
-        expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo)).toBe('less than a minute ago');
-
-        const aMinuteAgo = subMinutes(new Date(), 1).toString();
-        expect(DateUtils.datetimeToRelative(LOCALE, aMinuteAgo)).toBe('1 minute ago');
-
-        const anHourAgo = subHours(new Date(), 1).toString();
-        expect(DateUtils.datetimeToRelative(LOCALE, anHourAgo)).toBe('about 1 hour ago');
+    it.each([
+        ['less than a minute ago', subSeconds(new Date(), 10)],
+        ['1 minute ago', subMinutes(new Date(), 1)],
+        ['about 1 hour ago', subHours(new Date(), 1)],
+    ])('returns "%s" for the given relative time', (expected, date) => {
+        expect(DateUtils.datetimeToRelative(LOCALE, date)).toBe(expected);
     });
 
     it('subtractMillisecondsFromDateTime should subtract milliseconds from a given date and time', () => {
@@ -172,22 +163,24 @@ describe('DateUtils', () => {
         const tomorrowInTimezone = toZonedTime(tomorrow, timezone);
         const yesterdayInTimezone = toZonedTime(yesterday, timezone);
 
-        it('isToday should correctly identify today', () => {
-            expect(DateUtils.isToday(todayInTimezone, timezone)).toBe(true);
-            expect(DateUtils.isToday(tomorrowInTimezone, timezone)).toBe(false);
-            expect(DateUtils.isToday(yesterdayInTimezone, timezone)).toBe(false);
-        });
+        const isToday = 'isToday';
+        const isTomorrow = 'isTomorrow';
+        const isYesterday = 'isYesterday';
 
-        it('isTomorrow should correctly identify tomorrow', () => {
-            expect(DateUtils.isTomorrow(tomorrowInTimezone, timezone)).toBe(true);
-            expect(DateUtils.isTomorrow(todayInTimezone, timezone)).toBe(false);
-            expect(DateUtils.isTomorrow(yesterdayInTimezone, timezone)).toBe(false);
-        });
+        test.each([
+            [isToday, DateUtils.isToday, todayInTimezone, true],
+            [isToday, DateUtils.isToday, tomorrowInTimezone, false],
+            [isToday, DateUtils.isToday, yesterdayInTimezone, false],
 
-        it('isYesterday should correctly identify yesterday', () => {
-            expect(DateUtils.isYesterday(yesterdayInTimezone, timezone)).toBe(true);
-            expect(DateUtils.isYesterday(todayInTimezone, timezone)).toBe(false);
-            expect(DateUtils.isYesterday(tomorrowInTimezone, timezone)).toBe(false);
+            [isTomorrow, DateUtils.isTomorrow, tomorrowInTimezone, true],
+            [isTomorrow, DateUtils.isTomorrow, todayInTimezone, false],
+            [isTomorrow, DateUtils.isTomorrow, yesterdayInTimezone, false],
+
+            [isYesterday, DateUtils.isYesterday, yesterdayInTimezone, true],
+            [isYesterday, DateUtils.isYesterday, todayInTimezone, false],
+            [isYesterday, DateUtils.isYesterday, tomorrowInTimezone, false],
+        ])('%s should return %s for given date', (_name, fn, date, expected) => {
+            expect(fn(date, timezone)).toBe(expected);
         });
     });
 

@@ -86,10 +86,10 @@ describe('OnboardingHelpDropdownButton', () => {
         return waitForBatchedUpdates();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         jest.clearAllMocks();
-        Onyx.clear();
-        return waitForBatchedUpdates();
+        await Onyx.clear();
+        await waitForBatchedUpdates();
     });
 
     it('should display the schedule call option when guide booking is enabled', async () => {

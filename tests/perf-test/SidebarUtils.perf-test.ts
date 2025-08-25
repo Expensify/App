@@ -62,8 +62,8 @@ describe('SidebarUtils', () => {
         });
     });
 
-    afterAll(() => {
-        Onyx.clear();
+    afterAll(async () => {
+        await Onyx.clear();
     });
 
     test('[SidebarUtils] getOptionData', async () => {

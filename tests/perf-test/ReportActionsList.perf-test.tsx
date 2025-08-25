@@ -99,8 +99,8 @@ beforeEach(() => {
     signUpWithTestUser();
 });
 
-afterEach(() => {
-    Onyx.clear();
+afterEach(async () => {
+    await Onyx.clear();
 });
 
 function ReportActionsListWrapper() {

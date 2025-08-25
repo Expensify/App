@@ -36,19 +36,19 @@ const reportActions = createCollection<ReportAction>(
 const reportId = '1';
 
 describe('ReportActionsUtils', () => {
-    beforeAll(() => {
+    beforeAll(async () => {
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
 
-        Onyx.multiSet({
+        await Onyx.multiSet({
             ...mockedReportActionsMap,
         });
     });
 
-    afterAll(() => {
-        Onyx.clear();
+    afterAll(async () => {
+        await Onyx.clear();
     });
 
     /**
