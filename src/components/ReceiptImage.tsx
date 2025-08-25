@@ -192,6 +192,8 @@ function ReceiptImage({
                 fallbackIconColor={fallbackIconColor}
                 fallbackIconBackground={fallbackIconBackground}
                 objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
+                loadingIconSize={loadingIconSize}
+                loadingIndicatorStyles={loadingIndicatorStyles}
             />
         );
     }

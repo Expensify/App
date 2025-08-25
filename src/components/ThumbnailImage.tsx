@@ -10,6 +10,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import AttachmentDeletedIndicator from './AttachmentDeletedIndicator';
+import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import type {ImageObjectPosition} from './Image/types';
@@ -65,6 +66,12 @@ type ThumbnailImageProps = {
 
     /** Callback fired when the image has been measured */
     onMeasure?: () => void;
+
+    /** The size of the loading indicator */
+    loadingIconSize?: FullScreenLoadingIndicatorIconSize;
+
+    /** The style of the loading indicator */
+    loadingIndicatorStyles?: StyleProp<ViewStyle>;
 };
 
 type UpdateImageSizeParams = {
@@ -88,6 +95,8 @@ function ThumbnailImage({
     isDeleted,
     onLoadFailure,
     onMeasure,
+    loadingIconSize,
+    loadingIndicatorStyles,
 }: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -161,6 +170,8 @@ function ThumbnailImage({
                     }}
                     isAuthTokenRequired={isAuthTokenRequired}
                     objectPosition={objectPosition}
+                    loadingIconSize={loadingIconSize}
+                    loadingIndicatorStyles={loadingIndicatorStyles}
                 />
             </View>
         </View>
