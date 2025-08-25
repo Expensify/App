@@ -95,7 +95,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [transactions]);
 
     const isSelectAllChecked = useMemo(() => {
-        return selectedItemsLength === transactions.length;
+        return selectedItemsLength === transactions.length && transactions.length > 0;
     }, [selectedItemsLength, transactions.length]);
 
     const [isExpanded, setIsExpanded] = useState(false);
@@ -249,7 +249,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const pendingAction =
-        (item.pendingAction ?? groupItem.transactions.every((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
+        (item.pendingAction ?? (transactions.length > 0 && transactions.every((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)))
             ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
             : undefined;
 
@@ -344,7 +344,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                             }}
                                             style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
                                             isReportItemChild
-                                            isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                            isInSingleTransactionReport={transactions.length === 1}
                                         />
                                     </OfflineWithFeedback>
                                 ))}
