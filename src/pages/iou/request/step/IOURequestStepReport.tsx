@@ -1,5 +1,6 @@
 import React from 'react';
 import {InteractionManager} from 'react-native';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
@@ -30,6 +31,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const reportID = isUnreported ? transaction?.participants?.at(0)?.reportID : transaction?.reportID;
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const {removeTransaction} = useSearchContext();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateReport = action === CONST.IOU.ACTION.CREATE;
@@ -94,6 +96,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
             if (isEditing) {
                 changeTransactionsReport([transaction.transactionID], item.value, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]);
+                removeTransaction(transaction.transactionID);
             }
         });
     };
@@ -127,6 +130,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         Navigation.dismissModal();
         InteractionManager.runAfterInteractions(() => {
             changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID);
+            removeTransaction(transaction.transactionID);
         });
     };
 
