@@ -227,7 +227,6 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                 onPress={navigateToChats}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.inbox')}
-                                testID="inbox-tab-button"
                                 style={({hovered}) => [
                                     styles.leftNavigationTabBarItem,
                                     hovered && styles.navigationTabBarItemHovered,
@@ -270,7 +269,6 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                             onPress={navigateToSearch}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.reports')}
-                            testID="search-tab-button"
                             style={({hovered}) => [
                                 styles.leftNavigationTabBarItem,
                                 hovered && styles.navigationTabBarItemHovered,
