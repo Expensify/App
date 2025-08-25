@@ -36,7 +36,6 @@ import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformS
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
-import onyxSubscribe from '@libs/onyxSubscribe';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
@@ -348,7 +347,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         }
         Download.clearDownloads();
 
-        const unsubscribeOnyxModal = onyxSubscribe({
+        // We are not dependent on the changes in the UI to get the modal arguments,
+        // so we can use connectWithoutView here.
+        const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.MODAL,
             callback: (modalArg) => {
                 if (modalArg === null || typeof modalArg !== 'object') {
@@ -439,7 +440,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
         return () => {
             unsubscribeEscapeKey();
-            unsubscribeOnyxModal();
+            Onyx.disconnect(connection);
             unsubscribeShortcutsOverviewShortcut();
             unsubscribeSearchShortcut();
             unsubscribeChatShortcut();
