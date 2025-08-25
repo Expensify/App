@@ -867,6 +867,7 @@ function PureReportActionItem({
         currentUserAccountID,
         reportID,
         originalReportID,
+        personalDetail.timezone,
         isBetaEnabled,
         createDraftTransactionAndNavigateToParticipantSelector,
         dismissTrackExpenseActionableWhisper,

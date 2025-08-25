@@ -334,7 +334,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [onSubmit, reportID],
+        [onSubmit, personalDetail.timezone, reportID],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
