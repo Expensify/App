@@ -1,0 +1,25 @@
+diff --git a/node_modules/expo-modules-core/android/build.gradle b/node_modules/expo-modules-core/android/build.gradle
+index 9914a74..3f9404f 100644
+--- a/node_modules/expo-modules-core/android/build.gradle
++++ b/node_modules/expo-modules-core/android/build.gradle
+@@ -89,7 +89,8 @@ android {
+           "-DREACT_NATIVE_TARGET_VERSION=${expoModuleExtension.reactNativeVersion.minor}",
+           "-DUSE_HERMES=${USE_HERMES}",
+           "-DIS_NEW_ARCHITECTURE_ENABLED=${isNewArchitectureEnabled}",
+-          "-DUNIT_TEST=${isExpoModulesCoreTests}"
++          "-DUNIT_TEST=${isExpoModulesCoreTests}",
++          "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+       }
+     }
+   }
+@@ -134,6 +135,10 @@ android {
+       "**/libyoga.so",
+     ]
+ 
++    jniLibs {
++      useLegacyPackaging true
++    }
++
+     // Required or mockk will crash
+     resources {
+       excludes += [
