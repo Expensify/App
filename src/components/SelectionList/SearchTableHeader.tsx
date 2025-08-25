@@ -23,8 +23,8 @@ const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnF
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: (data: OnyxTypes.SearchResults['data']) => getShouldShowMerchant(data),
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: (data: OnyxTypes.SearchResults['data']) => !getShouldShowMerchant(data),
-    [CONST.SEARCH.TABLE_COLUMNS.FROM]: (data, metadata) => metadata?.columnsToShow?.shouldShowFromColumn ?? false,
-    [CONST.SEARCH.TABLE_COLUMNS.TO]: (data, metadata) => metadata?.columnsToShow?.shouldShowToColumn ?? false,
+    [CONST.SEARCH.TABLE_COLUMNS.FROM]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.TO]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: (data, metadata) => metadata?.columnsToShow?.shouldShowCategoryColumn ?? false,
     [CONST.SEARCH.TABLE_COLUMNS.TAG]: (data, metadata) => metadata?.columnsToShow?.shouldShowTagColumn ?? false,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: (data, metadata) => metadata?.columnsToShow?.shouldShowTaxColumn ?? false,
@@ -34,6 +34,7 @@ const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnF
     [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.IN]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.CARD]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: () => false,
     // This column is never displayed on Search
     [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => false,
 };
@@ -80,6 +81,10 @@ const expenseHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG,
         translationKey: 'common.tag',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
+        translationKey: 'common.withdrawalID',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
@@ -177,6 +182,9 @@ function SearchTableHeader({
             }
             if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
                 return columnName === CONST.SEARCH.TABLE_COLUMNS.CARD || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
+            }
+            if (groupBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID) {
+                return columnName === CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
             }
 
             const shouldShowFun = shouldShowColumnConfig[columnName];
