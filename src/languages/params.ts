@@ -737,6 +737,11 @@ type CompanyNameParams = {
     companyName: string;
 };
 
+type SignerInfoMessageParams = {
+    bankAccountLastFour: string | undefined;
+    currency: string | undefined;
+};
+
 type CustomUnitRateParams = {
     rate: number;
 };
@@ -825,6 +830,10 @@ type ContactMethodParams = {
 };
 
 type BusinessTaxIDParams = {
+    country: string;
+};
+
+type BusinessRegistrationNumberParams = {
     country: string;
 };
 
@@ -1198,4 +1207,6 @@ export type {
     UpgradeSuccessMessageParams,
     DomainPermissionInfoRestrictionParams,
     SubmittedWithMemoParams,
+    SignerInfoMessageParams,
+    BusinessRegistrationNumberParams,
 };
