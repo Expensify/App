@@ -130,7 +130,7 @@ function ActivatePhysicalCardPage({
             testID={ActivatePhysicalCardPage.displayName}
         >
             <Text style={[styles.mh5, styles.textHeadline]}>{translate('activateCardPage.pleaseEnterLastFour')}</Text>
-            <View style={[styles.mh5, {minHeight: MAGIC_INPUT_MIN_HEIGHT}]}>
+            <View style={[styles.mh5, styles.mv5, {minHeight: MAGIC_INPUT_MIN_HEIGHT}]}>
                 <MagicCodeInput
                     isDisableKeyboard
                     autoComplete="off"
