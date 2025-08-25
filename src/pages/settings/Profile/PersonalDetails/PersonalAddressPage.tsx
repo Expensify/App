@@ -2,7 +2,6 @@ import React, {useMemo} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {getEarliestErrorField} from '@libs/ErrorUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import AddressPage from '@pages/AddressPage';
 import type {FormOnyxValues} from '@src/components/Form/types';
@@ -36,7 +35,6 @@ function PersonalAddressPage() {
     if (isLoading) {
         return <FullScreenLoadingIndicator />;
     }
-    const addressStreetError = getEarliestErrorField(privatePersonalDetails, 'addressStreet');
 
     return (
         <AddressPage

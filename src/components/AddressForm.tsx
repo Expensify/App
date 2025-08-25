@@ -1,8 +1,7 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import type {Country} from '@src/CONST';
@@ -15,6 +14,7 @@ import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import type {FormOnyxValues} from './Form/types';
+import OfflineWithFeedback from './OfflineWithFeedback';
 import type {State} from './StateSelector';
 import StateSelector from './StateSelector';
 import TextInput from './TextInput';
@@ -86,7 +86,8 @@ function AddressForm({
     const isUSAForm = country === CONST.COUNTRY.US;
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
-    let addressStreetError = privatePersonalDetails?.errorFields?.addressStreet;
+    const isPersonalDetailsForm = !!onClearAddressStreetError;
+    const addressStreetError = isPersonalDetailsForm ? privatePersonalDetails?.errorFields?.addressStreet : undefined;
 
     /**
      * @param translate - translate function
