@@ -227,9 +227,19 @@ function getReportPreviewAction(
     policy?: Policy,
     transactions?: Transaction[],
     invoiceReceiverPolicy?: Policy,
+    isPaidAnimationRunning?: boolean,
+    isSubmittingAnimationRunning?: boolean,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
+    }
+
+    if (isPaidAnimationRunning) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
+    }
+
+    if (isSubmittingAnimationRunning) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (isAddExpenseAction(report, transactions ?? [], isReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
