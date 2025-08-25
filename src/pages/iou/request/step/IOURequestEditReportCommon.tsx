@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -87,20 +87,22 @@ function IOURequestEditReportCommon({
             return [];
         }
 
-        return Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
-            if (!policyID || (policyIDFromProps && policyID !== policyIDFromProps)) {
-                return [];
-            }
-            const reports = getOutstandingReportsForUser(
-                policyID,
-                reportOwnerAccountID,
-                outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
-                reportNameValuePairs,
-                isEditing,
-            );
+        return Object.values(allPoliciesID ?? {})
+            .filter((policyID) => getPersonalPolicy()?.id !== policyID)
+            .flatMap((policyID) => {
+                if (!policyID || (policyIDFromProps && policyID !== policyIDFromProps)) {
+                    return [];
+                }
+                const reports = getOutstandingReportsForUser(
+                    policyID,
+                    reportOwnerAccountID,
+                    outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
+                    reportNameValuePairs,
+                    isEditing,
+                );
 
-            return reports;
-        });
+                return reports;
+            });
     }, [outstandingReportsByPolicyID, reportOwnerAccountID, allPoliciesID, reportNameValuePairs, policyIDFromProps, isEditing]);
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
