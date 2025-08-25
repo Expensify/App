@@ -169,7 +169,15 @@ function getMovedFromOrToReportMessage(movedFromReport: OnyxEntry<Report> | unde
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  */
-function getForReportAction(reportAction: OnyxEntry<ReportAction>, policyID: string | undefined, movedFromOrToReportMessage: string | undefined): string {
+function getForReportAction({
+    reportAction,
+    policyID,
+    movedFromOrToReportMessage,
+}: {
+    reportAction: OnyxEntry<ReportAction>;
+    policyID: string | undefined;
+    movedFromOrToReportMessage: string | undefined;
+}): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }

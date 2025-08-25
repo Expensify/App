@@ -139,7 +139,11 @@ export default {
         usesIcon: boolean;
     }) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
-        const body = ModifiedExpenseMessage.getForReportAction(reportAction, report.policyID, movedFromOrToReportMessage);
+        const body = ModifiedExpenseMessage.getForReportAction({
+            reportAction,
+            policyID: report.policyID,
+            movedFromOrToReportMessage,
+        });
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
         const data = {
             reportID: report.reportID,

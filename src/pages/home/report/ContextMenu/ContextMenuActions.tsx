@@ -515,7 +515,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = html ?? text;
                     setClipboardMessage(displayMessage);
                 } else if (isModifiedExpenseAction(reportAction)) {
-                    const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction(reportAction, report?.policyID, movedFromOrToReportMessage);
+                    const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction({
+                        reportAction,
+                        policyID: report?.policyID,
+                        movedFromOrToReportMessage,
+                    });
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
                     const {expenseReportID} = getOriginalMessage(reportAction) ?? {};
