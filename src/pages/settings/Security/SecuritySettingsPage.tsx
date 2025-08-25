@@ -200,7 +200,17 @@ function SecuritySettingsPage() {
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate, styles, isDelegateAccessRestricted, showDelegateNoAccessModal, isAccountLocked, showLockedAccountModal, privateSubscription, currentUserPersonalDetails]);
+    }, [
+        isAccountLocked,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+        showLockedAccountModal,
+        privateSubscription?.type,
+        currentUserPersonalDetails.login,
+        waitForNavigate,
+        translate,
+        styles.sectionMenuItemTopDescription,
+    ]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
         () =>
@@ -383,7 +393,7 @@ function SecuritySettingsPage() {
                                             icon={Expensicons.UserPlus}
                                             onPress={() => {
                                                 if (!isUserValidated) {
-                                                    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_DELEGATE));
+                                                    Navigation.navigate(ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT);
                                                     return;
                                                 }
                                                 if (isAccountLocked) {
