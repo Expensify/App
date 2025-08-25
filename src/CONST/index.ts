@@ -2987,6 +2987,14 @@ const CONST = {
             NAME_USER_FRIENDLY: {
                 uber: 'Uber for Business',
             },
+            UBER_EMPLOYEE_STATUS: {
+                LINKED: 'LINKED',
+                INVITED: 'INVITED',
+                LINKED_PENDING_APPROVAL: 'LINKED_PENDING_APPROVAL',
+                SUSPENDED: 'SUSPENDED',
+                DELETED: 'DELETED',
+                NONE: 'NONE',
+            },
         },
         CONNECTIONS: {
             NAME: {
@@ -5157,6 +5165,12 @@ const CONST = {
             NAVIGATOR_ID: 'ShareNavigatorID',
             SHARE: 'ShareTab',
             SUBMIT: 'SubmitTab',
+        },
+        RECEIPT_PARTNERS: {
+            NAVIGATOR_ID: 'ReceiptPartnersID',
+            ALL: 'ReceiptPartnersAllTab',
+            LINKED: 'ReceiptPartnersLinkedTab',
+            OUTSTANDING: 'ReceiptPartnersOutstandingTab',
         },
     },
     TAB_REQUEST: {
