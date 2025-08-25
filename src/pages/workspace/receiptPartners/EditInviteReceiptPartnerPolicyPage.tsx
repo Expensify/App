@@ -50,11 +50,33 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
 
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    // Maintain independent search state per tab to avoid carryover across tabs
+    const [allSearchTerm, allDebouncedSearchTerm, setAllSearchTerm] = useDebouncedState('');
+    const [linkedSearchTerm, linkedDebouncedSearchTerm, setLinkedSearchTerm] = useDebouncedState('');
+    const [outstandingSearchTerm, outstandingDebouncedSearchTerm, setOutstandingSearchTerm] = useDebouncedState('');
 
-    const handleTabChange = useCallback(() => {
-        setSearchTerm('');
-    }, [setSearchTerm]);
+    const getSearchStateForTab = useCallback(
+        (tab: ReceiptPartnersTab) => {
+            if (tab === CONST.TAB.RECEIPT_PARTNERS.ALL) {
+                return {searchTerm: allSearchTerm, debouncedSearchTerm: allDebouncedSearchTerm, setSearchTerm: setAllSearchTerm};
+            }
+            if (tab === CONST.TAB.RECEIPT_PARTNERS.LINKED) {
+                return {searchTerm: linkedSearchTerm, debouncedSearchTerm: linkedDebouncedSearchTerm, setSearchTerm: setLinkedSearchTerm};
+            }
+            return {searchTerm: outstandingSearchTerm, debouncedSearchTerm: outstandingDebouncedSearchTerm, setSearchTerm: setOutstandingSearchTerm};
+        },
+        [
+            allSearchTerm,
+            allDebouncedSearchTerm,
+            linkedSearchTerm,
+            linkedDebouncedSearchTerm,
+            outstandingSearchTerm,
+            outstandingDebouncedSearchTerm,
+            setAllSearchTerm,
+            setLinkedSearchTerm,
+            setOutstandingSearchTerm,
+        ],
+    );
 
     const uberEmployeesByEmail = useMemo<Record<string, {status?: string}>>(() => {
         const policyWithEmployees = policy as typeof policy & {
@@ -166,8 +188,9 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
     }, [deriveStatus, localeCompare, policy?.employeeList, translate, isOffline, styles.ml3]);
 
     const filterMembers = useCallback(
-        (tab: ReceiptPartnersTab, skipSearch = false) => {
-            const search = skipSearch ? '' : debouncedSearchTerm.trim().toLowerCase();
+        (tab: ReceiptPartnersTab) => {
+            const {debouncedSearchTerm} = getSearchStateForTab(tab);
+            const search = debouncedSearchTerm.trim().toLowerCase();
             let data = members;
             if (search) {
                 data = tokenizedSearch(members, search, (m) => [m.text ?? '', m.alternateText ?? '']);
@@ -197,7 +220,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 return status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE;
             });
         },
-        [debouncedSearchTerm, deriveStatus, members],
+        [deriveStatus, members, getSearchStateForTab],
     );
 
     const buildSections = useCallback(
@@ -210,8 +233,6 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
         ],
         [],
     );
-
-    const headerMessage = getHeaderMessage(members.length !== 0, false, debouncedSearchTerm.trim().toLowerCase());
 
     return (
         <AccessOrNotFoundWrapper
@@ -229,7 +250,6 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                     id={CONST.TAB.RECEIPT_PARTNERS.NAVIGATOR_ID}
                     tabBar={TabSelector}
                     equalWidth
-                    onTabSelected={handleTabChange}
                 >
                     {TAB_NAMES.map((tabName) => (
                         <TopTab.Screen
@@ -237,12 +257,12 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                             name={tabName}
                         >
                             {() => {
-                                // Get filtered members (with search if applicable)
+                                const {searchTerm, debouncedSearchTerm, setSearchTerm} = getSearchStateForTab(tabName);
                                 const filteredMembers = filterMembers(tabName);
 
                                 // Determine header message for search results
                                 const searchValue = debouncedSearchTerm.trim().toLowerCase();
-                                let currentHeaderMessage = headerMessage;
+                                let currentHeaderMessage = getHeaderMessage(members.length !== 0, false, searchValue);
 
                                 if (filteredMembers.length === 0 && searchValue) {
                                     currentHeaderMessage = translate('common.noResultsFound');
