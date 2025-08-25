@@ -978,6 +978,7 @@ function getShareDestination(
     reports: OnyxCollection<OnyxTypes.Report>,
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     localeCompare: LocaleContextProps['localeCompare'],
+    isReportArchived = false,
 ): ShareDestination {
     const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
@@ -1000,7 +1001,7 @@ function getShareDestination(
         const login = personalDetails?.[participantAccountID]?.login ?? '';
         subtitle = LocalePhoneNumber.formatPhoneNumber(login || displayName);
     } else {
-        subtitle = ReportUtils.getChatRoomSubtitle(report) ?? '';
+        subtitle = ReportUtils.getChatRoomSubtitle(report, {isReportArchived}) ?? '';
     }
     return {
         icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar),
