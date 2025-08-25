@@ -1,7 +1,7 @@
-import React, {useContext, useEffect} from 'react';
+import {useContext, useEffect} from 'react';
 import type {ViewProps} from 'react-native';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
-import Reanimated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
+import {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -64,7 +64,7 @@ type ActionSheetKeyboardSpaceProps = ViewProps & {
     position?: SharedValue<number>;
 };
 
-function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
+function useActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
     const {
         unmodifiedPaddings: {top: paddingTop = 0, bottom: paddingBottom = 0},
     } = useSafeAreaPaddings();
@@ -153,10 +153,12 @@ function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
                 if (popoverHeight) {
                     if (previousElementOffset !== 0 || elementOffset > previousElementOffset) {
                         const returnValue = elementOffset < 0 ? 0 : elementOffset;
+                        return returnValue;
                         return withSpring(returnValue, SPRING_CONFIG);
                     }
 
                     const returnValue = Math.max(previousElementOffset, 0);
+                    return returnValue;
                     return withSpring(returnValue, SPRING_CONFIG);
                 }
 
@@ -251,15 +253,7 @@ function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
         paddingTop: translateY.get(),
     }));
 
-    return (
-        <Reanimated.View
-            style={[animatedStyle]}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-        />
-    );
+    return {animatedStyle};
 }
 
-ActionSheetKeyboardSpace.displayName = 'ActionSheetKeyboardSpace';
-
-export default ActionSheetKeyboardSpace;
+export default useActionSheetKeyboardSpace;
