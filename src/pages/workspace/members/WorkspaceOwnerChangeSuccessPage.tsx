@@ -1,9 +1,11 @@
 import React, {useCallback} from 'react';
+import {InteractionManager} from 'react-native';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
@@ -13,6 +15,7 @@ import {clearWorkspaceOwnerChangeFlow} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import useShouldShowChangeOwnerPage from './useShouldShowChangeOwnerPage';
 
 type WorkspaceOwnerChangeSuccessPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS>;
 
@@ -24,15 +27,21 @@ function WorkspaceOwnerChangeSuccessPage({route}: WorkspaceOwnerChangeSuccessPag
     const policyID = route.params.policyID;
 
     const closePage = useCallback(() => {
-        clearWorkspaceOwnerChangeFlow(policyID);
         Navigation.goBack();
         Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+        InteractionManager.runAfterInteractions(() => {
+            clearWorkspaceOwnerChangeFlow(policyID);
+        });
     }, [accountID, policyID]);
+
+    const policy = usePolicy(policyID);
+    const shouldShow = useShouldShowChangeOwnerPage(policy, accountID);
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
+            shouldBeBlocked={!shouldShow}
         >
             <ScreenWrapper testID={WorkspaceOwnerChangeSuccessPage.displayName}>
                 <HeaderWithBackButton
