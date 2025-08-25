@@ -204,6 +204,7 @@ function ReceiptImage({
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}
             shouldShowOfflineIndicator={false}
+            objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
         />
     );
 }

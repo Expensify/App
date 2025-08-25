@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
@@ -17,6 +17,7 @@ import type {
 } from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -52,6 +53,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {markReportIDAsExpense} = useContext(WideRHPContext);
     const isEmpty = groupItem.transactions.length === 0;
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayEmptyView = isEmpty && groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
@@ -87,6 +89,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
         setActiveTransactionThreadIDs(siblingTransactionThreadIDs).then(() => {
+            markReportIDAsExpense(reportID);
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         });
     };

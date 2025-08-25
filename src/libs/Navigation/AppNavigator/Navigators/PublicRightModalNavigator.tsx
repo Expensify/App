@@ -4,7 +4,7 @@ import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
-import useCustomScreenOptions from '@libs/Navigation/AppNavigator/useCustomScreenOptions';
+import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ConsoleNavigatorParamList, PublicScreensParamList} from '@libs/Navigation/types';
@@ -21,7 +21,7 @@ function PublicRightModalNavigatorComponent({navigation}: PublicRightModalNaviga
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const screenOptions = useCustomScreenOptions();
+    const screenOptions = useRHPScreenOptions();
 
     return (
         <NarrowPaneContextProvider>

@@ -120,6 +120,7 @@ import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import {useSearchContext} from './Search/SearchContext';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 import Text from './Text';
+import {WideRHPContext} from './WideRHPContextProvider';
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
@@ -295,6 +296,9 @@ function MoneyReportHeader({
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
+
+    const {wideRHPRouteKeys} = useContext(WideRHPContext);
+    const shouldDisplayWideRHPVersion = wideRHPRouteKeys.length > 0 && !isSmallScreenWidth;
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
@@ -1150,7 +1154,7 @@ function MoneyReportHeader({
                 shouldShowBorderBottom={false}
                 shouldEnableDetailPageNavigation
             >
-                {!shouldDisplayNarrowVersion && (
+                {(!shouldDisplayNarrowVersion || shouldDisplayWideRHPVersion) && (
                     <View style={[styles.flexRow, styles.gap2]}>
                         {!!primaryAction && !shouldShowSelectedTransactionsButton && primaryActionsImplementation[primaryAction]}
                         {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && KYCMoreDropdown}
@@ -1170,6 +1174,7 @@ function MoneyReportHeader({
             </HeaderWithBackButton>
 
             {shouldDisplayNarrowVersion &&
+                !shouldDisplayWideRHPVersion &&
                 (shouldShowSelectedTransactionsButton ? (
                     <View style={[styles.dFlex, styles.w100, styles.ph5]}>
                         <ButtonWithDropdownMenu
@@ -1188,19 +1193,22 @@ function MoneyReportHeader({
                     </View>
                 ))}
 
-            <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
-                <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
-                    {shouldShowNextStep && !!optimisticNextStep?.message?.length && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
-                    {shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline && <MoneyReportHeaderStatusBarSkeleton />}
-                    {!!statusBarProps && (
-                        <MoneyRequestHeaderStatusBar
-                            icon={statusBarProps.icon}
-                            description={statusBarProps.description}
-                        />
-                    )}
+            {/* We don't want to render an empty container */}
+            {!!headerNavigation && (
+                <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
+                    <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
+                        {shouldShowNextStep && !!optimisticNextStep?.message?.length && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
+                        {shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline && <MoneyReportHeaderStatusBarSkeleton />}
+                        {!!statusBarProps && (
+                            <MoneyRequestHeaderStatusBar
+                                icon={statusBarProps.icon}
+                                description={statusBarProps.description}
+                            />
+                        )}
+                    </View>
+                    {headerNavigation}
                 </View>
-                {headerNavigation}
-            </View>
+            )}
 
             <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />
             {isHoldMenuVisible && requestType !== undefined && (
