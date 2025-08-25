@@ -4998,6 +4998,7 @@ const translations = {
                 limit: 'Limiet',
                 limitType: 'Limiettype',
                 name: 'Naam',
+                disabledApprovalForSmartLimitError: 'Schakel goedkeuringen in <strong>Workflows > Goedkeuringen toevoegen</strong> in voordat u slimme limieten instelt',
             },
             deactivateCardModal: {
                 deactivate: 'Deactiveren',
@@ -6053,6 +6054,7 @@ const translations = {
         statements: 'Verklaringen',
         unapprovedCash: 'Niet goedgekeurd contant geld',
         unapprovedCard: 'Niet-goedgekeurde kaart',
+        reconciliation: 'Afstemming',
         saveSearch: 'Zoekopdracht opslaan',
         deleteSavedSearch: 'Verwijder opgeslagen zoekopdracht',
         deleteSavedSearchConfirm: 'Weet je zeker dat je deze zoekopdracht wilt verwijderen?',
