@@ -30,7 +30,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
-    Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'threeDotsAnchorPosition' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
+    Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
         shouldSkipVBBACall?: boolean;
 
         /** The text to display in the header */
@@ -122,7 +122,6 @@ function WorkspacePageWithSections({
     onBackButtonPress,
     shouldShowThreeDotsButton,
     threeDotsMenuItems,
-    threeDotsAnchorPosition,
     shouldUseHeadlineHeader = true,
     addBottomSafeAreaPadding = false,
 }: WorkspacePageWithSectionsProps) {
@@ -213,7 +212,6 @@ function WorkspacePageWithSections({
                     icon={icon ?? undefined}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                     shouldUseHeadlineHeader={shouldUseHeadlineHeader}
                 >
                     {headerContent}

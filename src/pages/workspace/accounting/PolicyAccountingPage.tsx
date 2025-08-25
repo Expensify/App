@@ -28,7 +28,6 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
@@ -73,7 +72,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const {translate, datetimeToRelative: getDatetimeToRelative, getLocalDateFromDatetime} = useLocalize();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
@@ -399,18 +397,19 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     }, [
         policy,
         isSyncInProgress,
-        connectedIntegration,
-        synchronizationError,
-        shouldShowSynchronizationError,
         policyID,
+        connectedIntegration,
         translate,
+        isBetaEnabled,
+        connectionSyncProgress?.stageInProgress,
         styles.sectionMenuItemTopDescription,
         styles.pb0,
         styles.mt5,
         styles.popoverMenuIcon,
         styles.justifyContentCenter,
-        connectionSyncProgress?.stageInProgress,
-        datetimeToRelative,
+        shouldShowCardReconciliationOption,
+        shouldShowSynchronizationError,
+        synchronizationError,
         theme.spinner,
         overflowMenu,
         integrationSpecificMenuItems,
@@ -418,8 +417,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
-        isBetaEnabled,
-        shouldShowCardReconciliationOption,
+        datetimeToRelative,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -512,7 +510,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     icon={Illustrations.Accounting}
                     shouldUseHeadlineHeader
-                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                     onBackButtonPress={Navigation.popToSidebar}
                 />
                 <ScrollView
