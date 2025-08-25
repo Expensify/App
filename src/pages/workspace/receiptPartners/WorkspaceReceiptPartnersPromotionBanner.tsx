@@ -10,7 +10,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissReceiptPartnersBanner, enablePolicyReceiptPartners} from '@libs/actions/Policy/Policy';
-import {navigateToReceiptPartnersPage} from '@libs/PolicyUtils';
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
 import type {Policy} from '@src/types/onyx';
 
@@ -25,20 +24,14 @@ function WorkspaceReceiptPartnersPromotionBanner({policy}: WorkspaceReceiptPartn
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const policyID = policy?.id;
-    const areReceiptPartnersEnabled = policy?.areReceiptPartnersEnabled;
 
     const handleConnectUber = useCallback(() => {
         if (!policyID) {
             return;
         }
 
-        if (areReceiptPartnersEnabled) {
-            navigateToReceiptPartnersPage(policyID);
-            return;
-        }
-
         enablePolicyReceiptPartners(policyID, true, true);
-    }, [policyID, areReceiptPartnersEnabled]);
+    }, [policyID]);
 
     const rightComponent = useMemo(() => {
         const smallScreenStyle = shouldUseNarrowLayout ? [styles.flex0, styles.flexBasis100, styles.justifyContentCenter] : [];
