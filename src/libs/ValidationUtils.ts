@@ -11,7 +11,7 @@ import type {Report, TaxRates} from '@src/types/onyx';
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
-import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
+import {appendCountryCodeWithCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
 
@@ -541,8 +541,8 @@ function isValidEmail(email: string): boolean {
  * Validates the given value if it is correct phone number in E164 format (international standard).
  * @param phoneNumber
  */
-function isValidPhoneInternational(phoneNumber: string): boolean {
-    const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
+function isValidPhoneInternational(phoneNumber: string, countryCode: number): boolean {
+    const phoneNumberWithCountryCode = appendCountryCodeWithCountryCode(phoneNumber, countryCode);
     const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
 
     return parsedPhoneNumber.possible && Str.isValidE164Phone(parsedPhoneNumber.number?.e164 ?? '');

@@ -50,12 +50,12 @@ function appendCountryCode(phone: string): string {
  * 5. Remove this temporary function and update all calls to use main function
  *
  * @param phone - Phone number to append country code to
- * @param countryCode - Country code (e.g., "1" for US, "44" for UK)
+ * @param countryCode - Country code (e.g., 1 for US, 44 for UK)
  * @returns Phone number with country code appended
  *
  * TODO: Remove this function after completing Onyx.connect deprecation (issue #66329)
  */
-function appendCountryCodeWithCountryCode(phone: string, countryCode: string): string {
+function appendCountryCodeWithCountryCode(phone: string, countryCode: number): string {
     if (phone.startsWith('+')) {
         return phone;
     }
