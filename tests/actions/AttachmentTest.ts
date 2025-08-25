@@ -9,25 +9,10 @@ import ONYXKEYS from '../../src/ONYXKEYS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.mock('react-native-blob-util', () => {
-    const mockFetch = jest.fn(() =>
-        Promise.resolve({
-            path: jest.fn(() => '/mocked/path/to/file'),
-        }),
-    );
-
-    return {
-        config: jest.fn(() => ({
-            fetch: mockFetch,
-        })),
-        fs: {
-            dirs: {
-                DocumentDir: '/mocked/document/dir',
-            },
-        },
-        fetch: mockFetch,
-    };
-});
+jest.mock('react-native-fs', () => ({
+    DocumentDirectoryPath: '/mock/documents',
+    writeFile: jest.fn(() => Promise.resolve()),
+}));
 
 describe('AttachmentStorage', () => {
     const reportID = rand64();
@@ -41,15 +26,21 @@ describe('AttachmentStorage', () => {
         Onyx.clear();
         await waitForBatchedUpdates();
 
-        global.fetch = TestHelper.getGlobalFetchMock();
+        // Mock global fetch and response for attachment
+        global.fetch = TestHelper.getGlobalFetchMock({
+            headers: new Headers({
+                'content-type': 'image/jpeg',
+            }),
+            arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+        });
     });
 
-    it('should store for file in Onyx', async () => {
+    it('should store for file uploaded from local device to Onyx', async () => {
         // Given the attachment data consisting of name, type and uri
         const fileData = {
             name: `TEST_ATTACHMENT_FILE`,
             type: 'image/jpeg',
-            uri: 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500',
+            uri: 'file://mock/documents/113134427695441775.jpg',
         };
 
         // Then upload the attachment
@@ -76,8 +67,7 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(attachment).toEqual({
             attachmentID,
-            source: 'file:///mocked/path/to/file',
-            remoteSource: fileData.uri,
+            source: `/mock/documents/${attachmentID}.jpg`,
         });
     });
     it('should store markdown text link attachments in Onyx', async () => {
@@ -109,16 +99,16 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(attachment).toEqual({
             attachmentID,
-            source: 'file:///mocked/path/to/file',
+            source: `/mock/documents/${attachmentID}.jpg`,
             remoteSource: sourceURL,
         });
     });
-    it('should re-cache when attachment file is changed', async () => {
+    it('should store/cache for old attachment file', async () => {
         // Given the attachment data consisting of name, type and uri
         const fileData = {
             name: `TEST_ATTACHMENT_FILE`,
             type: 'image/jpeg',
-            uri: 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500',
+            uri: 'file://mock/documents/113134427695441775.jpg',
         };
 
         let attachments: OnyxCollection<Attachment>;
@@ -136,39 +126,50 @@ describe('AttachmentStorage', () => {
 
         await waitForBatchedUpdates();
 
-        // Then upload the attachment
-        addAttachment(reportID, fileData);
+        const attachmentID = rand64();
+        const attachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
+        getCachedAttachment(attachmentID, attachment, fileData.uri);
 
         await waitForBatchedUpdates();
 
-        const attachment = Object.values(attachments ?? {}).at(0);
-        const attachmentID = attachment?.attachmentID;
-
-        // Then the attachmentID and attachment value should be defined
-        expect(attachmentID).toBeDefined();
-        expect(attachment).toEqual({
+        const updatedAttachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
+        // Then the attachment should be updated with new attachment
+        expect(updatedAttachment).toEqual({
             attachmentID,
-            source: 'file:///mocked/path/to/file',
-            remoteSource: fileData.uri,
+            source: `/mock/documents/${attachmentID}.jpg`,
+        });
+    });
+    it('should store/cache for old markdown attachment', async () => {
+        // Given the attachment data consisting of sourceURL and markdown comment text
+        const sourceURL = 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=500';
+        const markdownTextLinkAttachment = `![](${sourceURL})`;
+
+        let attachments: OnyxCollection<Attachment>;
+
+        Onyx.connect({
+            key: ONYXKEYS.COLLECTION.ATTACHMENT,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                if (!value) {
+                    return;
+                }
+                attachments = value;
+            },
         });
 
-        if (!attachmentID) {
-            return;
-        }
+        await waitForBatchedUpdates();
 
-        // Given the new markdown attachment link
-        const newSourceURL = 'https://images.unsplash.com/photo-1726066012751-2adfb5485977?w=100';
-        getCachedAttachment(attachmentID, attachment, newSourceURL);
+        const attachmentID = `${rand64()}_1`; // markdown attachment ID
+        const attachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
+        getCachedAttachment(attachmentID, attachment, sourceURL);
 
         await waitForBatchedUpdates();
 
-        const newAttachment = Object.values(attachments ?? {}).at(0);
-
+        const updatedAttachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
         // Then the attachment should be updated with new attachment
-        expect(newAttachment).toEqual({
+        expect(updatedAttachment).toEqual({
             attachmentID,
-            source: 'file:///mocked/path/to/file',
-            remoteSource: newSourceURL,
+            source: `/mock/documents/${attachmentID}.jpg`,
         });
     });
     it('should re-cache when markdown image link is changed', async () => {
@@ -203,7 +204,7 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(attachment).toEqual({
             attachmentID,
-            source: 'file:///mocked/path/to/file',
+            source: `/mock/documents/${attachmentID}.jpg`,
             remoteSource: sourceURL,
         });
 
@@ -222,7 +223,7 @@ describe('AttachmentStorage', () => {
         // Then the attachment should be updated with new attachment link
         expect(newAttachment).toEqual({
             attachmentID,
-            source: 'file:///mocked/path/to/file',
+            source: `/mock/documents/${attachmentID}.jpg`,
             remoteSource: newSourceURL,
         });
     });
@@ -268,7 +269,7 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(newAttachment).toEqual({
             attachmentID,
-            source: 'file:///mocked/path/to/file',
+            source: `/mock/documents/${attachmentID}.jpg`,
             remoteSource: fileData.uri,
         });
 
@@ -323,7 +324,7 @@ describe('AttachmentStorage', () => {
         expect(attachmentID).toBeDefined();
         expect(newAttachment).toEqual({
             attachmentID,
-            source: 'file:///mocked/path/to/file',
+            source: `/mock/documents/${attachmentID}.jpg`,
             remoteSource: sourceURL,
         });
 

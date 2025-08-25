@@ -7,7 +7,7 @@ import type {Attachment} from '@src/types/onyx';
 
 function cacheAttachment(attachmentID: string, uri: string, type?: string) {
     const isMarkdownAttachemnt = !uri.startsWith('file://');
-    let fileType = type;
+    let mimeType = type;
     fetch(uri)
         .then((response) => {
             if (!response.ok) {
@@ -15,18 +15,19 @@ function cacheAttachment(attachmentID: string, uri: string, type?: string) {
             }
 
             const contentType = response.headers.get('content-type');
-            if (isMarkdownAttachemnt && contentType) {
-                fileType = getMimeType(contentType);
+            if (!mimeType && contentType) {
+                mimeType = contentType;
             }
 
             return response.arrayBuffer();
         })
         .then((bufferData) => {
-            const finalData = btoa(String.fromCharCode(...new Uint8Array(bufferData)));
-            // If fileType is not set properly, then we need to exit
-            if (!fileType) {
+            // If mimeType is not set properly, then we need to exit
+            if (!mimeType) {
                 return;
             }
+            const fileType = getMimeType(mimeType);
+            const finalData = btoa(String.fromCharCode(...new Uint8Array(bufferData)));
             const fileName = `${attachmentID}.${fileType}`;
             const filePath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
             RNFS.writeFile(filePath, finalData, 'base64').then(() => {
