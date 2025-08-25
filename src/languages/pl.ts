@@ -58,6 +58,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -292,6 +293,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceMembersCountParams,
@@ -587,6 +589,7 @@ const translations = {
         network: 'Sieć',
         reportID: 'ID raportu',
         longID: 'Długi identyfikator',
+        withdrawalID: 'Identyfikator wypłaty',
         bankAccounts: 'Konta bankowe',
         chooseFile: 'Wybierz plik',
         chooseFiles: 'Wybierz pliki',
@@ -1292,9 +1295,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Wygląda na to, że nie masz żadnych niezgłoszonych wydatków. Spróbuj utworzyć jeden poniżej.',
         addUnreportedExpenseConfirm: 'Dodaj do raportu',
         explainHold: 'Wyjaśnij, dlaczego wstrzymujesz ten wydatek.',
-        undoSubmit: 'Cofnij wysłanie',
         retracted: 'wycofany',
-        undoClose: 'Cofnij zamknięcie',
+        retract: 'Wycofać',
         reopened: 'ponownie otwarty',
         reopenReport: 'Ponownie otwórz raport',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
@@ -1379,6 +1381,22 @@ const translations = {
         rates: 'Stawki',
         submitsTo: ({name}: SubmitsToParams) => `Przesyła do ${name}`,
         moveExpenses: () => ({one: 'Przenieś wydatek', other: 'Przenieś wydatki'}),
+        changeApprover: {
+            title: 'Zmień zatwierdzającego',
+            subtitle: 'Wybierz opcję, aby zmienić zatwierdzającego dla tego raportu.',
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Możesz również trwale zmienić zatwierdzającego dla wszystkich raportów w swoich <a href="${workflowSettingLink}">ustawieniach przepływu pracy</a>.`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `zmieniono zatwierdzającego na <mention-user accountID="${managerID}"/>`,
+            actions: {
+                addApprover: 'Dodaj zatwierdzającego',
+                addApproverSubtitle: 'Dodaj dodatkowego zatwierdzającego do istniejącego przepływu pracy.',
+                bypassApprovers: 'Pomiń zatwierdzających',
+                bypassApproversSubtitle: 'Przypisz siebie jako ostatecznego zatwierdzającego i pomiń pozostałych zatwierdzających.',
+            },
+            addApprover: {
+                subtitle: 'Wybierz dodatkowego zatwierdzającego dla tego raportu, zanim poprowadzimy go przez resztę przepływu pracy zatwierdzania.',
+            },
+        },
     },
     transactionMerge: {
         listPage: {
@@ -5466,6 +5484,12 @@ const translations = {
                     'Wielopoziomowe tagi pomagają śledzić wydatki z większą precyzją. Przypisz wiele tagów do każdej pozycji, takich jak dział, klient czy centrum kosztów, aby uchwycić pełny kontekst każdego wydatku. Umożliwia to bardziej szczegółowe raportowanie, przepływy pracy związane z zatwierdzaniem oraz eksporty księgowe.',
                 onlyAvailableOnPlan: 'Wielopoziomowe tagi są dostępne tylko w planie Control, zaczynając od',
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
+                title: 'Wiele poziomów zatwierdzania',
+                description:
+                    'Wiele poziomów zatwierdzania to narzędzie workflow dla firm, które wymagają zatwierdzenia raportu przez więcej niż jedną osobę, zanim będzie mógł zostać zrefundowany.',
+                onlyAvailableOnPlan: 'Wiele poziomów zatwierdzania jest dostępnych tylko w planie Control, zaczynając od ',
+            },
             pricing: {
                 perActiveMember: 'na aktywnego członka miesięcznie.',
                 perMember: 'za członka miesięcznie.',
@@ -6378,8 +6402,9 @@ const translations = {
         levelThreeResult: 'Wiadomość usunięta z kanału, dodano anonimowe ostrzeżenie, a wiadomość została zgłoszona do przeglądu.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Zaproś ich',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Zaproś do przesyłania wydatków',
+        inviteToChat: 'Zaproś tylko do czatu',
+        nothing: 'Nie rób nic',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Akceptuj',
@@ -7040,7 +7065,7 @@ const translations = {
         takeATestDrive: 'Wypróbuj wersję demonstracyjną',
     },
     migratedUserWelcomeModal: {
-        title: 'Podróże i wydatki, z prędkością czatu',
+        title: 'Witamy w New Expensify!',
         subtitle: 'Nowy Expensify ma tę samą świetną automatyzację, ale teraz z niesamowitą współpracą:',
         confirmText: 'Zaczynajmy!',
         features: {

@@ -58,6 +58,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -292,6 +293,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceMembersCountParams,
@@ -587,6 +589,7 @@ const translations = {
         network: 'Netwerk',
         reportID: 'Rapport-ID',
         longID: 'Lang ID',
+        withdrawalID: 'Opname-ID',
         bankAccounts: 'Bankrekeningen',
         chooseFile: 'Bestand kiezen',
         chooseFiles: 'Bestanden kiezen',
@@ -1295,9 +1298,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Het lijkt erop dat je geen niet-gerapporteerde uitgaven hebt. Probeer er hieronder een aan te maken.',
         addUnreportedExpenseConfirm: 'Toevoegen aan rapport',
         explainHold: 'Leg uit waarom je deze uitgave vasthoudt.',
-        undoSubmit: 'Ongedaan maken indienen',
         retracted: 'ingetrokken',
-        undoClose: 'Sluiten ongedaan maken',
+        retract: 'Intrekken',
         reopened: 'heropend',
         reopenReport: 'Rapport heropenen',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
@@ -1382,6 +1384,22 @@ const translations = {
         rates: 'Tarieven',
         submitsTo: ({name}: SubmitsToParams) => `Dient in bij ${name}`,
         moveExpenses: () => ({one: 'Verplaats uitgave', other: 'Verplaats uitgaven'}),
+        changeApprover: {
+            title: 'Goedkeurder wijzigen',
+            subtitle: 'Kies een optie om de goedkeurder voor dit rapport te wijzigen.',
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `U kunt de goedkeurder ook permanent wijzigen voor alle rapporten in uw <a href="${workflowSettingLink}">workflow-instellingen</a>.`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `wijzigde de goedkeurder naar <mention-user accountID="${managerID}"/>`,
+            actions: {
+                addApprover: 'Goedkeurder toevoegen',
+                addApproverSubtitle: 'Voeg een extra goedkeurder toe aan de bestaande workflow.',
+                bypassApprovers: 'Goedkeurders omzeilen',
+                bypassApproversSubtitle: 'Wijs uzelf toe als definitieve goedkeurder en sla de resterende goedkeurders over.',
+            },
+            addApprover: {
+                subtitle: 'Kies een extra goedkeurder voor dit rapport voordat we het via de rest van de goedkeuringsworkflow sturen.',
+            },
+        },
     },
     transactionMerge: {
         listPage: {
@@ -5478,6 +5496,11 @@ const translations = {
                     'Multi-Level Tags helpen je om uitgaven met grotere precisie bij te houden. Ken meerdere tags toe aan elk regelitem—zoals afdeling, klant of kostenplaats—om de volledige context van elke uitgave vast te leggen. Dit maakt gedetailleerdere rapportage, goedkeuringsworkflows en boekhouduitvoer mogelijk.',
                 onlyAvailableOnPlan: 'Multi-level tags zijn alleen beschikbaar op het Control-plan, beginnend bij',
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
+                title: 'Meerdere goedkeuringsniveaus',
+                description: 'Meerdere goedkeuringsniveaus is een workflowtool voor bedrijven die vereisen dat meer dan één persoon een rapport goedkeurt voordat het kan worden vergoed.',
+                onlyAvailableOnPlan: 'Meerdere goedkeuringsniveaus zijn alleen beschikbaar op het Control-plan, vanaf ',
+            },
             pricing: {
                 perActiveMember: 'per actief lid per maand.',
                 perMember: 'per lid per maand.',
@@ -6393,8 +6416,9 @@ const translations = {
         levelThreeResult: 'Bericht verwijderd uit kanaal plus anonieme waarschuwing en bericht is gerapporteerd voor beoordeling.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Nodig hen uit',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Uitnodigen om onkosten in te dienen',
+        inviteToChat: 'Alleen uitnodigen om te chatten',
+        nothing: 'Niets doen',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accepteren',
@@ -7055,7 +7079,7 @@ const translations = {
         takeATestDrive: 'Maak een proefrit',
     },
     migratedUserWelcomeModal: {
-        title: 'Reizen en uitgaven, met de snelheid van chat',
+        title: 'Welkom bij New Expensify!',
         subtitle: 'Nieuwe Expensify heeft dezelfde geweldige automatisering, maar nu met geweldige samenwerking:',
         confirmText: 'Laten we gaan!',
         features: {

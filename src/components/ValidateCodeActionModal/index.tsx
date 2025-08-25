@@ -30,7 +30,6 @@ function ValidateCodeActionModal({
             onBackdropPress={onClose}
             shouldUseModalPaddingStyle={false}
             animationInTiming={disableAnimation ? 1 : undefined}
-            shouldUseReanimatedModal
         >
             <ValidateCodeActionContent
                 title={title}
