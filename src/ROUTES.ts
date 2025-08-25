@@ -5,6 +5,7 @@
  */
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
+import {getUrlWithParams} from '@libs/Url';
 import type {SearchQueryString} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
@@ -341,7 +342,10 @@ const ROUTES = {
         getRoute: (backTo?: string, forwardTo?: string) =>
             getUrlWithBackToParam(forwardTo ? `settings/security/two-factor-auth?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth', backTo),
     },
-    SETTINGS_2FA_VERIFY_ACCOUNT: 'settings/security/two-factor-auth/verify-account',
+    SETTINGS_2FA_VERIFY_ACCOUNT: {
+        route: 'settings/security/two-factor-auth/verify-account',
+        getRoute: (params: Record<string, string | number>) => getUrlWithParams('settings/security/two-factor-auth/verify-account', params),
+    },
     SETTINGS_2FA_VERIFY: {
         route: 'settings/security/two-factor-auth/verify',
         getRoute: (backTo?: string, forwardTo?: string) =>
@@ -2735,7 +2739,7 @@ const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
     [SCREENS.WORKSPACE.INITIAL]: ['backTo'],
 } as const;
 
-export {getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS};
+export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS};
 export default ROUTES;
 
 type AttachmentsRoute = typeof ROUTES.ATTACHMENTS.route;

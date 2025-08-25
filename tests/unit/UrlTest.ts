@@ -100,4 +100,15 @@ describe('Url', () => {
             });
         });
     });
+    describe('getUrlWithParams', () => {
+        it.each([
+            ['adds params to URL without existing query', '/search', {q: 'hello world', page: 2}, '/search?q=hello+world&page=2'],
+            ['merges with existing query params', '/search?q=old', {page: 2, q: 'new'}, '/search?q=new&page=2'],
+            ['works with absolute URL', 'https://example.com/items?sort=asc', {page: 5}, 'https://example.com/items?sort=asc&page=5'],
+            ['encodes special characters', '/search', {q: 'hello & world'}, '/search?q=hello+%26+world'],
+            ['returns same URL if no params', '/search', {}, '/search'],
+        ])('%s', (_, baseUrl, params, expected) => {
+            expect(Url.getUrlWithParams(baseUrl, params)).toBe(expected);
+        });
+    });
 });

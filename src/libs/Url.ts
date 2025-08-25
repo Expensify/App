@@ -80,4 +80,22 @@ function getSearchParamFromUrl(currentUrl: string, param: string) {
     return currentUrl ? new URL(currentUrl).searchParams.get(param) : null;
 }
 
-export {getSearchParamFromUrl, addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL, addLeadingForwardSlash, extractUrlDomain};
+/**
+ * Generate a URL with properly encoded query parameters.
+ *
+ * @param baseUrl - The base URL.
+ * @param params - Object containing key-value pairs for query parameters.
+ * @returns A URL string with encoded query parameters.
+ */
+function getUrlWithParams(baseUrl: string, params: Record<string, string | number>): string {
+    const [path, existingQuery] = baseUrl.split('?', 2);
+    const searchParams = new URLSearchParams(existingQuery || '');
+
+    for (const [key, value] of Object.entries(params)) {
+        searchParams.set(key, String(value));
+    }
+
+    const queryString = searchParams.toString();
+    return queryString ? `${path}?${queryString}` : path;
+}
+export {getSearchParamFromUrl, addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL, addLeadingForwardSlash, extractUrlDomain, getUrlWithParams};

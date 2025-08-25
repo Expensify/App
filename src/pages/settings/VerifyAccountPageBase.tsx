@@ -15,6 +15,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type VerifyAccountPageBaseProps = {navigateBackTo?: Route; navigateForwardTo?: Route};
 
+/**
+ * This is a base page as RHP for account verification. The back & forward url logic should be handled on per case basis in higher component.
+ */
 function VerifyAccountPageBase({navigateBackTo, navigateForwardTo}: VerifyAccountPageBaseProps) {
     const styles = useThemeStyles();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
