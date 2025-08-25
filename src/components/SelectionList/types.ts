@@ -1,4 +1,4 @@
-import type {MutableRefObject, ReactElement, ReactNode} from 'react';
+import type {ForwardedRef, MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {
     GestureResponderEvent,
     InputModeOptions,
@@ -348,7 +348,7 @@ type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupe
 
 type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & SearchPersonalDetails & SearchCardGroup;
 
-type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchPersonalDetails & SearchWithdrawalIDGroup;
+type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup;
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
@@ -864,6 +864,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to hide the keyboard when scrolling a list */
     shouldHideKeyboardOnScroll?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<SelectionListHandle>;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
