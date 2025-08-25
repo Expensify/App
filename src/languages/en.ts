@@ -47,6 +47,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -281,6 +282,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceMembersCountParams,
@@ -580,6 +582,7 @@ const translations = {
         network: 'Network',
         reportID: 'Report ID',
         longID: 'Long ID',
+        withdrawalID: 'Withdrawal ID',
         bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
         chooseFiles: 'Choose files',
@@ -1282,9 +1285,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Looks like you don’t have any unreported expenses. Try creating one below.',
         addUnreportedExpenseConfirm: 'Add to report',
         explainHold: "Explain why you're holding this expense.",
-        undoSubmit: 'Undo submit',
         retracted: 'retracted',
-        undoClose: 'Undo close',
+        retract: 'Retract',
         reopened: 'reopened',
         reopenReport: 'Reopen report',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
@@ -1369,6 +1371,22 @@ const translations = {
         rates: 'Rates',
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
         moveExpenses: () => ({one: 'Move expense', other: 'Move expenses'}),
+        changeApprover: {
+            title: 'Change approver',
+            subtitle: 'Choose an option to change the approver for this report.',
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `You can also change the approver permanently for all reports in your <a href="${workflowSettingLink}">workflow settings</a>.`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `changed the approver to <mention-user accountID="${managerID}"/>`,
+            actions: {
+                addApprover: 'Add approver',
+                addApproverSubtitle: 'Add an additional approver to the existing workflow.',
+                bypassApprovers: 'Bypass approvers',
+                bypassApproversSubtitle: 'Assign yourself as final approver and skip any remaining approvers.',
+            },
+            addApprover: {
+                subtitle: 'Choose an additional approver for this report before we route through the rest of the approval workflow.',
+            },
+        },
     },
     transactionMerge: {
         listPage: {
@@ -4947,6 +4965,7 @@ const translations = {
                 limit: 'Limit',
                 limitType: 'Limit type',
                 name: 'Name',
+                disabledApprovalForSmartLimitError: 'Please enable approvals in <strong>Workflows > Add approvals</strong> before setting up smart limits',
             },
             deactivateCardModal: {
                 deactivate: 'Deactivate',
@@ -5445,6 +5464,11 @@ const translations = {
                 description:
                     'Multi-Level Tags help you track expenses with greater precision. Assign multiple tags to each line item—such as department, client, or cost center—to capture the full context of every expense. This enables more detailed reporting, approval workflows, and accounting exports.',
                 onlyAvailableOnPlan: 'Multi-level tags are only available on the Control plan, starting at ',
+            },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
+                title: 'Multiple approval levels',
+                description: 'Multiple approval levels is a workflow tool for companies that require more than one person to approve a report before it can be reimbursed.',
+                onlyAvailableOnPlan: 'Multiple approval levels are only available on the Control plan, starting at ',
             },
             pricing: {
                 perActiveMember: 'per active member per month.',
@@ -6354,7 +6378,8 @@ const translations = {
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invite them',
+        inviteToSubmitExpense: 'Invite to submit expenses',
+        inviteToChat: 'Invite to chat only',
         nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {

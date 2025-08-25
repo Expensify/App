@@ -22,7 +22,7 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertAmountToDisplayString, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import {getEnvironmentURL} from './Environment/Environment';
+import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {toLocaleOrdinal} from './LocaleDigitUtils';
@@ -108,6 +108,9 @@ Onyx.connect({
 
 let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
+
+let oldDotEnvironmentURL: string;
+getOldDotEnvironmentURL().then((url: string) => (oldDotEnvironmentURL = url));
 
 /*
  * Url to the Xero non reimbursable expenses list
@@ -269,6 +272,27 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     }
     // eslint-disable-next-line deprecation/deprecation
     return reportAction.originalMessage;
+}
+
+function getDelegateAccountIDFromReportAction(reportAction: OnyxInputOrEntry<ReportAction>): number | undefined {
+    if (!reportAction) {
+        return undefined;
+    }
+
+    if (reportAction.delegateAccountID) {
+        return reportAction.delegateAccountID;
+    }
+
+    const originalMessage = getOriginalMessage(reportAction);
+    if (!originalMessage) {
+        return undefined;
+    }
+
+    if ('delegateAccountID' in originalMessage) {
+        return originalMessage.delegateAccountID;
+    }
+
+    return undefined;
 }
 
 function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
@@ -739,6 +763,12 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
  */
 function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER);
+}
+
+function isActionableMentionInviteToSubmitExpenseConfirmWhisper(
+    reportAction: OnyxEntry<ReportAction>,
+): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER);
 }
 
 /**
@@ -1499,7 +1529,6 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
         CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT,
         CONST.REPORT.ACTIONS.TYPE.SHARE,
         CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID,
-        CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
         CONST.REPORT.ACTIONS.TYPE.UNSHARE,
         CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
         CONST.REPORT.ACTIONS.TYPE.DONATION,
@@ -2826,6 +2855,15 @@ function getUpdatedManualApprovalThresholdMessage(reportAction: OnyxEntry<Report
     return translateLocal('workspaceActions.updatedManualApprovalThreshold', {oldLimit: convertToDisplayString(oldLimit, currency), newLimit: convertToDisplayString(newLimit, currency)});
 }
 
+function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>(reportAction: OnyxEntry<ReportAction>) {
+    const {mentionedAccountIDs} = getOriginalMessage(reportAction as ReportAction<T>) ?? {};
+
+    if (!mentionedAccountIDs?.length) {
+        return '';
+    }
+    return translateLocal('iou.changeApprover.changedApproverMessage', {managerID: mentionedAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID});
+}
+
 function isCardIssuedAction(
     reportAction: OnyxEntry<ReportAction>,
 ): reportAction is ReportAction<
@@ -2970,10 +3008,17 @@ function getReportActionFromExpensifyCard(cardID: number) {
         });
 }
 
-function getIntegrationSyncFailedMessage(action: OnyxEntry<ReportAction>, policyID?: string): string {
+function getIntegrationSyncFailedMessage(action: OnyxEntry<ReportAction>, policyID?: string, shouldShowOldDotLink = false): string {
     const {label, errorMessage} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED>) ?? {label: '', errorMessage: ''};
-    const workspaceAccountingLink = `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`;
-    return translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage, workspaceAccountingLink});
+
+    const param = encodeURIComponent(`{"policyID": "${policyID}"}`);
+    const workspaceAccountingLink = shouldShowOldDotLink ? `${oldDotEnvironmentURL}/policy?param=${param}#connections` : `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`;
+
+    return translateLocal('report.actions.type.integrationSyncFailed', {
+        label,
+        errorMessage,
+        workspaceAccountingLink,
+    });
 }
 
 function getManagerOnVacation(action: OnyxEntry<ReportAction>): string | undefined {
@@ -3050,6 +3095,7 @@ export {
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableMentionWhisper,
+    isActionableMentionInviteToSubmitExpenseConfirmWhisper,
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
     isExpenseChatWelcomeWhisper,
@@ -3172,6 +3218,8 @@ export {
     getVacationer,
     getSubmittedTo,
     getReceiptScanFailedMessage,
+    getChangedApproverActionMessage,
+    getDelegateAccountIDFromReportAction,
 };
 
 export type {LastVisibleMessage};
