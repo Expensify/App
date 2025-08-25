@@ -142,7 +142,6 @@ import {
     getApprovalChain,
     getChatByParticipants,
     getDisplayedReportID,
-    getInvoiceChatByParticipants,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
     getOptimisticDataForParentReportAction,
@@ -3185,15 +3184,9 @@ function getSendInvoiceInformation(
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
     let receiver = getPersonalDetailsForAccountID(receiverAccountID);
     let optimisticPersonalDetailListAction = {};
-    const receiverType = getReceiverType(receiverParticipant);
-
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
     let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID ? invoiceChatReport : null;
-
-    if (!chatReport) {
-        chatReport = getInvoiceChatByParticipants(receiverAccountID, receiverType, senderWorkspaceID) ?? null;
-    }
 
     if (!chatReport) {
         isNewChatReport = true;
@@ -9117,6 +9110,7 @@ function getPayMoneyRequestParams(
     bankAccountID?: number,
     paymentPolicyID?: string | undefined,
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
+    existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>,
 ): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -9161,11 +9155,8 @@ function getPayMoneyRequestParams(
         failureData.push(...policyFailureData, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: activePolicyID ?? null});
     }
 
-    if (isIndividualInvoiceRoom(chatReport) && payAsBusiness && activePolicyID) {
-        const existingB2BInvoiceRoom = getInvoiceChatByParticipants(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport.policyID);
-        if (existingB2BInvoiceRoom) {
-            chatReport = existingB2BInvoiceRoom;
-        }
+    if (isIndividualInvoiceRoom(chatReport) && payAsBusiness && existingB2BInvoiceReport) {
+        chatReport = existingB2BInvoiceReport;
     }
 
     let total = (iouReport?.total ?? 0) - (iouReport?.nonReimbursableTotal ?? 0);
@@ -10554,6 +10545,7 @@ function payInvoice(
     chatReport: OnyxTypes.Report,
     invoiceReport: OnyxEntry<OnyxTypes.Report>,
     payAsBusiness = false,
+    existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>,
     methodID?: number,
     paymentMethod?: PaymentMethod,
 ) {
@@ -10574,7 +10566,7 @@ function payInvoice(
             ownerEmail,
             policyName,
         },
-    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness, methodID);
+    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness, methodID, undefined, undefined, existingB2BInvoiceReport);
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
     completePaymentOnboarding(paymentSelected);
@@ -12475,6 +12467,7 @@ export {
     detachReceipt,
     dismissHoldUseExplanation,
     getIOURequestPolicyID,
+    getReceiverType,
     initMoneyRequest,
     checkIfScanFileCanBeRead,
     dismissModalAndOpenReportInInboxTab,
