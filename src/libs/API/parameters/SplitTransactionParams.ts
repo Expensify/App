@@ -1,23 +1,23 @@
+import type {Comment} from '@src/types/onyx/Transaction';
+
 type SplitTransactionSplitsParam = Array<{
     amount: number;
+    transactionID: string;
+    reportID: string;
     category?: string;
     tag?: string;
     created: string;
     merchant?: string;
-    comment?: {
-        comment?: string;
-    };
-    nameValuePairs?: {
-        comment?: string;
-    };
+    comment?: Comment;
     splitReportActionID?: string;
     transactionThreadReportID?: string;
     createdReportActionIDForThread?: string;
+    reimbursable?: boolean;
+    billable?: boolean;
 }>;
 
 type SplitTransactionParams = {
     transactionID: string;
-    isReverseSplitOperation: boolean;
     [key: string]: string | boolean;
 };
 
