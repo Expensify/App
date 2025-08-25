@@ -1,4 +1,3 @@
-import {heicTo, isHeic} from 'heic-to';
 import type {HeicConverterFunction} from './types';
 
 /**
@@ -23,12 +22,18 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
         return;
     }
 
-    fetch(file.uri)
-        .then((response) => response.blob())
-        .then((blob) => {
-            const fileFromBlob = new File([blob], file.name ?? 'temp-file', {
-                type: blob.type,
-            });
+    // Start loading the conversion library in parallel with fetching the file
+    const libraryPromise = import(/* webpackChunkName: "heic-converter" */ 'heic-to').catch((importError) => {
+        console.error('Error loading heic-to library:', importError);
+        // Re-throw a normalized error so the outer catch can handle it uniformly
+        throw new Error('HEIC conversion library unavailable');
+    });
+
+    const fetchBlobPromise = fetch(file.uri).then((response) => response.blob());
+
+    Promise.all([libraryPromise, fetchBlobPromise])
+        .then(([{heicTo, isHeic}, blob]) => {
+            const fileFromBlob = new File([blob], file.name ?? 'temp-file', {type: blob.type});
 
             return isHeic(fileFromBlob).then((isHEIC) => {
                 if (isHEIC || needsConversion) {
@@ -45,19 +50,17 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
                         .catch((err) => {
                             console.error('Error converting image format to JPEG:', err);
                             onError(err, file);
-                        })
-                        .finally(() => {
-                            onFinish();
                         });
                 }
 
                 onSuccess(file);
-                onFinish();
             });
         })
         .catch((err) => {
             console.error('Error processing the file:', err);
             onError(err, file);
+        })
+        .finally(() => {
             onFinish();
         });
 };
