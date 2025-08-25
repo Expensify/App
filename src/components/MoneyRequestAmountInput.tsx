@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useRef} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextStyle, ViewStyle} from 'react-native';
 import {convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
@@ -103,7 +103,8 @@ type MoneyRequestAmountInputProps = {
      * E.g., Split amount input
      */
     shouldWrapInputInContainer?: boolean;
-} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix'>;
+
+} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix'| 'onFocus' | 'onBlur'>;
 
 type Selection = {
     start: number;
@@ -175,13 +176,18 @@ function MoneyRequestAmountInput(
         numberFormRef.current?.updateNumber(formattedAmount);
     }, [amount, currency, onFormatAmount, formatAmountOnBlur, maxLength]);
 
+    const inputOnBlur = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
+        props.onBlur?.(e);
+        formatAmount();
+    };
+
     return (
         <NumberWithSymbolForm
             value={onFormatAmount(amount, currency)}
             decimals={decimals}
             onSymbolButtonPress={onCurrencyButtonPress}
             onInputChange={onAmountChange}
-            onBlur={formatAmount}
+            onBlur={inputOnBlur}
             ref={(ref) => {
                 if (typeof forwardedRef === 'function') {
                     forwardedRef(ref);
@@ -224,6 +230,7 @@ function MoneyRequestAmountInput(
             footer={props.footer}
             autoGrowExtraSpace={autoGrowExtraSpace}
             submitBehavior={submitBehavior}
+            onFocus={props.onFocus}
         />
     );
 }

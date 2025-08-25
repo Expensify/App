@@ -10,6 +10,7 @@ import type {
     StyleProp,
     TargetedEvent,
     TextInput,
+    TextInputFocusEventData,
     TextStyle,
     ViewStyle,
 } from 'react-native';
@@ -376,6 +377,12 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+    index?: number;
+
+    onInputFocus?: (index: number) => void;
+
+    onInputBlur?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -855,7 +862,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to hide the keyboard when scrolling a list */
     shouldHideKeyboardOnScroll?: boolean;
 
-    renderScrollComponent?: ((props: ScrollViewProps) => ReactElement<ScrollViewProps, string | JSXElementConstructor<any>>) | undefined;
+    renderScrollComponent?: ((props: ScrollViewProps) => ReactElement<ScrollViewProps, string | JSXElementConstructor<unknown>>) | undefined;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -866,6 +873,7 @@ type SelectionListHandle = {
     updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
     getFocusedOption: () => ListItem | undefined;
     focusTextInput: () => void;
+    scrollToFocusedInput: (index: number) => void;
 };
 
 type ItemLayout = {

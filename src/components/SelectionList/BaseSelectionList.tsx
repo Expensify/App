@@ -379,6 +379,23 @@ function BaseSelectionList<TItem extends ListItem>(
         [flattenedSections.allOptions, currentPage],
     );
 
+    const scrollToFocusedInput = useCallback((index: number) => {
+        if (!listRef.current) {
+            return;
+        }
+
+        if(index < 0) {
+            return;
+        }
+        listRef.current.scrollToLocation({
+            sectionIndex: 0,
+            itemIndex: index + 2,
+            animated: true,
+            viewOffset: 4,
+            viewPosition: 1.0,
+        });
+    }, []);
+
     const [disabledArrowKeyIndexes, setDisabledArrowKeyIndexes] = useState(flattenedSections.disabledArrowKeyOptionsIndexes);
     useEffect(() => {
         if (arraysEqual(disabledArrowKeyIndexes, flattenedSections.disabledArrowKeyOptionsIndexes)) {
@@ -673,6 +690,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
+                    // inFocus={scrollToFocusedInput}
                 />
             </View>
         );
@@ -918,8 +936,17 @@ function BaseSelectionList<TItem extends ListItem>(
 
     useImperativeHandle(
         ref,
-        () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput}),
-        [scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput],
+        () => ({
+            scrollAndHighlightItem,
+            clearInputAfterSelect,
+            updateAndScrollToFocusedIndex,
+            updateExternalTextInputFocus,
+            scrollToIndex,
+            getFocusedOption,
+            focusTextInput,
+            scrollToFocusedInput,
+        }),
+        [scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput, scrollToFocusedInput],
     );
 
     /** Selects row when pressing Enter */

@@ -1,5 +1,6 @@
-import React from 'react';
-import {View} from 'react-native';
+import React, {useCallback} from 'react';
+import type {NativeSyntheticEvent, TextInputFocusEventData} from 'react-native';
+import { View} from 'react-native';
 import Icon from '@components/Icon';
 import {Folder, Tag} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -23,6 +24,9 @@ function SplitListItem<TItem extends ListItem>({
     shouldPreventEnterKeySubmit,
     rightHandSideComponent,
     onFocus,
+    index,
+    onInputFocus,
+    onInputBlur,
 }: SplitListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -38,6 +42,18 @@ function SplitListItem<TItem extends ListItem>({
 
     const isBottomVisible = !!splitItem.category || !!splitItem.tags?.at(0);
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const focusHandler = useCallback((e: NativeSyntheticEvent<TextInputFocusEventData>) => {
+        if (!onInputFocus) {
+            return;
+        }
+
+        if(!index && index !== 0) { 
+            return;
+        }
+        onInputFocus(index);
+    }, [onInputFocus, index]);
+    
     return (
         <BaseListItem
             item={item}
@@ -145,6 +161,8 @@ function SplitListItem<TItem extends ListItem>({
                             shouldApplyPaddingToContainer
                             shouldUseDefaultLineHeightForPrefix={false}
                             shouldWrapInputInContainer={false}
+                            onFocus={focusHandler}
+                            onBlur={onInputBlur}
                         />
                     </View>
                     <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>

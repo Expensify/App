@@ -110,6 +110,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 isUserValidated={isUserValidated}
                 personalDetails={personalDetails}
                 userBillingFundID={userBillingFundID}
+                index={index}
             />
             {item.footerContent && item.footerContent}
         </>
