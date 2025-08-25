@@ -399,6 +399,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
         isReportArchived,
+        isManualDistanceTrackingEnabled,
     ]);
 
     const isTravelEnabled = useMemo(() => {
