@@ -61,7 +61,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {
         canBeMissing: true,
-        selector: (fundList) => Object.fromEntries(Object.entries(fundList ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true)),
+        selector: (allFunds) => Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true)),
     });
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
