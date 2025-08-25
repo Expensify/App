@@ -1061,6 +1061,17 @@ function openReport(
         if (transaction) {
             const selfDMReportID = findSelfDMReportID();
 
+            if (!selfDMReportID) {
+                Log.hmmm('[openReport] Self-DM report not found when creating transaction thread', {
+                    transactionID,
+                    reportID,
+                    hasAllReports: !!allReports,
+                    allReportsCount: allReports ? Object.keys(allReports).length : 0,
+                    currentUserAccountID,
+                    currentUserEmail,
+                });
+            }
+
             if (selfDMReportID) {
                 const generatedReportActionID = rand64();
                 const optimisticParentAction = buildOptimisticIOUReportAction({
@@ -4786,6 +4797,16 @@ function deleteAppReport(reportID: string | undefined) {
     let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
     let createdAction: ReportAction;
     let selfDMParameters: SelfDMParameters = {};
+
+    if (!selfDMReportID) {
+        Log.hmmm('[deleteReport] Self-DM report ID not found when deleting report', {
+            reportID,
+            hasAllReports: !!allReports,
+            allReportsCount: allReports ? Object.keys(allReports).length : 0,
+            currentUserAccountID,
+            currentUserEmail,
+        });
+    }
 
     if (!selfDMReport) {
         const currentTime = DateUtils.getDBTime();
