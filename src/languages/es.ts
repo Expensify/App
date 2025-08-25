@@ -3539,6 +3539,10 @@ const translations = {
                 invitationFailure: 'Error al invitar miembros a Uber for Business',
                 autoRemove: 'Invitar a nuevos miembros del espacio de trabajo a Uber para Empresas',
                 autoInvite: 'Desactivar miembros del espacio de trabajo eliminados de Uber para Empresas',
+                emptyContent: {
+                    title: 'No hay miembros para mostrar',
+                    subtitle: 'Buscamos por todas partes y no encontramos nada.',
+                },
             },
         },
         perDiem: {

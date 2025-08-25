@@ -3525,6 +3525,10 @@ const translations = {
                 invitationFailure: '邀请成员加入Uber for Business失败',
                 autoRemove: '邀请新工作区成员加入 Uber for Business',
                 autoInvite: '停用已从 Uber for Business 移除的工作区成员',
+                emptyContent: {
+                    title: '没有可显示的成员',
+                    subtitle: '我们到处寻找，但一无所获。',
+                },
             },
         },
         perDiem: {
