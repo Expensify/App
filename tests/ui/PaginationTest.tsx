@@ -12,6 +12,7 @@ import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+import waitForNetworkPromises from 'tests/utils/waitForNetworkPromises';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
@@ -320,6 +321,8 @@ describe('Pagination', () => {
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
 
         await waitForBatchedUpdatesWithAct();
+
+        await waitForNetworkPromises();
 
         // We now have 18 messages. 15 (MIN_INITIAL_REPORT_ACTION_COUNT) from the initial OpenReport and 3 from GetOlderActions.
         // GetOlderActions only returns 3 actions since it reaches id '1', which is the created action.
