@@ -1622,6 +1622,9 @@ const translations = {
             recordTroubleshootData: 'トラブルシューティングデータの記録',
             softKillTheApp: 'アプリをソフトキル',
             kill: '殺す',
+            biometricsRegistered: '生体認証（登録済み）',
+            biometricsNotRegistered: '生体認証（未登録)',
+            test: 'テスト',
         },
         debugConsole: {
             saveLog: 'ログを保存',

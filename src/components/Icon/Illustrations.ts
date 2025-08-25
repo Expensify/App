@@ -162,6 +162,7 @@ import Workflows from '@assets/images/simple-illustrations/simple-illustration__
 import ExpensifyApprovedLogoLight from '@assets/images/subscription-details__approvedlogo--light.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
+import SimpleIllustrationSmartscan from '@assets/images/simple-illustration__smartscan.svg'
 
 export {
     Abracadabra,
@@ -328,4 +329,5 @@ export {
     PaperAirplane,
     CardReplacementSuccess,
     EmptyShelves,
+    SimpleIllustrationSmartscan,
 };
