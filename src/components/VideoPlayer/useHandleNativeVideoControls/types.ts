@@ -1,8 +1,8 @@
-import type {MutableRefObject} from 'react';
-import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
+import type {VideoView} from 'expo-video';
+import type {RefObject} from 'react';
 
 type UseHandleNativeVideoControlParams = {
-    videoPlayerRef: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
+    videoViewRef: RefObject<VideoView | null>;
     isLocalFile: boolean;
     isOffline: boolean;
 };
