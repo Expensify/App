@@ -58,6 +58,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 },
                 contentModel: HTMLContentModel.block,
             }),
+            'muted-micro-text': HTMLElementModel.fromCustomModel({
+                tagName: 'muted-micro-text',
+                mixedUAStyles: {...styles.textMicroSupporting, ...styles.mb0},
+                contentModel: HTMLContentModel.block,
+            }),
             'muted-link': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-link',
                 mixedUAStyles: {...styles.subTextFileUpload, ...styles.textSupporting},
