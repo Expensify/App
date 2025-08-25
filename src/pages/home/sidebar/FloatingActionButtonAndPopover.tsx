@@ -112,11 +112,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         const policyChatsForActivePolicy = getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], allReports);
         return policyChatsForActivePolicy.length > 0 ? policyChatsForActivePolicy.at(0) : ({} as OnyxTypes.Report);
     }, [activePolicy, activePolicyID, session?.accountID, allReports]);
+    const isPolicyChatForActivePolicyArchived = useReportIsArchived(policyChatForActivePolicy?.reportID);
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector), canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
@@ -197,7 +197,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     }, [isValidReport, quickActionAvatars, personalDetails, quickAction?.action]);
 
     const quickActionSubtitle = useMemo(() => {
-        return !hideQABSubtitle ? (getReportName(quickActionReport) ?? translate('quickAction.updateDestination')) : '';
+        return !hideQABSubtitle
+            ? (getReportName(quickActionReport, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived) ?? translate('quickAction.updateDestination'))
+            : '';
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hideQABSubtitle, personalDetails, quickAction?.action, quickActionPolicy?.name, quickActionReport, translate]);
@@ -373,7 +375,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     ...baseQuickAction,
                     icon: Expensicons.ReceiptScan,
                     text: translate('quickAction.scanReceipt'),
-                    description: getReportName(policyChatForActivePolicy),
+                    description:
+                        getReportName(policyChatForActivePolicy, undefined, undefined, undefined, undefined, undefined, undefined, isPolicyChatForActivePolicyArchived) ??
+                        translate('quickAction.updateDestination'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected,
                     rightIconReportID: policyChatForActivePolicy?.reportID,
@@ -399,6 +403,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
         isReportArchived,
+        isPolicyChatForActivePolicyArchived,
     ]);
 
     const isTravelEnabled = useMemo(() => {

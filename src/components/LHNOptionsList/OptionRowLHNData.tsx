@@ -2,6 +2,7 @@ import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import {getSortedReportActions, shouldReportActionBeVisibleAsLastAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -35,10 +36,10 @@ function OptionRowLHNData({
     transactionViolations,
     lastMessageTextFromReport,
     localeCompare,
-    isReportArchived = false,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
+    const isReportArchived = useReportIsArchived(reportID || fullReport?.reportID);
     const currentReportIDValue = useCurrentReportID();
     const isReportFocused = isOptionFocused && currentReportIDValue?.currentReportID === reportID;
 
@@ -49,7 +50,7 @@ function OptionRowLHNData({
             return undefined;
         }
 
-        const canUserPerformWriteAction = canUserPerformWriteActionUtil(fullReport, isReportArchived);
+        const canUserPerformWriteAction = canUserPerformWriteActionUtil(fullReport, isReportArchived || !!reportNameValuePairs?.private_isArchived);
         const actionsArray = getSortedReportActions(Object.values(reportActions));
 
         const reportActionsForDisplay = actionsArray.filter(
@@ -57,16 +58,17 @@ function OptionRowLHNData({
         );
 
         return reportActionsForDisplay.at(-1);
-    }, [reportActions, fullReport, isReportArchived]);
+    }, [reportActions, fullReport, isReportArchived, reportNameValuePairs]);
 
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
             report: fullReport,
+            reportNameValuePairs,
+            isReportArchived,
             reportAttributes,
             oneTransactionThreadReport,
-            reportNameValuePairs,
             personalDetails,
             policy,
             parentReportAction,
@@ -94,6 +96,7 @@ function OptionRowLHNData({
         reportAttributes?.brickRoadStatus,
         reportAttributes?.reportName,
         oneTransactionThreadReport,
+        isReportArchived,
         reportNameValuePairs,
         lastReportActionTransaction,
         reportActions,

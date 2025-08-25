@@ -766,7 +766,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${translateLocal('common.attachment')}]`;
     } else if (isModifiedExpenseAction(lastReportAction)) {
-        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: lastReportAction});
+        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: lastReportAction, isReportArchived: isReportArchived});
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
         const movedTransactionOriginalMessage = getOriginalMessage(lastReportAction) ?? {};
@@ -893,6 +893,7 @@ function createOption(
     config?: PreviewConfig,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     transactions?: SearchTransaction[],
+    isReportArchived = false,
 ): OptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
     const result: OptionData = {
@@ -1005,7 +1006,7 @@ function createOption(
 
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '')
-            : getReportName(report, undefined, undefined, undefined, undefined, undefined, transactions);
+            : getReportName(report, undefined, undefined, undefined, undefined, undefined, transactions, isReportArchived || !!result?.private_isArchived);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '');
@@ -1024,7 +1025,7 @@ function createOption(
     }
 
     result.text = reportName;
-    result.icons = getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null, undefined, !!result?.private_isArchived);
+    result.icons = getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID, null, undefined, isReportArchived || !!result?.private_isArchived);
     result.subtitle = subtitle;
 
     return result;
@@ -1033,7 +1034,7 @@ function createOption(
 /**
  * Get the option for a given report.
  */
-function getReportOption(participant: Participant, reportAttributesDerived?: ReportAttributesDerivedValue['reports']): OptionData {
+function getReportOption(participant: Participant, reportAttributesDerived?: ReportAttributesDerivedValue['reports'], isReportArchived = false): OptionData {
     const report = getReportOrDraftReport(participant.reportID);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
@@ -1052,7 +1053,7 @@ function getReportOption(participant: Participant, reportAttributesDerived?: Rep
     if (option.isSelfDM) {
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = getReportName(report);
+        option.text = getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived);
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
         option.text = getPolicyName({report});
@@ -1079,7 +1080,12 @@ function getReportOption(participant: Participant, reportAttributesDerived?: Rep
 /**
  * Get the display option for a given report.
  */
-function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: OnyxEntry<Participant>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']): OptionData {
+function getReportDisplayOption(
+    report: OnyxEntry<Report>,
+    unknownUserDetails: OnyxEntry<Participant>,
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    isReportArchived = false,
+): OptionData {
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
     const option = createOption(
@@ -1097,7 +1103,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
     if (option.isSelfDM) {
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = getReportName(report);
+        option.text = getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived);
         option.alternateText = translateLocal('workspace.common.invoices');
     } else if (unknownUserDetails && !option.text) {
         option.text = unknownUserDetails.text ?? unknownUserDetails.login;

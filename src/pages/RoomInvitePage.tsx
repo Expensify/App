@@ -15,6 +15,7 @@ import type {WithNavigationTransitionEndProps} from '@components/withNavigationT
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {inviteToRoom, searchInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
@@ -58,7 +59,7 @@ function RoomInvitePage({
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const {options, areOptionsInitialized} = useOptionsList();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
@@ -186,7 +187,7 @@ function RoomInvitePage({
     const backRoute = useMemo(() => {
         return reportID && (isPolicyEmployee ? ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo));
     }, [isPolicyEmployee, reportID, backTo]);
-    const reportName = useMemo(() => getReportName(report), [report]);
+    const reportName = useMemo(() => getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived), [report, isReportArchived]);
     const inviteUsers = useCallback(() => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 

@@ -162,10 +162,12 @@ function getForReportAction({
     reportOrID,
     reportAction,
     searchReports,
+    isReportArchived = false,
 }: {
     reportOrID: string | SearchReport | undefined;
     reportAction: OnyxEntry<ReportAction>;
     searchReports?: SearchReport[];
+    isReportArchived: boolean;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
@@ -183,7 +185,16 @@ function getForReportAction({
     }
 
     if (reportActionOriginalMessage?.movedFromReport) {
-        const reportName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportActionOriginalMessage?.movedFromReport}`]);
+        const reportName = getReportName(
+            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportActionOriginalMessage?.movedFromReport}`],
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            isReportArchived,
+        );
         return translateLocal('iou.movedFromReport', {reportName: reportName ?? ''});
     }
 

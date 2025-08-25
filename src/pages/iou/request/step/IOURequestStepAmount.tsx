@@ -8,6 +8,7 @@ import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactio
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {createDraftTransaction, removeDraftTransaction} from '@libs/actions/TransactionEdit';
 import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
@@ -161,6 +162,8 @@ function IOURequestStepAmount({
         }
     };
 
+    const isReportArchived = useReportIsArchived(reportID);
+
     const navigateToNextPage = ({amount, paymentMethod}: AmountParams) => {
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(amount));
@@ -187,7 +190,7 @@ function IOURequestStepAmount({
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived, isReportArchived);
             });
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 

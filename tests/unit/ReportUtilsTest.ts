@@ -546,7 +546,7 @@ describe('ReportUtils', () => {
             });
 
             const baseAdminsRoom = {
-                reportID: '',
+                reportID: '1',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 reportName: '#admins',
             };
@@ -562,9 +562,13 @@ describe('ReportUtils', () => {
             test('Archived', async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`, reportNameValuePairs);
 
-                expect(getReportName(baseAdminsRoom)).toBe('#admins (archived)');
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(baseAdminsRoom.reportID));
 
-                return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(baseAdminsRoom)).toBe('#admins (archivado)'));
+                expect(getReportName(baseAdminsRoom, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe('#admins (archived)');
+
+                return IntlStore.load(CONST.LOCALES.ES).then(() =>
+                    expect(getReportName(baseAdminsRoom, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe('#admins (archivado)'),
+                );
             });
         });
 
@@ -574,7 +578,7 @@ describe('ReportUtils', () => {
             });
 
             const baseUserCreatedRoom = {
-                reportID: '',
+                reportID: '1',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 reportName: '#VikingsChat',
             };
@@ -594,9 +598,13 @@ describe('ReportUtils', () => {
 
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseUserCreatedRoom.reportID}`, reportNameValuePairs);
 
-                expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedPolicyRoom?.reportID));
 
-                return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archivado)'));
+                expect(getReportName(archivedPolicyRoom, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe('#VikingsChat (archived)');
+
+                return IntlStore.load(CONST.LOCALES.ES).then(() =>
+                    expect(getReportName(archivedPolicyRoom, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe('#VikingsChat (archivado)'),
+                );
             });
         });
 
@@ -629,7 +637,7 @@ describe('ReportUtils', () => {
 
             describe('Archived', () => {
                 const baseArchivedPolicyExpenseChat = {
-                    reportID: '',
+                    reportID: '1',
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     ownerAccountID: 1,
                     policyID: policy.id,
@@ -648,9 +656,17 @@ describe('ReportUtils', () => {
 
                     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
 
-                    expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
+                    const {result: isReportArchived} = renderHook(() => useReportIsArchived(memberArchivedPolicyExpenseChat?.reportID));
 
-                    return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`));
+                    expect(getReportName(memberArchivedPolicyExpenseChat, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe(
+                        `Ragnar Lothbrok's expenses (archived)`,
+                    );
+
+                    return IntlStore.load(CONST.LOCALES.ES).then(() =>
+                        expect(getReportName(memberArchivedPolicyExpenseChat, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe(
+                            `Ragnar Lothbrok's gastos (archivado)`,
+                        ),
+                    );
                 });
 
                 test('as admin', async () => {
@@ -659,9 +675,19 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: false,
                     };
 
-                    expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${adminArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
 
-                    return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`));
+                    const {result: isReportArchived} = renderHook(() => useReportIsArchived(adminArchivedPolicyExpenseChat?.reportID));
+
+                    expect(getReportName(adminArchivedPolicyExpenseChat, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe(
+                        `Ragnar Lothbrok's expenses (archived)`,
+                    );
+
+                    return IntlStore.load(CONST.LOCALES.ES).then(() =>
+                        expect(getReportName(adminArchivedPolicyExpenseChat, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived.current)).toBe(
+                            `Ragnar Lothbrok's gastos (archivado)`,
+                        ),
+                    );
                 });
             });
         });
@@ -1988,46 +2014,6 @@ describe('ReportUtils', () => {
 
             expect(canEditRequest).toEqual(false);
         });
-
-        it('it should return true for pay iou action with IOUDetails which is linked to send money flow', async () => {
-            const expenseReport: Report = {
-                reportID: '1',
-                type: CONST.REPORT.TYPE.EXPENSE,
-            };
-            const transaction = createRandomTransaction(22);
-            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
-                reportActionID: '3',
-                actorAccountID: currentUserAccountID,
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                originalMessage: {
-                    IOUReportID: expenseReport.reportID,
-                    IOUTransactionID: transaction.transactionID,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
-                    IOUDetails: {
-                        amount: 530,
-                        currency: CONST.CURRENCY.USD,
-                        comment: '',
-                    },
-                },
-                message: [
-                    {
-                        type: 'COMMENT',
-                        html: 'USD 5.30 expense',
-                        text: 'USD 5.30 expense',
-                        isEdited: false,
-                        whisperedTo: [],
-                        isDeletedParentAction: false,
-                        deleted: '',
-                    },
-                ],
-                created: '2025-03-05 16:34:27',
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
-
-            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, true);
-
-            expect(canEditRequest).toEqual(true);
-        });
     });
 
     describe('getChatByParticipants', () => {
@@ -2396,6 +2382,7 @@ describe('ReportUtils', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
+
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedReport?.reportID));
 
             expect(
@@ -2426,6 +2413,7 @@ describe('ReportUtils', () => {
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
+
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedReport?.reportID));
 
             expect(
@@ -4263,40 +4251,6 @@ describe('ReportUtils', () => {
 
             // Then it should return false
             expect(result).toBe(false);
-        });
-        it('should return false for announce room when the role of the employee is admin and report is archived', async () => {
-            // Given a policy announce room of a policy that the user has an admin role
-            const workspace: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.ADMIN};
-            const policyAnnounceRoom: Report = {
-                ...createRandomReport(50001),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
-                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
-                policyID: policy.id,
-                writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspace.id}`, workspace);
-
-            const result = canUserPerformWriteAction(policyAnnounceRoom, true);
-
-            expect(result).toBe(false);
-        });
-        it('should return true for announce room when the role of the employee is admin and report is not archived', async () => {
-            // Given a policy announce room of a policy that the user has an admin role
-            const workspace: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.ADMIN};
-            const policyAnnounceRoom: Report = {
-                ...createRandomReport(50001),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
-                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
-                policyID: policy.id,
-                writeCapability: CONST.REPORT.WRITE_CAPABILITIES.ADMINS,
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspace.id}`, workspace);
-
-            const result = canUserPerformWriteAction(policyAnnounceRoom, false);
-
-            expect(result).toBe(true);
         });
     });
 

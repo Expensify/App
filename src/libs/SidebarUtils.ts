@@ -646,6 +646,7 @@ function getOptionData({
     reportNameValuePairs,
     personalDetails,
     policy,
+    isReportArchived = false,
     parentReportAction,
     lastMessageTextFromReport: lastMessageTextFromReportProp,
     invoiceReceiverPolicy,
@@ -658,6 +659,7 @@ function getOptionData({
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     policy: OnyxEntry<Policy> | undefined;
+    isReportArchived?: boolean;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
     lastMessageTextFromReport?: string;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
@@ -787,7 +789,7 @@ function getOptionData({
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, policy, !!result?.private_isArchived);
+        lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, policy, isReportArchived || !!result?.private_isArchived);
     }
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
@@ -796,7 +798,7 @@ function getOptionData({
     const isGroupChat = isGroupChatUtil(report) || isDeprecatedGroupDM(report, !!result.private_isArchived);
 
     const isThreadMessage = isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage || isGroupChat) && !result.private_isArchived) {
+    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage || isGroupChat) && !isReportArchived) {
         const lastActionName = lastAction?.actionName ?? report.lastActionType;
         const prefix = getReportSubtitlePrefix(report);
 
@@ -938,7 +940,7 @@ function getOptionData({
 
             if (!result.alternateText) {
                 result.alternateText = formatReportLastMessageText(
-                    getWelcomeMessage(report, policy, localeCompare, !!result.private_isArchived).messageText ?? translateLocal('report.noActivityYet'),
+                    getWelcomeMessage(report, policy, localeCompare, isReportArchived || !!result?.private_isArchived).messageText ?? translateLocal('report.noActivityYet'),
                 );
             }
         }
@@ -947,10 +949,10 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                getWelcomeMessage(report, policy, localeCompare, !!result.private_isArchived).messageText || translateLocal('report.noActivityYet'),
+                getWelcomeMessage(report, policy, localeCompare, isReportArchived || !!result?.private_isArchived).messageText || translateLocal('report.noActivityYet'),
             );
         }
-        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction) && !isArchivedReport(reportNameValuePairs)) {
+        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction) && !isReportArchived) {
             result.alternateText = `${lastActorDisplayName}: ${formatReportLastMessageText(Parser.htmlToText(lastMessageText))}`;
         } else {
             result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText));
@@ -969,7 +971,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy);
+    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, undefined, isReportArchived || !!result?.private_isArchived);
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -983,7 +985,7 @@ function getOptionData({
         personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
         policy,
         invoiceReceiverPolicy,
-        !!result.private_isArchived,
+        isReportArchived || !!result.private_isArchived,
     );
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
@@ -1064,7 +1066,7 @@ function getWelcomeMessage(
 function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = false, reportDetailsLink = ''): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
-    const reportName = getReportName(report);
+    const reportName = getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived);
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);

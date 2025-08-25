@@ -230,6 +230,7 @@ function MoneyRequestView({
 
     const isSettled = isSettledReportUtils(moneyRequestReport?.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
+    const isParentReportArchived = useReportIsArchived(parentReportID);
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
     const shouldShowPaid = isSettled && transactionReimbursable;
 
@@ -955,7 +956,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={canEditReport}
-                            title={getReportName(parentReport) || parentReport?.reportName}
+                            title={getReportName(parentReport, undefined, undefined, undefined, undefined, undefined, undefined, isParentReportArchived) || parentReport?.reportName}
                             description={translate('common.report')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}

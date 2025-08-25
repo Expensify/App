@@ -890,7 +890,7 @@ type GetReportNameParams = {
     transactions?: SearchTransaction[];
     reports?: SearchReport[];
     draftReports?: OnyxCollection<Report>;
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+    isReportArchived?: boolean;
     policies?: SearchPolicy[];
 };
 
@@ -5132,6 +5132,7 @@ function getReportName(
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
     transactions?: SearchTransaction[],
+    isReportArchived = false,
 ): string {
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue = report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined;
@@ -5140,7 +5141,7 @@ function getReportName(
     if (canUseDerivedValue && derivedNameExists) {
         return attributes[report.reportID].reportName;
     }
-    return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy, transactions});
+    return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy, transactions, isReportArchived});
 }
 
 function getSearchReportName(props: GetReportNameParams): string {
@@ -5169,7 +5170,7 @@ function getReportNameInternal({
     invoiceReceiverPolicy,
     transactions,
     reports,
-    reportNameValuePairs = allReportNameValuePair,
+    isReportArchived = false,
     policies,
 }: GetReportNameParams): string {
     let formattedName: string | undefined;
@@ -5180,11 +5181,9 @@ function getReportNameInternal({
     } else {
         parentReportAction = isThread(report) ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] : undefined;
     }
+
     const parentReportActionMessage = getReportActionMessageReportUtils(parentReportAction);
-    const isArchivedNonExpense = isArchivedNonExpenseReport(
-        report,
-        !!reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)}`]?.private_isArchived,
-    );
+    const isArchivedNonExpense = isArchivedNonExpenseReport(report, isReportArchived);
 
     if (
         isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
@@ -5337,8 +5336,6 @@ function getReportNameInternal({
         if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName({reportAction: parentReportAction, transactions, reports});
 
-            // This will get removed as part of https://github.com/Expensify/App/issues/59961
-            // eslint-disable-next-line deprecation/deprecation
             if (isArchivedNonExpense) {
                 formattedName = generateArchivedReportName(formattedName);
             }
@@ -5383,13 +5380,16 @@ function getReportNameInternal({
             return getAdminRoomInvitedParticipants(parentReportAction, reportActionMessage);
         }
 
-        // This will get removed as part of https://github.com/Expensify/App/issues/59961
-        // eslint-disable-next-line deprecation/deprecation
         if (reportActionMessage && isArchivedNonExpense) {
             return generateArchivedReportName(reportActionMessage);
         }
         if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
-            const modifiedMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: parentReportAction, searchReports: reports});
+            const modifiedMessage = ModifiedExpenseMessage.getForReportAction({
+                reportOrID: report?.reportID,
+                reportAction: parentReportAction,
+                searchReports: reports,
+                isReportArchived: isReportArchived,
+            });
             return formatReportLastMessageText(modifiedMessage);
         }
         if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
@@ -5560,6 +5560,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isReportArchived
         return {};
     }
 
+    const isParentReportArchived = isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`]);
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
         let reportName = `${getPolicyName({report: parentReport})} & ${getInvoicePayerName(parentReport)}`;
 
@@ -5573,7 +5574,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isReportArchived
     }
 
     return {
-        reportName: getReportName(parentReport),
+        reportName: getReportName(parentReport, undefined, undefined, undefined, undefined, undefined, undefined, isParentReportArchived),
         workspaceName: getPolicyName({report: parentReport, returnEmptyIfNotFound: true}),
     };
 }

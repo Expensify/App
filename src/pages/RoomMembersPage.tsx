@@ -21,6 +21,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -59,6 +60,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails();
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtils(report), [report]);
     const backTo = route.params.backTo;
 
@@ -391,7 +393,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
-                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report))}
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived))}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             setSelectedMembers([]);
