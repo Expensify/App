@@ -179,20 +179,27 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
             // See https://github.com/Expensify/App/issues/68189#issuecomment-3167156907
             if (isCardTransaction(targetTransaction)) {
                 mergeableData[field] = targetValue;
-                mergeableData.currency = targetTransaction?.currency;
+                mergeableData.currency = getCurrency(targetTransaction);
                 return;
             }
 
             // When one of the selected expenses has a $0 amount, we should automatically select the non-zero amount.
             if (targetValue === 0 || sourceValue === 0) {
                 mergeableData[field] = sourceValue === 0 ? targetValue : sourceValue;
-                mergeableData.currency = sourceValue === 0 ? targetTransaction?.currency : sourceTransaction?.currency;
+                mergeableData.currency = sourceValue === 0 ? getCurrency(targetTransaction) : getCurrency(sourceTransaction);
                 return;
             }
 
             // Check for currency differences when values equal
             if (targetValue === sourceValue && getCurrency(targetTransaction) !== getCurrency(sourceTransaction)) {
                 conflictFields.push(field);
+                return;
+            }
+
+            // When the values are the same and the currencies are the same, we should merge the values
+            if (targetValue === sourceValue && getCurrency(targetTransaction) === getCurrency(sourceTransaction)) {
+                mergeableData[field] = targetValue;
+                mergeableData.currency = getCurrency(targetTransaction);
                 return;
             }
         }
