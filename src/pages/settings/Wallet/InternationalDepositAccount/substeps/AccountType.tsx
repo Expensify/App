@@ -56,7 +56,7 @@ function AccountType({isEditing, onNext, fieldsMap}: CustomSubStepProps) {
             style={[styles.flexGrow1, styles.mt3]}
             submitButtonStyles={[styles.ph5, styles.mb0]}
             enabledWhenOffline
-            ref={formRef}
+            forwardedRef={formRef}
             isSubmitButtonVisible={!isEditing}
         >
             <View style={styles.ph5}>

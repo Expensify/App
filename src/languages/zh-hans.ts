@@ -58,6 +58,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -292,6 +293,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceMembersCountParams,
@@ -587,6 +589,7 @@ const translations = {
         network: '网络',
         reportID: '报告 ID',
         longID: 'Long ID',
+        withdrawalID: '提现ID',
         bankAccounts: '银行账户',
         chooseFile: '选择文件',
         chooseFiles: '选择文件',
@@ -1364,6 +1367,21 @@ const translations = {
         rates: '费率',
         submitsTo: ({name}: SubmitsToParams) => `提交给${name}`,
         moveExpenses: () => ({one: '移动费用', other: '移动费用'}),
+        changeApprover: {
+            title: '更改审批人',
+            subtitle: '选择一个选项来更改此报告的审批人。',
+            description: ({workflowSettingLink}: WorkflowSettingsParam) => `<a href="${workflowSettingLink}">您也可以在[工作流设置</a>中永久更改所有报告的审批人。`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `将审批人更改为 <mention-user accountID="${managerID}"/>`,
+            actions: {
+                addApprover: '添加审批人',
+                addApproverSubtitle: '为现有工作流添加一个额外的审批人。',
+                bypassApprovers: '跳过审批人',
+                bypassApproversSubtitle: '将自己指定为最终审批人并跳过任何剩余的审批人。',
+            },
+            addApprover: {
+                subtitle: '在我们将此报告路由到其余审批工作流之前，为此报告选择一个额外的审批人。',
+            },
+        },
     },
     transactionMerge: {
         listPage: {
@@ -5381,6 +5399,11 @@ const translations = {
                 description: '多级标签帮助您更精确地跟踪费用。为每个项目分配多个标签，例如部门、客户或成本中心，以捕获每笔费用的完整上下文。这使得更详细的报告、审批流程和会计导出成为可能。',
                 onlyAvailableOnPlan: '多级标签仅在Control计划中提供，起价为',
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
+                title: '多级审批',
+                description: '多级审批是一种工作流工具，适用于要求一人以上审批报销单后才能进行报销的公司。',
+                onlyAvailableOnPlan: '多级审批仅在 Control 套餐上提供，起价为 ',
+            },
             pricing: {
                 perActiveMember: '每位活跃成员每月。',
                 perMember: '每位成员每月。',
@@ -6270,8 +6293,9 @@ const translations = {
         levelThreeResult: '消息已从频道中移除，并收到匿名警告，消息已提交审核。',
     },
     actionableMentionWhisperOptions: {
-        invite: '邀请他们',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: '邀请提交费用',
+        inviteToChat: '仅邀请聊天',
+        nothing: '什么都不做',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: '接受',

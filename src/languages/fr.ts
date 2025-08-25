@@ -58,6 +58,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -292,6 +293,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceMembersCountParams,
@@ -587,6 +589,7 @@ const translations = {
         network: 'Réseau',
         reportID: 'ID du rapport',
         longID: 'ID long',
+        withdrawalID: 'ID de retrait',
         bankAccounts: 'Comptes bancaires',
         chooseFile: 'Choisir un fichier',
         chooseFiles: 'Choisir des fichiers',
@@ -1386,6 +1389,22 @@ const translations = {
         rates: 'Tarifs',
         submitsTo: ({name}: SubmitsToParams) => `Soumet à ${name}`,
         moveExpenses: () => ({one: 'Déplacer la dépense', other: 'Déplacer les dépenses'}),
+        changeApprover: {
+            title: "Modifier l'approbateur",
+            subtitle: "Choisissez une option pour modifier l'approbateur de ce rapport.",
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Vous pouvez également modifier l'approbateur de manière permanente pour tous les rapports dans vos <a href="${workflowSettingLink}">paramètres de flux de travail</a>.`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `a changé l'approbateur en <mention-user accountID="${managerID}"/>`,
+            actions: {
+                addApprover: 'Ajouter un approbateur',
+                addApproverSubtitle: 'Ajouter un approbateur supplémentaire au flux de travail existant.',
+                bypassApprovers: 'Contourner les approbateurs',
+                bypassApproversSubtitle: 'Vous désigner comme approbateur final et ignorer les autres approbateurs.',
+            },
+            addApprover: {
+                subtitle: "Choisissez un approbateur supplémentaire pour ce rapport avant de le faire passer par le reste du flux de travail d'approbation.",
+            },
+        },
     },
     transactionMerge: {
         listPage: {
@@ -5480,6 +5499,12 @@ const translations = {
                     "Les balises multi-niveaux vous aident à suivre les dépenses avec plus de précision. Assignez plusieurs balises à chaque poste—comme le département, le client ou le centre de coût—pour capturer le contexte complet de chaque dépense. Cela permet des rapports plus détaillés, des flux de travail d'approbation et des exportations comptables.",
                 onlyAvailableOnPlan: 'Les balises multi-niveaux sont uniquement disponibles sur le plan Control, à partir de',
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
+                title: "Niveaux d'approbation multiples",
+                description:
+                    "Les niveaux d'approbation multiples sont un outil de flux de travail pour les entreprises qui exigent que plus d'une personne approuve un rapport avant qu'il ne puisse être remboursé.",
+                onlyAvailableOnPlan: "Les niveaux d'approbation multiples sont uniquement disponibles sur le plan Control, à partir de ",
+            },
             pricing: {
                 perActiveMember: 'par membre actif par mois.',
                 perMember: 'par membre par mois.',
@@ -6396,7 +6421,8 @@ const translations = {
         levelThreeResult: 'Message supprimé du canal avec un avertissement anonyme et le message est signalé pour examen.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invitez-les',
+        inviteToSubmitExpense: 'Inviter à soumettre des dépenses',
+        inviteToChat: 'Inviter uniquement à discuter',
         nothing: 'Ne rien faire',
     },
     actionableMentionJoinWorkspaceOptions: {
