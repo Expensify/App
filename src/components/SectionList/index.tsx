@@ -1,8 +1,8 @@
-import React, {forwardRef} from 'react';
+import React from 'react';
 import BaseSectionList from './BaseSectionList';
-import type {SectionListProps, SectionListRef} from './types';
+import type {SectionListProps} from './types';
 
-function SectionList<ItemT, SectionT>(props: SectionListProps<ItemT, SectionT>, ref: SectionListRef<ItemT, SectionT>) {
+function SectionList<ItemT, SectionT>({ref, ...props}: SectionListProps<ItemT, SectionT>) {
     return (
         <BaseSectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -14,4 +14,4 @@ function SectionList<ItemT, SectionT>(props: SectionListProps<ItemT, SectionT>, 
 
 SectionList.displayName = 'SectionList';
 
-export default forwardRef(SectionList);
+export default SectionList;
