@@ -1,8 +1,6 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type { NativeSyntheticEvent, TextInputFocusEventData} from 'react-native';
-import {InteractionManager, Keyboard, Platform, View,Dimensions} from 'react-native';
-import {KeyboardAwareScrollView, useKeyboardHandler} from 'react-native-keyboard-controller';
-import {useSharedValue} from 'react-native-reanimated';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {InteractionManager, Keyboard, View} from 'react-native';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -11,13 +9,11 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
-import SplitListItem from '@components/SelectionList/SplitListItem';
-import type {SectionListDataType, SplitListItemType,SelectionListHandle, SplitListItemProps} from '@components/SelectionList/types';
+import type {SectionListDataType, SplitListItemType} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addSplitExpenseField, initDraftSplitExpenseDataForEdit, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
@@ -36,79 +32,27 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
 
 type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
 
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const screenHeight = Dimensions.get('window').height;
-    const viewRef = React.useRef<View>(null);
-    const bottomOffset = useRef<number>(0);
-    const footerHeight = useRef<number>(0);
-    const keyboardHeight = useSharedValue(0);
-    const obj = useSafeAreaPaddings();
-    const listRef = useRef<SelectionListHandle>(null);
-    const [inputIndexIsFocused, setInputIndexIsFocused] = useState(-1);
+    const {listRef,
+        inputIndexIsFocused,
+        viewRef,
+        footerHeight,
+        bottomOffset,
+        scrollToFocusedInput,
+        SplitListItem
+    } = useDisplayFocusedInputUnderKeyboard();
 
-    const handleInputFocus = useCallback((index: number) => {
-        setInputIndexIsFocused(index);
-    }, []);
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleInputBlur = useCallback((e: NativeSyntheticEvent<TextInputFocusEventData>) => {
-        setInputIndexIsFocused(-1);
-    }, []);
-
-    useKeyboardHandler({
-        onStart: (e) => {
-            'worklet';
-            
-            keyboardHeight.value = e.height;
-        },
-        onMove: (e) => {
-            'worklet';
-
-            keyboardHeight.value = e.height;
-        },
-        onEnd: (e) => {
-            'worklet';
-
-            keyboardHeight.value = e.height;
-        },
-    });
-
-    const measureAbsolutePosition = () => {
-        if (!viewRef.current) {
-            return;
-        }
-        viewRef.current.measureInWindow((x, y, width, height) => {
-            if (keyboardHeight.value >= 1.0) {
-                return;
-            }
-            if (Platform.OS === 'ios') {
-                bottomOffset.current = screenHeight - obj.paddingTop - obj.paddingBottom - height + footerHeight.current + 28 + 20;
-                return;
-            }
-            if (Platform.OS === 'android') {
-                bottomOffset.current = screenHeight - obj.paddingTop - obj.paddingBottom - height + footerHeight.current + 20 + 20;
-                return;
-            }
-            if (Platform.OS === 'web') {
-                listRef.current?.scrollToFocusedInput(inputIndexIsFocused);
-            }
-        });
-    };
 
     useEffect(() => {
-        measureAbsolutePosition();
+        scrollToFocusedInput();
+        console.log("ejeijofr");
     }, [inputIndexIsFocused]);
-
-    const SplitListItemWithFocus = useCallback(
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        (props: SplitListItemProps<SplitListItemType>) => <SplitListItem onInputFocus={handleInputFocus} onInputBlur={handleInputBlur} {...props} />,
-    [handleInputFocus, handleInputBlur]
-);
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
@@ -234,7 +178,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 onLayout={(event) => {
                     const {height} = event.nativeEvent.layout;
                     footerHeight.current = height;
-                    measureAbsolutePosition();
+                    scrollToFocusedInput();
                 }}
                 style={[styles.pt3]}
             >
@@ -276,7 +220,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     ref={viewRef}
                     style={[styles.flex1]}
                     onLayout={() => {
-                        measureAbsolutePosition();
+                        scrollToFocusedInput();
                     }}
                 >
                     <HeaderWithBackButton
@@ -306,7 +250,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         headerContent={headerContent}
                         sections={sections}
                         initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                        ListItem={SplitListItemWithFocus}
+                        ListItem={SplitListItem}
                         containerStyle={[styles.flexBasisAuto, styles.pt1]}
                         footerContent={footerContent}
                         disableKeyboardShortcuts

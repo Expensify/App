@@ -49,7 +49,7 @@ export default function useTackInputFocus(enable = false): boolean {
         return () => {
             window.removeEventListener('focusin', handleFocusIn);
             window.removeEventListener('focusout', handleFocusOut);
-            // window.visualViewport?.removeEventListener('scroll', resetScrollPositionOnVisualViewport);
+            window.visualViewport?.removeEventListener('scroll', resetScrollPositionOnVisualViewport);
         };
     }, [enable, handleFocusIn, handleFocusOut]);
 
