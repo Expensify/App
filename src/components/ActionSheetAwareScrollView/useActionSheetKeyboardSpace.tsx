@@ -153,12 +153,10 @@ function useActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
                 if (popoverHeight) {
                     if (previousElementOffset !== 0 || elementOffset > previousElementOffset) {
                         const returnValue = elementOffset < 0 ? 0 : elementOffset;
-                        return returnValue;
                         return withSpring(returnValue, SPRING_CONFIG);
                     }
 
                     const returnValue = Math.max(previousElementOffset, 0);
-                    return returnValue;
                     return withSpring(returnValue, SPRING_CONFIG);
                 }
 
