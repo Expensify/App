@@ -1,9 +1,11 @@
 import React, {useCallback, useMemo} from 'react';
 import type {TupleToUnion} from 'type-fest';
 import Badge from '@components/Badge';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
@@ -24,6 +26,7 @@ import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
@@ -187,15 +190,8 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
         return sortAlphabetically(list, 'text', localeCompare);
     }, [deriveStatus, localeCompare, policy?.employeeList, translate, isOffline, styles.ml3]);
 
-    const filterMembers = useCallback(
-        (tab: ReceiptPartnersTab) => {
-            const {debouncedSearchTerm} = getSearchStateForTab(tab);
-            const search = debouncedSearchTerm.trim().toLowerCase();
-            let data = members;
-            if (search) {
-                data = tokenizedSearch(members, search, (m) => [m.text ?? '', m.alternateText ?? '']);
-            }
-
+    const applyTabStatusFilter = useCallback(
+        (tab: ReceiptPartnersTab, data: MemberForList[]) => {
             if (tab === CONST.TAB.RECEIPT_PARTNERS.ALL) {
                 return data;
             }
@@ -220,7 +216,22 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 return status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE;
             });
         },
-        [deriveStatus, members, getSearchStateForTab],
+        [deriveStatus],
+    );
+
+    const getMembersForTabWithoutSearch = useCallback((tab: ReceiptPartnersTab) => applyTabStatusFilter(tab, members), [applyTabStatusFilter, members]);
+
+    const filterMembers = useCallback(
+        (tab: ReceiptPartnersTab) => {
+            const {debouncedSearchTerm} = getSearchStateForTab(tab);
+            const search = debouncedSearchTerm.trim().toLowerCase();
+            let data = members;
+            if (search) {
+                data = tokenizedSearch(members, search, (m) => [m.text ?? '', m.alternateText ?? '']);
+            }
+            return applyTabStatusFilter(tab, data);
+        },
+        [applyTabStatusFilter, getSearchStateForTab, members],
     );
 
     const buildSections = useCallback(
@@ -232,6 +243,22 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
             },
         ],
         [],
+    );
+
+    const listEmptyContent = useMemo(
+        () => (
+            <BlockingView
+                icon={Illustrations.ToddBehindCloud}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workspace.receiptPartners.uber.emptyContent.title')}
+                subtitle={translate('workspace.receiptPartners.uber.emptyContent.subtitle')}
+                subtitleStyle={styles.textSupporting}
+                containerStyle={styles.pb10}
+                contentFitImage="contain"
+            />
+        ),
+        [translate, styles.textSupporting, styles.pb10],
     );
 
     return (
@@ -259,6 +286,9 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                             {() => {
                                 const {searchTerm, debouncedSearchTerm, setSearchTerm} = getSearchStateForTab(tabName);
                                 const filteredMembers = filterMembers(tabName);
+                                const baseTabMembersCount = getMembersForTabWithoutSearch(tabName).length;
+                                const shouldShowListEmptyContent = baseTabMembersCount < CONST.STANDARD_LIST_ITEM_LIMIT;
+                                const shouldShowTextInput = !shouldShowListEmptyContent;
 
                                 // Determine header message for search results
                                 const searchValue = debouncedSearchTerm.trim().toLowerCase();
@@ -275,11 +305,14 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                             onSelectRow={() => {}}
                                             listItemWrapperStyle={styles.cursorDefault}
                                             addBottomSafeAreaPadding
-                                            textInputLabel={translate('common.search')}
+                                            shouldShowTextInput={shouldShowTextInput}
+                                            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
                                             textInputValue={searchTerm}
                                             onChangeText={setSearchTerm}
                                             headerMessage={currentHeaderMessage}
                                             sections={buildSections(filteredMembers)}
+                                            listEmptyContent={listEmptyContent}
+                                            shouldShowListEmptyContent={shouldShowListEmptyContent}
                                             sectionListStyle={styles.pt3}
                                         />
                                     </TabScreenWithFocusTrapWrapper>
