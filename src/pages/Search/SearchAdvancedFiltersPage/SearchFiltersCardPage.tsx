@@ -60,8 +60,7 @@ function SearchFiltersCardPage() {
     );
 
     const shouldShowSearchInput =
-        cardFeedsSectionData.selected.length + cardFeedsSectionData.unselected.length + individualCardsSectionData.selected.length + individualCardsSectionData.unselected.length >
-        CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD;
+        cardFeedsSectionData.length + cardFeedsSectionData.length + individualCardsSectionData.length + individualCardsSectionData.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD;
 
     const searchFunction = useCallback(
         (item: CardFilterItem) =>
@@ -78,43 +77,33 @@ function SearchFiltersCardPage() {
         }
 
         const newSections = [];
-        const selectedItems = [...cardFeedsSectionData.selected, ...individualCardsSectionData.selected, ...closedCardsSectionData.selected];
+        // const selectedItems = [...cardFeedsSectionData.selected, ...individualCardsSectionData.selected, ...closedCardsSectionData.selected];
 
-        newSections.push({
-            title: undefined,
-            data: selectedItems.filter(searchFunction),
-            shouldShow: selectedItems.length > 0,
-        });
+        // newSections.push({
+        //     title: undefined,
+        //     data: selectedItems.filter(searchFunction),
+        //     shouldShow: selectedItems.length > 0,
+        // });
         newSections.push({
             title: translate('search.filters.card.cardFeeds'),
-            data: cardFeedsSectionData.unselected.filter(searchFunction),
-            shouldShow: cardFeedsSectionData.unselected.length > 0,
+            data: cardFeedsSectionData.filter(searchFunction),
+            shouldShow: cardFeedsSectionData.length > 0,
         });
         newSections.push({
             title: translate('search.filters.card.individualCards'),
-            data: individualCardsSectionData.unselected.filter(searchFunction),
-            shouldShow: individualCardsSectionData.unselected.length > 0,
+            data: individualCardsSectionData.filter(searchFunction),
+            shouldShow: individualCardsSectionData.length > 0,
         });
         newSections.push({
             title: translate('search.filters.card.closedCards'),
-            data: closedCardsSectionData.unselected.filter(searchFunction),
-            shouldShow: closedCardsSectionData.unselected.length > 0,
+            data: closedCardsSectionData.filter(searchFunction),
+            shouldShow: closedCardsSectionData.length > 0,
         });
         return newSections;
-    }, [
-        searchAdvancedFiltersForm,
-        cardFeedsSectionData.selected,
-        cardFeedsSectionData.unselected,
-        individualCardsSectionData.selected,
-        individualCardsSectionData.unselected,
-        closedCardsSectionData.selected,
-        closedCardsSectionData.unselected,
-        searchFunction,
-        translate,
-    ]);
+    }, [searchAdvancedFiltersForm, cardFeedsSectionData, individualCardsSectionData, closedCardsSectionData, searchFunction, translate]);
 
     const handleConfirmSelection = useCallback(() => {
-        const feeds = cardFeedsSectionData.selected.map((feed) => feed.cardFeedKey);
+        const feeds = cardFeedsSectionData.filter((feed) => feed.isSelected).map((feed) => feed.cardFeedKey);
         const cardsFromSelectedFeed = getSelectedCardsFromFeeds(userCardList, workspaceCardFeeds, feeds);
         const IDs = selectedCards.filter((card) => !cardsFromSelectedFeed.includes(card));
 
@@ -124,7 +113,7 @@ function SearchFiltersCardPage() {
         });
 
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-    }, [userCardList, selectedCards, cardFeedsSectionData.selected, workspaceCardFeeds]);
+    }, [userCardList, selectedCards, cardFeedsSectionData, workspaceCardFeeds]);
 
     const updateNewCards = useCallback(
         (item: CardFilterItem) => {
