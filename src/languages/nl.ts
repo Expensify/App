@@ -58,6 +58,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -292,6 +293,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceMembersCountParams,
@@ -587,6 +589,7 @@ const translations = {
         network: 'Netwerk',
         reportID: 'Rapport-ID',
         longID: 'Lang ID',
+        withdrawalID: 'Opname-ID',
         bankAccounts: 'Bankrekeningen',
         chooseFile: 'Bestand kiezen',
         chooseFiles: 'Bestanden kiezen',
@@ -1091,13 +1094,13 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `verwijderde een uitgave (${amount} voor ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `verplaatste een uitgave${reportName ? `van ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `heeft deze uitgave verplaatst${reportName ? `naar <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `heeft deze uitgave naar uw <a href="${reportUrl}">persoonlijke ruimte</a> verplaatst`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
                 return `heeft dit rapport verplaatst naar de <a href="${newParentReportUrl}">${toPolicyName}</a> werkruimte`;
             }
             return `heeft dit <a href="${movedReportUrl}">rapport</a> verplaatst naar de <a href="${newParentReportUrl}">${toPolicyName}</a> werkruimte`;
         },
-        unreportedTransaction: 'heeft deze uitgave naar uw persoonlijke ruimte verplaatst',
         pendingMatchWithCreditCard: 'Bon is in afwachting van een overeenkomst met kaarttransactie',
         pendingMatch: 'In afwachting van overeenkomst',
         pendingMatchWithCreditCardDescription: 'Ontvangst in afwachting van overeenkomst met kaarttransactie. Markeer als contant om te annuleren.',
@@ -1296,9 +1299,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Het lijkt erop dat je geen niet-gerapporteerde uitgaven hebt. Probeer er hieronder een aan te maken.',
         addUnreportedExpenseConfirm: 'Toevoegen aan rapport',
         explainHold: 'Leg uit waarom je deze uitgave vasthoudt.',
-        undoSubmit: 'Ongedaan maken indienen',
         retracted: 'ingetrokken',
-        undoClose: 'Sluiten ongedaan maken',
+        retract: 'Intrekken',
         reopened: 'heropend',
         reopenReport: 'Rapport heropenen',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
@@ -1383,6 +1385,22 @@ const translations = {
         rates: 'Tarieven',
         submitsTo: ({name}: SubmitsToParams) => `Dient in bij ${name}`,
         moveExpenses: () => ({one: 'Verplaats uitgave', other: 'Verplaats uitgaven'}),
+        changeApprover: {
+            title: 'Goedkeurder wijzigen',
+            subtitle: 'Kies een optie om de goedkeurder voor dit rapport te wijzigen.',
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `U kunt de goedkeurder ook permanent wijzigen voor alle rapporten in uw <a href="${workflowSettingLink}">workflow-instellingen</a>.`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `wijzigde de goedkeurder naar <mention-user accountID="${managerID}"/>`,
+            actions: {
+                addApprover: 'Goedkeurder toevoegen',
+                addApproverSubtitle: 'Voeg een extra goedkeurder toe aan de bestaande workflow.',
+                bypassApprovers: 'Goedkeurders omzeilen',
+                bypassApproversSubtitle: 'Wijs uzelf toe als definitieve goedkeurder en sla de resterende goedkeurders over.',
+            },
+            addApprover: {
+                subtitle: 'Kies een extra goedkeurder voor dit rapport voordat we het via de rest van de goedkeuringsworkflow sturen.',
+            },
+        },
     },
     transactionMerge: {
         listPage: {
@@ -4900,8 +4918,8 @@ const translations = {
             updateTaxCodeFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de belastingcode, probeer het opnieuw.',
         },
         emptyWorkspace: {
-            title: 'Maak een werkruimte aan',
-            subtitle: 'Maak een werkruimte om bonnetjes bij te houden, uitgaven te vergoeden, reizen te beheren, facturen te versturen en meer — allemaal op de snelheid van chat.',
+            title: 'Je hebt geen werkruimtes',
+            subtitle: 'Beheer bonnetjes, vergoed uitgaven, regel reizen, verstuur facturen en meer.',
             createAWorkspaceCTA: 'Aan de slag',
             features: {
                 trackAndCollect: 'Volg en verzamel bonnetjes',
@@ -5478,6 +5496,11 @@ const translations = {
                 description:
                     'Multi-Level Tags helpen je om uitgaven met grotere precisie bij te houden. Ken meerdere tags toe aan elk regelitem—zoals afdeling, klant of kostenplaats—om de volledige context van elke uitgave vast te leggen. Dit maakt gedetailleerdere rapportage, goedkeuringsworkflows en boekhouduitvoer mogelijk.',
                 onlyAvailableOnPlan: 'Multi-level tags zijn alleen beschikbaar op het Control-plan, beginnend bij',
+            },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
+                title: 'Meerdere goedkeuringsniveaus',
+                description: 'Meerdere goedkeuringsniveaus is een workflowtool voor bedrijven die vereisen dat meer dan één persoon een rapport goedkeurt voordat het kan worden vergoed.',
+                onlyAvailableOnPlan: 'Meerdere goedkeuringsniveaus zijn alleen beschikbaar op het Control-plan, vanaf ',
             },
             pricing: {
                 perActiveMember: 'per actief lid per maand.',
@@ -6241,7 +6264,15 @@ const translations = {
                 changeType: ({oldType, newType}: ChangeTypeParams) => `veranderde type van ${oldType} naar ${newType}`,
                 exportedToCSV: `geëxporteerd naar CSV`,
                 exportedToIntegration: {
-                    automatic: ({label}: ExportedToIntegrationParams) => `geëxporteerd naar ${label}`,
+                    automatic: ({label}: ExportedToIntegrationParams) => {
+                        // The label will always be in English, so we need to translate it
+                        const labelTranslations: Record<string, string> = {
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                        };
+                        const translatedLabel = labelTranslations[label] || label;
+                        return `geëxporteerd naar ${translatedLabel}`;
+                    },
                     automaticActionOne: ({label}: ExportedToIntegrationParams) => `geëxporteerd naar ${label} via`,
                     automaticActionTwo: 'boekhoudingsinstellingen',
                     manual: ({label}: ExportedToIntegrationParams) => `heeft dit rapport gemarkeerd als handmatig geëxporteerd naar ${label}.`,
@@ -6386,8 +6417,9 @@ const translations = {
         levelThreeResult: 'Bericht verwijderd uit kanaal plus anonieme waarschuwing en bericht is gerapporteerd voor beoordeling.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Nodig hen uit',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Uitnodigen om onkosten in te dienen',
+        inviteToChat: 'Alleen uitnodigen om te chatten',
+        nothing: 'Niets doen',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accepteren',
@@ -6539,8 +6571,7 @@ const translations = {
         overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Bedrag boven ${formattedLimit}/ritlimiet`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Bedrag boven ${formattedLimit}/persoon limiet`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Bedrag boven de dagelijkse ${formattedLimit}/persoon categoriegrens`,
-        receiptNotSmartScanned:
-            'Bon en uitgavendetails handmatig toegevoegd. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Meer weten</a>.',
+        receiptNotSmartScanned: 'Bon en uitgavendetails handmatig toegevoegd.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Bon vereist';
             if (formattedLimit ?? category) {
@@ -7049,7 +7080,7 @@ const translations = {
         takeATestDrive: 'Maak een proefrit',
     },
     migratedUserWelcomeModal: {
-        title: 'Reizen en uitgaven, met de snelheid van chat',
+        title: 'Welkom bij New Expensify!',
         subtitle: 'Nieuwe Expensify heeft dezelfde geweldige automatisering, maar nu met geweldige samenwerking:',
         confirmText: 'Laten we gaan!',
         features: {

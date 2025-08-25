@@ -561,6 +561,8 @@ const ONYXKEYS = {
     /** List of transaction thread IDs used when navigating to prev/next transaction when viewing it in RHP */
     TRANSACTION_THREAD_NAVIGATION_REPORT_IDS: 'transactionThreadNavigationReportIDs',
 
+    REPORT_NAVIGATION_LAST_SEARCH_QUERY: 'ReportNavigationLastSearchQuery',
+
     /** Timestamp of the last login on iOS */
     NVP_LAST_ECASH_IOS_LOGIN: 'nvp_lastECashIOSLogin',
     NVP_LAST_IPHONE_LOGIN: 'nvp_lastiPhoneLogin',
@@ -589,7 +591,6 @@ const ONYXKEYS = {
         // should not be included as part of the policy object. The policy
         // object should mirror the data as it's stored in the database.
         POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED: 'policyHasConnectionsDataBeenFetched_',
-        OLD_POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
         POLICY_CONNECTION_SYNC_PROGRESS: 'policyConnectionSyncProgress_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
@@ -1027,7 +1028,6 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.MERGE_TRANSACTION]: OnyxTypes.MergeTransaction;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
-    [ONYXKEYS.COLLECTION.OLD_POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
     [ONYXKEYS.COLLECTION.SELECTED_TAB]: OnyxTypes.SelectedTabRequest;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME]: string;
@@ -1235,6 +1235,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_LAST_IPHONE_LOGIN]: string;
     [ONYXKEYS.NVP_LAST_ANDROID_LOGIN]: string;
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS]: string[];
+    [ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY]: OnyxTypes.LastSearchParams;
     [ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES]: OnyxTypes.ExportTemplate[];
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;

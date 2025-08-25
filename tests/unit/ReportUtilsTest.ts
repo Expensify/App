@@ -43,6 +43,7 @@ import {
     getInvoiceChatByParticipants,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
+    getParentNavigationSubtitle,
     getParticipantsList,
     getPolicyExpenseChat,
     getReasonAndReportActionThatRequiresAttention,
@@ -69,6 +70,7 @@ import {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
+    sortIconsByName,
     sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
@@ -336,7 +338,7 @@ describe('ReportUtils', () => {
                 '1',
             );
 
-            expect(title).toBeCalledWith(
+            expect(title).toHaveBeenCalledWith(
                 expect.objectContaining<OnboardingTaskLinks>({
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     testDriveURL: expect.any(String),
@@ -365,7 +367,7 @@ describe('ReportUtils', () => {
                 '1',
             );
 
-            expect(description).toBeCalledWith(
+            expect(description).toHaveBeenCalledWith(
                 expect.objectContaining<OnboardingTaskLinks>({
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     testDriveURL: expect.any(String),
@@ -375,19 +377,37 @@ describe('ReportUtils', () => {
     });
 
     describe('getIconsForParticipants', () => {
-        it('returns sorted avatar source by name, then accountID', () => {
+        it('returns avatar source', () => {
             const participants = getIconsForParticipants([1, 2, 3, 4, 5], participantsPersonalDetails);
             expect(participants).toHaveLength(5);
 
-            expect(participants.at(0)?.source).toBeInstanceOf(Function);
-            expect(participants.at(0)?.name).toBe('(833) 240-3627');
-            expect(participants.at(0)?.id).toBe(4);
-            expect(participants.at(0)?.type).toBe('avatar');
+            expect(participants.at(3)?.source).toBeInstanceOf(Function);
+            expect(participants.at(3)?.name).toBe('(833) 240-3627');
+            expect(participants.at(3)?.id).toBe(4);
+            expect(participants.at(3)?.type).toBe('avatar');
 
             expect(participants.at(1)?.source).toBeInstanceOf(Function);
             expect(participants.at(1)?.name).toBe('floki@vikings.net');
             expect(participants.at(1)?.id).toBe(2);
             expect(participants.at(1)?.type).toBe('avatar');
+        });
+    });
+
+    describe('sortIconsByName', () => {
+        it('returns sorted avatar source by name, then accountID', () => {
+            const participants = getIconsForParticipants([1, 2, 3, 4, 5], participantsPersonalDetails);
+            const sortedParticipants = sortIconsByName(participants, participantsPersonalDetails, localeCompare);
+            expect(sortedParticipants).toHaveLength(5);
+
+            expect(sortedParticipants.at(0)?.source).toBeInstanceOf(Function);
+            expect(sortedParticipants.at(0)?.name).toBe('(833) 240-3627');
+            expect(sortedParticipants.at(0)?.id).toBe(4);
+            expect(sortedParticipants.at(0)?.type).toBe('avatar');
+
+            expect(sortedParticipants.at(1)?.source).toBeInstanceOf(Function);
+            expect(sortedParticipants.at(1)?.name).toBe('floki@vikings.net');
+            expect(sortedParticipants.at(1)?.id).toBe(2);
+            expect(sortedParticipants.at(1)?.type).toBe('avatar');
         });
     });
 
@@ -917,6 +937,48 @@ describe('ReportUtils', () => {
             expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
                 'submitted via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows">delay submissions</a>',
             );
+        });
+    });
+
+    describe('getParentNavigationSubtitle', () => {
+        const baseArchivedPolicyExpenseChat = {
+            reportID: '2',
+            lastReadTime: '2024-02-01 04:56:47.233',
+            parentReportActionID: '1',
+            parentReportID: '1',
+            reportName: 'Base Report',
+            type: CONST.REPORT.TYPE.INVOICE,
+        };
+
+        const reports: Report[] = [
+            {
+                reportID: '1',
+                lastReadTime: '2024-02-01 04:56:47.233',
+                reportName: 'Report',
+                policyName: 'A workspace',
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
+            },
+            baseArchivedPolicyExpenseChat,
+        ];
+
+        beforeAll(() => {
+            const reportCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, reports, (report) => report.reportID);
+            Onyx.multiSet({
+                ...reportCollectionDataSet,
+            });
+            return waitForBatchedUpdates();
+        });
+
+        it('should return the correct parent navigation subtitle for the archived invoice report', () => {
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, true);
+            const normalizedActual = {...actual, reportName: actual.reportName?.replace(/\u00A0/g, ' ')};
+            expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
+        });
+
+        it('should return the correct parent navigation subtitle for the non archived invoice report', () => {
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, false);
+            const normalizedActual = {...actual, reportName: actual.reportName?.replace(/\u00A0/g, ' ')};
+            expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok'});
         });
     });
 
