@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import type {Report} from '@src/types/onyx';
 
-function useIsReportReadyToDisplay(report: OnyxEntry<Report>, reportIDFromRoute: string | undefined) {
+function useIsReportReadyToDisplay(report: OnyxEntry<Report>, reportIDFromRoute: string | undefined, isReportArchived = false) {
     /**
      * When false the report is not ready to be fully displayed
      */
@@ -13,7 +13,10 @@ function useIsReportReadyToDisplay(report: OnyxEntry<Report>, reportIDFromRoute:
         return reportIDFromRoute !== '' && !!report?.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
-    const isEditingDisabled = useMemo(() => !isCurrentReportLoadedFromOnyx || !canUserPerformWriteAction(report), [isCurrentReportLoadedFromOnyx, report]);
+    const isEditingDisabled = useMemo(
+        () => !isCurrentReportLoadedFromOnyx || !canUserPerformWriteAction(report, isReportArchived),
+        [isCurrentReportLoadedFromOnyx, report, isReportArchived],
+    );
 
     return {
         isCurrentReportLoadedFromOnyx,

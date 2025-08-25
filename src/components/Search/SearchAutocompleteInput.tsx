@@ -8,7 +8,6 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -24,10 +23,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import getSearchFiltersButtonTransition from './getSearchFiltersButtonTransition.ts/index';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
-
-const SearchFiltersButtonTransition = getSearchFiltersButtonTransition();
 
 type SearchAutocompleteInputProps = {
     /** Value of TextInput */
@@ -93,7 +89,7 @@ function SearchAutocompleteInput(
         selection,
         substitutionMap,
     }: SearchAutocompleteInputProps,
-    ref: ForwardedRef<BaseTextInputRef>,
+    forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -203,7 +199,6 @@ function SearchAutocompleteInput(
                         onChangeText={onSearchQueryChange}
                         autoFocus={autoFocus}
                         caretHidden={caretHidden}
-                        loadingSpinnerStyle={[styles.mt0, styles.mr0, styles.justifyContentCenter]}
                         role={CONST.ROLE.PRESENTATION}
                         placeholder={translate('search.searchPlaceholder')}
                         autoCapitalize="none"
@@ -218,6 +213,7 @@ function SearchAutocompleteInput(
                         textInputContainerStyles={[styles.borderNone, styles.pb0, styles.pl3]}
                         inputStyle={[inputWidth, styles.lineHeightUndefined]}
                         placeholderTextColor={theme.textSupporting}
+                        loadingSpinnerStyle={[styles.mt0, styles.mr1, styles.justifyContentCenter]}
                         onFocus={() => {
                             onFocus?.();
                             autocompleteListRef?.current?.updateExternalTextInputFocus(true);
@@ -226,27 +222,20 @@ function SearchAutocompleteInput(
                         onBlur={() => {
                             autocompleteListRef?.current?.updateExternalTextInputFocus(false);
                             focusedSharedValue.set(false);
+
                             onBlur?.();
                         }}
                         isLoading={isSearchingForReports}
-                        ref={ref}
+                        ref={forwardedRef}
                         type="markdown"
                         multiline={false}
                         parser={parser}
                         selection={selection}
+                        shouldShowClearButton={!!value && !isSearchingForReports}
+                        shouldHideClearButton={false}
+                        onClearInput={clearFilters}
                     />
                 </View>
-                {!!value && (
-                    <Animated.View
-                        style={styles.pr3}
-                        layout={SearchFiltersButtonTransition}
-                    >
-                        <TextInputClearButton
-                            onPressButton={clearFilters}
-                            style={styles.mt0}
-                        />
-                    </Animated.View>
-                )}
             </Animated.View>
             <FormHelpMessage
                 style={styles.ph3}

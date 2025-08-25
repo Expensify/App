@@ -1,5 +1,7 @@
 import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
 import ImageSize from 'react-native-image-size';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import DateUtils from '@libs/DateUtils';
@@ -272,19 +274,55 @@ function validateImageForCorruption(file: FileObject): Promise<{width: number; h
 
 /** Verify file format based on the magic bytes of the file - some formats might be identified by multiple signatures */
 function verifyFileFormat({fileUri, formatSignatures}: {fileUri: string; formatSignatures: readonly string[]}) {
-    return fetch(fileUri)
-        .then((file) => file.arrayBuffer())
-        .then((arrayBuffer) => {
-            const uintArray = new Uint8Array(arrayBuffer, 4, 12);
+    const BYTES_TO_READ = 1028;
 
-            const hexString = Array.from(uintArray)
+    const cleanUri = fileUri.replace('file://', '');
+
+    return ReactNativeBlobUtil.fs
+        .readStream(cleanUri, 'base64', BYTES_TO_READ, 0)
+        .then((stream: ReactNativeBlobUtilReadStream) => {
+            let base64Chunk = '';
+
+            return new Promise<string>((resolve, reject) => {
+                stream.open();
+
+                stream.onData((chunk: string | number[]) => {
+                    const chunkStr = Array.isArray(chunk) ? String.fromCharCode(...chunk) : chunk;
+                    base64Chunk += chunkStr;
+                });
+
+                stream.onError((error: Error) => {
+                    reject(error);
+                });
+
+                stream.onEnd(() => {
+                    resolve(base64Chunk);
+                });
+            });
+        })
+        .then((base64Data: string) => {
+            const binary = Buffer.from(base64Data, 'base64').toString('binary');
+
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+
+            const startIndex = Math.min(4, bytes.length);
+            const endIndex = Math.min(16, bytes.length);
+            const view = bytes.subarray(startIndex, endIndex);
+
+            const hex = Array.from(view)
                 .map((b) => b.toString(16).padStart(2, '0'))
                 .join('');
 
-            return hexString;
+            return hex;
         })
-        .then((hexSignature) => {
+        .then((hexSignature: string) => {
             return formatSignatures.some((signature) => hexSignature.startsWith(signature));
+        })
+        .catch(() => {
+            return false;
         });
 }
 

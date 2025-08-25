@@ -68,7 +68,6 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
             onClose={onClose}
             onModalHide={onClose}
             onBackdropPress={onBackdropPress}
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={[styles.pb0]}

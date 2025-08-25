@@ -26,7 +26,6 @@ function Help({shouldHideSidePanel, closeSidePanel}: HelpProps) {
             isVisible={!shouldHideSidePanel}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             shouldHandleNavigationBack
-            shouldUseReanimatedModal
         >
             <HelpContent closeSidePanel={closeSidePanel} />
         </Modal>

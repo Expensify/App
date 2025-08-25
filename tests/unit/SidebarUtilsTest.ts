@@ -6,6 +6,8 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
+// eslint-disable-next-line no-restricted-syntax
+import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, getAllReportErrors, getDisplayNameForParticipant, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -32,6 +34,12 @@ jest.mock('@libs/DraftCommentUtils', () => ({
     getDraftComment: jest.fn(),
     isValidDraftComment: jest.fn(),
     prepareDraftComment: jest.fn(),
+}));
+
+// Mock PolicyUtils
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    getConnectedIntegration: jest.fn(() => true),
 }));
 
 describe('SidebarUtils', () => {
@@ -1251,7 +1259,7 @@ describe('SidebarUtils', () => {
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
-                expect(result?.alternateText).toBe(`You invited 1 member`);
+                expect(result?.alternateText).toBe(`You: invited 1 member`);
             });
             it('returns the last action message as an alternate text if the action is MOVED type', async () => {
                 const report: Report = {
@@ -1484,14 +1492,15 @@ describe('SidebarUtils', () => {
     describe('sortReportsToDisplayInLHN', () => {
         describe('categorizeReportsForLHN', () => {
             it('should categorize reports into correct groups', () => {
-                // Given hasValidDraftComment is mocked to return true for report '2'
-                const {hasValidDraftComment} = require('@libs/DraftCommentUtils') as {hasValidDraftComment: jest.Mock};
-                hasValidDraftComment.mockImplementation((reportID: string) => reportID === '2');
-
                 const {reports, reportNameValuePairs, reportAttributes} = createSidebarTestData();
 
+                // Given draftReportComments with a draft for report '2'
+                const draftReportComments = {
+                    '2': 'This is a draft comment',
+                };
+
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, reportNameValuePairs, reportAttributes);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, reportNameValuePairs, reportAttributes, draftReportComments);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
@@ -1527,7 +1536,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, reportAttributes);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, reportAttributes, undefined);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
@@ -1554,7 +1563,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, undefined, undefined);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(0);
@@ -1568,7 +1577,7 @@ describe('SidebarUtils', () => {
 
             it('should handle empty reports object', () => {
                 // Given the reports are empty
-                const result = SidebarUtils.categorizeReportsForLHN({});
+                const result = SidebarUtils.categorizeReportsForLHN({}, undefined, undefined, undefined);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(0);
@@ -1576,6 +1585,37 @@ describe('SidebarUtils', () => {
                 expect(result.draftReports).toHaveLength(0);
                 expect(result.nonArchivedReports).toHaveLength(0);
                 expect(result.archivedReports).toHaveLength(0);
+            });
+
+            it('should categorize draft reports using draftReportComments parameter', () => {
+                // Given reports with no drafts initially
+                const reports = createSidebarReportsCollection([
+                    {
+                        reportName: 'Report 1',
+                        isPinned: false,
+                        hasErrorsOtherThanFailedReceipt: false,
+                    },
+                    {
+                        reportName: 'Report 2',
+                        isPinned: false,
+                        hasErrorsOtherThanFailedReceipt: false,
+                    },
+                ]);
+
+                // Given draftReportComments with drafts for both reports
+                const draftReportComments = {
+                    '0': 'Draft comment for report 1',
+                    '1': 'Draft comment for report 2',
+                };
+
+                // When the reports are categorized
+                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, undefined, draftReportComments);
+
+                // Then both reports should be categorized as draft reports
+                expect(result.draftReports).toHaveLength(2);
+                expect(result.draftReports.at(0)?.reportID).toBe('0');
+                expect(result.draftReports.at(1)?.reportID).toBe('1');
+                expect(result.nonArchivedReports).toHaveLength(0);
             });
         });
 
@@ -1805,7 +1845,7 @@ describe('SidebarUtils', () => {
                 const priorityMode = CONST.PRIORITY_MODE.DEFAULT;
 
                 // When the reports are sorted
-                const result = SidebarUtils.sortReportsToDisplayInLHN(reports, priorityMode, mockLocaleCompare);
+                const result = SidebarUtils.sortReportsToDisplayInLHN(reports, priorityMode, mockLocaleCompare, undefined, undefined, undefined);
 
                 // Then the reports are sorted in the correct order
                 expect(result).toEqual(['0', '1', '2']); // Pinned first, Error second, Normal third
@@ -1831,10 +1871,10 @@ describe('SidebarUtils', () => {
                 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
                 // When the reports are sorted in default mode
-                const defaultResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.DEFAULT, mockLocaleCompare);
+                const defaultResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.DEFAULT, mockLocaleCompare, undefined, undefined, undefined);
 
                 // When the reports are sorted in GSD mode
-                const gsdResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.GSD, mockLocaleCompare);
+                const gsdResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.GSD, mockLocaleCompare, undefined, undefined, undefined);
 
                 // Then the reports are sorted in the correct order
                 expect(defaultResult).toEqual(['1', '0']); // Most recent first (index 1 has later date)

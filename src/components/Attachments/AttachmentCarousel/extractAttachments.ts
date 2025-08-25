@@ -21,12 +21,20 @@ function extractAttachments(
         parentReportAction,
         reportActions,
         report,
-    }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>; report: OnyxEntry<Report>},
+        isReportArchived,
+    }: {
+        privateNotes?: Record<number, Note>;
+        accountID?: number;
+        parentReportAction?: OnyxEntry<ReportAction>;
+        reportActions?: OnyxEntry<ReportActions>;
+        report: OnyxEntry<Report>;
+        isReportArchived?: boolean;
+    },
 ) {
     const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
     const description = report?.description ?? '';
     const attachments: Attachment[] = [];
-    const canUserPerformAction = canUserPerformWriteAction(report);
+    const canUserPerformAction = canUserPerformWriteAction(report, isReportArchived);
     let currentLink = '';
 
     const htmlParser = new HtmlParser({

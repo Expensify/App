@@ -1448,7 +1448,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
 
-    it('does not include the SPLIT option if the current user belongs to the workspace', async () => {
+    it('does not include the SPLIT option if the current user does not belong to the workspace', async () => {
         const report = {
             reportID: REPORT_ID,
             policyID: POLICY_ID,

@@ -1,12 +1,11 @@
 /**
  * A wrapper View component allowing us to register a container element for a FocusTrap
  */
-import type {ForwardedRef} from 'react';
 import React from 'react';
 import {View} from 'react-native';
 import type FocusTrapContainerElementProps from './FocusTrapContainerElementProps';
 
-function FocusTrapContainerElement({onContainerElementChanged, ...props}: FocusTrapContainerElementProps, ref?: ForwardedRef<View>) {
+function FocusTrapContainerElement({onContainerElementChanged, ref, ...props}: FocusTrapContainerElementProps) {
     return (
         <View
             ref={(node) => {
@@ -26,4 +25,4 @@ function FocusTrapContainerElement({onContainerElementChanged, ...props}: FocusT
 
 FocusTrapContainerElement.displayName = 'FocusTrapContainerElement';
 
-export default React.forwardRef(FocusTrapContainerElement);
+export default FocusTrapContainerElement;

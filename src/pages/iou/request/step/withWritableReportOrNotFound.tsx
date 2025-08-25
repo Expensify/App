@@ -1,5 +1,5 @@
-import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, {forwardRef, useEffect} from 'react';
+import type {ComponentType} from 'react';
+import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -57,12 +57,12 @@ type MoneyRequestRouteName =
 
 type WithWritableReportOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithWritableReportOrNotFoundOnyxProps & PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
 
-export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyRequestRouteName>, TRef>(
-    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyRequestRouteName>>(
+    WrappedComponent: ComponentType<TProps>,
     shouldIncludeDeprecatedIOUType = false,
-): React.ComponentType<Omit<TProps & RefAttributes<TRef>, keyof WithWritableReportOrNotFoundOnyxProps>> {
+): React.ComponentType<Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>> {
     // eslint-disable-next-line rulesdir/no-negated-variables
-    function WithWritableReportOrNotFound(props: Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>, ref: ForwardedRef<TRef>) {
+    function WithWritableReportOrNotFound(props: Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>) {
         const {route} = props;
         const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`, {canBeMissing: true});
         const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
@@ -96,14 +96,13 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
                 {...(props as TProps)}
                 report={report}
                 reportDraft={reportDraft}
-                ref={ref}
             />
         );
     }
 
     WithWritableReportOrNotFound.displayName = `withWritableReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    return forwardRef(WithWritableReportOrNotFound);
+    return WithWritableReportOrNotFound;
 }
 
 export type {WithWritableReportOrNotFoundProps};
