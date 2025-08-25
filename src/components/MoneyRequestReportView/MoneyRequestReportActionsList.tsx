@@ -724,6 +724,7 @@ function MoneyRequestReportActionsList({
                                     hasComments={reportHasComments}
                                     isLoadingInitialReportActions={showReportActionsLoadingState}
                                     scrollToNewTransaction={scrollToNewTransaction}
+                                    policy={policy}
                                 />
                             </>
                         }
