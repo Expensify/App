@@ -329,6 +329,7 @@ type PureReportActionItemProps = {
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
         formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
         policy: OnyxEntry<OnyxTypes.Policy>,
+        isReportArchived: boolean,
     ) => void;
 
     /** Whether the provided report is a closed expense report with no expenses */
@@ -830,6 +831,7 @@ function PureReportActionItem({
                             action,
                             CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE,
                             formatPhoneNumber,
+                            isReportArchived,
                         ),
                     isPrimary: true,
                 },
@@ -844,7 +846,14 @@ function PureReportActionItem({
                 text: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
                 onPress: () =>
-                    resolveActionableMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE, formatPhoneNumber, policy),
+                    resolveActionableMentionWhisper(
+                        reportActionReportID,
+                        action,
+                        CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
+                        formatPhoneNumber,
+                        policy,
+                        isReportArchived,
+                    ),
                 isMediumSized: true,
             });
         }
@@ -853,13 +862,15 @@ function PureReportActionItem({
             {
                 text: 'actionableMentionWhisperOptions.inviteToChat',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-                onPress: () => resolveActionableMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, formatPhoneNumber, policy),
+                onPress: () =>
+                    resolveActionableMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, formatPhoneNumber, policy, isReportArchived),
                 isMediumSized: true,
             },
             {
                 text: 'actionableMentionWhisperOptions.nothing',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-                onPress: () => resolveActionableMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, formatPhoneNumber, policy),
+                onPress: () =>
+                    resolveActionableMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, formatPhoneNumber, policy, isReportArchived),
                 isMediumSized: true,
             },
         );
@@ -879,6 +890,7 @@ function PureReportActionItem({
         resolveActionableReportMentionWhisper,
         formatPhoneNumber,
         resolveActionableMentionWhisper,
+        isReportArchived,
     ]);
 
     /**
