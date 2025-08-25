@@ -301,6 +301,7 @@ import type {
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
+    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -5508,11 +5509,8 @@ const translations = {
                 perActiveMember: 'per actief lid per maand.',
                 perMember: 'per lid per maand.',
             },
-            note: {
-                upgradeWorkspace: 'Upgrade uw werkruimte om toegang te krijgen tot deze functie, of',
-                learnMore: 'meer informatie',
-                aboutOurPlans: 'over onze plannen en prijzen.',
-            },
+            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+                `<muted-text>Upgrade uw werkruimte om toegang te krijgen tot deze functie, of <a href="${subscriptionLink}">lees meer</a> over onze abonnementen en prijzen.</muted-text>`,
             upgradeToUnlock: 'Ontgrendel deze functie',
             completed: {
                 headline: `Je hebt je werkruimte geüpgraded!`,
