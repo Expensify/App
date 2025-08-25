@@ -54,15 +54,18 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const theme = useTheme();
     const styles = useThemeStyles();
 
-    const getIconFill = useCallback((isSelected: boolean, isHovered: boolean) => {
-        if (isSelected) {
-            return theme.iconMenu;
-        }
-        if (isHovered) {
-            return theme.successHover;
-        }
-        return theme.icon;
-    }, [theme]);
+    const getIconFill = useCallback(
+        (isSelected: boolean, isHovered: boolean) => {
+            if (isSelected) {
+                return theme.iconMenu;
+            }
+            if (isHovered) {
+                return theme.successHover;
+            }
+            return theme.icon;
+        },
+        [theme],
+    );
     const {translate, preferredLocale} = useLocalize();
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {orderedReports} = useSidebarOrderedReports();
@@ -237,10 +240,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                 onPress={navigateToChats}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.inbox')}
-                                style={({hovered}) => [
-                                    styles.leftNavigationTabBarItem,
-                                    hovered && styles.navigationTabBarItemHovered,
-                                ]}
+                                style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                             >
                                 {({hovered}) => (
                                     <>
@@ -279,10 +279,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                             onPress={navigateToSearch}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.reports')}
-                            style={({hovered}) => [
-                                styles.leftNavigationTabBarItem,
-                                hovered && styles.navigationTabBarItemHovered,
-                            ]}
+                            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                         >
                             {({hovered}) => (
                                 <>
@@ -313,10 +310,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                             onPress={showWorkspaces}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.workspacesTabTitle')}
-                            style={({hovered}) => [
-                                styles.leftNavigationTabBarItem,
-                                hovered && styles.navigationTabBarItemHovered,
-                            ]}
+                            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                         >
                             {({hovered}) => (
                                 <>

@@ -154,8 +154,14 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                         ]}
                         testID="fab-animated-container"
                     >
-                        <Svg width={fabSize} height={fabSize}>
-                            <AnimatedPath d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH} fill={textLight} />
+                        <Svg
+                            width={fabSize}
+                            height={fabSize}
+                        >
+                            <AnimatedPath
+                                d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
+                                fill={textLight}
+                            />
                         </Svg>
                     </Animated.View>
                 )}

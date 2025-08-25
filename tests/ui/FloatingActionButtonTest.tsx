@@ -1,10 +1,9 @@
+import {NavigationContainer} from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
-import {NavigationContainer} from '@react-navigation/native';
 import FloatingActionButton from '@components/FloatingActionButton';
-import CONST from '@src/CONST';
 import colors from '@styles/theme/colors';
-
+import CONST from '@src/CONST';
 
 // FloatingActionButton relies on ProductTrainingContext, so provide a minimal mock.
 jest.mock('@components/ProductTrainingContext', () => ({
@@ -57,11 +56,11 @@ describe('FloatingActionButton hover', () => {
 
         // Before hover, should not have successHover background
         expect(animatedContainer).not.toHaveStyle({backgroundColor: colors.greenHover});
-        
+
         // Test hover in
         fireEvent(fab, 'hoverIn');
         expect(animatedContainer).toHaveStyle({backgroundColor: colors.greenHover});
-        
+
         // Test hover out
         fireEvent(fab, 'hoverOut');
         expect(animatedContainer).not.toHaveStyle({backgroundColor: colors.greenHover});
