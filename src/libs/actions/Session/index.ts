@@ -541,6 +541,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
             return Promise.resolve();
         }
 
+        Log.info(`[HybridApp] Clearing onyx after transition from OldDot. useNewDotSignInPage set to ${hybridApp.useNewDotSignInPage}`);
         return redirectToSignIn();
     };
 
@@ -560,6 +561,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
 
             // If ND and OD account are the same - do nothing
             if (hybridApp?.delegateAccessData?.oldDotCurrentUserEmail === currentUserEmail) {
+                Log.info('[HybridApp] User did not switch account on OldDot side');
                 return;
             }
 
@@ -573,7 +575,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                       [ONYXKEYS.STASHED_SESSION]: {},
                   };
 
-            // Account was changed on OD side - clear onyx and apply data
+            Log.info('[HybridApp] User switched account on OldDot side. Clearing onyx and applying delegate data');
             return Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS).then(() =>
                 Onyx.multiSet({
                     ...stashedData,
@@ -594,6 +596,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                 })
                     .then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: hybridApp?.delegateAccessData?.oldDotCurrentUserEmail}))
                     .then(() => {
+                        Log.info('[HybridApp] Calling openApp to get delegate account details');
                         confirmReadyToOpenApp();
                         return openApp();
                     }),
@@ -608,6 +611,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
         .then(resetDidUserLoginDuringSessionIfNeeded)
         .then(() => Promise.all(Object.entries(newDotOnyxValues).map(([key, value]) => Onyx.merge(key as OnyxKey, value ?? {}))))
         .then(() => {
+            Log.info('[HybridApp] Setup after transition from OldDot finished');
             isHybridAppSetupFinished = true;
             return Promise.resolve();
         })
