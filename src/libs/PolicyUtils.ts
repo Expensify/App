@@ -247,7 +247,7 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
     return undefined;
 }
 
-function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentUserLogin: string | undefined) {
+function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentUserLogin: string | undefined): string | undefined {
     if (policy?.role) {
         return policy.role;
     }
@@ -280,8 +280,11 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePoli
     );
 }
 
-function isPolicyMember(currentUserLogin: string | undefined, policyID: string | undefined): boolean {
-    return !!currentUserLogin && !!policyID && !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList?.[currentUserLogin];
+/**
+ * Checks if a specific user is a member of the policy.
+ */
+function isPolicyMember(policy: OnyxEntry<Policy>, userLogin: string | undefined): boolean {
+    return !!policy && !!userLogin && !!policy.employeeList?.[userLogin];
 }
 
 function isPolicyMemberWithoutPendingDelete(currentUserLogin: string | undefined, policy: OnyxEntry<Policy>): boolean {
@@ -1523,6 +1526,14 @@ function isUserInvitedToWorkspace(): boolean {
     );
 }
 
+function isMemberPolicyAdmin(policy: OnyxEntry<Policy>, memberEmail: string | undefined): boolean {
+    if (!policy || !memberEmail) {
+        return false;
+    }
+    const admins = getAdminEmployees(policy);
+    return admins.some((admin) => admin.email === memberEmail);
+}
+
 export {
     canEditTaxRate,
     escapeTagName,
@@ -1675,6 +1686,7 @@ export {
     getLengthOfTag,
     isPolicyMemberWithoutPendingDelete,
     getPolicyEmployeeAccountIDs,
+    isMemberPolicyAdmin,
 };
 
 export type {MemberEmailsToAccountIDs};

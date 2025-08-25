@@ -332,6 +332,13 @@ describe('SearchQueryUtils', () => {
             expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
         });
 
+        it('should return same similarSearchHash for queries with a date range', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense withdrawal-type:reimbursement withdrawn:last-month');
+            const queryJSONb = buildSearchQueryJSON('type:expense withdrawal-type:reimbursement withdrawn>2025-01-01 withdrawn<2025-01-03');
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+        });
+
         it('should return different similarSearchHash for two queries that have different types', () => {
             const queryJSONa = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense feed:"oauth.americanexpressfdx.com 1001"');
             const queryJSONb = buildSearchQueryJSON('sortBy:date sortOrder:desc type:trip feed:"oauth.americanexpressfdx.com 1001"');
