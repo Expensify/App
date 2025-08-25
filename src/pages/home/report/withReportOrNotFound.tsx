@@ -5,6 +5,7 @@ import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -12,6 +13,7 @@ import {canAccessReport} from '@libs/ReportUtils';
 import type {
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
+    ReportChangeApproverParamList,
     ReportChangeWorkspaceNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
@@ -51,7 +53,8 @@ type ScreenProps =
     | PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.SHARE_CODE>
     | PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>
     | PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>
-    | PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.ROOT>;
+    | PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.ROOT>
+    | PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.ROOT>;
 
 type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
     route: ScreenProps['route'];
@@ -72,7 +75,7 @@ export default function (
             const contentShown = React.useRef(false);
             const isReportIdInRoute = !!props.route.params.reportID?.length;
             const isReportLoaded = !isEmptyObject(report) && !!report?.reportID;
-
+            const isReportArchived = useReportIsArchived(report?.reportID);
             // The `isLoadingInitialReportActions` value will become `false` only after the first OpenReport API call is finished (either succeeded or failed)
             const shouldFetchReport = isReportIdInRoute && reportMetadata?.isLoadingInitialReportActions !== false;
 
@@ -90,7 +93,7 @@ export default function (
 
             if (shouldRequireReportID || isReportIdInRoute) {
                 const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (isLoadingReportData !== false || shouldFetchReport);
-                const shouldShowNotFoundPage = !isReportLoaded || !canAccessReport(report, betas);
+                const shouldShowNotFoundPage = !isReportLoaded || !canAccessReport(report, betas, isReportArchived);
 
                 // If the content was shown, but it's not anymore, that means the report was deleted, and we are probably navigating out of this screen.
                 // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.

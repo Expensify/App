@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
-import {LogBox} from 'react-native';
+import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
@@ -36,6 +36,7 @@ import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeCont
 import {EnvironmentProvider} from './components/withEnvironment';
 import {KeyboardStateProvider} from './components/withKeyboardState';
 import CONFIG from './CONFIG';
+import CONST from './CONST';
 import Expensify from './Expensify';
 import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
@@ -51,8 +52,6 @@ LogBox.ignoreLogs([
     // the timer is lost. Currently Expensify is using a 30 minutes interval to refresh personal details.
     // More details here: https://git.io/JJYeb
     'Setting a timer for a long period of time',
-    // We are not using expo-const, so ignore the warning.
-    'No native ExponentConstants module found',
 ]);
 
 const fill = {flex: 1};
@@ -68,49 +67,54 @@ function App() {
             <SplashScreenStateContextProvider>
                 <InitialURLContextProvider>
                     <HybridAppHandler />
-                    <GestureHandlerRootView style={fill}>
-                        <ComposeProviders
-                            components={[
-                                OnyxListItemProvider,
-                                ThemeProvider,
-                                ThemeStylesProvider,
-                                ThemeIllustrationsProvider,
-                                SafeAreaProvider,
-                                HTMLEngineProvider,
-                                PortalProvider,
-                                SafeArea,
-                                LocaleContextProvider,
-                                PopoverContextProvider,
-                                CurrentReportIDContextProvider,
-                                ScrollOffsetContextProvider,
-                                AttachmentModalContextProvider,
-                                PickerStateProvider,
-                                EnvironmentProvider,
-                                CustomStatusBarAndBackgroundContextProvider,
-                                ActiveElementRoleProvider,
-                                ActionSheetAwareScrollViewProvider,
-                                PlaybackContextProvider,
-                                FullScreenContextProvider,
-                                VolumeContextProvider,
-                                VideoPopoverMenuContextProvider,
-                                KeyboardProvider,
-                                KeyboardStateProvider,
-                                SearchRouterContextProvider,
-                                ProductTrainingContextProvider,
-                                InputBlurContextProvider,
-                                FullScreenBlockingViewContextProvider,
-                                FullScreenLoaderContextProvider,
-                            ]}
-                        >
-                            <CustomStatusBarAndBackground />
-                            <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                                <ColorSchemeWrapper>
-                                    <Expensify />
-                                </ColorSchemeWrapper>
-                            </ErrorBoundary>
-                            <NavigationBar />
-                        </ComposeProviders>
-                    </GestureHandlerRootView>
+                    <View
+                        style={fill}
+                        fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                    >
+                        <GestureHandlerRootView style={fill}>
+                            <ComposeProviders
+                                components={[
+                                    OnyxListItemProvider,
+                                    ThemeProvider,
+                                    ThemeStylesProvider,
+                                    ThemeIllustrationsProvider,
+                                    SafeAreaProvider,
+                                    HTMLEngineProvider,
+                                    PortalProvider,
+                                    SafeArea,
+                                    LocaleContextProvider,
+                                    PopoverContextProvider,
+                                    CurrentReportIDContextProvider,
+                                    ScrollOffsetContextProvider,
+                                    AttachmentModalContextProvider,
+                                    PickerStateProvider,
+                                    EnvironmentProvider,
+                                    CustomStatusBarAndBackgroundContextProvider,
+                                    ActiveElementRoleProvider,
+                                    ActionSheetAwareScrollViewProvider,
+                                    PlaybackContextProvider,
+                                    FullScreenContextProvider,
+                                    VolumeContextProvider,
+                                    VideoPopoverMenuContextProvider,
+                                    KeyboardProvider,
+                                    KeyboardStateProvider,
+                                    SearchRouterContextProvider,
+                                    ProductTrainingContextProvider,
+                                    InputBlurContextProvider,
+                                    FullScreenBlockingViewContextProvider,
+                                    FullScreenLoaderContextProvider,
+                                ]}
+                            >
+                                <CustomStatusBarAndBackground />
+                                <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                                    <ColorSchemeWrapper>
+                                        <Expensify />
+                                    </ColorSchemeWrapper>
+                                </ErrorBoundary>
+                                <NavigationBar />
+                            </ComposeProviders>
+                        </GestureHandlerRootView>
+                    </View>
                 </InitialURLContextProvider>
             </SplashScreenStateContextProvider>
         </StrictModeWrapper>

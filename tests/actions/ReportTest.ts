@@ -44,6 +44,17 @@ jest.mock('@libs/ReportUtils', () => {
     };
 });
 
+const currentHash = 12345;
+jest.mock('@src/libs/SearchQueryUtils', () => ({
+    getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
+        hash: currentHash,
+        query: 'test',
+        type: 'expense',
+        status: '',
+        flatFilters: [],
+    })),
+}));
+
 const UTC = 'UTC';
 jest.mock('@src/libs/actions/Report', () => {
     const originalModule = jest.requireActual<Report>('@src/libs/actions/Report');
@@ -128,7 +139,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment(REPORT_ID, 'Testing a comment');
+                Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment');
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -258,7 +269,7 @@ describe('actions/Report', () => {
                 }
 
                 // And leave a comment on a report
-                Report.addComment(REPORT_ID, 'Testing a comment');
+                Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment');
 
                 // Then we should expect that there is on persisted request
                 expect(PersistedRequests.getAll().length).toBe(1);
@@ -379,7 +390,7 @@ describe('actions/Report', () => {
                 // When a new comment is added by the current user
 
                 currentTime = DateUtils.getDBTime();
-                Report.addComment(REPORT_ID, 'Current User Comment 1');
+                Report.addComment(REPORT_ID, REPORT_ID, 'Current User Comment 1');
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -391,7 +402,7 @@ describe('actions/Report', () => {
 
                 // When another comment is added by the current user
                 currentTime = DateUtils.getDBTime();
-                Report.addComment(REPORT_ID, 'Current User Comment 2');
+                Report.addComment(REPORT_ID, REPORT_ID, 'Current User Comment 2');
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -402,7 +413,7 @@ describe('actions/Report', () => {
 
                 // When another comment is added by the current user
                 currentTime = DateUtils.getDBTime();
-                Report.addComment(REPORT_ID, 'Current User Comment 3');
+                Report.addComment(REPORT_ID, REPORT_ID, 'Current User Comment 3');
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -667,7 +678,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment(REPORT_ID, 'Testing a comment');
+                Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment');
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -795,7 +806,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment(REPORT_ID, 'Testing a comment');
+                Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment');
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -885,7 +896,7 @@ describe('actions/Report', () => {
 
         Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addComment(REPORT_ID, 'Testing a comment');
+        Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment');
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
@@ -957,7 +968,7 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        Report.addComment(REPORT_ID, 'Testing a comment');
+        Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment');
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(1);
@@ -1008,7 +1019,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        Report.addComment(REPORT_ID, 'Testing a comment');
+        Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment');
         await waitForNetworkPromises();
 
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1057,7 +1068,7 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
         const file = new File([''], 'test.txt', {type: 'text/plain'});
-        Report.addAttachment(REPORT_ID, file);
+        Report.addAttachment(REPORT_ID, REPORT_ID, file);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1126,7 +1137,7 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addAttachment(REPORT_ID, file, 'Attachment with comment');
+        Report.addAttachment(REPORT_ID, REPORT_ID, file, 'Attachment with comment');
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1199,7 +1210,7 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await Promise.resolve();
 
-        Report.addComment(REPORT_ID, 'reactions with comment');
+        Report.addComment(REPORT_ID, REPORT_ID, 'reactions with comment');
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
@@ -1295,7 +1306,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        Report.addComment(REPORT_ID, 'Attachment with comment');
+        Report.addComment(REPORT_ID, REPORT_ID, 'Attachment with comment');
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1367,7 +1378,7 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await waitForBatchedUpdates();
 
-        Report.addComment(REPORT_ID, 'Testing a comment');
+        Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment');
 
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
@@ -1425,7 +1436,7 @@ describe('actions/Report', () => {
 
         Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addComment(REPORT_ID, 'Testing a comment');
+        Report.addComment(REPORT_ID, REPORT_ID, 'Testing a comment');
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
@@ -1580,20 +1591,6 @@ describe('actions/Report', () => {
                     expect(createdReport?.total).toBe(0);
                     expect(createdReport?.parentReportActionID).toBe(reportPreviewAction?.reportActionID);
 
-                    resolve();
-                },
-            });
-        });
-
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-                callback: (quickAction) => {
-                    Onyx.disconnect(connection);
-
-                    // Then the quickAction.action should be set to CREATE_REPORT
-                    expect(quickAction?.action).toBe(CONST.QUICK_ACTIONS.CREATE_REPORT);
-                    expect(quickAction?.chatReportID).toBe('1234');
                     resolve();
                 },
             });
@@ -1849,8 +1846,11 @@ describe('actions/Report', () => {
                 private_isArchived: DateUtils.getDBTime(),
             });
 
+            const newPolicy = createRandomPolicy(2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+
             // When moving to another workspace
-            Report.changeReportPolicy(expenseReport, '2');
+            Report.changeReportPolicy(expenseReport, newPolicy);
             await waitForBatchedUpdates();
 
             // Then the expense report should not be archived anymore
@@ -1864,6 +1864,19 @@ describe('actions/Report', () => {
                 });
             });
             expect(isArchived).toBe(false);
+
+            const snapshotData = await new Promise<OnyxEntry<OnyxTypes.SearchResults>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentHash}`,
+                    callback: (val) => {
+                        resolve(val);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+
+            // Then the new policy data should also be populated on the current search snapshot.
+            expect(snapshotData?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]).toBeDefined();
         });
     });
 
@@ -1891,7 +1904,7 @@ describe('actions/Report', () => {
             // When moving to another workspace
             Report.changeReportPolicyAndInviteSubmitter(
                 expenseReport,
-                '2',
+                createRandomPolicy(Number(2)),
                 {
                     [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                 },
@@ -1920,8 +1933,7 @@ describe('actions/Report', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            const policyID = '1';
-            Report.buildOptimisticChangePolicyData(report, policyID);
+            Report.buildOptimisticChangePolicyData(report, createRandomPolicy(Number(1)));
             expect(buildNextStep).toHaveBeenCalledWith(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
         });
     });

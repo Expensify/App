@@ -32,6 +32,8 @@ PODS:
   - EXAV (15.1.5):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
+  - EXConstants (17.1.5):
+    - ExpoModulesCore
   - EXImageLoader (5.1.0):
     - ExpoModulesCore
     - React-Core
@@ -3270,11 +3272,11 @@ PODS:
   - SocketRocket (0.7.1)
   - Turf (2.8.0)
   - TweetNacl (1.0.2)
-  - VisionCamera (4.6.1):
-    - VisionCamera/Core (= 4.6.1)
-    - VisionCamera/React (= 4.6.1)
-  - VisionCamera/Core (4.6.1)
-  - VisionCamera/React (4.6.1):
+  - VisionCamera (4.7.0):
+    - VisionCamera/Core (= 4.7.0)
+    - VisionCamera/React (= 4.7.0)
+  - VisionCamera/Core (4.7.0)
+  - VisionCamera/React (4.7.0):
     - React-Core
   - Yoga (0.0.0)
 
@@ -3284,6 +3286,7 @@ DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXAV (from `../node_modules/expo-av/ios`)
+  - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
   - "expensify-react-native-background-task (from `../node_modules/@expensify/react-native-background-task`)"
   - "ExpensifyNitroUtils (from `../node_modules/@expensify/nitro-utils`)"
@@ -3477,6 +3480,8 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
   EXAV:
     :path: "../node_modules/expo-av/ios"
+  EXConstants:
+    :path: "../node_modules/expo-constants/ios"
   EXImageLoader:
     :path: "../node_modules/expo-image-loader/ios"
   expensify-react-native-background-task:
@@ -3752,6 +3757,7 @@ SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXAV: 13d43af15268a3f448a6b994e91574c939f065e6
+  EXConstants: 26f334022fc0b454b7ecdc7c12d36ffa68c7c397
   EXImageLoader: ab4fcf9240cf3636a83c00e3fc5229d692899428
   expensify-react-native-background-task: 33f3c3977ee1bcfb75b5466735d467cacda86746
   ExpensifyNitroUtils: e0db1bd03c2ee179bdca45c57bf0497e626b18cd
@@ -3923,7 +3929,7 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
-  VisionCamera: c95a8ad535f527562be1fb05fb2fd324578e769c
+  VisionCamera: b3c0cf261b9ad1ac7d60ec292d252cf3368b801e
   Yoga: 50518ade05048235d91a78b803336dbb5b159d5d
 
 PODFILE CHECKSUM: f7a8d931f2dd2be0fed9bb22df37140219a07ff3
