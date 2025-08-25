@@ -55,7 +55,7 @@ function appendCountryCode(phone: string): string {
  *
  * TODO: Remove this function after completing Onyx.connect deprecation (issue #66329)
  */
-function appendCountryCodeWithCountryCode(phone: string, countryCode: string): string {
+function appendCountryCodeWithCountryCode(phone: string, countryCode: number): string {
     if (phone.startsWith('+')) {
         return phone;
     }
