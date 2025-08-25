@@ -347,6 +347,9 @@ function getBankName(feedType: CompanyCardFeed): string {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: 'Wells Fargo',
         [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: 'Brex',
         [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: CONST.COMPANY_CARDS.CARD_TYPE.CSV,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_2]: 'American Express',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DOWNLOAD]: 'American Express',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.PEX]: 'PEX',
     };
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
