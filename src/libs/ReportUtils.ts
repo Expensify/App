@@ -279,8 +279,6 @@ type SpendBreakdown = {
     totalDisplaySpend: number;
 };
 
-type ParticipantDetails = [number, string, AvatarSource, AvatarSource];
-
 type OptimisticAddCommentReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>,
     | 'reportActionID'
@@ -2739,38 +2737,18 @@ function getDefaultGroupAvatar(reportID?: string): IconAsset {
  * The Avatar sources can be URLs or Icon components according to the chat type.
  */
 function getIconsForParticipants(participants: number[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>): Icon[] {
-    const participantDetails: ParticipantDetails[] = [];
     const participantsList = participants || [];
+    const avatars: Icon[] = [];
 
     for (const accountID of participantsList) {
         const avatarSource = personalDetails?.[accountID]?.avatar ?? FallbackAvatar;
         const displayNameLogin = personalDetails?.[accountID]?.displayName ? personalDetails?.[accountID]?.displayName : personalDetails?.[accountID]?.login;
-        participantDetails.push([accountID, displayNameLogin ?? '', avatarSource, personalDetails?.[accountID]?.fallbackIcon ?? '']);
-    }
-
-    const sortedParticipantDetails = participantDetails.sort((first, second) => {
-        // First sort by displayName/login
-        const displayNameLoginOrder = localeCompareLibs(first[1], second[1]);
-        if (displayNameLoginOrder !== 0) {
-            return displayNameLoginOrder;
-        }
-
-        // Then fallback on accountID as the final sorting criteria.
-        // This will ensure that the order of avatars with same login/displayName
-        // stay consistent across all users and devices
-        return first[0] - second[0];
-    });
-
-    // Now that things are sorted, gather only the avatars (second element in the array) and return those
-    const avatars: Icon[] = [];
-
-    for (const sortedParticipantDetail of sortedParticipantDetails) {
         const userIcon = {
-            id: sortedParticipantDetail[0],
-            source: sortedParticipantDetail[2],
+            id: accountID,
+            source: avatarSource,
             type: CONST.ICON_TYPE_AVATAR,
-            name: sortedParticipantDetail[1],
-            fallbackIcon: sortedParticipantDetail[3],
+            name: displayNameLogin ?? '',
+            fallbackIcon: personalDetails?.[accountID]?.fallbackIcon ?? '',
         };
         avatars.push(userIcon);
     }
@@ -3371,6 +3349,24 @@ function getIcons(
     }
     const participantAccountIDs = Object.keys(report.participants ?? {}).map(Number);
     return getIconsForParticipants(participantAccountIDs, personalDetails);
+}
+
+const getIconDisplayName = (icon: Icon, personalDetails: OnyxInputOrEntry<PersonalDetailsList>) =>
+    icon.id ? (personalDetails?.[icon.id]?.displayName ?? personalDetails?.[icon.id]?.login ?? '') : '';
+
+function sortIconsByName(icons: Icon[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>, localeCompare: LocaleContextProps['localeCompare']) {
+    return icons.sort((first, second) => {
+        // First sort by displayName/login
+        const displayNameLoginOrder = localeCompare(getIconDisplayName(first, personalDetails), getIconDisplayName(second, personalDetails));
+        if (displayNameLoginOrder !== 0) {
+            return displayNameLoginOrder;
+        }
+
+        // Then fallback on accountID as the final sorting criteria.
+        // This will ensure that the order of avatars with same login/displayName
+        // stay consistent across all users and devices
+        return Number(first?.id) - Number(second?.id);
+    });
 }
 
 function getDisplayNamesWithTooltips(
@@ -8278,11 +8274,7 @@ type ReportErrorsAndReportActionThatRequiresAttention = {
     reportAction?: OnyxEntry<ReportAction>;
 };
 
-function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
-    report: OnyxEntry<Report>,
-    reportActions: OnyxEntry<ReportActions>,
-    isReportArchived = false,
-): ReportErrorsAndReportActionThatRequiresAttention {
+function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): ReportErrorsAndReportActionThatRequiresAttention {
     const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action));
     const reportActionErrors: ErrorFields = {};
     let reportAction: OnyxEntry<ReportAction>;
@@ -8301,7 +8293,11 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
             ? undefined
             : allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
 
-    if (!isReportArchived) {
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
+    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
+
+    if (!isArchivedReport(reportNameValuePairs)) {
         if (wasActionTakenByCurrentUser(parentReportAction) && isTransactionThread(parentReportAction)) {
             const transactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : null;
             const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -8329,9 +8325,9 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
 /**
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  */
-function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>, isReportArchived = false): Errors {
+function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): Errors {
     const reportErrorFields = report?.errorFields ?? {};
-    const {errors: reportActionErrors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, isReportArchived);
+    const {errors: reportActionErrors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
     const errorSources = {
@@ -8525,7 +8521,7 @@ function reasonForReportToBeInOptionList({
     }
 
     // Hide chats between two users that haven't been commented on from the LNH
-    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isPolicyExpenseChat(report) && !isSystemChat(report) && canHideReport) {
+    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isPolicyExpenseChat(report) && !isTripRoom(report) && !isSystemChat(report) && canHideReport) {
         return null;
     }
 
@@ -11325,13 +11321,13 @@ function generateReportAttributes({
     chatReport,
     reportActions,
     transactionViolations,
-    isReportArchived = false,
+    reportNameValuePairs,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
     reportActions?: OnyxCollection<ReportActions>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
-    isReportArchived: boolean;
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
 }) {
     const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
@@ -11340,10 +11336,11 @@ function generateReportAttributes({
     const doesReportHasViolations = hasReportViolations(report?.reportID);
     const hasViolationsToDisplayInLHN = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
     const hasAnyTypeOfViolations = hasViolationsToDisplayInLHN || (!isReportSettled && isCurrentUserReportOwner && doesReportHasViolations);
-    const reportErrors = getAllReportErrors(report, reportActionsList, isReportArchived);
+    const reportErrors = getAllReportErrors(report, reportActionsList);
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
+    const isReportArchived = !!reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]?.private_isArchived;
     const requiresAttention = requiresAttentionFromCurrentUser(report, parentReportAction, isReportArchived);
 
     return {
@@ -11355,6 +11352,7 @@ function generateReportAttributes({
         oneTransactionThreadReportID,
         parentReportAction,
         requiresAttention,
+        isReportArchived,
     };
 }
 
@@ -11605,6 +11603,7 @@ export {
     getUpgradeWorkspaceMessage,
     getDowngradeWorkspaceMessage,
     getIcons,
+    sortIconsByName,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
     getLastVisibleMessage,
