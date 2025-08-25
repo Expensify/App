@@ -111,8 +111,7 @@ describe('getPrimaryAction', () => {
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
-
-    it('should not return SUBMIT option for admin with only pending transactions', async () => {
+    it('should not return SUBMIT option for admin with only pending/incomplete transactions', async () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -131,9 +130,22 @@ describe('getPrimaryAction', () => {
             amount: 10,
             merchant: 'Merchant',
             date: '2025-01-01',
+            bank: CONST.EXPENSIFY_CARD.BANK,
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy, isChatReportArchived: false})).toBe('');
+        const transaction1 = {
+            reportID: `${REPORT_ID}`,
+            amount: 0,
+            modifiedAmount: 0,
+            receipt: {
+                source: 'test',
+                state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+            },
+            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            modifiedMerchant: undefined,
+        } as unknown as Transaction;
+
+        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction, transaction1], violations: {}, policy: policy as Policy, isChatReportArchived: false})).toBe('');
     });
 
     it('should return Approve for report being processed', async () => {
@@ -155,6 +167,8 @@ describe('getPrimaryAction', () => {
             comment: {
                 hold: 'Hold',
             },
+            amount: 10,
+            merchant: 'merchant',
         } as unknown as Transaction;
 
         expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy, isChatReportArchived: false})).toBe(
@@ -189,7 +203,7 @@ describe('getPrimaryAction', () => {
         expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy, isChatReportArchived: false})).toBe('');
     });
 
-    it('should return empty for report being processed but transactions are pending', async () => {
+    it('should return empty for report being processed but transactions are pending/partial', async () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -209,9 +223,22 @@ describe('getPrimaryAction', () => {
             amount: 10,
             merchant: 'Merchant',
             date: '2025-01-01',
+            bank: CONST.EXPENSIFY_CARD.BANK,
         } as unknown as Transaction;
 
-        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy, isChatReportArchived: false})).toBe('');
+        const transaction1 = {
+            reportID: `${REPORT_ID}`,
+            amount: 0,
+            modifiedAmount: 0,
+            receipt: {
+                source: 'test',
+                state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+            },
+            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            modifiedMerchant: undefined,
+        } as unknown as Transaction;
+
+        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction, transaction1], violations: {}, policy: policy as Policy, isChatReportArchived: false})).toBe('');
     });
 
     it('should return PAY for submitted invoice report  if paid as personal', async () => {
