@@ -32,32 +32,37 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const emojiStatus = currentUserPersonalDetails?.status?.emojiCode ?? '';
 
-    let children;
+    /**
+     * Returns the avatar element with the correct active (ring) state.
+     */
+    const renderAvatar = (active: boolean) => {
+        if (delegateEmail) {
+            return (
+                <AvatarWithDelegateAvatar
+                    delegateEmail={delegateEmail}
+                    isSelected={active}
+                    containerStyle={styles.sidebarStatusAvatarWithEmojiContainer}
+                />
+            );
+        }
 
-    if (delegateEmail) {
-        children = (
-            <AvatarWithDelegateAvatar
-                delegateEmail={delegateEmail}
-                isSelected={isSelected}
-                containerStyle={styles.sidebarStatusAvatarWithEmojiContainer}
-            />
-        );
-    } else if (emojiStatus) {
-        children = (
-            <AvatarWithOptionalStatus
-                emojiStatus={emojiStatus}
-                isSelected={isSelected}
-                containerStyle={styles.sidebarStatusAvatarWithEmojiContainer}
-            />
-        );
-    } else {
-        children = (
+        if (emojiStatus) {
+            return (
+                <AvatarWithOptionalStatus
+                    emojiStatus={emojiStatus}
+                    isSelected={active}
+                    containerStyle={styles.sidebarStatusAvatarWithEmojiContainer}
+                />
+            );
+        }
+
+        return (
             <ProfileAvatarWithIndicator
-                isSelected={isSelected}
+                isSelected={active}
                 containerStyles={styles.tn0Half}
             />
         );
-    }
+    };
 
     return (
         <PressableWithFeedback
@@ -65,12 +70,18 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
             wrapperStyle={styles.flex1}
-            style={style}
+            style={({hovered}) => [style, hovered && styles.navigationTabBarItemHovered]}
         >
-            {children}
-            <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}>
-                {translate('initialSettingsPage.account')}
-            </Text>
+            {({hovered}) => (
+                <>
+                    {renderAvatar(isSelected || hovered)}
+                    <Text
+                        style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}
+                    >
+                        {translate('initialSettingsPage.account')}
+                    </Text>
+                </>
+            )}
         </PressableWithFeedback>
     );
 }

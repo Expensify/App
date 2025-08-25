@@ -28,7 +28,10 @@ function ProfileAvatarWithIndicator({isSelected = false, containerStyles}: Profi
             style={containerStyles}
         >
             <View style={[styles.pRelative]}>
-                <View style={[isSelected && styles.selectedAvatarBorder, styles.pAbsolute]} />
+                <View 
+                    style={[isSelected && styles.selectedAvatarBorder, styles.pAbsolute]} 
+                    testID="avatar-ring"
+                />
                 <AvatarWithIndicator
                     source={currentUserPersonalDetails.avatar}
                     accountID={currentUserPersonalDetails.accountID}
