@@ -153,6 +153,9 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
             new DefinePlugin({
                 ...(platform === 'desktop' ? {} : {process: {env: {}}}),
+                // Define EXPO_OS for web platform to fix expo-modules-core warning
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'process.env.EXPO_OS': JSON.stringify('web'),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: file}).parsed),
 
