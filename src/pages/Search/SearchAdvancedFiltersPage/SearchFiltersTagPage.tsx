@@ -39,7 +39,7 @@ function SearchFiltersTagPage() {
         const uniqueTagNames = new Set<string>();
 
         if (!selectedPoliciesTagLists || selectedPoliciesTagLists.length === 0) {
-            const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
+            const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item);
             tagListsUnpacked
                 .map(getTagNamesFromTagsLists)
                 .flat()

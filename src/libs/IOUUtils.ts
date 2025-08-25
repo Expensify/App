@@ -1,24 +1,17 @@
-import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, Report} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, Policy, Report} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
-import DateUtils from './DateUtils';
 import Navigation from './Navigation/Navigation';
 import Performance from './Performance';
+import {isPaidGroupPolicy} from './PolicyUtils';
 import {getReportTransactions} from './ReportUtils';
 import {getCurrency, getTagArrayFromName} from './TransactionUtils';
-
-let lastLocationPermissionPrompt: string;
-Onyx.connect({
-    key: ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT,
-    callback: (val) => (lastLocationPermissionPrompt = val ?? ''),
-});
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
     if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
@@ -192,6 +185,14 @@ function isMovingTransactionFromTrackExpense(action?: IOUAction) {
     return false;
 }
 
+function shouldShowReceiptEmptyState(iouType: IOUType, action: IOUAction, policy: OnyxInputOrEntry<Policy> | SearchPolicy, isPerDiemRequest: boolean) {
+    // Determine when to show the receipt empty state:
+    // - Show for submit or track expense types
+    // - Hide for per diem requests
+    // - Hide when submitting a track expense to a non-paid group policy (personal users)
+    return (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isPerDiemRequest && (!isMovingTransactionFromTrackExpense(action) || isPaidGroupPolicy(policy));
+}
+
 function shouldUseTransactionDraft(action: IOUAction | undefined, type?: IOUType) {
     return action === CONST.IOU.ACTION.CREATE || type === CONST.IOU.TYPE.SPLIT_EXPENSE || isMovingTransactionFromTrackExpense(action);
 }
@@ -214,14 +215,6 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
     return [initialAttendee];
 }
 
-function shouldStartLocationPermissionFlow() {
-    return (
-        !lastLocationPermissionPrompt ||
-        (DateUtils.isValidDateString(lastLocationPermissionPrompt ?? '') &&
-            DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS)
-    );
-}
-
 export {
     calculateAmount,
     insertTagIntoTransactionTagsString,
@@ -232,6 +225,6 @@ export {
     navigateToStartMoneyRequestStep,
     updateIOUOwnerAndTotal,
     formatCurrentUserToAttendee,
-    shouldStartLocationPermissionFlow,
     navigateToParticipantPage,
+    shouldShowReceiptEmptyState,
 };
