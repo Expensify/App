@@ -56,6 +56,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             wrapperStyle={[wrapperStyle, styles.optionRowCompact]}
             titleStyles={titleStyles}
+            shouldUseDefaultRightHandSideCheckmark={false}
         />
     );
 }
