@@ -45,6 +45,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -280,6 +281,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceMembersCountParams,
@@ -300,7 +302,6 @@ const translations = {
         count: 'Contar',
         cancel: 'Cancelar',
         dismiss: 'Descartar',
-        proceed: 'Proceed',
         yes: 'Sí',
         no: 'No',
         ok: 'OK',
@@ -1366,6 +1367,22 @@ const translations = {
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
         moveExpenses: () => ({one: 'Mover gasto', other: 'Mover gastos'}),
+        changeApprover: {
+            title: 'Cambiar aprobador',
+            subtitle: 'Elige una opción para cambiar el aprobador de este informe.',
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `También puedes cambiar el aprobador de forma permanente para todos los informes en tu <a href="${workflowSettingLink}">configuración de flujo de trabajo</a>.`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `cambió el aprobador a <mention-user accountID="${managerID}"/>`,
+            actions: {
+                addApprover: 'Añadir aprobador',
+                addApproverSubtitle: 'Añade un aprobador adicional al flujo de trabajo existente.',
+                bypassApprovers: 'Omitir aprobadores',
+                bypassApproversSubtitle: 'Asígnate como aprobador final y omite a los aprobadores restantes.',
+            },
+            addApprover: {
+                subtitle: 'Elige un aprobador adicional para este informe antes de que lo enviemos por el resto del flujo de aprobación.',
+            },
+        },
     },
     transactionMerge: {
         listPage: {
@@ -3428,13 +3445,11 @@ const translations = {
             customField1: 'Campo personalizado 1',
             customField2: 'Campo personalizado 2',
             customFieldHint: 'Añade una codificación personalizada que se aplique a todos los gastos de este miembro.',
-            reports: 'Informes',
             reportFields: 'Campos de informe',
             reportTitle: 'El título del informe.',
             taxes: 'Impuestos',
             bills: 'Pagar facturas',
             invoices: 'Facturas',
-            perDiem: 'Per diem',
             travel: 'Viajes',
             members: 'Miembros',
             accounting: 'Contabilidad',
@@ -3447,7 +3462,6 @@ const translations = {
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
-            selectAll: 'Seleccionar todo',
             selected: () => ({
                 one: '1 seleccionado',
                 other: (count: number) => `${count} seleccionados`,
@@ -3461,8 +3475,6 @@ const translations = {
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón invitar que está arriba.',
             notAuthorized: `No tienes acceso a esta página. Si estás intentando unirte a este espacio de trabajo, pide al dueño del espacio de trabajo que te añada como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
             goToWorkspace: 'Ir al espacio de trabajo',
-            duplicateWorkspace: 'Duplicar espacio de trabajo',
-            duplicateWorkspacePrefix: 'Duplicar',
             goToWorkspaces: 'Ir a espacios de trabajo',
             clearFilter: 'Borrar filtro',
             workspaceName: 'Nombre del espacio de trabajo',
@@ -4880,18 +4892,6 @@ const translations = {
             taxCode: 'Código de impuesto',
             updateTaxCodeFailureMessage: 'Se produjo un error al actualizar el código tributario, inténtelo nuevamente',
         },
-        duplicateWorkspace: {
-            title: 'Nombra tu nuevo espacio de trabajo',
-            selectFeatures: 'Selecciona las funciones a copiar',
-            whichFeatures: '¿Qué funciones deseas copiar a tu nuevo espacio de trabajo?',
-            confirmDuplicate: '\n\n¿Quieres continuar?',
-            categories: 'categorías y tus reglas de auto-categorización',
-            reimbursementAccount: 'cuenta de reembolso',
-            delayedSubmission: 'presentación retrasada',
-            welcomeNote: 'Por favor, comience a utilizar mi nuevo espacio de trabajo.',
-            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
-                `Estás a punto de crear y compartir ${newWorkspaceName ?? ''} con ${totalMembers ?? 0} miembros del espacio de trabajo original.`,
-        },
         emptyWorkspace: {
             title: 'No tienes espacios de trabajo',
             subtitle: 'Organiza recibos, reembolsa gastos, gestiona viajes, envía facturas y mucho más.',
@@ -5223,6 +5223,7 @@ const translations = {
                 limit: 'Limite',
                 limitType: 'Tipo de limite',
                 name: 'Nombre',
+                disabledApprovalForSmartLimitError: 'Por favor, habilita las aprobaciones en <strong>Flujos de trabajo > Aprobaciones</strong> antes de configurar los límites inteligentes',
             },
             deactivateCardModal: {
                 deactivate: 'Desactivar',
@@ -5495,6 +5496,12 @@ const translations = {
                 description:
                     'Las etiquetas multinivel te ayudan a llevar un control más preciso de los gastos. Asigna múltiples etiquetas a cada partida, como departamento, cliente o centro de costos, para capturar el contexto completo de cada gasto. Esto permite informes más detallados, flujos de aprobación y exportaciones contables.',
                 onlyAvailableOnPlan: 'Las etiquetas multinivel solo están disponibles en el plan Control, a partir de ',
+            },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
+                title: 'Múltiples niveles de aprobación',
+                description:
+                    'Los múltiples niveles de aprobación son una herramienta de flujo de trabajo para empresas que requieren que más de una persona apruebe un informe antes de que pueda ser reembolsado.',
+                onlyAvailableOnPlan: 'Los múltiples niveles de aprobación solo están disponibles en el plan Controlar, a partir de ',
             },
             note: {
                 upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',

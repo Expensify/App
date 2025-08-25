@@ -34,6 +34,7 @@ import {
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
     getCardIssuedMessage,
+    getChangedApproverActionMessage,
     getDeletedApprovalRuleMessage,
     getIntegrationSyncFailedMessage,
     getLastVisibleMessage,
@@ -370,28 +371,60 @@ function categorizeReportsForLHN(
     const nonArchivedReports: MiniReport[] = [];
     const archivedReports: MiniReport[] = [];
 
-    // There are a few properties that need to be calculated for the report which are used when sorting reports.
-    for (const report of Object.values(reportsToDisplay)) {
-        const reportID = report.reportID;
-        const isPinned = !!report.isPinned;
-        const hasErrors = !!report.hasErrorsOtherThanFailedReceipt;
-        const hasDraft = reportID ? !!draftReportComments?.[reportID] : false;
-        const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
-        const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
+    // Pre-calculate report names and other properties to avoid repeated calculations
+    const reportValues = Object.values(reportsToDisplay);
+    const precomputedReports: Array<{
+        miniReport: MiniReport;
+        isPinned: boolean;
+        hasErrors: boolean;
+        hasDraft: boolean;
+        isArchived: boolean;
+        requiresAttention: boolean;
+    }> = [];
 
+    // Single pass to precompute all required data
+    for (const report of reportValues) {
+        if (!report) {
+            continue;
+        }
+
+        const reportID = report.reportID;
+        const displayName = getReportName(report);
         const miniReport: MiniReport = {
             reportID,
-            displayName: getReportName(report),
+            displayName,
             lastVisibleActionCreated: report.lastVisibleActionCreated,
         };
 
-        if (isPinned || (reportID && reportAttributes?.[reportID]?.requiresAttention)) {
+        const isPinned = !!report.isPinned;
+        const requiresAttention = !!reportAttributes?.[reportID]?.requiresAttention;
+        const hasErrors = !!report.hasErrorsOtherThanFailedReceipt;
+        const hasDraft = !!reportID && !!draftReportComments?.[reportID];
+        const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
+        const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
+        const isArchived = isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived);
+
+        precomputedReports.push({
+            miniReport,
+            isPinned,
+            hasErrors,
+            hasDraft,
+            isArchived,
+            requiresAttention,
+        });
+    }
+
+    // Single pass to categorize reports
+    for (const data of precomputedReports) {
+        const {miniReport, isPinned, requiresAttention, hasErrors, hasDraft, isArchived} = data;
+
+        if (isPinned || requiresAttention) {
             pinnedAndGBRReports.push(miniReport);
         } else if (hasErrors) {
             errorReports.push(miniReport);
         } else if (hasDraft) {
             draftReports.push(miniReport);
-        } else if (isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived)) {
+        } else if (isArchived) {
             archivedReports.push(miniReport);
         } else {
             nonArchivedReports.push(miniReport);
@@ -430,30 +463,32 @@ function sortCategorizedReports(
 } {
     const {pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports} = categories;
 
+    // Create comparison functions once to avoid recreating them in sort
+    const compareDisplayNames = (a: MiniReport, b: MiniReport) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0);
+
+    const compareDatesDesc = (a: MiniReport, b: MiniReport) =>
+        a?.lastVisibleActionCreated && b?.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0;
+
+    const compareNonArchivedDefault = (a: MiniReport, b: MiniReport) => {
+        const compareDates = compareDatesDesc(a, b);
+        return compareDates !== 0 ? compareDates : compareDisplayNames(a, b);
+    };
+
     // Sort each group of reports accordingly
-    const sortedPinnedAndGBRReports = [...pinnedAndGBRReports].sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
-    const sortedErrorReports = [...errorReports].sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
-    const sortedDraftReports = [...draftReports].sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+    const sortedPinnedAndGBRReports = pinnedAndGBRReports.toSorted(compareDisplayNames);
+    const sortedErrorReports = errorReports.toSorted(compareDisplayNames);
+    const sortedDraftReports = draftReports.toSorted(compareDisplayNames);
 
     let sortedNonArchivedReports: MiniReport[];
     let sortedArchivedReports: MiniReport[];
 
     if (isInDefaultMode) {
-        sortedNonArchivedReports = [...nonArchivedReports].sort((a, b) => {
-            const compareDates = a?.lastVisibleActionCreated && b?.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0;
-            if (compareDates) {
-                return compareDates;
-            }
-            const compareDisplayNames = a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0;
-            return compareDisplayNames;
-        });
+        sortedNonArchivedReports = nonArchivedReports.toSorted(compareNonArchivedDefault);
         // For archived reports ensure that most recent reports are at the top by reversing the order
-        sortedArchivedReports = [...archivedReports].sort((a, b) =>
-            a?.lastVisibleActionCreated && b?.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0,
-        );
+        sortedArchivedReports = archivedReports.toSorted(compareDatesDesc);
     } else {
-        sortedNonArchivedReports = [...nonArchivedReports].sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
-        sortedArchivedReports = [...archivedReports].sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+        sortedNonArchivedReports = nonArchivedReports.toSorted(compareDisplayNames);
+        sortedArchivedReports = archivedReports.toSorted(compareDisplayNames);
     }
 
     return {
@@ -893,6 +928,8 @@ function getOptionData({
             result.alternateText = getReopenedMessage();
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
             result.alternateText = getTravelUpdateMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+            result.alternateText = getChangedApproverActionMessage(lastAction);
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0

@@ -58,6 +58,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -292,6 +293,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceMembersCountParams,
@@ -318,7 +320,6 @@ const translations = {
         count: 'Contagem',
         cancel: 'Cancelar',
         dismiss: 'Dispensar',
-        proceed: 'Proceed',
         yes: 'Sim',
         no: 'Não',
         ok: 'OK',
@@ -1381,6 +1382,22 @@ const translations = {
         rates: 'Taxas',
         submitsTo: ({name}: SubmitsToParams) => `Envia para ${name}`,
         moveExpenses: () => ({one: 'Mover despesa', other: 'Mover despesas'}),
+        changeApprover: {
+            title: 'Alterar aprovador',
+            subtitle: 'Escolha uma opção para alterar o aprovador deste relatório.',
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Você também pode alterar o aprovador permanentemente para todos os relatórios em suas <a href="${workflowSettingLink}">configurações de fluxo de trabalho</a>.`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `alterou o aprovador para <mention-user accountID="${managerID}"/>`,
+            actions: {
+                addApprover: 'Adicionar aprovador',
+                addApproverSubtitle: 'Adicionar um aprovador adicional ao fluxo de trabalho existente.',
+                bypassApprovers: 'Ignorar aprovadores',
+                bypassApproversSubtitle: 'Atribua-se como aprovador final e pule quaisquer aprovadores restantes.',
+            },
+            addApprover: {
+                subtitle: 'Escolha um aprovador adicional para este relatório antes de o encaminharmos através do restante do fluxo de trabalho de aprovação.',
+            },
+        },
     },
     transactionMerge: {
         listPage: {
@@ -3461,14 +3478,12 @@ const translations = {
             customField1: 'Campo personalizado 1',
             customField2: 'Campo personalizado 2',
             customFieldHint: 'Adicione uma codificação personalizada que se aplique a todos os gastos deste membro.',
-            reports: 'Relatórios',
             reportFields: 'Campos do relatório',
             reportTitle: 'Título do relatório',
             reportField: 'Campo de relatório',
             taxes: 'Impostos',
             bills: 'Faturas',
             invoices: 'Faturas',
-            perDiem: 'Per diem',
             travel: 'Viagem',
             members: 'Membros',
             accounting: 'Contabilidade',
@@ -3481,7 +3496,6 @@ const translations = {
             testTransactions: 'Testar transações',
             issueAndManageCards: 'Emitir e gerenciar cartões',
             reconcileCards: 'Conciliar cartões',
-            selectAll: 'Selecionar todos',
             selected: () => ({
                 one: '1 selecionado',
                 other: (count: number) => `${count} selecionado(s)`,
@@ -3495,8 +3509,6 @@ const translations = {
             memberNotFound: 'Membro não encontrado. Para convidar um novo membro para o espaço de trabalho, por favor, use o botão de convite acima.',
             notAuthorized: `Você não tem acesso a esta página. Se você está tentando entrar neste espaço de trabalho, basta pedir ao proprietário do espaço de trabalho para adicioná-lo como membro. Algo mais? Entre em contato com ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: 'Ir para o espaço de trabalho',
-            duplicateWorkspace: 'Espaço de trabalho duplicado',
-            duplicateWorkspacePrefix: 'Duplicado',
             goToWorkspaces: 'Ir para espaços de trabalho',
             clearFilter: 'Limpar filtro',
             workspaceName: 'Nome do espaço de trabalho',
@@ -4899,18 +4911,6 @@ const translations = {
             taxCode: 'Código fiscal',
             updateTaxCodeFailureMessage: 'Ocorreu um erro ao atualizar o código de imposto, por favor, tente novamente.',
         },
-        duplicateWorkspace: {
-            title: 'Nomeie seu novo espaço de trabalho',
-            selectFeatures: 'Selecione os recursos a serem copiados',
-            whichFeatures: 'Quais recursos você deseja copiar para o seu novo espaço de trabalho?',
-            confirmDuplicate: '\n\nVocê quer continuar?',
-            categories: 'categorias e suas regras de categorização automática',
-            reimbursementAccount: 'conta de reembolso',
-            delayedSubmission: 'envio atrasado',
-            welcomeNote: 'Comece a usar meu novo espaço de trabalho',
-            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
-                `Você está prestes a criar e compartilhar ${newWorkspaceName ?? ''} com ${totalMembers ?? 0} membros do espaço de trabalho original.`,
-        },
         emptyWorkspace: {
             title: 'Você não tem espaços de trabalho',
             subtitle: 'Acompanhe recibos, reembolse despesas, gerencie viagens, envie faturas e muito mais.',
@@ -4993,6 +4993,8 @@ const translations = {
                 limit: 'Limite',
                 limitType: 'Tipo de limite',
                 name: 'Nome',
+                disabledApprovalForSmartLimitError:
+                    'Por favor, ative as aprovações em <strong>Fluxos de Trabalho > Adicionar aprovações</strong> antes de configurar os limites inteligentes',
             },
             deactivateCardModal: {
                 deactivate: 'Desativar',
@@ -5493,6 +5495,12 @@ const translations = {
                 description:
                     'As Tags de Múltiplos Níveis ajudam você a rastrear despesas com maior precisão. Atribua várias tags a cada item de linha — como departamento, cliente ou centro de custo — para capturar o contexto completo de cada despesa. Isso permite relatórios mais detalhados, fluxos de trabalho de aprovação e exportações contábeis.',
                 onlyAvailableOnPlan: 'As tags de múltiplos níveis estão disponíveis apenas no plano Control, a partir de',
+            },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
+                title: 'Vários níveis de aprovação',
+                description:
+                    'Vários níveis de aprovação são uma ferramenta de fluxo de trabalho para empresas que exigem que mais de uma pessoa aprove um relatório antes que ele possa ser reembolsado.',
+                onlyAvailableOnPlan: 'Vários níveis de aprovação estão disponíveis apenas no plano Control, a partir de ',
             },
             pricing: {
                 perActiveMember: 'por membro ativo por mês.',

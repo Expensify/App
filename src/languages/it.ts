@@ -58,6 +58,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -292,6 +293,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceMembersCountParams,
@@ -318,7 +320,6 @@ const translations = {
         count: 'Contare',
         cancel: 'Annulla',
         dismiss: 'Ignora',
-        proceed: 'Proceed',
         yes: 'Sì',
         no: 'No',
         ok: 'OK',
@@ -1381,6 +1382,22 @@ const translations = {
         rates: 'Tariffe',
         submitsTo: ({name}: SubmitsToParams) => `Invia a ${name}`,
         moveExpenses: () => ({one: 'Sposta spesa', other: 'Sposta spese'}),
+        changeApprover: {
+            title: 'Cambia approvatore',
+            subtitle: "Scegli un'opzione per cambiare l'approvatore di questo report.",
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Puoi anche cambiare l'approvatore in modo permanente per tutti i report nelle tue <a href="${workflowSettingLink}">impostazioni del flusso di lavoro</a>.`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `ha cambiato l'approvatore in <mention-user accountID="${managerID}"/>`,
+            actions: {
+                addApprover: 'Aggiungi approvatore',
+                addApproverSubtitle: 'Aggiungi un approvatore aggiuntivo al flusso di lavoro esistente.',
+                bypassApprovers: 'Ignora approvatori',
+                bypassApproversSubtitle: 'Assegna te stesso come approvatore finale e salta gli approvatori rimanenti.',
+            },
+            addApprover: {
+                subtitle: 'Scegli un approvatore aggiuntivo per questo report prima di instradarlo attraverso il resto del flusso di lavoro di approvazione.',
+            },
+        },
     },
     transactionMerge: {
         listPage: {
@@ -3456,14 +3473,12 @@ const translations = {
             customField1: 'Campo personalizzato 1',
             customField2: 'Campo personalizzato 2',
             customFieldHint: 'Aggiungi una codifica personalizzata che si applica a tutte le spese di questo membro.',
-            reports: 'Rapporti',
             reportFields: 'Campi del rapporto',
             reportTitle: 'Titolo del rapporto',
-            reportField: 'Campo del rapporto',
+            reportField: 'Campo del report',
             taxes: 'Tasse',
             bills: 'Fatture',
             invoices: 'Fatture',
-            perDiem: 'Per diem',
             travel: 'Viaggio',
             members: 'Membri',
             accounting: 'Contabilità',
@@ -3476,7 +3491,6 @@ const translations = {
             testTransactions: 'Transazioni di prova',
             issueAndManageCards: 'Emetti e gestisci carte',
             reconcileCards: 'Riconcilia carte',
-            selectAll: 'Seleziona tutto',
             selected: () => ({
                 one: '1 selezionato',
                 other: (count: number) => `${count} selezionati`,
@@ -3490,9 +3504,7 @@ const translations = {
             memberNotFound: 'Membro non trovato. Per invitare un nuovo membro al workspace, utilizza il pulsante di invito sopra.',
             notAuthorized: `Non hai accesso a questa pagina. Se stai cercando di unirti a questo spazio di lavoro, chiedi semplicemente al proprietario dello spazio di lavoro di aggiungerti come membro. Qualcos'altro? Contatta ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: 'Vai allo spazio di lavoro',
-            duplicateWorkspace: 'Area di lavoro duplicata',
-            duplicateWorkspacePrefix: 'Duplicate',
-            goToWorkspaces: 'Duplicato',
+            goToWorkspaces: 'Vai agli spazi di lavoro',
             clearFilter: 'Cancella filtro',
             workspaceName: 'Nome del workspace',
             workspaceOwner: 'Proprietario',
@@ -4902,18 +4914,6 @@ const translations = {
             taxCode: 'Codice fiscale',
             updateTaxCodeFailureMessage: "Si è verificato un errore durante l'aggiornamento del codice fiscale, riprova.",
         },
-        duplicateWorkspace: {
-            title: 'Assegna un nome al tuo nuovo spazio di lavoro',
-            selectFeatures: 'Seleziona le funzionalità da copiare',
-            whichFeatures: 'Quali funzionalità vuoi copiare nel tuo nuovo spazio di lavoro?',
-            confirmDuplicate: '\n\nVuoi continuare?',
-            categories: 'Categorie e regole di categorizzazione automatica',
-            reimbursementAccount: 'Account di rimborso',
-            delayedSubmission: 'Invio ritardato',
-            welcomeNote: 'Inizia a utilizzare il mio nuovo spazio di lavoro',
-            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
-                `Stai per creare e condividere ${newWorkspaceName ?? ''} con ${totalMembers ?? 0} membri dall'area di lavoro originale.`,
-        },
         emptyWorkspace: {
             title: 'Non hai spazi di lavoro',
             subtitle: 'Traccia ricevute, rimborsa spese, gestisci viaggi, invia fatture e altro ancora.',
@@ -4996,6 +4996,7 @@ const translations = {
                 limit: 'Limite',
                 limitType: 'Tipo di limite',
                 name: 'Nome',
+                disabledApprovalForSmartLimitError: 'Abilita le approvazioni in <strong>Flussi di lavoro > Aggiungi approvazioni</strong> prima di impostare i limiti intelligenti',
             },
             deactivateCardModal: {
                 deactivate: 'Disattiva',
@@ -5497,6 +5498,12 @@ const translations = {
                 description:
                     'I tag multilivello ti aiutano a monitorare le spese con maggiore precisione. Assegna più tag a ciascuna voce, come reparto, cliente o centro di costo, per catturare il contesto completo di ogni spesa. Questo consente report più dettagliati, flussi di lavoro di approvazione ed esportazioni contabili.',
                 onlyAvailableOnPlan: 'I tag multilivello sono disponibili solo nel piano Control, a partire da',
+            },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
+                title: 'Livelli di approvazione multipli',
+                description:
+                    'I livelli di approvazione multipli sono uno strumento di flusso di lavoro per le aziende che richiedono a più di una persona di approvare un report prima che possa essere rimborsato.',
+                onlyAvailableOnPlan: 'I livelli di approvazione multipli sono disponibili solo nel piano Control, a partire da ',
             },
             pricing: {
                 perActiveMember: 'per membro attivo al mese.',

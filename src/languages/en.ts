@@ -47,6 +47,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -281,6 +282,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceMembersCountParams,
@@ -310,7 +312,6 @@ const translations = {
         count: 'Count',
         cancel: 'Cancel',
         dismiss: 'Dismiss',
-        proceed: 'Proceed',
         yes: 'Yes',
         no: 'No',
         ok: 'OK',
@@ -1369,6 +1370,22 @@ const translations = {
         rates: 'Rates',
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
         moveExpenses: () => ({one: 'Move expense', other: 'Move expenses'}),
+        changeApprover: {
+            title: 'Change approver',
+            subtitle: 'Choose an option to change the approver for this report.',
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `You can also change the approver permanently for all reports in your <a href="${workflowSettingLink}">workflow settings</a>.`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `changed the approver to <mention-user accountID="${managerID}"/>`,
+            actions: {
+                addApprover: 'Add approver',
+                addApproverSubtitle: 'Add an additional approver to the existing workflow.',
+                bypassApprovers: 'Bypass approvers',
+                bypassApproversSubtitle: 'Assign yourself as final approver and skip any remaining approvers.',
+            },
+            addApprover: {
+                subtitle: 'Choose an additional approver for this report before we route through the rest of the approval workflow.',
+            },
+        },
     },
     transactionMerge: {
         listPage: {
@@ -3440,14 +3457,12 @@ const translations = {
             customField1: 'Custom field 1',
             customField2: 'Custom field 2',
             customFieldHint: 'Add custom coding that applies to all spend from this member.',
-            reports: 'Reports',
             reportFields: 'Report fields',
             reportTitle: 'Report title',
             reportField: 'Report field',
             taxes: 'Taxes',
             bills: 'Bills',
             invoices: 'Invoices',
-            perDiem: 'Per diem',
             travel: 'Travel',
             members: 'Members',
             accounting: 'Accounting',
@@ -3460,7 +3475,6 @@ const translations = {
             testTransactions: 'Test transactions',
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
-            selectAll: 'Select all',
             selected: () => ({
                 one: '1 selected',
                 other: (count: number) => `${count} selected`,
@@ -3474,8 +3488,6 @@ const translations = {
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the invite button above.',
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: 'Go to workspace',
-            duplicateWorkspace: 'Duplicate Workspace',
-            duplicateWorkspacePrefix: 'Duplicate',
             goToWorkspaces: 'Go to workspaces',
             clearFilter: 'Clear filter',
             workspaceName: 'Workspace name',
@@ -4870,18 +4882,6 @@ const translations = {
             taxCode: 'Tax code',
             updateTaxCodeFailureMessage: 'An error occurred while updating the tax code, please try again',
         },
-        duplicateWorkspace: {
-            title: 'Name your new workspace',
-            selectFeatures: 'Select features to copy',
-            whichFeatures: 'Which features do you want to copy over to your new workspace?',
-            confirmDuplicate: '\n\nDo you want to continue?',
-            categories: 'categories and your auto-categorization rules',
-            reimbursementAccount: 'reimbursement account',
-            welcomeNote: 'Please start using my new workspace',
-            delayedSubmission: 'delayed submission',
-            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
-                `You’re about to create and share ${newWorkspaceName ?? ''} with ${totalMembers ?? 0} members from the original workspace.`,
-        },
         emptyWorkspace: {
             title: 'You have no workspaces',
             subtitle: 'Track receipts, reimburse expenses, manage travel, send invoices, and more.',
@@ -4964,6 +4964,7 @@ const translations = {
                 limit: 'Limit',
                 limitType: 'Limit type',
                 name: 'Name',
+                disabledApprovalForSmartLimitError: 'Please enable approvals in <strong>Workflows > Add approvals</strong> before setting up smart limits',
             },
             deactivateCardModal: {
                 deactivate: 'Deactivate',
@@ -5462,6 +5463,11 @@ const translations = {
                 description:
                     'Multi-Level Tags help you track expenses with greater precision. Assign multiple tags to each line item—such as department, client, or cost center—to capture the full context of every expense. This enables more detailed reporting, approval workflows, and accounting exports.',
                 onlyAvailableOnPlan: 'Multi-level tags are only available on the Control plan, starting at ',
+            },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
+                title: 'Multiple approval levels',
+                description: 'Multiple approval levels is a workflow tool for companies that require more than one person to approve a report before it can be reimbursed.',
+                onlyAvailableOnPlan: 'Multiple approval levels are only available on the Control plan, starting at ',
             },
             pricing: {
                 perActiveMember: 'per active member per month.',
