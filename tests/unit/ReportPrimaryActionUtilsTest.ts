@@ -167,7 +167,7 @@ describe('getPrimaryAction', () => {
             },
             receipt: {
                 state: CONST.IOU.RECEIPT_STATE.SCANNING,
-                source: 'test'
+                source: 'test',
             },
         } as unknown as Transaction;
 
