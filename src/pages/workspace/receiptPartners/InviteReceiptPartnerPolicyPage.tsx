@@ -134,18 +134,17 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         ];
     }, [workspaceMembers, debouncedSearchTerm, selectedOptions]);
 
-    // Pre-select all members on first load
+    // Pre-select all members only once on first load.
     useEffect(() => {
         if (workspaceMembers.length === 0) {
             return;
         }
-
-        const allSelectedMembers = workspaceMembers.map((member) => ({
-            ...member,
-            isSelected: true,
-        }));
-
-        setSelectedOptions(allSelectedMembers);
+        setSelectedOptions((prev) => {
+            if (prev.length > 0) {
+                return prev;
+            }
+            return workspaceMembers.map((member) => ({...member, isSelected: true}));
+        });
     }, [workspaceMembers]);
 
     const toggleOption = useCallback(
