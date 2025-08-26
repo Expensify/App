@@ -896,6 +896,18 @@ type OriginalMessageIntegrationMessage = {
 };
 
 /**
+ * Model of Take Control action original message
+ */
+type OriginalMessageTakeControl = {
+    /**  Whether the action was taken on newDot or oldDot */
+    isNewDot: boolean;
+    /** Time the action was created */
+    lastModified: string;
+    /** Tagged account IDs of new approvers */
+    mentionedAccountIDs: number[];
+};
+
+/**
  * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ASSIGNED and CARD_ISSUED_VIRTUAL actions
  */
 type IssueNewCardOriginalMessage = OriginalMessage<
@@ -964,7 +976,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TASK_EDITED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED]: never;
-    [CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL]: never;
+    [CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL]: OriginalMessageTakeControl;
     [CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE]: OriginalMessageTravelUpdate;
     [CONST.REPORT.ACTIONS.TYPE.UNAPPROVED]: OriginalMessageUnapproved;
     [CONST.REPORT.ACTIONS.TYPE.UNHOLD]: never;

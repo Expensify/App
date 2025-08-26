@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
 import type {IOURequestType} from './IOU';
-import {startMoneyRequest} from './IOU';
+import {startDistanceRequest, startMoneyRequest} from './IOU';
 import {startOutCreateTaskQuickAction} from './Task';
 
 function getQuickActionRequestType(action: QuickActionName | undefined): IOURequestType | undefined {
@@ -25,14 +25,18 @@ function getQuickActionRequestType(action: QuickActionName | undefined): IOURequ
     return requestType;
 }
 
-function navigateToQuickAction(isValidReport: boolean, quickAction: QuickAction, selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void) {
+function navigateToQuickAction(
+    isValidReport: boolean,
+    quickAction: QuickAction,
+    selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void,
+    isManualDistanceTrackingEnabled?: boolean,
+) {
     const reportID = isValidReport && quickAction?.chatReportID ? quickAction?.chatReportID : generateReportID();
     const requestType = getQuickActionRequestType(quickAction?.action);
 
     switch (quickAction?.action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
         case CONST.QUICK_ACTIONS.PER_DIEM:
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true), true);
             break;
@@ -49,7 +53,20 @@ function navigateToQuickAction(isValidReport: boolean, quickAction: QuickAction,
             break;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
+            break;
+        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+            if (isManualDistanceTrackingEnabled) {
+                selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true), false);
+                return;
+            }
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true), true);
+            break;
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
+            if (isManualDistanceTrackingEnabled) {
+                selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
+                return;
+            }
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
             break;
         default:
