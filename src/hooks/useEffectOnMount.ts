@@ -7,9 +7,9 @@ import useBeforeRemove from './useBeforeRemove';
  * (during the first render). Unlike `useEffect`, this hook does not re-run
  * when dependencies change, and it resets its "first render" state
  * when the component is removed from the navigation stack.
- * 
- * NOTE: It's a refactor of an existing solution already used in multiple places 
- * in the codebase, so the goal here is just to go towards consistency. 
+ *
+ * NOTE: It's a refactor of an existing solution already used in multiple places
+ * in the codebase, so the goal here is just to go towards consistency.
  * Even though it diverges from "pure" React practices... :(
  *
  * @example
