@@ -48,7 +48,7 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                 ...proxySettings,
                 historyApiFallback: true,
                 port,
-                host: '127.0.0.1',
+                host: 'dev.new.expensify.com',
                 server: {
                     type: 'https',
                     options: {
