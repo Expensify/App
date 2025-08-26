@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import * as PersonalDetails from '@userActions/PersonalDetails';
+import {updateAutomaticTimezone} from '@userActions/PersonalDetails';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
@@ -11,7 +11,7 @@ const useAutoUpdateTimezone = () => {
         const hasValidCurrentTimezone = typeof currentTimezone === 'string' && currentTimezone.trim().length > 0;
 
         if (hasValidCurrentTimezone && timezone?.automatic && timezone?.selected !== currentTimezone) {
-            PersonalDetails.updateAutomaticTimezone({
+            updateAutomaticTimezone({
                 automatic: true,
                 selected: currentTimezone,
             });
