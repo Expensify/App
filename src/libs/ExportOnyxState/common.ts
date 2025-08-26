@@ -21,7 +21,50 @@ const keysToMask = [
     'edits',
     'lastMessageHtml',
     'lastMessageText',
+    'login',
+    'avatar',
+    'avatarURL',
+    'email',
+    'remainingWalletLimit',
+    'walletLimit',
+    'availableBalance',
+    'currentBalance',
+    'walletLinkedAccountType',
+    'walletLimitEnforcementPeriod',
+    'tier',
+    'tierName',
+    'primaryLogin',
+    'validateCode',
+    'displayName',
+    'zipCode',
+    'owner',
+    'name',
+    'oldPolicyName',
+    'policyAvatar',
+    'policyName',
+    'receivableAccount',
+    'payableAcct',
+    'invoiceItem',
+    'payableList',
+    'merchant',
+    'cardName',
+    'cardNumber',
+    'amount',
+    'comment',
+    'bank',
+    'modifiedMerchant',
+    'originalAmount',
 ];
+
+function getMaskingPattern(value: unknown) {
+    if (typeof value === 'string') {
+        return '*'.repeat(value.length);
+    }
+    if (Array.isArray(value)) {
+        return value.map((v) => (typeof v === 'string' ? '*'.repeat(v.length) : ''));
+    }
+    return MASKING_PATTERN;
+}
 
 const onyxKeysToRemove: Array<ValueOf<typeof ONYXKEYS>> = [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID];
 
@@ -64,7 +107,7 @@ const maskSessionDetails = (onyxState: OnyxState): OnyxState => {
             maskedData[key] = session[key as keyof Session];
             return;
         }
-        maskedData[key] = MASKING_PATTERN;
+        maskedData[key] = getMaskingPattern(session[key as keyof Session]);
     });
 
     return {
@@ -118,20 +161,20 @@ const maskFragileData = (data: OnyxState | unknown[] | null, parentKey?: string)
 
         if (keysToMask.includes(key)) {
             if (Array.isArray(value)) {
-                maskedData[key] = value.map(() => MASKING_PATTERN);
+                maskedData[key] = value.map((v) => getMaskingPattern(v));
             } else {
-                maskedData[key] = MASKING_PATTERN;
+                maskedData[key] = getMaskingPattern(value);
             }
         } else if (typeof value === 'string' && Str.isValidEmail(value)) {
             maskedData[propertyName] = maskEmail(value);
         } else if (typeof value === 'string' && stringContainsEmail(value)) {
             maskedData[propertyName] = replaceEmailInString(value, maskEmail(extractEmail(value) ?? ''));
         } else if (parentKey && parentKey.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && (propertyName === 'text' || propertyName === 'html')) {
-            maskedData[key] = MASKING_PATTERN;
+            maskedData[key] = getMaskingPattern(value);
         } else if (typeof value === 'object') {
             maskedData[propertyName] = maskFragileData(value as OnyxState, propertyName.includes(ONYXKEYS.COLLECTION.REPORT_ACTIONS) ? propertyName : parentKey);
         } else {
-            maskedData[propertyName] = value;
+            maskedData[propertyName] = getMaskingPattern(value);
         }
     });
 
