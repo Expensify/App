@@ -60,6 +60,64 @@ function appendSetupCategoriesOnboardingData(onyxData: OnyxData) {
     return onyxData;
 }
 
+function buildOptimisticPolicyWithExistingCategories(policyID: string, categories: PolicyCategories) {
+    const categoriesValues = Object.values(categories);
+    const optimisticCategoryMap = categoriesValues.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+        acc[category.name] = {
+            ...category,
+            errors: null,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+        return acc;
+    }, {});
+
+    const successCategoryMap = categoriesValues.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+        acc[category.name] = {
+            errors: null,
+            pendingAction: null,
+        };
+        return acc;
+    }, {});
+
+    const failureCategoryMap = categoriesValues.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+        acc[category.name] = {
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.createFailureMessage'),
+        };
+        return acc;
+    }, {});
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: optimisticCategoryMap,
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
+                value: null,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: successCategoryMap,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: failureCategoryMap,
+            },
+        ],
+    };
+
+    return onyxData;
+}
+
 function buildOptimisticPolicyCategories(policyID: string, categories: readonly string[]) {
     const optimisticCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
         acc[category] = {
@@ -1430,6 +1488,7 @@ export {
     renamePolicyCategory,
     setPolicyCategoryApprover,
     setPolicyCategoryDescriptionRequired,
+    buildOptimisticPolicyWithExistingCategories,
     setPolicyCategoryGLCode,
     setPolicyCategoryMaxAmount,
     setPolicyCategoryPayrollCode,

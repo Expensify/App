@@ -103,6 +103,7 @@ import type {
     LastPaymentMethodType,
     PersonalDetailsList,
     Policy,
+    PolicyCategories,
     PolicyCategory,
     PolicyEmployee,
     ReimbursementAccount,
@@ -120,7 +121,7 @@ import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {buildOptimisticMccGroup, buildOptimisticPolicyCategories} from './Category';
+import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './Category';
 
 type ReportCreationData = Record<
     string,
@@ -176,6 +177,7 @@ type DuplicatePolicyDataOptions = {
     welcomeNote: string;
     parts: Record<string, boolean>;
     file?: File | CustomRNImageManipulatorResult;
+    policyCategories?: PolicyCategories;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -2455,7 +2457,7 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
 }
 
 function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOptions) {
-    const {policyName = '', policyID = generatePolicyID(), file, welcomeNote, parts, targetPolicyID = generatePolicyID()} = options;
+    const {policyName = '', policyID = generatePolicyID(), file, welcomeNote, parts, targetPolicyID = generatePolicyID(), policyCategories} = options;
 
     const {
         adminsChatReportID,
@@ -2484,7 +2486,9 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(targetPolicyID, [...policyMemberAccountIDs]);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
-    const optimisticCategoriesData = buildOptimisticPolicyCategories(targetPolicyID, Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
+    const optimisticCategoriesData = policyCategories
+        ? buildOptimisticPolicyWithExistingCategories(targetPolicyID, policyCategories)
+        : buildOptimisticPolicyCategories(targetPolicyID, Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
     const optimisticData: OnyxUpdate[] = [
@@ -2501,6 +2505,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                 areWorkflowsEnabled: isWorkflowsOptionSelected,
                 areReportFieldsEnabled: isReportsOptionSelected,
                 areConnectionsEnabled: isConnectionsOptionSelected,
+                workspaceAccountID: undefined,
                 tax: isTaxesOptionSelected ? policy?.tax : undefined,
                 employeeList: isMemberOptionSelected ? policy.employeeList : {[policy.owner]: policy?.employeeList?.[policy.owner]},
                 id: targetPolicyID,
