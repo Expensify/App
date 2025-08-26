@@ -45,6 +45,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -280,6 +281,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceMembersCountParams,
@@ -287,6 +289,7 @@ import type {
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
+    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -571,6 +574,7 @@ const translations = {
         network: 'La red',
         reportID: 'ID del informe',
         longID: 'ID largo',
+        withdrawalID: 'ID de retiro',
         bankAccounts: 'Cuentas bancarias',
         chooseFile: 'Elegir archivo',
         chooseFiles: 'Elegir archivos',
@@ -933,6 +937,7 @@ const translations = {
         distance: 'Distancia',
         manual: 'Manual',
         scan: 'Escanear',
+        map: 'Map',
     },
     spreadsheet: {
         upload: 'Importar',
@@ -1231,6 +1236,7 @@ const translations = {
             invalidCategoryLength: 'La longitud de la categoría escogida excede el máximo permitido (255). Por favor, escoge otra categoría o acorta la categoría primero.',
             invalidTagLength: 'La longitud de la etiqueta escogida excede el máximo permitido (255). Por favor, escoge otra etiqueta o acorta la etiqueta primero.',
             invalidAmount: 'Por favor, ingresa un importe válido antes de continuar',
+            invalidDistance: 'Por favor, ingresa una distancia válida antes de continuar',
             invalidIntegerAmount: 'Por favor, introduce una cantidad entera en dólares antes de continuar',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `El importe máximo del impuesto es ${amount}`,
             invalidSplit: 'La suma de las partes debe ser igual al importe total',
@@ -1276,14 +1282,13 @@ const translations = {
         heldExpense: 'retuvo este gasto',
         unheldExpense: 'desbloqueó este gasto',
         explainHold: 'Explica la razón para retener esta solicitud.',
-        undoClose: 'Deshacer cierre',
+        retract: 'Retractar',
         reopened: 'reabrir',
         reopenReport: 'Reabrir informe',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
             `Este informe ya ha sido exportado a ${connectionName}. Cambiarlo puede provocar discrepancias en los datos. ¿Estás seguro de que deseas reabrir este informe?`,
         reason: 'Razón',
-        undoSubmit: 'Deshacer envío',
-        retracted: 'retirado',
+        retracted: 'retractado',
         holdReasonRequired: 'Se requiere una razón para retener.',
         expenseWasPutOnHold: 'Este gasto está retenido',
         expenseOnHold: 'Este gasto está retenido. Revisa los comentarios para saber como proceder.',
@@ -1365,6 +1370,22 @@ const translations = {
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
         moveExpenses: () => ({one: 'Mover gasto', other: 'Mover gastos'}),
+        changeApprover: {
+            title: 'Cambiar aprobador',
+            subtitle: 'Elige una opción para cambiar el aprobador de este informe.',
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `También puedes cambiar el aprobador de forma permanente para todos los informes en tu <a href="${workflowSettingLink}">configuración de flujo de trabajo</a>.`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `cambió el aprobador a <mention-user accountID="${managerID}"/>`,
+            actions: {
+                addApprover: 'Añadir aprobador',
+                addApproverSubtitle: 'Añade un aprobador adicional al flujo de trabajo existente.',
+                bypassApprovers: 'Omitir aprobadores',
+                bypassApproversSubtitle: 'Asígnate como aprobador final y omite a los aprobadores restantes.',
+            },
+            addApprover: {
+                subtitle: 'Elige un aprobador adicional para este informe antes de que lo enviemos por el resto del flujo de aprobación.',
+            },
+        },
     },
     transactionMerge: {
         listPage: {
@@ -3129,21 +3150,6 @@ const translations = {
         enable2FAText: 'Tu seguridad es importante para nosotros. Por favor, configura ahora la autenticación de dos factores para añadir una capa adicional de protección a tu cuenta.',
         secureYourAccount: 'Asegura tu cuenta',
     },
-    beneficialOwnersStep: {
-        additionalInformation: 'Información adicional',
-        checkAllThatApply: 'Marca todos los que apliquen, en caso de que ninguno aplique dejar en blanco.',
-        iOwnMoreThan25Percent: 'Soy dueño de mas de 25% de ',
-        someoneOwnsMoreThan25Percent: 'Otra persona es dueña de mas de 25% de ',
-        additionalOwner: 'Beneficiario efectivo adicional',
-        removeOwner: 'Eliminar este beneficiario efectivo',
-        addAnotherIndividual: 'Añadir otra persona que es dueña de mas de 25% de ',
-        agreement: 'Acuerdo:',
-        termsAndConditions: 'Términos y condiciones',
-        certifyTrueAndAccurate: 'Certifico que la información dada es correcta',
-        error: {
-            certify: 'Debe certificar que la información es verdadera y precisa',
-        },
-    },
     completeVerificationStep: {
         completeVerification: 'Completar la verificación',
         confirmAgreements: 'Por favor, confirma los acuerdos siguientes.',
@@ -3222,10 +3228,11 @@ const translations = {
         regulationRequiresUs: 'La normativa requiere que verifiquemos la identidad de cualquier individuo que posea más del 25% del negocio.',
         iAmAuthorized: 'Estoy autorizado para usar la cuenta bancaria para gastos del negocio.',
         iCertify: 'Certifico que la información proporcionada es verdadera y correcta.',
-        termsAndConditions: 'términos y condiciones',
+        iAcceptTheTermsAndConditions: `Acepto los <a href="https://cross-border.corpay.com/tc/">términos y condiciones</a>.`,
+        iAcceptTheTermsAndConditionsAccessibility: 'Acepto los términos y condiciones.',
         accept: 'Agregar y aceptar cuenta bancaria',
-        iConsentToThe: 'Doy mi consentimiento para el',
-        privacyNotice: 'aviso de privacidad',
+        iConsentToThePrivacyNotice: 'Doy mi consentimiento para el <a href="https://payments.corpay.com/compliance">aviso de privacidad</a>.',
+        iConsentToThePrivacyNoticeAccessibility: 'Doy mi consentimiento para el aviso de privacidad.',
         error: {
             authorized: 'Debe ser un funcionario controlador con autorización para operar la cuenta bancaria comercial',
             certify: 'Por favor certifique que la información es verdadera y exacta',
@@ -5205,6 +5212,7 @@ const translations = {
                 limit: 'Limite',
                 limitType: 'Tipo de limite',
                 name: 'Nombre',
+                disabledApprovalForSmartLimitError: 'Por favor, habilita las aprobaciones en <strong>Flujos de trabajo > Aprobaciones</strong> antes de configurar los límites inteligentes',
             },
             deactivateCardModal: {
                 deactivate: 'Desactivar',
@@ -5478,11 +5486,14 @@ const translations = {
                     'Las etiquetas multinivel te ayudan a llevar un control más preciso de los gastos. Asigna múltiples etiquetas a cada partida, como departamento, cliente o centro de costos, para capturar el contexto completo de cada gasto. Esto permite informes más detallados, flujos de aprobación y exportaciones contables.',
                 onlyAvailableOnPlan: 'Las etiquetas multinivel solo están disponibles en el plan Control, a partir de ',
             },
-            note: {
-                upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',
-                learnMore: 'más información',
-                aboutOurPlans: 'sobre nuestros planes y precios.',
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
+                title: 'Múltiples niveles de aprobación',
+                description:
+                    'Los múltiples niveles de aprobación son una herramienta de flujo de trabajo para empresas que requieren que más de una persona apruebe un informe antes de que pueda ser reembolsado.',
+                onlyAvailableOnPlan: 'Los múltiples niveles de aprobación solo están disponibles en el plan Controlar, a partir de ',
             },
+            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+                `<muted-text>Mejore su espacio de trabajo para acceder a esta función, o <a href="${subscriptionLink}">más información</a> sobre nuestros planes y precios.</muted-text>`,
             pricing: {
                 perActiveMember: 'por miembro activo al mes.',
                 perMember: 'por miembro al mes.',
@@ -6017,6 +6028,7 @@ const translations = {
         statements: 'Extractos',
         unapprovedCash: 'Efectivo no aprobado',
         unapprovedCard: 'Tarjeta no aprobada',
+        reconciliation: 'Conciliación',
         saveSearch: 'Guardar búsqueda',
         savedSearchesMenuItemTitle: 'Guardadas',
         searchName: 'Nombre de la búsqueda',
@@ -6820,7 +6832,8 @@ const translations = {
         copied: '¡Copiado!',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invitar',
+        inviteToSubmitExpense: 'Invitar a enviar gastos',
+        inviteToChat: 'Invitar solo a chatear',
         nothing: 'No hacer nada',
     },
     actionableMentionJoinWorkspaceOptions: {
@@ -7507,7 +7520,7 @@ const translations = {
         takeATestDrive: 'Haz una prueba',
     },
     migratedUserWelcomeModal: {
-        title: 'Viajes y gastos, a la velocidad del chat',
+        title: '¡Bienvenido a New Expensify!',
         subtitle: 'New Expensify tiene la misma excelente automatización, pero ahora con una colaboración increíble:',
         confirmText: 'Vamos!',
         features: {

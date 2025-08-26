@@ -13,6 +13,7 @@ import type {
     TransactionListItemType,
     TransactionMemberGroupListItemType,
     TransactionReportGroupListItemType,
+    TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
@@ -32,6 +33,7 @@ import ROUTES from '@src/ROUTES';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
+import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 
 function TransactionGroupListItem<TItem extends ListItem>({
     item,
@@ -138,8 +140,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 />
             ),
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: (
-                // Will be implemented as part of https://github.com/Expensify/App/pull/66078
-                <View />
+                <WithdrawalIDListItemHeader
+                    withdrawalID={groupItem as TransactionWithdrawalIDGroupListItemType}
+                    onSelectRow={onSelectRow}
+                    onCheckboxPress={onCheckboxPress}
+                    isDisabled={isDisabledOrEmpty}
+                    canSelectMultiple={canSelectMultiple}
+                />
             ),
         };
 
@@ -163,8 +170,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
+    const pendingAction =
+        (item.pendingAction ?? (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)))
+            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+            : undefined;
+
     return (
-        <OfflineWithFeedback pendingAction={item.pendingAction}>
+        <OfflineWithFeedback pendingAction={pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={onLongPress}
@@ -197,26 +209,30 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         </View>
                     ) : (
                         groupItem.transactions.map((transaction) => (
-                            <TransactionItemRow
+                            <OfflineWithFeedback
                                 key={transaction.transactionID}
-                                report={transaction.report}
-                                transactionItem={transaction}
-                                isSelected={!!transaction.isSelected}
-                                dateColumnSize={dateColumnSize}
-                                amountColumnSize={amountColumnSize}
-                                taxAmountColumnSize={taxAmountColumnSize}
-                                shouldShowTooltip={showTooltip}
-                                shouldUseNarrowLayout={!isLargeScreenWidth}
-                                shouldShowCheckbox={!!canSelectMultiple}
-                                onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                columns={columns}
-                                onButtonPress={() => {
-                                    openReportInRHP(transaction);
-                                }}
-                                style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
-                                isReportItemChild
-                                isInSingleTransactionReport={groupItem.transactions.length === 1}
-                            />
+                                pendingAction={transaction.pendingAction}
+                            >
+                                <TransactionItemRow
+                                    report={transaction.report}
+                                    transactionItem={transaction}
+                                    isSelected={!!transaction.isSelected}
+                                    dateColumnSize={dateColumnSize}
+                                    amountColumnSize={amountColumnSize}
+                                    taxAmountColumnSize={taxAmountColumnSize}
+                                    shouldShowTooltip={showTooltip}
+                                    shouldUseNarrowLayout={!isLargeScreenWidth}
+                                    shouldShowCheckbox={!!canSelectMultiple}
+                                    onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                    columns={columns}
+                                    onButtonPress={() => {
+                                        openReportInRHP(transaction);
+                                    }}
+                                    style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
+                                    isReportItemChild
+                                    isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                />
+                            </OfflineWithFeedback>
                         ))
                     )}
                 </View>
