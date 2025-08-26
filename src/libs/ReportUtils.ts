@@ -5387,8 +5387,8 @@ function getReportNameInternal({
         if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
             const policyID = reports?.find((r) => r.reportID === report?.reportID)?.policyID;
 
-            const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(parentReportAction, CONST.REPORT_MOVE_TYPE.FROM)}`];
-            const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(parentReportAction, CONST.REPORT_MOVE_TYPE.TO)}`];
+            const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
+            const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
             const movedFromOrToReportMessage = ModifiedExpenseMessage.getMovedFromOrToReportMessage(movedFromReport, movedToReport);
             const modifiedMessage = ModifiedExpenseMessage.getForReportAction({
                 reportAction: parentReportAction,

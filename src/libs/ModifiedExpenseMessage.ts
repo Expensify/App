@@ -144,13 +144,13 @@ function getForExpenseMovedFromSelfDM(destinationReport: OnyxEntry<Report>) {
     });
 }
 
-function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<typeof CONST.REPORT_MOVE_TYPE>): string | undefined {
+function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<typeof CONST.REPORT.MOVE_TYPE>): string | undefined {
     if (!isModifiedExpenseAction(reportAction)) {
         return undefined;
     }
     const reportActionOriginalMessage = getOriginalMessage(reportAction);
 
-    return type === CONST.REPORT_MOVE_TYPE.TO ? reportActionOriginalMessage?.movedToReportID : reportActionOriginalMessage?.movedFromReport;
+    return type === CONST.REPORT.MOVE_TYPE.TO ? reportActionOriginalMessage?.movedToReportID : reportActionOriginalMessage?.movedFromReport;
 }
 
 function getMovedFromOrToReportMessage(movedFromReport: OnyxEntry<Report> | undefined, movedToReport: OnyxEntry<Report> | undefined): string | undefined {

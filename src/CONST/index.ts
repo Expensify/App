@@ -1454,6 +1454,10 @@ const CONST = {
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
         },
+        MOVE_TYPE: {
+            FROM: 'from',
+            TO: 'to',
+        },
     },
     EXPORT_TEMPLATE_TYPES: {
         INTEGRATIONS: 'integrations',
@@ -7072,10 +7076,6 @@ const CONST = {
         SPLIT_EXPENSE: 'splitExpense',
         REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
         INVITE_ACCOUNTANT: 'inviteAccountant',
-    },
-    REPORT_MOVE_TYPE: {
-        FROM: 'from',
-        TO: 'to',
     },
 } as const;
 

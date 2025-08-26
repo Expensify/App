@@ -214,8 +214,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                       }
                     : null;
             }
-            const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(lastReportAction, CONST.REPORT_MOVE_TYPE.FROM)}`];
-            const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(lastReportAction, CONST.REPORT_MOVE_TYPE.TO)}`];
+            const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
+            const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
             const movedFromOrToReportMessage = ModifiedExpenseMessage.getMovedFromOrToReportMessage(movedFromReport, movedToReport);
             const lastMessageTextFromReport = getLastMessageTextForReport(item, lastActorDetails, movedFromOrToReportMessage, itemPolicy, !!itemReportNameValuePairs?.private_isArchived);
 
