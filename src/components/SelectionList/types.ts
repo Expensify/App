@@ -16,7 +16,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import type {ForwardedFSClassProps, FSClass} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import type SpendCategorySelectorListItem from '@pages/workspace/categories/SpendCategorySelectorListItem';
@@ -407,6 +407,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     testID?: string;
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+    contentFSClass?: FSClass;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
@@ -475,6 +476,12 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
+
+    /** All the data of the report collection */
+    allReports?: OnyxCollection<Report>;
+
+    /** Personal details list */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {

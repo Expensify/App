@@ -2,9 +2,9 @@ import React from 'react';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import FS from '@libs/Fullstory';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BaseListItem from './BaseListItem';
 import type {ChatListItemProps, ListItem, ReportActionListItemType} from './types';
@@ -28,8 +28,7 @@ function ChatListItem<TItem extends ListItem>({
     userBillingFundID,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
-    const reportID = Number(reportActionItem?.reportID ?? CONST.DEFAULT_NUMBER_ID);
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`];
     const styles = useThemeStyles();
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -49,6 +48,7 @@ function ChatListItem<TItem extends ListItem>({
         styles.mh0,
         item.cursorStyle,
     ];
+    const contentFSClass = FS.getChatFSClass(personalDetails, report);
 
     return (
         <BaseListItem
@@ -69,6 +69,7 @@ function ChatListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
             hoverStyle={item.isSelected && styles.activeComponentBG}
+            contentFSClass={contentFSClass}
         >
             <ReportActionItem
                 allReports={allReports}

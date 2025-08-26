@@ -23,7 +23,6 @@ import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {canActionTask, completeTask, getTaskAssigneeAccountID, reopenTask} from '@libs/actions/Task';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import FS from '@libs/Fullstory';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
@@ -104,7 +103,6 @@ function TaskPreview({
     const avatarSize = CONST.AVATAR_SIZE.SMALL;
     const isDeletedParentAction = isCanceledTaskReport(taskReport, action);
     const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(hasAssignee ? avatarSize : undefined);
-    const fsClass = FS.getChatFSClass(personalDetails, taskReport);
 
     const shouldShowGreenDotIndicator = isOpenTaskReport(taskReport, action) && isReportManager(taskReport);
     if (isDeletedParentAction) {
@@ -140,7 +138,6 @@ function TaskPreview({
             >
                 <View
                     style={[styles.flex1, styles.flexRow, styles.alignItemsStart, styles.mr2]}
-                    fsClass={fsClass}
                 >
                     <View style={iconWrapperStyle}>
                         <Checkbox
