@@ -17,7 +17,7 @@ type CountrySelectionListProps = {
     /** The currently selected country */
     selectedCountry: string;
 
-    /** List of available countries */
+    /** List of available countries in country code format */
     countries: string[];
 
     /** Function to call on step confirmation */
