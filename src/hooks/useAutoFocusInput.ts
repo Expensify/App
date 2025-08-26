@@ -48,14 +48,17 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
 
     useFocusEffect(
         useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => {
-                setIsScreenTransitionEnded(true);
-            }, CONST.ANIMATED_TRANSITION);
+            const focusTimeoutTask = InteractionManager.runAfterInteractions(() => {
+                focusTimeoutRef.current = setTimeout(() => {
+                    setIsScreenTransitionEnded(true);
+                }, CONST.ANIMATED_TRANSITION);
+            });
             return () => {
                 setIsScreenTransitionEnded(false);
                 if (!focusTimeoutRef.current) {
                     return;
                 }
+                focusTimeoutTask.cancel();
                 clearTimeout(focusTimeoutRef.current);
             };
         }, []),
