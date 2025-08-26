@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,16 +20,21 @@ import {updateLegalName as updateLegalNamePersonalDetails} from '@userActions/Pe
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/LegalNameForm';
-import type {PrivatePersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-const updateLegalName = (values: PrivatePersonalDetails, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => {
-    updateLegalNamePersonalDetails(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '', formatPhoneNumber);
+const updateLegalName = (
+    values: PrivatePersonalDetails,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    currentUserPersonalDetail: Pick<PersonalDetails, 'firstName' | 'lastName'>,
+) => {
+    updateLegalNamePersonalDetails(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '', formatPhoneNumber, currentUserPersonalDetail);
 };
 
 function LegalNamePage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -96,7 +102,7 @@ function LegalNamePage() {
                         style={[styles.flexGrow1, styles.ph5]}
                         formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
                         validate={validate}
-                        onSubmit={(values) => updateLegalName(values, formatPhoneNumber)}
+                        onSubmit={(values) => updateLegalName(values, formatPhoneNumber, {firstName: currentUserPersonalDetails.firstName, lastName: currentUserPersonalDetails.lastName})}
                         submitButtonText={translate('common.save')}
                         enabledWhenOffline
                     >

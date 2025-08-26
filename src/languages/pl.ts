@@ -103,6 +103,7 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
+    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -301,6 +302,7 @@ import type {
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
+    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -953,6 +955,7 @@ const translations = {
         distance: 'Odległość',
         manual: 'Podręcznik',
         scan: 'Skanuj',
+        map: 'Mapa',
     },
     spreadsheet: {
         upload: 'Prześlij arkusz kalkulacyjny',
@@ -1247,6 +1250,7 @@ const translations = {
             invalidCategoryLength: 'Nazwa kategorii przekracza 255 znaków. Proszę ją skrócić lub wybrać inną kategorię.',
             invalidTagLength: 'Nazwa tagu przekracza 255 znaków. Proszę skrócić ją lub wybrać inny tag.',
             invalidAmount: 'Proszę wprowadzić prawidłową kwotę przed kontynuowaniem',
+            invalidDistance: 'Proszę wprowadzić prawidłową odległość przed kontynuowaniem',
             invalidIntegerAmount: 'Proszę wprowadzić pełną kwotę w dolarach przed kontynuowaniem',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Maksymalna kwota podatku to ${amount}`,
             invalidSplit: 'Suma podziałów musi być równa całkowitej kwocie',
@@ -3088,9 +3092,9 @@ const translations = {
         },
     },
     beneficialOwnerInfoStep: {
-        doYouOwn25percent: 'Czy posiadasz 25% lub więcej z',
-        doAnyIndividualOwn25percent: 'Czy jakiekolwiek osoby posiadają 25% lub więcej z',
-        areThereMoreIndividualsWhoOwn25percent: 'Czy istnieje więcej osób, które posiadają 25% lub więcej z',
+        doYouOwn25percent: ({companyName}: CompanyNameParams) => `Czy posiadasz 25% lub więcej udziałów w ${companyName}?`,
+        doAnyIndividualOwn25percent: ({companyName}: CompanyNameParams) => `Czy jakakolwiek osoba posiada 25% lub więcej udziałów w ${companyName}?`,
+        areThereMoreIndividualsWhoOwn25percent: ({companyName}: CompanyNameParams) => `Czy jest więcej osób, które posiadają 25% lub więcej udziałów w ${companyName}?`,
         regulationRequiresUsToVerifyTheIdentity: 'Przepisy wymagają od nas weryfikacji tożsamości każdej osoby, która posiada więcej niż 25% udziałów w firmie.',
         companyOwner: 'Właściciel firmy',
         enterLegalFirstAndLastName: 'Jakie jest prawne imię właściciela?',
@@ -3175,21 +3179,6 @@ const translations = {
         enable2FAText: 'Poważnie podchodzimy do Twojego bezpieczeństwa. Proszę skonfigurować 2FA, aby dodać dodatkową warstwę ochrony do swojego konta.',
         secureYourAccount: 'Zabezpiecz swoje konto',
     },
-    beneficialOwnersStep: {
-        additionalInformation: 'Dodatkowe informacje',
-        checkAllThatApply: 'Zaznacz wszystkie, które mają zastosowanie, w przeciwnym razie pozostaw puste.',
-        iOwnMoreThan25Percent: 'Posiadam więcej niż 25% z',
-        someoneOwnsMoreThan25Percent: 'Ktoś inny posiada więcej niż 25% z',
-        additionalOwner: 'Dodatkowy beneficjent rzeczywisty',
-        removeOwner: 'Usuń tego beneficjenta rzeczywistego',
-        addAnotherIndividual: 'Dodaj kolejną osobę, która posiada więcej niż 25% z',
-        agreement: 'Umowa:',
-        termsAndConditions: 'warunki i zasady',
-        certifyTrueAndAccurate: 'Oświadczam, że podane informacje są prawdziwe i dokładne',
-        error: {
-            certify: 'Musi poświadczyć, że informacje są prawdziwe i dokładne',
-        },
-    },
     completeVerificationStep: {
         completeVerification: 'Zakończ weryfikację',
         confirmAgreements: 'Proszę potwierdzić poniższe umowy.',
@@ -3268,10 +3257,11 @@ const translations = {
         regulationRequiresUs: 'Przepisy wymagają od nas weryfikacji tożsamości każdej osoby, która posiada więcej niż 25% udziałów w firmie.',
         iAmAuthorized: 'Jestem upoważniony do korzystania z firmowego konta bankowego na wydatki biznesowe.',
         iCertify: 'Oświadczam, że podane informacje są prawdziwe i dokładne.',
-        termsAndConditions: 'warunki i zasady',
+        iAcceptTheTermsAndConditions: `Akceptuję <a href="https://cross-border.corpay.com/tc/">regulamin</a>.`,
+        iAcceptTheTermsAndConditionsAccessibility: 'Akceptuję regulamin.',
         accept: 'Zaakceptuj i dodaj konto bankowe',
-        iConsentToThe: 'Wyrażam zgodę na',
-        privacyNotice: 'informacja o prywatności',
+        iConsentToThePrivacyNotice: 'Wyrażam zgodę na <a href="https://payments.corpay.com/compliance">politykę prywatności</a>.',
+        iConsentToThePrivacyNoticeAccessibility: 'Wyrażam zgodę na politykę prywatności.',
         error: {
             authorized: 'Musisz być kontrolującym urzędnikiem z upoważnieniem do obsługi konta bankowego firmy',
             certify: 'Proszę potwierdzić, że informacje są prawdziwe i dokładne.',
@@ -4987,6 +4977,7 @@ const translations = {
                 limit: 'Limit',
                 limitType: 'Typ limitu',
                 name: 'Imię',
+                disabledApprovalForSmartLimitError: 'Proszę włączyć zatwierdzenia w <strong>Przepływy pracy > Dodaj zatwierdzenia</strong> przed skonfigurowaniem inteligentnych limitów',
             },
             deactivateCardModal: {
                 deactivate: 'Dezaktywuj',
@@ -5233,7 +5224,8 @@ const translations = {
             continuousReconciliation: 'Ciągła rekonsyliacja',
             saveHoursOnReconciliation:
                 'Zaoszczędź godziny na uzgadnianiu w każdym okresie rozliczeniowym, pozwalając Expensify na ciągłe uzgadnianie wyciągów i rozliczeń z karty Expensify w Twoim imieniu.',
-            enableContinuousReconciliation: 'Aby włączyć Ciągłą Rekoncyliację, proszę włączyć',
+            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
+                `<muted-text-label>Aby włączyć funkcję ciągłego uzgadniania, włącz <a href="${accountingAdvancedSettingsLink}">automatyczną synchronizację</a> dla ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Wybierz konto bankowe, z którym będą uzgadniane płatności kartą Expensify.',
                 accountMatches: 'Upewnij się, że to konto pasuje do Twojego',
@@ -5494,11 +5486,8 @@ const translations = {
                 perActiveMember: 'na aktywnego członka miesięcznie.',
                 perMember: 'za członka miesięcznie.',
             },
-            note: {
-                upgradeWorkspace: 'Ulepsz swoje miejsce pracy, aby uzyskać dostęp do tej funkcji, lub',
-                learnMore: 'dowiedz się więcej',
-                aboutOurPlans: 'o naszych planach i cenach.',
-            },
+            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+                `<muted-text>Zaktualizuj swoje miejsce pracy, aby uzyskać dostęp do tej funkcji, lub <a href="${subscriptionLink}">dowiedz się więcej</a> o naszych planach i cenach.</muted-text>`,
             upgradeToUnlock: 'Odblokuj tę funkcję',
             completed: {
                 headline: `Zaktualizowałeś swoje miejsce pracy!`,
@@ -6039,6 +6028,7 @@ const translations = {
         statements: 'Oświadczenia',
         unapprovedCash: 'Niezatwierdzone środki pieniężne',
         unapprovedCard: 'Niezatwierdzona karta',
+        reconciliation: 'Uzgodnienie',
         saveSearch: 'Zapisz wyszukiwanie',
         deleteSavedSearch: 'Usuń zapisaną wyszukiwarkę',
         deleteSavedSearchConfirm: 'Czy na pewno chcesz usunąć to wyszukiwanie?',
