@@ -8,6 +8,7 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import {
+    handleAddCustomHistoryEntry,
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
     handleOpenWorkspaceSplitAction,
@@ -17,6 +18,7 @@ import {
 } from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
 import type {
+    AddCustomHistoryEntryActionType,
     DismissModalActionType,
     OpenWorkspaceSplitActionType,
     PushActionType,
@@ -44,6 +46,10 @@ function isDismissModalAction(action: RootStackNavigatorAction): action is Dismi
 
 function isToggleSidePanelWithHistoryAction(action: RootStackNavigatorAction): action is ToggleSidePanelWithHistoryActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY;
+}
+
+function isAddCustomHistoryEntryAction(action: RootStackNavigatorAction): action is AddCustomHistoryEntryActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.ADD_CUSTOM_HISTORY_ENTRY;
 }
 
 function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
@@ -82,6 +88,10 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
         getStateForAction(state: StackNavigationState<ParamListBase>, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) {
             if (isToggleSidePanelWithHistoryAction(action)) {
                 return handleToggleSidePanelWithHistoryAction(state, action);
+            }
+
+            if (isAddCustomHistoryEntryAction(action)) {
+                return handleAddCustomHistoryEntry(state, action);
             }
 
             if (isOpenWorkspaceSplitAction(action)) {

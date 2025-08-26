@@ -5,6 +5,7 @@ import type {SetParamsAction} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import SCREEN_TO_HISTORY_PARAM from '@src/libs/Navigation/linkingConfig/RELATIONS/SCREEN_TO_HISTORY_PARAM';
 import type {Screen} from '@src/SCREENS';
+import isCustomHistoryEntry from './isCustomHistoryEntry';
 import type {HistoryStackNavigatorAction, SetHistoryParamActionType} from './types';
 
 const CUSTOM_HISTORY_PREFIX = 'CUSTOM_HISTORY';
@@ -62,9 +63,16 @@ function addCustomHistoryRouterExtension<RouterOptions extends PlatformStackRout
                 return stateWithInitialHistory;
             }
 
-            // Custom history param used to show the side panel is handled here
-            if (state.history?.at(-1) === CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL) {
-                stateWithInitialHistory.history = [...stateWithInitialHistory.history, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL];
+            // // Custom history param used to show the side panel is handled here
+            // if (state.history?.at(-1) === CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL) {
+            //     console.log('is custom history entry:', isCustomHistoryEntry(state.history?.at(-1) as string));
+            //     stateWithInitialHistory.history = [...stateWithInitialHistory.history, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL];
+            //     return stateWithInitialHistory;
+            // }
+
+            if (isCustomHistoryEntry(state.history?.at(-1) as string)) {
+                console.log('is custom history entry:', isCustomHistoryEntry(state.history?.at(-1) as string));
+                stateWithInitialHistory.history = [...stateWithInitialHistory.history, state.history?.at(-1) as string];
                 return stateWithInitialHistory;
             }
 

@@ -1,4 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
+import useAddHistoryEntry from '@hooks/useAddHistoryEntry';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import StatusBar from '@libs/StatusBar';
@@ -11,6 +12,7 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState<string>();
+    const [setIsModalVisible] = useAddHistoryEntry(CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY);
 
     const setStatusBarColor = (color = theme.appBG) => {
         if (!fullscreen) {
@@ -22,6 +24,7 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
 
     const hideModal = () => {
         onModalHide();
+        setIsModalVisible(false);
         if ((window.history.state as WindowState)?.shouldGoBack && shouldHandleNavigationBack) {
             window.history.back();
         }
@@ -36,6 +39,7 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
             window.history.pushState({shouldGoBack: true}, '', null);
             window.addEventListener('popstate', handlePopStateRef.current);
         }
+        setIsModalVisible(true);
         onModalShow?.();
     };
 

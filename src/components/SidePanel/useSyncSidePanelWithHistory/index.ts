@@ -1,5 +1,6 @@
 import {useNavigationState} from '@react-navigation/native';
 import {useEffect} from 'react';
+import useAddHistoryEntry from '@hooks/useAddHistoryEntry';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanel from '@hooks/useSidePanel';
@@ -11,23 +12,30 @@ export default function useSyncSidePanelWithHistory() {
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
     const lastHistoryEntry = useNavigationState((state) => state?.history?.at(-1));
     const previousLastHistoryEntry = usePrevious(lastHistoryEntry);
+    const [addSidePanelHistoryEntry] = useAddHistoryEntry(CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL);
 
     useEffect(() => {
         // If the window width has been expanded and the modal is displayed, remove its history entry.
         // The side panel is only synced with the history when it's displayed as RHP.
         if (!shouldHideSidePanel && isExtraLargeScreenWidth) {
-            navigationRef.dispatch({
-                type: CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY,
-                payload: {isVisible: false},
-            });
+            // navigationRef.dispatch({
+            //     type: CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY,
+            //     payload: {isVisible: false},
+            // });
+            addSidePanelHistoryEntry(false);
             return;
         }
 
         // When shouldHideSidePanel changes, synchronize the side panel with the browser history.
-        navigationRef.dispatch({
-            type: CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY,
-            payload: {isVisible: !shouldHideSidePanel},
-        });
+        // navigationRef.dispatch({
+        //     type: CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY,
+        //     payload: {isVisible: !shouldHideSidePanel},
+        // });
+
+        addSidePanelHistoryEntry(!shouldHideSidePanel);
+
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldHideSidePanel, isExtraLargeScreenWidth]);
 
     useEffect(() => {

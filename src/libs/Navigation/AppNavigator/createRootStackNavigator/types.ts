@@ -1,6 +1,6 @@
 import type {CommonActions, StackActionType, StackRouterOptions} from '@react-navigation/native';
 import type {WorkspaceScreenName} from '@libs/Navigation/types';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 
 type RootStackNavigatorActionType =
     | {
@@ -18,6 +18,13 @@ type RootStackNavigatorActionType =
               policyID: string;
               screenName: WorkspaceScreenName;
           };
+      }
+    | {
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.ADD_CUSTOM_HISTORY_ENTRY;
+          payload: {
+              key: string;
+              isVisible: boolean;
+          };
       };
 
 type OpenWorkspaceSplitActionType = RootStackNavigatorActionType & {
@@ -26,6 +33,10 @@ type OpenWorkspaceSplitActionType = RootStackNavigatorActionType & {
 
 type ToggleSidePanelWithHistoryActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY;
+};
+
+type AddCustomHistoryEntryActionType = RootStackNavigatorAction & {
+    type: typeof CONST.NAVIGATION.ACTION_TYPE.ADD_CUSTOM_HISTORY_ENTRY;
 };
 
 type PushActionType = StackActionType & {type: typeof CONST.NAVIGATION.ACTION_TYPE.PUSH};
@@ -48,4 +59,5 @@ export type {
     RootStackNavigatorAction,
     RootStackNavigatorRouterOptions,
     ToggleSidePanelWithHistoryActionType,
+    AddCustomHistoryEntryActionType,
 };

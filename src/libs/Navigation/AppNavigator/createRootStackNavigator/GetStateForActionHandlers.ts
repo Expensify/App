@@ -6,7 +6,7 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import type {OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, ToggleSidePanelWithHistoryActionType} from './types';
+import type {AddCustomHistoryEntryActionType, OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, ToggleSidePanelWithHistoryActionType} from './types';
 
 const MODAL_ROUTES_TO_DISMISS: string[] = [
     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
@@ -175,6 +175,26 @@ function handleToggleSidePanelWithHistoryAction(state: StackNavigationState<Para
     return state;
 }
 
+function handleAddCustomHistoryEntry(state: StackNavigationState<ParamListBase>, action: AddCustomHistoryEntryActionType) {
+    // This shouldn't ever happen as the history should be always defined. It's for type safety.
+    if (!state?.history) {
+        return state;
+    }
+
+    // If it's set to true, we need to add the side panel history entry if it's not already there.
+    if (action.payload.isVisible && state.history.at(-1) !== action.payload.key) {
+        return {...state, history: [...state.history, action.payload.key]};
+    }
+
+    // If it's set to false, we need to remove the side panel history entry if it's there.
+    if (!action.payload.isVisible) {
+        return {...state, history: state.history.filter((entry) => entry !== action.payload.key)};
+    }
+
+    // Else, do not change history.
+    return state;
+}
+
 export {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
@@ -184,4 +204,5 @@ export {
     screensWithEnteringAnimation,
     workspaceSplitsWithoutEnteringAnimation,
     handleToggleSidePanelWithHistoryAction,
+    handleAddCustomHistoryEntry,
 };
