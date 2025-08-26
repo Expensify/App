@@ -40,7 +40,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {listRef,
-        inputIndexIsFocused,
         viewRef,
         footerHeight,
         bottomOffset,
@@ -48,11 +47,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         SplitListItem
     } = useDisplayFocusedInputUnderKeyboard();
 
-
-    useEffect(() => {
-        scrollToFocusedInput();
-        console.log("ejeijofr");
-    }, [inputIndexIsFocused]);
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
@@ -176,9 +170,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         return (
             <View
                 onLayout={(event) => {
+                    if(!footerHeight?.current) {
+                        return;
+                    }
                     const {height} = event.nativeEvent.layout;
+                    // eslint-disable-next-line react-compiler/react-compiler
                     footerHeight.current = height;
-                    scrollToFocusedInput();
                 }}
                 style={[styles.pt3]}
             >
@@ -237,7 +234,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                             <KeyboardAwareScrollView
                             // eslint-disable-next-line react/jsx-props-no-spreading
                                 {...props}
-                            bottomOffset={bottomOffset.current} /* Bottom offset ensures inputs stay above the "save" button */
+                            bottomOffset={bottomOffset?.current ?? 0} /* Bottom offset ensures inputs stay above the "save" button */
                             />
                         )}
                         onSelectRow={(item) => {

@@ -16,7 +16,6 @@ const useDisplayFocusedInputUnderKeyboard = () => {
     const keyboardHeight = useSharedValue(0);
     const safeAreaPaddings = useSafeAreaPaddings();
     const listRef = useRef<SelectionListHandle>(null);
-    const inputIndexIsFocused = useRef(0);
 
 
     useKeyboardHandler({
@@ -51,7 +50,6 @@ const useDisplayFocusedInputUnderKeyboard = () => {
 
     return {
         listRef,
-        inputIndexIsFocused,
         viewRef,
         footerHeight,
         bottomOffset,
