@@ -581,11 +581,6 @@ const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
         },
     },
     search: {
-        columnsToShow: {
-            shouldShowCategoryColumn: false,
-            shouldShowTagColumn: false,
-            shouldShowTaxColumn: false,
-        },
         count: 10,
         currency: 'USD',
         hasMoreResults: false,
@@ -1673,14 +1668,7 @@ describe('SearchUIUtils', () => {
 
         it('should return getWithdrawalIDSections result when type is EXPENSE and groupBy is withdrawal-id', () => {
             expect(
-                SearchUIUtils.getSections(
-                    CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    searchResultsGroupByWithdrawalID.data,
-                    searchResultsGroupByWithdrawalID.search,
-                    2074551,
-                    formatPhoneNumber,
-                    CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
-                ),
+                SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResultsGroupByWithdrawalID.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID),
             ).toStrictEqual(transactionWithdrawalIDGroupListItems);
         });
     });
@@ -2160,11 +2148,6 @@ describe('SearchUIUtils', () => {
                     hasMoreResults: false,
                     hasResults: true,
                     isLoading: false,
-                    columnsToShow: {
-                        shouldShowCategoryColumn: true,
-                        shouldShowTagColumn: true,
-                        shouldShowTaxColumn: true,
-                    },
                 },
             };
             expect(SearchUIUtils.isSearchResultsEmpty(results)).toBe(true);
