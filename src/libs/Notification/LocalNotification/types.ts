@@ -21,4 +21,8 @@ type LocalNotificationModifiedExpenseParams = {
     movedFromOrToReportMessage: string | undefined;
 };
 
-export type {LocalNotificationModule, LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpenseParams};
+type LocalNotificationModifiedExpensePushParams = LocalNotificationModifiedExpenseParams & {
+    usesIcon?: boolean;
+};
+
+export type {LocalNotificationModule, LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpenseParams, LocalNotificationModifiedExpensePushParams};

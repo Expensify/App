@@ -11,7 +11,7 @@ function showUpdateAvailableNotification() {
 }
 
 function showModifiedExpenseNotification({report, reportAction, movedFromOrToReportMessage, onClick}: LocalNotificationModifiedExpenseParams) {
-    BrowserNotifications.pushModifiedExpenseNotification({report, reportAction, movedFromOrToReportMessage, onClick, usesIcon: false});
+    BrowserNotifications.pushModifiedExpenseNotification({report, reportAction, movedFromOrToReportMessage, onClick});
 }
 
 function clearReportNotifications(reportID: string | undefined) {
