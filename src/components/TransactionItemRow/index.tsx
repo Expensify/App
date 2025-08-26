@@ -98,7 +98,7 @@ type TransactionItemRowProps = {
     shouldShowErrors?: boolean;
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
-    violations: TransactionViolation[];
+    violations?: TransactionViolation[];
 };
 
 /** If merchant name is empty or (none), then it falls back to description if screen is narrow */

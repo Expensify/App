@@ -48,7 +48,7 @@ function MoneyRequestReportPreview({
     const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
-    const lastTransactionViolations = lastTransaction?.transactionID ? violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${lastTransaction.transactionID}`] ?? [] : [];
+    const lastTransactionViolations = lastTransaction?.transactionID ? (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${lastTransaction.transactionID}`] ?? []) : [];
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
 

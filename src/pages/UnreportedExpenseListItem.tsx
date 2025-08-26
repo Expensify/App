@@ -66,6 +66,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
                     }}
                     shouldShowCheckbox
                     style={styles.p3}
+                    violations={transactionItem.violations}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>

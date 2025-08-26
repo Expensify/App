@@ -66,6 +66,7 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
                     onRadioButtonPress={() => {
                         onSelectRow(item);
                     }}
+                    violations={transactionItem.violations}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>

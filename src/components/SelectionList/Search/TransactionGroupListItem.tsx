@@ -24,14 +24,14 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import ROUTES from '@src/ROUTES';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
@@ -215,34 +215,34 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             const transactionViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
 
                             return (
-                            <OfflineWithFeedback
-                                key={transaction.transactionID}
-                                pendingAction={transaction.pendingAction}
-                            >
-                                <TransactionItemRow
-                                    report={transaction.report}
-                                    transactionItem={transaction}
-                                    isSelected={!!transaction.isSelected}
-                                    dateColumnSize={dateColumnSize}
-                                    amountColumnSize={amountColumnSize}
-                                    taxAmountColumnSize={taxAmountColumnSize}
-                                    shouldShowTooltip={showTooltip}
-                                    shouldUseNarrowLayout={!isLargeScreenWidth}
-                                    shouldShowCheckbox={!!canSelectMultiple}
-                                    onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                    columns={columns}
-                                    onButtonPress={() => {
-                                        openReportInRHP(transaction);
-                                    }}
-                                    style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
-                                    isReportItemChild
-                                    isInSingleTransactionReport={groupItem.transactions.length === 1}
-                                    violations={transactionViolations}
-                                />
-                            </OfflineWithFeedback>
-                            )
-                        }
-                    ))}
+                                <OfflineWithFeedback
+                                    key={transaction.transactionID}
+                                    pendingAction={transaction.pendingAction}
+                                >
+                                    <TransactionItemRow
+                                        report={transaction.report}
+                                        transactionItem={transaction}
+                                        isSelected={!!transaction.isSelected}
+                                        dateColumnSize={dateColumnSize}
+                                        amountColumnSize={amountColumnSize}
+                                        taxAmountColumnSize={taxAmountColumnSize}
+                                        shouldShowTooltip={showTooltip}
+                                        shouldUseNarrowLayout={!isLargeScreenWidth}
+                                        shouldShowCheckbox={!!canSelectMultiple}
+                                        onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                        columns={columns}
+                                        onButtonPress={() => {
+                                            openReportInRHP(transaction);
+                                        }}
+                                        style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
+                                        isReportItemChild
+                                        isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                        violations={transactionViolations}
+                                    />
+                                </OfflineWithFeedback>
+                            );
+                        })
+                    )}
                 </View>
             </PressableWithFeedback>
         </OfflineWithFeedback>
