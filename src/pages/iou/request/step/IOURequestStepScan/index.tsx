@@ -707,8 +707,13 @@ function IOURequestStepScan({
         const originalFileName = `receipt_${Date.now()}.png`;
         const originalFile = base64ToFile(imageBase64 ?? '', originalFileName);
         const imageObject: ImageObject = {file: originalFile, filename: originalFile.name, source: URL.createObjectURL(originalFile)};
-        // The viewfinder crops from the center on iOS browsers and from the top on Android browsers, so we crop the result photo the same way.
-        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, !isMobileWebKit()).then(({file, filename, source}) => {
+        // Some browsers center-crop the viewfinder inside the video element (due to object-position: center),
+        // while other browsers let the video element overflow and the container crops it from the top.
+        // We crop and algin the result image the same way.
+        const videoHeight = cameraRef.current.video?.getBoundingClientRect?.()?.height ?? NaN;
+        const viewFinderHeight = viewfinderLayout.current?.height ?? NaN;
+        const shouldAlignTop = videoHeight > viewFinderHeight;
+        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, shouldAlignTop).then(({file, filename, source}) => {
             const transaction =
                 isMultiScanEnabled && initialTransaction?.receipt?.source
                     ? buildOptimisticTransactionAndCreateDraft({

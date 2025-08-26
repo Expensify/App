@@ -13,7 +13,7 @@ type ImageObject = {
     source: string;
 };
 
-function calculateCropRect(imageWidth: number, imageHeight: number, aspectRatioWidth: number, aspectRatioHeight: number, verticalAlignTop?: boolean) {
+function calculateCropRect(imageWidth: number, imageHeight: number, aspectRatioWidth: number, aspectRatioHeight: number, shouldAlignTop?: boolean) {
     const sourceAspectRatio = imageWidth / imageHeight;
     const targetAspectRatio = aspectRatioWidth / aspectRatioHeight;
 
@@ -26,7 +26,7 @@ function calculateCropRect(imageWidth: number, imageHeight: number, aspectRatioW
         originX = (imageWidth - width) / 2;
     } else {
         height = width * (aspectRatioHeight / aspectRatioWidth);
-        originY = verticalAlignTop ? 0 : (imageHeight - height) / 2;
+        originY = shouldAlignTop ? 0 : (imageHeight - height) / 2;
     }
 
     return {width, height, originX, originY};
@@ -45,7 +45,7 @@ function cropImageToAspectRatio(
     aspectRatioHeight?: number,
 
     /** Vertically align the crop to the top (true) or center (false) */
-    verticalAlignTop?: boolean,
+    shouldAlignTop?: boolean,
 ): Promise<ImageObject> {
     return ImageSize.getSize(image.source)
         .then((imageSize) => {
@@ -57,7 +57,7 @@ function cropImageToAspectRatio(
                 return image;
             }
 
-            const crop = calculateCropRect(imageWidth, imageHeight, aspectRatioWidth, aspectRatioHeight, verticalAlignTop);
+            const crop = calculateCropRect(imageWidth, imageHeight, aspectRatioWidth, aspectRatioHeight, shouldAlignTop);
             const croppedFilename = `receipt_cropped_${Date.now()}.${IMAGE_TYPE}`;
 
             return cropOrRotateImage(image.source, [{crop}], {compress: 1, name: croppedFilename, type: IMAGE_TYPE}).then((croppedImage) => {
