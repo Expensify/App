@@ -7,7 +7,6 @@ import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransact
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTransactionViolations from '@hooks/useTransactionViolations';
 import Performance from '@libs/Performance';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
@@ -49,7 +48,7 @@ function MoneyRequestReportPreview({
     const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
-    const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
+    const lastTransactionViolations = lastTransaction?.transactionID ? violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${lastTransaction.transactionID}`] ?? [] : [];
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
 

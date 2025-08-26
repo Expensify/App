@@ -453,6 +453,7 @@ function TransactionItemRow({
                                 report={report}
                                 containerStyles={[styles.mt2, styles.minHeight4]}
                                 missingFieldError={missingFieldError}
+                                transactionViolations={transactionItem.violations}
                             />
                         )}
                     </View>
@@ -501,6 +502,7 @@ function TransactionItemRow({
                     transaction={transactionItem}
                     report={report}
                     missingFieldError={missingFieldError}
+                    transactionViolations={transactionItem.violations}
                 />
             )}
         </View>
