@@ -7867,22 +7867,21 @@ function prepareToCleanUpMoneyRequest(
     const transactionPendingDelete = transactionIDsPendingDeletion?.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
     const selectedTransactions = selectedTransactionIDs?.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
     const canEditTotal = !selectedTransactions?.some((trans) => getCurrency(trans) !== iouReport?.currency);
+    const isExpenseReportType = isExpenseReport(iouReport);
+    const amountDiff = getAmount(transaction, isExpenseReportType) + (transactionPendingDelete?.reduce((prev, curr) => prev + getAmount(curr, isExpenseReportType), 0) ?? 0);
+    const unheldAmountDiff =
+        getAmount(transaction, isExpenseReportType) + (transactionPendingDelete?.reduce((prev, curr) => prev + (!isOnHold(curr) ? getAmount(curr, isExpenseReportType) : 0), 0) ?? 0);
 
-    if (iouReport && isExpenseReport(iouReport)) {
+    if (iouReport && isExpenseReportType) {
         updatedIOUReport = {...iouReport};
 
         if (typeof updatedIOUReport.total === 'number' && currency === iouReport?.currency && canEditTotal) {
             // Because of the Expense reports are stored as negative values, we add the total from the amount
-            const amountDiff = getAmount(transaction, true) + (transactionPendingDelete?.reduce((prev, curr) => prev + getAmount(curr, true), 0) ?? 0);
-            const nonReimbursableAmountDiff =
-                getAmount(transaction, true) + (transactionPendingDelete?.reduce((prev, curr) => prev + (!curr?.reimbursable ? getAmount(curr, true) : 0), 0) ?? 0);
-            const unheldAmountDiff = getAmount(transaction, true) + (transactionPendingDelete?.reduce((prev, curr) => prev + (!isOnHold(curr) ? getAmount(curr, true) : 0), 0) ?? 0);
-            const unheldNonReimbursableAmountDiff =
-                getAmount(transaction, true) + (transactionPendingDelete?.reduce((prev, curr) => prev + (!isOnHold(curr) && !curr?.reimbursable ? getAmount(curr, true) : 0), 0) ?? 0);
-
             updatedIOUReport.total += amountDiff;
 
             if (!transaction?.reimbursable && typeof updatedIOUReport.nonReimbursableTotal === 'number') {
+                const nonReimbursableAmountDiff =
+                    getAmount(transaction, true) + (transactionPendingDelete?.reduce((prev, curr) => prev + (!curr?.reimbursable ? getAmount(curr, true) : 0), 0) ?? 0);
                 updatedIOUReport.nonReimbursableTotal += nonReimbursableAmountDiff;
             }
 
@@ -7892,6 +7891,9 @@ function prepareToCleanUpMoneyRequest(
                 }
 
                 if (!transaction?.reimbursable && typeof updatedIOUReport.unheldNonReimbursableTotal === 'number') {
+                    const unheldNonReimbursableAmountDiff =
+                        getAmount(transaction, true) +
+                        (transactionPendingDelete?.reduce((prev, curr) => prev + (!isOnHold(curr) && !curr?.reimbursable ? getAmount(curr, true) : 0), 0) ?? 0);
                     updatedIOUReport.unheldNonReimbursableTotal += unheldNonReimbursableAmountDiff;
                 }
             }
@@ -7900,16 +7902,7 @@ function prepareToCleanUpMoneyRequest(
         updatedIOUReport =
             iouReport && !canEditTotal
                 ? {...iouReport}
-                : updateIOUOwnerAndTotal(
-                      iouReport,
-                      reportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                      getAmount(transaction, false) + (transactionPendingDelete?.reduce((prev, curr) => prev + getAmount(curr, false), 0) ?? 0),
-                      currency,
-                      true,
-                      false,
-                      isTransactionOnHold,
-                      getAmount(transaction, false) + (transactionPendingDelete?.reduce((prev, curr) => prev + (!isOnHold(curr) ? getAmount(curr, false) : 0), 0) ?? 0),
-                  );
+                : updateIOUOwnerAndTotal(iouReport, reportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID, amountDiff, currency, true, false, isTransactionOnHold, unheldAmountDiff);
     }
 
     if (updatedIOUReport) {
