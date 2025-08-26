@@ -7,7 +7,7 @@ keywords: [Expensify Classic travel, travel events, event management, group trav
 
 Plan and coordinate group travel in one place with Expensify Classic Events. This guide walks you through creating events, inviting attendees, and managing group bookings.
 
-# Travel Event Management
+---
 
 ## How to access the travel tool
 
