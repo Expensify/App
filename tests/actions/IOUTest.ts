@@ -6,6 +6,8 @@ import {format} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import createRandomPolicyTags from 'tests/utils/collections/policyTags';
+import createRandomReportAction from 'tests/utils/collections/reportActions';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import type {PerDiemExpenseTransactionParams, RequestMoneyParticipantParams} from '@libs/actions/IOU';
