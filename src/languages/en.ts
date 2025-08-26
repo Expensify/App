@@ -1934,6 +1934,7 @@ const translations = {
         validateCardTitle: "Let's make sure it's you",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to view your card details. It should arrive within a minute or two.`,
         missingPrivateDetails: 'Please add your personal details under Account > Profile > Private, then try again.',
+        unexpectedError: 'There was an error trying to get your Expensify card details. Please try again.',
     },
     workflowsPage: {
         workflowTitle: 'Spend',

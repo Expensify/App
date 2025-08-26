@@ -1948,6 +1948,7 @@ const translations = {
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Por favor, insira o código mágico enviado para ${contactMethod} para visualizar os detalhes do seu cartão. Ele deve chegar dentro de um ou dois minutos.`,
         missingPrivateDetails: 'Adicione seus dados pessoais em Conta > Perfil > Privado e tente novamente.',
+        unexpectedError: 'Ocorreu um erro ao tentar obter os detalhes do seu cartão Expensify. Tente novamente.',
     },
     workflowsPage: {
         workflowTitle: 'Gastar',

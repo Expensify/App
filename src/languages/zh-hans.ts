@@ -1922,6 +1922,7 @@ const translations = {
         validateCardTitle: '让我们确认一下身份',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到${contactMethod}的验证码以查看您的卡详细信息。验证码应在一两分钟内到达。`,
         missingPrivateDetails: '请在 账户 > 个人资料 > 私密 中添加您的个人信息，然后重试。',
+        unexpectedError: '获取您的 Expensify 卡信息时出错。请重试。',
     },
     workflowsPage: {
         workflowTitle: '花费',
