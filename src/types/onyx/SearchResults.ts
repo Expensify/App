@@ -404,6 +404,9 @@ type SearchTransaction = {
     /** The ID of the report the transaction is associated with */
     reportID: string;
 
+    /** The name of the file used for a receipt */
+    filename?: string;
+
     /** The report ID of the transaction thread associated with the transaction */
     transactionThreadReportID: string;
 
@@ -433,6 +436,12 @@ type SearchTransaction = {
 
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction;
+
+    /** The CC for this transaction */
+    cardID?: number;
+
+    /** The display name of the purchaser card, if any */
+    cardName?: string;
 
     /** The converted amount of the transaction, if a currency conversion is used */
     convertedAmount?: number;
