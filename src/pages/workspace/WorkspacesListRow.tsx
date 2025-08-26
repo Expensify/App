@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
@@ -17,7 +16,6 @@ import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -76,9 +74,6 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Whether the bill is loading */
     isLoadingBill?: boolean;
 
-    /** Whether the list item is highlighted */
-    shouldAnimateInHighlight?: boolean;
-
     /** Function to reset loading spinner icon index */
     resetLoadingSpinnerIconIndex?: () => void;
 };
@@ -121,7 +116,6 @@ function WorkspacesListRow({
     rowStyles,
     style,
     brickRoadIndicator,
-    shouldAnimateInHighlight,
     shouldDisableThreeDotsMenu,
     isJoinRequestPending,
     policyID,
@@ -132,17 +126,10 @@ function WorkspacesListRow({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const theme = useTheme();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
 
     const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
-        shouldHighlight: !!shouldAnimateInHighlight,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
-    });
 
     useEffect(() => {
         if (isLoadingBill) {
@@ -213,7 +200,7 @@ function WorkspacesListRow({
     );
 
     return (
-        <Animated.View style={[styles.flexRow, styles.highlightBG, rowStyles, style, isWide && styles.gap5, styles.br3, styles.p5, animatedHighlightStyle]}>
+        <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, isWide && styles.gap5, styles.br3, styles.p5]}>
             <View style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}>
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}>
                     <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
@@ -286,7 +273,7 @@ function WorkspacesListRow({
             </View>
 
             {!isNarrow && ThreeDotMenuOrPendingIcon}
-        </Animated.View>
+        </View>
     );
 }
 

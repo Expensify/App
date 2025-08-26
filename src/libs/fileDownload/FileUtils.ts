@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
-import ReactNativeBlobUtil from 'react-native-blob-util';
 import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import ImageSize from 'react-native-image-size';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import DateUtils from '@libs/DateUtils';
@@ -274,56 +274,138 @@ function validateImageForCorruption(file: FileObject): Promise<{width: number; h
 
 /** Verify file format based on the magic bytes of the file - some formats might be identified by multiple signatures */
 function verifyFileFormat({fileUri, formatSignatures}: {fileUri: string; formatSignatures: readonly string[]}) {
-    const BYTES_TO_READ = 1028;
+    const MAGIC_BYTES_NEEDED = 16;
+
+    if (!fileUri || !formatSignatures || formatSignatures.length === 0) {
+        return Promise.resolve(false);
+    }
 
     const cleanUri = fileUri.replace('file://', '');
 
-    return ReactNativeBlobUtil.fs
-        .readStream(cleanUri, 'base64', BYTES_TO_READ, 0)
-        .then((stream: ReactNativeBlobUtilReadStream) => {
-            let base64Chunk = '';
+    if (Platform.OS === 'ios') {
+        return ReactNativeBlobUtil.fs.readFile(cleanUri, 'base64').then((fullBase64Data: string) => {
+            const base64CharsNeeded = Math.ceil((MAGIC_BYTES_NEEDED * 4) / 3);
+            const base64Data = fullBase64Data.substring(0, base64CharsNeeded);
+            if (!base64Data) {
+                return false;
+            }
 
-            return new Promise<string>((resolve, reject) => {
-                stream.open();
+            try {
+                const binaryString = atob(base64Data);
+
+                const startOffset = 4;
+                const bytesToRead = 12;
+                const endOffset = startOffset + bytesToRead;
+
+                if (binaryString.length < endOffset) {
+                    return false;
+                }
+
+                const bytes = new Uint8Array(bytesToRead);
+                for (let i = 0; i < bytesToRead; i++) {
+                    bytes[i] = binaryString.charCodeAt(startOffset + i);
+                }
+
+                const hex = Array.from(bytes)
+                    .map((b) => b.toString(16).padStart(2, '0'))
+                    .join('');
+
+                const result = formatSignatures.some((signature) => hex.startsWith(signature));
+                return result;
+            } catch (e) {
+                return false;
+            }
+        });
+    }
+
+    return new Promise<boolean>((resolve) => {
+        ReactNativeBlobUtil.fs
+            .readStream(cleanUri, 'base64', 64, 0)
+            .then((stream: ReactNativeBlobUtilReadStream) => {
+                let base64Data = '';
+                let hasEnoughData = false;
+
+                const processData = () => {
+                    if (!base64Data) {
+                        resolve(false);
+                        return;
+                    }
+
+                    try {
+                        const binaryString = atob(base64Data);
+
+                        const startOffset = 4;
+                        const bytesToRead = 12;
+                        const endOffset = startOffset + bytesToRead;
+
+                        if (binaryString.length < endOffset) {
+                            resolve(false);
+                            return;
+                        }
+
+                        const bytes = new Uint8Array(bytesToRead);
+                        for (let i = 0; i < bytesToRead; i++) {
+                            bytes[i] = binaryString.charCodeAt(startOffset + i);
+                        }
+
+                        const hex = Array.from(bytes)
+                            .map((b) => b.toString(16).padStart(2, '0'))
+                            .join('');
+
+                        const result = formatSignatures.some((signature) => hex.startsWith(signature));
+                        resolve(result);
+                    } catch (e) {
+                        resolve(false);
+                    }
+                };
 
                 stream.onData((chunk: string | number[]) => {
-                    const chunkStr = Array.isArray(chunk) ? String.fromCharCode(...chunk) : chunk;
-                    base64Chunk += chunkStr;
+                    if (hasEnoughData) {
+                        return;
+                    }
+
+                    try {
+                        let chunkStr: string;
+                        if (Array.isArray(chunk)) {
+                            chunkStr = chunk.map((code) => String.fromCharCode(code)).join('');
+                        } else {
+                            chunkStr = chunk;
+                        }
+                        base64Data += chunkStr;
+
+                        const decodedByteCount = Math.floor((base64Data.length * 3) / 4);
+                        if (decodedByteCount >= MAGIC_BYTES_NEEDED) {
+                            hasEnoughData = true;
+                            processData();
+                        }
+                    } catch (e) {
+                        if (!hasEnoughData) {
+                            hasEnoughData = true;
+                            resolve(false);
+                        }
+                    }
                 });
 
-                stream.onError((error: Error) => {
-                    reject(error);
+                stream.onError(() => {
+                    if (hasEnoughData) {
+                        return;
+                    }
+                    hasEnoughData = true;
+                    resolve(false);
                 });
 
                 stream.onEnd(() => {
-                    resolve(base64Chunk);
+                    if (hasEnoughData) {
+                        return;
+                    }
+                    hasEnoughData = true;
+                    processData();
                 });
-            });
-        })
-        .then((base64Data: string) => {
-            const binary = Buffer.from(base64Data, 'base64').toString('binary');
 
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) {
-                bytes[i] = binary.charCodeAt(i);
-            }
-
-            const startIndex = Math.min(4, bytes.length);
-            const endIndex = Math.min(16, bytes.length);
-            const view = bytes.subarray(startIndex, endIndex);
-
-            const hex = Array.from(view)
-                .map((b) => b.toString(16).padStart(2, '0'))
-                .join('');
-
-            return hex;
-        })
-        .then((hexSignature: string) => {
-            return formatSignatures.some((signature) => hexSignature.startsWith(signature));
-        })
-        .catch(() => {
-            return false;
-        });
+                stream.open();
+            })
+            .catch(() => resolve(false));
+    });
 }
 
 function isLocalFile(receiptUri?: string | number): boolean {
