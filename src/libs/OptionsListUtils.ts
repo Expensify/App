@@ -1101,7 +1101,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
     } else if (option.isInvoiceRoom) {
         option.text = getReportName(report);
         option.alternateText = translateLocal('workspace.common.invoices');
-    } else if (unknownUserDetails && !option.text) {
+    } else if (unknownUserDetails) {
         option.text = unknownUserDetails.text ?? unknownUserDetails.login;
         option.alternateText = unknownUserDetails.login;
         option.participantsList = [{...unknownUserDetails, displayName: unknownUserDetails.login, accountID: unknownUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID}];
