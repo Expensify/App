@@ -65,6 +65,10 @@ const expenseHeaders: SearchColumnConfig[] = [
         canBeMissing: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
+        translationKey: 'common.withdrawalID',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
         translationKey: 'common.tax',
         isColumnSortable: false,
@@ -168,6 +172,9 @@ function SearchTableHeader({
             }
             if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
                 return columnName === CONST.SEARCH.TABLE_COLUMNS.CARD || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
+            }
+            if (groupBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID) {
+                return columnName === CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
             }
 
             return columns.includes(columnName);

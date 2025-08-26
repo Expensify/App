@@ -112,7 +112,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 <FullPageOfflineBlockingView>
-                    <Text style={[styles.ph5, styles.textSupporting, styles.textNormal]}>{translate('workspace.tags.importTagsSupportingText')}</Text>
+                    <Text style={[styles.ph5, styles.pv3, styles.textSupporting, styles.textNormal]}>{translate('workspace.tags.importTagsSupportingText')}</Text>
 
                     <MenuItem
                         title={translate('workspace.tags.tagLevel.singleLevel')}

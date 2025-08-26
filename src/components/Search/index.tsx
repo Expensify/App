@@ -43,6 +43,7 @@ import {
     isTransactionGroupListItemType,
     isTransactionListItemType,
     isTransactionMemberGroupListItemType,
+    isTransactionWithdrawalIDGroupListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
@@ -245,7 +246,12 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return false;
         }
 
-        const eligibleSearchKeys: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD];
+        const eligibleSearchKeys: Partial<SearchKey[]> = [
+            CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
+            CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
+            CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
+            CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
+        ];
         return eligibleSearchKeys.includes(searchKey);
     }, [offset, searchKey]);
 
@@ -562,6 +568,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 return;
             }
 
+            if (isTransactionWithdrawalIDGroupListItemType(item)) {
+                return;
+            }
+
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const isTransactionItem = isTransactionListItemType(item);
 
@@ -645,7 +655,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled) && groupBy !== CONST.SEARCH.GROUP_BY.FROM && groupBy !== CONST.SEARCH.GROUP_BY.CARD;
+    const canSelectMultiple =
+        !isChat &&
+        !isTask &&
+        (!isSmallScreenWidth || isMobileSelectionModeEnabled) &&
+        groupBy !== CONST.SEARCH.GROUP_BY.FROM &&
+        groupBy !== CONST.SEARCH.GROUP_BY.CARD &&
+        groupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
     const ListItem = getListItem(type, status, groupBy);
     const sortedSelectedData = useMemo(
         () =>
@@ -778,7 +794,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
-                    hash={hash}
+                    similarSearchHash={similarSearchHash}
                     type={type}
                     groupBy={groupBy}
                     hasResults={searchResults.search.hasResults}
@@ -809,6 +825,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     onAllCheckboxPress={toggleAllTransactions}
                     canSelectMultiple={canSelectMultiple}
                     shouldPreventLongPressRow={isChat || isTask}
+                    isFocused={isFocused}
                     SearchTableHeader={
                         !shouldShowTableHeader ? undefined : (
                             <SearchTableHeader
@@ -844,6 +861,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     columns={columnsToShow}
                     onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                    shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                 />
             </Animated.View>
         </SearchScopeProvider>

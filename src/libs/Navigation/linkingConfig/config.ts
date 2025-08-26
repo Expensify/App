@@ -707,6 +707,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: {
                             path: ROUTES.WORKSPACE_MEMBERS_IMPORTED.route,
                         },
+                        [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION]: {
+                            path: ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.route,
+                        },
                         [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.route,
                         },
@@ -910,7 +913,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.KEYBOARD_SHORTCUTS]: {
-                            path: ROUTES.KEYBOARD_SHORTCUTS,
+                            path: ROUTES.KEYBOARD_SHORTCUTS.route,
                         },
                         [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_OVERVIEW_NAME.route,
                         [SCREENS.SETTINGS.SHARE_CODE]: {
@@ -1270,10 +1273,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.DISTANCE_REQUEST_CREATE.route,
                             exact: true,
                             screens: {
-                                map: {
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                'distance-map': {
                                     path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MAP.route,
                                 },
-                                manual: {
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                'distance-manual': {
                                     path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL.route,
                                 },
                             },
@@ -1296,7 +1301,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: ROUTES.MONEY_REQUEST_STEP_MERCHANT.route,
                         [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.route,
                         [SCREENS.MONEY_REQUEST.STEP_SCAN]: ROUTES.MONEY_REQUEST_STEP_SCAN.route,
-                        [SCREENS.MONEY_REQUEST.RECEIPT_VIEW_MODAL]: ROUTES.MONEY_REQUEST_RECEIPT_VIEW_MODAL.route,
+                        [SCREENS.MONEY_REQUEST.RECEIPT_VIEW]: ROUTES.MONEY_REQUEST_RECEIPT_VIEW.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAG]: ROUTES.MONEY_REQUEST_STEP_TAG.route,
                         [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: ROUTES.MONEY_REQUEST_STEP_WAYPOINT.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.route,
@@ -1603,6 +1608,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SCHEDULE_CALL.CONFIRMATION]: {
                             path: ROUTES.SCHEDULE_CALL_CONFIRMATION.route,
                         },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: {
+                    screens: {
+                        [SCREENS.REPORT_CHANGE_APPROVER.ROOT]: ROUTES.REPORT_CHANGE_APPROVER.route,
                     },
                 },
             },
