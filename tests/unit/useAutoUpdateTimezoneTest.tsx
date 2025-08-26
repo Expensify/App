@@ -94,5 +94,3 @@ describe('useAutoUpdateTimezone', () => {
         expect(updateAutomaticTimezoneSpy).not.toHaveBeenCalled();
     });
 });
-
-
