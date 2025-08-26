@@ -1,16 +1,15 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import Timing from './actions/Timing';
-import {compute, FORMULA_PART_TYPES, parse} from './Formula';
 import type {FormulaContext} from './Formula';
+import {compute, FORMULA_PART_TYPES, parse} from './Formula';
 import Log from './Log';
-import {getUpdateContextAsync} from './OptimisticReportNamesConnectionManager';
 import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import Performance from './Performance';
 import Permissions from './Permissions';
@@ -378,13 +377,5 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     return updates.concat(additionalUpdates);
 }
 
-/**
- * Creates update context for optimistic report name processing.
- * This should be called before processing optimistic updates
- */
-function createUpdateContext(): Promise<UpdateContext> {
-    return getUpdateContextAsync();
-}
-
-export {updateOptimisticReportNamesFromUpdates, computeReportNameIfNeeded, createUpdateContext, shouldComputeReportName, getReportByTransactionID};
+export {computeReportNameIfNeeded, getReportByTransactionID, shouldComputeReportName, updateOptimisticReportNamesFromUpdates};
 export type {UpdateContext};

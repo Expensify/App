@@ -98,20 +98,12 @@ function initialize(): Promise<void> {
 }
 
 /**
- * Asynchronously get the update context
- */
-async function getUpdateContextAsync(): Promise<UpdateContext> {
-    await initialize();
-    return getUpdateContext();
-}
-
-/**
  * Get the current update context synchronously
  * Should only be called after initialization is complete
  */
 function getUpdateContext(): UpdateContext {
     return {
-        betas: betas ?? null,
+        betas: betas ?? [],
         allReports: allReports ?? {},
         allPolicies: allPolicies ?? {},
         allReportNameValuePairs: allReportNameValuePairs ?? {},
@@ -120,4 +112,4 @@ function getUpdateContext(): UpdateContext {
 }
 
 export type {UpdateContext};
-export {initialize, getUpdateContext, getUpdateContextAsync};
+export {initialize, getUpdateContext};
