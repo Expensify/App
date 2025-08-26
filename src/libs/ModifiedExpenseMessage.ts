@@ -177,7 +177,7 @@ function getForReportAction({
 }: {
     reportAction: OnyxEntry<ReportAction>;
     policyID: string | undefined;
-    movedFromOrToReportMessage: string | undefined;
+    movedFromOrToReportMessage?: string;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';

@@ -18,7 +18,7 @@ type LocalNotificationModifiedExpenseParams = {
     report: Report;
     reportAction: ReportAction;
     onClick: LocalNotificationClickHandler;
-    movedFromOrToReportMessage: string | undefined;
+    movedFromOrToReportMessage?: string;
 };
 
 type LocalNotificationModifiedExpensePushParams = LocalNotificationModifiedExpenseParams & {
