@@ -41,8 +41,9 @@ const useDisplayFocusedInputUnderKeyboard = (): UseDisplayFocusedInputUnderKeybo
         if (!viewRef.current) {
             return;
         }
-        viewRef.current.measureInWindow((x, y, width, height) => {
-            footerRef.current?.measureInWindow((fx, fy, fwidth, fheight) => {
+        
+        viewRef.current.measureInWindow((x, y, width, height/* measureInWindow callback requires all 4 parameters (x, y, width, height) - cannot omit first 3 */) => {
+            footerRef.current?.measureInWindow((fx, fy, fwidth, fheight/* same as above */) => {
                 const keyboardHeightValue = keyboardHeight.get();
                 if (keyboardHeightValue >= 1.0) {
                     return;

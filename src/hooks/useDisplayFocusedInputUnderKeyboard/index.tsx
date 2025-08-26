@@ -1,6 +1,6 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import type { SelectionListHandle  } from "@components/SelectionList/types";
-import type { NativeSyntheticEvent, TextInputFocusEventData, View } from "react-native";
+import type { View } from "react-native";
 import SplitListItemFocus from "@components/SelectionList/SplitListItem";
 import useDebouncedState from "@hooks/useDebouncedState";
 import type UseDisplayFocusedInputUnderKeyboardType from "./types";
@@ -22,7 +22,7 @@ const useDisplayFocusedInputUnderKeyboard = (): UseDisplayFocusedInputUnderKeybo
         }, []);
     
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleInputBlur = useCallback((e: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    const handleInputBlur = useCallback(() => {
             setInputIndexIsFocused(-1);
         }, []);
     

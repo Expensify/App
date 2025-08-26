@@ -378,10 +378,13 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
 
+    /** Index of the item in the list */
     index?: number;
 
+    /** Callback when the input inside the item is focused (if input exists) */
     onInputFocus?: (index: number) => void;
 
+    /** Callback when the input inside the item is blurred (if input exists) */
     onInputBlur?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void;
 };
 
