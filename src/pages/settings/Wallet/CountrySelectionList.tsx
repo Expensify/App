@@ -38,8 +38,8 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
         setCurrentCountry(country.value);
     }, []);
 
-    const countriesList = useMemo(() => {
-        return countries.map((countryISO) => {
+    const countriesList = useMemo(() =>
+        countries.map((countryISO) => {
             const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
             return {
                 value: countryISO,
@@ -48,8 +48,8 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
                 isSelected: currentCountry === countryISO,
                 searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
             };
-        });
-    }, [translate, currentCountry, countries]);
+        })
+    , [translate, currentCountry, countries]);
 
     const searchResults = searchOptions(debouncedSearchValue, countriesList);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
