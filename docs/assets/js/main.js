@@ -235,7 +235,6 @@ mobileBreakpoint.addEventListener('change', handleBreakpointChange);
 // Initial check
 handleBreakpointChange();
 
-
 window.addEventListener('DOMContentLoaded', () => {
     injectFooterCopyright();
 
