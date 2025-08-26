@@ -3,8 +3,8 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,21 +24,12 @@ function CertifyTrueAndAccurateLabel() {
 
 function TermsAndConditionsLabel() {
     const {translate} = useLocalize();
-    return (
-        <Text>
-            {translate('common.iAcceptThe')}
-            <TextLink href="https://cross-border.corpay.com/tc/">{`${translate('agreementsStep.termsAndConditions')}`}</TextLink>.
-        </Text>
-    );
+    return <RenderHTML html={translate('agreementsStep.iAcceptTheTermsAndConditions')} />;
 }
 
 function ConsentToPrivacyNoticeLabel() {
     const {translate} = useLocalize();
-    return (
-        <Text>
-            {translate('agreementsStep.iConsentToThe')} <TextLink href="https://payments.corpay.com/compliance">{`${translate('agreementsStep.privacyNotice')}`}</TextLink>.
-        </Text>
-    );
+    return <RenderHTML html={translate('agreementsStep.iConsentToThePrivacyNotice')} />;
 }
 
 type ConfirmationProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
@@ -131,7 +122,7 @@ function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({defaultValue
             />
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
-                accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('agreementsStep.termsAndConditions')}.`}
+                accessibilityLabel={translate('agreementsStep.iAcceptTheTermsAndConditionsAccessibility')}
                 inputID={inputIDs.agreeToTermsAndConditions as string}
                 style={styles.mt6}
                 LabelComponent={TermsAndConditionsLabel}
@@ -140,7 +131,7 @@ function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({defaultValue
             />
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
-                accessibilityLabel={`${translate('agreementsStep.iConsentToThe')} ${translate('agreementsStep.privacyNotice')}.`}
+                accessibilityLabel={translate('agreementsStep.iConsentToThePrivacyNoticeAccessibility')}
                 inputID={inputIDs.consentToPrivacyNotice as string}
                 style={styles.mt6}
                 LabelComponent={ConsentToPrivacyNoticeLabel}

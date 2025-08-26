@@ -103,6 +103,7 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
+    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -301,6 +302,7 @@ import type {
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
+    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -954,6 +956,7 @@ const translations = {
         distance: 'Distanza',
         manual: 'Manuale',
         scan: 'Scansiona',
+        map: 'Mappa',
     },
     spreadsheet: {
         upload: 'Carica un foglio di calcolo',
@@ -1249,6 +1252,7 @@ const translations = {
             invalidCategoryLength: 'Il nome della categoria supera i 255 caratteri. Si prega di accorciarlo o scegliere una categoria diversa.',
             invalidTagLength: 'Il nome del tag supera i 255 caratteri. Per favore, accorcialo o scegli un tag diverso.',
             invalidAmount: 'Si prega di inserire un importo valido prima di continuare',
+            invalidDistance: 'Si prega di inserire una distanza valida prima di continuare',
             invalidIntegerAmount: 'Inserisci un importo in dollari intero prima di continuare',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `L'importo massimo delle tasse è ${amount}`,
             invalidSplit: "La somma delle suddivisioni deve essere uguale all'importo totale",
@@ -3176,21 +3180,6 @@ const translations = {
         enable2FAText: "Prendiamo la tua sicurezza sul serio. Imposta ora l'autenticazione a due fattori (2FA) per aggiungere un ulteriore livello di protezione al tuo account.",
         secureYourAccount: 'Proteggi il tuo account',
     },
-    beneficialOwnersStep: {
-        additionalInformation: 'Informazioni aggiuntive',
-        checkAllThatApply: 'Seleziona tutte le opzioni applicabili, altrimenti lascia vuoto.',
-        iOwnMoreThan25Percent: 'Possiedo più del 25% di',
-        someoneOwnsMoreThan25Percent: 'Qualcun altro possiede più del 25% di',
-        additionalOwner: 'Proprietario beneficiario aggiuntivo',
-        removeOwner: 'Rimuovi questo titolare effettivo',
-        addAnotherIndividual: "Aggiungi un'altra persona che possiede più del 25% di",
-        agreement: 'Accordo:',
-        termsAndConditions: 'termini e condizioni',
-        certifyTrueAndAccurate: 'Certifico che le informazioni fornite sono veritiere e accurate.',
-        error: {
-            certify: 'Deve certificare che le informazioni siano veritiere e accurate',
-        },
-    },
     completeVerificationStep: {
         completeVerification: 'Completa la verifica',
         confirmAgreements: 'Per favore, conferma gli accordi qui sotto.',
@@ -3269,10 +3258,11 @@ const translations = {
         regulationRequiresUs: "La normativa ci impone di verificare l'identità di qualsiasi individuo che possieda più del 25% dell'azienda.",
         iAmAuthorized: 'Sono autorizzato a utilizzare il conto bancario aziendale per le spese aziendali.',
         iCertify: 'Certifico che le informazioni fornite sono veritiere e accurate.',
-        termsAndConditions: 'termini e condizioni',
+        iAcceptTheTermsAndConditions: `Accetto i <a href="https://cross-border.corpay.com/tc/">termini e le condizioni</a>.`,
+        iAcceptTheTermsAndConditionsAccessibility: 'Accetto i termini e le condizioni.',
         accept: 'Accetta e aggiungi conto bancario',
-        iConsentToThe: 'Acconsento al',
-        privacyNotice: 'informativa sulla privacy',
+        iConsentToThePrivacyNotice: `Acconsento <a href="https://payments.corpay.com/compliance">all'informativa sulla privacy</a>.`,
+        iConsentToThePrivacyNoticeAccessibility: "Acconsento all'informativa sulla privacy.",
         error: {
             authorized: "Devi essere un ufficiale di controllo con l'autorizzazione per operare sul conto bancario aziendale.",
             certify: 'Si prega di certificare che le informazioni sono veritiere e accurate',
@@ -4997,6 +4987,7 @@ const translations = {
                 limit: 'Limite',
                 limitType: 'Tipo di limite',
                 name: 'Nome',
+                disabledApprovalForSmartLimitError: 'Abilita le approvazioni in <strong>Flussi di lavoro > Aggiungi approvazioni</strong> prima di impostare i limiti intelligenti',
             },
             deactivateCardModal: {
                 deactivate: 'Disattiva',
@@ -5244,7 +5235,8 @@ const translations = {
             continuousReconciliation: 'Riconciliazione Continua',
             saveHoursOnReconciliation:
                 'Risparmia ore di riconciliazione ogni periodo contabile facendo riconciliare continuamente a Expensify gli estratti conto e i regolamenti della Expensify Card per tuo conto.',
-            enableContinuousReconciliation: 'Per abilitare la Riconciliazione Continua, si prega di abilitare',
+            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
+                `<muted-text-label>Per abilitare la riconciliazione continua, abilita la <a href="${accountingAdvancedSettingsLink}">sincronizzazione automatica</a> per ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Scegli il conto bancario su cui verranno riconciliati i pagamenti della tua carta Expensify.',
                 accountMatches: 'Assicurati che questo account corrisponda al tuo',
@@ -5509,11 +5501,8 @@ const translations = {
                 perActiveMember: 'per membro attivo al mese.',
                 perMember: 'per membro al mese.',
             },
-            note: {
-                upgradeWorkspace: 'Aggiorna il tuo spazio di lavoro per accedere a questa funzione, oppure',
-                learnMore: 'scopri di più',
-                aboutOurPlans: 'informazioni sui nostri piani e prezzi.',
-            },
+            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+                `<muted-text>Aggiorna il tuo spazio di lavoro per accedere a questa funzione oppure <a href="${subscriptionLink}">scopri di più</a> sui nostri piani e prezzi.</muted-text>`,
             upgradeToUnlock: 'Sblocca questa funzione',
             completed: {
                 headline: `Hai aggiornato il tuo spazio di lavoro!`,
@@ -6062,6 +6051,7 @@ const translations = {
         statements: 'Dichiarazioni',
         unapprovedCash: 'Contanti non approvati',
         unapprovedCard: 'Carta non approvata',
+        reconciliation: 'Riconciliazione',
         saveSearch: 'Salva ricerca',
         deleteSavedSearch: 'Elimina ricerca salvata',
         deleteSavedSearchConfirm: 'Sei sicuro di voler eliminare questa ricerca?',
