@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type Navigation from '@libs/Navigation/Navigation';
 import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
 
@@ -24,6 +25,14 @@ type Args = {
     /** Callback to call on every scroll event */
     onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 };
+
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
+    return {
+        ...actualNav,
+        useIsFocused: jest.fn(),
+    };
+});
 
 export default function useReportUnreadMessageScrollTracking({
     reportID,
