@@ -36,8 +36,8 @@ Only **Travel Admins** can enable and manage Central Billing. Once enabled, Trav
 ## How to set up a Central Billing card
 
 1. Connect the central billing card to Expensify:  
-   - For **Expensify Classic**, follow [this guide to connect a company card](link here) or [apply for the Expensify Card](link here).  
-   - For **New Expensify**, follow [this guide to connect a company card](link here) or [apply for the Expensify Card](link here).  
+   - For **Expensify Classic**, follow [this guide to connect a company card](https://help.expensify.com/expensify-classic/hubs/connect-credit-cards/) or [apply for the Expensify Card](https://help.expensify.com/articles/expensify-classic/expensify-card/Set-Up-the-Expensify-Visa%C2%AE-Commercial-Card-for-your-Company).  
+   - For **New Expensify**, follow [this guide to connect a company card](https://help.expensify.com/new-expensify/hubs/connect-credit-cards/) or [apply for the Expensify Card](https://help.expensify.com/new-expensify/hubs/expensify-card/).  
 
 2. Once the card is connected to your company domain, booking receipts and the $15 Trip fee will automatically post as expenses in the cardholder’s Expensify account. Reservation details will be sent directly to the traveler.  
 
