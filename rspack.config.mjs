@@ -33,7 +33,7 @@ export default Repack.defineRspackConfig({
         ],
     },
     resolve: {
-        ...Repack.getResolveOptions(),
+        ...Repack.getResolveOptions({enablePackageExports: true}),
         // equivalent to babel-plugin-odule-resolver
         tsConfig: {
             configFile: path.resolve(__dirname, './tsconfig.json'),
