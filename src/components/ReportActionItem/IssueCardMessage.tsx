@@ -52,7 +52,7 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
                         if (!expensifyCard?.cardID) {
                             return;
                         }
-                        Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(expensifyCard.cardID)));
+                        Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(expensifyCard.cardID), Navigation.getActiveRoute()));
                     }}
                     success
                     style={[styles.alignSelfStart, styles.mt3]}

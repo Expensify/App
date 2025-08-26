@@ -34,7 +34,7 @@ const MAGIC_INPUT_MIN_HEIGHT = 86;
 
 function ActivatePhysicalCardPage({
     route: {
-        params: {cardID = ''},
+        params: {cardID = '', backTo},
     },
 }: ActivatePhysicalCardPageProps) {
     const theme = useTheme();
@@ -122,7 +122,7 @@ function ActivatePhysicalCardPage({
     return (
         <IllustratedHeaderPageLayout
             title={translate('activateCardPage.activateCard')}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID))}
+            onBackButtonPress={() => Navigation.goBack(backTo ?? ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID))}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
             illustration={LottieAnimations.Magician}
             scrollViewContainerStyles={[styles.mnh100]}

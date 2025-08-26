@@ -297,7 +297,7 @@ const ROUTES = {
     },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:cardID/activate',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/activate` as const,
+        getRoute: (cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${cardID}/activate` as const, backTo),
     },
     SETTINGS_LEGAL_NAME: 'settings/profile/legal-name',
     SETTINGS_DATE_OF_BIRTH: 'settings/profile/date-of-birth',

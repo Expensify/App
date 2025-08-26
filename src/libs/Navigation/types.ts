@@ -156,6 +156,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
         /** cardID of selected card */
         cardID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
         policyID: string;
