@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account as AccountOnyx} from '@src/types/onyx';
 import getPlatform from '@libs/getPlatform';
+import { View } from 'react-native';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -46,7 +47,7 @@ function TestToolMenu() {
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
-    const isRegistered = true; // This should be replaced with actual logic to check if biometrics are registered
+    const [isRegistered, setRegistered] = useState(true); // This should be replaced with actual logic to check if biometrics are registered
 
     const [showBiometricsModal, setShowBiometricsModal] = useState(false);
 
@@ -117,16 +118,24 @@ function TestToolMenu() {
                     {/* Starts Biometrics test flow -> possible only on native */}
                     {isNative && (
                         <TestToolRow title={translate(biometricsTitle())}>
-                        <Button
-                            small
-                            text={translate('initialSettingsPage.troubleshoot.test')}
-                            onPress={() => setShowBiometricsModal(true)}
-                        />
-                    </TestToolRow>
+                            <View style={[styles.flexRow, styles.gap2]}>
+                                <Button
+                                    small
+                                    text={translate('initialSettingsPage.troubleshoot.test')}
+                                    onPress={() => setShowBiometricsModal(true)}
+                                />
+                                {isRegistered && (
+                                    <Button
+                                        small
+                                        danger
+                                        text={translate('initialSettingsPage.troubleshoot.remove')}
+                                        onPress={() => setRegistered(false)}
+                                    />
+                                )}
+                            </View>
+                        </TestToolRow>
                 )}
-                {showBiometricsModal && (
-                    <EnableBiometricsModal isVisible onCancel={() => setShowBiometricsModal(false)} />
-                )}
+                    <EnableBiometricsModal isVisible={showBiometricsModal} onCancel={() => setShowBiometricsModal(false)} registerBiometrics={() => setRegistered(true)} />
                 </>
             )}
 
