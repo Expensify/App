@@ -8,7 +8,6 @@ import ImportSpreadsheet from '@components/ImportSpreadsheet';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -45,7 +44,6 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isImportingTags, setIsImportingTags] = useState(false);
-    const {setIsClosing} = useCloseImportPage();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
 
     useEffect(() => {
@@ -61,12 +59,6 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
     }
-
-    const closeImportPageAndModal = () => {
-        setIsClosing(true);
-        setIsImportingTags(false);
-        Navigation.goBack(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-    };
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
