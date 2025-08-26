@@ -117,6 +117,7 @@ function PhoneNumberPage() {
                                     }
                                     clearPhoneNumberError();
                                 }}
+                                inputMode={CONST.INPUT_MODE.TEL}
                             />
                         </OfflineWithFeedback>
                     </FormProvider>
