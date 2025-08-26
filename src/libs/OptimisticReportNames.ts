@@ -285,7 +285,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     if (!Permissions.isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas)) {
         Performance.markEnd(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
         Timing.end(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
-        return updates;
+        return [];
     }
 
     Log.info('[OptimisticReportNames] Processing optimistic updates for report names', false, {
@@ -374,7 +374,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     Performance.markEnd(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
     Timing.end(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
 
-    return updates.concat(additionalUpdates);
+    return additionalUpdates;
 }
 
 export {computeReportNameIfNeeded, getReportByTransactionID, shouldComputeReportName, updateOptimisticReportNamesFromUpdates};

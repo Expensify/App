@@ -82,11 +82,10 @@ function prepareRequest<TCommand extends ApiCommand>(
     if (optimisticData && shouldApplyOptimisticData) {
         Log.info('[API] Applying optimistic data', false, {command, type});
 
+        Onyx.update(optimisticData);
         // Process optimistic data through report name middleware
         // Skip for OpenReport command to avoid unnecessary processing
-        if (command === WRITE_COMMANDS.OPEN_REPORT) {
-            Onyx.update(optimisticData);
-        } else {
+        if (command !== WRITE_COMMANDS.OPEN_REPORT) {
             try {
                 const context = getUpdateContext();
                 const processedOptimisticData = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(optimisticData, context);
@@ -94,7 +93,6 @@ function prepareRequest<TCommand extends ApiCommand>(
             } catch (error) {
                 Log.warn('[API] Failed to process optimistic report names', {error});
                 // Fallback to original optimistic data if processing fails
-                Onyx.update(optimisticData);
             }
         }
     }
