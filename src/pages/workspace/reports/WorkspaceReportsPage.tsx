@@ -41,7 +41,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReportFieldForList = ListItem & {
     fieldID: string;
@@ -83,15 +82,14 @@ function WorkspaceReportFieldsPage({
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
     }, [policy]);
-    const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
-        if (!hasAccountingConnection) {
+        if (!hasReportAccountingConnections) {
             return;
         }
         setIsOrganizeWarningModalOpen(true);
-    }, [hasAccountingConnection]);
+    }, [hasReportAccountingConnections]);
 
     const fetchReportFields = useCallback(() => {
         openPolicyReportFieldsPage(policyID);
@@ -273,7 +271,7 @@ function WorkspaceReportFieldsPage({
                                     }
                                     enablePolicyReportFields(policyID, isEnabled);
                                 }}
-                                disabled={hasAccountingConnection}
+                                disabled={hasReportAccountingConnections}
                                 disabledAction={onDisabledOrganizeSwitchPress}
                                 subMenuItems={
                                     !!policy?.areReportFieldsEnabled && (

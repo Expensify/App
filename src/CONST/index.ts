@@ -3004,7 +3004,6 @@ const CONST = {
                 SAGE_INTACCT: 'intacct',
             },
             UNSUPPORTED_NAMES: {
-                // Integrations that still require Expensify Classic
                 FINANCIALFORCE: 'financialForce',
             },
             ROUTE: {
