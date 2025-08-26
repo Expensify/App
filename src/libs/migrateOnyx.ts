@@ -1,9 +1,7 @@
 import Log from './Log';
 import KeyReportActionsDraftByReportActionID from './migrations/KeyReportActionsDraftByReportActionID';
-import MoveDraftsToNVP from './migrations/MoveDraftsToNVP';
 import MoveIsOptimisticReportToMetadata from './migrations/MoveIsOptimisticReportToMetadata';
 import PendingMembersToMetadata from './migrations/PendingMembersToMetadata';
-import PronounsMigration from './migrations/PronounsMigration';
 import RenameCardIsVirtual from './migrations/RenameCardIsVirtual';
 
 export default function () {
@@ -12,14 +10,7 @@ export default function () {
 
     return new Promise<void>((resolve) => {
         // Add all migrations to an array so they are executed in order
-        const migrationPromises = [
-            RenameCardIsVirtual,
-            KeyReportActionsDraftByReportActionID,
-            PronounsMigration,
-            MoveIsOptimisticReportToMetadata,
-            PendingMembersToMetadata,
-            MoveDraftsToNVP,
-        ];
+        const migrationPromises = [RenameCardIsVirtual, KeyReportActionsDraftByReportActionID, MoveIsOptimisticReportToMetadata, PendingMembersToMetadata];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the
         // previous promise to finish before moving onto the next one.
