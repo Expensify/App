@@ -11,6 +11,7 @@ import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransact
 import type {PerDiemExpenseTransactionParams, RequestMoneyParticipantParams} from '@libs/actions/IOU';
 import {
     addSplitExpenseField,
+    bulkHold,
     calculateDiffAmount,
     canApproveIOU,
     canCancelPayment,
@@ -4628,6 +4629,124 @@ describe('actions/IOU', () => {
                                 // Then the duplicate transaction should correctly be set on hold.
                                 expect(transaction?.comment?.hold).toBeDefined();
                                 resolve();
+                            },
+                        });
+                    });
+                });
+        });
+    });
+
+    describe('bulkHold', () => {
+        test('Bulk hold transactions with optimistic transaction threads', () => {
+            const iouReport = buildOptimisticIOUReport(1, 2, 200, '1', 'USD');
+            const transaction1 = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+                existingTransactionID: '1',
+            });
+
+            const transaction2 = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 200,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+                existingTransactionID: '2',
+            });
+
+            const iouAction1: ReportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: transaction1.amount,
+                currency: transaction1.currency,
+                comment: '',
+                participants: [],
+                iouReportID: iouReport.reportID,
+                transactionID: transaction1.transactionID,
+            });
+
+            const iouAction2: ReportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: transaction2.amount,
+                currency: transaction2.currency,
+                comment: '',
+                participants: [],
+                iouReportID: iouReport.reportID,
+                transactionID: transaction2.transactionID,
+            });
+
+            const reportCollection: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+            };
+
+            const transactionsIOUActions: Record<string, ReportAction> = {
+                [transaction1.transactionID]: iouAction1,
+                [transaction2.transactionID]: iouAction2,
+            };
+
+            const transactionCollection: OnyxCollection<Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+
+            const actionCollection: ReportActionsCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction1.reportActionID}`]: iouAction1,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction2.reportActionID}`]: iouAction2,
+                },
+            };
+
+            const comment = 'Bulk Hold';
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
+                .then(() => {
+                    bulkHold(comment, iouReport, transactionCollection, {}, transactionsIOUActions);
+                    return waitForBatchedUpdates();
+                })
+                .then(() => {
+                    return new Promise<void>((resolve) => {
+                        const violationsConnection = Onyx.connect({
+                            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+                            waitForCollectionCallback: true,
+                            callback: (allTransactionsViolations) => {
+                                Onyx.disconnect(violationsConnection);
+                                resolve();
+                                expect(Object.keys(allTransactionsViolations)).toHaveLength(2);
+
+                                const transaction1Violation = allTransactionsViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction1.transactionID}`];
+                                expect(transaction1Violation).toMatchObject([
+                                    {
+                                        name: CONST.VIOLATIONS.HOLD,
+                                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                                        showInReview: true,
+                                    },
+                                ]);
+
+                                const transaction2Violation = allTransactionsViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction2.transactionID}`];
+                                expect(transaction2Violation).toMatchObject([
+                                    {
+                                        name: CONST.VIOLATIONS.HOLD,
+                                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                                        showInReview: true,
+                                    },
+                                ]);
+                            },
+                        });
+
+                        const reportsConnection = Onyx.connect({
+                            key: ONYXKEYS.COLLECTION.REPORT,
+                            waitForCollectionCallback: true,
+                            callback: (allReports) => {
+                                Onyx.disconnect(reportsConnection);
+                                resolve();
+
+                                const {unheldTotal, unheldNonReimbursableTotal} = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`] ?? {};
+                                expect(unheldTotal).toEqual(200);
+                                expect(unheldNonReimbursableTotal).toEqual(0);
+                                expect(Object.keys(allReports)).toHaveLength(3);
                             },
                         });
                     });
