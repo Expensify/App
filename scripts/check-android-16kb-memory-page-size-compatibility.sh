@@ -1,14 +1,16 @@
 #!/bin/bash
+set -o pipefail
+
 progname="${0##*/}"
 progname="${progname%.sh}"
 
 # usage: check_elf_alignment.sh [path to *.so files|path to *.apk]
 
 cleanup_trap() {
-  if [ -n "${tmp}" -a -d "${tmp}" ]; then
-    rm -rf ${tmp}
+  if [ -n "$tmp" ] && [ -d "$tmp" ]; then
+    rm -rf "$tmp"
   fi
-  exit $1
+  exit "${1:-0}"
 }
 
 usage() {
@@ -19,37 +21,37 @@ usage() {
   echo "Usage: ${progname} [input-path|input-APK|input-APEX]"
 }
 
-if [ ${#} -ne 1 ]; then
+if [ "$#" -ne 1 ]; then
   usage
-  exit
-fi
-
-case ${1} in
-  --help | -h | -\?)
-    usage
-    exit
-    ;;
-
-  *)
-    dir="${1}"
-    ;;
-esac
-
-if ! [ -f "${dir}" -o -d "${dir}" ]; then
-  echo "Invalid file: ${dir}" >&2
   exit 1
 fi
 
-if [[ "${dir}" == *.apk ]]; then
+case "$1" in
+  --help | -h | -\?)
+    usage
+    exit 0
+    ;;
+  *)
+    dir="$1"
+    ;;
+esac
+
+if ! [ -f "$dir" ] && ! [ -d "$dir" ]; then
+  echo "Invalid file: $dir" >&2
+  exit 1
+fi
+
+if [[ "$dir" == *.apk ]]; then
   trap 'cleanup_trap' EXIT
 
   echo
   echo "Recursively analyzing $dir"
   echo
 
-  if { zipalign --help 2>&1 | grep -q "\-P <pagesize_kb>"; }; then
+  if zipalign --help 2>&1 | grep -q "\-P <pagesize_kb>"; then
     echo "=== APK zip-alignment ==="
-    zipalign -v -c -P 16 4 "${dir}" | egrep 'lib/arm64-v8a|lib/x86_64|Verification'
+    # SC2196: use grep -E instead of egrep
+    zipalign -v -c -P 16 4 "$dir" | grep -E 'lib/arm64-v8a|lib/x86_64|Verification'
     echo "========================="
   else
     echo "NOTICE: Zip alignment check requires build-tools version 35.0.0-rc3 or higher."
@@ -59,23 +61,26 @@ if [[ "${dir}" == *.apk ]]; then
     echo "    sdkmanager \"build-tools;35.0.0-rc3\""
   fi
 
-  dir_filename=$(basename "${dir}")
+  dir_filename=$(basename "$dir")
   tmp=$(mktemp -d -t "${dir_filename%.apk}_out_XXXXX")
-  unzip "${dir}" lib/* -d "${tmp}" >/dev/null 2>&1
-  dir="${tmp}"
+  unzip "$dir" lib/* -d "$tmp" >/dev/null 2>&1
+  dir="$tmp"
 fi
 
-if [[ "${dir}" == *.apex ]]; then
+if [[ "$dir" == *.apex ]]; then
   trap 'cleanup_trap' EXIT
 
   echo
   echo "Recursively analyzing $dir"
   echo
 
-  dir_filename=$(basename "${dir}")
+  dir_filename=$(basename "$dir")
   tmp=$(mktemp -d -t "${dir_filename%.apex}_out_XXXXX")
-  deapexer extract "${dir}" "${tmp}" || { echo "Failed to deapex." && exit 1; }
-  dir="${tmp}"
+  if ! deapexer extract "$dir" "$tmp"; then
+    echo "Failed to deapex."
+    exit 1
+  fi
+  dir="$tmp"
 fi
 
 RED="\e[31m"
@@ -87,27 +92,26 @@ unaligned_libs=()
 echo
 echo "=== ELF alignment ==="
 
-matches="$(find "${dir}" -type f)"
+matches="$(find "$dir" -type f)"
 IFS=$'\n'
 for match in $matches; do
-  # We could recursively call this script or rewrite it to though.
-  [[ "${match}" == *".apk" ]] && echo "WARNING: doesn't recursively inspect .apk file: ${match}"
-  [[ "${match}" == *".apex" ]] && echo "WARNING: doesn't recursively inspect .apex file: ${match}"
+  [[ "$match" == *".apk" ]] && echo "WARNING: doesn't recursively inspect .apk file: $match"
+  [[ "$match" == *".apex" ]] && echo "WARNING: doesn't recursively inspect .apex file: $match"
 
-  [[ $(file "${match}") == *"ELF"* ]] || continue
+  [[ $(file "$match") == *"ELF"* ]] || continue
 
-  res="$(objdump -p "${match}" | grep LOAD | awk '{ print $NF }' | head -1)"
+  res="$(objdump -p "$match" | grep LOAD | awk '{ print $NF }' | head -1)"
   if [[ $res =~ 2\*\*(1[4-9]|[2-9][0-9]|[1-9][0-9]{2,}) ]]; then
-    echo -e "${match}: ${GREEN}ALIGNED${ENDCOLOR} ($res)"
+    echo -e "$match: ${GREEN}ALIGNED${ENDCOLOR} ($res)"
   else
-    echo -e "${match}: ${RED}UNALIGNED${ENDCOLOR} ($res)"
-    unaligned_libs+=("${match}")
+    echo -e "$match: ${RED}UNALIGNED${ENDCOLOR} ($res)"
+    unaligned_libs+=("$match")
   fi
 done
 
-if [ ${#unaligned_libs[@]} -gt 0 ]; then
+if [ "${#unaligned_libs[@]}" -gt 0 ]; then
   echo -e "${RED}Found ${#unaligned_libs[@]} unaligned libs (only arm64-v8a/x86_64 libs need to be aligned).${ENDCOLOR}"
-elif [ -n "${dir_filename}" ]; then
+elif [ -n "${dir_filename:-}" ]; then
   echo -e "ELF Verification Successful"
 fi
 echo "====================="
