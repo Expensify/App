@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import type {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -98,8 +98,10 @@ function MoneyRequestReportTransactionItem({
         backgroundColor: theme.highlightBG,
     });
 
-    const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
-    const areAllOptionalColumnsHidden = canBeMissingColumns.every((column) => !columns.includes(column));
+    const areAllOptionalColumnsHidden = useMemo(() => {
+        const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
+        return canBeMissingColumns.every((column) => !columns.includes(column));
+    }, [columns]);
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>

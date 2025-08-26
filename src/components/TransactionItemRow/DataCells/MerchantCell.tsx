@@ -10,15 +10,18 @@ function MerchantOrDescriptionCell({
     shouldRenderAsHTML,
 }: {
     merchantOrDescription: string;
-    shouldUseNarrowLayout?: boolean | undefined;
+    shouldUseNarrowLayout?: boolean;
     shouldShowTooltip: boolean;
     shouldRenderAsHTML?: boolean;
 }) {
     const styles = useThemeStyles();
 
     const html = useMemo(() => {
+        if (!shouldRenderAsHTML) {
+            return merchantOrDescription;
+        }
         return Parser.replace(merchantOrDescription, {shouldEscapeText: false});
-    }, [merchantOrDescription]);
+    }, [merchantOrDescription, shouldRenderAsHTML]);
 
     return (
         <TextWithTooltip
