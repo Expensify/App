@@ -29,7 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {DateOfBirthForm} from '@src/types/form';
-import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 
 let currentUserEmail = '';
@@ -40,12 +40,6 @@ Onyx.connect({
         currentUserEmail = val?.email ?? '';
         currentUserAccountID = val?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
-});
-
-let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (allPersonalDetails = val),
 });
 
 let privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
@@ -128,7 +122,12 @@ function updateDisplayName(firstName: string, lastName: string, formatPhoneNumbe
     });
 }
 
-function updateLegalName(legalFirstName: string, legalLastName: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
+function updateLegalName(
+    legalFirstName: string,
+    legalLastName: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    currentUserPersonalDetail: Pick<PersonalDetails, 'firstName' | 'lastName'>,
+) {
     const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};
     const optimisticData: OnyxUpdate[] = [
         {
@@ -141,7 +140,7 @@ function updateLegalName(legalFirstName: string, legalLastName: string, formatPh
         },
     ];
     // In case the user does not have a display name, we will update the display name based on the legal name
-    if (!allPersonalDetails?.[currentUserAccountID]?.firstName && !allPersonalDetails?.[currentUserAccountID]?.lastName) {
+    if (!currentUserPersonalDetail?.firstName && !currentUserPersonalDetail?.lastName) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -375,7 +374,7 @@ function openPublicProfilePage(accountID: number) {
 /**
  * Updates the user's avatar image
  */
-function updateAvatar(file: File | CustomRNImageManipulatorResult) {
+function updateAvatar(file: File | CustomRNImageManipulatorResult, currentUserPersonalDetails: Pick<PersonalDetails, 'avatarThumbnail' | 'avatar'>) {
     if (!currentUserAccountID) {
         return;
     }
@@ -420,8 +419,8 @@ function updateAvatar(file: File | CustomRNImageManipulatorResult) {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserAccountID]: {
-                    avatar: allPersonalDetails?.[currentUserAccountID]?.avatar,
-                    avatarThumbnail: allPersonalDetails?.[currentUserAccountID]?.avatarThumbnail ?? allPersonalDetails?.[currentUserAccountID]?.avatar,
+                    avatar: currentUserPersonalDetails?.avatar,
+                    avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail ?? currentUserPersonalDetails?.avatar,
                     pendingFields: {
                         avatar: null,
                     },
@@ -438,7 +437,7 @@ function updateAvatar(file: File | CustomRNImageManipulatorResult) {
 /**
  * Replaces the user's avatar image with a default avatar
  */
-function deleteAvatar() {
+function deleteAvatar(currentUserPersonalDetails: Pick<PersonalDetails, 'fallbackIcon' | 'avatar'>) {
     if (!currentUserAccountID) {
         return;
     }
@@ -464,8 +463,8 @@ function deleteAvatar() {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserAccountID]: {
-                    avatar: allPersonalDetails?.[currentUserAccountID]?.avatar,
-                    fallbackIcon: allPersonalDetails?.[currentUserAccountID]?.fallbackIcon,
+                    avatar: currentUserPersonalDetails?.avatar,
+                    fallbackIcon: currentUserPersonalDetails?.fallbackIcon,
                 },
             },
         },

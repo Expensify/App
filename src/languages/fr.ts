@@ -301,6 +301,7 @@ import type {
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
+    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -957,6 +958,7 @@ const translations = {
         distance: 'Distance',
         manual: 'Manuel',
         scan: 'Scanner',
+        map: 'Carte',
     },
     spreadsheet: {
         upload: 'Télécharger une feuille de calcul',
@@ -1255,6 +1257,7 @@ const translations = {
             invalidCategoryLength: 'Le nom de la catégorie dépasse 255 caractères. Veuillez le raccourcir ou choisir une autre catégorie.',
             invalidTagLength: "Le nom de l'étiquette dépasse 255 caractères. Veuillez le raccourcir ou choisir une autre étiquette.",
             invalidAmount: 'Veuillez entrer un montant valide avant de continuer',
+            invalidDistance: 'Veuillez entrer une distance valide avant de continuer',
             invalidIntegerAmount: 'Veuillez entrer un montant en dollars entiers avant de continuer.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Le montant maximal de la taxe est ${amount}`,
             invalidSplit: 'La somme des répartitions doit être égale au montant total',
@@ -3168,21 +3171,6 @@ const translations = {
             "Nous prenons votre sécurité au sérieux. Veuillez configurer l'authentification à deux facteurs (2FA) maintenant pour ajouter une couche de protection supplémentaire à votre compte.",
         secureYourAccount: 'Sécurisez votre compte',
     },
-    beneficialOwnersStep: {
-        additionalInformation: 'Informations supplémentaires',
-        checkAllThatApply: "Cochez tout ce qui s'applique, sinon laissez vide.",
-        iOwnMoreThan25Percent: 'Je possède plus de 25 % de',
-        someoneOwnsMoreThan25Percent: "Quelqu'un d'autre possède plus de 25 % de",
-        additionalOwner: 'Bénéficiaire effectif supplémentaire',
-        removeOwner: 'Supprimer ce bénéficiaire effectif',
-        addAnotherIndividual: 'Ajouter une autre personne qui possède plus de 25 % de',
-        agreement: 'Accord :',
-        termsAndConditions: 'termes et conditions',
-        certifyTrueAndAccurate: 'Je certifie que les informations fournies sont vraies et exactes.',
-        error: {
-            certify: 'Doit certifier que les informations sont vraies et exactes',
-        },
-    },
     completeVerificationStep: {
         completeVerification: 'Terminer la vérification',
         confirmAgreements: 'Veuillez confirmer les accords ci-dessous.',
@@ -3263,10 +3251,11 @@ const translations = {
         regulationRequiresUs: "La réglementation nous oblige à vérifier l'identité de toute personne qui possède plus de 25 % de l'entreprise.",
         iAmAuthorized: 'Je suis autorisé à utiliser le compte bancaire professionnel pour les dépenses professionnelles.',
         iCertify: 'Je certifie que les informations fournies sont vraies et exactes.',
-        termsAndConditions: 'termes et conditions',
+        iAcceptTheTermsAndConditions: `J'accepte les <a href="https://cross-border.corpay.com/tc/">termes et conditions</a>.`,
+        iAcceptTheTermsAndConditionsAccessibility: "J'accepte les termes et conditions.",
         accept: 'Accepter et ajouter un compte bancaire',
-        iConsentToThe: 'Je consens à la',
-        privacyNotice: 'avis de confidentialité',
+        iConsentToThePrivacyNotice: `J'accepte la <a href="https://payments.corpay.com/compliance">politique de confidentialité</a>.`,
+        iConsentToThePrivacyNoticeAccessibility: "J'accepte la politique de confidentialité.",
         error: {
             authorized: "Vous devez être un agent de contrôle avec l'autorisation d'opérer le compte bancaire de l'entreprise.",
             certify: "Veuillez certifier que l'information est vraie et exacte.",
@@ -4998,6 +4987,8 @@ const translations = {
                 limit: 'Limite',
                 limitType: 'Limiter le type',
                 name: 'Nom',
+                disabledApprovalForSmartLimitError:
+                    'Veuillez activer les approbations dans <strong>Workflows > Ajouter des approbations</strong> avant de configurer les limites intelligentes',
             },
             deactivateCardModal: {
                 deactivate: 'Désactiver',
@@ -5240,7 +5231,7 @@ const translations = {
             autoSync: 'Synchronisation automatique',
             autoSyncDescription: 'Synchronisez NetSuite et Expensify automatiquement, chaque jour. Exportez le rapport finalisé en temps réel.',
             reimbursedReports: 'Synchroniser les rapports remboursés',
-            cardReconciliation: 'Rapprochement de carte',
+            cardReconciliation: 'Rapprochement',
             reconciliationAccount: 'Compte de réconciliation',
             continuousReconciliation: 'Réconciliation Continue',
             saveHoursOnReconciliation:
@@ -5510,11 +5501,8 @@ const translations = {
                 perActiveMember: 'par membre actif par mois.',
                 perMember: 'par membre par mois.',
             },
-            note: {
-                upgradeWorkspace: 'Mettez à niveau votre espace de travail pour accéder à cette fonctionnalité, ou',
-                learnMore: 'en savoir plus',
-                aboutOurPlans: 'à propos de nos plans et tarifs.',
-            },
+            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+                `<muted-text>Mettez à niveau votre espace de travail pour accéder à cette fonctionnalité, ou <a href="${subscriptionLink}">en savoir plus sur</a> nos offres et tarifs.</muted-text>`,
             upgradeToUnlock: 'Débloquez cette fonctionnalité',
             completed: {
                 headline: `Vous avez amélioré votre espace de travail !`,
@@ -6059,6 +6047,7 @@ const translations = {
         statements: 'Relevés',
         unapprovedCash: 'Espèces non approuvées',
         unapprovedCard: 'Carte non approuvée',
+        reconciliation: 'Reconciliation',
         saveSearch: 'Enregistrer la recherche',
         deleteSavedSearch: 'Supprimer la recherche enregistrée',
         deleteSavedSearchConfirm: 'Êtes-vous sûr de vouloir supprimer cette recherche ?',
