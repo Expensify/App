@@ -597,9 +597,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                             }
 
                                                             if (!isUserValidated) {
-                                                                Navigation.navigate(
-                                                                    ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_WALLET, ROUTES.SETTINGS_ENABLE_PAYMENTS),
-                                                                );
+                                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT);
                                                                 return;
                                                             }
                                                             Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
