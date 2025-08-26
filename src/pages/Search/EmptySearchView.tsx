@@ -35,6 +35,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy, isPolicyMember} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
+import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
@@ -53,7 +54,9 @@ type EmptySearchViewProps = {
 
 type EmptySearchViewContentProps = EmptySearchViewProps & {
     currentUserPersonalDetails: PersonalDetails;
+    typeMenuSections: SearchTypeMenuSection[];
     allPolicies: OnyxCollection<Policy>;
+    isUserPaidPolicyMember: boolean;
     activePolicyID: string | undefined;
     activePolicy: OnyxEntry<Policy>;
     groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<Policy>>;
@@ -87,8 +90,13 @@ const tripsFeatures: FeatureListItem[] = [
 
 function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {typeMenuSections} = useSearchTypeMenuSections();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [isUserPaidPolicyMember = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        canBeMissing: true,
+        selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
+    });
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
 
@@ -108,7 +116,9 @@ function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySe
                 groupBy={groupBy}
                 hasResults={hasResults}
                 currentUserPersonalDetails={currentUserPersonalDetails}
+                typeMenuSections={typeMenuSections}
                 allPolicies={allPolicies}
+                isUserPaidPolicyMember={isUserPaidPolicyMember}
                 activePolicyID={activePolicyID}
                 activePolicy={activePolicy}
                 groupPoliciesWithChatEnabled={groupPoliciesWithChatEnabled}
@@ -125,7 +135,9 @@ function EmptySearchViewContent({
     groupBy,
     hasResults,
     currentUserPersonalDetails,
+    typeMenuSections,
     allPolicies,
+    isUserPaidPolicyMember,
     activePolicyID,
     activePolicy,
     groupPoliciesWithChatEnabled,
@@ -138,16 +150,11 @@ function EmptySearchViewContent({
     const styles = useThemeStyles();
     const contextMenuAnchor = useRef<RNText>(null);
     const [modalVisible, setModalVisible] = useState(false);
-    const {typeMenuSections} = useSearchTypeMenuSections();
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         canBeMissing: true,
     });
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
-    const [isUserPaidPolicyMember = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
-        selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
-    });
 
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
