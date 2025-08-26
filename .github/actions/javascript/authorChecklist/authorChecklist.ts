@@ -47,7 +47,7 @@ async function getChecklistCategoriesForPullRequest(): Promise<Set<string>> {
 
 function partitionWithChecklist(body: string): string[] {
     const [contentBeforeChecklist, contentAfterStartOfChecklist] = body.split(checklistStartsWith);
-    const [checklistContent, contentAfterChecklist] = contentAfterStartOfChecklist.split(checklistEndsWith);
+    const [checklistContent, contentAfterChecklist] = (contentAfterStartOfChecklist || '').split(checklistEndsWith);
     return [contentBeforeChecklist, checklistContent, contentAfterChecklist];
 }
 
