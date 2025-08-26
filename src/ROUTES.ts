@@ -127,7 +127,10 @@ const ROUTES = {
     },
     SEARCH_MONEY_REQUEST_REPORT: {
         route: 'search/r/:reportID',
-        getRoute: ({reportID}: {reportID: string}) => `search/r/${reportID}` as const,
+        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
+            const baseRoute = `search/r/${reportID}` as const;
+            return getUrlWithBackToParam(baseRoute, backTo);
+        },
     },
     SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: {
         route: 'search/r/:reportID/hold',
@@ -958,14 +961,14 @@ const ROUTES = {
             `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/${backToReport ?? ''}` as const,
     },
     DISTANCE_REQUEST_CREATE_TAB_MAP: {
-        route: 'map/:backToReport?',
+        route: 'distance-map/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/map/${backToReport ?? ''}` as const,
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/distance-map/${backToReport ?? ''}` as const,
     },
     DISTANCE_REQUEST_CREATE_TAB_MANUAL: {
-        route: 'manual/:backToReport?',
+        route: 'distance-manual/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/manual/${backToReport ?? ''}` as const,
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/distance-manual/${backToReport ?? ''}` as const,
     },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
