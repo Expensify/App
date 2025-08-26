@@ -2621,6 +2621,12 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
         return acc;
     }, {});
 
+    // Build map for resetting employees on failure
+    const resetEmployeesOnFailure = emails.reduce<Record<string, null>>((acc, email) => {
+        acc[email] = null;
+        return acc;
+    }, {});
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2629,6 +2635,20 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
                 receiptPartners: {
                     uber: {
                         employees: invitedEmployees,
+                        pendingFields: {employees: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    },
+                },
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                receiptPartners: {
+                    uber: {
+                        pendingFields: {employees: null},
                     },
                 },
             },
@@ -2642,13 +2662,15 @@ function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
                 receiptPartners: {
                     uber: {
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.receiptPartners.uber.invitationFailure'),
+                        employees: resetEmployeesOnFailure,
+                        pendingFields: {employees: null},
                     },
                 },
             },
         },
     ];
 
-    API.write(WRITE_COMMANDS.INVITE_WORKSPACE_EMPLOYEES_TO_UBER, params, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.INVITE_WORKSPACE_EMPLOYEES_TO_UBER, params, {optimisticData, successData, failureData});
 }
 
 /**
