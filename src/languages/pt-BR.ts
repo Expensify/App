@@ -301,6 +301,7 @@ import type {
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
+    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -954,6 +955,7 @@ const translations = {
         distance: 'Distância',
         manual: 'Manual',
         scan: 'Digitalizar',
+        map: 'Mapa',
     },
     spreadsheet: {
         upload: 'Carregar uma planilha',
@@ -1249,6 +1251,7 @@ const translations = {
             invalidCategoryLength: 'O nome da categoria excede 255 caracteres. Por favor, reduza-o ou escolha uma categoria diferente.',
             invalidTagLength: 'O nome da tag excede 255 caracteres. Por favor, reduza-o ou escolha uma tag diferente.',
             invalidAmount: 'Por favor, insira um valor válido antes de continuar.',
+            invalidDistance: 'Por favor, insira uma distância válida antes de continuar.',
             invalidIntegerAmount: 'Por favor, insira um valor em dólares inteiros antes de continuar.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `O valor máximo do imposto é ${amount}`,
             invalidSplit: 'A soma das divisões deve ser igual ao valor total',
@@ -3181,21 +3184,6 @@ const translations = {
         enable2FAText: 'Levamos sua segurança a sério. Por favor, configure a autenticação de dois fatores (2FA) agora para adicionar uma camada extra de proteção à sua conta.',
         secureYourAccount: 'Proteja sua conta',
     },
-    beneficialOwnersStep: {
-        additionalInformation: 'Informações adicionais',
-        checkAllThatApply: 'Marque todas as opções aplicáveis, caso contrário, deixe em branco.',
-        iOwnMoreThan25Percent: 'Eu possuo mais de 25% de',
-        someoneOwnsMoreThan25Percent: 'Outra pessoa possui mais de 25% de',
-        additionalOwner: 'Proprietário beneficiário adicional',
-        removeOwner: 'Remover este beneficiário final',
-        addAnotherIndividual: 'Adicionar outra pessoa que possua mais de 25% de',
-        agreement: 'Acordo:',
-        termsAndConditions: 'termos e condições',
-        certifyTrueAndAccurate: 'Eu certifico que as informações fornecidas são verdadeiras e precisas.',
-        error: {
-            certify: 'Deve certificar que as informações são verdadeiras e precisas',
-        },
-    },
     completeVerificationStep: {
         completeVerification: 'Concluir verificação',
         confirmAgreements: 'Por favor, confirme os acordos abaixo.',
@@ -3274,10 +3262,11 @@ const translations = {
         regulationRequiresUs: 'A regulamentação exige que verifiquemos a identidade de qualquer indivíduo que possua mais de 25% do negócio.',
         iAmAuthorized: 'Estou autorizado a usar a conta bancária empresarial para despesas comerciais.',
         iCertify: 'Certifico que as informações fornecidas são verdadeiras e precisas.',
-        termsAndConditions: 'termos e condições',
+        iAcceptTheTermsAndConditions: `Aceito os <a href="https://cross-border.corpay.com/tc/">termos e condições</a>.`,
+        iAcceptTheTermsAndConditionsAccessibility: 'Aceito os termos e condições.',
         accept: 'Aceitar e adicionar conta bancária',
-        iConsentToThe: 'Eu consinto com o',
-        privacyNotice: 'aviso de privacidade',
+        iConsentToThePrivacyNotice: 'Concordo com a <a href="https://payments.corpay.com/compliance">política de privacidade</a>.',
+        iConsentToThePrivacyNoticeAccessibility: 'Concordo com a política de privacidade.',
         error: {
             authorized: 'Você deve ser um responsável controlador com autorização para operar a conta bancária da empresa.',
             certify: 'Por favor, certifique-se de que as informações são verdadeiras e precisas.',
@@ -4993,6 +4982,8 @@ const translations = {
                 limit: 'Limite',
                 limitType: 'Tipo de limite',
                 name: 'Nome',
+                disabledApprovalForSmartLimitError:
+                    'Por favor, ative as aprovações em <strong>Fluxos de Trabalho > Adicionar aprovações</strong> antes de configurar os limites inteligentes',
             },
             deactivateCardModal: {
                 deactivate: 'Desativar',
@@ -5504,11 +5495,8 @@ const translations = {
                 perActiveMember: 'por membro ativo por mês.',
                 perMember: 'por membro por mês.',
             },
-            note: {
-                upgradeWorkspace: 'Atualize seu espaço de trabalho para acessar este recurso, ou',
-                learnMore: 'saiba mais',
-                aboutOurPlans: 'sobre nossos planos e preços.',
-            },
+            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+                `<muted-text>Atualize seu espaço de trabalho para acessar esse recurso ou <a href="${subscriptionLink}">saiba mais</a> sobre nossos planos e preços.</muted-text>`,
             upgradeToUnlock: 'Desbloquear este recurso',
             completed: {
                 headline: `Você atualizou seu espaço de trabalho!`,
@@ -6053,6 +6041,7 @@ const translations = {
         statements: 'Declarações',
         unapprovedCash: 'Dinheiro não aprovado',
         unapprovedCard: 'Cartão não aprovado',
+        reconciliation: 'Conciliação',
         saveSearch: 'Salvar pesquisa',
         deleteSavedSearch: 'Excluir pesquisa salva',
         deleteSavedSearchConfirm: 'Tem certeza de que deseja excluir esta pesquisa?',
