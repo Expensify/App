@@ -512,6 +512,10 @@ const ROUTES = {
         route: 'r/:reportID/settings/visibility',
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/visibility` as const, backTo),
     },
+    REPORT_CHANGE_APPROVER: {
+        route: 'r/:reportID/change-approver',
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/change-approver` as const, backTo),
+    },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
         getRoute: (reportID: string | undefined, reportActionID: string, backTo?: string) => {
@@ -936,9 +940,9 @@ const ROUTES = {
             `create/${iouType as string}/start/${transactionID}/${reportID}/per-diem/${backToReport ?? ''}` as const,
     },
 
-    MONEY_REQUEST_RECEIPT_VIEW_MODAL: {
-        route: 'receipt-view-modal/:transactionID',
-        getRoute: (transactionID: string, backTo: string) => getUrlWithBackToParam(`receipt-view-modal/${transactionID}`, backTo),
+    MONEY_REQUEST_RECEIPT_VIEW: {
+        route: 'receipt-view/:transactionID',
+        getRoute: (transactionID: string, backTo: string) => getUrlWithBackToParam(`receipt-view/${transactionID}`, backTo),
     } as const,
 
     MONEY_REQUEST_STATE_SELECTOR: {
@@ -957,14 +961,14 @@ const ROUTES = {
             `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/${backToReport ?? ''}` as const,
     },
     DISTANCE_REQUEST_CREATE_TAB_MAP: {
-        route: 'map/:backToReport?',
+        route: 'distance-map/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/map/${backToReport ?? ''}` as const,
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/distance-map/${backToReport ?? ''}` as const,
     },
     DISTANCE_REQUEST_CREATE_TAB_MANUAL: {
-        route: 'manual/:backToReport?',
+        route: 'distance-manual/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/manual/${backToReport ?? ''}` as const,
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/distance-manual/${backToReport ?? ''}` as const,
     },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
@@ -1365,6 +1369,10 @@ const ROUTES = {
     WORKSPACE_MEMBERS_IMPORTED: {
         route: 'workspaces/:policyID/members/imported',
         getRoute: (policyID: string) => `workspaces/${policyID}/members/imported` as const,
+    },
+    WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION: {
+        route: 'workspaces/:policyID/members/imported/confirmation',
+        getRoute: (policyID: string) => `workspaces/${policyID}/members/imported/confirmation` as const,
     },
     POLICY_ACCOUNTING: {
         route: 'workspaces/:policyID/accounting',

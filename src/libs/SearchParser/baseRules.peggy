@@ -19,7 +19,7 @@ date = "date"i { return "date"; }
 amount = "amount"i { return "amount"; }
 merchant = "merchant"i { return "merchant"; }
 description = "description"i { return "description"; }
-reportID = "reportid"i { return "reportID"; }
+reportID = "reportid"i / "report-id"i { return "reportID"; }
 keyword = "keyword"i { return "keyword"; }
 in = "in"i { return "in"; }
 currency = "currency"i { return "currency"; }
@@ -69,6 +69,16 @@ title = "title"i { return "title"; }
 assignee = "assignee"i { return "assignee"; }
 createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
 action = "action"i { return "action"; }
+
+// Value transformation rules
+values
+  = perDiem
+  / report
+  / draft
+
+perDiem = "perDiem"i / "per-diem"i { return "perDiem"; }
+report = "reports"i / "report"i {return "reports"; }
+draft = "drafts"i / "draft"i {return "drafts"; }
 
 operator "operator"
   = (":" / "=") { return "eq"; }
