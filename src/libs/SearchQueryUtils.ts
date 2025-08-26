@@ -576,7 +576,7 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID
         ) {
-            filtersForm[filterKey] = filterValues.join(', ');
+            filtersForm[filterKey] = filterValues.join(',');
         }
         if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
