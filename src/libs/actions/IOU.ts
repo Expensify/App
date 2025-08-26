@@ -7990,8 +7990,6 @@ function getNavigationUrlAfterTrackExpenseDelete(
         return getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
     }
 
-    const transactionThreadID = reportAction.childReportID;
-
     // Only navigate if in single transaction view and the thread will be deleted
     if (isSingleTransactionView && chatReport?.reportID) {
         // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
