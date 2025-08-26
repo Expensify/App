@@ -40,8 +40,8 @@ jobs:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
       - name: RNEF Remote Build - iOS
-        # rnef v2
-        uses: callstackincubator/ios@7847e0676242cefa801cba8ede6736140b7bae91 
+        # rock v3
+        uses: callstackincubator/ios@dd886b4ad3b35351d799d4c2633a678c94549038 
         env:
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
