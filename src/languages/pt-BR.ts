@@ -3098,9 +3098,9 @@ const translations = {
         },
     },
     beneficialOwnerInfoStep: {
-        doYouOwn25percent: 'Você possui 25% ou mais de',
-        doAnyIndividualOwn25percent: 'Algum indivíduo possui 25% ou mais de',
-        areThereMoreIndividualsWhoOwn25percent: 'Existem mais indivíduos que possuem 25% ou mais de',
+        doYouOwn25percent: ({companyName}: CompanyNameParams) => `Você possui 25% ou mais de ${companyName}?`,
+        doAnyIndividualOwn25percent: ({companyName}: CompanyNameParams) => `Algum indivíduo possui 25% ou mais de ${companyName}?`,
+        areThereMoreIndividualsWhoOwn25percent: ({companyName}: CompanyNameParams) => `Existem mais pessoas que possuem 25% ou mais da ${companyName}?`,
         regulationRequiresUsToVerifyTheIdentity: 'A regulamentação exige que verifiquemos a identidade de qualquer indivíduo que possua mais de 25% do negócio.',
         companyOwner: 'Proprietário de empresa',
         enterLegalFirstAndLastName: 'Qual é o nome legal do proprietário?',

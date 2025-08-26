@@ -3098,9 +3098,9 @@ const translations = {
         },
     },
     beneficialOwnerInfoStep: {
-        doYouOwn25percent: 'Bent u eigenaar van 25% of meer van',
-        doAnyIndividualOwn25percent: 'Bezitten individuen 25% of meer van',
-        areThereMoreIndividualsWhoOwn25percent: 'Zijn er meer personen die 25% of meer bezitten van',
+        doYouOwn25percent: ({companyName}: CompanyNameParams) => `Bent u eigenaar van 25% of meer van ${companyName}?`,
+        doAnyIndividualOwn25percent: ({companyName}: CompanyNameParams) => `Bezitten er individuen 25% of meer van ${companyName}?`,
+        areThereMoreIndividualsWhoOwn25percent: ({companyName}: CompanyNameParams) => `Zijn er meer personen die 25% of meer van ${companyName} bezitten?`,
         regulationRequiresUsToVerifyTheIdentity: 'Regelgeving vereist dat we de identiteit verifiëren van elke persoon die meer dan 25% van het bedrijf bezit.',
         companyOwner: 'Bedrijfseigenaar',
         enterLegalFirstAndLastName: 'Wat is de wettelijke naam van de eigenaar?',
