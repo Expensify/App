@@ -1,4 +1,5 @@
 import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs/lib/typescript/src/types';
+import {TabActions} from '@react-navigation/native';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
@@ -55,6 +56,10 @@ function getIconTitleAndTestID(route: string, translate: LocaleContextProps['tra
             return {icon: Expensicons.Receipt, title: translate('common.submit'), testID: 'submit'};
         case CONST.TAB_REQUEST.PER_DIEM:
             return {icon: Expensicons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
+        case CONST.TAB_REQUEST.DISTANCE_MAP:
+            return {icon: Expensicons.Map, title: translate('tabSelector.map'), testID: 'distanceMap'};
+        case CONST.TAB_REQUEST.DISTANCE_MANUAL:
+            return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'distanceManual'};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
@@ -137,8 +142,7 @@ function TabSelector({
                         });
 
                         if (!event.defaultPrevented) {
-                            // The `merge: true` option makes sure that the params inside the tab screen are preserved
-                            navigation.navigate(route.name, {key: route.key, merge: true});
+                            navigation.dispatch(TabActions.jumpTo(route.name));
                         }
 
                         onTabPress(route.name);

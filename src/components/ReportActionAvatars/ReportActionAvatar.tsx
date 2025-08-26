@@ -3,6 +3,7 @@ import React, {useMemo} from 'react';
 import type {ColorValue, ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import {WorkspaceBuilding} from '@components/Icon/WorkspaceDefaultAvatars';
@@ -17,15 +18,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedIcon} from '@libs/CardUtils';
-import localeCompare from '@libs/LocaleCompare';
-import {getUserDetailTooltipText} from '@libs/ReportUtils';
+import {getUserDetailTooltipText, sortIconsByName} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeed, OnyxInputOrEntry, PersonalDetailsList} from '@src/types/onyx';
+import type {CompanyCardFeed} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
 type SortingOptions = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
@@ -67,7 +67,7 @@ type AvatarSizeToStylesMap = Record<AvatarSizeToStyles, AvatarStyles>;
 
 function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigationWrapper?: boolean}) {
     const {translate} = useLocalize();
-    const {avatarID, useProfileNavigationWrapper, type} = props;
+    const {avatarID, useProfileNavigationWrapper, type, name} = props;
 
     if (!useProfileNavigationWrapper) {
         return (
@@ -77,10 +77,11 @@ function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigati
     }
 
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
+    const firstLetter = (name?.at(0) ?? 'A').toUpperCase() as UpperCaseCharacters;
 
     const onPress = () => {
         if (isWorkspace) {
-            return Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(String(avatarID)));
+            return Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(String(avatarID), firstLetter));
         }
         return Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(Number(avatarID), Navigation.getActiveRoute()));
     };
@@ -284,23 +285,6 @@ function ReportActionAvatarSubscript({
         </View>
     );
 }
-const getIconDisplayName = (icon: IconType, personalDetails: OnyxInputOrEntry<PersonalDetailsList>) =>
-    icon.id ? (personalDetails?.[icon.id]?.displayName ?? personalDetails?.[icon.id]?.login ?? '') : '';
-
-function sortIconsByName(icons: IconType[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>) {
-    return icons.sort((first, second) => {
-        // First sort by displayName/login
-        const displayNameLoginOrder = localeCompare(getIconDisplayName(first, personalDetails), getIconDisplayName(second, personalDetails));
-        if (displayNameLoginOrder !== 0) {
-            return displayNameLoginOrder;
-        }
-
-        // Then fallback on accountID as the final sorting criteria.
-        // This will ensure that the order of avatars with same login/displayName
-        // stay consistent across all users and devices
-        return Number(first?.id) - Number(second?.id);
-    });
-}
 
 function ReportActionAvatarMultipleHorizontal({
     isHovered = false,
@@ -328,6 +312,7 @@ function ReportActionAvatarMultipleHorizontal({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {localeCompare} = useLocalize();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
@@ -343,13 +328,13 @@ function ReportActionAvatarMultipleHorizontal({
         let avatars: IconType[] = unsortedIcons;
 
         if (sortAvatars?.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME)) {
-            avatars = sortIconsByName(unsortedIcons, personalDetails);
+            avatars = sortIconsByName(unsortedIcons, personalDetails, localeCompare);
         } else if (sortAvatars?.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.ID)) {
             avatars = lodashSortBy(unsortedIcons, (icon) => icon.id);
         }
 
         return sortAvatars?.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE) ? avatars.reverse() : avatars;
-    }, [unsortedIcons, personalDetails, sortAvatars]);
+    }, [unsortedIcons, personalDetails, sortAvatars, localeCompare]);
 
     const avatarRows = useMemo(() => {
         // If we're not displaying avatars in rows or the number of icons is less than or equal to the max avatars in a row, return a single row

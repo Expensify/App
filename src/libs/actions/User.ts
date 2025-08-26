@@ -117,6 +117,11 @@ function closeAccount(reason: string) {
         optimisticData,
         failureData,
     });
+
+    // On HybridApp, we need to sign out from the oldDot app as well to keep state of both apps in sync
+    if (CONFIG.IS_HYBRID_APP) {
+        HybridAppModule.signOutFromOldDot();
+    }
 }
 
 /**
@@ -663,7 +668,7 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
         const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
 
-        reportActions.forEach((action) => action && ReportActionsUtils.isNotifiableReportAction(action) && showReportActionNotification(reportID, action));
+        reportActions.forEach((action) => action && showReportActionNotification(reportID, action));
     });
 }
 
@@ -1393,6 +1398,10 @@ function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {isDebugModeEnabled});
 }
 
+function setShouldBlockTransactionThreadReportCreation(shouldBlockTransactionThreadReportCreation: boolean) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {shouldBlockTransactionThreadReportCreation});
+}
+
 function lockAccount() {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1476,6 +1485,7 @@ export {
     addPendingContactMethod,
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
+    setShouldBlockTransactionThreadReportCreation,
     resetValidateActionCodeSent,
     lockAccount,
 };

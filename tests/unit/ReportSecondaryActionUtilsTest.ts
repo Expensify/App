@@ -118,6 +118,29 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
 
+    it('should not include SUBMIT option for the user who is not submitter/admin/manager', async () => {
+        const report: Report = {
+            reportID: '1',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+            ownerAccountID: APPROVER_ACCOUNT_ID,
+            managerID: 0,
+        };
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+            role: CONST.POLICY.ROLE.AUDITOR,
+        } as unknown as Policy;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
+    });
+
     it('should not include SUBMIT option for admin with only pending transactions', async () => {
         const report = {
             reportID: REPORT_ID,
@@ -1425,7 +1448,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
 
-    it('does not include the SPLIT option if the current user belongs to the workspace', async () => {
+    it('does not include the SPLIT option if the current user does not belong to the workspace', async () => {
         const report = {
             reportID: REPORT_ID,
             policyID: POLICY_ID,

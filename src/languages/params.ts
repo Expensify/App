@@ -149,6 +149,13 @@ type MovedTransactionParams = {
     reportName?: string;
 };
 
+type MovedActionParams = {
+    shouldHideMovedReportUrl: boolean;
+    movedReportUrl: string;
+    newParentReportUrl: string;
+    toPolicyName: string;
+};
+
 type MovedFromReportParams = {
     reportName: string;
 };
@@ -506,6 +513,8 @@ type TaxAmountParams = {taxAmount: number};
 
 type SecondaryLoginParams = {secondaryLogin: string};
 
+type WorkspaceMembersCountParams = {count: number};
+
 type OwnerOwesAmountParams = {amount: string; email: string};
 
 type ChangeOwnerSubscriptionParams = {usersCount: number; finalCount: number};
@@ -618,6 +627,7 @@ type AssignedCardParams = {
 
 type FeatureNameParams = {
     featureName: string;
+    moreFeaturesLink: string;
 };
 
 type AutoPayApprovedReportsLimitErrorParams = {
@@ -852,6 +862,44 @@ type MergeFailureDescriptionGenericParams = {
 type EnableContinuousReconciliationParams = {
     connectionName: string;
     accountingAdvancedSettingsLink: string;
+};
+
+type WorkspaceUpgradeNoteParams = {
+    subscriptionLink: string;
+};
+
+type ChangedApproverMessageParams = {managerID: number};
+
+type WorkflowSettingsParam = {workflowSettingLink: string};
+
+type IndividualExpenseRulesSubtitleParams = {
+    categoriesPageLink: string;
+    tagsPageLink: string;
+};
+
+type BillableDefaultDescriptionParams = {
+    tagsPageLink: string;
+};
+
+type WorkspaceShareNoteParams = {
+    adminsRoomLink: string;
+};
+
+type RulesEnableWorkflowsParams = {
+    moreFeaturesLink: string;
+};
+
+type UpgradeSuccessMessageParams = {
+    policyName: string;
+    subscriptionLink: string;
+};
+
+type DomainPermissionInfoRestrictionParams = {
+    domain: string;
+};
+
+type SubmittedWithMemoParams = {
+    memo?: string;
 };
 
 export type {
@@ -1127,6 +1175,7 @@ export type {
     BankAccountLastFourParams,
     ReviewParams,
     CreateExpensesParams,
+    WorkspaceMembersCountParams,
     CurrencyInputDisabledTextParams,
     EmployeeInviteMessageParams,
     FlightParams,
@@ -1144,4 +1193,15 @@ export type {
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
     EnableContinuousReconciliationParams,
+    WorkspaceUpgradeNoteParams,
+    ChangedApproverMessageParams,
+    WorkflowSettingsParam,
+    MovedActionParams,
+    IndividualExpenseRulesSubtitleParams,
+    BillableDefaultDescriptionParams,
+    WorkspaceShareNoteParams,
+    RulesEnableWorkflowsParams,
+    UpgradeSuccessMessageParams,
+    DomainPermissionInfoRestrictionParams,
+    SubmittedWithMemoParams,
 };
