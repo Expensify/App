@@ -14,7 +14,7 @@ function ShareLogList({logSource}: ShareLogListProps) {
             return;
         }
         const src = `file://${logSource}`;
-        addAttachment(reportID, {name: filename, source: src, uri: src, type: 'text/plain'} as File, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+        addAttachment(reportID, reportID, {name: filename, source: src, uri: src, type: 'text/plain'} as File, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
 
         const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportID);
         Navigation.navigate(routeToNavigate);

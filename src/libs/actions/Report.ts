@@ -177,7 +177,6 @@ import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     Account,
     DismissedProductTraining,
-    DraftReportComments,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
@@ -407,9 +406,10 @@ Onyx.connect({
     callback: (val) => (introSelected = val),
 });
 
-let allReportDraftComments: OnyxEntry<DraftReportComments> = {};
+let allReportDraftComments: Record<string, string | undefined> = {};
 Onyx.connect({
-    key: ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS,
+    key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+    waitForCollectionCallback: true,
     callback: (value) => (allReportDraftComments = value),
 });
 
@@ -432,18 +432,16 @@ Onyx.connect({
             // More info: https://github.com/Expensify/App/issues/14260
             const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
             const policyReports = getAllPolicyReports(policyID);
-            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
-            const cleanUpDrafts: Record<string, null> = {};
+            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
             policyReports.forEach((policyReport) => {
                 if (!policyReport) {
                     return;
                 }
                 const {reportID} = policyReport;
-                cleanUpDrafts[reportID] = null;
+                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
             });
             Onyx.multiSet(cleanUpSetQueries);
-            Onyx.merge(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, cleanUpDrafts);
             delete allPolicies[key];
             return;
         }
@@ -664,8 +662,11 @@ function notifyNewAction(reportID: string | undefined, accountID: number | undef
  * - Adding one comment
  * - Adding one attachment
  * - Add both a comment and attachment simultaneously
+ *
+ * @param reportID - The report ID where the comment should be added
+ * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
  */
-function addActions(reportID: string, timezoneParam: Timezone, text = '', file?: FileObject) {
+function addActions(reportID: string, notifyReportID: string, timezoneParam: Timezone, text = '', file?: FileObject) {
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
@@ -831,23 +832,23 @@ function addActions(reportID: string, timezoneParam: Timezone, text = '', file?:
         successData,
         failureData,
     });
-    notifyNewAction(reportID, lastAction?.actorAccountID, lastAction);
+    notifyNewAction(notifyReportID, lastAction?.actorAccountID, lastAction);
 }
 
 /** Add an attachment and optional comment. */
-function addAttachment(reportID: string, file: FileObject, timezoneParam = CONST.DEFAULT_TIME_ZONE as Timezone, text = '', shouldPlaySound?: boolean) {
+function addAttachment(reportID: string, notifyReportID: string, file: FileObject, timezoneParam = CONST.DEFAULT_TIME_ZONE as Timezone, text = '', shouldPlaySound?: boolean) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions(reportID, timezoneParam, text, file);
+    addActions(reportID, notifyReportID, timezoneParam, text, file);
 }
 
 /** Add a single comment to a report */
-function addComment(reportID: string, text: string, timezoneParam = CONST.DEFAULT_TIME_ZONE as Timezone, shouldPlaySound?: boolean) {
+function addComment(reportID: string, notifyReportID: string, text: string, timezoneParam = CONST.DEFAULT_TIME_ZONE as Timezone, shouldPlaySound?: boolean) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions(reportID, timezoneParam, text);
+    addActions(reportID, notifyReportID, timezoneParam, text);
 }
 
 function reportActionsExist(reportID: string): boolean {
@@ -1768,22 +1769,10 @@ function saveReportDraft(reportID: string, report: Report) {
 /**
  * Saves the comment left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
+ * When empty string or null is passed, it will delete the draft comment from Onyx store.
  */
 function saveReportDraftComment(reportID: string, comment: string | null, callback: () => void = () => {}) {
-    API.write(
-        WRITE_COMMANDS.SAVE_REPORT_DRAFT_COMMENT,
-        {
-            reportID,
-            // reportComment is quoted to intentionally preserve trailing whitespace as the user types
-            // otherwise it will be trimmed by the WAF _and_ Auth's SParseHTTP function
-            reportComment: `"${comment}"`,
-        },
-        {optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, value: {[reportID]: prepareDraftComment(comment)}}]},
-        {
-            checkAndFixConflictingRequest: (persistedRequests) =>
-                resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.SAVE_REPORT_DRAFT_COMMENT && request.data?.reportID === reportID),
-        },
-    ).then(callback);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, prepareDraftComment(comment)).then(callback);
 }
 
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */
@@ -1836,7 +1825,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
                 // Replacing the existing report's participants to avoid duplicates
                 participants: existingReport?.participants ?? report.participants,
             });
-            Onyx.merge(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {[reportID]: null});
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
         };
         // Only re-route them if they are still looking at the optimistically created report
         if (Navigation.getActiveRoute().includes(`/r/${reportID}`)) {
@@ -1858,7 +1847,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
 
         // In case the user is not on the report screen, we will transfer the report draft comment directly to the existing report
         // after that clear the optimistically created report
-        const draftReportComment = allReportDraftComments?.[reportID];
+        const draftReportComment = allReportDraftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
         if (!draftReportComment) {
             callback();
             return;
@@ -2059,11 +2048,10 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
 
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
 function editReportComment(reportID: string | undefined, originalReportAction: OnyxEntry<ReportAction>, textForNewComment: string, videoAttributeCache?: Record<string, string>) {
-    const originalReportID = getOriginalReportID(reportID, originalReportAction);
-    if (!originalReportID || !originalReportAction) {
+    if (!reportID || !originalReportAction) {
         return;
     }
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
 
     // Do not autolink if someone explicitly tries to remove a link from message.
@@ -2090,7 +2078,7 @@ function editReportComment(reportID: string | undefined, originalReportAction: O
 
     //  Delete the comment if it's empty
     if (!htmlForNewComment) {
-        deleteReportComment(originalReportID, originalReportAction);
+        deleteReportComment(reportID, originalReportAction);
         return;
     }
 
@@ -2121,12 +2109,12 @@ function editReportComment(reportID: string | undefined, originalReportAction: O
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: optimisticReportActions,
         },
     ];
 
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, optimisticReportActions as ReportActions);
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, canUserPerformWriteAction, optimisticReportActions as ReportActions);
     if (reportActionID === lastVisibleAction?.reportActionID) {
         const lastMessageText = formatReportLastMessageText(reportComment);
         const optimisticReport = {
@@ -2134,7 +2122,7 @@ function editReportComment(reportID: string | undefined, originalReportAction: O
         };
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: optimisticReport,
         });
     }
@@ -2142,7 +2130,7 @@ function editReportComment(reportID: string | undefined, originalReportAction: O
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportActionID]: {
                     ...originalReportAction,
@@ -2155,7 +2143,7 @@ function editReportComment(reportID: string | undefined, originalReportAction: O
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportActionID]: {
                     pendingAction: null,
@@ -2165,7 +2153,7 @@ function editReportComment(reportID: string | undefined, originalReportAction: O
     ];
 
     const parameters: UpdateCommentParams = {
-        reportID: originalReportID,
+        reportID,
         reportComment: htmlForNewComment,
         reportActionID,
     };
@@ -5932,25 +5920,25 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policy: Policy, em
 
 /**
  * Resolves Concierge category options by adding a comment and updating the report action
- * @param reportID - The report ID where the comment should be added
- * @param actionReportID - The report ID where the report action should be updated (may be different for threads)
+ * @param reportID - The report ID where the comment should be added and the report action should be updated
+ * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
  * @param reportActionID - The specific report action ID to update
  * @param selectedCategory - The category selected by the user
  */
 function resolveConciergeCategoryOptions(
     reportID: string | undefined,
-    actionReportID: string | undefined,
+    notifyReportID: string | undefined,
     reportActionID: string | undefined,
     selectedCategory: string,
     timezoneParam: Timezone,
 ) {
-    if (!reportID || !actionReportID || !reportActionID) {
+    if (!reportID || !reportActionID) {
         return;
     }
 
-    addComment(reportID, selectedCategory, timezoneParam);
+    addComment(reportID, notifyReportID ?? reportID, selectedCategory, timezoneParam);
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${actionReportID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [reportActionID]: {
             originalMessage: {
                 selectedCategory,
