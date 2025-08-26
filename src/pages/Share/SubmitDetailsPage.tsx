@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {GpsPoint} from '@libs/actions/IOU';
 import {getIOURequestPolicyID, getMoneyRequestParticipantsFromReport, initMoneyRequest, requestMoney, trackExpense, updateLastLocationPermissionPrompt} from '@libs/actions/IOU';
@@ -49,12 +50,17 @@ function SubmitDetailsPage({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
 
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+
+    const {isBetaEnabled} = usePermissions();
+    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) || !account?.shouldBlockTransactionThreadReportCreation;
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -72,8 +78,9 @@ function SubmitDetailsPage({
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             report,
             parentReport,
+            currentDate,
         });
-    }, [reportOrAccountID, policy, report, parentReport]);
+    }, [reportOrAccountID, policy, report, parentReport, currentDate]);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report);
     const participants = selectedParticipants.map((participant) =>
@@ -107,6 +114,7 @@ function SubmitDetailsPage({
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
                     billable: transaction.billable,
+                    reimbursable: transaction.reimbursable,
                     merchant: transaction.merchant ?? '',
                     created: transaction.created,
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
@@ -132,12 +140,14 @@ function SubmitDetailsPage({
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
                     billable: transaction.billable,
+                    reimbursable: transaction.reimbursable,
                     merchant: transaction.merchant ?? '',
                     created: transaction.created,
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
                 },
+                shouldGenerateTransactionThreadReport,
             });
         }
     };
@@ -225,6 +235,7 @@ function SubmitDetailsPage({
                         reportID={reportOrAccountID}
                         shouldShowSmartScanFields={false}
                         isDistanceRequest={false}
+                        isManualDistanceRequest={false}
                         onPDFLoadError={() => {
                             if (errorTitle) {
                                 return;

@@ -11,6 +11,7 @@ import type {
     Route,
 } from '@react-navigation/native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
@@ -169,6 +170,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
+    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
     [SCREENS.WORKSPACE.ADDRESS]: {
         policyID: string;
@@ -186,6 +188,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
@@ -928,7 +933,9 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
-    [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
+    [SCREENS.KEYBOARD_SHORTCUTS]: {
+        backTo: Routes;
+    };
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
         [EXIT_SURVEY_REASON_FORM_INPUT_IDS.REASON]: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
@@ -1058,7 +1065,7 @@ type SettingsNavigatorParamList = {
         cardID: string;
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.RULES_CUSTOM_NAME]: {
+    [SCREENS.WORKSPACE.REPORTS_DEFAULT_TITLE]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_AUTO_APPROVE_REPORTS_UNDER]: {
@@ -1080,6 +1087,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_REIMBURSABLE_DEFAULT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
@@ -1279,6 +1289,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
+        reportActionID?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO]: {
         iouType: IOUType;
@@ -1355,6 +1366,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
+        reportActionID?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_SPLIT_PAYER]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
@@ -1373,6 +1385,7 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backTo: Routes;
         backToReport?: string;
+        reportActionID?: string;
     };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
@@ -1386,6 +1399,7 @@ type MoneyRequestNavigatorParamList = {
         currency: never;
         pageIndex?: string;
         backToReport?: string;
+        reportActionID?: string;
     };
     [SCREENS.MONEY_REQUEST.START]: {
         iouType: IOUType;
@@ -1402,6 +1416,7 @@ type MoneyRequestNavigatorParamList = {
         pageIndex?: string;
         currency?: string;
         backToReport?: string;
+        reportActionID?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: {
         action: IOUAction;
@@ -1409,6 +1424,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         backTo: Routes;
         reportID: string;
+        reportActionID?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: {
         action: IOUAction;
@@ -1429,7 +1445,7 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.RECEIPT_VIEW_MODAL]: {
+    [SCREENS.MONEY_REQUEST.RECEIPT_VIEW]: {
         transactionID: string;
         backTo: Routes;
     };
@@ -1526,12 +1542,13 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
 
         // These are not used in the screen, but are needed for the navigation
-        // for IOURequestStepDistanceManual and IOURequestStepDistanceMap components
+        // for IOURequestStepDistanceMap component
         backTo: never;
         action: never;
         currency: never;
         pageIndex?: string;
         backToReport?: string;
+        reportActionID?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: {
         action: IOUAction;
@@ -1548,6 +1565,7 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backTo: Routes;
         backToReport?: string;
+        reportActionID?: string;
     };
 };
 
@@ -1712,6 +1730,25 @@ type TransactionDuplicateNavigatorParamList = {
     };
 };
 
+type MergeTransactionNavigatorParamList = {
+    [SCREENS.MERGE_TRANSACTION.LIST_PAGE]: {
+        transactionID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE]: {
+        transactionID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.MERGE_TRANSACTION.DETAILS_PAGE]: {
+        transactionID: string;
+        backTo?: Routes;
+    };
+    [SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE]: {
+        transactionID: string;
+        backTo?: Routes;
+    };
+};
+
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: NavigatorScreenParams<TwoFactorAuthNavigatorParamList>;
@@ -1756,6 +1793,8 @@ type RightModalNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: NavigatorScreenParams<SplitExpenseParamList>;
     [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
+    [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: NavigatorScreenParams<ReportChangeApproverParamList>;
+    [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -1807,7 +1846,6 @@ type ReportsSplitNavigatorParamList = {
         backTo?: Routes;
         moneyRequestReportActionID?: string;
         transactionID?: string;
-        iouReportID?: string;
     };
     [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
 };
@@ -1839,6 +1877,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
@@ -1907,7 +1948,7 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.TAXES]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.REPORT_FIELDS]: {
+    [SCREENS.WORKSPACE.REPORTS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
@@ -1943,9 +1984,6 @@ type WorkspaceSplitNavigatorParamList = {
 };
 
 type OnboardingModalNavigatorParamList = {
-    [SCREENS.ONBOARDING_MODAL.ONBOARDING]: {
-        backTo?: string;
-    };
     [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
         backTo?: string;
     };
@@ -2065,6 +2103,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     };
     [SCREENS.WORKSPACE_AVATAR]: {
         policyID: string;
+        letter?: UpperCaseCharacters;
     };
     [SCREENS.WORKSPACE_JOIN_USER]: {
         policyID: string;
@@ -2097,8 +2136,14 @@ type AuthScreensParamList = SharedScreensParamList & {
         transactionID: string;
         readonly?: string;
         isFromReviewDuplicates?: string;
-        action?: IOUAction;
-        iouType?: IOUType;
+        mergeTransactionID?: string;
+    };
+    [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: {
+        reportID: string;
+        transactionID: string;
+        action: IOUAction;
+        iouType: IOUType;
+        readonly: string;
     };
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
@@ -2229,6 +2274,12 @@ type ScheduleCallParamList = {
     };
 };
 
+type ReportChangeApproverParamList = {
+    [SCREENS.REPORT_CHANGE_APPROVER.ROOT]: {
+        reportID: string;
+    };
+};
+
 type TestToolsModalModalNavigatorParamList = {
     [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
         backTo?: Routes;
@@ -2332,5 +2383,7 @@ export type {
     SplitExpenseParamList,
     SetParamsAction,
     WorkspacesTabNavigatorName,
+    ReportChangeApproverParamList,
     TestToolsModalModalNavigatorParamList,
+    MergeTransactionNavigatorParamList,
 };

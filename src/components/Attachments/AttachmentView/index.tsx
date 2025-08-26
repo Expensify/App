@@ -24,7 +24,7 @@ import {add as addCachedPDFPaths} from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {hasEReceipt, hasReceiptSource, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+import {hasEReceipt, hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -244,7 +244,7 @@ function AttachmentView({
         );
     }
 
-    if (isDistanceRequest(transaction) && transaction) {
+    if (isDistanceRequest(transaction) && !isManualDistanceRequest(transaction) && transaction) {
         return <DistanceEReceipt transaction={transaction} />;
     }
 
@@ -316,7 +316,11 @@ function AttachmentView({
                         }}
                     />
                 </View>
-                <View style={safeAreaPaddingBottomStyle}>{isHighResolution && <HighResolutionInfo isUploaded={isUploaded} />}</View>
+                {isHighResolution && (
+                    <View style={safeAreaPaddingBottomStyle}>
+                        <HighResolutionInfo isUploaded={isUploaded} />
+                    </View>
+                )}
             </>
         );
     }
