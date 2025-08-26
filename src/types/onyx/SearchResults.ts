@@ -433,6 +433,12 @@ type SearchTransaction = {
 
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction;
+
+    /** The converted amount of the transaction, if a currency conversion is used */
+    convertedAmount?: number;
+
+    /** The currency that the converted amount is in */
+    convertedCurrency?: string;
 };
 
 /** Model of tasks search result */
