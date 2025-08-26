@@ -60,7 +60,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                 return theme.iconMenu;
             }
             if (isHovered) {
-                return theme.successHover;
+                return theme.success;
             }
             return theme.icon;
         },
