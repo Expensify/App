@@ -27,7 +27,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {createAndOpenTransactionThreadReport} from '@libs/SearchUIUtils';
+import {openTransactionThreadReport} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
@@ -92,7 +92,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         setActiveTransactionThreadIDs(siblingTransactionThreadIDs).then(() => {
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
             if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                createAndOpenTransactionThreadReport(transactionItem, currentSearchHash, backTo);
+                openTransactionThreadReport(transactionItem, currentSearchHash, backTo);
                 return;
             }
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));

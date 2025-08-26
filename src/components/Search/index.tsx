@@ -28,7 +28,6 @@ import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMe
 import {canEditFieldOfMoneyRequest, isArchivedReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
-    createAndOpenTransactionThreadReport,
     getListItem,
     getSections,
     getSortedSections,
@@ -43,6 +42,7 @@ import {
     isTransactionListItemType,
     isTransactionMemberGroupListItemType,
     isTransactionWithdrawalIDGroupListItemType,
+    openTransactionThreadReport,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
@@ -553,7 +553,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && item.isOneTransactionReport && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                createAndOpenTransactionThreadReport(item, hash, backTo);
+                openTransactionThreadReport(item, hash, backTo);
                 return;
             }
 

@@ -1060,8 +1060,8 @@ function getReviewerPermissionFlags(
     };
 }
 
-/** Creates a transaction thread report and navigates the user to it */
-function createAndOpenTransactionThreadReport(transactionItem: TransactionListItemType, searchHash: number, backTo?: string) {
+/** Supports the transaction thread report open if it wasn't created before */
+function openTransactionThreadReport(transactionItem: TransactionListItemType, searchHash: number, backTo?: string) {
     const {report, moneyRequestReportActionID, transactionID} = transactionItem;
     const transactionThreadReportID = generateReportID();
     const iouReport = getReportOrDraftReport(report.reportID);
@@ -2151,7 +2151,7 @@ export {
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
     getDatePresets,
-    createAndOpenTransactionThreadReport,
+    openTransactionThreadReport,
     getWithdrawalTypeOptions,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
