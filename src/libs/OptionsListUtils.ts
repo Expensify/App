@@ -58,7 +58,7 @@ import {
     getCountOfEnabledTagsOfList,
     getCountOfRequiredTagLists,
     getSubmitToAccountID,
-    isUserInvitedToWorkspace,
+    isCurrentUserMemberOfAnyPolicy,
 } from './PolicyUtils';
 import {
     getChangedApproverActionMessage,
@@ -953,8 +953,9 @@ function createOption(
         result.shouldShowSubscript = shouldReportShowSubscript(report, !!result.private_isArchived);
         result.isPolicyExpenseChat = reportUtilsIsPolicyExpenseChat(report);
         result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat ?? false;
-        result.allReportErrors = reportAttributesDerived?.[report.reportID]?.reportErrors ?? {};
-        result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        const reportAttribute = reportAttributesDerived?.[report.reportID];
+        result.allReportErrors = reportAttribute?.reportErrors ?? {};
+        result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : (reportAttribute?.brickRoadStatus ?? '');
         result.pendingAction = report.pendingFields ? (report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat) : undefined;
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
@@ -1887,7 +1888,7 @@ function getRestrictedLogins(config: GetOptionsConfig, options: OptionList, canS
             !canShowManagerMcTest ||
             (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) ||
             !Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST, config.betas) ||
-            isUserInvitedToWorkspace(),
+            isCurrentUserMemberOfAnyPolicy(),
     };
 }
 

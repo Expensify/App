@@ -30,7 +30,6 @@ import type {
     RetractReportParams,
     SendInvoiceParams,
     SendMoneyParams,
-    SetNameValuePairParams,
     ShareTrackedExpenseParams,
     SplitBillParams,
     SplitTransactionParams,
@@ -10949,25 +10948,6 @@ function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number | nul
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxAmount});
 }
 
-function dismissHoldUseExplanation() {
-    const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION,
-        value: true,
-    };
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION,
-            value: true,
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
-        optimisticData,
-    });
-}
-
 /**
  * Sets the `splitShares` map that holds individual shares of a split bill
  */
@@ -12517,7 +12497,6 @@ export {
     deleteMoneyRequest,
     deleteTrackExpense,
     detachReceipt,
-    dismissHoldUseExplanation,
     getIOURequestPolicyID,
     initMoneyRequest,
     checkIfScanFileCanBeRead,

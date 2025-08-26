@@ -103,6 +103,7 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
+    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -3091,9 +3092,9 @@ const translations = {
         },
     },
     beneficialOwnerInfoStep: {
-        doYouOwn25percent: 'Possiedi il 25% o più di',
-        doAnyIndividualOwn25percent: 'Qualcuno possiede il 25% o più di',
-        areThereMoreIndividualsWhoOwn25percent: 'Ci sono più individui che possiedono il 25% o più di',
+        doYouOwn25percent: ({companyName}: CompanyNameParams) => `Possiedi il 25% o più di ${companyName}?`,
+        doAnyIndividualOwn25percent: ({companyName}: CompanyNameParams) => `Qualcuno possiede il 25% o più di ${companyName}?`,
+        areThereMoreIndividualsWhoOwn25percent: ({companyName}: CompanyNameParams) => `Ci sono altre persone che possiedono il 25% o più di ${companyName}?`,
         regulationRequiresUsToVerifyTheIdentity: "La normativa ci impone di verificare l'identità di qualsiasi individuo che possieda più del 25% dell'azienda.",
         companyOwner: "Proprietario dell'azienda",
         enterLegalFirstAndLastName: 'Qual è il nome legale del proprietario?',
@@ -3561,11 +3562,14 @@ const translations = {
             deepDiveExpensifyCard: `<muted-text-label>Le transazioni della carta Expensify verranno esportate automaticamente in un “Conto di responsabilità della carta Expensify” creato con la <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nostra integrazione</a>.</muted-text-label>`,
         },
         receiptPartners: {
+            connect: 'Connettiti ora',
             uber: {
                 subtitle: 'Automatizza le spese di viaggio e di consegna dei pasti in tutta la tua organizzazione.',
                 autoRemove: "Invita nuovi membri dell'area di lavoro su Uber for Business",
                 autoInvite: "Disattiva i membri dell'area di lavoro rimossi da Uber for Business",
                 manageInvites: 'Gestisci inviti',
+                bannerTitle: 'Expensify + Uber per le aziende',
+                bannerDescription: 'Connetti Uber for Business per automatizzare le spese di viaggio e di consegna dei pasti nella tua organizzazione.',
             },
         },
         perDiem: {
@@ -5233,7 +5237,8 @@ const translations = {
             continuousReconciliation: 'Riconciliazione Continua',
             saveHoursOnReconciliation:
                 'Risparmia ore di riconciliazione ogni periodo contabile facendo riconciliare continuamente a Expensify gli estratti conto e i regolamenti della Expensify Card per tuo conto.',
-            enableContinuousReconciliation: 'Per abilitare la Riconciliazione Continua, si prega di abilitare',
+            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
+                `<muted-text-label>Per abilitare la riconciliazione continua, abilita la <a href="${accountingAdvancedSettingsLink}">sincronizzazione automatica</a> per ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Scegli il conto bancario su cui verranno riconciliati i pagamenti della tua carta Expensify.',
                 accountMatches: 'Assicurati che questo account corrisponda al tuo',
