@@ -704,7 +704,7 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
 function getLastMessageTextForReport(
     report: OnyxEntry<Report>,
     lastActorDetails: Partial<PersonalDetails> | null,
-    movedFromOrToReportMessage: string | undefined,
+    movedFromOrToReportMessage?: string,
     policy?: OnyxEntry<Policy>,
     isReportArchived = false,
 ): string {

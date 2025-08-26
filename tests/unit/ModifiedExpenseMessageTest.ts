@@ -172,7 +172,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `changed the amount to $18.00 (previously $12.55)`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportAction, policyID: report.policyID, movedFromOrToReportMessage: undefined});
+                const result = ModifiedExpenseMessage.getForReportAction({reportAction, policyID: report.policyID});
 
                 expect(result).toEqual(expectedResult);
             });

@@ -87,7 +87,6 @@ describe('SidebarUtils', () => {
                 card: undefined,
                 lastAction: undefined,
                 localeCompare,
-                movedFromOrToReportMessage: undefined,
             }),
         );
     });
