@@ -9,6 +9,7 @@ import type {
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchFilterKey,
+    SearchGroupBy,
     SearchQueryJSON,
     SearchQueryString,
     SearchStatus,
@@ -341,6 +342,39 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
 }
 
 /**
+ * Normalizes the groupBy value into a single string.
+ * - If groupBy is a string, it is returned as is.
+ * - If groupBy is an array, only the first element is taken and validated against CONST.SEARCH.GROUP_BY.
+ * - If no valid value is found, returns an undefined.
+ *
+ * This ensures consistent usage of groupBy across the app,
+ * since we only support filtering by a single valid groupBy key.
+ *
+ * @param groupBy - The raw groupBy value from SearchQueryJSON
+ * @returns The normalized groupBy value or undefined
+ */
+function getGroupByValue(groupBy?: string | string[]): SearchGroupBy | undefined {
+    if (!groupBy) {
+        return undefined;
+    }
+
+    // Case 1: groupBy is a string → return as is
+    if (typeof groupBy === 'string') {
+        return groupBy as SearchGroupBy;
+    }
+
+    // Case 2: groupBy is an array → take first element and validate
+    if (Array.isArray(groupBy)) {
+        const [firstValue] = groupBy;
+        const allowedValues = Object.values(CONST.SEARCH.GROUP_BY) as SearchGroupBy[];
+
+        return allowedValues.find((value) => value === firstValue);
+    }
+
+    return undefined;
+}
+
+/**
  * Parses a given search query string into a structured `SearchQueryJSON` format.
  * This format of query is most commonly shared between components and also sent to backend to retrieve search results.
  *
@@ -362,6 +396,11 @@ function buildSearchQueryJSON(query: SearchQueryString) {
         if (result.policyID && typeof result.policyID === 'string') {
             // Ensure policyID is always an array for consistency
             result.policyID = [result.policyID];
+        }
+
+        if (result.groupBy) {
+            const groupBy = getGroupByValue(result.groupBy);
+            result.groupBy = groupBy;
         }
 
         return result;
@@ -1090,4 +1129,5 @@ export {
     getTodoSearchQuery,
     getUserFriendlyValue,
     getUserFriendlyKey,
+    getGroupByValue,
 };
