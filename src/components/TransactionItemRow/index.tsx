@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -98,6 +98,7 @@ type TransactionItemRowProps = {
     shouldShowErrors?: boolean;
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
+    violations: TransactionViolation[];
 };
 
 /** If merchant name is empty or (none), then it falls back to description if screen is narrow */
@@ -142,6 +143,7 @@ function TransactionItemRow({
     shouldShowErrors = true,
     shouldHighlightItemWhenSelected = true,
     isDisabled = false,
+    violations,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -453,7 +455,7 @@ function TransactionItemRow({
                                 report={report}
                                 containerStyles={[styles.mt2, styles.minHeight4]}
                                 missingFieldError={missingFieldError}
-                                transactionViolations={transactionItem.violations}
+                                transactionViolations={violations}
                             />
                         )}
                     </View>
@@ -502,7 +504,7 @@ function TransactionItemRow({
                     transaction={transactionItem}
                     report={report}
                     missingFieldError={missingFieldError}
-                    transactionViolations={transactionItem.violations}
+                    transactionViolations={violations}
                 />
             )}
         </View>
