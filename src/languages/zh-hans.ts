@@ -3518,11 +3518,14 @@ const translations = {
             deepDiveExpensifyCard: `<muted-text-label>Expensify 卡交易将自动导出到与<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们集成</a>创建的 “Expensify 卡责任账户”。</muted-text-label>`,
         },
         receiptPartners: {
+            connect: '立即连接',
             uber: {
                 subtitle: '自动化整个组织的差旅和送餐费用。',
                 autoRemove: '邀请新工作区成员加入 Uber for Business',
                 autoInvite: '停用已从 Uber for Business 移除的工作区成员',
                 manageInvites: '管理邀请',
+                bannerTitle: 'Expensify + Uber 商务版',
+                bannerDescription: '连接 Uber for Business，以自动化整个组织的旅行和送餐费用。',
             },
         },
         perDiem: {
