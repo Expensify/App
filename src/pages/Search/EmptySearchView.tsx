@@ -41,11 +41,11 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {IntroSelected, PersonalDetails, Policy, Report} from '@src/types/onyx';
+import type {IntroSelected, PersonalDetails, Policy} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
-    hash: number;
+    similarSearchHash: number;
     groupBy?: ValueOf<typeof CONST.SEARCH.GROUP_BY>;
     type: SearchDataTypes;
     hasResults: boolean;
@@ -59,8 +59,6 @@ type EmptySearchViewContentProps = EmptySearchViewProps & {
     groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<Policy>>;
     introSelected: OnyxEntry<IntroSelected>;
     hasSeenTour: boolean;
-    viewTourReportID: string | undefined;
-    viewTourReport: OnyxEntry<Report>;
 };
 
 type EmptySearchViewItem = {
@@ -87,7 +85,7 @@ const tripsFeatures: FeatureListItem[] = [
     },
 ];
 
-function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps) {
+function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -101,13 +99,11 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
-    const viewTourReportID = introSelected?.viewTour;
-    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
 
     return (
         <SearchScopeProvider isOnSearch>
             <EmptySearchViewContent
-                hash={hash}
+                similarSearchHash={similarSearchHash}
                 type={type}
                 groupBy={groupBy}
                 hasResults={hasResults}
@@ -118,15 +114,13 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                 groupPoliciesWithChatEnabled={groupPoliciesWithChatEnabled}
                 introSelected={introSelected}
                 hasSeenTour={hasSeenTour}
-                viewTourReportID={viewTourReportID}
-                viewTourReport={viewTourReport}
             />
         </SearchScopeProvider>
     );
 }
 
 function EmptySearchViewContent({
-    hash,
+    similarSearchHash,
     type,
     groupBy,
     hasResults,
@@ -137,8 +131,6 @@ function EmptySearchViewContent({
     groupPoliciesWithChatEnabled,
     introSelected,
     hasSeenTour,
-    viewTourReportID,
-    viewTourReport,
 }: EmptySearchViewContentProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -236,7 +228,7 @@ function EmptySearchViewContent({
         // Begin by going through all of our To-do searches, and returning their empty state
         // if it exists
         for (const menuItem of typeMenuItems) {
-            if (menuItem.hash === hash && menuItem.emptyState) {
+            if (menuItem.similarSearchHash === similarSearchHash && menuItem.emptyState) {
                 return {
                     headerMedia: menuItem.emptyState.headerMedia,
                     title: translate(menuItem.emptyState.title),
@@ -304,7 +296,7 @@ function EmptySearchViewContent({
                                           if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
                                               const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation);
                                               Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID}));
+                                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
                                               });
                                           } else {
                                               Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
@@ -406,7 +398,7 @@ function EmptySearchViewContent({
         groupBy,
         type,
         typeMenuItems,
-        hash,
+        similarSearchHash,
         translate,
         StyleUtils,
         theme.todoBG,
