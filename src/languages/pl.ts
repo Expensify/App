@@ -656,6 +656,7 @@ const translations = {
         merge: 'Scal',
         unstableInternetConnection: 'Niestabilne połączenie internetowe. Sprawdź swoją sieć i spróbuj ponownie.',
         actionRequired: 'Wymagane działanie',
+        locked: 'Zablokowany',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',

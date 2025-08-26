@@ -637,6 +637,7 @@ const translations = {
         merge: 'Fusionar',
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
         actionRequired: 'Acción requerida',
+        locked: 'Bloqueado',
     },
     supportalNoAccess: {
         title: 'No tan rápido',

@@ -656,6 +656,7 @@ const translations = {
         merge: 'マージ',
         unstableInternetConnection: 'インターネット接続が不安定です。ネットワークを確認してもう一度お試しください。',
         actionRequired: 'アクションが必要',
+        locked: 'ロック済み',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',

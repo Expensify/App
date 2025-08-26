@@ -655,6 +655,7 @@ const translations = {
         merge: 'Samenvoegen',
         unstableInternetConnection: 'Onstabiele internetverbinding. Controleer je netwerk en probeer het opnieuw.',
         actionRequired: 'Actie vereist',
+        locked: 'Geblokkeerd',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
