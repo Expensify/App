@@ -315,7 +315,7 @@ describe('MergeTransactionUtils', () => {
             const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
 
             // Only the different values are in the conflict fields
-            expect(result.conflictFields).toEqual(['amount', 'created', 'description', 'reimbursable']);
+            expect(result.conflictFields).toEqual(['amount', 'created', 'description', 'reimbursable', 'reportID']);
 
             // The same values or either target or source has value are in the mergeable data
             expect(result.mergeableData).toEqual({
@@ -398,6 +398,7 @@ describe('MergeTransactionUtils', () => {
                 billable: true,
                 receipt: {receiptID: 1235, source: 'merged.jpg'},
                 created: '2025-01-02T00:00:00.000Z',
+                reportID: '1',
             };
 
             const result = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -422,6 +423,7 @@ describe('MergeTransactionUtils', () => {
                 receipt: {receiptID: 1235, source: 'merged.jpg'},
                 created: '2025-01-02T00:00:00.000Z',
                 modifiedCreated: '2025-01-02T00:00:00.000Z',
+                reportID: '1',
             });
         });
     });

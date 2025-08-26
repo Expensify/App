@@ -47,6 +47,9 @@ type MergeTransaction = {
 
     /** The date of the transaction */
     created: string;
+
+    /** The report ID of the transaction */
+    reportID: string;
 };
 
 export default MergeTransaction;

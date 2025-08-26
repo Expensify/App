@@ -9,7 +9,7 @@ import {convertToDisplayString} from './CurrencyUtils';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
-import {findSelfDMReportID, getTransactionDetails} from './ReportUtils';
+import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getCurrency, getReimbursable, isCardTransaction} from './TransactionUtils';
@@ -17,7 +17,7 @@ import {getCurrency, getReimbursable, isCardTransaction} from './TransactionUtil
 const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 
 // Define the specific merge fields we want to handle
-const MERGE_FIELDS = ['amount', 'currency', 'merchant', 'created', 'category', 'tag', 'description', 'reimbursable', 'billable'] as const;
+const MERGE_FIELDS = ['amount', 'currency', 'merchant', 'created', 'category', 'tag', 'description', 'reimbursable', 'billable', 'reportID'] as const;
 type MergeFieldKey = TupleToUnion<typeof MERGE_FIELDS>;
 type MergeFieldOption = {
     transaction: Transaction;
@@ -41,6 +41,7 @@ const MERGE_FIELD_TRANSLATION_KEYS = {
     reimbursable: 'common.reimbursable',
     billable: 'common.billable',
     created: 'common.date',
+    reportID: 'common.report',
 } as const;
 
 // Get the filename from the receipt
@@ -136,6 +137,9 @@ function getMergeFieldValue(transactionDetails: TransactionDetails | undefined, 
     if (field === 'reimbursable') {
         return getReimbursable(transaction);
     }
+    if (field === 'reportID') {
+        return transaction.reportID;
+    }
 
     return transactionDetails[field] ?? '';
 }
@@ -202,6 +206,16 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
                 mergeableData.currency = getCurrency(targetTransaction);
                 return;
             }
+        }
+
+        // We allow user to select unreported report
+        if (field === 'reportID') {
+            if (targetValue === sourceValue) {
+                mergeableData[field] = targetValue;
+            } else {
+                conflictFields.push(field);
+            }
+            return;
         }
 
         if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
@@ -271,6 +285,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         receipt: mergeTransaction.receipt,
         created: mergeTransaction.created,
         modifiedCreated: mergeTransaction.created,
+        reportID: mergeTransaction.reportID,
     };
 }
 
@@ -319,6 +334,9 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, transla
     }
     if (field === 'tag') {
         return getCommaSeparatedTagNameWithSanitizedColons(fieldValue.toString());
+    }
+    if (field === 'reportID') {
+        return fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID ? translate('transactionMerge.unreportedReport') : getReportName(getReportOrDraftReport(fieldValue.toString()));
     }
     return String(fieldValue);
 }
@@ -383,6 +401,7 @@ export {
     getReceiptFileName,
     getDisplayValue,
     buildMergeFieldsData,
+    getReportIDForExpense,
 };
 
 export type {MergeFieldKey, MergeFieldData};

@@ -1430,6 +1430,7 @@ const translations = {
             pageTitle: 'Bestätige die Details, die du behalten möchtest. Die nicht behaltenen Details werden gelöscht.',
             confirmButton: 'Ausgaben zusammenführen',
         },
+        unreportedReport: '(keine)',
     },
     share: {
         shareToExpensify: 'Teilen mit Expensify',

@@ -1409,6 +1409,7 @@ const translations = {
             pageTitle: '确认您保留的详情。未保留的详情将被删除。',
             confirmButton: '合并费用',
         },
+        unreportedReport: '(无)',
     },
     share: {
         shareToExpensify: '分享到Expensify',

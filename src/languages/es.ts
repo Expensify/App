@@ -1411,6 +1411,7 @@ const translations = {
             pageTitle: 'Confirma los detalles que conservarás. Los detalles que no conserves serán eliminados.',
             confirmButton: 'Fusionar gastos',
         },
+        unreportedReport: '(ninguno)',
     },
     share: {
         shareToExpensify: 'Compartir para Expensify',

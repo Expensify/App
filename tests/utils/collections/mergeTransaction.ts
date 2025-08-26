@@ -22,5 +22,6 @@ export default function createRandomMergeTransaction(index: number): MergeTransa
         billable: randBoolean(),
         receipt: {},
         created: format(randPastDate(), CONST.DATE.FNS_DB_FORMAT_STRING),
+        reportID: index.toString(),
     };
 }
