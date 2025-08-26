@@ -7951,10 +7951,10 @@ function getNavigationUrlOnMoneyRequestDelete(transactionID: string | undefined,
         return undefined;
     }
 
-    const {shouldDeleteTransactionThread, shouldDeleteIOUReport, iouReport} = prepareToCleanUpMoneyRequest(transactionID, reportAction);
+    const {shouldDeleteIOUReport, iouReport} = prepareToCleanUpMoneyRequest(transactionID, reportAction);
 
     // Determine which report to navigate back to
-    if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
+    if (iouReport && isSingleTransactionView && !shouldDeleteIOUReport) {
         return ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID);
     }
 
