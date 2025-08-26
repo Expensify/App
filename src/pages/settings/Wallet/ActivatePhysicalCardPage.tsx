@@ -130,9 +130,8 @@ function ActivatePhysicalCardPage({
             testID={ActivatePhysicalCardPage.displayName}
         >
             <Text style={[styles.mh5, styles.textHeadline]}>{translate('activateCardPage.pleaseEnterLastFour')}</Text>
-            <View style={[styles.mh5, styles.mv5, {minHeight: MAGIC_INPUT_MIN_HEIGHT}]}>
+            <View style={[styles.mh5, styles.mt5, {minHeight: MAGIC_INPUT_MIN_HEIGHT}]}>
                 <MagicCodeInput
-                    isDisableKeyboard
                     autoComplete="off"
                     maxLength={LAST_FOUR_DIGITS_LENGTH}
                     name="activateCardCode"
@@ -143,9 +142,6 @@ function ActivatePhysicalCardPage({
                     errorText={canShowError ? formError || cardError : ''}
                     ref={activateCardCodeInputRef}
                 />
-            </View>
-            <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pv0]}>
-                {DeviceCapabilities.canUseTouchScreen() && <BigNumberPad numberPressed={updateLastPressedDigit} />}
             </View>
             <Button
                 success

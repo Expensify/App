@@ -141,13 +141,7 @@ function ProfilePage() {
                 }
                 Navigation.navigate(ROUTES.SETTINGS_ADDRESS);
             },
-            brickRoadIndicator:
-                (privatePersonalDetails?.errorFields?.addressStreet ??
-                privatePersonalDetails?.errorFields?.addressCity ??
-                privatePersonalDetails?.errorFields?.addressState ??
-                privatePersonalDetails?.errorFields?.addressZipCode)
-                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                    : undefined,
+            brickRoadIndicator: privatePersonalDetails?.errorFields?.addressStreet ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
     ];
 
