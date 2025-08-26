@@ -63,7 +63,9 @@ export default Repack.defineRspackConfig({
             },
         ],
     },
-    plugins: [new Repack.RepackPlugin(), new ExpoModulesPlugin(), new ReanimatedPlugin(), process.env.RSDOCTOR && new RsdoctorRspackPlugin()].filter(Boolean),
+    plugins: [new Repack.RepackPlugin(), new ExpoModulesPlugin(), new ReanimatedPlugin({unstable_disableTransform: true}), process.env.RSDOCTOR && new RsdoctorRspackPlugin()].filter(
+        Boolean,
+    ),
     ignoreWarnings: [
         /Module not found: Can't resolve '@react-native-masked-view\/masked-view'/,
         /Module not found: Can't resolve 'react-native-worklets-core'/,
