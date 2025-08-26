@@ -7,16 +7,16 @@ import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Plus} from '@components/Icon/Expensicons';
 import {ReportReceipt} from '@components/Icon/Illustrations';
+import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -68,7 +68,6 @@ function WorkspaceReportFieldsPage({
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const policy = usePolicy(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {canBeMissing: true});
-    const {environmentURL} = useEnvironment();
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
@@ -126,16 +125,14 @@ function WorkspaceReportFieldsPage({
     );
 
     const getHeaderText = () =>
-        !hasSyncError && isConnectionVerified ? (
+        !hasSyncError && isConnectionVerified && currentConnectionName ? (
             <Text style={[styles.mr5, styles.mt1]}>
-                <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.reportFields.importedFromAccountingSoftware')} `}</Text>
-                <TextLink
-                    style={[styles.textNormal, styles.link]}
-                    href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                >
-                    {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                </TextLink>
-                <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+                <ImportedFromAccountingSoftware
+                    policyID={policyID}
+                    currentConnectionName={currentConnectionName}
+                    connectedIntegration={connectedIntegration}
+                    translatedText={translate('workspace.reportFields.importedFromAccountingSoftware')}
+                />
             </Text>
         ) : (
             <Text style={[styles.textNormal, styles.colorMuted, styles.mr5, styles.mt1]}>{translate('workspace.reportFields.subtitle')}</Text>
@@ -203,16 +200,9 @@ function WorkspaceReportFieldsPage({
                             isCentralPane
                             title={translate('workspace.common.reportTitle')}
                             renderSubtitle={() => (
-                                <Text style={[[styles.textLabelSupportingEmptyValue, styles.lh20, styles.mt1]]}>
-                                    {translate('workspace.reports.customReportNamesSubtitle')}
-                                    <TextLink
-                                        style={[styles.link]}
-                                        href={CONST.CUSTOM_REPORT_NAME_HELP_URL}
-                                    >
-                                        {translate('workspace.reports.customNameDescriptionLink')}
-                                    </TextLink>
-                                    .
-                                </Text>
+                                <View style={[[styles.renderHTML, styles.mt1]]}>
+                                    <RenderHTML html={translate('workspace.reports.customReportNamesSubtitle')} />
+                                </View>
                             )}
                             containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                             titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
