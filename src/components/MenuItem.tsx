@@ -1,6 +1,6 @@
 import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode, Ref} from 'react';
-import React, {forwardRef, useContext, useMemo, useRef} from 'react';
+import React, {useContext, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -64,9 +64,8 @@ type NoIcon = {
 };
 
 type MenuItemBaseProps = {
-    /* View ref  */
-    /* eslint-disable-next-line react/no-unused-prop-types */
-    ref?: Ref<View>;
+    /** Reference to the outer element */
+    ref?: PressableRef | Ref<View>;
 
     /** Function to fire when component is pressed */
     onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
@@ -405,12 +404,11 @@ const getSubscriptAvatarBackgroundColor = (isHovered: boolean, isPressed: boolea
         return hoveredBackgroundColor;
     }
 };
-function MenuItem(
-    {
-        interactive = true,
-        onPress,
-        badgeText,
-        badgeIcon,
+function MenuItem({
+    interactive = true,
+    onPress,
+    badgeText,
+    badgeIcon,
         badgeSuccess,
         badgeError,
         style,
@@ -519,9 +517,9 @@ function MenuItem(
         copyValue = title,
         copyable = false,
         hasSubMenuItems = false,
-    }: MenuItemProps,
-    ref: PressableRef,
-) {
+
+    ref,
+}: MenuItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -694,7 +692,7 @@ function MenuItem(
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
-                                onSecondaryInteraction={copyValue ? secondaryInteraction : onSecondaryInteraction}
+                                onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
                                 wrapperStyle={outerWrapperStyle}
                                 activeOpacity={!interactive ? 1 : variables.pressDimValue}
                                 opacityAnimationDuration={0}
@@ -1040,4 +1038,4 @@ function MenuItem(
 MenuItem.displayName = 'MenuItem';
 
 export type {MenuItemBaseProps, MenuItemProps};
-export default forwardRef(MenuItem);
+export default MenuItem;
