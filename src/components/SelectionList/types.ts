@@ -469,7 +469,7 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
     columns?: SearchColumnType[];
-    areAllOptionalColumnsHidden: boolean;
+    areAllOptionalColumnsHidden?: boolean;
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -481,7 +481,7 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     groupBy?: SearchGroupBy;
     policies?: OnyxCollection<Policy>;
     columns?: SearchColumnType[];
-    areAllOptionalColumnsHidden: boolean;
+    areAllOptionalColumnsHidden?: boolean;
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
