@@ -5,13 +5,14 @@ import type SplitListItem from "@components/SelectionList/SplitListItem";
 
 
 type UseDisplayFocusedInputUnderKeyboardType = {
-    listRef?: React.RefObject<SelectionListHandle>;
-    viewRef?: React.RefObject<View>;
-    footerHeight?: React.MutableRefObject<number>;
-    bottomOffset?: React.MutableRefObject<number>;
+    listRef?: React.RefObject<SelectionListHandle | null>;
+    viewRef?: React.RefObject<View | null>;
+    footerRef?: React.RefObject<View | null>;
+    bottomOffset?: React.RefObject<number | null>;
     scrollToFocusedInput: () => void;
     SplitListItem: typeof SplitListItem;
 };
+
 
 
 export default UseDisplayFocusedInputUnderKeyboardType;

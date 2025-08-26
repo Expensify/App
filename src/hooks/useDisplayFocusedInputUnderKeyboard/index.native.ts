@@ -7,12 +7,13 @@ import useSafeAreaPaddings from "@hooks/useSafeAreaPaddings";
 import SplitListItem from "@components/SelectionList/SplitListItem";
 import type { SelectionListHandle } from "@components/SelectionList/types";
 import type UseDisplayFocusedInputUnderKeyboardType from "./types";
+import {MARGIN_FROM_INPUT_IOS, MARGIN_FROM_INPUT_ANDROID, FOOTER_BOTTOM_MARGIN} from "./const";
 
-const useDisplayFocusedInputUnderKeyboard = () => {
+const useDisplayFocusedInputUnderKeyboard = (): UseDisplayFocusedInputUnderKeyboardType => {
     const screenHeight = Dimensions.get('window').height;
     const viewRef = useRef<View>(null);
-    const bottomOffset = useRef<number>(0);
-    const footerHeight = useRef<number>(0);
+    const bottomOffset = useRef(0);
+    const footerRef = useRef<View>(null);
     const keyboardHeight = useSharedValue(0);
     const safeAreaPaddings = useSafeAreaPaddings();
     const listRef = useRef<SelectionListHandle>(null);
@@ -22,17 +23,17 @@ const useDisplayFocusedInputUnderKeyboard = () => {
             onStart: (e) => {
                 'worklet';
                 
-                keyboardHeight.value = e.height;
+                keyboardHeight.set(e.height);
             },
             onMove: (e) => {
                 'worklet';
     
-                keyboardHeight.value = e.height;
+                keyboardHeight.set(e.height);
             },
             onEnd: (e) => {
                 'worklet';
     
-                keyboardHeight.value = e.height;
+                keyboardHeight.set(e.height);
             },
         });
 
@@ -41,21 +42,24 @@ const useDisplayFocusedInputUnderKeyboard = () => {
             return;
         }
         viewRef.current.measureInWindow((x, y, width, height) => {
-            if (keyboardHeight.value >= 1.0) {
-                return;
-            }
-            bottomOffset.current = screenHeight - safeAreaPaddings.paddingBottom - safeAreaPaddings.paddingTop - height + footerHeight.current + Platform.select({ios: 28, default: 20}) + 20;
+            footerRef.current?.measureInWindow((fx, fy, fwidth, fheight) => {
+                const keyboardHeightValue = keyboardHeight.get();
+                if (keyboardHeightValue >= 1.0) {
+                    return;
+                }
+                bottomOffset.current = screenHeight - safeAreaPaddings.paddingBottom - safeAreaPaddings.paddingTop - height + fheight + Platform.select({ios: MARGIN_FROM_INPUT_IOS, default: MARGIN_FROM_INPUT_ANDROID}) + FOOTER_BOTTOM_MARGIN;
+            });
         });
     };
 
     return {
         listRef,
         viewRef,
-        footerHeight,
+        footerRef,
         bottomOffset,
         scrollToFocusedInput,
         SplitListItem
-    } as unknown as UseDisplayFocusedInputUnderKeyboardType;
+    };
 };
 
 export default useDisplayFocusedInputUnderKeyboard;

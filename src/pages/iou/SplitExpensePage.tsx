@@ -36,12 +36,13 @@ import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUn
 
 type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
 
+
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {listRef,
         viewRef,
-        footerHeight,
+        footerRef,
         bottomOffset,
         scrollToFocusedInput,
         SplitListItem
@@ -169,14 +170,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             : '';
         return (
             <View
-                onLayout={(event) => {
-                    if(!footerHeight?.current) {
-                        return;
-                    }
-                    const {height} = event.nativeEvent.layout;
-                    // eslint-disable-next-line react-compiler/react-compiler
-                    footerHeight.current = height;
-                }}
+                ref={footerRef}
                 style={[styles.pt3]}
             >
                 {(!!errorMessage || !!warningMessage) && (

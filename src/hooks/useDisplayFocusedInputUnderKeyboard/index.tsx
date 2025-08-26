@@ -9,11 +9,11 @@ type SplitListItemProps = React.ComponentProps<typeof SplitListItemFocus>;
 
 
 
-const useDisplayFocusedInputUnderKeyboard = () => {
+const useDisplayFocusedInputUnderKeyboard = (): UseDisplayFocusedInputUnderKeyboardType => {
     const listRef = useRef<SelectionListHandle>(null);
     const [inputIndexIsFocused, setInputIndexIsFocused] = useState(-1);
     const viewRef = useRef<View>(null);
-    const footerHeight = useRef(0);
+    const footerRef = useRef<View>(null);
     const bottomOffset = useRef(0);
     const [scrollTrigger, debouncedScrollTrigger, setScrollTrigger] = useDebouncedState(0);
     
@@ -40,27 +40,36 @@ const useDisplayFocusedInputUnderKeyboard = () => {
 
     useEffect(() => {
         setScrollTrigger(scrollTrigger + 1);
-    }, [inputIndexIsFocused, setScrollTrigger, scrollTrigger]);
+    }, [inputIndexIsFocused]);
 
-    const scrollToFocusedInput = useCallback(() => {
-        setScrollTrigger(scrollTrigger + 1);
-    }, [setScrollTrigger, scrollTrigger]);
+    const scrollToFocusedInput = () => {
+            setScrollTrigger(scrollTrigger + 1);
+        };
 
      const SplitListItemWithFocus = useCallback(
+    // eslint-disable-next-line react-compiler/react-compiler
+    ((props: SplitListItemProps) => (
+        <SplitListItemFocus
+            onInputFocus={handleInputFocus}
+            onInputBlur={handleInputBlur}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            (props: SplitListItemProps) => <SplitListItemFocus onInputFocus={handleInputFocus} onInputBlur={handleInputBlur} {...props} />,
-        [handleInputFocus, handleInputBlur]
-    );
+            {...props}
+        />
+    )) as typeof SplitListItemFocus, 
+    [handleInputFocus, handleInputBlur]
+);
+SplitListItemFocus.displayName = "SplitListItemWithFocus";
 
     return {
         viewRef,
-        footerHeight,
+        footerRef,
         bottomOffset,
         listRef,
         scrollToFocusedInput,
         SplitListItem: SplitListItemWithFocus
-    } as UseDisplayFocusedInputUnderKeyboardType;
+    };
 };
+
 
 export default useDisplayFocusedInputUnderKeyboard;
 
