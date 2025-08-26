@@ -92,6 +92,7 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
+    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -3077,9 +3078,9 @@ const translations = {
         },
     },
     beneficialOwnerInfoStep: {
-        doYouOwn25percent: 'Do you own 25% or more of',
-        doAnyIndividualOwn25percent: 'Do any individuals own 25% or more of',
-        areThereMoreIndividualsWhoOwn25percent: 'Are there more individuals who own 25% or more of',
+        doYouOwn25percent: ({companyName}: CompanyNameParams) => `Do you own 25% or more of ${companyName}?`,
+        doAnyIndividualOwn25percent: ({companyName}: CompanyNameParams) => `Do any individuals own 25% or more of ${companyName}?`,
+        areThereMoreIndividualsWhoOwn25percent: ({companyName}: CompanyNameParams) => `Are there more individuals who own 25% or more of ${companyName}?`,
         regulationRequiresUsToVerifyTheIdentity: 'Regulation requires us to verify the identity of any individual who owns more than 25% of the business.',
         companyOwner: 'Business owner',
         enterLegalFirstAndLastName: "What's the owner's legal name?",
@@ -3101,7 +3102,7 @@ const translations = {
         businessOwner: 'Business owner',
         signerInfo: 'Signer info',
         doYouOwn: ({companyName}: CompanyNameParams) => `Do you own 25% or more of ${companyName}?`,
-        doesAnyoneOwn: ({companyName}: CompanyNameParams) => `Does any individuals own 25% or more of ${companyName}?`,
+        doesAnyoneOwn: ({companyName}: CompanyNameParams) => `Do any individuals own 25% or more of ${companyName}?`,
         regulationsRequire: 'Regulations require us to verify the identity of any individual who owns more than 25% of the business.',
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
@@ -3122,7 +3123,7 @@ const translations = {
         letsDoubleCheck: 'Let’s double check that everything looks right.',
         legalName: 'Legal name',
         ownershipPercentage: 'Ownership percentage',
-        areThereOther: ({companyName}: CompanyNameParams) => `Are there other individuals who own 25% or more of ${companyName}`,
+        areThereOther: ({companyName}: CompanyNameParams) => `Are there other individuals who own 25% or more of ${companyName}?`,
         owners: 'Owners',
         addCertified: 'Add a certified org chart that shows the beneficial owners',
         regulationRequiresChart: 'Regulation requires us to collect a certified copy of the ownership chart that shows every individual or entity who owns 25% or more of the business.',
@@ -3545,11 +3546,14 @@ const translations = {
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">our integration</a>.</muted-text-label>`,
         },
         receiptPartners: {
+            connect: 'Connect now',
             uber: {
                 subtitle: 'Automate travel and meal delivery expenses across your organization.',
                 autoRemove: 'Invite new workspace members to Uber for Business',
                 autoInvite: 'Deactivate removed workspace members from Uber for Business',
                 manageInvites: 'Manage invites',
+                bannerTitle: 'Expensify + Uber for Business',
+                bannerDescription: 'Connect Uber for Business to automate travel and meal delivery expenses across your organization.',
             },
         },
         perDiem: {
@@ -5203,7 +5207,8 @@ const translations = {
             continuousReconciliation: 'Continuous Reconciliation',
             saveHoursOnReconciliation:
                 'Save hours on reconciliation each accounting period by having Expensify continuously reconcile Expensify Card statements and settlements on your behalf.',
-            enableContinuousReconciliation: 'In order to enable Continuous Reconciliation, please enable ',
+            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
+                `<muted-text-label>In order to enable Continuous Reconciliation, please enable <a href="${accountingAdvancedSettingsLink}">auto-sync</a> for ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
                 accountMatches: 'Make sure this account matches your ',
