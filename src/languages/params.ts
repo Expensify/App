@@ -859,6 +859,15 @@ type MergeFailureDescriptionGenericParams = {
     email: string;
 };
 
+type EnableContinuousReconciliationParams = {
+    connectionName: string;
+    accountingAdvancedSettingsLink: string;
+};
+
+type WorkspaceUpgradeNoteParams = {
+    subscriptionLink: string;
+};
+
 type ChangedApproverMessageParams = {managerID: number};
 
 type WorkflowSettingsParam = {workflowSettingLink: string};
@@ -1183,6 +1192,8 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    EnableContinuousReconciliationParams,
+    WorkspaceUpgradeNoteParams,
     ChangedApproverMessageParams,
     WorkflowSettingsParam,
     MovedActionParams,

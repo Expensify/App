@@ -5,7 +5,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, Report, ReportNextStep, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Beta, Policy, Report, ReportNextStep, TransactionViolations} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import EmailUtils from './EmailUtils';
@@ -20,12 +20,8 @@ import {
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
     isInvoiceReport,
-    isOpenExpenseReport,
     isPayer,
-    isProcessingReport,
-    isReportOwner,
 } from './ReportUtils';
-import {isPendingCardOrIncompleteTransaction, isPendingCardOrScanningTransaction} from './TransactionUtils';
 
 let currentUserAccountID = -1;
 let currentUserEmail = '';
@@ -126,53 +122,6 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
     };
 
     return optimisticNextStep;
-}
-
-function buildOptimisticFixIssueNextStep() {
-    const optimisticNextStep: ReportNextStep = {
-        type: 'neutral',
-        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-        message: [
-            {
-                text: 'Waiting for ',
-            },
-            {
-                text: `you`,
-                type: 'strong',
-            },
-            {
-                text: ' to ',
-            },
-            {
-                text: 'fix the issue(s)',
-            },
-        ],
-    };
-
-    return optimisticNextStep;
-}
-
-function getReportNextStep(currentNextStep: ReportNextStep | undefined, moneyRequestReport: OnyxEntry<Report>, transactions: Array<OnyxEntry<Transaction>>, policy: OnyxEntry<Policy>) {
-    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
-
-    if (isOpenExpenseReport(moneyRequestReport) && transactions.length > 0 && transactions.every((transaction) => isPendingCardOrIncompleteTransaction(transaction))) {
-        return buildOptimisticFixIssueNextStep();
-    }
-
-    if (isProcessingReport(moneyRequestReport) && transactions.length > 0 && transactions.every((transaction) => isPendingCardOrScanningTransaction(transaction))) {
-        return buildOptimisticFixIssueNextStep();
-    }
-
-    const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
-
-    // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
-    // We should always show this optimistic message for policies with preventSelfApproval
-    // to avoid any flicker during transitions between online/offline states
-    if (isSubmitterSameAsNextApprover && policy?.preventSelfApproval) {
-        return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
-    }
-
-    return currentNextStep;
 }
 
 /**
@@ -549,4 +498,4 @@ function buildNextStep(
     return optimisticNextStep;
 }
 
-export {parseMessage, buildNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled, getReportNextStep};
+export {parseMessage, buildNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled};

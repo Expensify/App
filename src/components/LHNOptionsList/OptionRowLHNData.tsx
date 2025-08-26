@@ -73,6 +73,7 @@ function OptionRowLHNData({
             lastMessageTextFromReport,
             invoiceReceiverPolicy,
             card,
+            lastAction,
             localeCompare,
             isReportArchived,
         });
