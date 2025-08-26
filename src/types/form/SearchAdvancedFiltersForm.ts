@@ -65,6 +65,7 @@ const FILTER_KEYS = {
     REIMBURSABLE: 'reimbursable',
     BILLABLE: 'billable',
     ACTION: 'action',
+    WITHDRAWAL_ID: 'withdrawalID',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -117,6 +118,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.GROUP_BY,
         FILTER_KEYS.FEED,
         FILTER_KEYS.ACTION,
+        FILTER_KEYS.WITHDRAWAL_ID,
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
         FILTER_KEYS.TYPE,
@@ -161,6 +163,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_ON,
         FILTER_KEYS.EXPORTER,
         FILTER_KEYS.ACTION,
+        FILTER_KEYS.WITHDRAWAL_ID,
     ],
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
         FILTER_KEYS.TYPE,
@@ -286,6 +289,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.REIMBURSABLE]: string;
         [FILTER_KEYS.BILLABLE]: string;
         [FILTER_KEYS.ACTION]: string;
+        [FILTER_KEYS.WITHDRAWAL_ID]: string;
     }
 >;
 
