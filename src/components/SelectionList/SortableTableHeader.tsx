@@ -28,7 +28,7 @@ type SearchTableHeaderProps = {
     containerStyles?: StyleProp<ViewStyle>;
     shouldShowColumn: (columnName: SearchColumnType) => boolean;
     onSortPress: (column: SortableColumnName, order: SortOrder) => void;
-    areAllOptionalColumnsHidden: boolean;
+    areAllOptionalColumnsHidden?: boolean;
 };
 
 function SortableTableHeader({

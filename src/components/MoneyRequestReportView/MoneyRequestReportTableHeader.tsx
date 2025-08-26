@@ -1,6 +1,7 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {SearchColumnType, SortOrder, TableColumnSize} from '@components/Search/types';
+import {expenseHeaders} from '@components/SelectionList/SearchTableHeader';
 import SortableTableHeader from '@components/SelectionList/SortableTableHeader';
 import type {SortableColumnName} from '@components/SelectionList/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -81,11 +82,17 @@ function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColu
         [columns],
     );
 
+    const areAllOptionalColumnsHidden = useMemo(() => {
+        const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
+        return canBeMissingColumns.every((column) => !columns.includes(column));
+    }, [columns]);
+
     return (
         <View style={[styles.dFlex, styles.flex5]}>
             <SortableTableHeader
                 columns={columnConfig}
                 shouldShowColumn={shouldShowColumn}
+                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                 dateColumnSize={dateColumnSize}
                 amountColumnSize={amountColumnSize}
                 taxAmountColumnSize={taxAmountColumnSize}
