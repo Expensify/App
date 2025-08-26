@@ -151,8 +151,9 @@ function EmptySearchViewContent({
     const contextMenuAnchor = useRef<RNText>(null);
     const [modalVisible, setModalVisible] = useState(false);
 
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+    const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         canBeMissing: true,
+        selector: (transactions) => Object.values(transactions ?? {}).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0,
     });
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
 
@@ -331,7 +332,7 @@ function EmptySearchViewContent({
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                if (!hasResults || Object.values(transactions ?? {}).length === 0) {
+                if (!hasResults || !hasTransactions) {
                     return {
                         ...defaultViewItemHeader,
                         title: translate('search.searchResults.emptyExpenseResults.title'),
@@ -424,7 +425,7 @@ function EmptySearchViewContent({
         currentUserPersonalDetails,
         tripViewChildren,
         shouldRedirectToExpensifyClassic,
-        transactions,
+        hasTransactions,
         tryNewDot?.hasBeenAddedToNudgeMigration,
         isUserPaidPolicyMember,
     ]);
