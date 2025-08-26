@@ -187,10 +187,12 @@ describe('Unread Indicators', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        Onyx.clear();
 
+        global.fetch = TestHelper.getGlobalFetchMock();
         // Unsubscribe to pusher channels
         PusherHelper.teardown();
+
+        return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     it('Display bold in the LHN for unread chat and new line indicator above the chat message when we navigate to it', () =>
@@ -446,7 +448,7 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(1);
 
                 // Leave a comment as the current user and verify the indicator is removed
-                addComment(REPORT_ID, 'Current User Comment 1');
+                addComment(REPORT_ID, REPORT_ID, 'Current User Comment 1');
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -509,7 +511,7 @@ describe('Unread Indicators', () => {
                 .then(() => navigateToSidebarOption(0))
                 .then(() => {
                     // Leave a comment as the current user
-                    addComment(REPORT_ID, 'Current User Comment 1');
+                    addComment(REPORT_ID, REPORT_ID, 'Current User Comment 1');
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -554,7 +556,7 @@ describe('Unread Indicators', () => {
         await signInAndGetAppWithUnreadChat();
         await navigateToSidebarOption(0);
 
-        addComment(REPORT_ID, 'Comment 1');
+        addComment(REPORT_ID, REPORT_ID, 'Comment 1');
 
         await waitForBatchedUpdates();
 
@@ -565,7 +567,7 @@ describe('Unread Indicators', () => {
 
             await waitForBatchedUpdates();
 
-            addComment(REPORT_ID, 'Comment 2');
+            addComment(REPORT_ID, REPORT_ID, 'Comment 2');
 
             await waitForBatchedUpdates();
 

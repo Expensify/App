@@ -419,4 +419,4 @@ export type {default as ReopenReportParams} from './ReopenReportParams';
 export type {default as OpenUnreportedExpensesPageParams} from './OpenUnreportedExpensesPageParams';
 export type {default as VerifyTestDriveRecipientParams} from './VerifyTestDriveRecipientParams';
 export type {default as ExportSearchWithTemplateParams} from './ExportSearchWithTemplateParams';
-export type {default as SaveReportDraftCommentParams} from './SaveReportDraftCommentParams';
+export type {default as AssignReportToMeParams} from './AssignReportToMeParams';
