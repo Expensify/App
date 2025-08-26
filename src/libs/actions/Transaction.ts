@@ -1163,8 +1163,8 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
     });
 }
 
-function getDraftTransactions(): Transaction[] {
-    return Object.values(allTransactionDrafts ?? {}).filter((transaction): transaction is Transaction => !!transaction);
+function getDraftTransactions(draftsTransaction?: OnyxCollection<Transaction>): Transaction[] {
+    return Object.values(draftsTransaction ?? allTransactionDrafts ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 }
 
 export {
