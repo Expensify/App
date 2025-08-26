@@ -9,12 +9,12 @@ This guide explains how employees and invited guests can use Expensify to book t
 
 ---
 
-# Accessing the travel tool
+## How to access the travel tool
 
-- **In New Expensify:** Click the green **+** button in the bottom-left corner, then select **Book travel**.  
-- **In Expensify Classic:** From the left-hand menu, select **Travel > Book or manage travel**.  
+- **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
+- **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-**Note:** If travel isn’t enabled for your account yet, contact your Account Manager or Concierge to schedule a demo.  
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
