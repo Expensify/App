@@ -6481,6 +6481,7 @@ const CONST = {
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
             ACTION: 'action',
+            WITHDRAWAL_ID: 'withdrawalID',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
@@ -6527,6 +6528,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             ACTION: 'action',
+            WITHDRAWAL_ID: 'withdrawal-id',
         },
 
         // Maps an internal search value to the user friendly display text, e.g. `perDiem` -> `per-diem`

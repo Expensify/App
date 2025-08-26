@@ -44,6 +44,9 @@ expenseType
 withdrawalType
   = "withdrawalType"
   / "withdrawal-type"i { return "withdrawalType"; }
+withdrawalID
+  = "withdrawalID"i
+  / "withdrawal-id"i { return "withdrawalID"; }
 billable = "billable"i { return "billable"; }
 reimbursable = "reimbursable"i { return "reimbursable"; }
 type = "type"i { return "type"; }
