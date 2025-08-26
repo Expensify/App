@@ -14,7 +14,7 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasEReceipt, hasReceiptSource, isDistanceRequest as isDistanceRequestUtils, isFetchingWaypointsFromServer, isPerDiemRequest} from '@libs/TransactionUtils';
+import {hasEReceipt, hasReceiptSource, isDistanceRequest, isFetchingWaypointsFromServer, isManualDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -105,10 +105,10 @@ function ReportActionItemImage({
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isDistanceRequest = !!transaction && isDistanceRequestUtils(transaction);
+    const isMapDistanceRequest = !!transaction && isDistanceRequest(transaction) && !isManualDistanceRequest(transaction);
     const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
-    const showMapAsImage = isDistanceRequest && (hasErrors || hasPendingWaypoints);
+    const showMapAsImage = isMapDistanceRequest && (hasErrors || hasPendingWaypoints);
 
     if (showMapAsImage) {
         return (
@@ -144,7 +144,7 @@ function ReportActionItemImage({
             isAuthTokenRequired: true,
 
             // If the image is full height, use initial position to make sure it will grow properly to fill the container
-            shouldUseInitialObjectPosition: isDistanceRequest && !shouldUseFullHeight,
+            shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
         };
     } else if (isLocalFile && filename && Str.isPDF(filename) && typeof originalImageSource === 'string') {
         propsObj = {isPDFThumbnail: true, source: originalImageSource};
@@ -157,7 +157,7 @@ function ReportActionItemImage({
             source: shouldUseThumbnailImage ? (thumbnail ?? image ?? '') : originalImageSource,
 
             // If the image is full height, use initial position to make sure it will grow properly to fill the container
-            shouldUseInitialObjectPosition: isDistanceRequest && !shouldUseFullHeight,
+            shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
             isEmptyReceipt,
             onPress,
         };

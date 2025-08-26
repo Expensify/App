@@ -112,6 +112,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.ReportChangeWorkspaceModalStackNavigator}
                         />
                         <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER}
+                            component={ModalStackNavigators.ReportChangeApproverModalStackNavigator}
+                        />
+                        <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.REPORT_SETTINGS}
                             component={ModalStackNavigators.ReportSettingsModalStackNavigator}
                         />
@@ -150,10 +154,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION}
                             component={ModalStackNavigators.WorkspaceConfirmationModalStackNavigator}
-                        />
-                        <Stack.Screen
-                            name={SCREENS.RIGHT_MODAL.WORKSPACE_DUPLICATE}
-                            component={ModalStackNavigators.WorkspaceDuplicateModalStackNavigator}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.NEW_TASK}
