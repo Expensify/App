@@ -40,8 +40,9 @@ function Container({
         });
     }, [animationOutTiming, onCloseCallBack, animationOut]);
 
-    // temporary solution to run animation callbacks even with reduced motion setting turned on
-    // since .reduceMotion method doesn't work in current version of Reanimated (https://github.com/software-mansion/react-native-reanimated/issues/8046)
+    // Temporary solution to run animation callbacks even with reduced motion setting turned on
+    // since .reduceMotion method doesn't work in the current version of Reanimated (https://github.com/software-mansion/react-native-reanimated/issues/8046)
+    // We will remove this once fixed upstream https://github.com/Expensify/App/issues/69190
     useEffect(() => {
         setTimeout(onOpenCallBack, animationInTiming);
 
