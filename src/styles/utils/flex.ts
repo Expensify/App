@@ -113,10 +113,6 @@ export default {
         flexWrap: 'wrap',
     },
 
-    flexNoWrap: {
-        flexWrap: 'nowrap',
-    },
-
     flexGrow0: {
         flexGrow: 0,
     },
