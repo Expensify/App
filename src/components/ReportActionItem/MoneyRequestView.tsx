@@ -387,6 +387,10 @@ function MoneyRequestView({
 
     const getErrorForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
+            if (readonly || isSettled) {
+                return '';
+            }
+
             // Checks applied when creating a new expense
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
@@ -405,10 +409,6 @@ function MoneyRequestView({
             };
 
             const {isError, translationPath} = fieldChecks[field] ?? {};
-
-            if (readonly) {
-                return '';
-            }
 
             // Return form errors if there are any
             if (hasErrors && isError && translationPath) {
@@ -497,8 +497,12 @@ function MoneyRequestView({
     const isReceiptAllowed = !isPaidReport && !isInvoice;
     const shouldShowReceiptEmptyState = isReceiptAllowed && !hasReceipt;
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
-        const imageViolations = [];
-        const allViolations = [];
+        const imageViolations: string[] = [];
+        const allViolations: string[] = [];
+
+        if (isSettled) {
+            return [imageViolations, allViolations];
+        }
 
         for (const violation of transactionViolations ?? []) {
             const isReceiptFieldViolation = receiptFieldViolationNames.includes(violation.name);
@@ -512,7 +516,7 @@ function MoneyRequestView({
             }
         }
         return [imageViolations, allViolations];
-    }, [transactionViolations, translate, canEdit]);
+    }, [transactionViolations, translate, canEdit, isSettled]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
     const customRulesViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_RULES);
