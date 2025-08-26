@@ -17,6 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {formatMemberForList, getHeaderMessage, sortAlphabetically} from '@libs/OptionsListUtils';
@@ -270,7 +271,9 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
             <ScreenWrapper testID={EditInviteReceiptPartnerPolicyPage.displayName}>
                 <HeaderWithBackButton
                     title={translate('workspace.receiptPartners.uber.manageInvites')}
-                    onBackButtonPress={() => window.history.back()}
+                    onBackButtonPress={() => {
+                        Navigation.dismissModal();
+                    }}
                 />
 
                 <OnyxTabNavigator
