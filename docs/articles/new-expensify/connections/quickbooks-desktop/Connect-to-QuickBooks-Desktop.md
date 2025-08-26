@@ -5,7 +5,6 @@ keywords: [New Expensify, QuickBooks Desktop, Web Connector, accounting integrat
 order: 1
 ---
 
-<div id="new-expensify" markdown="1">
 
 QuickBooks Desktop is accounting software designed for small and medium-sized businesses. Connecting Expensify to QuickBooks Desktop streamlines your expense management and accounting workflows.
 
@@ -79,4 +78,3 @@ Yes, in general. However:
 - This also applies to debit card exports (QuickBooks Desktop treats these as non-reimbursable checks)  
 - Non-reimbursable checks must have a **positive** amount
 
-</div>
