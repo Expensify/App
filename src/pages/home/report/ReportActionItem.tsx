@@ -26,7 +26,7 @@ import {
 } from '@userActions/Report';
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {clearError} from '@userActions/Transaction';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
