@@ -1,6 +1,6 @@
 # `react-native-safe-area-context` patches
 
-### [react-native-safe-area-context+5.4.0+001+android-jni-packaging-for-16kb-memory-page-size.patch](react-native-safe-area-context+5.4.0+001+android-jni-packaging-for-16kb-memory-page-size.patch)
+### [react-native-safe-area-context+5.4.0+001+android-enable-16kb-memory-page-size.patch](react-native-safe-area-context+5.4.0+001+android-enable-16kb-memory-page-size.patch)
 
 - Reason: Updates the packaging of the library on Android to enable 16KB memory page sizes on Android.
 - Upstream PR/issue: TODO
