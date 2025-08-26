@@ -2742,6 +2742,10 @@ const translations = {
         hasBeenThrottledError: 'Ocorreu um erro ao adicionar sua conta bancária. Por favor, aguarde alguns minutos e tente novamente.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Ops! Parece que a moeda do seu espaço de trabalho está definida para uma moeda diferente de USD. Para continuar, por favor vá para <a href="${workspaceRoute}">suas configurações de espaço de trabalho</a> para definir para USD e tentar novamente.`,
+        lockedBankAccount: 'Conta bancária bloqueada',
+        unlockBankAccount: 'Desbloquear conta bancária',
+        youCantPayThis: 'Você não pode pagar este relatório porque tem uma',
+        tapBelow: 'Toque abaixo e o Concierge ajudará com os próximos passos para desbloqueá-la.',
         error: {
             youNeedToSelectAnOption: 'Por favor, selecione uma opção para continuar',
             noBankAccountAvailable: 'Desculpe, não há nenhuma conta bancária disponível.',

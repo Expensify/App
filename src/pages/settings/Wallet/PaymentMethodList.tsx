@@ -366,7 +366,6 @@ function PaymentMethodList({
                 wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
-                // TODO this icon should not be responsive for locked accounts
                 iconRight: Expensicons.ThreeDots,
                 shouldShowRightIcon,
             };

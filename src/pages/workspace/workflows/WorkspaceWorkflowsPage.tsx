@@ -78,6 +78,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
     const [isUpdateWorkspaceCurrencyModalOpen, setIsUpdateWorkspaceCurrencyModalOpen] = useState(false);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const isUserReimburser = policy?.achAccount?.reimburser !== undefined && account?.primaryLogin !== undefined && policy?.achAccount?.reimburser === account?.primaryLogin;
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
@@ -284,8 +286,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         showLockedAccountModal();
                                         return;
                                     }
-                                    if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID) {
-                                        // TODO initiating this should only by done by reimburser
+                                    if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
                                         pressedOnLockedBankAccount(bankAccountID);
                                         navigateToConciergeChat();
                                     }
@@ -306,9 +307,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 iconStyles={shouldShowBankAccount ? bankIcon.iconStyles : undefined}
                                 disabled={isOffline || !isPolicyAdmin}
                                 badgeText={getBadgeText(state)}
-                                badgeIcon={(isAccountInSetupState ?? isBusinessBankAccountLocked) ? Expensicons.DotIndicator : undefined}
+                                badgeIcon={(isAccountInSetupState ?? (isBusinessBankAccountLocked && isPolicyAdmin)) ? Expensicons.DotIndicator : undefined}
                                 badgeSuccess={isAccountInSetupState ? true : undefined}
-                                badgeError={isBusinessBankAccountLocked ? true : undefined}
+                                badgeError={isBusinessBankAccountLocked && isPolicyAdmin ? true : undefined}
                                 shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                                 displayInDefaultIconColor={shouldShowBankAccount}
@@ -357,8 +358,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         displayNameForAuthorizedPayer,
         route.params.policyID,
         updateApprovalMode,
-        isBetaEnabled,
         isAccountLocked,
+        isUserReimburser,
+        isBetaEnabled,
         showLockedAccountModal,
     ]);
 

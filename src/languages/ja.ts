@@ -2744,6 +2744,10 @@ const translations = {
         hasBeenThrottledError: '銀行口座の追加中にエラーが発生しました。数分待ってから再試行してください。',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `おっと！ワークスペースの通貨がUSDとは異なる通貨に設定されているようです。続行するには、こちらにアクセスしてください。<a href="${workspaceRoute}">ワークスペースの設定</a> USDに設定して、もう一度お試しください。`,
+        lockedBankAccount: 'ロックされた銀行口座',
+        unlockBankAccount: '銀行口座を解除する',
+        youCantPayThis: 'このレポートは支払えません。なぜなら、',
+        tapBelow: '下をタップすると、コンシェルジュが解除の手続きを案内します。',
         error: {
             youNeedToSelectAnOption: 'オプションを選択してください',
             noBankAccountAvailable: '申し訳ありませんが、利用可能な銀行口座がありません。',
