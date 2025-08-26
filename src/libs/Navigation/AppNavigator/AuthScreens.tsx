@@ -1,7 +1,6 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
 import React, {memo, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
@@ -109,8 +108,6 @@ function initializePusher() {
 }
 let timezone: Timezone | null;
 let currentAccountID = -1;
-let isLoadingApp = false;
-let lastUpdateIDAppliedToClient: OnyxEntry<number>;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -152,21 +149,7 @@ Onyx.connect({
     },
 });
 
-Onyx.connect({
-    key: ONYXKEYS.IS_LOADING_APP,
-    callback: (value) => {
-        isLoadingApp = !!value;
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value) => {
-        lastUpdateIDAppliedToClient = value;
-    },
-});
-
-function handleNetworkReconnect() {
+function handleNetworkReconnect(lastUpdateIDAppliedToClient: number | undefined, isLoadingApp: boolean) {
     if (isLoadingApp) {
         App.openApp();
     } else {
@@ -218,6 +201,8 @@ function AuthScreens() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {toggleSearch} = useSearchRouterContext();
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
@@ -294,7 +279,7 @@ function AuthScreens() {
         }
 
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(handleNetworkReconnect);
+        NetworkConnection.onReconnect(() => handleNetworkReconnect(lastUpdateIDAppliedToClient, !!isLoadingApp));
         PusherConnectionManager.init();
         initializePusher();
         // Sometimes when we transition from old dot to new dot, the client is not the leader
@@ -303,32 +288,29 @@ function AuthScreens() {
             init();
         }
 
-        // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
-        if (!CONFIG.IS_HYBRID_APP) {
-            // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
-            // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
-            if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
-                if (delegatorEmail) {
-                    connect(delegatorEmail, true)
-                        ?.then((success) => {
-                            App.setAppLoading(!!success);
-                        })
-                        .finally(() => {
-                            setIsDelegatorFromOldDotIsReady(true);
-                        });
-                } else {
-                    const reportID = getReportIDFromLink(initialURL ?? null);
-                    if (reportID && !isAuthenticatedAtStartup) {
-                        Report.openReport(reportID);
-                        // Don't want to call `openReport` again when logging out and then logging in
-                        setIsAuthenticatedAtStartup(true);
-                    }
-                    App.openApp();
-                }
+        // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
+        // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
+        if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
+            if (delegatorEmail) {
+                connect(delegatorEmail, true)
+                    ?.then((success) => {
+                        App.setAppLoading(!!success);
+                    })
+                    .finally(() => {
+                        setIsDelegatorFromOldDotIsReady(true);
+                    });
             } else {
-                Log.info('[AuthScreens] Sending ReconnectApp');
-                App.reconnectApp(initialLastUpdateIDAppliedToClient);
+                const reportID = getReportIDFromLink(initialURL ?? null);
+                if (reportID && !isAuthenticatedAtStartup) {
+                    Report.openReport(reportID);
+                    // Don't want to call `openReport` again when logging out and then logging in
+                    setIsAuthenticatedAtStartup(true);
+                }
+                App.openApp();
             }
+        } else {
+            Log.info('[AuthScreens] Sending ReconnectApp');
+            App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
         App.setUpPoliciesAndNavigate(session);
