@@ -7073,6 +7073,10 @@ const CONST = {
         REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
         INVITE_ACCOUNTANT: 'inviteAccountant',
     },
+    REPORT_MOVE_TYPE: {
+        FROM: 'from',
+        TO: 'to',
+    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [

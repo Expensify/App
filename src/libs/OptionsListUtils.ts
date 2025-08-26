@@ -996,8 +996,8 @@ function createOption(
         const lastActorDetails = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
         const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
 
-        const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(lastAction, 'movedFrom')}`];
-        const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(lastAction, 'movedTo')}`];
+        const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(lastAction, CONST.REPORT_MOVE_TYPE.FROM)}`];
+        const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(lastAction, CONST.REPORT_MOVE_TYPE.TO)}`];
         const movedFromOrToReportMessage = ModifiedExpenseMessage.getMovedFromOrToReportMessage(movedFromReport, movedToReport);
 
         const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, movedFromOrToReportMessage, undefined, !!result.private_isArchived);

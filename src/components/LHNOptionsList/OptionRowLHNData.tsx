@@ -62,8 +62,8 @@ function OptionRowLHNData({
         return reportActionsForDisplay.at(-1);
     }, [reportActions, fullReport, isReportArchived]);
 
-    const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(lastAction, 'movedFrom')}`, {canBeMissing: true});
-    const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(lastAction, 'movedTo')}`, {canBeMissing: true});
+    const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(lastAction, CONST.REPORT_MOVE_TYPE.FROM)}`, {canBeMissing: true});
+    const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(lastAction, CONST.REPORT_MOVE_TYPE.TO)}`, {canBeMissing: true});
 
     const movedFromOrToReportMessage = useMemo(() => ModifiedExpenseMessage.getMovedFromOrToReportMessage(movedFromReport, movedToReport), [movedToReport, movedFromReport]);
 

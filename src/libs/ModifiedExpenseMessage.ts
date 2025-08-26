@@ -1,6 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
@@ -143,13 +144,13 @@ function getForExpenseMovedFromSelfDM(destinationReport: OnyxEntry<Report>) {
     });
 }
 
-function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: 'movedTo' | 'movedFrom'): string | undefined {
+function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<typeof CONST.REPORT_MOVE_TYPE>): string | undefined {
     if (!isModifiedExpenseAction(reportAction)) {
         return undefined;
     }
     const reportActionOriginalMessage = getOriginalMessage(reportAction);
 
-    return type === 'movedTo' ? reportActionOriginalMessage?.movedToReportID : reportActionOriginalMessage?.movedFromReport;
+    return type === CONST.REPORT_MOVE_TYPE.TO ? reportActionOriginalMessage?.movedToReportID : reportActionOriginalMessage?.movedFromReport;
 }
 
 function getMovedFromOrToReportMessage(movedFromReport: OnyxEntry<Report> | undefined, movedToReport: OnyxEntry<Report> | undefined): string | undefined {

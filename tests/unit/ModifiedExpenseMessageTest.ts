@@ -26,13 +26,13 @@ describe('ModifiedExpenseMessage', () => {
                 },
             };
 
-            it('returns the movedToReportID when type is "movedTo" and movedToReportID exists in reportAction', () => {
-                const result = ModifiedExpenseMessage.getMovedReportID(reportAction, 'movedTo');
+            it('returns the movedToReportID when type is REPORT_MOVE_TYPE.TO and movedToReportID exists in reportAction', () => {
+                const result = ModifiedExpenseMessage.getMovedReportID(reportAction, CONST.REPORT_MOVE_TYPE.TO);
                 expect(result).toEqual(MOVED_TO_REPORT_ID);
             });
 
-            it('returns the movedFromReport when type is "movedFrom" and movedFromReport exists in reportAction', () => {
-                const result = ModifiedExpenseMessage.getMovedReportID(reportAction, 'movedFrom');
+            it('returns the movedFromReport when type is REPORT_MOVE_TYPE.FROM and movedFromReport exists in reportAction', () => {
+                const result = ModifiedExpenseMessage.getMovedReportID(reportAction, CONST.REPORT_MOVE_TYPE.FROM);
                 expect(result).toEqual(MOVED_FROM_REPORT_ID);
             });
         });
@@ -46,13 +46,13 @@ describe('ModifiedExpenseMessage', () => {
                 },
             };
 
-            it('returns undefined for movedTo type', () => {
-                const result = ModifiedExpenseMessage.getMovedReportID(reportAction, 'movedTo');
+            it('returns undefined for REPORT_MOVE_TYPE.TO  type', () => {
+                const result = ModifiedExpenseMessage.getMovedReportID(reportAction, CONST.REPORT_MOVE_TYPE.TO);
                 expect(result).toBeUndefined();
             });
 
-            it('returns undefined for movedFrom type', () => {
-                const result = ModifiedExpenseMessage.getMovedReportID(reportAction, 'movedFrom');
+            it('returns undefined for REPORT_MOVE_TYPE.FROM type', () => {
+                const result = ModifiedExpenseMessage.getMovedReportID(reportAction, CONST.REPORT_MOVE_TYPE.FROM);
                 expect(result).toBeUndefined();
             });
         });
@@ -63,13 +63,13 @@ describe('ModifiedExpenseMessage', () => {
                 originalMessage: {},
             };
 
-            it('returns undefined for movedTo type when movedToReportID is missing', () => {
-                const result = ModifiedExpenseMessage.getMovedReportID(reportAction, 'movedTo');
+            it('returns undefined for REPORT_MOVE_TYPE.TO type when movedToReportID is missing', () => {
+                const result = ModifiedExpenseMessage.getMovedReportID(reportAction, CONST.REPORT_MOVE_TYPE.TO);
                 expect(result).toBeUndefined();
             });
 
-            it('returns undefined for movedFrom type when movedFromReport is missing', () => {
-                const result = ModifiedExpenseMessage.getMovedReportID(reportAction, 'movedFrom');
+            it('returns undefined for REPORT_MOVE_TYPE.FROM type when movedFromReport is missing', () => {
+                const result = ModifiedExpenseMessage.getMovedReportID(reportAction, CONST.REPORT_MOVE_TYPE.FROM);
                 expect(result).toBeUndefined();
             });
         });
