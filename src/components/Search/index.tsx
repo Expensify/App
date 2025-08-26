@@ -541,7 +541,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         [data, reportActionsArray, selectedTransactions, outstandingReportsByPolicyID, setSelectedTransactions],
     );
 
-    const openReport = useCallback(
+    const onSelectRow = useCallback(
         (item: SearchListItem) => {
             if (isMobileSelectionModeEnabled) {
                 toggleTransaction(item);
@@ -791,7 +791,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 ref={searchListRef}
                 data={sortedSelectedData}
                 ListItem={ListItem}
-                onSelectRow={openReport}
+                onSelectRow={onSelectRow}
                 onCheckboxPress={toggleTransaction}
                 onAllCheckboxPress={toggleAllTransactions}
                 canSelectMultiple={canSelectMultiple}

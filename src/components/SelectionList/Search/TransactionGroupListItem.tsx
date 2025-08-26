@@ -94,9 +94,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         return transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     }, [transactions]);
 
-    const isSelectAllChecked = useMemo(() => {
-        return selectedItemsLength === transactions.length && transactions.length > 0;
-    }, [selectedItemsLength, transactions.length]);
+    const isSelectAllChecked = selectedItemsLength === transactions.length && transactions.length > 0;
 
     const [isExpanded, setIsExpanded] = useState(false);
 
