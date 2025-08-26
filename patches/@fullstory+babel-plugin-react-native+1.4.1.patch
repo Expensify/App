@@ -1,0 +1,13 @@
+diff --git a/node_modules/@fullstory/babel-plugin-react-native/lib/index.js b/node_modules/@fullstory/babel-plugin-react-native/lib/index.js
+index 40989ab..58dfaf5 100644
+--- a/node_modules/@fullstory/babel-plugin-react-native/lib/index.js
++++ b/node_modules/@fullstory/babel-plugin-react-native/lib/index.js
+@@ -16,7 +16,7 @@ var setRefBackwardCompat = function setRefBackwardCompat(refIdentifier, propsIde
+     return "".concat(refIdentifier, " = fs.applyFSPropertiesWithRef(").concat(refIdentifier, ");");
+   }
+   // React versions >= 19
+-  return "".concat(propsIdentifier, " = { ...").concat(propsIdentifier, ", ref: fs.applyFSPropertiesWithRef(").concat(propsIdentifier, "['ref']) }");
++  return "Object.assign(".concat(propsIdentifier, ", { ref: fs.applyFSPropertiesWithRef(").concat(propsIdentifier, "['ref']) });");
+ };
+ // We only add our ref to all Symbol(react.forward_ref) and Symbol(react.element) types, since they support refs
+ var _createFabricRefCode = function _createFabricRefCode(refIdentifier, typeIdentifier, propsIdentifier) {
