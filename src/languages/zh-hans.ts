@@ -103,6 +103,7 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
+    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -301,6 +302,7 @@ import type {
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
+    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -950,6 +952,7 @@ const translations = {
         distance: '距离',
         manual: '手册',
         scan: '扫描',
+        map: '地图',
     },
     spreadsheet: {
         upload: '上传电子表格',
@@ -1236,6 +1239,7 @@ const translations = {
             invalidCategoryLength: '类别名称超过255个字符。请缩短或选择不同的类别。',
             invalidTagLength: '标签名称超过255个字符。请缩短它或选择一个不同的标签。',
             invalidAmount: '请在继续之前输入有效金额',
+            invalidDistance: '请在继续之前输入有效的距离',
             invalidIntegerAmount: '请在继续之前输入一个完整的美元金额',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `最大税额为${amount}`,
             invalidSplit: '拆分的总和必须等于总金额',
@@ -3058,9 +3062,9 @@ const translations = {
         },
     },
     beneficialOwnerInfoStep: {
-        doYouOwn25percent: '您是否拥有25%或以上的',
-        doAnyIndividualOwn25percent: '是否有个人拥有25%或更多的股份',
-        areThereMoreIndividualsWhoOwn25percent: '是否有更多个人拥有25%或以上的股份',
+        doYouOwn25percent: ({companyName}: CompanyNameParams) => `您是否拥有${companyName}的25%或更多股份？`,
+        doAnyIndividualOwn25percent: ({companyName}: CompanyNameParams) => `是否有任何个人拥有${companyName}的25%或以上股份？`,
+        areThereMoreIndividualsWhoOwn25percent: ({companyName}: CompanyNameParams) => `还有其他个人持有${companyName} 25%或以上的股份吗？`,
         regulationRequiresUsToVerifyTheIdentity: '法规要求我们核实任何拥有超过25%业务的个人的身份。',
         companyOwner: '企业主',
         enterLegalFirstAndLastName: '所有者的法定姓名是什么？',
@@ -3141,21 +3145,6 @@ const translations = {
         enable2FAText: '我们非常重视您的安全。请立即设置双重身份验证（2FA），为您的账户增加一层额外的保护。',
         secureYourAccount: '保护您的账户',
     },
-    beneficialOwnersStep: {
-        additionalInformation: '附加信息',
-        checkAllThatApply: '检查所有适用项，否则留空。',
-        iOwnMoreThan25Percent: '我拥有超过25%的',
-        someoneOwnsMoreThan25Percent: '其他人拥有超过25%的股份',
-        additionalOwner: '额外的受益所有人',
-        removeOwner: '移除此受益所有人',
-        addAnotherIndividual: '添加另一位拥有超过25%股份的个人',
-        agreement: '协议：',
-        termsAndConditions: '条款和条件',
-        certifyTrueAndAccurate: '我保证所提供的信息真实准确。',
-        error: {
-            certify: '必须确认信息真实准确',
-        },
-    },
     completeVerificationStep: {
         completeVerification: '完成验证',
         confirmAgreements: '请确认以下协议。',
@@ -3234,10 +3223,11 @@ const translations = {
         regulationRequiresUs: '法规要求我们核实任何拥有超过25%业务的个人的身份。',
         iAmAuthorized: '我被授权使用公司银行账户进行业务支出。',
         iCertify: '我证明所提供的信息是真实准确的。',
-        termsAndConditions: '条款和条件',
+        iAcceptTheTermsAndConditions: `我接受<a href="https://cross-border.corpay.com/tc/">条款和条件</a>。`,
+        iAcceptTheTermsAndConditionsAccessibility: '我接受条款和条件。',
         accept: '接受并添加银行账户',
-        iConsentToThe: '我同意',
-        privacyNotice: '隐私声明',
+        iConsentToThePrivacyNotice: '我同意<a href="https://payments.corpay.com/compliance">隐私声明</a>。',
+        iConsentToThePrivacyNoticeAccessibility: '我同意隐私声明。',
         error: {
             authorized: '您必须是具有授权操作企业银行账户的控制官员。',
             certify: '请确认信息真实准确。',
@@ -3534,11 +3524,14 @@ const translations = {
             deepDiveExpensifyCard: `<muted-text-label>Expensify 卡交易将自动导出到与<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们集成</a>创建的 “Expensify 卡责任账户”。</muted-text-label>`,
         },
         receiptPartners: {
+            connect: '立即连接',
             uber: {
                 subtitle: '自动化整个组织的差旅和送餐费用。',
                 autoRemove: '邀请新工作区成员加入 Uber for Business',
                 autoInvite: '停用已从 Uber for Business 移除的工作区成员',
                 manageInvites: '管理邀请',
+                bannerTitle: 'Expensify + Uber 商务版',
+                bannerDescription: '连接 Uber for Business，以自动化整个组织的旅行和送餐费用。',
             },
         },
         perDiem: {
@@ -4927,6 +4920,7 @@ const translations = {
                 limit: '限制',
                 limitType: '限制类型',
                 name: '名称',
+                disabledApprovalForSmartLimitError: '请在<strong>工作流程 > 添加审批</strong>中启用审批，然后再设置智能限制',
             },
             deactivateCardModal: {
                 deactivate: '停用',
@@ -5170,7 +5164,8 @@ const translations = {
             reconciliationAccount: '对账账户',
             continuousReconciliation: '持续对账',
             saveHoursOnReconciliation: '通过让Expensify持续为您对账Expensify卡的对账单和结算，您可以在每个会计期间节省数小时的对账时间。',
-            enableContinuousReconciliation: '为了启用持续对账，请启用',
+            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
+                `<muted-text-label>要启用持续对账，请启用 ${connectionName} 的<a href="${accountingAdvancedSettingsLink}">自动同步</a>功能。</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: '选择用于对账您的 Expensify Card 支付的银行账户。',
                 accountMatches: '确保此账户与您的账户匹配',
@@ -5426,11 +5421,8 @@ const translations = {
                 perActiveMember: '每位活跃成员每月。',
                 perMember: '每位成员每月。',
             },
-            note: {
-                upgradeWorkspace: '升级您的工作区以访问此功能，或',
-                learnMore: '了解更多',
-                aboutOurPlans: '关于我们的计划和定价。',
-            },
+            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+                `<muted-text>升级您的工作区即可使用该功能，或<a href="${subscriptionLink}">进一步了解</a>我们的计划和定价。</muted-text>`,
             upgradeToUnlock: '解锁此功能',
             completed: {
                 headline: `您的工作区已升级！`,
@@ -5954,6 +5946,7 @@ const translations = {
         statements: '发言',
         unapprovedCash: '未经批准的现金',
         unapprovedCard: '未批准的卡',
+        reconciliation: '对账',
         saveSearch: '保存搜索',
         deleteSavedSearch: '删除已保存的搜索',
         deleteSavedSearchConfirm: '您确定要删除此搜索吗？',
