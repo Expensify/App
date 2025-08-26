@@ -75,6 +75,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
                         inputMode={CONST.INPUT_MODE.DECIMAL}
+                        uncontrolled
                     />
                 </View>
                 <View style={styles.mb5}>
@@ -87,6 +88,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
                         accessibilityLabel={translate('search.filters.amount.lessThan')}
                         role={CONST.ROLE.PRESENTATION}
                         inputMode={CONST.INPUT_MODE.DECIMAL}
+                        uncontrolled
                     />
                 </View>
             </FormProvider>

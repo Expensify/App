@@ -65,7 +65,6 @@ function AmountWithoutCurrencyInput(
             name={name}
             label={label}
             onChangeText={setNewAmount}
-            value={amount}
             defaultValue={defaultValue}
             accessibilityLabel={accessibilityLabel}
             role={role}
