@@ -30,6 +30,8 @@ import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import ONYXKEYS from '@src/ONYXKEYS';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
@@ -57,6 +59,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const shouldDisplayEmptyView = isEmpty && groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
     const isDisabledOrEmpty = isEmpty || isDisabled;
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {violations} = useTransactionsAndViolationsForReport(item.reportID);
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = groupItem.transactions.some((transaction) => transaction.isAmountColumnWide);
@@ -208,7 +211,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             </Text>
                         </View>
                     ) : (
-                        groupItem.transactions.map((transaction) => (
+                        groupItem.transactions.map((transaction) => {
+                            const transactionViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+
+                            return (
                             <OfflineWithFeedback
                                 key={transaction.transactionID}
                                 pendingAction={transaction.pendingAction}
@@ -231,10 +237,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                     style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
                                     isReportItemChild
                                     isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                    violations={transactionViolations}
                                 />
                             </OfflineWithFeedback>
-                        ))
-                    )}
+                            )
+                        }
+                    ))}
                 </View>
             </PressableWithFeedback>
         </OfflineWithFeedback>
