@@ -754,15 +754,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     if (shouldShowLoadingState) {
         return (
-            <SearchRowSkeleton
-                shouldAnimate
-                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
-            />
-        );
-    }
-
-    if (shouldShowLoadingState) {
-        return (
             <Animated.View
                 entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                 exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
