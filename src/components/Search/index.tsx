@@ -26,7 +26,7 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import Performance from '@libs/Performance';
 import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, generateReportID, isArchivedReport} from '@libs/ReportUtils';
-import {buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     getListItem,
     getSections,
@@ -37,12 +37,15 @@ import {
     isSearchDataLoaded,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
     isTaskListItemType,
+    isTransactionCardGroupListItemType,
     isTransactionGroupListItemType,
     isTransactionListItemType,
+    isTransactionMemberGroupListItemType,
+    isTransactionWithdrawalIDGroupListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
+import type {ArchivedReportsIDSet, SearchKey} from '@libs/SearchUIUtils';
 import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -183,6 +186,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         shouldShowSelectAllMatchingItems,
         areAllMatchingItemsSelected,
         selectAllMatchingItems,
+        shouldResetSearchQuery,
+        setShouldResetSearchQuery,
     } = useSearchContext();
     const [offset, setOffset] = useState(0);
 
@@ -227,49 +232,25 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
     const suggestedSearches = useMemo(() => getSuggestedSearches(defaultCardFeed?.id, accountID), [defaultCardFeed?.id, accountID]);
 
-    const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
-    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.hash === hash)?.key, [suggestedSearches, hash]);
+    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
+    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
 
     const shouldCalculateTotals = useMemo(() => {
         if (offset !== 0) {
             return false;
         }
-        if (queryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
+        if (!searchKey) {
             return false;
         }
 
-        let hasFeedFilter = false;
-        let hasPostedFilter = false;
-        let isReimbursable = false;
-
-        queryJSON.flatFilters.forEach((filter) => {
-            if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
-                hasFeedFilter = true;
-            } else if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED) {
-                hasPostedFilter = true;
-            } else if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE && filter.filters.at(0)?.value === CONST.SEARCH.BOOLEAN.YES) {
-                isReimbursable = true;
-            }
-        });
-
-        /**
-         * The total should be calculated for all accounting queries (statements, unapprovedCash and unapprovedCard)
-         * We can't use `searchKey` directly because we want to also match similar queries e.g. the statements suggested search query with a custom feed should be matched too.
-         */
-        const isStatementsLikeQuery = queryJSON.flatFilters.length === 2 && hasFeedFilter && hasPostedFilter;
-        const isUnapprovedCashLikeQuery =
-            queryJSON.flatFilters.length === 1 &&
-            isReimbursable &&
-            queryJSON.status[0] === CONST.SEARCH.STATUS.EXPENSE.DRAFTS &&
-            queryJSON.status[1] === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
-        const isUnapprovedCardLikeQuery =
-            queryJSON.flatFilters.length === 1 &&
-            hasFeedFilter &&
-            queryJSON.status[0] === CONST.SEARCH.STATUS.EXPENSE.DRAFTS &&
-            queryJSON.status[1] === CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING;
-
-        return isStatementsLikeQuery || isUnapprovedCashLikeQuery || isUnapprovedCardLikeQuery;
-    }, [offset, queryJSON.flatFilters, queryJSON.type, queryJSON.status]);
+        const eligibleSearchKeys: Partial<SearchKey[]> = [
+            CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
+            CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
+            CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
+            CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
+        ];
+        return eligibleSearchKeys.includes(searchKey);
+    }, [offset, searchKey]);
 
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(
@@ -566,6 +547,28 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 return;
             }
 
+            if (isTransactionMemberGroupListItemType(item)) {
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.accountID}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQuery}));
+                return;
+            }
+
+            if (isTransactionCardGroupListItemType(item)) {
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.cardID}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQuery}));
+                return;
+            }
+
+            if (isTransactionWithdrawalIDGroupListItemType(item)) {
+                return;
+            }
+
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const isTransactionItem = isTransactionListItemType(item);
 
@@ -611,7 +614,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         },
-        [hash, isMobileSelectionModeEnabled, toggleTransaction],
+        [hash, isMobileSelectionModeEnabled, toggleTransaction, queryJSON],
     );
 
     const onViewableItemsChanged = useCallback(
@@ -637,7 +640,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
+    const canSelectMultiple =
+        !isChat &&
+        !isTask &&
+        (!isSmallScreenWidth || isMobileSelectionModeEnabled) &&
+        groupBy !== CONST.SEARCH.GROUP_BY.FROM &&
+        groupBy !== CONST.SEARCH.GROUP_BY.CARD &&
+        groupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
     const ListItem = getListItem(type, status, groupBy);
     const sortedSelectedData = useMemo(
         () =>
@@ -666,6 +675,19 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     );
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
+
+    useEffect(() => {
+        const currentRoute = Navigation.getActiveRouteWithoutParams();
+        if (hasErrors && (currentRoute === '/' || (shouldResetSearchQuery && currentRoute === '/search'))) {
+            // Use requestAnimationFrame to safely update navigation params without overriding the current route
+            requestAnimationFrame(() => {
+                Navigation.setParams({q: buildCannedSearchQuery()});
+            });
+            if (shouldResetSearchQuery) {
+                setShouldResetSearchQuery(false);
+            }
+        }
+    }, [hasErrors, queryJSON, searchResults, shouldResetSearchQuery, setShouldResetSearchQuery]);
 
     const fetchMoreResults = useCallback(() => {
         if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
@@ -742,7 +764,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
-                    hash={hash}
+                    similarSearchHash={similarSearchHash}
                     type={type}
                     groupBy={groupBy}
                     hasResults={searchResults.search.hasResults}
@@ -760,7 +782,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowSorting = !groupBy;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
-
     return (
         <SearchScopeProvider isOnSearch>
             <SearchList
@@ -772,6 +793,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 onAllCheckboxPress={toggleAllTransactions}
                 canSelectMultiple={canSelectMultiple}
                 shouldPreventLongPressRow={isChat || isTask}
+                isFocused={isFocused}
                 SearchTableHeader={
                     !shouldShowTableHeader ? undefined : (
                         <SearchTableHeader
@@ -785,6 +807,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                             isAmountColumnWide={shouldShowAmountInWideColumn}
                             isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                             shouldShowSorting={shouldShowSorting}
+                            groupBy={groupBy}
                         />
                     )
                 }
@@ -806,6 +829,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={onLayout}
                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
             />
         </SearchScopeProvider>
     );

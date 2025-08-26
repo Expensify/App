@@ -1,6 +1,6 @@
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
-import {isTransactionCardGroupListItemType, isTransactionListItemType, isTransactionMemberGroupListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -15,6 +15,7 @@ const defaultSearchContextData: SearchContextData = {
     selectedReports: [],
     isOnSearch: false,
     shouldTurnOffSelectionMode: false,
+    shouldResetSearchQuery: false,
 };
 
 const defaultSearchContext: SearchContext = {
@@ -31,6 +32,7 @@ const defaultSearchContext: SearchContext = {
     setShouldShowFiltersBarLoading: () => {},
     shouldShowSelectAllMatchingItems: () => {},
     selectAllMatchingItems: () => {},
+    setShouldResetSearchQuery: () => {},
 };
 
 const Context = React.createContext<SearchContext>(defaultSearchContext);
@@ -76,27 +78,23 @@ function SearchContextProvider({children}: ChildrenProps) {
         if (data.length && data.every(isTransactionReportGroupListItemType)) {
             selectedReports = data
                 .filter((item) => isMoneyRequestReport(item) && item.transactions.length > 0 && item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected))
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
-        }
-
-        if (data.length && data.every(isTransactionMemberGroupListItemType)) {
-            selectedReports = data
-                .flatMap((item) => item.transactions)
-                .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
-        }
-
-        if (data.length && data.every(isTransactionCardGroupListItemType)) {
-            selectedReports = data
-                .flatMap((item) => item.transactions)
-                .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
-        }
-
-        if (data.length && data.every(isTransactionListItemType)) {
+                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action]}) => ({
+                    reportID,
+                    action,
+                    total,
+                    policyID,
+                    allActions,
+                }));
+        } else if (data.length && data.every(isTransactionListItemType)) {
             selectedReports = data
                 .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
+                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action]}) => ({
+                    reportID,
+                    action,
+                    total,
+                    policyID,
+                    allActions,
+                }));
         }
 
         setSearchContextData((prevState) => ({
@@ -173,6 +171,13 @@ function SearchContextProvider({children}: ChildrenProps) {
         [searchContextData.selectedTransactionIDs, searchContextData.selectedTransactions],
     );
 
+    const setShouldResetSearchQuery = useCallback((shouldReset: boolean) => {
+        setSearchContextData((prevState) => ({
+            ...prevState,
+            shouldResetSearchQuery: shouldReset,
+        }));
+    }, []);
+
     const searchContext = useMemo<SearchContext>(
         () => ({
             ...searchContextData,
@@ -188,6 +193,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             shouldShowSelectAllMatchingItems,
             areAllMatchingItemsSelected,
             selectAllMatchingItems,
+            setShouldResetSearchQuery,
         }),
         [
             searchContextData,
@@ -200,6 +206,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             shouldShowSelectAllMatchingItems,
             showSelectAllMatchingItems,
             areAllMatchingItemsSelected,
+            setShouldResetSearchQuery,
         ],
     );
 

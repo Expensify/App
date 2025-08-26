@@ -280,7 +280,7 @@ function useSelectedTransactionsActions({
             return canMoveExpense;
         });
 
-        const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
+        const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
         if (canSelectedExpensesBeMoved && canUserPerformWriteAction) {
             options.push({
                 text: translate('iou.moveExpenses', {count: selectedTransactionIDs.length}),
