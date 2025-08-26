@@ -689,12 +689,12 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [hasErrors, queryJSON, searchResults, shouldResetSearchQuery, setShouldResetSearchQuery]);
 
     const fetchMoreResults = useCallback(() => {
-        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems || offset > data.length - CONST.SEARCH.RESULTS_PAGE_SIZE) {
             return;
         }
-        if (offset <= data.length - 50) {
-            setOffset((prev) => prev + CONST.SEARCH.RESULTS_PAGE_SIZE);
-        }
+
+        setOffset((prev) => prev + CONST.SEARCH.RESULTS_PAGE_SIZE);
     }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState, offset, data.length]);
 
     const toggleAllTransactions = useCallback(() => {
