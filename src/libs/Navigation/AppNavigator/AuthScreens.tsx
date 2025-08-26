@@ -113,7 +113,6 @@ function initializePusher() {
         User.subscribeToUserEvents();
     });
 }
-
 let timezone: Timezone | null;
 let currentAccountID = -1;
 let isLoadingApp = false;
@@ -731,6 +730,15 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     name={SCREENS.TRANSACTION_RECEIPT}
                     options={attachmentModalScreenOptions}
                     getComponent={loadAttachmentModalScreen}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW}
+                    options={{
+                        headerShown: false,
+                        presentation: Presentation.TRANSPARENT_MODAL,
+                    }}
+                    getComponent={loadReceiptView}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen

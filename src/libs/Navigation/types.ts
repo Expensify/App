@@ -11,16 +11,13 @@ import type {
     Route,
 } from '@react-navigation/native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
-import type {ProfileAvatarScreenParams} from '@pages/media/AttachmentModalScreen/routes/ProfileAvatarModalContent';
-import type {ReportAddAttachmentScreenParams} from '@pages/media/AttachmentModalScreen/routes/report/ReportAddAttachmentModalContent';
-import type {ReportAttachmentScreenParams} from '@pages/media/AttachmentModalScreen/routes/report/ReportAttachmentModalContent';
-import type {ReportAvatarScreenParams} from '@pages/media/AttachmentModalScreen/routes/report/ReportAvatarModalContent';
-import type {TransactionReceiptScreenParams} from '@pages/media/AttachmentModalScreen/routes/TransactionReceiptModalContent';
-import type {WorkspaceAvatarScreenParams} from '@pages/media/AttachmentModalScreen/routes/WorkspaceAvatarModalContent';
+import type {AvatarSource} from '@libs/UserUtils';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -192,6 +189,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.MEMBERS_IMPORTED]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
@@ -1444,7 +1444,7 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.RECEIPT_VIEW_MODAL]: {
+    [SCREENS.MONEY_REQUEST.RECEIPT_VIEW]: {
         transactionID: string;
         backTo: Routes;
     };
@@ -1790,6 +1790,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: NavigatorScreenParams<SplitExpenseParamList>;
     [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: NavigatorScreenParams<{reportId: string | undefined}>;
     [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: NavigatorScreenParams<ScheduleCallParamList>;
+    [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: NavigatorScreenParams<ReportChangeApproverParamList>;
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
 };
 
@@ -2092,12 +2093,68 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.TRACK_EXPENSE]: undefined;
     [SCREENS.SUBMIT_EXPENSE]: undefined;
 
-    [SCREENS.REPORT_ATTACHMENTS]: ReportAttachmentScreenParams;
-    [SCREENS.REPORT_ADD_ATTACHMENT]: ReportAddAttachmentScreenParams;
-    [SCREENS.REPORT_AVATAR]: ReportAvatarScreenParams;
-    [SCREENS.PROFILE_AVATAR]: ProfileAvatarScreenParams;
-    [SCREENS.WORKSPACE_AVATAR]: WorkspaceAvatarScreenParams;
-    [SCREENS.TRANSACTION_RECEIPT]: TransactionReceiptScreenParams;
+    [SCREENS.REPORT_ATTACHMENTS]: {
+        reportID: string;
+        accountID: number;
+        source: string;
+        attachmentID?: string;
+        type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+        fallbackSource?: AvatarSource;
+        isAuthTokenRequired?: boolean;
+        originalFileName?: string;
+        attachmentLink?: string;
+        headerTitle?: string;
+        hashKey?: number;
+        maybeIcon?: boolean;
+        onShow?: () => void;
+        onClose?: () => void;
+    };
+    [SCREENS.REPORT_ADD_ATTACHMENT]: {
+        reportID: string;
+        accountID: number;
+        attachmentID?: string;
+        file?: FileObject | FileObject[];
+        source?: string;
+        type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+        isAuthTokenRequired?: boolean;
+        originalFileName?: string;
+        attachmentLink?: string;
+        hashKey?: number;
+        headerTitle?: string;
+        shouldDisableSendButton?: boolean;
+        onConfirm?: (file: FileObject | FileObject[]) => void;
+        onShow?: () => void;
+        onClose?: () => void;
+    };
+    [SCREENS.REPORT_AVATAR]: {
+        reportID: string;
+        policyID?: string;
+        onShow?: () => void;
+        onClose?: () => void;
+    };
+    [SCREENS.PROFILE_AVATAR]: {
+        accountID: string;
+        backTo?: Routes;
+        onShow?: () => void;
+        onClose?: () => void;
+    };
+    [SCREENS.WORKSPACE_AVATAR]: {
+        policyID: string;
+        letter?: UpperCaseCharacters;
+        onShow?: () => void;
+        onClose?: () => void;
+    };
+    [SCREENS.TRANSACTION_RECEIPT]: {
+        reportID: string;
+        transactionID: string;
+        readonly?: string;
+        isFromReviewDuplicates?: string;
+        action?: IOUAction;
+        iouType?: IOUType;
+        mergeTransactionID?: string;
+        onShow?: () => void;
+        onClose?: () => void;
+    };
 
     [SCREENS.WORKSPACE_JOIN_USER]: {
         policyID: string;
@@ -2121,6 +2178,13 @@ type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: NavigatorScreenParams<TestDriveDemoNavigatorParamList>;
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
+    [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: {
+        reportID: string;
+        transactionID: string;
+        action: IOUAction;
+        iouType: IOUType;
+        readonly: string;
+    };
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
     [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
@@ -2250,6 +2314,12 @@ type ScheduleCallParamList = {
     };
 };
 
+type ReportChangeApproverParamList = {
+    [SCREENS.REPORT_CHANGE_APPROVER.ROOT]: {
+        reportID: string;
+    };
+};
+
 type TestToolsModalModalNavigatorParamList = {
     [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
         backTo?: Routes;
@@ -2353,6 +2423,7 @@ export type {
     SplitExpenseParamList,
     SetParamsAction,
     WorkspacesTabNavigatorName,
+    ReportChangeApproverParamList,
     TestToolsModalModalNavigatorParamList,
     MergeTransactionNavigatorParamList,
 };

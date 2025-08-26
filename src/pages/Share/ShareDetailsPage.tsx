@@ -107,7 +107,7 @@ function ShareDetailsPage({
         }
 
         if (isTextShared) {
-            addComment(report.reportID, message);
+            addComment(report.reportID, report.reportID, message);
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
             Navigation.navigate(routeToNavigate, {forceReplace: true});
             return;
@@ -129,7 +129,7 @@ function ShareDetailsPage({
                     );
                 }
                 if (report.reportID) {
-                    addAttachment(report.reportID, file, message);
+                    addAttachment(report.reportID, report.reportID, file, message);
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);

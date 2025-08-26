@@ -47,7 +47,7 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
         );
     }
 
-    if (route.name === SCREENS.TRANSACTION_RECEIPT) {
+    if (route.name === SCREENS.TRANSACTION_RECEIPT || route.name === SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW) {
         return (
             <TransactionReceiptModalContent
                 route={{...route, params: paramsWithContext} as RouteType<typeof SCREENS.TRANSACTION_RECEIPT>}
