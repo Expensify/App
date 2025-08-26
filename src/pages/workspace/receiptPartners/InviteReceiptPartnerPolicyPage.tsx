@@ -22,6 +22,7 @@ import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
@@ -208,33 +209,39 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
     }
 
     return (
-        <ScreenWrapper testID={InviteReceiptPartnerPolicyPage.displayName}>
-            <HeaderWithBackButton
-                title={translate('workspace.receiptPartners.uber.sendInvites')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <SelectionList
-                canSelectMultiple
-                textInputLabel={textInputLabel}
-                textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
-                sections={sections}
-                headerContent={<Text style={[styles.ph5, styles.pb3]}>{translate('workspace.receiptPartners.uber.sendInvitesDescription')}</Text>}
-                shouldShowTextInputAfterHeader
-                shouldShowListEmptyContent={false}
-                shouldUpdateFocusedIndex
-                shouldShowHeaderMessageAfterHeader
-                headerMessage={headerMessage}
-                ListItem={UserListItem}
-                shouldUseDefaultRightHandSideCheckmark
-                onSelectRow={toggleOption}
-                showConfirmButton
-                confirmButtonText={translate('workspace.receiptPartners.uber.confirm')}
-                onConfirm={handleConfirm}
-                isConfirmButtonDisabled={selectedOptions.length === 0}
-                addBottomSafeAreaPadding
-            />
-        </ScreenWrapper>
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
+        >
+            <ScreenWrapper testID={InviteReceiptPartnerPolicyPage.displayName}>
+                <HeaderWithBackButton
+                    title={translate('workspace.receiptPartners.uber.sendInvites')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                <SelectionList
+                    canSelectMultiple
+                    textInputLabel={textInputLabel}
+                    textInputValue={searchTerm}
+                    onChangeText={setSearchTerm}
+                    sections={sections}
+                    headerContent={<Text style={[styles.ph5, styles.pb3]}>{translate('workspace.receiptPartners.uber.sendInvitesDescription')}</Text>}
+                    shouldShowTextInputAfterHeader
+                    shouldShowListEmptyContent={false}
+                    shouldUpdateFocusedIndex
+                    shouldShowHeaderMessageAfterHeader
+                    headerMessage={headerMessage}
+                    ListItem={UserListItem}
+                    shouldUseDefaultRightHandSideCheckmark
+                    onSelectRow={toggleOption}
+                    showConfirmButton
+                    confirmButtonText={translate('workspace.receiptPartners.uber.confirm')}
+                    onConfirm={handleConfirm}
+                    isConfirmButtonDisabled={selectedOptions.length === 0}
+                    addBottomSafeAreaPadding
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
