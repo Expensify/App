@@ -1856,7 +1856,7 @@ function createTypeMenuSections(
                                               if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
                                                   const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
                                                   Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID}));
+                                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
                                                   });
                                                   return;
                                               }
@@ -1918,7 +1918,7 @@ function createTypeMenuSections(
             accountingSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.STATEMENTS],
                 emptyState: {
-                    headerMedia: DotLottieAnimations.GenericEmptyState,
+                    headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyStatementsResults.title',
                     subtitle: 'search.searchResults.emptyStatementsResults.subtitle',
                 },
