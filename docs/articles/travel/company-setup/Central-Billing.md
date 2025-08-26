@@ -8,7 +8,16 @@ keywords: [New Expensify, central billing, Expensify Travel, travel card, virtua
 
 Central Billing allows Workspace Admins to set up a company card for Expensify Travel. This simplifies payments, eliminates reimbursement delays, and gives organizations greater control over travel spending.
 
-# Central Billing
+---
+
+## How to access the travel tool
+
+- **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
+- **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
+
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+
+---
 
 ## What is Central Billing?
 
@@ -86,12 +95,12 @@ Only **Travel Admins** can enable and manage Central Billing. Once enabled, Trav
 
 ---
 
-## Reconciling a central billing card
+## Reconciling a Central Billing card
 
 You can use the Reporting tool within Expensify Travel to assist with reconciling travel purchases. 
 
 1. Select **Analytics > Company Reports**.
-2. Expand **Spend**
+2. Expand **Spend**.
 3. Select the different types of travel or all travel to view spending. 
 4. You can also use the **Reconciliation dashboard** within Expensify for purchases made with company cards. For Expensify Classic, see [this article on reconciling company card expenses](https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Reconcile-Company-Card-Expenses).  
 
@@ -107,12 +116,9 @@ Yes. Travel cards can only be used for bookings made through Expensify Travel. M
 
 ### Can I disable a Central Billing card?
 Yes. To remove a card:  
-1. Go to **Program > Company > Payment > Payment Methods**  
-2. Click the three dots next to the card  
-3. Select **Remove Payment Method**  
-4. All pending bookings tied to that card will be automatically suspended  
-
-### Is Central Billing available in New Expensify?
-Yes. Central Billing is currently supported in New Expensify.  
+1. Go to **Program > Company > Payment > Payment Methods**  .
+2. Click the three dots next to the card.  
+3. Select **Remove Payment Method**.  
+4. All pending bookings tied to that card will be automatically suspended.  
 
 </div>
