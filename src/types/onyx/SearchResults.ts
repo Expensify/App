@@ -6,6 +6,7 @@ import type TransactionListItem from '@components/SelectionList/Search/Transacti
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 import type {ACHAccount, ApprovalRule, ExpenseRule} from './Policy';
 import type {PolicyEmployeeList} from './PolicyEmployee';
@@ -129,8 +130,11 @@ type SearchReport = {
     /** The date the report was created */
     created?: string;
 
-    /** The action that can be performed for the report */
+    /** The main action that can be performed for the report */
     action?: SearchTransactionAction;
+
+    /** The available actions that can be performed for the report */
+    allActions?: SearchTransactionAction[];
 
     /** The type of chat if this is a chat report */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -400,11 +404,17 @@ type SearchTransaction = {
     /** The ID of the report the transaction is associated with */
     reportID: string;
 
+    /** The name of the file used for a receipt */
+    filename?: string;
+
     /** The report ID of the transaction thread associated with the transaction */
     transactionThreadReportID: string;
 
-    /** The action that can be performed for the transaction */
+    /** The main action that can be performed for the transaction */
     action: SearchTransactionAction;
+
+    /** The available actions that can be performed for the transaction */
+    allActions: SearchTransactionAction[];
 
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
@@ -426,6 +436,12 @@ type SearchTransaction = {
 
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction;
+
+    /** The CC for this transaction */
+    cardID?: number;
+
+    /** The display name of the purchaser card, if any */
+    cardName?: string;
 };
 
 /** Model of tasks search result */
@@ -521,7 +537,7 @@ type SearchWithdrawalIDGroup = {
     accountNumber: string;
 
     /** Bank name */
-    addressName: string;
+    bankName: BankName;
 
     /** When the withdrawal completed */
     debitPosted: string;
