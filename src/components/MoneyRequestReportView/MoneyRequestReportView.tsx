@@ -143,7 +143,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const reportHeaderView = useMemo(() => {
             if (isTransactionThreadView) {
                 const transactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
-                const transactionViolations = transactionID ? violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [] : [];
+                const transactionViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
                 return (
                     <MoneyRequestHeader
                         report={report}
