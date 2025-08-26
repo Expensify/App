@@ -5,6 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
+import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getConnectedIntegration,
@@ -13,6 +14,8 @@ import {
     getValidConnectedIntegration,
     hasIntegrationAutoSync,
     isInstantSubmitEnabled,
+    isMemberPolicyAdmin,
+    isPolicyAdmin,
     isPolicyMember,
     isPreferredExporter,
     isSubmitAndClose,
@@ -111,7 +114,7 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     const isOpenReport = isOpenReportUtils(report);
     const isPolicyExpenseChat = !!policy?.isPolicyExpenseChatEnabled;
     const currentUserEmail = getCurrentUserEmail();
-    const userIsPolicyMember = isPolicyMember(currentUserEmail, report.policyID);
+    const userIsPolicyMember = isPolicyMember(policy, currentUserEmail);
 
     if (!(userIsPolicyMember && isPolicyExpenseChat)) {
         return false;
@@ -298,7 +301,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
 
-function isExportAction(report: Report, policy?: Policy, reportActions?: ReportAction[]): boolean {
+function isExportAction(report: Report, policy?: Policy): boolean {
     if (!policy) {
         return false;
     }
@@ -335,10 +338,9 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
     const isReportReimbursed = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
     const connectedIntegration = getConnectedIntegration(policy);
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
-    const isReportExported = isExportedUtils(reportActions);
     const isReportFinished = isReportApproved || isReportReimbursed || isReportClosed;
 
-    return isAdmin && isReportFinished && syncEnabled && !isReportExported;
+    return isAdmin && isReportFinished && syncEnabled;
 }
 
 function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
@@ -462,7 +464,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     }
 
     if (isInvoiceReport) {
-        return report?.ownerAccountID === getCurrentUserAccountID() && isReportOpenOrProcessing;
+        return report?.ownerAccountID === getCurrentUserAccountID() && isReportOpenOrProcessing && policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     }
 
     // Users cannot delete a report in the unreported or IOU cases, but they can delete individual transactions.
@@ -679,6 +681,17 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 
+    // @todo we will remove checking whether current manager is admin in PR #68353
+    // When report manager is not the policy admin and current user is policy admin, allow changing the approver
+    if (
+        !isMemberPolicyAdmin(policy, getLoginByAccountID(report.managerID ?? CONST.DEFAULT_NUMBER_ID)) &&
+        isExpenseReportUtils(report) &&
+        isProcessingReportUtils(report) &&
+        isPolicyAdmin(policy)
+    ) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
+    }
+
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
     if (isDeleteAction(report, reportTransactions, reportActions ?? [], policy)) {
@@ -696,7 +709,7 @@ function getSecondaryExportReportActions(
     customInAppTemplates?: ExportTemplate[],
 ): Array<ValueOf<string>> {
     const options: Array<ValueOf<string>> = [];
-    if (isExportAction(report, policy, reportActions)) {
+    if (isExportAction(report, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
     }
 

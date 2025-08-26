@@ -316,4 +316,34 @@ describe('SearchQueryUtils', () => {
             expect(sortedOptions).toEqual(['A', 'B', 'C']);
         });
     });
+
+    describe('similarSearchHash', () => {
+        it('should return same similarSearchHash for two queries that are the same but use different sorting', () => {
+            const queryJSONa = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense category:none,Uncategorized,Maintenance');
+            const queryJSONb = buildSearchQueryJSON('sortBy:date sortOrder:asc type:expense category:none,Uncategorized,Maintenance');
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+        });
+
+        it('should return same similarSearchHash for two queries that have same filters but different values', () => {
+            const queryJSONa = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense feed:"oauth.americanexpressfdx.com 1001" posted:last-statement');
+            const queryJSONb = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense feed:"1234_stripe" posted:last-month');
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+        });
+
+        it('should return same similarSearchHash for queries with a date range', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense withdrawal-type:reimbursement withdrawn:last-month');
+            const queryJSONb = buildSearchQueryJSON('type:expense withdrawal-type:reimbursement withdrawn>2025-01-01 withdrawn<2025-01-03');
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+        });
+
+        it('should return different similarSearchHash for two queries that have different types', () => {
+            const queryJSONa = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense feed:"oauth.americanexpressfdx.com 1001"');
+            const queryJSONb = buildSearchQueryJSON('sortBy:date sortOrder:desc type:trip feed:"oauth.americanexpressfdx.com 1001"');
+
+            expect(queryJSONa?.similarSearchHash).not.toEqual(queryJSONb?.similarSearchHash);
+        });
+    });
 });
