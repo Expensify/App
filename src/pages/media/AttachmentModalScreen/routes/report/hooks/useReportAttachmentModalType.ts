@@ -9,10 +9,11 @@ function isPdfFile(sourceURL: string, fileObject: FileObject) {
     return !!sourceURL && (Str.isPDF(sourceURL) || (fileObject && Str.isPDF(fileObject.name ?? translateLocal('attachmentView.unknownFilename'))));
 }
 
-function useReportAttachmentModalType(file: FileObject | FileObject[] | undefined) {
+function useReportAttachmentModalType(file?: FileObject | FileObject[]) {
     const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     useEffect(() => {
         if (!file) {
+            setModalType(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
             return;
         }
 

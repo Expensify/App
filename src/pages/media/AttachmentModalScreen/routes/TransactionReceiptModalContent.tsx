@@ -8,6 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
@@ -16,22 +17,14 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentModalBaseContentProps, ThreeDotsMenuItemGenerator} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
-import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
-type TransactionReceiptScreenParams = Omit<AttachmentModalScreenParams, 'reportID'> & {
-    reportID: string;
-    transactionID: string;
-    readonly?: string;
-    isFromReviewDuplicates?: string;
-    action?: IOUAction;
-    iouType?: IOUType;
-    mergeTransactionID?: string;
-};
+type TransactionReceiptScreenParams = Omit<AttachmentModalScreenParams, 'reportID'> &
+    (RootNavigatorParamList[typeof SCREENS.TRANSACTION_RECEIPT] | RootNavigatorParamList[typeof SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]);
 
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
     const {translate} = useLocalize();
@@ -59,7 +52,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const isLocalFile = receiptURIs.isLocalFile;
     const isAuthTokenRequired = !isLocalFile && !isDraftTransaction;
     const readonly = readonlyParam === 'true';
-    const isFromReviewDuplicates = !!isFromReviewDuplicatesProp;
+    const isFromReviewDuplicates = isFromReviewDuplicatesProp === 'true';
     const source = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);

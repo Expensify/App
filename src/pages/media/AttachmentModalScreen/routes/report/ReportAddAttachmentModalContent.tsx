@@ -10,7 +10,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {openReport} from '@libs/actions/Report';
 import {isMultipleAttachmentsValidationResult, isSingleAttachmentValidationResult} from '@libs/AttachmentValidation';
-import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {getFileValidationErrorText} from '@libs/fileDownload/FileUtils';
 import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -41,51 +40,10 @@ type ReportAddAttachmentScreenParams = AttachmentModalScreenParams & {
     source?: string;
 };
 
-function AddAttachmentModalCarouselView({fileToDisplay, files}: AttachmentContentProps) {
-    const {setAttachmentError, clearAttachmentErrors} = useAttachmentErrors();
-    const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
-
-    const [page, setPage] = useState<number>(0);
-    const attachments = useMemo(() => {
-        if (Array.isArray(files)) {
-            return files?.map((file) => convertFileToAttachment(file)) ?? [];
-        }
-
-        if (!files) {
-            return [];
-        }
-
-        return [convertFileToAttachment(files)];
-    }, [files]);
-    const currentAttachment = useMemo(() => convertFileToAttachment(fileToDisplay), [fileToDisplay]);
-
-    useEffect(() => {
-        clearAttachmentErrors();
-    }, [clearAttachmentErrors]);
-
-    if (attachments.length === 0 || !currentAttachment) {
-        return null;
-    }
-
-    return (
-        <AttachmentCarouselView
-            attachments={attachments}
-            source={currentAttachment.source}
-            page={page}
-            setPage={setPage}
-            autoHideArrows={autoHideArrows}
-            cancelAutoHideArrow={cancelAutoHideArrows}
-            setShouldShowArrows={setShouldShowArrows}
-            onAttachmentError={setAttachmentError}
-            shouldShowArrows={shouldShowArrows}
-        />
-    );
-}
-
 function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ADD_ATTACHMENT>) {
     const {
         attachmentID,
-        file: fileParam,
+        file,
         source: sourceParam,
         isAuthTokenRequired,
         attachmentLink,
@@ -96,6 +54,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         headerTitle,
         onConfirm: onConfirmParam,
         onShow,
+        onClose,
     } = route.params;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
@@ -107,7 +66,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         canBeMissing: false,
     });
 
-    useNavigateToReportOnRefresh({source: sourceParam, file: fileParam, reportID});
+    useNavigateToReportOnRefresh({source: sourceParam, file, reportID});
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {isOffline} = useNetwork();
@@ -134,13 +93,8 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         fetchReport();
     }, [reportID, fetchReport, shouldFetchReport]);
 
-    const onClose = useCallback(() => {
-        // This enables Composer refocus when the attachments modal is closed by the browser navigation
-        ComposerFocusManager.setReadyToFocus();
-    }, []);
-
     const [source, setSource] = useState(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined));
-    const [filesToValidate, setFilesToValidate] = useState(() => fileParam);
+    const [filesToValidate, setFilesToValidate] = useState(() => file);
     const {validFilesToUpload, fileError, isFileErrorModalVisible} = useFileUploadValidation({
         files: filesToValidate,
         onValid: (result) => {
@@ -153,14 +107,14 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     });
     const isMultipleFiles = useMemo(() => Array.isArray(validFilesToUpload) && validFilesToUpload.length > 0, [validFilesToUpload]);
 
-    const modalType = useReportAttachmentModalType(validFilesToUpload ?? fileParam);
+    const modalType = useReportAttachmentModalType(validFilesToUpload ?? file);
 
     const onConfirm = useCallback(
-        (file: FileObject | FileObject[]) => {
+        (f: FileObject | FileObject[]) => {
             if (Array.isArray(validFilesToUpload) && validFilesToUpload.length > 0) {
                 onConfirmParam?.(validFilesToUpload);
             } else {
-                onConfirmParam?.(file);
+                onConfirmParam?.(f);
             }
         },
         [onConfirmParam, validFilesToUpload],
@@ -188,8 +142,8 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             return;
         }
 
-        setFilesToValidate(fileParam);
-    }, [fileError, fileParam]);
+        setFilesToValidate(file);
+    }, [fileError, file]);
 
     const ExtraModals = useMemo(
         () => (
@@ -259,6 +213,47 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     );
 }
 ReportAddAttachmentModalContent.displayName = 'ReportAddAttachmentModalContent';
+
+function AddAttachmentModalCarouselView({fileToDisplay, files}: AttachmentContentProps) {
+    const {setAttachmentError, clearAttachmentErrors} = useAttachmentErrors();
+    const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
+
+    const [page, setPage] = useState<number>(0);
+    const attachments = useMemo(() => {
+        if (Array.isArray(files)) {
+            return files?.map((file) => convertFileToAttachment(file)) ?? [];
+        }
+
+        if (!files) {
+            return [];
+        }
+
+        return [convertFileToAttachment(files)];
+    }, [files]);
+    const currentAttachment = useMemo(() => convertFileToAttachment(fileToDisplay), [fileToDisplay]);
+
+    useEffect(() => {
+        clearAttachmentErrors();
+    }, [clearAttachmentErrors]);
+
+    if (attachments.length === 0 || !currentAttachment) {
+        return null;
+    }
+
+    return (
+        <AttachmentCarouselView
+            attachments={attachments}
+            source={currentAttachment.source}
+            page={page}
+            setPage={setPage}
+            autoHideArrows={autoHideArrows}
+            cancelAutoHideArrow={cancelAutoHideArrows}
+            setShouldShowArrows={setShouldShowArrows}
+            onAttachmentError={setAttachmentError}
+            shouldShowArrows={shouldShowArrows}
+        />
+    );
+}
 
 export default ReportAddAttachmentModalContent;
 export type {ReportAddAttachmentScreenParams};

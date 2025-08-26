@@ -56,17 +56,17 @@ function ShareDetailsPage({
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
     const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
 
-    const fileName = currentAttachment?.content.split('/').pop();
+    const originalFileName = currentAttachment?.content.split('/').pop();
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
     const showAttachmentModalScreen = useCallback(() => {
-        reportAttachmentsContext.setCurrentAttachment({headerTitle: fileName, originalFileName: fileName, fallbackSource: FallbackAvatar});
+        reportAttachmentsContext.setCurrentAttachment({headerTitle: originalFileName, originalFileName, fallbackSource: FallbackAvatar});
         Navigation.navigate(
             ROUTES.REPORT_ATTACHMENTS.getRoute({
                 source: currentAttachment?.content,
             }),
         );
-    }, [reportAttachmentsContext, fileName, currentAttachment]);
+    }, [reportAttachmentsContext, originalFileName, currentAttachment]);
 
     useEffect(() => {
         if (!currentAttachment?.content || errorTitle) {

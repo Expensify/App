@@ -5,9 +5,9 @@ import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import ROUTES from '@src/ROUTES';
 
 type UseReportNavigationFallbackProps = {
-    source: AvatarSource | undefined;
-    file: FileObject | FileObject[] | undefined;
-    reportID: string | undefined;
+    source?: AvatarSource;
+    file?: FileObject | FileObject[];
+    reportID?: string;
 };
 
 // If the user refreshes during the send attachment flow, we need to navigate back to the report or home

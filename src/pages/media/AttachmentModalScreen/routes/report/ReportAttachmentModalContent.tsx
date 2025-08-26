@@ -5,7 +5,6 @@ import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {openReport} from '@libs/actions/Report';
-import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -30,22 +29,7 @@ type ReportAttachmentScreenParams = Omit<AttachmentModalScreenParams, 'reportID'
 };
 
 function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ATTACHMENTS>) {
-    const {
-        attachmentID,
-        type,
-        file: fileParam,
-        source: sourceParam,
-        isAuthTokenRequired,
-        attachmentLink,
-        originalFileName,
-        accountID,
-        reportID,
-        hashKey,
-        shouldDisableSendButton,
-        headerTitle,
-        onConfirm,
-        onShow,
-    } = route.params;
+    const {attachmentID, type, source: sourceParam, isAuthTokenRequired, attachmentLink, originalFileName, accountID, reportID, hashKey, headerTitle, onShow, onClose} = route.params;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
@@ -56,7 +40,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         canBeMissing: false,
     });
 
-    useNavigateToReportOnRefresh({source: sourceParam, file: fileParam, reportID});
+    useNavigateToReportOnRefresh({source: sourceParam, reportID});
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {isOffline} = useNetwork();
@@ -108,51 +92,32 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         [reportID, type, accountID, hashKey],
     );
 
-    const onClose = useCallback(() => {
-        // This enables Composer refocus when the attachments modal is closed by the browser navigation
-        ComposerFocusManager.setReadyToFocus();
-    }, []);
-
     const onDownloadAttachment = useDownloadAttachment({
         isAuthTokenRequired,
     });
 
     const source = useMemo(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined), [sourceParam]);
-    const modalType = useReportAttachmentModalType(fileParam);
-
-    const contentTypeProps = useMemo<AttachmentModalBaseContentProps>(
-        () =>
-            fileParam
-                ? {
-                      file: fileParam,
-                  }
-                : {
-                      // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
-                      type,
-                      report,
-                      shouldShowNotFoundPage: !isLoading && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID,
-                      isAuthTokenRequired: !!isAuthTokenRequired,
-                      attachmentLink: attachmentLink ?? '',
-                      originalFileName: originalFileName ?? '',
-                      isLoading,
-                  },
-        [attachmentLink, fileParam, isAuthTokenRequired, isLoading, originalFileName, report, type],
-    );
+    const modalType = useReportAttachmentModalType();
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
-            ...contentTypeProps,
+            // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
+            type,
+            report,
+            shouldShowNotFoundPage: !isLoading && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID,
+            isAuthTokenRequired: !!isAuthTokenRequired,
+            attachmentLink: attachmentLink ?? '',
+            originalFileName: originalFileName ?? '',
+            isLoading,
             source,
             attachmentID,
             accountID,
             headerTitle,
-            shouldDisableSendButton,
             submitRef,
-            onConfirm,
             onDownloadAttachment,
             onCarouselAttachmentChange,
         }),
-        [accountID, attachmentID, contentTypeProps, headerTitle, onCarouselAttachmentChange, onConfirm, onDownloadAttachment, shouldDisableSendButton, source],
+        [accountID, attachmentID, attachmentLink, headerTitle, isAuthTokenRequired, isLoading, onCarouselAttachmentChange, onDownloadAttachment, originalFileName, report, source, type],
     );
 
     return (
