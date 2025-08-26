@@ -7951,10 +7951,10 @@ function getNavigationUrlOnMoneyRequestDelete(transactionID: string | undefined,
         return undefined;
     }
 
-    const {shouldDeleteIOUReport, iouReport} = prepareToCleanUpMoneyRequest(transactionID, reportAction);
+    const {shouldDeleteTransactionThread, shouldDeleteIOUReport, iouReport} = prepareToCleanUpMoneyRequest(transactionID, reportAction);
 
     // Determine which report to navigate back to
-    if (iouReport && isSingleTransactionView && !shouldDeleteIOUReport) {
+    if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
         return ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID);
     }
 
@@ -7991,10 +7991,9 @@ function getNavigationUrlAfterTrackExpenseDelete(
     }
 
     const transactionThreadID = reportAction.childReportID;
-    const shouldDeleteTransactionThread = transactionThreadID ? (reportAction?.childVisibleActionCount ?? 0) === 0 : false;
 
     // Only navigate if in single transaction view and the thread will be deleted
-    if (isSingleTransactionView && shouldDeleteTransactionThread && chatReport?.reportID) {
+    if (isSingleTransactionView && chatReport?.reportID) {
         // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
         return ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID);
     }
