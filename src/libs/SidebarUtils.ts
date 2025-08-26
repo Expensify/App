@@ -6,17 +6,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {PartialPolicyForSidebar, ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    Card,
-    DraftReportComments,
-    PersonalDetails,
-    PersonalDetailsList,
-    ReportActions,
-    ReportAttributesDerivedValue,
-    ReportNameValuePairs,
-    Transaction,
-    TransactionViolation,
-} from '@src/types/onyx';
+import type {Card, PersonalDetails, PersonalDetailsList, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -24,7 +14,7 @@ import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import {extractCollectionItemID} from './CollectionUtils';
+import {hasValidDraftComment} from './DraftCommentUtils';
 import {translateLocal} from './Localize';
 import {getLastActorDisplayName, getLastMessageTextForReport, getPersonalDetailsForAccountIDs, shouldShowLastActorDisplayName} from './OptionsListUtils';
 import Parser from './Parser';
@@ -56,7 +46,6 @@ import {
     getReportAction,
     getReportActionMessageText,
     getRetractedMessage,
-    getSortedReportActions,
     getTagListNameUpdatedMessage,
     getTravelUpdateMessage,
     getUpdatedApprovalRuleMessage,
@@ -84,7 +73,6 @@ import {
     isTagModificationAction,
     isTaskAction,
     isTransactionThread,
-    shouldReportActionBeVisibleAsLastAction,
 } from './ReportActionsUtils';
 import type {OptionData} from './ReportUtils';
 import {
@@ -141,7 +129,6 @@ import {getTransactionID} from './TransactionUtils';
 
 type WelcomeMessage = {phrase1?: string; messageText?: string; messageHtml?: string};
 
-const visibleReportActionItems: ReportActions = {};
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -156,32 +143,6 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!actions || !key) {
-            return;
-        }
-        const reportID = extractCollectionItemID(key);
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-        const canUserPerformWriteAction = canUserPerformWriteActionUtil(report);
-        const actionsArray: ReportAction[] = getSortedReportActions(Object.values(actions));
-
-        // The report is only visible if it is the last action not deleted that
-        // does not match a closed or created state.
-        const reportActionsForDisplay = actionsArray.filter(
-            (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
-        );
-
-        const reportAction = reportActionsForDisplay.at(-1);
-        if (!reportAction) {
-            delete visibleReportActionItems[reportID];
-            return;
-        }
-        visibleReportActionItems[reportID] = reportAction;
     },
 });
 
@@ -218,7 +179,6 @@ function shouldDisplayReportInLHN(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     isReportArchived?: boolean,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
-    draftReportComments?: DraftReportComments,
 ) {
     if (!report) {
         return {shouldDisplay: false};
@@ -249,12 +209,7 @@ function shouldDisplayReportInLHN(
     // Check if report should override hidden status
     const isSystemChat = isSystemChatUtil(report);
     const shouldOverrideHidden =
-        !!draftReportComments?.[report.reportID] ||
-        hasErrorsOtherThanFailedReceipt ||
-        isFocused ||
-        isSystemChat ||
-        !!report.isPinned ||
-        reportAttributes?.[report?.reportID]?.requiresAttention;
+        hasValidDraftComment(report.reportID) || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || !!report.isPinned || reportAttributes?.[report?.reportID]?.requiresAttention;
 
     if (isHidden && !shouldOverrideHidden) {
         return {shouldDisplay: false};
@@ -285,7 +240,6 @@ function getReportsToDisplayInLHN(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
-    draftReportComments?: DraftReportComments,
 ) {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const allReportsDictValues = reports ?? {};
@@ -305,7 +259,6 @@ function getReportsToDisplayInLHN(
             transactionViolations,
             isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
             reportAttributes,
-            draftReportComments,
         );
 
         if (shouldDisplay) {
@@ -323,10 +276,10 @@ function updateReportsToDisplayInLHN(
     currentReportId: string | undefined,
     isInFocusMode: boolean,
     betas: OnyxEntry<Beta[]>,
+    policies: OnyxCollection<PartialPolicyForSidebar>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
-    draftReportComments?: DraftReportComments,
 ) {
     const displayedReportsCopy = {...displayedReports};
     updatedReportsKeys.forEach((reportID) => {
@@ -344,7 +297,6 @@ function updateReportsToDisplayInLHN(
             transactionViolations,
             isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
             reportAttributes,
-            draftReportComments,
         );
 
         if (shouldDisplay) {
@@ -363,7 +315,6 @@ function categorizeReportsForLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
-    draftReportComments?: DraftReportComments,
 ) {
     const pinnedAndGBRReports: MiniReport[] = [];
     const errorReports: MiniReport[] = [];
@@ -399,7 +350,7 @@ function categorizeReportsForLHN(
         const isPinned = !!report.isPinned;
         const requiresAttention = !!reportAttributes?.[reportID]?.requiresAttention;
         const hasErrors = !!report.hasErrorsOtherThanFailedReceipt;
-        const hasDraft = !!reportID && !!draftReportComments?.[reportID];
+        const hasDraft = reportID ? hasValidDraftComment(reportID) : false;
         const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
         const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
         const isArchived = isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived);
@@ -475,20 +426,20 @@ function sortCategorizedReports(
     };
 
     // Sort each group of reports accordingly
-    const sortedPinnedAndGBRReports = pinnedAndGBRReports.toSorted(compareDisplayNames);
-    const sortedErrorReports = errorReports.toSorted(compareDisplayNames);
-    const sortedDraftReports = draftReports.toSorted(compareDisplayNames);
+    const sortedPinnedAndGBRReports = pinnedAndGBRReports.sort(compareDisplayNames);
+    const sortedErrorReports = errorReports.sort(compareDisplayNames);
+    const sortedDraftReports = draftReports.sort(compareDisplayNames);
 
     let sortedNonArchivedReports: MiniReport[];
     let sortedArchivedReports: MiniReport[];
 
     if (isInDefaultMode) {
-        sortedNonArchivedReports = nonArchivedReports.toSorted(compareNonArchivedDefault);
+        sortedNonArchivedReports = nonArchivedReports.sort(compareNonArchivedDefault);
         // For archived reports ensure that most recent reports are at the top by reversing the order
-        sortedArchivedReports = archivedReports.toSorted(compareDatesDesc);
+        sortedArchivedReports = archivedReports.sort(compareDatesDesc);
     } else {
-        sortedNonArchivedReports = nonArchivedReports.toSorted(compareDisplayNames);
-        sortedArchivedReports = archivedReports.toSorted(compareDisplayNames);
+        sortedNonArchivedReports = nonArchivedReports.sort(compareDisplayNames);
+        sortedArchivedReports = archivedReports.sort(compareDisplayNames);
     }
 
     return {
@@ -524,7 +475,6 @@ function sortReportsToDisplayInLHN(
     localeCompare: LocaleContextProps['localeCompare'],
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
-    draftReportComments?: DraftReportComments,
 ): string[] {
     Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
 
@@ -542,7 +492,7 @@ function sortReportsToDisplayInLHN(
     //      - Sorted by reportDisplayName in GSD (focus) view mode
 
     // Step 1: Categorize reports
-    const categories = categorizeReportsForLHN(reportsToDisplay, reportNameValuePairs, reportAttributes, draftReportComments);
+    const categories = categorizeReportsForLHN(reportsToDisplay, reportNameValuePairs, reportAttributes);
 
     // Step 2: Sort each category
     const sortedCategories = sortCategorizedReports(categories, isInDefaultMode, localeCompare);
@@ -575,7 +525,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
-    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, isReportArchived);
     const errors = reportErrors;
     const hasErrors = Object.keys(errors).length !== 0;
 
@@ -650,6 +600,7 @@ function getOptionData({
     lastMessageTextFromReport: lastMessageTextFromReportProp,
     invoiceReceiverPolicy,
     card,
+    lastAction,
     localeCompare,
     isReportArchived = false,
 }: {
@@ -663,6 +614,7 @@ function getOptionData({
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
     reportAttributes: OnyxEntry<ReportAttributes>;
     card: Card | undefined;
+    lastAction: ReportAction | undefined;
     localeCompare: LocaleContextProps['localeCompare'];
     isReportArchived?: boolean;
 }): OptionData | undefined {
@@ -760,8 +712,6 @@ function getOptionData({
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants, localeCompare, undefined, isSelfDM(report));
 
-    const lastAction = visibleReportActionItems[report.reportID];
-    // lastActorAccountID can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const lastActorAccountID = lastAction?.actorAccountID || report.lastActorAccountID;
     // If the last actor's details are not currently saved in Onyx Collection,
@@ -860,7 +810,7 @@ function getOptionData({
             result.alternateText = getWorkspaceCategoryUpdateMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME)) {
             result.alternateText = getCleanedTagName(getTagListNameUpdatedMessage(lastAction) ?? '');
-        } else if (isTagModificationAction(lastAction?.actionName)) {
+        } else if (isTagModificationAction(lastAction?.actionName ?? '')) {
             result.alternateText = getCleanedTagName(getWorkspaceTagUpdateMessage(lastAction) ?? '');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT)) {
             result.alternateText = getWorkspaceCustomUnitUpdatedMessage(lastAction);
