@@ -1273,12 +1273,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.DISTANCE_REQUEST_CREATE.route,
                             exact: true,
                             screens: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                'distance-map': {
+                                map: {
                                     path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MAP.route,
                                 },
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                'distance-manual': {
+                                manual: {
                                     path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL.route,
                                 },
                             },
