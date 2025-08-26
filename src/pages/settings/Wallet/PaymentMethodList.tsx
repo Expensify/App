@@ -180,8 +180,8 @@ function isAccountInSetupState(account: PaymentMethodItem) {
     return account.accountData && 'state' in account.accountData && account.accountData.state === CONST.BANK_ACCOUNT.STATE.SETUP;
 }
 
-function isAccountLocked(account: PaymentMethodItem) {
-    return account.accountData && 'state' in account.accountData && account.accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED;
+function isBusinessBankAccountLocked(account: PaymentMethodItem) {
+    return account.accountData && 'state' in account.accountData && account.accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED && account.accountData.allowDebit;
 }
 
 function PaymentMethodList({
@@ -446,7 +446,7 @@ function PaymentMethodList({
 
     const getBadgeText = useCallback(
         (item: PaymentMethodItem) => {
-            if (isAccountLocked(item)) {
+            if (isBusinessBankAccountLocked(item)) {
                 return translate('common.locked');
             }
             if (isAccountInSetupState(item)) {
@@ -495,9 +495,9 @@ function PaymentMethodList({
                         iconWidth={item.iconWidth ?? item.iconSize}
                         iconStyles={item.iconStyles}
                         badgeText={getBadgeText(item)}
-                        badgeIcon={(isAccountInSetupState(item) ?? isAccountLocked(item)) ? Expensicons.DotIndicator : undefined}
+                        badgeIcon={(isAccountInSetupState(item) ?? isBusinessBankAccountLocked(item)) ? Expensicons.DotIndicator : undefined}
                         badgeSuccess={isAccountInSetupState(item) ? true : undefined}
-                        badgeError={isAccountLocked(item) ? true : undefined}
+                        badgeError={isBusinessBankAccountLocked(item) ? true : undefined}
                         wrapperStyle={[styles.paymentMethod, listItemStyle]}
                         iconRight={item.iconRight}
                         badgeStyle={styles.badgeBordered}
