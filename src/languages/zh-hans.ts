@@ -103,6 +103,7 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
+    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -3060,9 +3061,9 @@ const translations = {
         },
     },
     beneficialOwnerInfoStep: {
-        doYouOwn25percent: '您是否拥有25%或以上的',
-        doAnyIndividualOwn25percent: '是否有个人拥有25%或更多的股份',
-        areThereMoreIndividualsWhoOwn25percent: '是否有更多个人拥有25%或以上的股份',
+        doYouOwn25percent: ({companyName}: CompanyNameParams) => `您是否拥有${companyName}的25%或更多股份？`,
+        doAnyIndividualOwn25percent: ({companyName}: CompanyNameParams) => `是否有任何个人拥有${companyName}的25%或以上股份？`,
+        areThereMoreIndividualsWhoOwn25percent: ({companyName}: CompanyNameParams) => `还有其他个人持有${companyName} 25%或以上的股份吗？`,
         regulationRequiresUsToVerifyTheIdentity: '法规要求我们核实任何拥有超过25%业务的个人的身份。',
         companyOwner: '企业主',
         enterLegalFirstAndLastName: '所有者的法定姓名是什么？',
@@ -5142,7 +5143,8 @@ const translations = {
             reconciliationAccount: '对账账户',
             continuousReconciliation: '持续对账',
             saveHoursOnReconciliation: '通过让Expensify持续为您对账Expensify卡的对账单和结算，您可以在每个会计期间节省数小时的对账时间。',
-            enableContinuousReconciliation: '为了启用持续对账，请启用',
+            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
+                `<muted-text-label>要启用持续对账，请启用 ${connectionName} 的<a href="${accountingAdvancedSettingsLink}">自动同步</a>功能。</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: '选择用于对账您的 Expensify Card 支付的银行账户。',
                 accountMatches: '确保此账户与您的账户匹配',

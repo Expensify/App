@@ -90,6 +90,7 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
+    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -3064,9 +3065,9 @@ const translations = {
         },
     },
     beneficialOwnerInfoStep: {
-        doYouOwn25percent: '¿Posees el 25% o más de',
-        doAnyIndividualOwn25percent: '¿Alguna persona posee el 25% o más de',
-        areThereMoreIndividualsWhoOwn25percent: '¿Hay más personas que posean el 25% o más de',
+        doYouOwn25percent: ({companyName}: CompanyNameParams) => `¿Posee el 25% o más de ${companyName}?`,
+        doAnyIndividualOwn25percent: ({companyName}: CompanyNameParams) => `¿Alguien posee el 25% o más de ${companyName}?`,
+        areThereMoreIndividualsWhoOwn25percent: ({companyName}: CompanyNameParams) => `¿Hay más personas que posean el 25% o más de ${companyName}?`,
         regulationRequiresUsToVerifyTheIdentity: 'La ley nos exige verificar la identidad de cualquier persona que posea más del 25% de la empresa.',
         companyOwner: 'Dueño de la empresa',
         enterLegalFirstAndLastName: '¿Cuál es el nombre legal del dueño?',
@@ -5174,7 +5175,8 @@ const translations = {
             continuousReconciliation: 'Conciliación continua',
             saveHoursOnReconciliation:
                 'Ahorra horas de conciliación en cada período contable haciendo que Expensify concilie continuamente los extractos y liquidaciones de la Tarjeta Expensify en tu nombre.',
-            enableContinuousReconciliation: 'Para activar la Conciliación Continua, activa la ',
+            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
+                `<muted-text-label>Para activar la Conciliación Continua, activa la <a href="${accountingAdvancedSettingsLink}">auto-sync</a> para ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu Tarjeta Expensify.',
                 accountMatches: 'Asegúrate de que esta cuenta coincide con ',
