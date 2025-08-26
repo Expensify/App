@@ -28,6 +28,7 @@ type SearchTableHeaderProps = {
     containerStyles?: StyleProp<ViewStyle>;
     shouldShowColumn: (columnName: SearchColumnType) => boolean;
     onSortPress: (column: SortableColumnName, order: SortOrder) => void;
+    areAllOptionalColumnsHidden: boolean;
 };
 
 function SortableTableHeader({
@@ -41,13 +42,11 @@ function SortableTableHeader({
     onSortPress,
     amountColumnSize,
     taxAmountColumnSize,
+    areAllOptionalColumnsHidden,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-
-    const optionalColumnNames = columns.map(({canBeMissing, columnName}) => (canBeMissing ? columnName : null)).filter(Boolean) as SearchColumnType[];
-    const areAllOptionalColumnsHidden = optionalColumnNames.length && optionalColumnNames.every((columnName) => !shouldShowColumn(columnName));
 
     return (
         <View style={[styles.flex1]}>

@@ -6,7 +6,7 @@ import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
+import SearchTableHeader, {expenseHeaders} from '@components/SelectionList/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
@@ -747,6 +747,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
 
+    const areAllOptionalColumnsHidden = useMemo(() => {
+        const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
+        return canBeMissingColumns.every((column) => !columnsToShow.includes(column));
+    }, [columnsToShow]);
+
     if (shouldShowLoadingState) {
         return (
             <SearchRowSkeleton
@@ -840,6 +845,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                                 isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                                 shouldShowSorting={shouldShowSorting}
                                 groupBy={groupBy}
+                                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                             />
                         )
                     }
@@ -859,6 +865,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     }
                     queryJSON={queryJSON}
                     columns={columnsToShow}
+                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}

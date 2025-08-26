@@ -33,6 +33,7 @@ function TransactionListItem<TItem extends ListItem>({
     shouldSyncFocus,
     columns,
     isLoading,
+    areAllOptionalColumnsHidden,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -145,6 +146,7 @@ function TransactionListItem<TItem extends ListItem>({
                     taxAmountColumnSize={taxAmountColumnSize}
                     shouldShowCheckbox={!!canSelectMultiple}
                     style={[styles.p3, shouldUseNarrowLayout ? styles.pt2 : {}]}
+                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>

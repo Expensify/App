@@ -99,6 +99,8 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Whether mobile selection mode is enabled */
     isMobileSelectionModeEnabled: boolean;
+
+    areAllOptionalColumnsHidden: boolean;
 };
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
@@ -136,6 +138,7 @@ function SearchList(
         shouldAnimate,
         estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
         isMobileSelectionModeEnabled,
+        areAllOptionalColumnsHidden,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -267,6 +270,7 @@ function SearchList(
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                         queryJSONHash={hash}
                         columns={columns}
+                        areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                         policies={policies}
                         isDisabled={isDisabled}
                         allReports={allReports}
@@ -300,6 +304,7 @@ function SearchList(
             isUserValidated,
             personalDetails,
             userBillingFundID,
+            areAllOptionalColumnsHidden,
         ],
     );
 

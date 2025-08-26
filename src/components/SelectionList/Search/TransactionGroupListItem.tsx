@@ -47,6 +47,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     shouldSyncFocus,
     columns,
     groupBy,
+    areAllOptionalColumnsHidden,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
@@ -214,6 +215,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                     style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
                                     isReportItemChild
                                     isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                                 />
                             </OfflineWithFeedback>
                         ))

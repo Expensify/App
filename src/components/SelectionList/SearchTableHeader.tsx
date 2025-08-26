@@ -145,6 +145,7 @@ type SearchTableHeaderProps = {
     shouldShowSorting: boolean;
     canSelectMultiple: boolean;
     groupBy: SearchGroupBy | undefined;
+    areAllOptionalColumnsHidden: boolean;
 };
 
 function SearchTableHeader({
@@ -159,6 +160,7 @@ function SearchTableHeader({
     isAmountColumnWide,
     isTaxAmountColumnWide,
     groupBy,
+    areAllOptionalColumnsHidden,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -195,6 +197,7 @@ function SearchTableHeader({
     return (
         <SortableTableHeader
             columns={columnConfig}
+            areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
             shouldShowColumn={shouldShowColumn}
             dateColumnSize={shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             amountColumnSize={isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
