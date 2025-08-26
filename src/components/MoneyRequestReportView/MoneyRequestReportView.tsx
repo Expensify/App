@@ -99,15 +99,8 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
-    const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(reportID);
-    const transactions = useMemo(() => {
-        const allTransactions = getAllNonDeletedTransactions(reportTransactions, reportActions);
-        // Attach violations to each transaction
-        return allTransactions?.map((transaction) => ({
-            ...transaction,
-            violations: violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [],
-        }));
-    }, [reportTransactions, reportActions, violations]);
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
+    const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions), [reportTransactions, reportActions]);
 
     const visibleTransactions = transactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
@@ -140,27 +133,22 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const isEmptyTransactionReport = visibleTransactions && visibleTransactions.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
-    const reportHeaderView = useMemo(() => {
-            if (isTransactionThreadView) {
-                const transactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
-                const transactionViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                return (
-                    <MoneyRequestHeader
-                        report={report}
-                        policy={policy}
-                        parentReportAction={parentReportAction}
-                        onBackButtonPress={() => {
-                            if (!backToRoute) {
-                                goBackFromSearchMoneyRequest();
-                                return;
-                            }
-                            Navigation.goBack(backToRoute);
-                        }}
-                        transactionViolations={transactionViolations}
-                    />
-                );
-            }
-            return (
+    const reportHeaderView = useMemo(
+        () =>
+            isTransactionThreadView ? (
+                <MoneyRequestHeader
+                    report={report}
+                    policy={policy}
+                    parentReportAction={parentReportAction}
+                    onBackButtonPress={() => {
+                        if (!backToRoute) {
+                            goBackFromSearchMoneyRequest();
+                            return;
+                        }
+                        Navigation.goBack(backToRoute);
+                    }}
+                />
+            ) : (
                 <MoneyReportHeader
                     report={report}
                     policy={policy}
@@ -176,8 +164,8 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         Navigation.goBack(backToRoute);
                     }}
                 />
-            );
-        }, [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID, violations],
+            ),
+        [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
     );
 
     if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions) {
