@@ -173,9 +173,11 @@ describe('getReportPreviewAction', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
             const transaction = {
+                amount: 0,
                 reportID: `${REPORT_ID}`,
                 receipt: {
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
+                    source: 'test',
                 },
             } as unknown as Transaction;
 

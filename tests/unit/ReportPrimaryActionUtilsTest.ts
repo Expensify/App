@@ -160,12 +160,14 @@ describe('getPrimaryAction', () => {
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
         };
         const transaction = {
+            amount: 0,
             reportID: `${REPORT_ID}`,
             comment: {
                 hold: 'Hold',
             },
             receipt: {
                 state: CONST.IOU.RECEIPT_STATE.SCANNING,
+                source: 'test'
             },
         } as unknown as Transaction;
 
