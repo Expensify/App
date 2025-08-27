@@ -8,7 +8,7 @@ import type * as OnyxCommon from './OnyxCommon';
 import type {Unit} from './Policy';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReportAction from './ReportAction';
-import type {ViolationName} from './TransactionViolation';
+import type {TransactionViolation, ViolationName} from './TransactionViolation';
 
 /** Model of waypoint */
 type Waypoint = {
@@ -557,6 +557,11 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The inserted time of the transaction */
         inserted?: string;
+
+        /**
+         *
+         */
+        violations?: TransactionViolation[];
     },
     keyof Comment | keyof TransactionCustomUnit | 'attendees'
 >;

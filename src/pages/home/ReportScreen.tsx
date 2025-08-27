@@ -301,9 +301,26 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // If the count is too high (equal to or exceeds the web pagination size / 50) and there are no cached messages in the report,
     // OpenReport will be called each time the user scrolls up the report a bit, clicks on report preview, and then goes back.
     const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
-    const {transactions: allReportTransactions} = useTransactionsAndViolationsForReport(reportIDFromRoute);
+    const {transactions: allReportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportIDFromRoute);
 
-    const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions), [allReportTransactions, reportActions]);
+    const reportTransactions = useMemo(() => {
+        const nonDeletedTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions);
+
+        // Handle case where nonDeletedTransactions is undefined/null
+        if (!nonDeletedTransactions) {
+            return nonDeletedTransactions; // Return undefined/null as-is
+        }
+
+        // Enhance each transaction with its violations (working with array)
+        return nonDeletedTransactions.map((transaction) => {
+            const transactionViolations = allReportViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] || [];
+            return {
+                ...transaction,
+                violations: transactionViolations
+            };
+        });
+    }, [allReportTransactions, reportActions, allReportViolations]);
+
     // wrapping in useMemo because this is array operation and can cause performance issues
     const visibleTransactions = useMemo(
         () => reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),

@@ -44,7 +44,7 @@ type ColumnComponents = {
     [key in ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>]: React.ReactElement;
 };
 
-type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
+type TransactionWithOptionalSearchFields = Omit<TransactionWithOptionalHighlight, 'violations'> & {
     /** The action that can be performed for the transaction */
     action?: SearchTransactionAction;
 
