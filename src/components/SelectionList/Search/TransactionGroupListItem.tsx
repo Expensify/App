@@ -190,27 +190,25 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         groupItem.transactions.map((transaction) => (
                             <TransactionItemRow
                                 key={transaction.transactionID}
-
-                                    report={transaction.report}
-                                    transactionItem={transaction}
-                                    isSelected={!!transaction.isSelected}
-                                    dateColumnSize={dateColumnSize}
-                                    amountColumnSize={amountColumnSize}
-                                    taxAmountColumnSize={taxAmountColumnSize}
-                                    shouldShowTooltip={showTooltip}
-                                    shouldUseNarrowLayout={!isLargeScreenWidth}
-                                    shouldShowCheckbox={!!canSelectMultiple}
-                                    onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                    columns={columns}
-                                    onButtonPress={() => {
-                                        openReportInRHP(transaction);
-                                    }}
-                                    style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
-                                    isReportItemChild
-                                    isInSingleTransactionReport={groupItem.transactions.length === 1}
-                                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                                />
-
+                                report={transaction.report}
+                                transactionItem={transaction}
+                                isSelected={!!transaction.isSelected}
+                                dateColumnSize={dateColumnSize}
+                                amountColumnSize={amountColumnSize}
+                                taxAmountColumnSize={taxAmountColumnSize}
+                                shouldShowTooltip={showTooltip}
+                                shouldUseNarrowLayout={!isLargeScreenWidth}
+                                shouldShowCheckbox={!!canSelectMultiple}
+                                onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                columns={columns}
+                                onButtonPress={() => {
+                                    openReportInRHP(transaction);
+                                }}
+                                style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
+                                isReportItemChild
+                                isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                            />
                         ))
                     )}
                 </View>
