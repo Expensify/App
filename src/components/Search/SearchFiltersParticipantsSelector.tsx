@@ -8,7 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
-import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, getFirstSelectedItem, getValidOptions} from '@libs/OptionsListUtils';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -105,7 +105,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             shouldShow: chatOptions.recentReports.length > 0,
         });
         if (!firstKey) {
-            firstKey = chatOptions.recentReports.find((item) => item.isSelected)?.keyForList ?? '';
+            firstKey = getFirstSelectedItem(chatOptions.recentReports);
         }
 
         newSections.push({
@@ -114,7 +114,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             shouldShow: chatOptions.personalDetails.length > 0,
         });
         if (!firstKey) {
-            firstKey = chatOptions.personalDetails.find((item) => item.isSelected)?.keyForList ?? '';
+            firstKey = getFirstSelectedItem(chatOptions.personalDetails);
         }
 
         const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;

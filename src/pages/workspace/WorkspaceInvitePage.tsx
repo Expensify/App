@@ -29,6 +29,7 @@ import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -39,7 +40,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
-import variables from '@styles/variables';
 
 type MembersSection = SectionListData<MemberForList, Section<MemberForList>>;
 
@@ -169,7 +169,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         let firstKey = '';
 
         if (!areOptionsInitialized) {
-            return {sections:[],firstKeyForList:firstKey};
+            return {sections: [], firstKeyForList: firstKey};
         }
 
         const selectedLogins = selectedOptions.map(({login}) => login);
@@ -197,7 +197,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         if (!firstKey) {
             firstKey = getFirstSelectedItem(filterSelectedOptions);
         }
-        
+
         sectionsArr.push({
             title: translate('common.contacts'),
             data: personalDetailsFormatted,
@@ -206,10 +206,10 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         if (!firstKey) {
             firstKey = getFirstSelectedItem(personalDetailsFormatted);
         }
-        
+
         Object.values(usersToInvite).forEach((userToInvite) => {
             const hasUnselectedUserToInvite = !selectedLogins.some((selectedLogin) => selectedLogin === userToInvite.login);
-            
+
             if (hasUnselectedUserToInvite) {
                 sectionsArr.push({
                     title: undefined,
@@ -219,8 +219,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             }
         });
 
-
-        return {sections:sectionsArr,firstKeyForList:firstKey};
+        return {sections: sectionsArr, firstKeyForList: firstKey};
     }, [areOptionsInitialized, selectedOptions, personalDetails, translate, usersToInvite]);
 
     const toggleOption = (option: MemberForList) => {

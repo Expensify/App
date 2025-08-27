@@ -4,11 +4,12 @@ import MultiSelectListItem from '@components/SelectionList/MultiSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import {getFirstSelectedItem} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
-import variables from '@styles/variables';
 
 type SearchMultipleSelectionPickerItem = {
     name: string;
@@ -57,8 +58,8 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             noResultsFound: isEmpty,
         };
     }, [selectedItems, items, pickerTitle, debouncedSearchTerm, localeCompare]);
-    
-    const firstKey = sections?.at(0)?.data?.find((item) => item.isSelected)?.keyForList ?? null;
+
+    const firstKey = getFirstSelectedItem(sections?.at(0)?.data);
 
     const onSelectItem = useCallback(
         (item: Partial<OptionData & SearchMultipleSelectionPickerItem>) => {

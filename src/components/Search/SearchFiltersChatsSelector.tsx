@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {createOptionFromReport, filterAndOrderOptions, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
+import {createOptionFromReport, filterAndOrderOptions, getAlternateText, getFirstSelectedItem, getSearchOptions} from '@libs/OptionsListUtils';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -79,6 +79,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         return filterAndOrderOptions(defaultOptionsModified, cleanSearchTerm, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            exc,
         });
     }, [cleanSearchTerm, selectedOptions, defaultOptionsModified]);
 
@@ -95,7 +96,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             shouldShow: chatOptions.recentReports.length > 0,
         });
         if (!firstKey) {
-            firstKey = chatOptions.recentReports.find((item) => item.isSelected)?.keyForList ?? "";
+            firstKey = getFirstSelectedItem(chatOptions.recentReports);
         }
         const areResultsFound = didScreenTransitionEnd && chatOptions.recentReports.length === 0;
         const message = areResultsFound ? translate('common.noResultsFound') : undefined;
