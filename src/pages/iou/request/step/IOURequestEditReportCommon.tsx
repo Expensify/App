@@ -86,9 +86,10 @@ function IOURequestEditReportCommon({
         if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
             return [];
         }
+        const personalPolicyID = getPersonalPolicy()?.id;
 
         return Object.values(allPoliciesID ?? {})
-            .filter((policyID) => getPersonalPolicy()?.id !== policyID)
+            .filter((policyID) => personalPolicyID !== policyID)
             .flatMap((policyID) => {
                 if (!policyID || (policyIDFromProps && policyID !== policyIDFromProps)) {
                     return [];
