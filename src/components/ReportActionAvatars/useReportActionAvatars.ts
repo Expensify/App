@@ -1,6 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -43,7 +44,9 @@ function useReportActionAvatars({
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
 }) {
     /* Get avatar type */
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+    const allPersonalDetails = usePersonalDetails();
+    // eslint-disable-next-line rulesdir/no-unstable-hook-defaults
+    const [personalDetails = allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
     });
 
