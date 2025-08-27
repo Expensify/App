@@ -138,6 +138,7 @@
     "expo-image-manipulator": "^13.1.5",
     "fast-equals": "^5.2.2",
     "focus-trap-react": "^11.0.3",
+    "group-ib-fp": "file:modules/group-ib-fp",
     "heic-to": "^1.1.13",
     "howler": "^2.2.4",
     "htmlparser2": "^7.2.0",
