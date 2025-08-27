@@ -480,7 +480,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             if ((filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID) && filterValue) {
                 const reportIDs = (filterValue as string)
                     .split(',')
-                    .map((id) => id.trim())
+                    .map((id) => sanitizeSearchValue(id.trim()))
                     .filter((id) => id.length > 0);
 
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
