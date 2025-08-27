@@ -1957,7 +1957,7 @@ const translations = {
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Veuillez entrer le code magique envoyé à ${contactMethod} pour voir les détails de votre carte. Il devrait arriver dans une minute ou deux.`,
         missingPrivateDetails: 'Veuillez ajouter vos informations personnelles dans Compte > Profil > Privé, puis réessayez.',
-        unexpectedError: 'Une erreur s\'est produite lors de la récupération des informations de votre carte Expensify. Veuillez réessayer.',
+        unexpectedError: "Une erreur s'est produite lors de la récupération des informations de votre carte Expensify. Veuillez réessayer.",
     },
     workflowsPage: {
         workflowTitle: 'Dépenser',
