@@ -108,6 +108,9 @@ type ReceiptImageProps = (
 
     /** Whether the receipt empty state should extend to the full height of the container. */
     shouldUseFullHeight?: boolean;
+
+    /** Callback to be called when the image loads */
+    onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
 };
 
 function ReceiptImage({
@@ -134,6 +137,7 @@ function ReceiptImage({
     shouldUseFullHeight,
     loadingIndicatorStyles,
     thumbnailContainerStyles,
+    onLoad,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -194,6 +198,7 @@ function ReceiptImage({
                 objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
                 loadingIconSize={loadingIconSize}
                 loadingIndicatorStyles={loadingIndicatorStyles}
+                onLoad={onLoad}
             />
         );
     }
@@ -207,6 +212,7 @@ function ReceiptImage({
             loadingIndicatorStyles={loadingIndicatorStyles}
             shouldShowOfflineIndicator={false}
             objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
+            onLoad={onLoad}
         />
     );
 }

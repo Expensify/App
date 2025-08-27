@@ -75,6 +75,9 @@ type ReportActionItemImageProps = {
 
     /** Whether to use the thumbnail image instead of the full image */
     shouldUseThumbnailImage?: boolean;
+
+    /** Callback to be called when the image loads */
+    onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
 };
 
 /**
@@ -102,6 +105,7 @@ function ReportActionItemImage({
     shouldUseFullHeight,
     report: reportProp,
     shouldUseThumbnailImage,
+    onLoad,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -185,7 +189,10 @@ function ReportActionItemImage({
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         accessibilityRole={CONST.ROLE.BUTTON}
                     >
-                        <ReceiptImage {...propsObj} />
+                        <ReceiptImage
+                            {...propsObj}
+                            onLoad={onLoad}
+                        />
                     </PressableWithoutFocus>
                 )}
             </ShowContextMenuContext.Consumer>
@@ -197,6 +204,7 @@ function ReportActionItemImage({
             {...propsObj}
             shouldUseFullHeight={shouldUseFullHeight}
             thumbnailContainerStyles={styles.thumbnailImageContainerHover}
+            onLoad={onLoad}
         />
     );
 }
