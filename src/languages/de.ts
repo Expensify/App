@@ -2463,10 +2463,12 @@ const translations = {
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Überprüfe deine [Workspace-Einstellungen](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    'So überprüfst und aktualisierst du deine Workspace-Einstellungen:\n' +
-                    '1. Klicke auf den Tab *Einstellungen*.\n' +
-                    '2. Klicke auf *Workspaces* > [Dein Workspace].\n' +
-                    `[Zum Workspace](${workspaceSettingsLink}). Wir verfolgen Änderungen im Raum #admins.`,
+                    'So können Sie Ihre Arbeitsbereichseinstellungen überprüfen und aktualisieren:\n' +
+                    '1. Gehen Sie zu Arbeitsbereiche.\n' +
+                    '2. Wählen Sie Ihren Arbeitsbereich aus.\n' +
+                    '3. Überprüfen und aktualisieren Sie Ihre Einstellungen.\n' +
+                    '4. Alle Änderungen werden in #admins protokolliert.\n' +
+                    `[Zu Ihrem Arbeitsbereich gehen](${workspaceSettingsLink}).`,
             },
             createReportTask: {
                 title: 'Erstelle deinen ersten Bericht',

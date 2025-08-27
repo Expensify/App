@@ -2484,9 +2484,11 @@ const translations = {
                 title: ({workspaceSettingsLink}) => `Revise suas [configurações de espaço de trabalho](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
                     'Veja como revisar e atualizar as configurações do seu espaço de trabalho:\n' +
-                    '1. Clique na aba de configurações.\n' +
-                    '2. Clique em *Espaços de trabalho* > [Seu espaço de trabalho].\n' +
-                    `[Vá para o seu espaço de trabalho](${workspaceSettingsLink}). Vamos rastreá-los na sala #admins.`,
+                    '1. Vá para Espaços de trabalho.\n' +
+                    '2. Selecione seu espaço de trabalho.\n' +
+                    '3. Revise e atualize suas configurações.\n' +
+                    '4. Quaisquer alterações serão registradas em #admins.\n' +
+                    `[Ir para seu espaço de trabalho](${workspaceSettingsLink}).`,
             },
             createReportTask: {
                 title: 'Crie seu primeiro relatório',

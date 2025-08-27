@@ -2484,10 +2484,12 @@ const translations = {
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Bekijk uw [werkruimte-instellingen](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    'Zo bekijkt en werkt u uw werkruimte-instellingen bij:\n' +
-                    '1. Klik op het instellingentabblad.\n' +
-                    '2. Klik op *Werkruimtes* > [Uw werkruimte].\n' +
-                    `[Ga naar uw werkruimte](${workspaceSettingsLink}). We volgen ze in de #admins-kamer.`,
+                    'Zo kun je je werkruimte-instellingen bekijken en bijwerken:\n' +
+                    '1. Ga naar Werkruimtes.\n' +
+                    '2. Selecteer je werkruimte.\n' +
+                    '3. Bekijk en werk je instellingen bij.\n' +
+                    '4. Alle wijzigingen worden bijgehouden in #admins.\n' +
+                    `[Ga naar je werkruimte](${workspaceSettingsLink}).`,
             },
             createReportTask: {
                 title: 'Maak uw eerste rapport',
