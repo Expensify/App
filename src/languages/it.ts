@@ -103,7 +103,6 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
-    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -955,7 +954,6 @@ const translations = {
         distance: 'Distanza',
         manual: 'Manuale',
         scan: 'Scansiona',
-        map: 'Mappa',
     },
     spreadsheet: {
         upload: 'Carica un foglio di calcolo',
@@ -1251,7 +1249,6 @@ const translations = {
             invalidCategoryLength: 'Il nome della categoria supera i 255 caratteri. Si prega di accorciarlo o scegliere una categoria diversa.',
             invalidTagLength: 'Il nome del tag supera i 255 caratteri. Per favore, accorcialo o scegli un tag diverso.',
             invalidAmount: 'Si prega di inserire un importo valido prima di continuare',
-            invalidDistance: 'Si prega di inserire una distanza valida prima di continuare',
             invalidIntegerAmount: 'Inserisci un importo in dollari intero prima di continuare',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `L'importo massimo delle tasse è ${amount}`,
             invalidSplit: "La somma delle suddivisioni deve essere uguale all'importo totale",
@@ -3562,11 +3559,14 @@ const translations = {
             deepDiveExpensifyCard: `<muted-text-label>Le transazioni della carta Expensify verranno esportate automaticamente in un “Conto di responsabilità della carta Expensify” creato con la <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nostra integrazione</a>.</muted-text-label>`,
         },
         receiptPartners: {
+            connect: 'Connettiti ora',
             uber: {
                 subtitle: 'Automatizza le spese di viaggio e di consegna dei pasti in tutta la tua organizzazione.',
                 autoRemove: "Invita nuovi membri dell'area di lavoro su Uber for Business",
                 autoInvite: "Disattiva i membri dell'area di lavoro rimossi da Uber for Business",
                 manageInvites: 'Gestisci inviti',
+                bannerTitle: 'Expensify + Uber per le aziende',
+                bannerDescription: 'Connetti Uber for Business per automatizzare le spese di viaggio e di consegna dei pasti nella tua organizzazione.',
             },
         },
         perDiem: {
@@ -5234,8 +5234,7 @@ const translations = {
             continuousReconciliation: 'Riconciliazione Continua',
             saveHoursOnReconciliation:
                 'Risparmia ore di riconciliazione ogni periodo contabile facendo riconciliare continuamente a Expensify gli estratti conto e i regolamenti della Expensify Card per tuo conto.',
-            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
-                `<muted-text-label>Per abilitare la riconciliazione continua, abilita la <a href="${accountingAdvancedSettingsLink}">sincronizzazione automatica</a> per ${connectionName}.</muted-text-label>`,
+            enableContinuousReconciliation: 'Per abilitare la Riconciliazione Continua, si prega di abilitare',
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Scegli il conto bancario su cui verranno riconciliati i pagamenti della tua carta Expensify.',
                 accountMatches: 'Assicurati che questo account corrisponda al tuo',
