@@ -128,7 +128,7 @@ You can set workspace-wide defaults to automate categorization and tagging.
 
 Only Workspace Admins on the **Control** plan can enable and configure workspace rules.
 
-## What happens if I turn the rules off?
+## What happens if I disable workspace rules?
 
 Turning off workspace rules removes any active warnings or violations from draft or outstanding expenses that relied on those rules.
 
