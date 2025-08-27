@@ -11,8 +11,9 @@ index 165bf95..e80c5b1 100644
 +            const visibleLength = this._scrollMetrics.visibleLength
 +            const isOnScrollLimit = scrollMetricsOffset <= 0 || Math.ceil(scrollMetricsOffset) >= contentLength - visibleLength;
 +            
-+            // Avoid recoil/rubber band effect on overscroll
-+            if (isOnScrollLimit) {
++            // Avoid recoil/rubber band effect on overscroll for vertical scrolling only
++            // Don't prevent horizontal scrolling in horizontal FlatLists
++            if (isOnScrollLimit && !isHorizontal) {
 +              ev.preventDefault();
 +            }
 +
