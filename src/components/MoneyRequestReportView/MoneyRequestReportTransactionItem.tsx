@@ -15,7 +15,7 @@ import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
+import type {Report, TransactionViolation} from '@src/types/onyx';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 const allReportColumns = [
@@ -62,6 +62,8 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Callback function that scrolls to this transaction in case it is newly added */
     scrollToNewTransaction?: (offset: number) => void;
+
+    violations: TransactionViolation[];
 };
 
 function MoneyRequestReportTransactionItem({
@@ -76,6 +78,7 @@ function MoneyRequestReportTransactionItem({
     amountColumnSize,
     taxAmountColumnSize,
     scrollToNewTransaction,
+    violations,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -141,6 +144,7 @@ function MoneyRequestReportTransactionItem({
                     columns={allReportColumns}
                     isDisabled={isPendingDelete}
                     style={[styles.p3]}
+                    violations={violations}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>

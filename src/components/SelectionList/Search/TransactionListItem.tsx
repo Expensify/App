@@ -163,6 +163,7 @@ function TransactionListItem<TItem extends ListItem>({
                     taxAmountColumnSize={taxAmountColumnSize}
                     shouldShowCheckbox={!!canSelectMultiple}
                     style={[styles.p3, shouldUseNarrowLayout ? styles.pt2 : {}]}
+                    violations={transactionItem.violations ?? []}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>

@@ -16,6 +16,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -31,6 +32,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
@@ -150,6 +152,8 @@ function MoneyRequestReportTransactionList({
     });
 
     const {sortBy, sortOrder} = sortConfig;
+
+    const {violations} = useTransactionsAndViolationsForReport(report.reportID);
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions]
@@ -279,6 +283,8 @@ function MoneyRequestReportTransactionList({
             )}
             <View style={[listHorizontalPadding, styles.gap2, styles.pb4]}>
                 {sortedTransactions.map((transaction) => {
+                    const transactionViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+
                     return (
                         <MoneyRequestReportTransactionItem
                             key={transaction.transactionID}
@@ -294,6 +300,7 @@ function MoneyRequestReportTransactionList({
                             taxAmountColumnSize={taxAmountColumnSize}
                             // if we add few new transactions, then we need to scroll to the first one
                             scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
+                            violations={transactionViolations}
                         />
                     );
                 })}

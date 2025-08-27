@@ -38,11 +38,12 @@ const defaultProps = {
 };
 
 // Helper function to render TransactionItemRow with providers
-const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearchFields) => {
+const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearchFields, violations: TransactionViolations = []) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
             <TransactionItemRow
                 transactionItem={transactionItem}
+                violations={violations}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}
             />
@@ -116,7 +117,7 @@ describe('TransactionItemRowRBRWithOnyx', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction);
+        renderTransactionItemRow(mockTransaction, mockViolations);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed
@@ -140,7 +141,7 @@ describe('TransactionItemRowRBRWithOnyx', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction);
+        renderTransactionItemRow(mockTransaction, mockViolations);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with both violations
@@ -159,7 +160,7 @@ describe('TransactionItemRowRBRWithOnyx', () => {
         });
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction);
+        renderTransactionItemRow(mockTransaction, []);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed for report action errors
@@ -181,7 +182,7 @@ describe('TransactionItemRowRBRWithOnyx', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction);
+        renderTransactionItemRow(mockTransaction, []);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with missing merchant error
@@ -207,7 +208,7 @@ describe('TransactionItemRowRBRWithOnyx', () => {
         });
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction);
+        renderTransactionItemRow(mockTransaction, mockViolations);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with both report action errors and violations
@@ -243,7 +244,7 @@ describe('TransactionItemRowRBRWithOnyx', () => {
         });
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction);
+        renderTransactionItemRow(mockTransaction, mockViolations);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with transaction errors, missing merchant error, and violations
@@ -257,7 +258,7 @@ describe('TransactionItemRowRBRWithOnyx', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, []);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction);
+        renderTransactionItemRow(mockTransaction, []);
         await waitForBatchedUpdates();
 
         // Then the RBR message should not be displayed
@@ -291,7 +292,7 @@ describe('TransactionItemRowRBR', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction);
+        renderTransactionItemRow(mockTransaction, mockViolations);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed
@@ -315,7 +316,7 @@ describe('TransactionItemRowRBR', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction);
+        renderTransactionItemRow(mockTransaction, mockViolations);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with both violations
@@ -345,7 +346,7 @@ describe('TransactionItemRowRBR', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction);
+        renderTransactionItemRow(mockTransaction, mockViolations);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with missing merchant error and violations
@@ -367,7 +368,7 @@ describe('TransactionItemRowRBR', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction);
+        renderTransactionItemRow(mockTransaction, []);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with missing merchant error
@@ -381,7 +382,7 @@ describe('TransactionItemRowRBR', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, []);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction);
+        renderTransactionItemRow(mockTransaction, []);
         await waitForBatchedUpdates();
 
         // Then the RBR message should not be displayed

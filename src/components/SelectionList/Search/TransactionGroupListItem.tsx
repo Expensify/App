@@ -24,11 +24,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
@@ -57,6 +59,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const shouldDisplayEmptyView = isEmpty && groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
     const isDisabledOrEmpty = isEmpty || isDisabled;
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {violations} = useTransactionsAndViolationsForReport(item.reportID);
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = groupItem.transactions.some((transaction) => transaction.isAmountColumnWide);
@@ -208,32 +211,37 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             </Text>
                         </View>
                     ) : (
-                        groupItem.transactions.map((transaction) => (
-                            <OfflineWithFeedback
-                                key={transaction.transactionID}
-                                pendingAction={transaction.pendingAction}
-                            >
-                                <TransactionItemRow
-                                    report={transaction.report}
-                                    transactionItem={transaction}
-                                    isSelected={!!transaction.isSelected}
-                                    dateColumnSize={dateColumnSize}
-                                    amountColumnSize={amountColumnSize}
-                                    taxAmountColumnSize={taxAmountColumnSize}
-                                    shouldShowTooltip={showTooltip}
-                                    shouldUseNarrowLayout={!isLargeScreenWidth}
-                                    shouldShowCheckbox={!!canSelectMultiple}
-                                    onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                    columns={columns}
-                                    onButtonPress={() => {
-                                        openReportInRHP(transaction);
-                                    }}
-                                    style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
-                                    isReportItemChild
-                                    isInSingleTransactionReport={groupItem.transactions.length === 1}
-                                />
-                            </OfflineWithFeedback>
-                        ))
+                        groupItem.transactions.map((transaction) => {
+                            const transactionViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+
+                            return (
+                                <OfflineWithFeedback
+                                    key={transaction.transactionID}
+                                    pendingAction={transaction.pendingAction}
+                                >
+                                    <TransactionItemRow
+                                        report={transaction.report}
+                                        transactionItem={transaction}
+                                        isSelected={!!transaction.isSelected}
+                                        dateColumnSize={dateColumnSize}
+                                        amountColumnSize={amountColumnSize}
+                                        taxAmountColumnSize={taxAmountColumnSize}
+                                        shouldShowTooltip={showTooltip}
+                                        shouldUseNarrowLayout={!isLargeScreenWidth}
+                                        shouldShowCheckbox={!!canSelectMultiple}
+                                        onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                        columns={columns}
+                                        onButtonPress={() => {
+                                            openReportInRHP(transaction);
+                                        }}
+                                        style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
+                                        isReportItemChild
+                                        isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                        violations={transactionViolations}
+                                    />
+                                </OfflineWithFeedback>
+                            );
+                        })
                     )}
                 </View>
             </PressableWithFeedback>
