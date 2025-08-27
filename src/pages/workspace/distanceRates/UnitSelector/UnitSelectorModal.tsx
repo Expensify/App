@@ -34,7 +34,6 @@ function UnitSelectorModal({isVisible, currentUnit, onUnitSelected, onClose, lab
             isVisible={isVisible}
             onClose={onClose}
             onModalHide={onClose}
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={[styles.pb0]}

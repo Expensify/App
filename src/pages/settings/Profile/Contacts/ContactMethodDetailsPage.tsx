@@ -129,7 +129,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
         // Allow user to change their default contact method if they don't have a security group OR if their security group
         // does NOT restrict primary login switching.
-        return !securityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`]?.hasRestrictedPrimaryLogin;
+        return !securityGroups?.[`${ONYXKEYS.COLLECTION.SECURITY_GROUP}${primaryDomainSecurityGroupID}`]?.enableRestrictedPrimaryLogin;
     }, [isDefaultContactMethod, loginData?.validatedDate, session?.email, myDomainSecurityGroups, securityGroups]);
 
     /**
@@ -200,7 +200,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             <ScreenWrapper testID={ContactMethodDetailsPage.displayName}>
                 <FullPageNotFoundView
                     shouldShow
-                    linkKey="contacts.goBackContactMethods"
+                    linkTranslationKey="contacts.goBackContactMethods"
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
                     onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
                 />

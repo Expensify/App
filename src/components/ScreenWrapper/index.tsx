@@ -1,7 +1,7 @@
 import {useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
-import type {ForwardedRef, ReactNode} from 'react';
-import React, {forwardRef, useContext, useEffect, useMemo, useState} from 'react';
-import type {StyleProp, View, ViewStyle} from 'react-native';
+import type {ReactNode} from 'react';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard} from 'react-native';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
@@ -20,7 +20,7 @@ import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPa
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
-import closeReactNativeApp from '@userActions/HybridApp';
+import {closeReactNativeApp} from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,30 +71,28 @@ type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
         onEntryTransitionEnd?: () => void;
     };
 
-function ScreenWrapper(
-    {
-        navigation: navigationProp,
-        children,
-        style,
-        bottomContent,
-        headerGapStyles,
-        offlineIndicatorStyle,
-        disableOfflineIndicatorSafeAreaPadding,
-        shouldShowOfflineIndicator: shouldShowSmallScreenOfflineIndicator,
-        shouldShowOfflineIndicatorInWideScreen: shouldShowWideScreenOfflineIndicator,
-        shouldMobileOfflineIndicatorStickToBottom: shouldSmallScreenOfflineIndicatorStickToBottomProp,
-        shouldDismissKeyboardBeforeClose,
-        onEntryTransitionEnd,
-        includePaddingTop = true,
-        includeSafeAreaPaddingBottom: includeSafeAreaPaddingBottomProp = true,
-        enableEdgeToEdgeBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPaddingProp,
-        shouldKeyboardOffsetBottomSafeAreaPadding: shouldKeyboardOffsetBottomSafeAreaPaddingProp,
-        isOfflineIndicatorTranslucent,
-        focusTrapSettings,
-        ...restContainerProps
-    }: ScreenWrapperProps,
-    ref: ForwardedRef<View>,
-) {
+function ScreenWrapper({
+    navigation: navigationProp,
+    children,
+    style,
+    bottomContent,
+    headerGapStyles,
+    offlineIndicatorStyle,
+    disableOfflineIndicatorSafeAreaPadding,
+    shouldShowOfflineIndicator: shouldShowSmallScreenOfflineIndicator,
+    shouldShowOfflineIndicatorInWideScreen: shouldShowWideScreenOfflineIndicator,
+    shouldMobileOfflineIndicatorStickToBottom: shouldSmallScreenOfflineIndicatorStickToBottomProp,
+    shouldDismissKeyboardBeforeClose,
+    onEntryTransitionEnd,
+    includePaddingTop = true,
+    includeSafeAreaPaddingBottom: includeSafeAreaPaddingBottomProp = true,
+    enableEdgeToEdgeBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPaddingProp,
+    shouldKeyboardOffsetBottomSafeAreaPadding: shouldKeyboardOffsetBottomSafeAreaPaddingProp,
+    isOfflineIndicatorTranslucent,
+    focusTrapSettings,
+    ref,
+    ...restContainerProps
+}: ScreenWrapperProps) {
     /**
      * We are only passing navigation as prop from
      * ReportScreen -> ScreenWrapper
@@ -175,7 +173,7 @@ function ScreenWrapper(
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }
-        closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
+        closeReactNativeApp({shouldSetNVP: false});
     });
 
     useEffect(() => {
@@ -266,5 +264,5 @@ function ScreenWrapper(
 }
 ScreenWrapper.displayName = 'ScreenWrapper';
 
-export default withNavigationFallback(forwardRef(ScreenWrapper));
+export default withNavigationFallback(ScreenWrapper);
 export type {ScreenWrapperProps, ScreenWrapperChildrenProps};

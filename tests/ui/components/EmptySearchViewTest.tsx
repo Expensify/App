@@ -52,12 +52,13 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
-                        hash={1}
+                        similarSearchHash={1}
                         type={dataType}
                         hasResults={false}
                     />
                 </Wrapper>,
             );
+            await waitForBatchedUpdates();
 
             // Then it should display create expenses and take a test drive buttons
             expect(await screen.findByText(translateLocal('iou.createExpense'))).toBeVisible();
@@ -75,7 +76,7 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
-                        hash={1}
+                        similarSearchHash={1}
                         type={dataType}
                         hasResults={false}
                     />
@@ -117,7 +118,7 @@ describe('EmptySearchView', () => {
                 render(
                     <Wrapper>
                         <EmptySearchView
-                            hash={queryJSON?.hash ?? 1}
+                            similarSearchHash={queryJSON?.similarSearchHash ?? 1}
                             type={dataType}
                             hasResults={false}
                             groupBy={CONST.SEARCH.GROUP_BY.REPORTS}
@@ -151,7 +152,7 @@ describe('EmptySearchView', () => {
                 render(
                     <Wrapper>
                         <EmptySearchView
-                            hash={queryJSON?.hash ?? 1}
+                            similarSearchHash={queryJSON?.similarSearchHash ?? 1}
                             type={dataType}
                             hasResults={false}
                             groupBy={CONST.SEARCH.GROUP_BY.REPORTS}
@@ -180,7 +181,7 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
-                        hash={1}
+                        similarSearchHash={1}
                         type={dataType}
                         hasResults={false}
                     />
@@ -203,7 +204,7 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
-                        hash={1}
+                        similarSearchHash={1}
                         type={dataType}
                         hasResults={false}
                     />
