@@ -302,7 +302,7 @@ function SearchPage({route}: SearchPageProps) {
             !isOffline &&
             !isAnyTransactionOnHold &&
             (selectedReports.length
-                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.APPROVE)
+                ? selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.APPROVE))
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
 
         if (shouldShowApproveOption) {
@@ -333,7 +333,9 @@ function SearchPage({route}: SearchPageProps) {
             !isOffline &&
             !isAnyTransactionOnHold &&
             (selectedReports.length
-                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods))
+                ? selectedReports.every(
+                      (report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY) && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
+                  )
                 : selectedTransactionsKeys.every(
                       (id) =>
                           selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
@@ -530,11 +532,11 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         setIsDeleteExpensesConfirmModalVisible(false);
-        deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
 
         // Translations copy for delete modal depends on amount of selected items,
         // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
         InteractionManager.runAfterInteractions(() => {
+            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
             clearSelectedTransactions();
         });
     };
