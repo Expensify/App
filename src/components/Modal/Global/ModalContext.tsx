@@ -34,12 +34,12 @@ type ModalInfo = {
 };
 
 function PromiseModalProvider({children}: {children: React.ReactNode}) {
-    const [state, setState] = useState<{modals: ModalInfo[]}>({modals: []});
-    const stateRef = usePrevious(state);
+    const [modalStack, setModalStack] = useState<{modals: ModalInfo[]}>({modals: []});
+    const modalStackRef = usePrevious(modalStack);
 
     const showModal = useCallback<ModalContextType['showModal']>(
         ({component, props, id, isCloseable = true}) => {
-            const existingModal = id ? stateRef.modals.find((modal: ModalInfo) => modal.id === id) : undefined;
+            const existingModal = id ? modalStackRef.modals.find((modal: ModalInfo) => modal.id === id) : undefined;
 
             if (existingModal) {
                 return existingModal.deferred.promise;
@@ -47,18 +47,18 @@ function PromiseModalProvider({children}: {children: React.ReactNode}) {
 
             const deferred = createDeferredPromise<PromiseResolvePayload>();
 
-            setState((prevState) => ({
+            setModalStack((prevState) => ({
                 ...prevState,
                 modals: [...prevState.modals, {component: component as React.FunctionComponent<ModalProps>, props, deferred, isCloseable, id: id ?? String(modalID++)}],
             }));
 
             return deferred.promise;
         },
-        [stateRef],
+        [modalStackRef.modals],
     );
 
     const closeModal = useCallback<ModalContextType['closeModal']>((data = {action: 'CLOSE'}) => {
-        setState((prevState) => {
+        setModalStack((prevState) => {
             const lastModal = prevState.modals.at(-1);
             lastModal?.deferred.resolve(data);
             return {
@@ -68,7 +68,7 @@ function PromiseModalProvider({children}: {children: React.ReactNode}) {
         });
     }, []);
 
-    const modalToRender = state.modals.length > 0 ? state.modals.at(state.modals.length - 1) : null;
+    const modalToRender = modalStack.modals.length > 0 ? modalStack.modals.at(modalStack.modals.length - 1) : null;
     const ModalComponent = modalToRender?.component;
 
     const contextValue = useMemo(() => ({showModal, closeModal}), [closeModal, showModal]);
@@ -76,14 +76,14 @@ function PromiseModalProvider({children}: {children: React.ReactNode}) {
     return (
         <ModalContext.Provider value={contextValue}>
             {children}
-            {ModalComponent ? (
+            {!!ModalComponent && (
                 <ModalComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...modalToRender.props}
                     key={modalToRender.id}
                     closeModal={closeModal}
                 />
-            ) : null}
+            )}
         </ModalContext.Provider>
     );
 }
