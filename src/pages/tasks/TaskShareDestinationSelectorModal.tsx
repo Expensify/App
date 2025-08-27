@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -23,7 +22,7 @@ import {setShareDestinationValue} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 
 const selectReportHandler = (option: unknown) => {
     HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
@@ -37,10 +36,10 @@ const selectReportHandler = (option: unknown) => {
     Navigation.goBack(ROUTES.NEW_TASK.getRoute());
 };
 
-const reportFilter = (reportOptions: Array<SearchOption<Report>>, allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>) =>
+const reportFilter = (reportOptions: Array<SearchOption<Report>>, allReportIsArchived: Record<string, boolean> | undefined) =>
     (reportOptions ?? []).reduce((filtered: Array<SearchOption<Report>>, option) => {
         const report = option.item;
-        const isReportArchived = isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
+        const isReportArchived = allReportIsArchived ? allReportIsArchived[`${report?.reportID}`] : false;
         if (canUserPerformWriteAction(report, isReportArchived) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
             filtered.push(option);
         }
@@ -57,7 +56,22 @@ function TaskShareDestinationSelectorModal() {
     const {options: optionList, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const [allReportIsArchived] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        canBeMissing: true,
+        selector: (allReportNamePairsValue) => {
+            const reportIsArchived: Record<string, boolean> = {};
+            (optionList.reports ?? []).forEach((option) => {
+                const report = option.item;
+                if (report?.reportID && allReportNamePairsValue) {
+                    const reportNameValuePairs = allReportNamePairsValue[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+                    const isArchived = isArchivedReport(reportNameValuePairs);
+                    reportIsArchived[report.reportID] = isArchived;
+                }
+            });
+
+            return reportIsArchived;
+        },
+    });
 
     const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
 
@@ -71,7 +85,7 @@ function TaskShareDestinationSelectorModal() {
                 header: '',
             };
         }
-        const filteredReports = reportFilter(optionList.reports, allReportNameValuePairs);
+        const filteredReports = reportFilter(optionList.reports, allReportIsArchived);
         const {recentReports} = getShareDestinationOptions(filteredReports, optionList.personalDetails, [], [], {}, true);
         const header = getHeaderMessage(recentReports && recentReports.length !== 0, false, '');
         return {
@@ -81,7 +95,7 @@ function TaskShareDestinationSelectorModal() {
             currentUserOption: null,
             header,
         };
-    }, [areOptionsInitialized, optionList.personalDetails, optionList.reports]);
+    }, [areOptionsInitialized, optionList.personalDetails, optionList.reports, allReportIsArchived]);
 
     const options = useMemo(() => {
         if (debouncedSearchValue.trim() === '') {
