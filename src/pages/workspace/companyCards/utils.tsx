@@ -260,8 +260,7 @@ function getExportMenuItem(
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     const defaultAccount = exportConfig?.nonReimbursableAccount || defaultVendorAccount;
                     isDefaultTitle = !!(
-                        companyCard?.nameValuePairs?.intacct_export_charge_card === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE ||
-                        (defaultAccount && !companyCard?.nameValuePairs?.intacct_export_charge_card)
+                        companyCard?.nameValuePairs?.intacct_export_charge_card === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE || !companyCard?.nameValuePairs?.intacct_export_charge_card
                     );
                     const selectedVendorID = companyCard?.nameValuePairs?.intacct_export_charge_card ?? defaultAccount;
                     const selectedCard = (intacctCreditCards ?? []).find(({id}) => id === selectedVendorID);
