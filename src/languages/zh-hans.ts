@@ -1604,6 +1604,9 @@ const translations = {
             recordTroubleshootData: '记录故障排除数据',
             softKillTheApp: '软删除应用程序',
             kill: '杀戮',
+            biometricsRegistered: '生物识别（已注册)',
+            biometricsNotRegistered: '生物识别（未注册)',
+            test: '测试',
         },
         debugConsole: {
             saveLog: '保存日志',

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -12,12 +12,16 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account as AccountOnyx} from '@src/types/onyx';
+import getPlatform from '@libs/getPlatform';
+import { View } from 'react-native';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
 import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import EnableBiometricsModal from './EnableBiometricsModal';
 
 const ACCOUNT_DEFAULT: AccountOnyx = {
     shouldUseStagingServer: undefined,
@@ -39,9 +43,20 @@ function TestToolMenu() {
     const shouldShowTransactionThreadReportToggle = isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isNative = getPlatform() !== (CONST.PLATFORM.WEB || CONST.PLATFORM.MOBILE_WEB);
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
+    const [isRegistered, setRegistered] = useState(true); // This should be replaced with actual logic to check if biometrics are registered
+
+    const [showBiometricsModal, setShowBiometricsModal] = useState(false);
+
+    const biometricsTitle = useCallback(() => {
+        if (isRegistered) {
+            return 'initialSettingsPage.troubleshoot.biometricsRegistered'
+        }
+        return 'initialSettingsPage.troubleshoot.biometricsNotRegistered'
+    }, [isRegistered])
 
     return (
         <>
@@ -99,6 +114,28 @@ function TestToolMenu() {
                             onPress={() => expireSessionWithDelay()}
                         />
                     </TestToolRow>
+
+                    {/* Starts Biometrics test flow -> possible only on native */}
+                    {isNative && (
+                        <TestToolRow title={translate(biometricsTitle())}>
+                            <View style={[styles.flexRow, styles.gap2]}>
+                                <Button
+                                    small
+                                    text={translate('initialSettingsPage.troubleshoot.test')}
+                                    onPress={() => setShowBiometricsModal(true)}
+                                />
+                                {isRegistered && (
+                                    <Button
+                                        small
+                                        danger
+                                        text={translate('initialSettingsPage.troubleshoot.remove')}
+                                        onPress={() => setRegistered(false)}
+                                    />
+                                )}
+                            </View>
+                        </TestToolRow>
+                )}
+                    <EnableBiometricsModal isVisible={showBiometricsModal} onCancel={() => setShowBiometricsModal(false)} registerBiometrics={() => setRegistered(true)} />
                 </>
             )}
 
