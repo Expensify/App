@@ -3,6 +3,8 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {OnyxInputOrEntry, PersonalDetailsList, Report, UserMetadata} from '@src/types/onyx';
 
+type FSClass = ValueOf<typeof CONST.FULLSTORY.CLASS>;
+
 type PropertiesWithoutPageName = Record<string, unknown> & {pageName?: never};
 
 /**
@@ -22,7 +24,7 @@ interface FSPageLikeConstructor {
     new (name: string, properties: PropertiesWithoutPageName): FSPageLike;
 }
 
-type GetChatFSClass = (context: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>) => ValueOf<typeof CONST.FULLSTORY.CLASS>;
+type GetChatFSClass = (context: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>) => FSClass;
 
 type Fullstory = {
     /**
@@ -70,7 +72,7 @@ type ForwardedFSClassProps = {
     /**
      * Used to pass down `fsClass` prop to inner components that might need it for Fulstory masking.
      */
-    forwardedFSClass?: ValueOf<typeof CONST.FULLSTORY.CLASS>;
+    forwardedFSClass?: FSClass;
 };
 
-export type {FSPageLike, FSPageLikeConstructor, Fullstory, GetChatFSClass, PropertiesWithoutPageName, ForwardedFSClassProps};
+export type {FSPageLike, FSPageLikeConstructor, Fullstory, GetChatFSClass, PropertiesWithoutPageName, ForwardedFSClassProps, FSClass};

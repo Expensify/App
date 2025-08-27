@@ -6,6 +6,7 @@ import Animated, {useSharedValue} from 'react-native-reanimated';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import useTheme from '@hooks/useTheme';
 import toggleSelectionFormat from '@libs/FormatSelectionUtils';
+import type {FSClass} from '@libs/Fullstory/types';
 import {parseExpensiMarkWithShortMentions} from '@libs/ParsingUtils';
 import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
 import CONST from '@src/CONST';
@@ -19,9 +20,10 @@ type AnimatedMarkdownTextInputRef = typeof AnimatedMarkdownTextInput & MarkdownT
 type RNMarkdownTextInputWithRefProps = Omit<MarkdownTextInputProps, 'parser'> & {
     parser?: MarkdownTextInputProps['parser'];
     ref?: ForwardedRef<AnimatedMarkdownTextInputRef>;
+    fsClass?: FSClass;
 };
 
-function RNMarkdownTextInputWithRef({maxLength, parser, ref, ...props}: RNMarkdownTextInputWithRefProps) {
+function RNMarkdownTextInputWithRef({maxLength, parser, ref, fsClass = CONST.FULLSTORY.CLASS.MASK, ...props}: RNMarkdownTextInputWithRefProps) {
     const theme = useTheme();
 
     const {availableLoginsList, currentUserMentions} = useShortMentionsList();
@@ -76,6 +78,7 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ref, ...props}: RNMarkdo
             parser={parserWorklet}
             ref={inputRef}
             formatSelection={toggleSelectionFormat}
+            fsClass={fsClass}
             // eslint-disable-next-line
             {...props}
             /**
