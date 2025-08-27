@@ -301,6 +301,7 @@ import type {
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
+    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -3093,9 +3094,9 @@ const translations = {
         },
     },
     beneficialOwnerInfoStep: {
-        doYouOwn25percent: 'あなたは25％以上を所有していますか',
-        doAnyIndividualOwn25percent: '25%以上を所有している個人はいますか',
-        areThereMoreIndividualsWhoOwn25percent: '25％以上を所有する個人は他にいますか',
+        doYouOwn25percent: ({companyName}: CompanyNameParams) => `${companyName}の25%以上を所有していますか？`,
+        doAnyIndividualOwn25percent: ({companyName}: CompanyNameParams) => `${companyName}の25%以上を所有している個人はいますか？`,
+        areThereMoreIndividualsWhoOwn25percent: ({companyName}: CompanyNameParams) => `${companyName}の株式の25%以上を保有する個人は他にいますか？`,
         regulationRequiresUsToVerifyTheIdentity: '規制により、事業の25%以上を所有する個人の身元を確認する必要があります。',
         companyOwner: 'ビジネスオーナー',
         enterLegalFirstAndLastName: '所有者の法的な名前は何ですか？',
@@ -3178,21 +3179,6 @@ const translations = {
         enable2FAText: '私たちはあなたのセキュリティを真剣に考えています。アカウントに追加の保護層を加えるために、今すぐ2FAを設定してください。',
         secureYourAccount: 'アカウントを保護する',
     },
-    beneficialOwnersStep: {
-        additionalInformation: '追加情報',
-        checkAllThatApply: '該当するものにすべてチェックを入れ、それ以外は空白のままにしてください。',
-        iOwnMoreThan25Percent: '私は25%以上を所有しています',
-        someoneOwnsMoreThan25Percent: '他の誰かが25%以上を所有しています',
-        additionalOwner: '追加の実質的支配者',
-        removeOwner: 'この実質的支配者を削除する',
-        addAnotherIndividual: '25%以上を所有している別の個人を追加',
-        agreement: '同意:',
-        termsAndConditions: '利用規約',
-        certifyTrueAndAccurate: '私は提供された情報が真実で正確であることを証明します。',
-        error: {
-            certify: '情報が真実で正確であることを証明する必要があります。',
-        },
-    },
     completeVerificationStep: {
         completeVerification: '認証を完了する',
         confirmAgreements: '以下の合意を確認してください。',
@@ -3271,10 +3257,11 @@ const translations = {
         regulationRequiresUs: '規制により、事業の25%以上を所有する個人の身元を確認する必要があります。',
         iAmAuthorized: '私はビジネス支出のためにビジネス銀行口座を使用する権限があります。',
         iCertify: '提供された情報が真実で正確であることを証明します。',
-        termsAndConditions: '利用規約',
+        iAcceptTheTermsAndConditions: `<a href="https://cross-border.corpay.com/tc/">利用規約</a>に同意します。`,
+        iAcceptTheTermsAndConditionsAccessibility: '利用規約に同意します。',
         accept: '銀行口座を承認して追加',
-        iConsentToThe: '私はこれに同意します',
-        privacyNotice: 'プライバシー通知',
+        iConsentToThePrivacyNotice: '<a href="https://payments.corpay.com/compliance">プライバシーポリシー</a>に同意します。',
+        iConsentToThePrivacyNoticeAccessibility: 'プライバシーポリシーに同意します。',
         error: {
             authorized: 'ビジネス銀行口座を操作するには、権限を持つ管理責任者でなければなりません。',
             certify: '情報が真実で正確であることを証明してください。',
@@ -3572,11 +3559,14 @@ const translations = {
             deepDiveExpensifyCard: `<muted-text-label>Expensify Cardの取引は、<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">弊社の統合</a>で作成された 「Expensify Card Liability Account 」に自動的にエクスポートされます。</muted-text-label>`,
         },
         receiptPartners: {
+            connect: '今すぐ接続',
             uber: {
                 subtitle: '組織全体で出張費や食事の配達費を自動化します。',
                 autoRemove: 'Uber for Business に新しいワークスペースメンバーを招待する',
                 autoInvite: 'Uber for Business から削除されたワークスペースメンバーを非アクティブ化する',
                 manageInvites: '招待を管理する',
+                bannerTitle: 'Expensify + ビジネス向け Uber',
+                bannerDescription: 'Uber for Business を接続すると、組織全体の出張費や食事の配達費を自動化できます。',
             },
         },
         perDiem: {
@@ -5478,11 +5468,8 @@ const translations = {
                 perActiveMember: 'アクティブメンバー1人あたり月額。',
                 perMember: 'メンバーごとに月額。',
             },
-            note: {
-                upgradeWorkspace: 'ワークスペースをアップグレードして、この機能にアクセスするか、',
-                learnMore: '詳細を確認',
-                aboutOurPlans: '私たちのプランと価格について。',
-            },
+            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+                `<muted-text>この機能を利用するには、ワークスペースをアップグレードするか、当社のプランと価格<a href="${subscriptionLink}">について詳しくご確認</a>ください。</muted-text>`,
             upgradeToUnlock: 'この機能をアンロックする',
             completed: {
                 headline: `ワークスペースをアップグレードしました！`,

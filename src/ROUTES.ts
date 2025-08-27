@@ -127,7 +127,10 @@ const ROUTES = {
     },
     SEARCH_MONEY_REQUEST_REPORT: {
         route: 'search/r/:reportID',
-        getRoute: ({reportID}: {reportID: string}) => `search/r/${reportID}` as const,
+        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
+            const baseRoute = `search/r/${reportID}` as const;
+            return getUrlWithBackToParam(baseRoute, backTo);
+        },
     },
     SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: {
         route: 'search/r/:reportID/hold',
@@ -384,7 +387,10 @@ const ROUTES = {
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
 
-    KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
+    KEYBOARD_SHORTCUTS: {
+        route: 'keyboard-shortcuts',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('keyboard-shortcuts', backTo),
+    },
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',
