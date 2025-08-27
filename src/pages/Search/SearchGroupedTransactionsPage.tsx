@@ -5,8 +5,9 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
+import CardListItemHeader from '@components/SelectionList/Search/CardListItemHeader';
+import MemberListItemHeader from '@components/SelectionList/Search/MemberListItemHeader';
+import WithdrawalIDListItemHeader from '@components/SelectionList/Search/WithdrawalIDListItemHeader';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,12 +16,11 @@ import {search} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {SearchResults} from '@src/types/onyx';
-import type {SearchFilterKey} from '@components/Search/types';
+import HeaderGap from '@components/HeaderGap';
 
 type SearchGroupedTransactionsPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.GROUPED_TRANSACTIONS>;
 
@@ -30,13 +30,41 @@ function SearchGroupedTransactionsPage({route}: SearchGroupedTransactionsPagePro
     const styles = useThemeStyles();
     const {newQuery} = route.params;
     const {clearSelectedTransactions} = useSearchContext();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     
     const queryJSON = useMemo(() => buildSearchQueryJSON(newQuery), [newQuery]);
     
+    // Extract group information from the query to determine what type of header to show
+    const groupInfo = useMemo(() => {
+        if (!queryJSON?.flatFilters) {
+            return null;
+        }
+        
+        // Check for FROM filter (member group)
+        const fromFilter = queryJSON.flatFilters.find(filter => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
+        if (fromFilter && fromFilter.filters.length > 0) {
+            return {
+                type: CONST.SEARCH.GROUP_BY.FROM,
+                value: fromFilter.filters[0].value,
+            };
+        }
+        
+        // Check for CARD_ID filter (card group)
+        const cardFilter = queryJSON.flatFilters.find(filter => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
+        if (cardFilter && cardFilter.filters.length > 0) {
+            return {
+                type: CONST.SEARCH.GROUP_BY.CARD,
+                value: cardFilter.filters[0].value,
+            };
+        }
+        
+        return null;
+    }, [queryJSON]);
+    
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     
     // Clear selected transactions when component mounts
     useEffect(() => {
@@ -66,6 +94,82 @@ function SearchGroupedTransactionsPage({route}: SearchGroupedTransactionsPagePro
         });
     }, [queryJSON]);
     
+    // Create header component based on group type
+    const headerComponent = useMemo(() => {
+        if (!groupInfo || !currentSearchResults?.data) {
+            return null;
+        }
+
+        // Create a mock group item for the header
+        if (groupInfo.type === CONST.SEARCH.GROUP_BY.FROM && personalDetails) {
+            const accountID = typeof groupInfo.value === 'string' ? parseInt(groupInfo.value, 10) : groupInfo.value;
+            const memberDetails = personalDetails[accountID];
+            
+            if (!memberDetails) {
+                return null;
+            }
+
+            const mockMemberGroupItem = {
+                ...memberDetails,
+                groupedBy: CONST.SEARCH.GROUP_BY.FROM as typeof CONST.SEARCH.GROUP_BY.FROM,
+                accountID,
+                avatar: memberDetails.avatar ?? '',
+                displayName: memberDetails.displayName ?? '',
+                login: memberDetails.login ?? '',
+                transactions: [],
+                keyForList: `member-${accountID}`,
+                isSelected: false,
+                count: 0,
+                total: 0,
+                currency: 'USD',
+            };
+
+            return (
+                <MemberListItemHeader
+                    member={mockMemberGroupItem as any} // eslint-disable-line @typescript-eslint/no-unsafe-assignment
+                    onSelectRow={() => {}}
+                    canSelectMultiple={false}
+                />
+            );
+        }
+
+        if (groupInfo.type === CONST.SEARCH.GROUP_BY.CARD && cardList) {
+            const cardID = typeof groupInfo.value === 'string' ? parseInt(groupInfo.value, 10) : groupInfo.value;
+            const cardDetails = cardList[cardID];
+            
+            if (!cardDetails) {
+                return null;
+            }
+
+            const mockCardGroupItem = {
+                ...cardDetails,
+                groupedBy: CONST.SEARCH.GROUP_BY.CARD as typeof CONST.SEARCH.GROUP_BY.CARD,
+                cardID,
+                avatar: '',
+                displayName: cardDetails.lastFourPAN ?? '',
+                login: '',
+                transactions: [],
+                keyForList: `card-${cardID}`,
+                isSelected: false,
+                count: 0,
+                total: 0,
+                currency: 'USD',
+                accountID: 0,
+                cardName: cardDetails.cardName ?? '',
+            };
+
+            return (
+                <CardListItemHeader
+                    card={mockCardGroupItem as any} // eslint-disable-line @typescript-eslint/no-unsafe-assignment
+                    onSelectRow={() => {}}
+                    canSelectMultiple={false}
+                />
+            );
+        }
+
+        return null;
+    }, [groupInfo, currentSearchResults?.data, personalDetails, cardList]);
+    
     // Check if we should show not found page
     const shouldShowNotFoundPage = useMemo(() => !queryJSON, [queryJSON]);
     
@@ -85,16 +189,22 @@ function SearchGroupedTransactionsPage({route}: SearchGroupedTransactionsPagePro
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={Navigation.goBack}
                 >
-                    <DragAndDropProvider>
-                        {!!queryJSON && (
-                            <Search
-                                queryJSON={queryJSON}
-                                searchResults={currentSearchResults}
-                                handleSearch={handleSearch}
-                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            />
-                        )}
-                    </DragAndDropProvider>
+                    {!!headerComponent && (
+                        <>
+                            <HeaderGap />
+                            <View style={[styles.mh5, styles.mb2]}>
+                                {headerComponent}
+                            </View>
+                        </>
+                    )}
+                    {!!queryJSON && (
+                        <Search
+                            queryJSON={queryJSON}
+                            searchResults={currentSearchResults}
+                            handleSearch={handleSearch}
+                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                        />
+                    )}
                 </FullPageNotFoundView>
             </ScreenWrapper>
         );
@@ -116,18 +226,24 @@ function SearchGroupedTransactionsPage({route}: SearchGroupedTransactionsPagePro
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={Navigation.goBack}
                 >
-                    <DragAndDropProvider>
-                        <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
-                            {queryJSON && (
-                                <Search
-                                    queryJSON={queryJSON}
-                                    searchResults={currentSearchResults}
-                                    handleSearch={handleSearch}
-                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                />
-                            )}
-                        </View>
-                    </DragAndDropProvider>
+                    <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
+                        {!!headerComponent && (
+                            <>
+                                <HeaderGap />
+                                <View style={[styles.mh5, styles.mb2]}>
+                                    {headerComponent}
+                                </View>
+                            </>
+                        )}
+                        {!!queryJSON && (
+                            <Search
+                                queryJSON={queryJSON}
+                                searchResults={currentSearchResults}
+                                handleSearch={handleSearch}
+                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            />
+                        )}
+                    </View>
                 </FullPageNotFoundView>
             </View>
         </ScreenWrapper>

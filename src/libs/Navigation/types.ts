@@ -2190,9 +2190,7 @@ type SearchFullscreenNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.SEARCH.GROUPED_TRANSACTIONS]: {
-        originalQuery: string;
-        groupBy: string;
-        groupByValue: string;
+        newQuery: string;
         backTo?: Routes;
     };
 };
