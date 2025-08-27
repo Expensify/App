@@ -547,12 +547,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 return;
             }
 
+            const backTo = Navigation.getActiveRoute();
+
             if (isTransactionMemberGroupListItemType(item)) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
                 newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.accountID}]});
                 const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQuery}));
+                Navigation.navigate(ROUTES.SEARCH_GROUPED_TRANSACTIONS.getRoute({newQuery, backTo}));
                 return;
             }
 
@@ -561,7 +563,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.cardID}]});
                 const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQuery}));
+                Navigation.navigate(ROUTES.SEARCH_GROUPED_TRANSACTIONS.getRoute({newQuery, backTo}));
                 return;
             }
 
@@ -584,9 +586,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             Performance.markStart(CONST.TIMING.OPEN_REPORT_SEARCH);
             Timing.start(CONST.TIMING.OPEN_REPORT_SEARCH);
 
-            const backTo = Navigation.getActiveRoute();
 
             if (isTransactionGroupListItemType(item)) {
+                // Default behavior for other grouped results (reports)
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
                 return;
             }

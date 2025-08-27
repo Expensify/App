@@ -139,6 +139,13 @@ const ROUTES = {
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
+    SEARCH_GROUPED_TRANSACTIONS: {
+        route: 'search/group/:newQuery',
+        getRoute: ({newQuery, backTo}: {newQuery: string; backTo?: string}) => {
+            const baseRoute = `search/group/${encodeURIComponent(newQuery)}` as const;
+            return getUrlWithBackToParam(baseRoute, backTo);
+        },
+    },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
     MOVE_TRANSACTIONS_SEARCH_RHP: 'search/move-transactions',
 

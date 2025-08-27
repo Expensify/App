@@ -1739,6 +1739,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: {
                     path: ROUTES.SEARCH_MONEY_REQUEST_REPORT.route,
                 },
+                [SCREENS.SEARCH.GROUPED_TRANSACTIONS]: {
+                    path: ROUTES.SEARCH_GROUPED_TRANSACTIONS.route,
+                },
             },
         },
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: {

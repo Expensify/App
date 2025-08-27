@@ -2189,6 +2189,12 @@ type SearchFullscreenNavigatorParamList = {
         reportID: string;
         backTo?: Routes;
     };
+    [SCREENS.SEARCH.GROUPED_TRANSACTIONS]: {
+        originalQuery: string;
+        groupBy: string;
+        groupByValue: string;
+        backTo?: Routes;
+    };
 };
 
 type SearchAdvancedFiltersParamList = {
