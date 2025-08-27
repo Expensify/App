@@ -23,17 +23,14 @@ const useDisplayFocusedInputUnderKeyboard = (): UseDisplayFocusedInputUnderKeybo
         setInputIndexIsFocused(-1);
     }, []);
 
-    const performScroll = () => {
-        listRef.current?.scrollToFocusedInput(inputIndexIsFocused);
-    };
-
     useEffect(() => {
         if (debouncedScrollTrigger <= 0) {
             return;
         }
-        performScroll();
 
-        // performScroll is intentionally omitted - it's a stable function that doesn't need to be in dependencies
+        listRef.current?.scrollToFocusedInput(inputIndexIsFocused);
+
+        // We only want this effect to run when debouncedScrollTrigger changes, not when inputIndexIsFocused changes
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [debouncedScrollTrigger]);

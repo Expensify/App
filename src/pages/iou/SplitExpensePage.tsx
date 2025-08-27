@@ -163,7 +163,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         return (
             <View
                 ref={footerRef}
-                style={[styles.pt3]}
+                style={styles.pt3}
             >
                 {(!!errorMessage || !!warningMessage) && (
                     <FormHelpMessage

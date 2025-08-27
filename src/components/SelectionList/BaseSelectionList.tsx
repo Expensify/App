@@ -691,7 +691,6 @@ function BaseSelectionList<TItem extends ListItem>({
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
-                    // inFocus={scrollToFocusedInput}
                 />
             </View>
         );

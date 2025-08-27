@@ -41,20 +41,16 @@ function SplitListItem<TItem extends ListItem>({
 
     const isBottomVisible = !!splitItem.category || !!splitItem.tags?.at(0);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const focusHandler = useCallback(
-        () => {
-            if (!onInputFocus) {
-                return;
-            }
+    const focusHandler = useCallback(() => {
+        if (!onInputFocus) {
+            return;
+        }
 
-            if (!index && index !== 0) {
-                return;
-            }
-            onInputFocus(index);
-        },
-        [onInputFocus, index],
-    );
+        if (!index && index !== 0) {
+            return;
+        }
+        onInputFocus(index);
+    }, [onInputFocus, index]);
 
     return (
         <BaseListItem
