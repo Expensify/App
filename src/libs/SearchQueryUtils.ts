@@ -353,20 +353,17 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
  * @param groupBy - The raw groupBy value from SearchQueryJSON
  * @returns The normalized groupBy value or undefined
  */
-function getGroupByValue(groupBy?: string | string[]): SearchGroupBy | undefined {
+function getGroupByValue(groupBy?: SearchGroupBy | SearchGroupBy[]): SearchGroupBy | undefined {
     if (!groupBy) {
         return;
     }
 
     if (typeof groupBy === 'string') {
-        return groupBy as SearchGroupBy;
+        return groupBy;
     }
 
     if (Array.isArray(groupBy)) {
-        const [firstValue] = groupBy;
-        const allowedValues = Object.values(CONST.SEARCH.GROUP_BY) as SearchGroupBy[];
-
-        return allowedValues.find((value) => value === firstValue);
+        return groupBy[0];
     }
 }
 
