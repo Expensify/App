@@ -1,8 +1,7 @@
+import noop from 'lodash/noop';
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import usePrevious from '@hooks/usePrevious';
 import createDeferredPromise from '@libs/createDeferredPromise';
-
-const noop = () => {};
 
 type ModalProps = {
     closeModal: (param?: PromiseResolvePayload) => void;
@@ -13,7 +12,7 @@ type ModalAction = 'CONFIRM' | 'CANCEL' | 'CLOSE';
 type PromiseResolvePayload<A extends string = ModalAction> = {action: A; [key: string]: unknown};
 
 type ModalContextType = {
-    showModal<P extends ModalProps>(options: {component: React.FunctionComponent<P>; props?: Omit<P, 'closeModal'>; id?: string; closeable?: boolean}): Promise<PromiseResolvePayload>;
+    showModal<P extends ModalProps>(options: {component: React.FunctionComponent<P>; props?: Omit<P, 'closeModal'>; id?: string; isCloseable?: boolean}): Promise<PromiseResolvePayload>;
     closeModal(data?: PromiseResolvePayload): void;
 };
 
@@ -24,14 +23,14 @@ const ModalContext = React.createContext<ModalContextType>({
 
 const useModal = () => useContext(ModalContext);
 
-let modalId = 1;
+let modalID = 1;
 
 type ModalInfo = {
     id: string;
     component: React.FunctionComponent<ModalProps>;
     props?: Record<string, unknown>;
     deferred: ReturnType<typeof createDeferredPromise<PromiseResolvePayload>>;
-    closeable: boolean;
+    isCloseable: boolean;
 };
 
 function PromiseModalProvider({children}: {children: React.ReactNode}) {
@@ -39,7 +38,7 @@ function PromiseModalProvider({children}: {children: React.ReactNode}) {
     const stateRef = usePrevious(state);
 
     const showModal = useCallback<ModalContextType['showModal']>(
-        ({component, props, id, closeable = true}) => {
+        ({component, props, id, isCloseable = true}) => {
             const existingModal = id ? stateRef.modals.find((modal: ModalInfo) => modal.id === id) : undefined;
 
             if (existingModal) {
@@ -50,7 +49,7 @@ function PromiseModalProvider({children}: {children: React.ReactNode}) {
 
             setState((prevState) => ({
                 ...prevState,
-                modals: [...prevState.modals, {component: component as React.FunctionComponent<ModalProps>, props, deferred, closeable, id: id ?? String(modalId++)}],
+                modals: [...prevState.modals, {component: component as React.FunctionComponent<ModalProps>, props, deferred, isCloseable, id: id ?? String(modalID++)}],
             }));
 
             return deferred.promise;
