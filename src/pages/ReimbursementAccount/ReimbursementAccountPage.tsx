@@ -415,7 +415,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     } else if (throttledDate) {
         errorText = <Text>{translate('bankAccount.hasBeenThrottledError')}</Text>;
     } else if (hasUnsupportedCurrency) {
-        // eslint-disable-next-line react-compiler/react-compiler
         errorText = <RenderHTML html={translate('bankAccount.hasCurrencyError', {workspaceRoute})} />;
     }
 
