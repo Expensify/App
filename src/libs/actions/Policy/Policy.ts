@@ -2605,7 +2605,7 @@ function togglePolicyUberAutoRemove(policyID: string | undefined, enabled: boole
  * Invites workspace employees to Uber for Business
  */
 function inviteWorkspaceEmployeesToUber(policyID: string, emails: string[]) {
-    if (!policyID || !emails || emails.length === 0) {
+    if (!policyID || emails.length === 0) {
         Log.warn('inviteWorkspaceEmployeesToUber invalid params', {policyID, emails});
         return;
     }
