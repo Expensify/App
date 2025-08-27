@@ -23,7 +23,7 @@ import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, formatMemberForList, getFirstSelectedItem, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
@@ -39,6 +39,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+import variables from '@styles/variables';
 
 type MembersSection = SectionListData<MemberForList, Section<MemberForList>>;
 
@@ -163,11 +164,12 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
     }, [options.personalDetails, policy?.employeeList, betas, debouncedSearchTerm, excludedUsers, areOptionsInitialized, inviteOptions.personalDetails, inviteOptions.userToInvite]);
 
-    const sections: MembersSection[] = useMemo(() => {
+    const {sections, firstKeyForList} = useMemo(() => {
         const sectionsArr: MembersSection[] = [];
+        let firstKey = '';
 
         if (!areOptionsInitialized) {
-            return [];
+            return {sections:[],firstKeyForList:firstKey};
         }
 
         const selectedLogins = selectedOptions.map(({login}) => login);
@@ -192,16 +194,22 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             data: filterSelectedOptions,
             shouldShow: true,
         });
-
+        if (!firstKey) {
+            firstKey = getFirstSelectedItem(filterSelectedOptions);
+        }
+        
         sectionsArr.push({
             title: translate('common.contacts'),
             data: personalDetailsFormatted,
             shouldShow: !isEmptyObject(personalDetailsFormatted),
         });
-
+        if (!firstKey) {
+            firstKey = getFirstSelectedItem(personalDetailsFormatted);
+        }
+        
         Object.values(usersToInvite).forEach((userToInvite) => {
             const hasUnselectedUserToInvite = !selectedLogins.some((selectedLogin) => selectedLogin === userToInvite.login);
-
+            
             if (hasUnselectedUserToInvite) {
                 sectionsArr.push({
                     title: undefined,
@@ -211,7 +219,8 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             }
         });
 
-        return sectionsArr;
+
+        return {sections:sectionsArr,firstKeyForList:firstKey};
     }, [areOptionsInitialized, selectedOptions, personalDetails, translate, usersToInvite]);
 
     const toggleOption = (option: MemberForList) => {
@@ -330,6 +339,8 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     footerContent={footerContent}
                     isLoadingNewOptions={!!isSearchingForReports}
                     addBottomSafeAreaPadding
+                    initiallyFocusedOptionKey={firstKeyForList}
+                    getItemHeight={() => variables.optionRowHeight}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
