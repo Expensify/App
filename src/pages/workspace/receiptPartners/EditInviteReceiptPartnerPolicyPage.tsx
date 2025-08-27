@@ -35,9 +35,10 @@ type EditInviteReceiptPartnerPolicyPageProps = PlatformStackScreenProps<Workspac
 
 const TAB_NAMES = [CONST.TAB.RECEIPT_PARTNERS.ALL, CONST.TAB.RECEIPT_PARTNERS.LINKED, CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING] as const;
 const UBER_EMPLOYEE_STATUS_VALUES = [
-    CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED,
+    CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.CREATED,
     CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED,
     CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL,
+    CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED,
     CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED,
     CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.DELETED,
     CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE,
@@ -95,22 +96,9 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
 
     const deriveStatus = useCallback(
         (email: string): UberEmployeeStatus => {
-            const status = uberEmployeesByEmail[email]?.status?.toLowerCase();
-            switch (status) {
-                case 'accepted':
-                    return CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED;
-                case 'invited':
-                    return CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED;
-                case 'pending_approval':
-                case 'accepted_pending_approval':
-                    return CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL;
-                case 'suspended':
-                    return CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED;
-                case 'deleted':
-                    return CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.DELETED;
-                default:
-                    return CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE;
-            }
+            const status = uberEmployeesByEmail[email]?.status as UberEmployeeStatus;
+
+            return status ?? CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE;
         },
         [uberEmployeesByEmail],
     );
@@ -118,12 +106,51 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
     const members = useMemo<Array<MemberForList & ListItem>>(() => {
         const list: Array<MemberForList & ListItem> = [];
         const employees = policy?.employeeList ?? {};
+
         Object.entries(employees).forEach(([email, policyEmployee]) => {
             // Skip deleted policy employees
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
                 return;
             }
             const personalDetail = getPersonalDetailByEmail(email);
+            const status = deriveStatus(email);
+
+            let rightElement;
+
+            // Show resend button for CREATED and INVITED
+            if (status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.CREATED || status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED) {
+                rightElement = (
+                    <Button
+                        small
+                        text={translate('workspace.receiptPartners.uber.status.resend')}
+                        onPress={() => {}}
+                        style={[styles.ml3]}
+                    />
+                );
+            }
+            // Show invite button for DELETED and NONE
+            else if (status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.DELETED || status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE) {
+                rightElement = (
+                    <Button
+                        small
+                        text={translate('workspace.receiptPartners.uber.status.invite')}
+                        onPress={() => {}}
+                        success
+                        style={[styles.ml3]}
+                    />
+                );
+            } else {
+                const badgeText = translate(`workspace.receiptPartners.uber.status.${status}`);
+                const isSuccess = status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED;
+                rightElement = (
+                    <Badge
+                        text={badgeText}
+                        success={isSuccess}
+                        style={[styles.ml3]}
+                    />
+                );
+            }
+
             const option = formatMemberForList({
                 text: personalDetail?.displayName ?? email,
                 alternateText: email,
@@ -139,54 +166,10 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 ],
                 keyForList: email,
                 reportID: '',
+                isDisabled: true,
             });
-            const status = deriveStatus(email);
-            let badgeText: string | undefined;
-            switch (status) {
-                case CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED:
-                    badgeText = translate('workspace.receiptPartners.uber.linked');
-                    break;
-                case CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL:
-                    badgeText = translate('workspace.receiptPartners.uber.pending');
-                    break;
-                case CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED:
-                    badgeText = translate('workspace.receiptPartners.uber.suspended');
-                    break;
-                default:
-                    break;
-            }
 
-            let rightElement: React.ReactNode | undefined;
-            if (status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED || status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.DELETED) {
-                rightElement = (
-                    <Button
-                        small
-                        text={translate('workspace.receiptPartners.uber.resend')}
-                        onPress={() => {}}
-                        style={[styles.ml3]}
-                    />
-                );
-            } else if (status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE) {
-                rightElement = (
-                    <Button
-                        small
-                        text={translate('workspace.receiptPartners.uber.invite')}
-                        onPress={() => {}}
-                        success
-                        style={[styles.ml3]}
-                    />
-                );
-            } else if (badgeText) {
-                rightElement = (
-                    <Badge
-                        text={badgeText}
-                        success
-                        style={[styles.ml3]}
-                    />
-                );
-            }
-
-            list.push({...option, rightElement, isDisabled: true} as MemberForList & ListItem);
+            list.push({...option, rightElement} as MemberForList & ListItem);
         });
         return sortAlphabetically(list, 'text', localeCompare);
     }, [deriveStatus, localeCompare, policy?.employeeList, translate, isOffline, styles.ml3]);
@@ -210,11 +193,12 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
             return data.filter((m) => {
                 const email = m.login ?? '';
                 const status = deriveStatus(email);
-                if (status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED || status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.DELETED) {
-                    return true;
-                }
-                // not in uber list
-                return status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE;
+                return (
+                    status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.CREATED ||
+                    status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.INVITED ||
+                    status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.DELETED ||
+                    status === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.NONE
+                );
             });
         },
         [deriveStatus],
