@@ -33,7 +33,6 @@ import {FullScreenContextProvider} from './components/VideoPlayerContexts/FullSc
 import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
-import WideRHPContextProvider from './components/WideRHPContextProvider';
 import {EnvironmentProvider} from './components/withEnvironment';
 import {KeyboardStateProvider} from './components/withKeyboardState';
 import CONFIG from './CONFIG';
@@ -108,7 +107,6 @@ function App() {
                                         FullScreenContextProvider,
                                         VolumeContextProvider,
                                         VideoPopoverMenuContextProvider,
-                                        WideRHPContextProvider,
                                         KeyboardProvider,
                                         KeyboardStateProvider,
                                         SearchRouterContextProvider,
