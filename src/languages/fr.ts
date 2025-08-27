@@ -1433,7 +1433,6 @@ const translations = {
             pageTitle: 'Confirmez les détails que vous gardez. Les autres seront supprimés.',
             confirmButton: 'Fusionner les dépenses',
         },
-        unreportedReport: '(aucun)',
     },
     share: {
         shareToExpensify: 'Partager sur Expensify',

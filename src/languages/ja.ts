@@ -1427,7 +1427,6 @@ const translations = {
             pageTitle: '保持する詳細を確認してください。保持しない詳細は削除されます。',
             confirmButton: '経費をマージ',
         },
-        unreportedReport: '(なし)',
     },
     share: {
         shareToExpensify: 'Expensifyに共有',

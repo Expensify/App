@@ -1425,7 +1425,6 @@ const translations = {
             pageTitle: 'Potwierdź szczegóły, które zachowujesz. Niezachowane zostaną usunięte.',
             confirmButton: 'Scal wydatki',
         },
-        unreportedReport: '(brak)',
     },
     share: {
         shareToExpensify: 'Udostępnij do Expensify',

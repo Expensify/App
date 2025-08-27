@@ -1417,7 +1417,6 @@ const translations = {
             pageTitle: "Confirm the details you're keeping. The details you don't keep will be deleted.",
             confirmButton: 'Merge expenses',
         },
-        unreportedReport: '(none)',
     },
     share: {
         shareToExpensify: 'Share to Expensify',

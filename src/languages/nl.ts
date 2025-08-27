@@ -1428,7 +1428,6 @@ const translations = {
             pageTitle: 'Bevestig de details die je wilt bewaren. Niet bewaarde details worden verwijderd.',
             confirmButton: 'Kosten samenvoegen',
         },
-        unreportedReport: '(geen)',
     },
     share: {
         shareToExpensify: 'Delen met Expensify',

@@ -1426,7 +1426,6 @@ const translations = {
             pageTitle: 'Conferma i dettagli che vuoi conservare. Quelli non mantenuti saranno eliminati.',
             confirmButton: 'Unisci spese',
         },
-        unreportedReport: '(nessuno)',
     },
     share: {
         shareToExpensify: 'Condividi su Expensify',
