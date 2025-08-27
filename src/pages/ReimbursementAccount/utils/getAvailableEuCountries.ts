@@ -1,11 +1,8 @@
 import CONST from '@src/CONST';
 
-const euUkSupportedCountrySet = new Set<string>(CONST.EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES);
+const ukEuSupportedCountrySet = new Set<string>(CONST.EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES);
 const europeanCountries = Object.entries(CONST.EUROPEAN_UNION_COUNTRIES_WITH_GB);
 
-export default function getAvailableEuCountries(shouldAllowChange?: boolean, isEuCurrencySupported?: boolean): Record<string, string> {
-    if (!isEuCurrencySupported) {
-        return shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES;
-    }
-    return Object.fromEntries(europeanCountries.filter(([code]) => euUkSupportedCountrySet.has(code)));
+export default function getAvailableEuCountries(): Record<string, string> {
+    return Object.fromEntries(europeanCountries.filter(([code]) => ukEuSupportedCountrySet.has(code)));
 }

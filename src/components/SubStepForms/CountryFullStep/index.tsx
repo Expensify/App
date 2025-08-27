@@ -20,6 +20,9 @@ type CountryFullStepProps = {
 
     /** ID of current policy */
     policyID: string | undefined;
+
+    /** Whether the user is coming from the expensify card */
+    isComingFromExpensifyCard?: boolean;
 };
 
 type CountrySubStepProps = {
@@ -29,7 +32,7 @@ type CountrySubStepProps = {
 
 const bodyContent: Array<ComponentType<CountrySubStepProps>> = [Confirmation];
 
-function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID}: CountryFullStepProps) {
+function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isComingFromExpensifyCard}: CountryFullStepProps) {
     const {translate} = useLocalize();
 
     const {
@@ -68,6 +71,7 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID}: Cou
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}
+                isComingFromExpensifyCard={isComingFromExpensifyCard}
                 policyID={policyID}
             />
         </InteractiveStepWrapper>

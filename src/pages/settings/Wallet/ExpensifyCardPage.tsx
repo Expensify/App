@@ -97,9 +97,12 @@ function ExpensifyCardPage({
 
     useEffect(() => {
         return () => {
+            if (!pin) {
+                return;
+            }
             clearActivatedCardPin();
         };
-    }, []);
+    }, [pin]);
 
     useEffect(() => {
         setIsNotFound(!cardsToShow);

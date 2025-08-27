@@ -18,6 +18,7 @@ import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
@@ -83,7 +84,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const {windowHeight} = useWindowDimensions();
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
 
-    const settlementCurrency = isUkEuCurrencySupported ? policy?.outputCurrency : CONST.CURRENCY.USD;
+    const settlementCurrency = useCurrencyForExpensifyCard({policyID});
 
     const allCards = useMemo(() => {
         const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
@@ -234,7 +235,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 </View>
             )}
             {isEmptyObject(cardsList) ? (
-                <EmptyCardView isBankAccountVerified={isBankAccountVerified} />
+                <EmptyCardView
+                    isBankAccountVerified={isBankAccountVerified}
+                    policyID={policyID}
+                />
             ) : (
                 <ScrollView
                     addBottomSafeAreaPadding
@@ -249,7 +253,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                             keyboardShouldPersistTaps="handled"
                         />
                     </View>
-                    <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
+                    <Text style={[styles.textMicroSupporting, styles.m5]}>
+                        {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
+                    </Text>
                 </ScrollView>
             )}
         </ScreenWrapper>
