@@ -15,14 +15,6 @@ const useDisplayFocusedInputUnderKeyboard = (): UseDisplayFocusedInputUnderKeybo
     const bottomOffset = useRef(0);
     const [scrollTrigger, debouncedScrollTrigger, setScrollTrigger] = useDebouncedState(0);
 
-    const handleInputFocus = useCallback((index: number) => {
-        setInputIndexIsFocused(index);
-    }, []);
-
-    const handleInputBlur = useCallback(() => {
-        setInputIndexIsFocused(-1);
-    }, []);
-
     useEffect(() => {
         if (debouncedScrollTrigger <= 0) {
             return;
@@ -35,31 +27,30 @@ const useDisplayFocusedInputUnderKeyboard = (): UseDisplayFocusedInputUnderKeybo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [debouncedScrollTrigger]);
 
-    useEffect(() => {
-        setScrollTrigger(scrollTrigger + 1);
-
-        // we doesn't need scrollTrigger and setScrollTrigger in deps, because it will cause infinite loop
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [inputIndexIsFocused]);
-
     const scrollToFocusedInput = () => {
         setScrollTrigger(scrollTrigger + 1);
     };
 
+    useEffect(() => {
+        scrollToFocusedInput();
+
+        // we doesn't need scrollToFocusedInput in deps, because we want it to run only after inputIndexIsFocused changes
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [inputIndexIsFocused]);
+
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const SplitListItemWithFocus = useCallback(
-        // eslint-disable-next-line react-compiler/react-compiler
         ((props: SplitListItemProps) => (
             <SplitListItemFocus
-                onInputFocus={handleInputFocus}
-                onInputBlur={handleInputBlur}
+                onInputFocus={setInputIndexIsFocused}
+                onInputBlur={() => setInputIndexIsFocused(-1)}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
         )) as typeof SplitListItemFocus,
-        [handleInputFocus, handleInputBlur],
+        [],
     );
     SplitListItemFocus.displayName = 'SplitListItemWithFocus';
 

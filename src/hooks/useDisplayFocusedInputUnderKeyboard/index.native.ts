@@ -18,22 +18,16 @@ const useDisplayFocusedInputUnderKeyboard = (): UseDisplayFocusedInputUnderKeybo
     const safeAreaPaddings = useSafeAreaPaddings();
     const listRef = useRef<SelectionListHandle>(null);
 
+    const changeKeyboardHeight = ({height}: {height: number}) => {
+        'worklet';
+
+        keyboardHeight.set(height);
+    };
+
     useKeyboardHandler({
-        onStart: (e) => {
-            'worklet';
-
-            keyboardHeight.set(e.height);
-        },
-        onMove: (e) => {
-            'worklet';
-
-            keyboardHeight.set(e.height);
-        },
-        onEnd: (e) => {
-            'worklet';
-
-            keyboardHeight.set(e.height);
-        },
+        onStart: changeKeyboardHeight,
+        onMove: changeKeyboardHeight,
+        onEnd: changeKeyboardHeight,
     });
 
     const scrollToFocusedInput = () => {
@@ -41,10 +35,9 @@ const useDisplayFocusedInputUnderKeyboard = (): UseDisplayFocusedInputUnderKeybo
             return;
         }
 
-        viewRef.current.measureInWindow((x, y, width, height /* measureInWindow callback requires all 4 parameters (x, y, width, height) - cannot omit first 3 */) => {
-            footerRef.current?.measureInWindow((footerX, footerY, footerWidth, footerHeight /* same as above */) => {
-                const keyboardHeightValue = keyboardHeight.get();
-                if (keyboardHeightValue >= 1.0) {
+        viewRef.current.measureInWindow((_x, _y, _width, height) => {
+            footerRef.current?.measureInWindow((_footerX, _footerY, _footerWidth, footerHeight) => {
+                if (keyboardHeight.get() >= 1.0) {
                     return;
                 }
                 bottomOffset.current =

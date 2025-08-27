@@ -889,7 +889,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     ref?: ForwardedRef<SelectionListHandle>;
 
     /** Custom scroll component to use instead of the default ScrollView */
-    renderScrollComponent?: ((props: ScrollViewProps) => ReactElement<ScrollViewProps, string | JSXElementConstructor<unknown>>) | undefined;
+    renderScrollComponent?: (props: ScrollViewProps) => ReactElement<ScrollViewProps, string | JSXElementConstructor<unknown>>;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

@@ -201,7 +201,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
                 <View
                     ref={viewRef}
-                    style={[styles.flex1]}
+                    style={styles.flex1}
                     onLayout={() => {
                         scrollToFocusedInput();
                     }}
@@ -220,7 +220,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                             <KeyboardAwareScrollView
                                 // eslint-disable-next-line react/jsx-props-no-spreading
                                 {...props}
-                                bottomOffset={bottomOffset?.current ?? 0} /* Bottom offset ensures inputs stay above the "save" button */
+                                bottomOffset={bottomOffset.current} /* Bottom offset ensures inputs stay above the "save" button */
                             />
                         )}
                         onSelectRow={(item) => {
