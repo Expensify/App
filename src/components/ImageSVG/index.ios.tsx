@@ -7,6 +7,7 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
     const tintColorProp = fill ? {tintColor: fill} : {};
 
     return (
+        <>
         <Image
             onLoadEnd={onLoadEnd}
             cachePolicy="memory-disk"
@@ -15,7 +16,17 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
             style={[{width, height}, style]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...tintColorProp}
-        />
+            />
+        <Image
+            onLoadEnd={onLoadEnd}
+            cachePolicy="none"
+            contentFit={contentFit}
+            source={src as ImageSourcePropType}
+            style={[{width, height}, style]}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...tintColorProp}
+            />
+            </>
     );
 }
 
