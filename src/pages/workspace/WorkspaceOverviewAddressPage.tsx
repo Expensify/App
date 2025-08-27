@@ -21,10 +21,8 @@ function WorkspaceOverviewAddressPage({policy, route}: WorkspaceOverviewAddressP
     const backTo = route.params.backTo;
     const address: Address = useMemo(() => {
         const tempAddress = policy?.address;
-        const [street1, street2] = (tempAddress?.addressStreet ?? '').split('\n');
         const result = {
-            street: street1?.trim() ?? '',
-            street2: street2?.trim() ?? '',
+            street: tempAddress?.addressStreet ?? '',
             city: tempAddress?.city?.trim() ?? '',
             state: tempAddress?.state?.trim() ?? '',
             zip: tempAddress?.zipCode?.trim().toUpperCase() ?? '',
