@@ -14,7 +14,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openSearchFiltersCardPage, updateAdvancedFilters} from '@libs/actions/Search';
 import type {CardFilterItem} from '@libs/CardFeedUtils';
 import {buildCardFeedsData, buildCardsData, generateSelectedCards, getDomainFeedData, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
+import {getFirstSelectedItem} from '@libs/OptionsListUtils';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -71,35 +73,42 @@ function SearchFiltersCardPage() {
         [debouncedSearchTerm, translate],
     );
 
-    const sections = useMemo(() => {
+    const {sections, firstKeyForList} = useMemo(() => {
+        let firstKey = '';
         if (searchAdvancedFiltersForm === undefined) {
-            return [];
+            return {sections: [], firstKeyForList: firstKey};
         }
 
         const newSections = [];
-        // const selectedItems = [...cardFeedsSectionData.selected, ...individualCardsSectionData.selected, ...closedCardsSectionData.selected];
 
-        // newSections.push({
-        //     title: undefined,
-        //     data: selectedItems.filter(searchFunction),
-        //     shouldShow: selectedItems.length > 0,
-        // });
         newSections.push({
             title: translate('search.filters.card.cardFeeds'),
             data: cardFeedsSectionData.filter(searchFunction),
             shouldShow: cardFeedsSectionData.length > 0,
         });
+        if (!firstKey) {
+            firstKey = getFirstSelectedItem(cardFeedsSectionData);
+        }
+
         newSections.push({
             title: translate('search.filters.card.individualCards'),
             data: individualCardsSectionData.filter(searchFunction),
             shouldShow: individualCardsSectionData.length > 0,
         });
+        if (!firstKey) {
+            firstKey = getFirstSelectedItem(individualCardsSectionData);
+        }
+
         newSections.push({
             title: translate('search.filters.card.closedCards'),
             data: closedCardsSectionData.filter(searchFunction),
             shouldShow: closedCardsSectionData.length > 0,
         });
-        return newSections;
+        if (!firstKey) {
+            firstKey = getFirstSelectedItem(closedCardsSectionData);
+        }
+
+        return {sections: newSections, firstKeyForList: firstKey};
     }, [searchAdvancedFiltersForm, cardFeedsSectionData, individualCardsSectionData, closedCardsSectionData, searchFunction, translate]);
 
     const handleConfirmSelection = useCallback(() => {
@@ -184,6 +193,8 @@ function SearchFiltersCardPage() {
                                 setSearchTerm(value);
                             }}
                             showLoadingPlaceholder={isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata) || !didScreenTransitionEnd}
+                            initiallyFocusedOptionKey={firstKeyForList}
+                            getItemHeight={() => variables.optionRowHeight}
                         />
                     </View>
                 </>
