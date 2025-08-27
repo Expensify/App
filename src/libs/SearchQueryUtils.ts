@@ -343,15 +343,14 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
 
 /**
  * Normalizes the groupBy value into a single string.
- * - If groupBy is a string, it is returned as is.
- * - If groupBy is an array, only the first element is taken and validated against CONST.SEARCH.GROUP_BY.
- * - If no valid value is found, returns an undefined.
+ * - If it's an array, returns the first element.
+ * - Otherwise, returns the value as is.
  *
  * This ensures consistent usage of groupBy across the app,
  * since we only support filtering by a single valid groupBy key.
  *
  * @param groupBy - The raw groupBy value from SearchQueryJSON
- * @returns The normalized groupBy value or undefined
+ * @returns The normalized groupBy value
  */
 function getGroupByValue(groupBy?: SearchGroupBy | SearchGroupBy[]): SearchGroupBy | undefined {
     if (Array.isArray(groupBy)) {
