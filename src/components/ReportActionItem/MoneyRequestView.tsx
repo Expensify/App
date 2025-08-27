@@ -72,6 +72,7 @@ import {
     isCardTransaction as isCardTransactionTransactionUtils,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isExpenseSplit,
+    isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isScanning,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
@@ -199,6 +200,8 @@ function MoneyRequestView({
     } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
+    const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
+    const isMapDistanceRequest = isDistanceRequest && !isManualDistanceRequest;
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const hasReceipt = hasReceiptTransactionUtils(updatedTransaction ?? transaction);
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
@@ -283,7 +286,7 @@ function MoneyRequestView({
         policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
     const shouldShowReimbursable =
         isPolicyExpenseChat && (!policy?.disabledFields?.reimbursable || isCurrentTransactionReimbursableDifferentFromPolicyDefault) && !isCardTransaction && !isInvoice;
-    const canEditReimbursable = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE);
+    const canEditReimbursable = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
@@ -666,7 +669,7 @@ function MoneyRequestView({
                 )}
                 {(hasReceipt || !isEmptyObject(errors)) && (
                     <OfflineWithFeedback
-                        pendingAction={isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt')}
+                        pendingAction={isMapDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt')}
                         errors={errors}
                         errorRowStyles={[styles.mh4, !shouldShowReceiptEmptyState && styles.mt3]}
                         onClose={() => {
@@ -767,7 +770,7 @@ function MoneyRequestView({
                         numberOfLinesTitle={0}
                     />
                 </OfflineWithFeedback>
-                {isDistanceRequest && transaction?.comment?.waypoints ? (
+                {isManualDistanceRequest || (isMapDistanceRequest && transaction?.comment?.waypoints) ? (
                     distanceRequestFields
                 ) : (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>

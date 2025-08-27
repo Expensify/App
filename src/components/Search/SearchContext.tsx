@@ -1,6 +1,6 @@
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
-import {isTransactionCardGroupListItemType, isTransactionListItemType, isTransactionMemberGroupListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -78,27 +78,23 @@ function SearchContextProvider({children}: ChildrenProps) {
         if (data.length && data.every(isTransactionReportGroupListItemType)) {
             selectedReports = data
                 .filter((item) => isMoneyRequestReport(item) && item.transactions.length > 0 && item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected))
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
-        }
-
-        if (data.length && data.every(isTransactionMemberGroupListItemType)) {
-            selectedReports = data
-                .flatMap((item) => item.transactions)
-                .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
-        }
-
-        if (data.length && data.every(isTransactionCardGroupListItemType)) {
-            selectedReports = data
-                .flatMap((item) => item.transactions)
-                .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
-        }
-
-        if (data.length && data.every(isTransactionListItemType)) {
+                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action]}) => ({
+                    reportID,
+                    action,
+                    total,
+                    policyID,
+                    allActions,
+                }));
+        } else if (data.length && data.every(isTransactionListItemType)) {
             selectedReports = data
                 .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
+                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action]}) => ({
+                    reportID,
+                    action,
+                    total,
+                    policyID,
+                    allActions,
+                }));
         }
 
         setSearchContextData((prevState) => ({

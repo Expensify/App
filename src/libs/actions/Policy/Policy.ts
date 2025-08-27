@@ -36,8 +36,8 @@ import type {
     OpenPolicyWorkflowsPageParams,
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceParams,
+    RemovePolicyReceiptPartnersConnectionParams,
     RequestExpensifyCardLimitIncreaseParams,
-    SetNameValuePairParams,
     SetPolicyAutomaticApprovalLimitParams,
     SetPolicyAutomaticApprovalRateParams,
     SetPolicyAutoReimbursementLimitParams,
@@ -53,6 +53,8 @@ import type {
     SetWorkspacePayerParams,
     SetWorkspaceReimbursementParams,
     TogglePolicyReceiptPartnersParams,
+    TogglePolicyUberAutoInvitePageParams,
+    TogglePolicyUberAutoRemovePageParams,
     UpdateInvoiceCompanyNameParams,
     UpdateInvoiceCompanyWebsiteParams,
     UpdatePolicyAddressParams,
@@ -78,7 +80,7 @@ import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
+import {goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage, navigateToReceiptPartnersPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
@@ -110,7 +112,7 @@ import type {
     TransactionViolations,
 } from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate} from '@src/types/onyx/Policy';
+import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate, UberReceiptPartner} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -989,37 +991,6 @@ function leaveWorkspace(policyID?: string) {
         email: sessionEmail,
     };
     API.write(WRITE_COMMANDS.LEAVE_POLICY, params, {optimisticData, successData, failureData});
-}
-
-function updateDefaultPolicy(newPolicyID?: string, oldPolicyID?: string) {
-    if (!newPolicyID) {
-        return;
-    }
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-            value: newPolicyID,
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-            value: oldPolicyID,
-        },
-    ];
-
-    const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-        value: newPolicyID,
-    };
-
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
-        optimisticData,
-        failureData,
-    });
 }
 
 function addBillingCardAndRequestPolicyOwnerChange(
@@ -2515,6 +2486,120 @@ function openPolicyReceiptPartnersPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE, params);
 }
 
+function removePolicyReceiptPartnersConnection(policyID: string, partnerName: string, receiptPartnerData?: UberReceiptPartner) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                receiptPartners: {
+                    [partnerName]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                receiptPartners: {
+                    [partnerName]: {pendingAction: null},
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                receiptPartners: {
+                    [partnerName]: {...receiptPartnerData, errorFields: {name: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}, pendingAction: null},
+                },
+            },
+        },
+    ];
+
+    const parameters: RemovePolicyReceiptPartnersConnectionParams = {
+        policyID,
+        partnerName,
+    };
+    API.write(WRITE_COMMANDS.DISCONNECT_WORKSPACE_RECEIPT_PARTNER, parameters, {optimisticData, failureData, successData});
+}
+
+function togglePolicyUberAutoInvite(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        Log.warn('togglePolicyUberAutoInvite invalid params', {policyID});
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                receiptPartners: {uber: {autoInvite: enabled, pendingFields: {autoInvite: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}},
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {receiptPartners: {uber: {pendingFields: null}}},
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {receiptPartners: {uber: {autoInvite: !enabled, pendingFields: null}}},
+        },
+    ];
+
+    const params: TogglePolicyUberAutoInvitePageParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.POLICY_UBER_AUTO_INVITE, params, {optimisticData, successData, failureData});
+}
+
+function togglePolicyUberAutoRemove(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        Log.warn('togglePolicyUberAutoRemove invalid params', {policyID});
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                receiptPartners: {uber: {autoRemove: enabled, pendingFields: {autoRemove: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}},
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {receiptPartners: {uber: {pendingFields: null}}},
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {receiptPartners: {uber: {autoRemove: !enabled, pendingFields: null}}},
+        },
+    ];
+
+    const params: TogglePolicyUberAutoRemovePageParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.POLICY_UBER_AUTO_REMOVE, params, {optimisticData, successData, failureData});
+}
+
 /**
  * Returns the accountIDs of the members of the policy whose data is passed in the parameters
  */
@@ -3229,7 +3314,7 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
     }
 }
 
-function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
+function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldNavigateToReceiptPartnersPage?: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -3271,6 +3356,11 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
     const parameters: TogglePolicyReceiptPartnersParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS, parameters, onyxData);
+
+    if (enabled && shouldNavigateToReceiptPartnersPage) {
+        navigateToReceiptPartnersPage(policyID);
+        return;
+    }
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);
@@ -5837,15 +5927,17 @@ export {
     verifySetupIntentAndRequestPolicyOwnerChange,
     updateInvoiceCompanyName,
     updateInvoiceCompanyWebsite,
-    updateDefaultPolicy,
     downgradeToTeam,
     getAccessiblePolicies,
     clearGetAccessiblePoliciesErrors,
     calculateBillNewDot,
     payAndDowngrade,
+    togglePolicyUberAutoInvite,
+    togglePolicyUberAutoRemove,
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,
     setIsForcedToChangeCurrency,
+    removePolicyReceiptPartnersConnection,
     openPolicyReceiptPartnersPage,
     setIsComingFromGlobalReimbursementsFlow,
     setPolicyAttendeeTrackingEnabled,

@@ -13,6 +13,7 @@ import PriorityModeController from '@components/PriorityModeController';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
+import useAutoUpdateTimezone from '@hooks/useAutoUpdateTimezone';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useOnyx from '@hooks/useOnyx';
@@ -50,7 +51,6 @@ import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import * as Modal from '@userActions/Modal';
-import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -62,8 +62,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import attachmentModalScreenOptions from './attachmentModalScreenOptions';
 import createRootStackNavigator from './createRootStackNavigator';
@@ -119,7 +117,7 @@ function initializePusher() {
     });
 }
 
-function handleNetworkReconnect(isLoadingApp: boolean, lastUpdateIDAppliedToClient: number | undefined) {
+function handleNetworkReconnect(lastUpdateIDAppliedToClient: number | undefined, isLoadingApp: boolean) {
     if (isLoadingApp) {
         App.openApp();
     } else {
@@ -171,6 +169,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {toggleSearch} = useSearchRouterContext();
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
@@ -179,35 +179,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         canBeMissing: true,
     });
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
-
-    const timezone = useMemo(() => {
-        const timezoneObject = currentUserPersonalDetails?.timezone ?? {};
-        if (!currentUserPersonalDetails || !isEmptyObject(timezoneObject)) {
-            return;
-        }
-        return timezoneObject;
-    }, [currentUserPersonalDetails]);
-
-    useEffect(() => {
-        if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
-            // This means sign in in RHP was successful, so we can subscribe to user events
-            initializePusher();
-        }
-
-        const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone;
-
-        // If the current timezone is different than the user's timezone, and their timezone is set to automatic
-        // then update their timezone.
-        if (!isEmptyObject(currentTimezone) && timezone?.automatic && timezone?.selected !== currentTimezone) {
-            PersonalDetails.updateAutomaticTimezone({
-                automatic: true,
-                selected: currentTimezone,
-            });
-        }
-    }, [session, timezone?.automatic, timezone?.selected]);
-
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
     const [isOnboardingLoading] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: (value) => !!value?.isLoading});
@@ -234,6 +205,17 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             (!!isOnboardingLoading || !!prevIsOnboardingLoading)
         );
     }, [onboardingCompanySize, isOnboardingCompleted, isOnboardingLoading, prevIsOnboardingLoading]);
+
+    useEffect(() => {
+        if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
+            return;
+        }
+        // This means sign in in RHP was successful, so we can subscribe to user events
+        initializePusher();
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [session]);
+
+    useAutoUpdateTimezone();
 
     useEffect(() => {
         NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
@@ -272,7 +254,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         }
 
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => handleNetworkReconnect(!!isLoadingApp, lastUpdateIDAppliedToClient));
+        NetworkConnection.onReconnect(() => handleNetworkReconnect(lastUpdateIDAppliedToClient, !!isLoadingApp));
         PusherConnectionManager.init();
         initializePusher();
         // Sometimes when we transition from old dot to new dot, the client is not the leader
@@ -281,32 +263,29 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             init();
         }
 
-        // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
-        if (!CONFIG.IS_HYBRID_APP) {
-            // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
-            // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
-            if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
-                if (delegatorEmail) {
-                    connect(delegatorEmail, true)
-                        ?.then((success) => {
-                            App.setAppLoading(!!success);
-                        })
-                        .finally(() => {
-                            setIsDelegatorFromOldDotIsReady(true);
-                        });
-                } else {
-                    const reportID = getReportIDFromLink(initialURL ?? null);
-                    if (reportID && !isAuthenticatedAtStartup) {
-                        Report.openReport(reportID);
-                        // Don't want to call `openReport` again when logging out and then logging in
-                        setIsAuthenticatedAtStartup(true);
-                    }
-                    App.openApp();
-                }
+        // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
+        // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
+        if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
+            if (delegatorEmail) {
+                connect(delegatorEmail, true)
+                    ?.then((success) => {
+                        App.setAppLoading(!!success);
+                    })
+                    .finally(() => {
+                        setIsDelegatorFromOldDotIsReady(true);
+                    });
             } else {
-                Log.info('[AuthScreens] Sending ReconnectApp');
-                App.reconnectApp(initialLastUpdateIDAppliedToClient);
+                const reportID = getReportIDFromLink(initialURL ?? null);
+                if (reportID && !isAuthenticatedAtStartup) {
+                    Report.openReport(reportID);
+                    // Don't want to call `openReport` again when logging out and then logging in
+                    setIsAuthenticatedAtStartup(true);
+                }
+                App.openApp();
             }
+        } else {
+            Log.info('[AuthScreens] Sending ReconnectApp');
+            App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
         App.setUpPoliciesAndNavigate(session);
@@ -358,10 +337,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         return;
                     }
 
-                    if (Navigation.isActiveRoute(ROUTES.KEYBOARD_SHORTCUTS)) {
+                    if (Navigation.isActiveRoute(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()))) {
                         return;
                     }
-                    return Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS);
+                    return Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()));
                 });
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
@@ -708,6 +687,15 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 />
                 <RootStack.Screen
                     name={SCREENS.TRANSACTION_RECEIPT}
+                    options={{
+                        headerShown: false,
+                        presentation: Presentation.TRANSPARENT_MODAL,
+                    }}
+                    getComponent={loadReceiptView}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW}
                     options={{
                         headerShown: false,
                         presentation: Presentation.TRANSPARENT_MODAL,
