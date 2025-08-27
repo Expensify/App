@@ -307,7 +307,7 @@ function IOURequestStepConfirmation({
 
     useEffect(() => {
         transactions.forEach((item) => {
-            if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !!item?.category) {
+            if ((requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE && requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE_MAP) || !!item?.category) {
                 return;
             }
             setMoneyRequestCategory(item.transactionID, defaultCategory, policy?.id);
