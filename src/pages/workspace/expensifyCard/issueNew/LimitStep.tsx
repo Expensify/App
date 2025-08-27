@@ -105,6 +105,7 @@ function LimitStep({policyID, stepNames, startStepIndex}: LimitStepProps) {
                     isCurrencyPressable={false}
                     inputID={INPUT_IDS.LIMIT}
                     ref={inputCallbackRef}
+                    autoFocus
                 />
             </FormProvider>
         </InteractiveStepWrapper>
