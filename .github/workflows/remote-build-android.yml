@@ -35,7 +35,7 @@ jobs:
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
-      - name: RNEF Remote Build - Android
+      - name: Rock Remote Build - Android
         # rock v3
         uses: callstackincubator/android@8fe27a5a3efcf32b54e4741be0ba58bafc73bb0d
         env:

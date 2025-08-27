@@ -39,7 +39,7 @@ jobs:
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
-      - name: RNEF Remote Build - iOS
+      - name: Rock Remote Build - iOS
         # rock v3
         uses: callstackincubator/ios@dd886b4ad3b35351d799d4c2633a678c94549038 
         env:
