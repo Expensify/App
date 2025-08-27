@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -50,12 +50,27 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
         canBeMissing: true,
     });
-    const [targetTransactionReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${targetTransaction?.reportID}`, {canBeMissing: true});
-    const [targetTransactionReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction?.reportID}`, {canBeMissing: true});
-    const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
+    const [hasOnceLoadedTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${targetTransaction?.reportID}`, {
+        selector: (value) => value?.hasOnceLoadedReportActions,
         canBeMissing: true,
     });
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
+    const [iouActionForTargetTransaction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction?.reportID}`,
+        {
+            selector: (value) => {
+                if (!hasOnceLoadedTransactionThreadReportActions || !!targetTransactionThreadReportID || !targetTransaction?.transactionID) {
+                    return undefined;
+                }
+                return getIOUActionForTransactionID(Object.values(value ?? {}), targetTransaction?.transactionID);
+            },
+            canBeMissing: true,
+        },
+        [hasOnceLoadedTransactionThreadReportActions, targetTransactionThreadReportID, targetTransaction?.transactionID],
+    );
+    const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
+        canBeMissing: true,
+    });
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`, {canBeMissing: true});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
 
@@ -74,6 +89,24 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         setDiffFields(conflictFields as MergeFieldKey[]);
     }, [targetTransaction, sourceTransaction, transactionID]);
 
+    const createTargetTransactionThreadReport = useCallback(() => {
+        const transactionThreadReportID = generateReportID();
+        const iouReport = getReportOrDraftReport(targetTransaction?.reportID);
+        const optimisticTransactionThread = buildTransactionThread(iouActionForTargetTransaction, iouReport, undefined, transactionThreadReportID);
+
+        openReport(
+            transactionThreadReportID,
+            undefined,
+            currentUserEmail ? [currentUserEmail] : [],
+            optimisticTransactionThread,
+            iouActionForTargetTransaction?.reportActionID,
+            false,
+            [],
+            undefined,
+            targetTransaction?.transactionID,
+        );
+    }, [currentUserEmail, iouActionForTargetTransaction, targetTransaction?.reportID, targetTransaction?.transactionID]);
+
     useEffect(() => {
         if (!isCheckingDataBeforeGoNext) {
             return;
@@ -85,22 +118,8 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         if (!targetTransactionThreadReportID && targetTransaction?.reportID) {
             // If the report was already loaded before, but there are still no transaction thread report info, it means it hasn't been created yet.
             // So we should create it.
-            if (targetTransactionReportMetadata?.hasOnceLoadedReportActions) {
-                const transactionThreadReportID = generateReportID();
-                const iouAction = getIOUActionForTransactionID(Object.values(targetTransactionReportActions ?? {}), targetTransaction.transactionID);
-                const iouReport = getReportOrDraftReport(targetTransaction?.reportID);
-                const optimisticTransactionThread = buildTransactionThread(iouAction, iouReport, undefined, transactionThreadReportID);
-                openReport(
-                    transactionThreadReportID,
-                    undefined,
-                    currentUserEmail ? [currentUserEmail] : [],
-                    optimisticTransactionThread,
-                    iouAction?.reportActionID,
-                    false,
-                    [],
-                    undefined,
-                    targetTransaction.transactionID,
-                );
+            if (hasOnceLoadedTransactionThreadReportActions) {
+                createTargetTransactionThreadReport();
                 setIsCheckingDataBeforeGoNext(false);
                 Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
                 return;
@@ -123,10 +142,11 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         targetTransaction?.reportID,
         targetTransactionThreadReport,
         transactionID,
-        targetTransactionReportMetadata,
-        targetTransactionReportActions,
+        hasOnceLoadedTransactionThreadReportActions,
+        iouActionForTargetTransaction,
         currentUserEmail,
         targetTransaction?.transactionID,
+        createTargetTransactionThreadReport,
     ]);
 
     // Handle selection
