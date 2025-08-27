@@ -137,17 +137,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         return newOptions;
     }, [areOptionsInitialized, defaultOptionsModified, cleanSearchTerm, isPaidGroupPolicy, attendees]);
 
-    // attendees who are not on expensify
-    const filteredAttendees = attendees
-        .filter((attendee) => attendee.accountID)
-        .map((attendee) => ({
-            ...attendee,
-            reportID: CONST.DEFAULT_NUMBER_ID.toString(),
-            selected: true,
-            login: attendee.email,
-            ...getPersonalDetailByEmail(attendee.email),
-        }));
-
     /**
      * Returns the sections needed for the OptionsSelector
      */
@@ -160,6 +149,39 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         const fiveRecents = [...chatOptions.recentReports].slice(0, 5);
         const restOfRecents = [...chatOptions.recentReports].slice(5);
         const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
+
+        // Attendees whos data does not exist in chatOptions
+        const filteredAttendees = attendees
+            .filter(
+                (attendee) =>
+                    !fiveRecents.some((item) => attendee?.email === item.login || attendee?.accountID === item.accountID) &&
+                    !contactsWithRestOfRecents.some((item) => attendee?.email === item.login || attendee?.accountID === item.accountID),
+            )
+            .map((attendee) => ({
+                ...attendee,
+                reportID: CONST.DEFAULT_NUMBER_ID.toString(),
+                selected: true,
+                login: attendee.email,
+                ...getPersonalDetailByEmail(attendee.email),
+            }));
+
+        const formatResults = formatSectionsFromSearchTerm(
+            cleanSearchTerm,
+            filteredAttendees.map((attendee) => ({
+                ...attendee,
+                reportID: CONST.DEFAULT_NUMBER_ID.toString(),
+                selected: true,
+                login: attendee.email,
+                ...getPersonalDetailByEmail(attendee.email),
+            })),
+            chatOptions.recentReports,
+            chatOptions.personalDetails,
+            personalDetails,
+            true,
+            undefined,
+            reportAttributesDerived,
+        );
+        newSections.push(formatResults.section);
 
         newSections.push({
             title: translate('common.recents'),
@@ -198,7 +220,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     }, [
         areOptionsInitialized,
         didScreenTransitionEnd,
-        filteredAttendees,
         chatOptions.recentReports,
         chatOptions.personalDetails,
         chatOptions.userToInvite,
