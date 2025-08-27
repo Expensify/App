@@ -9,10 +9,8 @@ import {
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasIntegrationAutoSync,
-    isInstantSubmitEnabled,
     isPolicyAdmin,
     isPreferredExporter,
-    isSubmitAndClose,
 } from './PolicyUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
@@ -72,9 +70,7 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
         return true;
     }
 
-    // The report need manual submission if manual submit is enabled in the policy or the report is open in a Submit & Close policy with no approvers
-    const needsManualSubmit = isManualSubmitEnabled || (isOpen && isInstantSubmitEnabled(policy) && isSubmitAndClose(policy));
-    return baseCanSubmit && needsManualSubmit;
+    return baseCanSubmit && isManualSubmitEnabled;
 }
 
 function canApprove(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[], shouldConsiderViolations = true) {
