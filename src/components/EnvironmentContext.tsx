@@ -1,3 +1,5 @@
+import render from 'dom-serializer';
+import {DomUtils, parseDocument} from 'htmlparser2';
 import type {ReactElement, ReactNode} from 'react';
 import React, {createContext, useCallback, useEffect, useMemo, useState} from 'react';
 import type {ValueOf} from 'type-fest';
@@ -18,6 +20,7 @@ type EnvironmentContextValue = {
     /** The string value representing the URL of the current environment */
     environmentURL: string;
 
+    /** Adjusts Expensify links in the given HTML content to point to the current environment URL */
     adjustExpensifyLinksForEnv: (html: string) => string;
 };
 
@@ -30,21 +33,38 @@ const EnvironmentContext = createContext<EnvironmentContextValue>({
 function EnvironmentProvider({children}: EnvironmentProviderProps): ReactElement {
     const [environment, setEnvironment] = useState<EnvironmentValue>(CONST.ENVIRONMENT.PRODUCTION);
     const [environmentURL, setEnvironmentURL] = useState(CONST.NEW_EXPENSIFY_URL);
+    const [environmentURLWithoutTrailingSlash] = useMemo(() => [environmentURL.replace(/\/+$/, '')], [environmentURL]);
 
     useEffect(() => {
         getEnvironment().then(setEnvironment);
         getEnvironmentURL().then(setEnvironmentURL);
     }, []);
 
+    /**
+     * Adjusts Expensify links in HTML content to use the current environment URL
+     * instead of the production URL (new.expensify.com).
+     */
     const adjustExpensifyLinksForEnv = useCallback(
         (html: string): string => {
-            return html.replace(/<a\s+([^>]*?)href="https:\/\/new\.expensify\.com([^"]*)"(.*?)>/g, (_fullMatch: string, before: string, path: string, after: string): string => {
-                const normalizedURL = environmentURL.replace(/\/+$/, '');
-                const normalizedPath = path.replace(/^\/+/, '');
-                return `<a ${before}href="${normalizedURL}/${normalizedPath}"${after}>`;
-            });
+            if (!environmentURLWithoutTrailingSlash || !html) {
+                return html;
+            }
+
+            try {
+                const dom = parseDocument(html);
+                const anchorTags = DomUtils.findAll((element) => element.name.toLowerCase() === 'a', dom);
+                for (const anchorTag of anchorTags) {
+                    const href = anchorTag.attribs.href;
+                    if (href?.startsWith('https://new.expensify.com')) {
+                        anchorTag.attribs.href = href.replace('https://new.expensify.com', environmentURLWithoutTrailingSlash);
+                    }
+                }
+                return render(dom);
+            } catch (error) {
+                return html; // Return original HTML if parsing fails
+            }
         },
-        [environmentURL],
+        [environmentURLWithoutTrailingSlash],
     );
 
     const contextValue = useMemo(
