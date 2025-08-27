@@ -64,8 +64,8 @@ function init() {
                 }
             };
 
-            // Create base context once outside the function
-            const baseContext: DerivedValueContext<typeof key, typeof dependencies> = {
+            // Create context once outside the function, swap values inline to avoid overhead of creating new objects frequently
+            const context: DerivedValueContext<typeof key, typeof dependencies> = {
                 currentValue: undefined,
                 sourceValues: undefined,
                 areAllConnectionsSet: false,
@@ -77,18 +77,18 @@ function init() {
                     checkAndMarkConnectionInitialized(triggeredByIndex);
                 }
 
-                baseContext.currentValue = derivedValue;
-                baseContext.areAllConnectionsSet = areAllConnectionsSet;
-                baseContext.sourceValues = sourceKey && sourceValue !== undefined ? {[sourceKey]: sourceValue} : undefined;
+                context.currentValue = derivedValue;
+                context.areAllConnectionsSet = areAllConnectionsSet;
+                context.sourceValues = sourceKey && sourceValue !== undefined ? {[sourceKey]: sourceValue} : undefined;
 
                 // If we got a source key and value, add it to the sourceValues object
                 if (sourceKey && sourceValue !== undefined) {
-                    baseContext.sourceValues = {
+                    context.sourceValues = {
                         [sourceKey]: sourceValue,
                     };
                 }
                 // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
-                const newDerivedValue = compute(dependencyValues, baseContext);
+                const newDerivedValue = compute(dependencyValues, context);
 
                 Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
                 derivedValue = newDerivedValue;
