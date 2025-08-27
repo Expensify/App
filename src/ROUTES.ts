@@ -127,7 +127,10 @@ const ROUTES = {
     },
     SEARCH_MONEY_REQUEST_REPORT: {
         route: 'search/r/:reportID',
-        getRoute: ({reportID}: {reportID: string}) => `search/r/${reportID}` as const,
+        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
+            const baseRoute = `search/r/${reportID}` as const;
+            return getUrlWithBackToParam(baseRoute, backTo);
+        },
     },
     SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: {
         route: 'search/r/:reportID/hold',
@@ -384,7 +387,10 @@ const ROUTES = {
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
 
-    KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
+    KEYBOARD_SHORTCUTS: {
+        route: 'keyboard-shortcuts',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('keyboard-shortcuts', backTo),
+    },
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',
@@ -508,6 +514,10 @@ const ROUTES = {
     REPORT_SETTINGS_VISIBILITY: {
         route: 'r/:reportID/settings/visibility',
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/visibility` as const, backTo),
+    },
+    REPORT_CHANGE_APPROVER: {
+        route: 'r/:reportID/change-approver',
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/change-approver` as const, backTo),
     },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
@@ -933,9 +943,9 @@ const ROUTES = {
             `create/${iouType as string}/start/${transactionID}/${reportID}/per-diem/${backToReport ?? ''}` as const,
     },
 
-    MONEY_REQUEST_RECEIPT_VIEW_MODAL: {
-        route: 'receipt-view-modal/:transactionID',
-        getRoute: (transactionID: string, backTo: string) => getUrlWithBackToParam(`receipt-view-modal/${transactionID}`, backTo),
+    MONEY_REQUEST_RECEIPT_VIEW: {
+        route: 'receipt-view/:transactionID',
+        getRoute: (transactionID: string, backTo: string) => getUrlWithBackToParam(`receipt-view/${transactionID}`, backTo),
     } as const,
 
     MONEY_REQUEST_STATE_SELECTOR: {

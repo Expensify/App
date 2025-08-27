@@ -1,4 +1,4 @@
-import type {MutableRefObject, ReactElement, ReactNode} from 'react';
+import type {ForwardedRef, MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {
     GestureResponderEvent,
     InputModeOptions,
@@ -276,11 +276,20 @@ type TransactionListItemType = ListItem &
         /** Key used internally by React */
         keyForList: string;
 
+        /** The name of the file used for a receipt */
+        filename?: string;
+
         /** Attendees in the transaction */
         attendees?: Attendee[];
 
         /** Precomputed violations */
         violations?: TransactionViolation[];
+
+        /** The CC for this transaction */
+        cardID?: number;
+
+        /** The display name of the purchaser card, if any */
+        cardName?: string;
     };
 
 type ReportActionListItemType = ListItem &
@@ -348,7 +357,7 @@ type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupe
 
 type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & SearchPersonalDetails & SearchCardGroup;
 
-type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchPersonalDetails & SearchWithdrawalIDGroup;
+type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup;
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
@@ -864,6 +873,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to hide the keyboard when scrolling a list */
     shouldHideKeyboardOnScroll?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<SelectionListHandle>;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
