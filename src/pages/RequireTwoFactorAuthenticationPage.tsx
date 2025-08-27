@@ -6,14 +6,17 @@ import {Encryption} from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function RequireTwoFactorAuthenticationPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: false});
 
     return (
         <ScreenWrapper testID={RequireTwoFactorAuthenticationPage.displayName}>
@@ -34,7 +37,13 @@ function RequireTwoFactorAuthenticationPage() {
                         large
                         success
                         pressOnEnter
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH))}
+                        onPress={() => {
+                            if (isUserValidated) {
+                                Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH));
+                                return;
+                            }
+                            Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute({backTo: ROUTES.REQUIRE_TWO_FACTOR_AUTH, forwardTo: ROUTES.SETTINGS_2FA_ROOT.getRoute()}));
+                        }}
                         text={translate('twoFactorAuth.enableTwoFactorAuth')}
                     />
                 </View>

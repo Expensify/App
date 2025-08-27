@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -9,8 +9,6 @@ import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayTo
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
-import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -18,16 +16,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
 import Clipboard from '@libs/Clipboard';
-import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import {toggleTwoFactorAuth} from '@userActions/Session';
 import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
-import {clearContactMethodErrors, requestValidateCodeAction, validateSecondaryLogin} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {TwoFactorAuthPageProps} from './TwoFactorAuthPage';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
@@ -35,25 +30,21 @@ import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
 
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
 
     const isUserValidated = account?.validated ?? false;
-    const contactMethod = account?.primaryLogin ?? '';
-
-    const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
-    const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
-
-    const [isValidateModalVisible, setIsValidateModalVisible] = useState(!isUserValidated);
 
     useEffect(() => {
-        setIsValidateModalVisible(!isUserValidated);
+        if (!isUserValidated) {
+            Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute());
+            return;
+        }
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (isLoadingOnyxValue(accountMetadata) || account?.requiresTwoFactorAuth || account?.recoveryCodes || !isUserValidated) {
             return;
@@ -61,8 +52,6 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
         toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We want to run this when component mounts
     }, [isUserValidated, accountMetadata.status]);
-
-    useBeforeRemove(() => setIsValidateModalVisible(false));
 
     return (
         <TwoFactorAuthWrapper
@@ -167,22 +156,6 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                     />
                 </FixedFooter>
             </ScrollView>
-            <ValidateCodeActionModal
-                title={translate('contacts.validateAccount')}
-                descriptionPrimary={translate('contacts.featureRequiresValidate')}
-                descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
-                isVisible={isValidateModalVisible}
-                validateCodeActionErrorField="validateLogin"
-                validatePendingAction={loginData?.pendingFields?.validateCodeSent}
-                sendValidateCode={() => requestValidateCodeAction()}
-                handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber, true)}
-                validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
-                clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
-                onClose={() => {
-                    setIsValidateModalVisible(false);
-                    quitAndNavigateBack();
-                }}
-            />
         </TwoFactorAuthWrapper>
     );
 }

@@ -5,9 +5,11 @@ import {ShieldYellow} from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 type Enable2FACardProps = {
@@ -18,6 +20,7 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: false});
 
     return (
         <Section
@@ -29,7 +32,11 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
                 {
                     title: translate('validationStep.secureYourAccount'),
                     onPress: () => {
-                        Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID)));
+                        if (isUserValidated) {
+                            Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID)));
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute({backTo: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID)}));
                     },
                     icon: Shield,
                     shouldShowRightIcon: true,

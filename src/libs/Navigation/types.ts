@@ -21,6 +21,7 @@ import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {CompanyCardFeed} from '@src/types/onyx';
@@ -1137,6 +1138,10 @@ type TwoFactorAuthNavigatorParamList = {
     [SCREENS.TWO_FACTOR_AUTH.ROOT]: {
         backTo?: Routes;
         forwardTo?: string;
+    };
+    [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: {
+        backTo?: Routes;
+        forwardTo?: Routes;
     };
     [SCREENS.TWO_FACTOR_AUTH.VERIFY]: {
         backTo?: Routes;

@@ -11,6 +11,7 @@ import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
+import {getUrlWithParams} from './libs/Url';
 import type {AttachmentModalScreenParams} from './pages/media/AttachmentModalScreen/types';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
@@ -338,7 +339,10 @@ const ROUTES = {
         getRoute: (backTo?: string, forwardTo?: string) =>
             getUrlWithBackToParam(forwardTo ? `settings/profile/contact-methods/verify?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/profile/contact-methods/verify', backTo),
     },
-
+    SETTINGS_2FA_VERIFY_ACCOUNT: {
+        route: 'settings/security/two-factor-auth/verify-account',
+        getRoute: (params: {backTo?: string; forwardTo?: string} = {}) => getUrlWithParams('settings/security/two-factor-auth/verify-account', params),
+    },
     SETTINGS_2FA_ROOT: {
         route: 'settings/security/two-factor-auth',
         getRoute: (backTo?: string, forwardTo?: string) =>
