@@ -354,17 +354,11 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
  * @returns The normalized groupBy value or undefined
  */
 function getGroupByValue(groupBy?: SearchGroupBy | SearchGroupBy[]): SearchGroupBy | undefined {
-    if (!groupBy) {
-        return;
-    }
-
-    if (typeof groupBy === 'string') {
-        return groupBy;
-    }
-
     if (Array.isArray(groupBy)) {
         return groupBy.at(0);
     }
+
+    return groupBy;
 }
 
 /**
