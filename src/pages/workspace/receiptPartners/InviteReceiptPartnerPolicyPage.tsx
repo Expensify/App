@@ -112,19 +112,13 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         const selectedLogins = selectedOptions.map(({login}) => login);
         const unselectedMembers = membersToDisplay.filter(({login}) => !selectedLogins.includes(login));
 
-        // Update members with current selection state
-        const selectedMembersWithState = filterSelectedOptions.map((member) => ({
-            ...member,
-            isSelected: true,
-        }));
-
-        const unselectedMembersWithState = unselectedMembers.map((member) => ({
-            ...member,
-            isSelected: false,
-        }));
-
-        // Combine all members (selected first, then unselected)
-        const allMembersWithState = [...selectedMembersWithState, ...unselectedMembersWithState];
+        const allMembersWithState: MemberForList[] = [];
+        filterSelectedOptions.forEach((member) => {
+            allMembersWithState.push({...member, isSelected: true});
+        });
+        unselectedMembers.forEach((member) => {
+            allMembersWithState.push({...member, isSelected: false});
+        });
 
         return [
             {
