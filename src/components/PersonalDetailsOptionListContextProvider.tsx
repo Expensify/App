@@ -123,8 +123,10 @@ function PersonalDetailsOptionListContextProvider({children}: PersonalDetailsOpt
     }, []);
 
     return (
-        <PersonalDetailsOptionListContext.Provider // eslint-disable-next-line react-compiler/react-compiler
+        <PersonalDetailsOptionListContext.Provider
+            // eslint-disable-next-line react-compiler/react-compiler
             value={useMemo(
+                // eslint-disable-next-line react-compiler/react-compiler
                 () => ({options, currentOption: currentOption.current, initializeOptions, areOptionsInitialized: areOptionsInitialized.current, resetOptions}),
                 [options, initializeOptions, resetOptions],
             )}
