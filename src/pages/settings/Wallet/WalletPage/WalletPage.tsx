@@ -42,9 +42,10 @@ import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import variables from '@styles/variables';
-import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
+import {deletePaymentBankAccount, openPersonalBankAccountSetupView, pressedOnLockedBankAccount, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods, openWalletPage} from '@userActions/PaymentMethods';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -148,6 +149,12 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         methodID?: string | number,
         description?: string,
     ) => {
+        if (account?.state === CONST.BANK_ACCOUNT.STATE.LOCKED && account?.bankAccountID) {
+            pressedOnLockedBankAccount(account?.bankAccountID);
+            navigateToConciergeChat();
+            return;
+        }
+
         if (shouldShowAddPaymentMenu) {
             setShouldShowAddPaymentMenu(false);
             return;

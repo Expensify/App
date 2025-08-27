@@ -654,6 +654,8 @@ const translations = {
         forwardTo: 'Weiterleiten an',
         merge: 'Zusammenführen',
         unstableInternetConnection: 'Instabile Internetverbindung. Bitte überprüfe dein Netzwerk und versuche es erneut.',
+        actionRequired: 'Erforderliche Aktion',
+        locked: 'Gesperrt',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -2719,6 +2721,10 @@ const translations = {
         hasBeenThrottledError: 'Beim Hinzufügen Ihres Bankkontos ist ein Fehler aufgetreten. Bitte warten Sie ein paar Minuten und versuchen Sie es erneut.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Ups! Es scheint, dass die Währung Ihres Arbeitsbereichs auf eine andere Währung als USD eingestellt ist. Um fortzufahren, gehen Sie bitte zu <a href="${workspaceRoute}">Ihre Arbeitsbereichseinstellungen</a> um es auf USD zu setzen und es erneut zu versuchen.`,
+        lockedBankAccount: 'Gesperrtes Bankkonto',
+        unlockBankAccount: 'Bankkonto entsperren',
+        youCantPayThis: 'Du kannst diesen Bericht nicht bezahlen, weil du ein',
+        tapBelow: 'Tippe unten und der Concierge hilft dir bei den nächsten Schritten zur Entsperrung.',
         error: {
             youNeedToSelectAnOption: 'Bitte wählen Sie eine Option, um fortzufahren.',
             noBankAccountAvailable: 'Entschuldigung, es ist kein Bankkonto verfügbar.',

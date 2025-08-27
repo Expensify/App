@@ -635,6 +635,8 @@ const translations = {
         forwardTo: 'Reenviar a',
         merge: 'Fusionar',
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
+        actionRequired: 'Acción requerida',
+        locked: 'Bloqueado',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -2705,6 +2707,10 @@ const translations = {
         hasBeenThrottledError: 'Se ha producido un error al intentar añadir tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `¡Ups! Parece que la moneda de tu espacio de trabajo no está configurada en USD. Para continuar, ve a <a href="${workspaceRoute}">la configuración del área de trabajo</a>, configúrala en USD e inténtalo nuevamente.`,
+        lockedBankAccount: 'Cuenta bancaria bloqueada',
+        unlockBankAccount: 'Desbloquear cuenta bancaria',
+        youCantPayThis: 'No puedes pagar este informe porque tienes una',
+        tapBelow: 'Toca abajo y el Concierge te ayudará con los próximos pasos para desbloquearla.',
         error: {
             youNeedToSelectAnOption: 'Debes seleccionar una opción para continuar',
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',

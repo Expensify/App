@@ -654,6 +654,8 @@ const translations = {
         forwardTo: 'Przekaż do',
         merge: 'Scal',
         unstableInternetConnection: 'Niestabilne połączenie internetowe. Sprawdź swoją sieć i spróbuj ponownie.',
+        actionRequired: 'Wymagane działanie',
+        locked: 'Zablokowany',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -2734,6 +2736,10 @@ const translations = {
         hasBeenThrottledError: 'Wystąpił błąd podczas dodawania Twojego konta bankowego. Proszę poczekać kilka minut i spróbować ponownie.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Ups! Wygląda na to, że waluta Twojego miejsca pracy jest ustawiona na inną niż USD. Aby kontynuować, przejdź do <a href="${workspaceRoute}">ustawienia Twojego miejsca pracy</a> ustawić na USD i spróbować ponownie.`,
+        lockedBankAccount: 'Zablokowane konto bankowe',
+        unlockBankAccount: 'Odblokuj konto bankowe',
+        youCantPayThis: 'Nie możesz zapłacić za ten raport, ponieważ masz',
+        tapBelow: 'Stuknij poniżej, a Concierge pomoże Ci w kolejnych krokach odblokowania.',
         error: {
             youNeedToSelectAnOption: 'Proszę wybrać opcję, aby kontynuować',
             noBankAccountAvailable: 'Przepraszamy, nie ma dostępnego konta bankowego.',
