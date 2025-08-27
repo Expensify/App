@@ -20,23 +20,23 @@ function getQuickActionRequestType(action: QuickActionName | undefined): IOURequ
         requestType = CONST.IOU.REQUEST_TYPE.DISTANCE;
     } else if (action === CONST.QUICK_ACTIONS.PER_DIEM) {
         requestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
+    } else if ([CONST.QUICK_ACTIONS.REQUEST_DISTANCE_MANUAL, CONST.QUICK_ACTIONS.TRACK_DISTANCE_MANUAL].some((a) => a === action)) {
+        requestType = CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+    } else if ([CONST.QUICK_ACTIONS.REQUEST_DISTANCE_MAP, CONST.QUICK_ACTIONS.TRACK_DISTANCE_MAP].some((a) => a === action)) {
+        requestType = CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
     }
 
     return requestType;
 }
 
-function navigateToQuickAction(
-    isValidReport: boolean,
-    quickAction: QuickAction,
-    selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void,
-    isManualDistanceTrackingEnabled?: boolean,
-) {
+function navigateToQuickAction(isValidReport: boolean, quickAction: QuickAction, selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void) {
     const reportID = isValidReport && quickAction?.chatReportID ? quickAction?.chatReportID : generateReportID();
     const requestType = getQuickActionRequestType(quickAction?.action);
 
     switch (quickAction?.action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
         case CONST.QUICK_ACTIONS.PER_DIEM:
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true), true);
             break;
@@ -53,21 +53,16 @@ function navigateToQuickAction(
             break;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
-            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
-            break;
-        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-            if (isManualDistanceTrackingEnabled) {
-                selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true), false);
-                return;
-            }
-            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true), true);
-            break;
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-            if (isManualDistanceTrackingEnabled) {
-                selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
-                return;
-            }
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
+            break;
+        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE_MANUAL:
+        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE_MAP:
+            selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true), true);
+            break;
+        case CONST.QUICK_ACTIONS.TRACK_DISTANCE_MANUAL:
+        case CONST.QUICK_ACTIONS.TRACK_DISTANCE_MAP:
+            selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
             break;
         default:
     }
