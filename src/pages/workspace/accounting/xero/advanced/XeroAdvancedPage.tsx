@@ -37,9 +37,9 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
             }
 
             const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === accountID);
-            return selectedAccount?.name ?? translate('workspace.xero.notConfigured');
+            return selectedAccount?.name;
         },
-        [bankAccounts, translate],
+        [bankAccounts],
     );
 
     const selectedBankAccountName = getSelectedAccountName(invoiceCollectionsAccountID);
