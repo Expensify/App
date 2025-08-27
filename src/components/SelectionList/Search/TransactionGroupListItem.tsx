@@ -154,13 +154,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
-    const pendingAction =
-        (item.pendingAction ?? (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)))
-            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-            : undefined;
-
     return (
-        <OfflineWithFeedback pendingAction={pendingAction}>
+        <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={onLongPress}
@@ -193,11 +188,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         </View>
                     ) : (
                         groupItem.transactions.map((transaction) => (
-                            <OfflineWithFeedback
+                            <TransactionItemRow
                                 key={transaction.transactionID}
-                                pendingAction={transaction.pendingAction}
-                            >
-                                <TransactionItemRow
+
                                     report={transaction.report}
                                     transactionItem={transaction}
                                     isSelected={!!transaction.isSelected}
@@ -217,7 +210,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                     isInSingleTransactionReport={groupItem.transactions.length === 1}
                                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                                 />
-                            </OfflineWithFeedback>
+
                         ))
                     )}
                 </View>
