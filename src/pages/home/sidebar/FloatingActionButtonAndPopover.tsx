@@ -46,7 +46,7 @@ import {
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
 import {generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import isReportInSearchContext from '@navigation/helpers/isReportInSearchContext';
+import isInSearchReportContext from '@navigation/helpers/isInSearchReportContext';
 import variables from '@styles/variables';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import saveLastSearchParams from '@userActions/ReportNavigation';
@@ -147,7 +147,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
     });
 
-    const isReportInSearch = isReportInSearchContext();
+    const isReportInSearch = isInSearchReportContext();
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
@@ -472,6 +472,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   // If the user has only one paid group workspace with chat enabled, we create a report with it
                                   workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
                               }
+
                               if (isReportInSearch) {
                                   saveLastSearchParams({});
                               }
@@ -493,7 +494,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                       );
                                   });
                               } else {
-                                  Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation), {forceReplace: isReportInSearch});
+                                  Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
                               }
                           });
                       },
