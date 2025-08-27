@@ -1,11 +1,15 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {ConfirmModalProps} from '@components/ConfirmModal';
 import ConfirmModal from '@components/ConfirmModal';
 import type {ModalProps} from './ModalContext';
 
 type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm' | 'onCancel' | 'isVisible'>;
 
-// This wrapper component can be removed after migrating all the ConfirmModal components to use the promise-based modal architecture
+// This wrapper bridges the ConfirmModal API with the global modal system, providing handlers for the onConfirm and onCancel callbacks to ConfirmModal.
+// TODOS after migrating all ConfirmModal instances to use showConfirmModal:
+// - handle closeModal inside ConfirmModal
+// - remove ConfirmModalWrapper
+
 function ConfirmModalWrapper({
     closeModal,
     title = '',
@@ -23,13 +27,13 @@ function ConfirmModalWrapper({
     shouldReverseStackedButtons = false,
     isConfirmLoading = false,
 }: ConfirmModalWrapperProps) {
-    const handleConfirm = () => {
+    const handleConfirm = useCallback(() => {
         closeModal({action: 'CONFIRM'});
-    };
+    }, [closeModal]);
 
-    const handleCancel = () => {
+    const handleCancel = useCallback(() => {
         closeModal({action: 'CLOSE'});
-    };
+    }, [closeModal]);
 
     return (
         <ConfirmModal
