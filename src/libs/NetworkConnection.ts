@@ -70,12 +70,15 @@ function setOfflineStatus(isCurrentlyOffline: boolean, reason = ''): void {
 let shouldForceOffline = false;
 let isPoorConnectionSimulated: boolean | undefined;
 let connectionChanges: ConnectionChanges | undefined;
+let isNetworkInitialized = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
             return;
         }
+
+        isNetworkInitialized = true;
 
         simulatePoorConnection(network);
 
@@ -228,6 +231,10 @@ function subscribeToNetInfo(): () => void {
     // Subscribe to the state change event via NetInfo so we can update
     // whether a user has internet connectivity or not.
     const unsubscribeNetInfo = NetInfo.addEventListener((state) => {
+        if (!isNetworkInitialized) {
+            return;
+        }
+
         Log.info('[NetworkConnection] NetInfo state change', false, {...state});
         if (shouldForceOffline) {
             Log.info('[NetworkConnection] Not setting offline status because shouldForceOffline = true');
