@@ -43,7 +43,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
-    const shuldWaitForReportSync = report?.reportID !== reportIDFromRoute;
+    const shouldWaitForReportSync = report?.reportID !== reportIDFromRoute;
 
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
@@ -107,7 +107,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     policy={policy}
                                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                     backToRoute={route.params.backTo}
-                                    shouldWaitForReportSync={shuldWaitForReportSync}
+                                    shouldWaitForReportSync={shouldWaitForReportSync}
                                 />
                             </DragAndDropProvider>
                         </FullPageNotFoundView>
@@ -143,7 +143,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                         policy={policy}
                                         shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                         backToRoute={route.params.backTo}
-                                        shouldWaitForReportSync={shuldWaitForReportSync}
+                                        shouldWaitForReportSync={shouldWaitForReportSync}
                                     />
                                 </View>
                                 <PortalHost name="suggestions" />

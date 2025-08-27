@@ -108,7 +108,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
 
-    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, transactions);
+    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, shouldWaitForReportSync ? [] : transactions);
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
         canBeMissing: true,
