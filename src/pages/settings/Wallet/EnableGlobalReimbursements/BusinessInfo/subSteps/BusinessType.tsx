@@ -1,34 +1,29 @@
 import React, {useMemo} from 'react';
 import PushRowFieldsStep from '@components/SubStepForms/PushRowFieldsStep';
+import useEnableGlobalReimbursementsStepFormSubmit from '@hooks/useEnableGlobalReimbursementsStepFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD/utils/getListOptionsFromCorpayPicklist';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
 
-type BusinessTypeProps = SubStepProps;
+const {APPLICANT_TYPE_ID, BUSINESS_CATEGORY} = INPUT_IDS;
+const STEP_FIELDS = [APPLICANT_TYPE_ID, BUSINESS_CATEGORY];
 
-const {BUSINESS_CATEGORY, APPLICANT_TYPE_ID} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const STEP_FIELDS = [BUSINESS_CATEGORY, APPLICANT_TYPE_ID];
-
-function BusinessType({onNext, isEditing, onMove}: BusinessTypeProps) {
+function BusinessType({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: false});
+    const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {canBeMissing: true});
+    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: true});
 
     const incorporationTypeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.ApplicantType), [corpayOnboardingFields]);
     const natureOfBusinessListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.NatureOfBusiness), [corpayOnboardingFields]);
-
-    const incorporationTypeDefaultValue = reimbursementAccount?.achData?.corpay?.[APPLICANT_TYPE_ID] ?? '';
-    const businessCategoryDefaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_CATEGORY] ?? '';
 
     const pushRowFields = useMemo(
         () => [
             {
                 inputID: APPLICANT_TYPE_ID,
-                defaultValue: incorporationTypeDefaultValue,
+                defaultValue: enableGlobalReimbursementsDraft?.[APPLICANT_TYPE_ID] ?? '',
                 options: incorporationTypeListOptions,
                 description: translate('businessInfoStep.incorporationTypeName'),
                 modalHeaderTitle: translate('businessInfoStep.selectIncorporationType'),
@@ -36,17 +31,17 @@ function BusinessType({onNext, isEditing, onMove}: BusinessTypeProps) {
             },
             {
                 inputID: BUSINESS_CATEGORY,
-                defaultValue: businessCategoryDefaultValue,
+                defaultValue: enableGlobalReimbursementsDraft?.[BUSINESS_CATEGORY] ?? '',
                 options: natureOfBusinessListOptions,
                 description: translate('businessInfoStep.businessCategory'),
                 modalHeaderTitle: translate('businessInfoStep.selectBusinessCategory'),
                 searchInputTitle: translate('businessInfoStep.findBusinessCategory'),
             },
         ],
-        [businessCategoryDefaultValue, incorporationTypeDefaultValue, incorporationTypeListOptions, natureOfBusinessListOptions, translate],
+        [enableGlobalReimbursementsDraft, incorporationTypeListOptions, natureOfBusinessListOptions, translate],
     );
 
-    const handleSubmit = useReimbursementAccountStepFormSubmit({
+    const handleSubmit = useEnableGlobalReimbursementsStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: isEditing,
@@ -61,7 +56,7 @@ function BusinessType({onNext, isEditing, onMove}: BusinessTypeProps) {
             isEditing={isEditing}
             onNext={onNext}
             onMove={onMove}
-            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+            formID={ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS}
             formTitle={translate('businessInfoStep.whatTypeOfBusinessIsIt')}
             onSubmit={handleSubmit}
             pushRowFields={pushRowFields}

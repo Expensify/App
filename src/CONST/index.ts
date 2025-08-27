@@ -655,6 +655,15 @@ const CONST = {
         },
         BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX: 'accountHolder',
     },
+    ENABLE_GLOBAL_REIMBURSEMENTS: {
+        STEP_NAMES: ['1', '2', '3'],
+        STEP: {
+            BUSINESS_INFO: 'BusinessInfoStep',
+            AGREEMENTS: 'AgreementsStep',
+            DOCUSIGN: 'DocusignStep',
+        },
+        ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
+    },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
         CORPORATION: 'Corp',
