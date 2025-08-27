@@ -253,9 +253,12 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                             />
                                             {!!chatTabBrickRoad && (
                                                 <View
-                                                    style={styles.navigationTabBarStatusIndicator(
-                                                        chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger,
-                                                    )}
+                                                    style={[
+                                                        styles.navigationTabBarStatusIndicator(
+                                                            chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger,
+                                                        ),
+                                                        hovered && {borderColor: theme.sidebarHover},
+                                                    ]}
                                                 />
                                             )}
                                         </View>
@@ -321,7 +324,9 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                             width={variables.iconBottomBar}
                                             height={variables.iconBottomBar}
                                         />
-                                        {!!workspacesTabIndicatorStatus && <View style={styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor)} />}
+                                        {!!workspacesTabIndicatorStatus && (
+                                            <View style={[styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor), hovered && {borderColor: theme.sidebarHover}]} />
+                                        )}
                                     </View>
                                     <Text
                                         numberOfLines={preferredLocale === CONST.LOCALES.DE || preferredLocale === CONST.LOCALES.NL ? 1 : 2}
