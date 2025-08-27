@@ -25,6 +25,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import getPlatform from '@libs/getPlatform';
 import {scrollToRight} from '@libs/InputUtils';
 import Log from '@libs/Log';
 import backHistory from '@libs/Navigation/helpers/backHistory';
@@ -99,6 +100,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
+    const platform = getPlatform();
+    const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
 
     // The actual input text that the user sees
     const [textInputValue, , setTextInputValue] = useDebouncedState('', 500);
@@ -465,6 +468,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     /** We added a delay to focus on text input to allow navigation/modal animations to get completed, see issue https://github.com/Expensify/App/issues/65855 for more details */
     useFocusEffect(
         useCallback(() => {
+            if (!isNative) {
+                return;
+            }
             focusTimeoutRef.current = setTimeout(() => {
                 if (!textInputRef.current) {
                     return;
@@ -473,7 +479,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             }, CONST.ANIMATED_TRANSITION);
 
             return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
-        }, []),
+        }, [isNative]),
     );
 
     return (
@@ -515,7 +521,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 selection={selection}
                 substitutionMap={autocompleteSubstitutions}
                 ref={textInputRef}
-                autoFocus={false}
+                autoFocus={!isNative}
             />
             {shouldShowList && (
                 <SearchAutocompleteList
