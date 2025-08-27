@@ -12,6 +12,7 @@ import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -90,10 +91,12 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         return filteredOptions;
     }, [defaultOptionsModified, cleanSearchTerm, selectedOptions]);
 
-    const {sections, headerMessage} = useMemo(() => {
+    const {sections, headerMessage, firstKeyForList} = useMemo(() => {
         const newSections: Section[] = [];
+        let firstKey = '';
+
         if (!areOptionsInitialized) {
-            return {sections: [], headerMessage: undefined};
+            return {sections: [], headerMessage: undefined, firstKeyForList: firstKey};
         }
 
         newSections.push({
@@ -101,12 +104,18 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             data: chatOptions.recentReports,
             shouldShow: chatOptions.recentReports.length > 0,
         });
+        if (!firstKey) {
+            firstKey = chatOptions.recentReports.find((item) => item.isSelected)?.keyForList ?? '';
+        }
 
         newSections.push({
             title: '',
             data: chatOptions.personalDetails,
             shouldShow: chatOptions.personalDetails.length > 0,
         });
+        if (!firstKey) {
+            firstKey = chatOptions.personalDetails.find((item) => item.isSelected)?.keyForList ?? '';
+        }
 
         const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
@@ -114,6 +123,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         return {
             sections: newSections,
             headerMessage: message,
+            firstKeyForList: firstKey,
         };
     }, [areOptionsInitialized, chatOptions, translate]);
 
@@ -205,6 +215,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             onSelectRow={handleParticipantSelection}
             isLoadingNewOptions={isLoadingNewOptions}
             showLoadingPlaceholder={showLoadingPlaceholder}
+            initiallyFocusedOptionKey={firstKeyForList}
+            getItemHeight={() => variables.optionRowHeightCompact}
         />
     );
 }
