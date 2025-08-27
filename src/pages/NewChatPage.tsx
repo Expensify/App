@@ -28,7 +28,15 @@ import Log from '@libs/Log';
 import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Option, Section} from '@libs/OptionsListUtils';
-import {filterAndOrderOptions, getFirstKeyForList, getHeaderMessage, getPersonalDetailSearchTerms, getUserToInviteOption, getValidOptions} from '@libs/OptionsListUtils';
+import {
+    filterAndOrderOptions,
+    formatSectionsFromSearchTerm,
+    getFirstKeyForList,
+    getHeaderMessage,
+    getPersonalDetailSearchTerms,
+    getUserToInviteOption,
+    getValidOptions,
+} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -173,6 +181,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
     const personalData = useCurrentUserPersonalDetails();
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
 
     const {singleExecution} = useSingleExecution();
@@ -181,12 +190,37 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
         focus: selectionListRef.current?.focusTextInput,
     }));
 
-    const {headerMessage, searchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} = useOptions();
+    const {headerMessage, searchTerm, setSearchTerm, debouncedSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
+        useOptions();
 
     const [sections, firstKeyForList] = useMemo(() => {
         const sectionsList: Section[] = [];
         let firstKey = '';
 
+        // Attendees whos data does not exist in chatOptions
+        const filteredSelectedOptions = selectedOptions
+            .filter((participent) => !recentReports.some((item) => participent.login === item.login) && !personalDetails.some((item) => participent.login === item.login))
+            .map((participent) => ({
+                ...participent,
+                reportID: CONST.DEFAULT_NUMBER_ID.toString(),
+                selected: true,
+                login: participent.login,
+            }));
+
+        const formatResults = formatSectionsFromSearchTerm(
+            debouncedSearchTerm,
+            filteredSelectedOptions as OptionData[],
+            recentReports,
+            personalDetails,
+            undefined,
+            undefined,
+            undefined,
+            reportAttributesDerived,
+        );
+        sectionsList.push(formatResults.section);
+        if (!firstKey) {
+            firstKey = getFirstKeyForList(formatResults.section.data);
+        }
         sectionsList.push({
             title: translate('common.recents'),
             data: selectedOptions.length ? recentReports.filter((option) => !option.isSelfDM) : recentReports,
