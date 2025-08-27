@@ -55,7 +55,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isEmpty = groupItem.transactions.length !== 0;
+    const isEmpty = groupItem.transactions.length === 0;
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayEmptyView = isEmpty && groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
     const isDisabledOrEmpty = isEmpty || isDisabled;
@@ -220,6 +220,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                     options={addExpenseDropdownOptions}
                                     isSplitButton={false}
                                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                                    success={false}
                                 />
                             )}
                         </View>

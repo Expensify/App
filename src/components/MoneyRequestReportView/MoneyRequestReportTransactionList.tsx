@@ -55,12 +55,6 @@ type MoneyRequestReportTransactionListProps = {
     /** Array of report actions for the report that these transactions belong to */
     reportActions: OnyxTypes.ReportAction[];
 
-    /** Whether the report that these transactions belong to has any chat comments */
-    hasComments: boolean;
-
-    /** Whether the report actions are being loaded, used to show 'Comments' during loading state */
-    isLoadingInitialReportActions?: boolean;
-
     /** scrollToNewTransaction callback used for scrolling to new transaction when it is created */
     scrollToNewTransaction: (offset: number) => void;
 };
@@ -92,16 +86,7 @@ const getTransactionKey = (transaction: OnyxTypes.Transaction, key: SortableColu
     return key === CONST.SEARCH.TABLE_COLUMNS.DATE ? dateKey : key;
 };
 
-function MoneyRequestReportTransactionList({
-    report,
-    transactions,
-    newTransactions,
-    reportActions,
-    hasComments,
-    isLoadingInitialReportActions: isLoadingReportActions,
-    scrollToNewTransaction,
-    policy,
-}: MoneyRequestReportTransactionListProps) {
+function MoneyRequestReportTransactionList({report, transactions, newTransactions, reportActions, scrollToNewTransaction, policy}: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -235,8 +220,6 @@ function MoneyRequestReportTransactionList({
             <>
                 <SearchMoneyRequestReportEmptyState />
                 <MoneyRequestReportTotalSpend
-                    hasComments={hasComments}
-                    isLoadingReportActions={!!isLoadingReportActions}
                     isEmptyTransactions={isEmptyTransactions}
                     totalDisplaySpend={totalDisplaySpend}
                     report={report}
@@ -306,33 +289,7 @@ function MoneyRequestReportTransactionList({
                     );
                 })}
             </View>
-            {shouldShowBreakdown && (
-                <View style={[styles.dFlex, styles.alignItemsEnd, listHorizontalPadding, styles.gap2, styles.mb2]}>
-                    {[
-                        {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount},
-                        {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount},
-                    ].map(({text, value}) => (
-                        <View
-                            key={text}
-                            style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}
-                        >
-                            <Text
-                                style={[styles.textLabelSupporting, styles.mr3]}
-                                numberOfLines={1}
-                            >
-                                {translate(text as TranslationPaths)}
-                            </Text>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.textLabelSupporting, styles.textNormal, shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight]}
-                            >
-                                {value}
-                            </Text>
-                        </View>
-                    ))}
-                </View>
-            )}
-            <View style={[styles.dFlex, styles.flexRow, styles.justifyContentBetween, styles.gap2, styles.ph5, styles.mb2, styles.alignItemsCenter]}>
+            <View style={[styles.dFlex, styles.flexRow, styles.justifyContentBetween, styles.gap2, listHorizontalPadding, styles.mb2, styles.alignItemsStart]}>
                 {canAddTransaction(report) && (
                     <ButtonWithDropdownMenu
                         onPress={() => {}}
@@ -341,16 +298,44 @@ function MoneyRequestReportTransactionList({
                         options={addExpenseDropdownOptions}
                         isSplitButton={false}
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                        success={false}
                     />
                 )}
-                <MoneyRequestReportTotalSpend
-                    hasComments={hasComments}
-                    isLoadingReportActions={!!isLoadingReportActions}
-                    isEmptyTransactions={isEmptyTransactions}
-                    totalDisplaySpend={totalDisplaySpend}
-                    report={report}
-                    hasPendingAction={hasPendingAction}
-                />
+                <View>
+                    {shouldShowBreakdown && (
+                        <View style={[styles.dFlex, styles.alignItemsEnd, styles.gap2, styles.mb2]}>
+                            {[
+                                {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount},
+                                {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount},
+                            ].map(({text, value}) => (
+                                <View
+                                    key={text}
+                                    style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pr3]}
+                                >
+                                    <Text
+                                        style={[styles.textLabelSupporting, styles.mr3]}
+                                        numberOfLines={1}
+                                    >
+                                        {translate(text as TranslationPaths)}
+                                    </Text>
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[styles.textLabelSupporting, styles.textNormal, shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight]}
+                                    >
+                                        {value}
+                                    </Text>
+                                </View>
+                            ))}
+                        </View>
+                    )}
+
+                    <MoneyRequestReportTotalSpend
+                        isEmptyTransactions={isEmptyTransactions}
+                        totalDisplaySpend={totalDisplaySpend}
+                        report={report}
+                        hasPendingAction={hasPendingAction}
+                    />
+                </View>
             </View>
             <Modal
                 isVisible={isModalVisible}
