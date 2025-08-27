@@ -7,6 +7,7 @@ import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackgrou
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -291,6 +292,7 @@ function SignInPage({ref}: SignInPageProps) {
     useImperativeHandle(ref, () => ({
         navigateBack,
     }));
+    useHandleBackButton(navigateBack);
 
     return (
         <ColorSchemeWrapper>
