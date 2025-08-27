@@ -58,6 +58,7 @@ import type {
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -292,6 +293,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceMembersCountParams,
@@ -299,6 +301,7 @@ import type {
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
+    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -318,7 +321,6 @@ const translations = {
         count: 'Zählen',
         cancel: 'Abbrechen',
         dismiss: 'Verwerfen',
-        proceed: 'Fortfahren',
         yes: 'Ja',
         no: 'No',
         ok: 'OK',
@@ -1385,6 +1387,22 @@ const translations = {
         rates: 'Preise',
         submitsTo: ({name}: SubmitsToParams) => `Übermittelt an ${name}`,
         moveExpenses: () => ({one: 'Ausgabe verschieben', other: 'Ausgaben verschieben'}),
+        changeApprover: {
+            title: 'Genehmiger ändern',
+            subtitle: 'Wählen Sie eine Option, um den Genehmiger für diesen Bericht zu ändern.',
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Sie können den Genehmiger auch dauerhaft für alle Berichte in Ihren <a href="${workflowSettingLink}">Workflow-Einstellungen</a> ändern.`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `änderte den Genehmiger zu <mention-user accountID="${managerID}"/>`,
+            actions: {
+                addApprover: 'Genehmiger hinzufügen',
+                addApproverSubtitle: 'Fügen Sie dem bestehenden Workflow einen zusätzlichen Genehmiger hinzu.',
+                bypassApprovers: 'Genehmiger umgehen',
+                bypassApproversSubtitle: 'Weisen Sie sich selbst als endgültigen Genehmiger zu und überspringen Sie alle verbleibenden Genehmiger.',
+            },
+            addApprover: {
+                subtitle: 'Wählen Sie einen zusätzlichen Genehmiger für diesen Bericht, bevor wir ihn durch den Rest des Genehmigungs-Workflows leiten.',
+            },
+        },
     },
     transactionMerge: {
         listPage: {
@@ -3057,9 +3075,9 @@ const translations = {
         },
     },
     beneficialOwnerInfoStep: {
-        doYouOwn25percent: 'Besitzen Sie 25 % oder mehr von',
-        doAnyIndividualOwn25percent: 'Besitzen Einzelpersonen 25 % oder mehr von',
-        areThereMoreIndividualsWhoOwn25percent: 'Gibt es mehr Personen, die 25 % oder mehr von besitzen?',
+        doYouOwn25percent: ({companyName}: CompanyNameParams) => `Besitzen Sie 25 % oder mehr von ${companyName}?`,
+        doAnyIndividualOwn25percent: ({companyName}: CompanyNameParams) => `Besitzt eine Einzelperson 25 % oder mehr von ${companyName}?`,
+        areThereMoreIndividualsWhoOwn25percent: ({companyName}: CompanyNameParams) => `Gibt es weitere Personen, die 25 % oder mehr von ${companyName} besitzen?`,
         regulationRequiresUsToVerifyTheIdentity: 'Die Vorschriften verlangen von uns, die Identität jeder Person zu überprüfen, die mehr als 25% des Unternehmens besitzt.',
         companyOwner: 'Geschäftsinhaber',
         enterLegalFirstAndLastName: 'Wie lautet der gesetzliche Name des Eigentümers?',
@@ -3144,21 +3162,6 @@ const translations = {
         enable2FAText: 'Wir nehmen Ihre Sicherheit ernst. Bitte richten Sie jetzt die Zwei-Faktor-Authentifizierung (2FA) ein, um Ihrem Konto eine zusätzliche Schutzschicht hinzuzufügen.',
         secureYourAccount: 'Sichern Sie Ihr Konto',
     },
-    beneficialOwnersStep: {
-        additionalInformation: 'Zusätzliche Informationen',
-        checkAllThatApply: 'Überprüfen Sie alle zutreffenden Optionen, andernfalls leer lassen.',
-        iOwnMoreThan25Percent: 'Ich besitze mehr als 25% von',
-        someoneOwnsMoreThan25Percent: 'Jemand anderes besitzt mehr als 25% von',
-        additionalOwner: 'Zusätzlicher wirtschaftlich Berechtigter',
-        removeOwner: 'Diesen wirtschaftlich Berechtigten entfernen',
-        addAnotherIndividual: 'Fügen Sie eine weitere Person hinzu, die mehr als 25% von besitzt.',
-        agreement: 'Vereinbarung:',
-        termsAndConditions: 'Allgemeine Geschäftsbedingungen',
-        certifyTrueAndAccurate: 'Ich bestätige, dass die angegebenen Informationen wahr und korrekt sind.',
-        error: {
-            certify: 'Muss bestätigen, dass die Informationen wahr und korrekt sind.',
-        },
-    },
     completeVerificationStep: {
         completeVerification: 'Überprüfung abschließen',
         confirmAgreements: 'Bitte bestätigen Sie die untenstehenden Vereinbarungen.',
@@ -3237,10 +3240,11 @@ const translations = {
         regulationRequiresUs: 'Die Vorschriften verlangen von uns, die Identität jeder Person zu überprüfen, die mehr als 25% des Unternehmens besitzt.',
         iAmAuthorized: 'Ich bin berechtigt, das Geschäftskonto für Geschäftsausgaben zu verwenden.',
         iCertify: 'Ich bestätige, dass die bereitgestellten Informationen wahr und korrekt sind.',
-        termsAndConditions: 'Allgemeine Geschäftsbedingungen',
+        iAcceptTheTermsAndConditions: `Ich akzeptiere die <a href="https://cross-border.corpay.com/tc/">Allgemeinen Geschäftsbedingungen</a>.`,
+        iAcceptTheTermsAndConditionsAccessibility: 'Ich akzeptiere die Allgemeinen Geschäftsbedingungen.',
         accept: 'Akzeptieren und Bankkonto hinzufügen',
-        iConsentToThe: 'Ich stimme der/dem zu',
-        privacyNotice: 'Datenschutzhinweis',
+        iConsentToThePrivacyNotice: 'Ich stimme der <a href="https://payments.corpay.com/compliance">Datenschutzerklärung</a> zu.',
+        iConsentToThePrivacyNoticeAccessibility: 'Ich stimme der Datenschutzerklärung zu.',
         error: {
             authorized: 'Sie müssen ein Kontrollbeamter mit der Berechtigung sein, das Geschäftskonto zu führen.',
             certify: 'Bitte bestätigen Sie, dass die Informationen wahr und korrekt sind.',
@@ -3443,14 +3447,12 @@ const translations = {
             customField1: 'Benutzerdefiniertes Feld 1',
             customField2: 'Benutzerdefiniertes Feld 2',
             customFieldHint: 'Fügen Sie benutzerdefinierten Code hinzu, der für alle Ausgaben dieses Mitglieds gilt.',
-            reports: 'Berichte',
             reportFields: 'Berichtsfelder',
             reportTitle: 'Berichtstitel',
             reportField: 'Berichtsfeld',
             taxes: 'Steuern',
             bills: 'Rechnungen',
             invoices: 'Rechnungen',
-            perDiem: 'Per diem',
             travel: 'Reisen',
             members: 'Mitglieder',
             accounting: 'Buchhaltung',
@@ -3463,7 +3465,6 @@ const translations = {
             testTransactions: 'Transaktionen testen',
             issueAndManageCards: 'Karten ausstellen und verwalten',
             reconcileCards: 'Karten abstimmen',
-            selectAll: 'Alle auswählen',
             selected: () => ({
                 one: '1 ausgewählt',
                 other: (count: number) => `${count} ausgewählt`,
@@ -3477,8 +3478,6 @@ const translations = {
             memberNotFound: 'Mitglied nicht gefunden. Um ein neues Mitglied zum Arbeitsbereich einzuladen, verwenden Sie bitte die Einladungsschaltfläche oben.',
             notAuthorized: `Sie haben keinen Zugriff auf diese Seite. Wenn Sie versuchen, diesem Arbeitsbereich beizutreten, bitten Sie einfach den Besitzer des Arbeitsbereichs, Sie als Mitglied hinzuzufügen. Etwas anderes? Kontaktieren Sie ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: 'Zum Arbeitsbereich gehen',
-            duplicateWorkspace: 'Arbeitsbereich duplizieren',
-            duplicateWorkspacePrefix: 'Duplizieren',
             goToWorkspaces: 'Zu Arbeitsbereichen gehen',
             clearFilter: 'Filter löschen',
             workspaceName: 'Arbeitsbereichsname',
@@ -3547,11 +3546,14 @@ const translations = {
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card-Transaktionen werden automatisch in ein mit <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">unserer Integration</a> erstelltes „Expensify Card Liability Account“ exportiert.</muted-text-label>`,
         },
         receiptPartners: {
+            connect: 'Jetzt verbinden',
             uber: {
                 subtitle: 'Automatisieren Sie die Reisekosten und Essenslieferungskosten in Ihrem gesamten Unternehmen.',
                 autoRemove: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
                 autoInvite: 'Entfernte Workspace-Mitglieder von Uber for Business deaktivieren',
                 manageInvites: 'Einladungen verwalten',
+                bannerTitle: 'Expensify + Uber ren pekin angang',
+                bannerDescription: 'Kopwe riri ngeni Uber ren Business pwe epwe otot ren monien sai me mongo non unusen om mwicheich.',
             },
         },
         perDiem: {
@@ -4887,18 +4889,6 @@ const translations = {
             taxCode: 'Steuercode',
             updateTaxCodeFailureMessage: 'Beim Aktualisieren des Steuercodes ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
         },
-        duplicateWorkspace: {
-            title: 'Benennen Sie Ihren neuen Arbeitsbereich',
-            selectFeatures: 'Auswählen der zu kopierenden Features',
-            whichFeatures: 'Welche Funktionen möchten Sie in Ihren neuen Arbeitsbereich kopieren?',
-            confirmDuplicate: '\n\nMöchten Sie fortfahren?',
-            categories: 'Kategorien und Ihre Auto-Kategorisierungsregeln',
-            reimbursementAccount: 'Erstattungskonto',
-            delayedSubmission: 'verspätete Einreichung',
-            welcomeNote: 'Bitte beginnen Sie mit der Nutzung meines neuen Arbeitsbereichs',
-            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
-                `Sie sind dabei, ${newWorkspaceName ?? ''} zu erstellen und mit ${totalMembers ?? 0} Mitgliedern aus dem ursprünglichen Arbeitsbereich zu teilen.`,
-        },
         emptyWorkspace: {
             title: 'Sie haben keine Arbeitsbereiche',
             subtitle: 'Verfolgen Sie Belege, erstatten Sie Ausgaben, verwalten Sie Reisen, senden Sie Rechnungen und mehr.',
@@ -4982,6 +4972,8 @@ const translations = {
                 limit: 'Limit',
                 limitType: 'Typ begrenzen',
                 name: 'Name',
+                disabledApprovalForSmartLimitError:
+                    'Bitte aktivieren Sie Genehmigungen unter <strong>Workflows > Genehmigungen hinzufügen</strong>, bevor Sie intelligente Limits einrichten',
             },
             deactivateCardModal: {
                 deactivate: 'Deaktivieren',
@@ -5485,15 +5477,18 @@ const translations = {
                     'Mehrstufige Tags helfen Ihnen, Ausgaben präziser zu verfolgen. Weisen Sie jedem Posten mehrere Tags zu – wie Abteilung, Kunde oder Kostenstelle – um den vollständigen Kontext jeder Ausgabe zu erfassen. Dies ermöglicht detailliertere Berichte, Genehmigungs-Workflows und Buchhaltungsexporte.',
                 onlyAvailableOnPlan: 'Mehrstufige Tags sind nur im Control-Plan verfügbar, beginnend bei',
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
+                title: 'Mehrere Genehmigungsstufen',
+                description:
+                    'Mehrere Genehmigungsstufen ist ein Workflow-Tool für Unternehmen, die mehr als eine Person benötigen, um einen Bericht zu genehmigen, bevor er erstattet werden kann.',
+                onlyAvailableOnPlan: 'Mehrere Genehmigungsstufen sind nur im Control-Plan verfügbar, beginnend bei ',
+            },
             pricing: {
                 perActiveMember: 'pro aktivem Mitglied pro Monat.',
                 perMember: 'pro Mitglied pro Monat.',
             },
-            note: {
-                upgradeWorkspace: 'Aktualisieren Sie Ihren Arbeitsbereich, um auf diese Funktion zuzugreifen, oder',
-                learnMore: 'Erfahren Sie mehr',
-                aboutOurPlans: 'über unsere Pläne und Preise.',
-            },
+            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+                `<muted-text>Aktualisieren Sie Ihren Arbeitsbereich, um auf diese Funktion zuzugreifen, oder <a href="${subscriptionLink}">erfahren Sie mehr</a> über unsere Pläne und Preise.</muted-text>`,
             upgradeToUnlock: 'Diese Funktion freischalten',
             completed: {
                 headline: `Sie haben Ihren Arbeitsbereich aktualisiert!`,
@@ -6039,6 +6034,7 @@ const translations = {
         statements: 'Erklärungen',
         unapprovedCash: 'Nicht genehmigtes Bargeld',
         unapprovedCard: 'Nicht genehmigte Karte',
+        reconciliation: 'Abgleich',
         saveSearch: 'Suche speichern',
         deleteSavedSearch: 'Gespeicherte Suche löschen',
         deleteSavedSearchConfirm: 'Möchten Sie diese Suche wirklich löschen?',
