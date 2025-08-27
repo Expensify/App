@@ -136,7 +136,6 @@ import {
     getUpgradeWorkspaceMessage,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
-    isArchivedReport,
     isChatThread,
     isDefaultRoom,
     isDM,
@@ -943,7 +942,6 @@ function createOption(
     result.isOptimisticPersonalDetail = personalDetail?.isOptimisticPersonalDetail;
     if (report) {
         const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
-        const isReportArchived = isArchivedReport(reportNameValuePairs);
         result.isChatRoom = reportUtilsIsChatRoom(report);
         result.isDefaultRoom = isDefaultRoom(report);
         result.private_isArchived = reportNameValuePairs?.private_isArchived;
@@ -952,7 +950,7 @@ function createOption(
         result.isMoneyRequestReport = reportUtilsIsMoneyRequestReport(report);
         result.isThread = isChatThread(report);
         result.isTaskReport = reportUtilsIsTaskReport(report);
-        result.shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
+        result.shouldShowSubscript = shouldReportShowSubscript(report, !!result.private_isArchived);
         result.isPolicyExpenseChat = reportUtilsIsPolicyExpenseChat(report);
         result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat ?? false;
         const reportAttribute = reportAttributesDerived?.[report.reportID];
@@ -980,7 +978,7 @@ function createOption(
         result.tooltipText = getReportParticipantsTitle(visibleParticipantAccountIDs);
 
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
-        subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true, isReportArchived});
+        subtitle = getChatRoomSubtitle(report, true);
 
         const lastAction = lastVisibleReportActions[report.reportID];
         // lastActorAccountID can be an empty string
@@ -988,14 +986,14 @@ function createOption(
         const lastActorAccountID = lastAction?.actorAccountID || report.lastActorAccountID;
         const lastActorDetails = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
         const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
-        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, undefined, isReportArchived);
+        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, undefined, !!result.private_isArchived);
         let lastMessageText = lastMessageTextFromReport;
 
         const shouldDisplayLastActorName =
             lastAction &&
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
-            !isArchivedNonExpenseReport(report, isReportArchived) &&
+            !isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived) &&
             shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
         if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
             lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;

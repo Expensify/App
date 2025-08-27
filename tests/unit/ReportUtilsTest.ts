@@ -1229,24 +1229,21 @@ describe('ReportUtils', () => {
         it('should return empty string for expense report in create expense flow (not default/user-created/policy-expense)', () => {
             const report = createExpenseReport(1);
             report.policyID = policy.id;
-            const config = {isCreateExpenseFlow: true, isReportArchived: false};
-            const result = getChatRoomSubtitle(report, config);
+            const result = getChatRoomSubtitle(report, true, false);
             expect(result).toBe('');
         });
 
         it('should return oldPolicyName when report is archived', () => {
             const report = createAdminRoom(1);
             report.oldPolicyName = 'Old Policy Name';
-            const config = {isCreateExpenseFlow: false, isReportArchived: true};
-            const result = getChatRoomSubtitle(report, config);
+            const result = getChatRoomSubtitle(report, false, true);
             expect(result).toBe('Old Policy Name');
         });
 
         it('should return empty string when report is archived but has no oldPolicyName', () => {
             const report = createAdminRoom(1);
             report.oldPolicyName = undefined;
-            const config = {isCreateExpenseFlow: false, isReportArchived: true};
-            const result = getChatRoomSubtitle(report, config);
+            const result = getChatRoomSubtitle(report, false, true);
             expect(result).toBe('');
         });
 
@@ -1254,8 +1251,7 @@ describe('ReportUtils', () => {
             const report = createAdminRoom(1);
             report.policyID = policy.id;
             report.oldPolicyName = 'Archived Policy';
-            const config = {isCreateExpenseFlow: true, isReportArchived: true};
-            const result = getChatRoomSubtitle(report, config);
+            const result = getChatRoomSubtitle(report, true, true);
             expect(result).toBe('Archived Policy');
         });
 
@@ -1269,15 +1265,14 @@ describe('ReportUtils', () => {
         it('should handle empty config parameter', () => {
             const report = createAdminRoom(1);
             report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report, {});
+            const result = getChatRoomSubtitle(report);
             expect(result).toBe(policy.name);
         });
 
         it('should handle partial config parameter with only isReportArchived', () => {
             const report = createAdminRoom(1);
             report.oldPolicyName = 'Archived Policy';
-            const config = {isReportArchived: true};
-            const result = getChatRoomSubtitle(report, config);
+            const result = getChatRoomSubtitle(report, false, true);
             expect(result).toBe('Archived Policy');
         });
     });

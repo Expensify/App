@@ -170,7 +170,7 @@ function AvatarWithDisplayName({
     const parentReportActionParam = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const title = getReportName(report, undefined, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true, isReportArchived});
+    const subtitle = getChatRoomSubtitle(report, true, isReportArchived);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isReportArchived);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);

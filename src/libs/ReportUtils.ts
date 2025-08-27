@@ -861,11 +861,6 @@ type Thread = {
     parentReportActionID: string;
 } & Report;
 
-type GetChatRoomSubtitleConfig = {
-    isCreateExpenseFlow?: boolean;
-    isReportArchived?: boolean;
-};
-
 type SelfDMParameters = {
     reportID?: string;
     createdReportActionID?: string;
@@ -5451,7 +5446,7 @@ function getReportSubtitlePrefix(report: OnyxEntry<Report>): string {
 /**
  * Get either the policyName or domainName the chat is tied to
  */
-function getChatRoomSubtitle(report: OnyxEntry<Report>, config: GetChatRoomSubtitleConfig = {isCreateExpenseFlow: false, isReportArchived: false}): string | undefined {
+function getChatRoomSubtitle(report: OnyxEntry<Report>, preferPolicyName = false, isReportArchived = false): string | undefined {
     if (isChatThread(report)) {
         return '';
     }
@@ -5477,14 +5472,14 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>, config: GetChatRoomSubti
         const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
         const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
-        if (!subtitle || !config.isCreateExpenseFlow) {
+        if (!subtitle || !preferPolicyName) {
             return getPolicyName({report});
         }
 
         return `${getReportSubtitlePrefix(report)}${translateLocal('iou.submitsTo', {name: subtitle ?? ''})}`;
     }
 
-    if (config.isReportArchived) {
+    if (isReportArchived) {
         return report?.oldPolicyName ?? '';
     }
     return getPolicyName({report});
