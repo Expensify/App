@@ -6,13 +6,7 @@ import {startTransition, use, useLayoutEffect, useState} from 'react';
  * Caution: To achieve performance benefits from this component you have to wrap it in a Suspense component.
  */
 function Deferred({children}: PropsWithChildren) {
-    const [{promise, resolve}] = useState(() => {
-        let resolver!: () => void;
-        const p = new Promise<void>((r) => {
-            resolver = r;
-        });
-        return {promise: p, resolve: resolver};
-    });
+    const [{promise, resolve}] = useState(() => Promise.withResolvers<void>());
     const [isMounted, setIsMounted] = useState(false);
 
     useLayoutEffect(() => {
