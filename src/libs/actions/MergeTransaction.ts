@@ -4,7 +4,7 @@ import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getReportOrDraftReport, getReportTransactions, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getReportTransactions, isCurrentUserSubmitter, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import {getAmount, getTransactionViolationsOfTransaction, isCardTransaction} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -93,13 +93,13 @@ function getTransactionsForMerging({
     // Collect/Control workspaces:
     // - Admins and approvers: The list of eligible expenses will only contain the expenses from the report that the admin/approver triggered the merge from. This is intentionally limited since they’ll only be reviewing one report at a time.
     // - Submitters will see all their editable expenses, including their IOUs/unreported expenses
-    // Personal workspaces:
+    // IOU:
     // - There are no admins/approvers outside of the submitter in these cases, so there’s no consideration for different roles.
     // - The submitter, who is also the admin, will see all their editable expenses, including their IOUs/unreported expenses
     const isAdmin = isPolicyAdmin(policy, currentUserLogin);
     const isManager = isReportManager(report);
 
-    if (isPaidGroupPolicy(policy) && (isAdmin || isManager)) {
+    if (isPaidGroupPolicy(policy) && (isAdmin || isManager) && !isCurrentUserSubmitter(report)) {
         const reportTransactions = getReportTransactions(report?.reportID);
         const eligibleTransactions = reportTransactions.filter((transaction): transaction is Transaction => {
             if (!transaction || transaction.transactionID === transactionID) {
