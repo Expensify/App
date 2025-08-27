@@ -166,4 +166,5 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
     );
 }
 
+ReceiptPreview.displayName = 'HoverReceiptPreview';
 export default ReceiptPreview;
