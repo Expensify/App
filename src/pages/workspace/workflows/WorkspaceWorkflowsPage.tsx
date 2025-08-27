@@ -297,7 +297,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         return;
                                     }
 
-                                    if (hasValidExistingAccounts) {
+                                    if (!shouldShowBankAccount && hasValidExistingAccounts) {
                                         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(route.params.policyID));
                                         return;
                                     }
