@@ -14,11 +14,12 @@ import useContactImport from './useContactImport';
 import useDebouncedState from './useDebouncedState';
 import useOnyx from './useOnyx';
 
-type SearchSelectorContext = 'general' | 'search' | 'memberInvite';
+type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<typeof CONST.SEARCH_SELECTOR, 'SEARCH_CONTEXT_GENERAL' | 'SEARCH_CONTEXT_SEARCH' | 'SEARCH_CONTEXT_MEMBER_INVITE'>];
+type SearchSelectorSelectionMode = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<typeof CONST.SEARCH_SELECTOR, 'SELECTION_MODE_SINGLE' | 'SELECTION_MODE_MULTI'>];
 
 type UseSearchSelectorConfig = {
     /** Selection mode - single or multiple selection */
-    selectionMode: 'single' | 'multi';
+    selectionMode: SearchSelectorSelectionMode;
     /** Maximum number of results to return (for heap optimization) */
     maxResults?: number;
     /** What is the context that we are using this hook for */
@@ -39,6 +40,7 @@ type UseSearchSelectorConfig = {
     onSingleSelect?: (option: OptionData) => void;
     /** Initial selected options */
     initialSelected?: OptionData[];
+    /** Whether to initialize the hook */
     shouldInitialize?: boolean;
 };
 
@@ -135,10 +137,10 @@ function useSearchSelector({
 
         let baseOptions: Options;
         switch (searchContext) {
-            case 'search':
+            case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SEARCH:
                 baseOptions = getSearchOptions(optionsWithContacts, betas ?? [], true, true, debouncedSearchTerm, maxResults, includeUserToInvite);
                 break;
-            case 'memberInvite':
+            case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
                 baseOptions = getValidOptions(optionsWithContacts, {
                     betas: betas ?? [],
                     includeP2P: true,
@@ -148,10 +150,8 @@ function useSearchSelector({
                     maxElements: maxResults,
                     searchString: debouncedSearchTerm,
                 });
-                // baseOptions = getMemberInviteOptions(personalDetailsWithContacts,
-                // betas ?? [], excludeLogins, false, options.reports, includeRecentReports, debouncedSearchTerm, maxResults);
                 break;
-            case 'general':
+            case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 baseOptions = getValidOptions(optionsWithContacts, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
@@ -229,7 +229,7 @@ function useSearchSelector({
      */
     const toggleOption = useCallback(
         (option: OptionData) => {
-            if (selectionMode === 'single') {
+            if (selectionMode === CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE) {
                 onSingleSelect?.(option);
                 return;
             }

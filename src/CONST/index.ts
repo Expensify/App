@@ -6570,7 +6570,13 @@ const CONST = {
         },
         GROUP_PREFIX: 'group_',
     },
-
+    SEARCH_SELECTOR: {
+        SELECTION_MODE_SINGLE: 'single',
+        SELECTION_MODE_MULTI: 'multi',
+        SEARCH_CONTEXT_GENERAL: 'general',
+        SEARCH_CONTEXT_SEARCH: 'search',
+        SEARCH_CONTEXT_MEMBER_INVITE: 'memberInvite',
+    },
     EXPENSE: {
         TYPE: {
             CASH_CARD_NAME: 'Cash Expense',
