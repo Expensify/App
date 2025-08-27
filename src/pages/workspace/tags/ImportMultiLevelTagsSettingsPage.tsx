@@ -103,7 +103,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                     </View>
 
                     <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.textNormal, styles.flex1]}>{translate('workspace.tags.importMultiLevelTags.independentTags')}</Text>
+                        <Text style={[styles.textNormal, styles.flex1, styles.mr2]}>{translate('workspace.tags.importMultiLevelTags.independentTags')}</Text>
                         <Switch
                             isOn={spreadsheet?.isImportingIndependentMultiLevelTags ?? true}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.independentTags')}
@@ -114,7 +114,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                     </View>
 
                     <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.textNormal, styles.flex1]}>{translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}</Text>
+                        <Text style={[styles.textNormal, styles.flex1, styles.mr2]}>{translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}</Text>
                         <Switch
                             isOn={spreadsheet?.isGLAdjacent ?? false}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}
