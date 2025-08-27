@@ -6,6 +6,7 @@ import type TransactionListItem from '@components/SelectionList/Search/Transacti
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 import type {ACHAccount, ApprovalRule, ExpenseRule} from './Policy';
 import type {PolicyEmployeeList} from './PolicyEmployee';
@@ -68,6 +69,15 @@ type SearchResultsInfo = {
 
     /** The optional columns that should be shown according to policy settings */
     columnsToShow: ColumnsToShow;
+
+    /** The number of results */
+    count?: number;
+
+    /** The total spend */
+    total?: number;
+
+    /** The currency of the total spend */
+    currency?: string;
 };
 
 /** Model of personal details search result */
@@ -120,8 +130,11 @@ type SearchReport = {
     /** The date the report was created */
     created?: string;
 
-    /** The action that can be performed for the report */
+    /** The main action that can be performed for the report */
     action?: SearchTransactionAction;
+
+    /** The available actions that can be performed for the report */
+    allActions?: SearchTransactionAction[];
 
     /** The type of chat if this is a chat report */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -391,11 +404,17 @@ type SearchTransaction = {
     /** The ID of the report the transaction is associated with */
     reportID: string;
 
+    /** The name of the file used for a receipt */
+    filename?: string;
+
     /** The report ID of the transaction thread associated with the transaction */
     transactionThreadReportID: string;
 
-    /** The action that can be performed for the transaction */
+    /** The main action that can be performed for the transaction */
     action: SearchTransactionAction;
+
+    /** The available actions that can be performed for the transaction */
+    allActions: SearchTransactionAction[];
 
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
@@ -417,6 +436,12 @@ type SearchTransaction = {
 
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction;
+
+    /** The CC for this transaction */
+    cardID?: number;
+
+    /** The display name of the purchaser card, if any */
+    cardName?: string;
 };
 
 /** Model of tasks search result */
@@ -452,20 +477,70 @@ type SearchTask = {
     statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 };
 
-/** Model of card search result */
-// s77rt sync with BE
-type SearchCard = {
+/** Model of member grouped search result */
+type SearchMemberGroup = {
+    /** Account ID */
+    accountID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
+/** Model of card grouped search result */
+type SearchCardGroup = {
+    /** Cardholder account ID */
+    accountID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+
     /** Bank name */
     bank: string;
-
-    /** Last four Primary Account Number digits */
-    lastFourPAN: string;
 
     /** Card name */
     cardName: string;
 
-    /** Cardholder account ID */
-    accountID: number;
+    /** Card ID */
+    cardID: number;
+
+    /** Last four Primary Account Number digits */
+    lastFourPAN: string;
+};
+
+/** Model of withdrawal ID grouped search result */
+type SearchWithdrawalIDGroup = {
+    /** Withdrawal ID */
+    entryID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+
+    /** Masked account number */
+    accountNumber: string;
+
+    /** Bank name */
+    bankName: BankName;
+
+    /** When the withdrawal completed */
+    debitPosted: string;
 };
 
 /** Types of searchable transactions */
@@ -489,9 +564,9 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, SearchCard> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>;
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
+        PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup>;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -514,5 +589,8 @@ export type {
     SearchReport,
     SearchReportAction,
     SearchPolicy,
-    SearchCard,
+    SearchResultsInfo,
+    SearchMemberGroup,
+    SearchCardGroup,
+    SearchWithdrawalIDGroup,
 };

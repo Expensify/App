@@ -53,14 +53,14 @@ describe('Sidebar', () => {
     });
 
     describe('in default mode', () => {
-        it('is not rendered when there are no props passed to it', () => {
+        it('is rendered with empty state when no reports are available', () => {
             // Given all the default props are passed to SidebarLinks
             // When it is rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
-            // Then it should render nothing and be null
-            // This is expected because there is an early return when there are no personal details
-            expect(screen.toJSON()).toBe(null);
+            // Then it should render with the empty state message and not show the reports list
+            expect(screen.getByText(translateLocal('common.emptyLHN.title'))).toBeOnTheScreen();
+            expect(screen.queryByTestId('lhn-options-list')).not.toBeOnTheScreen();
         });
 
         it('is rendered with an empty list when personal details exist', () =>
@@ -118,9 +118,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4], 1);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
+            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -166,9 +166,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4], 1);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
+            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
 
             const currentReportId = report1.reportID;
             const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -215,9 +215,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4], 1);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
+            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -276,9 +276,9 @@ describe('Sidebar', () => {
             };
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
+            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -350,9 +350,9 @@ describe('Sidebar', () => {
             report3.iouReportID = iouReport.reportID;
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
+            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -429,9 +429,9 @@ describe('Sidebar', () => {
             report3.iouReportID = expenseReport.reportID;
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
+            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -479,9 +479,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4], 1);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
+            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
 
             const currentReportId = report2.reportID;
 
@@ -628,7 +628,7 @@ describe('Sidebar', () => {
                 iouReportID: undefined,
             };
             const report4 = LHNTestUtils.getFakeReport([1, 5], 1);
-            addComment(report4.reportID, 'Hi, this is a comment');
+            addComment(report4.reportID, report4.reportID, 'Hi, this is a comment');
 
             const iouReport: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([1, 4]),
@@ -848,9 +848,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4]);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
+            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
 
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
@@ -902,9 +902,9 @@ describe('Sidebar', () => {
             const report3: OnyxTypes.Report = LHNTestUtils.getFakeReport([1, 4]);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
+            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,

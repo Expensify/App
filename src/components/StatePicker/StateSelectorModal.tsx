@@ -67,10 +67,7 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
             isVisible={isVisible}
             onClose={onClose}
             onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
             onBackdropPress={onBackdropPress}
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={[styles.pb0]}

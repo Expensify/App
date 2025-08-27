@@ -38,6 +38,7 @@ function AttachmentModalContainer({contentProps, navigation, onShow, onClose}: A
         <ScreenWrapper
             navigation={navigation}
             testID={`attachment-modal-${testID}`}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <AttachmentModalBaseContent
                 // eslint-disable-next-line react/jsx-props-no-spreading
