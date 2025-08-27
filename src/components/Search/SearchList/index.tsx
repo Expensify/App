@@ -241,7 +241,7 @@ function SearchList(
         [data],
     );
 
-    const handleScroll = useCallback<NonNullable<FlashListProps<SearchListItem>['onScroll']>>(
+    const handleOnScroll = useCallback<NonNullable<FlashListProps<SearchListItem>['onScroll']>>(
         (e) => {
             onScroll(e);
             if (e.nativeEvent.layoutMeasurement.height > 0) {
@@ -252,26 +252,17 @@ function SearchList(
     );
 
     const handleLayout = useCallback(() => {
-        if (onLayout && typeof onLayout === 'function') {
-            onLayout();
-        }
+        onLayout?.();
 
         const offset = getScrollOffset(route);
 
-        if (!offset || !listRef.current) {
-            return;
-        }
+        requestAnimationFrame(() => {
+            if (!offset || !listRef.current) {
+                return;
+            }
 
-        setTimeout(() => {
-            requestAnimationFrame(() => {
-                if (!offset || !listRef.current) {
-                    return;
-                }
-
-                listRef.current.scrollToOffset({offset});
-            });
-        }, 3000);
-        // Use requestAnimationFrame to ensure proper scrolling on iOS
+            listRef.current.scrollToOffset({offset});
+        });
     }, [onLayout, getScrollOffset, route]);
 
     useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
@@ -418,7 +409,8 @@ function SearchList(
                 renderItem={renderItem}
                 onSelectRow={onSelectRow}
                 keyExtractor={keyExtractor}
-                onScroll={onScroll && typeof onScroll === 'function' ? handleScroll : onScroll}
+                // Handle both onScroll callback function and Reanimated worklet correctly
+                onScroll={onScroll && typeof onScroll === 'function' ? handleOnScroll : onScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
                 scrollToIndex={scrollToIndex}
