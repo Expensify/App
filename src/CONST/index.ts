@@ -2988,9 +2988,10 @@ const CONST = {
                 uber: 'Uber for Business',
             },
             UBER_EMPLOYEE_STATUS: {
-                LINKED: 'LINKED',
+                CREATED: 'CREATED',
                 INVITED: 'INVITED',
                 LINKED_PENDING_APPROVAL: 'LINKED_PENDING_APPROVAL',
+                LINKED: 'LINKED',
                 SUSPENDED: 'SUSPENDED',
                 DELETED: 'DELETED',
                 NONE: 'NONE',
