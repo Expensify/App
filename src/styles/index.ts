@@ -4761,6 +4761,16 @@ const styles = (theme: ThemeColors) =>
             maxWidth: '100%',
         },
 
+        getMoneyRequestViewImage: (showBorderless: boolean) => ({
+            ...spacing.mh5,
+            overflow: 'hidden',
+            borderWidth: showBorderless ? 0 : 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusLarge,
+            height: 180,
+            maxWidth: '100%',
+        }),
+
         expenseViewImage: {
             maxWidth: 360,
             aspectRatio: 16 / 9,

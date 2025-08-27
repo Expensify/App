@@ -102,6 +102,8 @@ function MoneyRequestReceiptView({
         canBeMissing: true,
     });
 
+    const [isLoading, setIsLoading] = useState(true);
+
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const isTrackExpense = isTrackExpenseReport(report);
     const moneyRequestReport = parentReport;
@@ -224,6 +226,8 @@ function MoneyRequestReceiptView({
         receiptStyle = shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage;
     }
 
+    const showBorderlessLoading = isLoading && fillSpace;
+
     // For empty receipt should be fullHeight
     // For the rest, expand to match the content
     return (
@@ -283,7 +287,7 @@ function MoneyRequestReceiptView({
                     contentContainerStyle={styles.flex1}
                 >
                     {hasReceipt && (
-                        <View style={[styles.moneyRequestViewImage, receiptStyle]}>
+                        <View style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.h100]}>
                             <ReportActionItemImage
                                 shouldUseThumbnailImage={!fillSpace}
                                 shouldUseFullHeight={fillSpace}
@@ -299,6 +303,7 @@ function MoneyRequestReceiptView({
                                 isFromReviewDuplicates={isFromReviewDuplicates}
                                 mergeTransactionID={mergeTransactionID}
                                 report={report}
+                                onLoad={() => setIsLoading(false)}
                             />
                         </View>
                     )}
