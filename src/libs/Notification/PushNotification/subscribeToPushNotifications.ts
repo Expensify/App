@@ -17,7 +17,8 @@ import type {PushNotificationData} from './NotificationType';
 /**
  * Manage push notification subscriptions on sign-in/sign-out.
  */
-Onyx.connect({
+// We do not depend on updates on the UI for notifications, so we can use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
     callback: (notificationID) => {
         if (notificationID) {
