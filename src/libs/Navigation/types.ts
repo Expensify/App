@@ -1469,7 +1469,7 @@ type MoneyRequestNavigatorParamList = {
         /** Hash that includes info about what is searched for */
         searchHash?: number;
     };
-    [SCREENS.MONEY_REQUEST.DECLINE]: {
+    [SCREENS.MONEY_REQUEST.REJECT]: {
         /** ID of the transaction the page was opened for */
         transactionID: string;
 

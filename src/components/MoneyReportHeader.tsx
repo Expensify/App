@@ -39,7 +39,7 @@ import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/
 import {
     buildTransactionThread,
     changeMoneyRequestHoldStatus,
-    declineMoneyRequestReason,
+    rejectMoneyRequestReason,
     getArchiveReason,
     getIntegrationExportIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
@@ -502,7 +502,7 @@ function MoneyReportHeader({
         setIsDeclineEducationalModalVisible(false);
         dismissRejectUseExplanation();
         if (requestParentReportAction) {
-            declineMoneyRequestReason(requestParentReportAction);
+                            rejectMoneyRequestReason(requestParentReportAction);
         }
     };
 
@@ -1048,14 +1048,14 @@ function MoneyReportHeader({
                 reopenReport(moneyRequestReport);
             },
         },
-        [CONST.REPORT.SECONDARY_ACTIONS.DECLINE]: {
-            text: translate('common.decline'),
+        [CONST.REPORT.SECONDARY_ACTIONS.REJECT]: {
+            text: translate('common.reject'),
             icon: Expensicons.ThumbsDown,
-            value: CONST.REPORT.SECONDARY_ACTIONS.DECLINE,
+            value: CONST.REPORT.SECONDARY_ACTIONS.REJECT,
             onSelected: () => {
                 if (dismissedDeclineUseExplanation) {
                     if (requestParentReportAction) {
-                        declineMoneyRequestReason(requestParentReportAction);
+                        rejectMoneyRequestReason(requestParentReportAction);
                     }
                 } else {
                     setIsDeclineEducationalModalVisible(true);

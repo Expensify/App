@@ -700,7 +700,7 @@ function getSecondaryReportActions({
     }
 
     if (canRejectReportAction(report, policy)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.DECLINE);
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
     return options;
@@ -773,7 +773,7 @@ function getSecondaryTransactionThreadActions(
     }
 
     if (canRejectReportAction(parentReport, policy)) {
-        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DECLINE);
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
     return options;

@@ -478,6 +478,7 @@ const translations = {
         join: 'Join',
         leave: 'Leave',
         decline: 'Decline',
+        reject: 'Reject',
         transferBalance: 'Transfer balance',
         cantFindAddress: "Can't find your address? ",
         enterManually: 'Enter it manually',

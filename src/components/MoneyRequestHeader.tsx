@@ -18,7 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportActions, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
-import {changeMoneyRequestHoldStatus, declineMoneyRequestReason, isSelfDM, navigateToDetailsPage} from '@libs/ReportUtils';
+import {changeMoneyRequestHoldStatus, rejectMoneyRequestReason, isSelfDM, navigateToDetailsPage} from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate as isDuplicateTransactionUtils,
@@ -234,7 +234,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             dismissRejectUseExplanation();
             hasUseDeclineDismissedRef.current = true;
             if (parentReportAction) {
-                declineMoneyRequestReason(parentReportAction);
+                rejectMoneyRequestReason(parentReportAction);
             }
         }
     };
@@ -306,14 +306,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 setIsDeleteModalVisible(true);
             },
         },
-        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DECLINE]: {
-            text: translate('common.decline'),
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT]: {
+            text: translate('common.reject'),
             icon: Expensicons.ThumbsDown,
-            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DECLINE,
+            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT,
             onSelected: () => {
                 if (dismissedDeclineUseExplanation) {
                     if (parentReportAction) {
-                        declineMoneyRequestReason(parentReportAction);
+                        rejectMoneyRequestReason(parentReportAction);
                     }
                 } else {
                     setIsDeclineEducationalModalVisible(true);

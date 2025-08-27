@@ -651,27 +651,6 @@ type OriginalMessageDeletedTransaction = {
     currency?: string;
 };
 
-/** Model of `declined transaction` report action */
-type OriginalMessageDeclinedTransaction = {
-    /** The amount of the declined transaction */
-    amount: number;
-
-    /** The currency of the declined transaction */
-    currency?: string;
-
-    /** The merchant of the declined transaction */
-    merchant: string;
-
-    /** The old report ID */
-    oldReportID?: number;
-
-    /** The transaction ID */
-    transactionID?: string;
-
-    /** The transaction thread report ID */
-    transactionThreadReportID?: number;
-};
-
 /** Model of `concierge category options` report action */
 type OriginalMessageConciergeCategoryOptions = {
     /** The options we present to the user when confidence in the predicted category is low */
@@ -970,10 +949,9 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.HOLD]: never;
     [CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT]: never;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE]: OriginalMessageIntegrationMessage;
-    [CONST.REPORT.ACTIONS.TYPE.DECLINED]: never;
-    [CONST.REPORT.ACTIONS.TYPE.DECLINEDTRANSACTION_THREAD]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REJECTED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD]: never;
     [CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED]: never;
-    [CONST.REPORT.ACTIONS.TYPE.DECLINED_TRANSACTION]: OriginalMessageDeclinedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.IOU]: OriginalMessageIOU;
     [CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT]: never;
     [CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT]: never;
@@ -1056,5 +1034,4 @@ export type {
     OriginalMessageChangePolicy,
     OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
-    OriginalMessageDeclinedTransaction,
 };

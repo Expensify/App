@@ -140,7 +140,7 @@
         "debitamount",
         "deburr",
         "deburred",
-        "DECLINEDTRANSACTION",
+        "REJECTEDTRANSACTION",
         "Deel",
         "deeplink",
         "deeplinked",

@@ -13,7 +13,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Card, Locale, OnyxInputOrEntry, OriginalMessageIOU, Policy, PrivatePersonalDetails} from '@src/types/onyx';
-import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageDeclinedTransaction, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -3037,22 +3037,6 @@ function getVacationer(action: OnyxEntry<ReportAction>): string | undefined {
     return getOriginalMessage(action)?.vacationer;
 }
 
-/**
- * Get the declined transaction message text
- */
-function getDeclinedTransactionRemoveMessage(action: OnyxEntry<ReportAction>): string {
-    const originalMessage = getOriginalMessage(action) as OriginalMessageDeclinedTransaction;
-    const amount = convertToDisplayString(Math.abs(originalMessage?.amount ?? 0), originalMessage?.currency ?? '');
-    const merchant = originalMessage?.merchant ?? '';
-    const messageReportID = originalMessage?.transactionThreadReportID?.toString() ?? '';
-    const linkToReport = messageReportID ? `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(messageReportID)}` : '';
-    return translateLocal('iou.reject.reportActions.removedFromReport', {
-        amount,
-        merchant: merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? merchant : undefined,
-        linkToReport,
-    });
-}
-
 function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
     if (!isSubmittedAction(action)) {
         return;
@@ -3232,7 +3216,6 @@ export {
     getPolicyChangeLogDefaultReimbursableMessage,
     getManagerOnVacation,
     getVacationer,
-    getDeclinedTransactionRemoveMessage,
     getSubmittedTo,
     getReceiptScanFailedMessage,
     getChangedApproverActionMessage,
