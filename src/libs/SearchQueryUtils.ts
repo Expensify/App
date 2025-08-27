@@ -265,7 +265,7 @@ function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FI
     }
 
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID) {
-        const cleanReportIDs = (value: string) =>
+        const cleanIDs = (value: string) =>
             value
                 .split(',')
                 .map((id) => id.trim())
@@ -273,9 +273,9 @@ function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FI
                 .join(',');
 
         if (typeof filterValue === 'string') {
-            return cleanReportIDs(filterValue);
+            return cleanIDs(filterValue);
         }
-        return filterValue.map(cleanReportIDs);
+        return filterValue.map(cleanIDs);
     }
 
     return filterValue;
