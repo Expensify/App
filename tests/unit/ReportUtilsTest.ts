@@ -1255,25 +1255,11 @@ describe('ReportUtils', () => {
             expect(result).toBe('Archived Policy');
         });
 
-        it('should handle undefined config parameter', () => {
+        it('should handle with only report data', () => {
             const report = createAdminRoom(1);
             report.policyID = policy.id;
             const result = getChatRoomSubtitle(report);
             expect(result).toBe(policy.name);
-        });
-
-        it('should handle empty config parameter', () => {
-            const report = createAdminRoom(1);
-            report.policyID = policy.id;
-            const result = getChatRoomSubtitle(report);
-            expect(result).toBe(policy.name);
-        });
-
-        it('should handle partial config parameter with only isReportArchived', () => {
-            const report = createAdminRoom(1);
-            report.oldPolicyName = 'Archived Policy';
-            const result = getChatRoomSubtitle(report, false, true);
-            expect(result).toBe('Archived Policy');
         });
     });
 
