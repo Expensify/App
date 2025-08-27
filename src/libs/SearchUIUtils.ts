@@ -1434,7 +1434,7 @@ function getMemberSections(data: OnyxTypes.SearchResults['data'], queryJSON: Sea
             const memberGroup = data[key] as SearchMemberGroup;
             const personalDetails = data.personalDetailsList[memberGroup.accountID];
             let transactionsQueryJSON: SearchQueryJSON | undefined;
-            if (queryJSON) {
+            if (queryJSON && memberGroup.accountID) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
                 newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: memberGroup.accountID}]});
                 const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
@@ -1470,7 +1470,7 @@ function getCardSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
             const personalDetails = data.personalDetailsList[cardGroup.accountID];
 
             let transactionsQueryJSON: SearchQueryJSON | undefined;
-            if (queryJSON) {
+            if (queryJSON && cardGroup.cardID) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
                 newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: cardGroup.cardID}]});
                 const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
