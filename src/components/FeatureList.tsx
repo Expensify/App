@@ -37,7 +37,7 @@ type FeatureListProps = {
     menuItems: FeatureListItem[];
 
     /** The illustration to display in the header. Can be an image or a JSON object representing a Lottie animation. */
-    illustration: DotLottieAnimation | IconAsset;
+    illustration: DotLottieAnimation | IconAsset | undefined;
 
     /** The style passed to the illustration */
     illustrationStyle?: StyleProp<ViewStyle>;
