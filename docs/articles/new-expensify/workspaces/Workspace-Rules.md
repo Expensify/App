@@ -32,7 +32,13 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
 - **Max Expense Amount** – Set a per-expense spending cap (supports decimals).
 - **Max Expense Age (Days)** – Define how old an expense can be (whole numbers only).
 - **Billable Default** – Choose whether expenses are billable by default.
-- **eReceipts** – Enable automatic receipt generation for most USD card transactions (requires USD as default currency).
+   - Choose the best setting:
+      - Disabled – Expenses cannot be marked as billable.
+      - Default to billable – Expenses are billable by default but can be marked as non-billable.
+      - Default to non-billable – Expenses are non-billable by default but can be marked as billable. 
+- **eReceipts** – Enable automatic receipt generation for most USD card transactions (requires USD as default currency), which are digital replacements for receipts of $75 or less for credit card transactions.
+   - Enabled – Expensify will generate eReceipts for all US-based card transactions up to $75.
+   - Disabled – No eReceipts will be generated.
 
 ---
 
