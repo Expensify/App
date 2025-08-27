@@ -252,6 +252,7 @@
         "genkey",
         "GEOLOCATION",
         "getprop",
+        "gibsdk",
         "glcode",
         "gödecke",
         "googleusercontent",
@@ -791,6 +792,7 @@
         "tests/unit/ValidationUtilsTest.ts",
         "src/CONST/index.ts",
         "src/libs/SearchParser/*",
+        "modules/group-ib-fp",
         "web/snippets/gib.js"
     ],
     "ignoreRegExpList": ["@assets/.*"],
