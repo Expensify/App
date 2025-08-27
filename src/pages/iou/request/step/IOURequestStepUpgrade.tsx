@@ -67,7 +67,10 @@ function IOURequestStepUpgrade({
 
         switch (feature?.id) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.distanceRates.id: {
-                // Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.getRoute(policyDataRef.current?.policyID));
+                if (!policyDataRef.current?.policyID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyDataRef.current.policyID, transactionID, Navigation.getActiveRoute()));
                 break;
             }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.categories.id:

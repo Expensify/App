@@ -515,6 +515,8 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
         policyID: string;
+        transactionID?: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
         policyID: string;

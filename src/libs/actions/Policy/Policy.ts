@@ -2322,7 +2322,11 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
             email: adminParticipant.login,
             workspaceChatReportID: employeeWorkspaceChat.reportCreationData[adminParticipant.login].reportID,
             workspaceChatCreatedReportActionID: employeeWorkspaceChat.reportCreationData[adminParticipant.login].reportActionID,
+            role: CONST.POLICY.ROLE.ADMIN,
         });
+        optimisticData.push(...employeeWorkspaceChat.onyxOptimisticData);
+        successData.push(...employeeWorkspaceChat.onyxSuccessData);
+        failureData.push(...employeeWorkspaceChat.onyxFailureData);
     }
 
     return {successData, optimisticData, failureData, params};

@@ -1851,7 +1851,8 @@ const ROUTES = {
     },
     WORKSPACE_CREATE_DISTANCE_RATE: {
         route: 'workspaces/:policyID/distance-rates/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/new` as const,
+        getRoute: (policyID: string, transactionID?: string, backTo?: string) =>
+            getUrlWithBackToParam(`workspaces/${policyID}/distance-rates/new${transactionID ? `?transactionID=${transactionID}` : ''}`, backTo),
     },
     WORKSPACE_DISTANCE_RATES_SETTINGS: {
         route: 'workspaces/:policyID/distance-rates/settings',
