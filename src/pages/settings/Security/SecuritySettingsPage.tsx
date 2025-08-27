@@ -207,6 +207,7 @@ function SecuritySettingsPage() {
     }, [
         isAccountLocked,
         isDelegateAccessRestricted,
+        isUserValidated,
         showDelegateNoAccessModal,
         showLockedAccountModal,
         privateSubscription?.type,
