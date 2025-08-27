@@ -72,6 +72,7 @@ import Permissions from '@libs/Permissions';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
+    arePaymentsEnabled,
     getCorrectedAutoReportingFrequency,
     getDistanceRateCustomUnit,
     getMemberAccountIDsForWorkspace,
@@ -82,6 +83,7 @@ import {
     getSubmitToAccountID,
     hasDependentTags,
     isControlPolicy,
+    isInstantSubmitEnabled,
     isPaidGroupPolicy,
     isPolicyAdmin,
     isSubmitAndClose,
@@ -3540,7 +3542,23 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
           }
         : {};
 
-    const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
+    const isInstantSubmitWithNoApprovers = isInstantSubmitEnabled(policy) && isSubmitAndClose(policy);
+    const arePaymentsEnabledInPolicy = arePaymentsEnabled(policy);
+
+    // In submit & close policies, if the report was created empty, it starts in the OPEN state.
+    // In this case, we need to automatically submit the report when the first transaction is added.
+    // Optimistically update the report state and status
+    if (iouReport.stateNum === CONST.REPORT.STATE_NUM.OPEN && isInstantSubmitWithNoApprovers) {
+        iouReport.stateNum = arePaymentsEnabledInPolicy ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.APPROVED;
+        iouReport.statusNum = arePaymentsEnabledInPolicy ? CONST.REPORT.STATUS_NUM.SUBMITTED : CONST.REPORT.STATUS_NUM.CLOSED;
+    }
+
+    let predictedNextStatus;
+    if (!arePaymentsEnabledInPolicy) {
+        predictedNextStatus = CONST.REPORT.STATUS_NUM.CLOSED;
+    } else {
+        predictedNextStatus = isInstantSubmitWithNoApprovers ? CONST.REPORT.STATUS_NUM.SUBMITTED : CONST.REPORT.STATUS_NUM.OPEN;
+    }
     const optimisticNextStep = buildNextStep(iouReport, predictedNextStatus);
 
     // STEP 5: Build Onyx Data
