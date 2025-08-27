@@ -2018,6 +2018,7 @@ const translations = {
     workflowsExpensesFromPage: {
         title: 'からの経費',
         header: '次のメンバーが経費を提出したとき:',
+        notAllowedError: 'デフォルトのワークフローと同じ送信者を持つワークフローは、同じ承認者を持つ必要があります。承認者を更新してください。',
     },
     workflowsApproverPage: {
         genericErrorMessage: '承認者を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',

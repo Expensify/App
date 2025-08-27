@@ -2005,6 +2005,8 @@ const translations = {
     workflowsExpensesFromPage: {
         title: 'Gastos de',
         header: 'Cuando los siguientes miembros presenten gastos:',
+        notAllowedError:
+            'Los flujos de trabajo con los mismos remitentes que el flujo de trabajo predeterminado deben tener el mismo aprobador. Por favor, actualiza el aprobador para que coincida.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',

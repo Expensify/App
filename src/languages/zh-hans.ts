@@ -1998,6 +1998,7 @@ const translations = {
     workflowsExpensesFromPage: {
         title: '来自的费用',
         header: '当以下成员提交费用时：',
+        notAllowedError: '与默认工作流具有相同提交者的工作流必须具有相同的审批人。请更新审批人以保持一致。',
     },
     workflowsApproverPage: {
         genericErrorMessage: '无法更改审批人。请重试或联系客服。',

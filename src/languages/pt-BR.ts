@@ -2024,6 +2024,7 @@ const translations = {
     workflowsExpensesFromPage: {
         title: 'Despesas de',
         header: 'Quando os seguintes membros enviarem despesas:',
+        notAllowedError: 'Os fluxos de trabalho com os mesmos remetentes do fluxo de trabalho padrão devem ter o mesmo aprovador. Atualize o aprovador para corresponder.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'O aprovador não pôde ser alterado. Por favor, tente novamente ou entre em contato com o suporte.',
