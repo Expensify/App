@@ -154,13 +154,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
-    const pendingAction =
-        (item.pendingAction ?? (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)))
-            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-            : undefined;
-
     return (
-        <OfflineWithFeedback pendingAction={pendingAction}>
+        <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={onLongPress}
@@ -193,31 +188,27 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         </View>
                     ) : (
                         groupItem.transactions.map((transaction) => (
-                            <OfflineWithFeedback
+                            <TransactionItemRow
                                 key={transaction.transactionID}
-                                pendingAction={transaction.pendingAction}
-                            >
-                                <TransactionItemRow
-                                    report={transaction.report}
-                                    transactionItem={transaction}
-                                    isSelected={!!transaction.isSelected}
-                                    dateColumnSize={dateColumnSize}
-                                    amountColumnSize={amountColumnSize}
-                                    taxAmountColumnSize={taxAmountColumnSize}
-                                    shouldShowTooltip={showTooltip}
-                                    shouldUseNarrowLayout={!isLargeScreenWidth}
-                                    shouldShowCheckbox={!!canSelectMultiple}
-                                    onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                    columns={columns}
-                                    onButtonPress={() => {
-                                        openReportInRHP(transaction);
-                                    }}
-                                    style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
-                                    isReportItemChild
-                                    isInSingleTransactionReport={groupItem.transactions.length === 1}
-                                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                                />
-                            </OfflineWithFeedback>
+                                report={transaction.report}
+                                transactionItem={transaction}
+                                isSelected={!!transaction.isSelected}
+                                dateColumnSize={dateColumnSize}
+                                amountColumnSize={amountColumnSize}
+                                taxAmountColumnSize={taxAmountColumnSize}
+                                shouldShowTooltip={showTooltip}
+                                shouldUseNarrowLayout={!isLargeScreenWidth}
+                                shouldShowCheckbox={!!canSelectMultiple}
+                                onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                columns={columns}
+                                onButtonPress={() => {
+                                    openReportInRHP(transaction);
+                                }}
+                                style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
+                                isReportItemChild
+                                isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                            />
                         ))
                     )}
                 </View>
