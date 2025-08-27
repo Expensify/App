@@ -26,8 +26,6 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
-const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
-
 type InviteReceiptPartnerPolicyPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE>;
 
 function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageProps) {
@@ -40,8 +38,8 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
 
     const policyID = route.params?.policyID;
     const policy = usePolicy(policyID);
-    const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;
-    const textInputLabel = shouldShowSearchInput ? translate('common.search') : undefined;
+    const shouldShowTextInput = policy?.employeeList && Object.keys(policy.employeeList).length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
 
     const workspaceMembers = useMemo(() => {
         let membersList: MemberForList[] = [];
