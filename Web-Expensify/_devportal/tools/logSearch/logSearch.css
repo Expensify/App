@@ -1,0 +1,266 @@
+/* LogSearch Improvements - Column Management and Sticky Headers */
+
+/* Sticky table headers */
+.ls-results-table {
+    position: relative;
+}
+
+.ls-results-table thead.ls-table-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.ls-results-table thead.ls-table-header th {
+    background: #f8f9fa;
+    font-weight: bold;
+    padding: 8px 12px;
+    border-bottom: 2px solid #dee2e6;
+    text-align: left;
+    white-space: nowrap;
+    /* 
+     * Prevent column headers from overlapping 
+     * when scrolling horizontally
+     */
+    position: sticky;
+    top: 0;
+}
+
+/* Ensure scrollable content works with sticky headers */
+.ls-content.scrollable {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+/* Column management modal styles */
+.ls-columns-help {
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    font-style: italic;
+    color: #6c757d;
+}
+
+.ls-columns-selected,
+.ls-columns-available {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.ls-columns-selected h4,
+.ls-columns-available h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #495057;
+}
+
+/* Sortable columns list */
+.ls-sortable-columns {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    min-height: 100px;
+    border: 1px dashed #dee2e6;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+.ls-sortable-columns li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    margin-bottom: 5px;
+    background: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    cursor: move;
+    transition: background-color 0.2s;
+}
+
+.ls-sortable-columns li:hover {
+    background: #dee2e6;
+}
+
+.ls-sortable-columns li:last-child {
+    margin-bottom: 0;
+}
+
+/* Drag handle */
+.ls-drag-handle {
+    cursor: grab;
+    color: #6c757d;
+    font-weight: bold;
+    margin-right: 10px;
+    user-select: none;
+}
+
+.ls-drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Remove button for selected columns */
+.ls-remove-column {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background-color 0.2s;
+}
+
+.ls-remove-column:hover {
+    background: #c82333;
+}
+
+/* Available columns list */
+.ls-available-columns {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+.ls-available-columns li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    margin-bottom: 3px;
+    background: #f8f9fa;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.ls-available-columns li:hover {
+    background: #e9ecef;
+}
+
+.ls-available-columns li:last-child {
+    margin-bottom: 0;
+}
+
+/* Add button for available columns */
+.ls-add-column {
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background-color 0.2s;
+}
+
+.ls-add-column:hover {
+    background: #218838;
+}
+
+/* jQuery UI sortable placeholder styling */
+.ui-sortable-placeholder {
+    background: #fff3cd;
+    border: 2px dashed #ffc107;
+    height: 40px;
+    border-radius: 4px;
+    margin-bottom: 5px;
+}
+
+.ui-sortable-helper {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background: #fff;
+    border: 1px solid #007bff;
+}
+
+/* Copy table button styling */
+.copy-table {
+    background: #17a2b8;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 3px;
+    text-decoration: none;
+    font-size: 12px;
+    transition: background-color 0.2s;
+}
+
+.copy-table:hover {
+    background: #138496;
+    color: white;
+    text-decoration: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .ls-columns-selected,
+    .ls-columns-available {
+        padding: 10px;
+    }
+    
+    .ls-sortable-columns li,
+    .ls-available-columns li {
+        font-size: 14px;
+        padding: 6px 8px;
+    }
+    
+    .ls-results-table thead.ls-table-header th {
+        font-size: 12px;
+        padding: 6px 8px;
+    }
+}
+
+/* Ensure tables are responsive */
+.ls-content {
+    overflow-x: auto;
+}
+
+.ls-results-table {
+    width: 100%;
+    white-space: nowrap;
+}
+
+.ls-results-table td,
+.ls-results-table th {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Special handling for blob column which should be wider */
+.ls-results-table td.ls-blob,
+.ls-results-table th:last-child {
+    max-width: 500px;
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* Improve readability of table */
+.ls-results-table tbody tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.ls-results-table tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+/* Loading state for tables */
+.ls-panel .ls-panel-title:contains("Loading") + .ls-content table {
+    opacity: 0.6;
+}

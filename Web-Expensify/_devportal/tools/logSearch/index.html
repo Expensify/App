@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogSearch Tool - Enhanced</title>
+    
+    <!-- Bootstrap CSS for basic styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- jQuery UI CSS for sortable functionality -->
+    <link href="https://code.jquery.com/ui/1.12.1/themes/ui-lightness/jquery-ui.css" rel="stylesheet">
+    
+    <!-- Custom LogSearch CSS -->
+    <link href="logSearch.css" rel="stylesheet">
+    
+    <!-- jQuery Datepicker CSS -->
+    <link href="https://code.jquery.com/ui/1.12.1/themes/ui-lightness/jquery-ui.css" rel="stylesheet">
+    
+    <style>
+        /* Additional inline styles for demo */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .container-fluid {
+            padding: 20px;
+        }
+        .ls-search-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        #ls-panels {
+            margin-top: 20px;
+        }
+        .ls-panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .ls-panel-title {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 600;
+        }
+        .ls-content {
+            padding: 0;
+        }
+        .actions {
+            position: absolute;
+            right: 40px;
+            top: 12px;
+        }
+        .actions a {
+            margin-left: 10px;
+            font-size: 12px;
+            color: #6c757d;
+            text-decoration: none;
+        }
+        .actions a:hover {
+            color: #007bff;
+        }
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #6c757d;
+        }
+        .close:hover {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <h1>LogSearch Tool - Enhanced Version</h1>
+        <p class="text-muted">Now with reorderable columns, sticky headers, and improved copy/paste functionality</p>
+        
+        <div id="supportal_logSearch">
+            <form class="ls-search ls-search-form">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="ls-query">Query:</label>
+                            <input type="text" id="ls-query" class="form-control" placeholder="Enter search query...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="ls-email">Email:</label>
+                            <input type="text" id="ls-email" class="form-control" placeholder="user@example.com">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="ls-requestID">Request ID:</label>
+                            <input type="text" id="ls-requestID" class="form-control" placeholder="Request ID">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="ls-dateRangeStart">Start Date:</label>
+                            <input type="text" id="ls-dateRangeStart" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="ls-dateRangeEnd">End Date:</label>
+                            <input type="text" id="ls-dateRangeEnd" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="ls-size">Result Size:</label>
+                            <select id="ls-size" class="form-control">
+                                <option value="100">100</option>
+                                <option value="500" selected>500</option>
+                                <option value="1000">1000</option>
+                                <option value="2000">2000</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="ls-sort">Sort Order:</label>
+                            <select id="ls-sort" class="form-control">
+                                <option value="desc">Newest First</option>
+                                <option value="asc">Oldest First</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-primary btn-block">Search</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="tab-group">
+                            <input type="hidden" id="ls-search-engine" value="victorialogs">
+                            <button type="button" class="tab-button active" data-value="victorialogs">VictoriaLogs</button>
+                            <button type="button" class="tab-button" data-value="elasticsearch">Elasticsearch</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <button type="button" class="btn btn-secondary btn-sm select-columns">Select/Reorder Columns</button>
+                        <button type="button" class="btn btn-secondary btn-sm show-shortcuts">Keyboard Shortcuts</button>
+                        <button type="button" class="btn btn-secondary btn-sm select-quiet-lines">Quiet Lines</button>
+                        <button type="button" class="btn btn-secondary btn-sm toggle-timezone">Show times in local time</button>
+                        <button type="button" class="btn btn-secondary btn-sm choose-date-format">Date Format</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div id="ls-panels">
+            <!-- Search result panels will be added here dynamically -->
+        </div>
+    </div>
+
+    <!-- Column Selection Modal -->
+    <div class="modal fade" id="ls-columns" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select and Reorder Columns</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shortcuts Modal -->
+    <div class="modal fade" id="ls-shortcuts" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Keyboard Shortcuts</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JSON Modal -->
+    <div class="modal fade" id="ls-json" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">JSON Pretty Print</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiet Lines Modal -->
+    <div class="modal fade" id="ls-quiet-lines" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select Quiet Lines</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Dependencies -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.1/underscore-min.js"></script>
+    
+    <!-- Mock VictoriaLogsUtils for demo purposes -->
+    <script>
+        // Mock VictoriaLogsUtils object for demo
+        window.VictoriaLogsUtils = {
+            PROXY_URL: '/_devportal/tools/victoriaLogsProxy.php',
+            convertElasticsearchToLogsQL: function(filterTerms, options) {
+                // Mock implementation
+                return 'mock logsql query';
+            },
+            convertResponse: function(response, options) {
+                // Mock implementation
+                return response;
+            }
+        };
+    </script>
+    
+    <!-- LogSearch Main Script -->
+    <script src="main.js"></script>
+    
+    <script>
+        // Demo data for testing
+        $(document).ready(function() {
+            // Add some demo styling for tab buttons
+            $('.tab-button').addClass('btn btn-outline-primary btn-sm mr-2');
+            $('.tab-button.active').removeClass('btn-outline-primary').addClass('btn-primary');
+            
+            // Style the modal triggers
+            $('.select-columns, .show-shortcuts, .select-quiet-lines').attr('data-toggle', 'modal');
+            $('.select-columns').attr('data-target', '#ls-columns');
+            $('.show-shortcuts').attr('data-target', '#ls-shortcuts');
+            $('.select-quiet-lines').attr('data-target', '#ls-quiet-lines');
+        });
+    </script>
+</body>
+</html>
