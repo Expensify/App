@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -17,20 +17,65 @@ import * as Policy from '@src/libs/actions/Policy/Policy';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+const DEFAULT_FEATURE_NAME = 'categories';
+
 type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE>;
 
 function IOURequestStepUpgrade({
     route: {
-        params: {transactionID, action},
+        params: {transactionID, action, featureName},
     },
 }: IOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
-    const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING.categories;
+    const featureNameAlias = featureName ?? DEFAULT_FEATURE_NAME;
+    const feature = useMemo(
+        () =>
+            Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
+                .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
+                .find((f) => f.alias === featureNameAlias),
+        [featureNameAlias],
+    );
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
     const [isUpgraded, setIsUpgraded] = useState(false);
     const policyDataRef = useRef<CreateWorkspaceParams | null>(null);
+
+    const onConfirmUpgrade = useCallback(() => {
+        setMoneyRequestParticipants(transactionID, [
+            {
+                selected: true,
+                accountID: 0,
+                isPolicyExpenseChat: true,
+                reportID: policyDataRef.current?.expenseChatReportID,
+                policyID: policyDataRef.current?.policyID,
+                searchText: policyDataRef.current?.policyName,
+            },
+        ]);
+        Navigation.goBack();
+
+        switch (feature?.id) {
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.distanceRates.id:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, policyDataRef.current?.expenseChatReportID));
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.categories.id:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, policyDataRef.current?.expenseChatReportID));
+                break;
+            default:
+        }
+    }, [action, transactionID, feature]);
+
+    const onUpgrade = useCallback(() => {
+        const policyData = Policy.createWorkspace({
+            policyOwnerEmail: '',
+            makeMeAdmin: false,
+            policyName: '',
+            policyID: undefined,
+            engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+        });
+        setIsUpgraded(true);
+        policyDataRef.current = policyData;
+    }, []);
 
     return (
         <ScreenWrapper
@@ -47,41 +92,19 @@ function IOURequestStepUpgrade({
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!isUpgraded && (
                     <UpgradeConfirmation
-                        onConfirmUpgrade={() => {
-                            setMoneyRequestParticipants(transactionID, [
-                                {
-                                    selected: true,
-                                    accountID: 0,
-                                    isPolicyExpenseChat: true,
-                                    reportID: policyDataRef.current?.expenseChatReportID,
-                                    policyID: policyDataRef.current?.policyID,
-                                    searchText: policyDataRef.current?.policyName,
-                                },
-                            ]);
-                            Navigation.goBack();
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, policyDataRef.current?.expenseChatReportID));
-                        }}
+                        onConfirmUpgrade={onConfirmUpgrade}
                         policyName=""
-                        isCategorizing
+                        isCategorizing={featureNameAlias === DEFAULT_FEATURE_NAME}
                     />
                 )}
                 {!isUpgraded && (
                     <UpgradeIntro
                         feature={feature}
-                        onUpgrade={() => {
-                            const policyData = Policy.createWorkspace({
-                                policyOwnerEmail: '',
-                                makeMeAdmin: false,
-                                policyName: '',
-                                policyID: undefined,
-                                engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
-                            });
-                            setIsUpgraded(true);
-                            policyDataRef.current = policyData;
-                        }}
+                        onUpgrade={onUpgrade}
                         buttonDisabled={isOffline}
                         loading={false}
-                        isCategorizing
+                        isCategorizing={featureNameAlias === DEFAULT_FEATURE_NAME}
+                        isDistanceRateUpgrade={featureNameAlias === 'distance-rates'}
                     />
                 )}
             </ScrollView>

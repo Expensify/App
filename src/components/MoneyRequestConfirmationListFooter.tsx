@@ -476,6 +476,19 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
+                        if (isManualDistanceEnabled && !isPolicyExpenseChat) {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute(
+                                    action,
+                                    iouType,
+                                    transactionID,
+                                    reportID,
+                                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.distanceRates.alias,
+                                    Navigation.getActiveRoute(),
+                                ),
+                            );
+                            return;
+                        }
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
