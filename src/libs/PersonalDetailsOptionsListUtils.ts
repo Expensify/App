@@ -471,7 +471,7 @@ function createOptionList(
         }
         const reportID = accountIDToReportIDMap[personalDetail.accountID];
         const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-        const reportAttributes = reportAttributesDerived?.[report?.reportID ?? ''];
+        const reportAttributes = report?.reportID ? reportAttributesDerived?.[report.reportID] : undefined;
         const isReportArchived = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]?.private_isArchived;
         const option = createOption(personalDetail, report, undefined, reportAttributes, isReportArchived);
         if (option.accountID === currentUserAccountID) {
