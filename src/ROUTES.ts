@@ -127,7 +127,10 @@ const ROUTES = {
     },
     SEARCH_MONEY_REQUEST_REPORT: {
         route: 'search/r/:reportID',
-        getRoute: ({reportID}: {reportID: string}) => `search/r/${reportID}` as const,
+        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
+            const baseRoute = `search/r/${reportID}` as const;
+            return getUrlWithBackToParam(baseRoute, backTo);
+        },
     },
     SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: {
         route: 'search/r/:reportID/hold',
@@ -384,7 +387,10 @@ const ROUTES = {
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
 
-    KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
+    KEYBOARD_SHORTCUTS: {
+        route: 'keyboard-shortcuts',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('keyboard-shortcuts', backTo),
+    },
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',
@@ -508,6 +514,10 @@ const ROUTES = {
     REPORT_SETTINGS_VISIBILITY: {
         route: 'r/:reportID/settings/visibility',
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/visibility` as const, backTo),
+    },
+    REPORT_CHANGE_APPROVER: {
+        route: 'r/:reportID/change-approver',
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/change-approver` as const, backTo),
     },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
@@ -1871,14 +1881,6 @@ const ROUTES = {
             }
             return getUrlWithBackToParam(`workspaces/${policyID}/per-diem`, backTo);
         },
-    },
-    WORKSPACE_DUPLICATE: {
-        route: 'workspace/:policyID/duplicate',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/duplicate`, backTo),
-    },
-    WORKSPACE_DUPLICATE_SELECT_FEATURES: {
-        route: 'workspace/:policyID/duplicate/select-features',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/duplicate/select-features`, backTo),
     },
     WORKSPACE_RECEIPT_PARTNERS: {
         route: 'workspaces/:policyID/receipt-partners',
