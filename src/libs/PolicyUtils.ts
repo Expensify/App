@@ -1267,6 +1267,12 @@ function navigateToExpensifyCardPage(policyID: string) {
     });
 }
 
+function navigateToReceiptPartnersPage(policyID: string) {
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
+    });
+}
+
 function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
     return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
 }
@@ -1536,13 +1542,10 @@ function isPreferredExporter(policy: Policy) {
 }
 
 /**
- * Checks if the user is invited to any workspace.
+ * Checks if the current user is a member of any policyExpenseChatEnabled policy
  */
-function isUserInvitedToWorkspace(): boolean {
-    const currentUserAccountID = getCurrentUserAccountID();
-    return Object.values(allPolicies ?? {}).some(
-        (policy) => policy?.ownerAccountID !== currentUserAccountID && policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE,
-    );
+function isCurrentUserMemberOfAnyPolicy(): boolean {
+    return Object.values(allPolicies ?? {}).some((policy) => policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE);
 }
 
 function isMemberPolicyAdmin(policy: OnyxEntry<Policy>, memberEmail: string | undefined): boolean {
@@ -1626,6 +1629,7 @@ export {
     getXeroBankAccounts,
     findSelectedVendorWithDefaultSelect,
     findSelectedBankAccountWithDefaultSelect,
+    navigateToReceiptPartnersPage,
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
     findSelectedSageVendorWithDefaultSelect,
@@ -1700,7 +1704,7 @@ export {
     shouldRedirectToExpensifyClassic,
     getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
-    isUserInvitedToWorkspace,
+    isCurrentUserMemberOfAnyPolicy,
     getPolicyRole,
     hasIndependentTags,
     getLengthOfTag,
