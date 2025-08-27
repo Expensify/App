@@ -29,9 +29,23 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
+
+    /** Whether all transactions are selected */
+    isSelectAllChecked?: boolean;
+
+    /** Whether only some transactions are selected */
+    isIndeterminate?: boolean;
 };
 
-function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onSelectRow, onCheckboxPress, isDisabled, canSelectMultiple}: MemberListItemHeaderProps<TItem>) {
+function MemberListItemHeader<TItem extends ListItem>({
+    member: memberItem,
+    onSelectRow,
+    onCheckboxPress,
+    isDisabled,
+    canSelectMultiple,
+    isSelectAllChecked,
+    isIndeterminate,
+}: MemberListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -49,7 +63,8 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onSel
                     {!!canSelectMultiple && (
                         <Checkbox
                             onPress={() => onCheckboxPress?.(memberItem as unknown as TItem)}
-                            isChecked={memberItem.isSelected}
+                            isChecked={isSelectAllChecked}
+                            isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || memberItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
                         />

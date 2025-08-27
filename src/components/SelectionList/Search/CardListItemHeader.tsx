@@ -33,9 +33,24 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
+
+    /** Whether all transactions are selected */
+    isSelectAllChecked?: boolean;
+
+    /** Whether only some transactions are selected */
+    isIndeterminate?: boolean;
 };
 
-function CardListItemHeader<TItem extends ListItem>({card: cardItem, onSelectRow, onCheckboxPress, isDisabled, isFocused, canSelectMultiple}: CardListItemHeaderProps<TItem>) {
+function CardListItemHeader<TItem extends ListItem>({
+    card: cardItem,
+    onSelectRow,
+    onCheckboxPress,
+    isDisabled,
+    isFocused,
+    canSelectMultiple,
+    isSelectAllChecked,
+    isIndeterminate,
+}: CardListItemHeaderProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -53,7 +68,8 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onSelectRow
                     {!!canSelectMultiple && (
                         <Checkbox
                             onPress={() => onCheckboxPress?.(cardItem as unknown as TItem)}
-                            isChecked={cardItem.isSelected}
+                            isChecked={isSelectAllChecked}
+                            isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || cardItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
                         />

@@ -4,7 +4,6 @@ import type {ValueOf} from 'type-fest';
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
-import Checkbox from '@components/Checkbox';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -95,6 +94,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [transactions]);
 
     const isSelectAllChecked = selectedItemsLength === transactions.length && transactions.length > 0;
+    const isIndeterminate = selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length;
 
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -185,13 +185,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
         [onCheckboxPressRow, transactions, isGroupByReports],
     );
 
-    const groupItemWithSelected = useMemo(() => {
-        return {
-            ...groupItem,
-            isSelected: isSelectAllChecked,
-        };
-    }, [groupItem, isSelectAllChecked]);
-
     const getHeader = useMemo(() => {
         const headers: Record<SearchGroupBy, React.JSX.Element> = {
             [CONST.SEARCH.GROUP_BY.REPORTS]: (
@@ -202,25 +195,31 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isDisabled={isDisabledOrEmpty}
                     isFocused={isFocused}
                     canSelectMultiple={canSelectMultiple}
+                    isSelectAllChecked={isSelectAllChecked}
+                    isIndeterminate={isIndeterminate}
                 />
             ),
             [CONST.SEARCH.GROUP_BY.FROM]: (
                 <MemberListItemHeader
-                    member={groupItemWithSelected as TransactionMemberGroupListItemType}
+                    member={groupItem as TransactionMemberGroupListItemType}
                     onSelectRow={onPress}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     canSelectMultiple={canSelectMultiple}
+                    isSelectAllChecked={isSelectAllChecked}
+                    isIndeterminate={isIndeterminate}
                 />
             ),
             [CONST.SEARCH.GROUP_BY.CARD]: (
                 <CardListItemHeader
-                    card={groupItemWithSelected as TransactionCardGroupListItemType}
+                    card={groupItem as TransactionCardGroupListItemType}
                     onSelectRow={onPress}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     isFocused={isFocused}
                     canSelectMultiple={canSelectMultiple}
+                    isSelectAllChecked={isSelectAllChecked}
+                    isIndeterminate={isIndeterminate}
                 />
             ),
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: (
@@ -239,7 +238,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         return headers[groupBy];
-    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, groupItemWithSelected, onPress, groupBy]);
+    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, onPress, groupBy]);
 
     const shouldShowYear = shouldShowYearUtil(transactions);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(transactions);
@@ -295,16 +294,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         ) : (
                             <>
                                 {!!transactionsSnapshot?.data && !!transactionsSnapshotMetadata && isLargeScreenWidth && (
-                                    <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader, styles.bgTransparent, styles.ph3]}>
-                                        <Checkbox
-                                            accessibilityLabel={translate('workspace.people.selectAll')}
-                                            isChecked={isSelectAllChecked}
-                                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length}
-                                            onPress={() => {
-                                                onCheckboxPressRow?.(item, isGroupByReports ? undefined : transactions);
-                                            }}
-                                            disabled={transactions.length === 0}
-                                        />
+                                    <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader, styles.bgTransparent, styles.pl10, styles.pr3]}>
                                         <SearchTableHeader
                                             canSelectMultiple
                                             data={transactionsSnapshot?.data}
