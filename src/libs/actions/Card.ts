@@ -217,7 +217,7 @@ function clearCardListErrors(cardID: number) {
 }
 
 /**
- * Clears pin for Activated card
+ * Clears the PIN for an activated card
  */
 function clearActivatedCardPin() {
     Onyx.set(ONYXKEYS.ACTIVATED_CARD_PIN, '');
