@@ -241,33 +241,15 @@ function SearchList(
         [data],
     );
 
-    const handleScrollOffset = useCallback(
-        (e: Parameters<NonNullable<FlashListProps<SearchListItem>['onScroll']>>[0]) => {
-            if (e.nativeEvent.layoutMeasurement.height <= 0) {
-                return;
+    const handleScroll = useCallback<NonNullable<FlashListProps<SearchListItem>['onScroll']>>(
+        (e) => {
+            onScroll(e);
+            if (e.nativeEvent.layoutMeasurement.height > 0) {
+                saveScrollOffset(route, e.nativeEvent.contentOffset.y);
             }
-            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
         },
-        [route, saveScrollOffset],
+        [onScroll, route, saveScrollOffset],
     );
-
-    const combinedOnScroll = useMemo(() => {
-        if (!onScroll) {
-            return handleScrollOffset;
-        }
-
-        // If onScroll is a regular function, we can combine them easily
-        if (typeof onScroll === 'function') {
-            return (e: Parameters<NonNullable<FlashListProps<SearchListItem>['onScroll']>>[0]) => {
-                onScroll(e);
-                handleScrollOffset(e);
-            };
-        }
-
-        // For worklets, return the original worklet
-        // Note: Scroll offset saving won't work with worklets using this approach
-        return onScroll;
-    }, [onScroll, handleScrollOffset]);
 
     const handleLayout = useCallback(() => {
         if (onLayout && typeof onLayout === 'function') {
@@ -275,18 +257,21 @@ function SearchList(
         }
 
         const offset = getScrollOffset(route);
+
         if (!offset || !listRef.current) {
             return;
         }
 
-        // Use requestAnimationFrame to ensure proper scrolling on iOS
-        requestAnimationFrame(() => {
-            if (!offset || !listRef.current) {
-                return;
-            }
+        setTimeout(() => {
+            requestAnimationFrame(() => {
+                if (!offset || !listRef.current) {
+                    return;
+                }
 
-            listRef.current.scrollToOffset({offset});
-        });
+                listRef.current.scrollToOffset({offset});
+            });
+        }, 3000);
+        // Use requestAnimationFrame to ensure proper scrolling on iOS
     }, [onLayout, getScrollOffset, route]);
 
     useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
@@ -428,13 +413,12 @@ function SearchList(
                     )}
                 </View>
             )}
-
             <BaseSearchList
                 data={data}
                 renderItem={renderItem}
                 onSelectRow={onSelectRow}
                 keyExtractor={keyExtractor}
-                onScroll={combinedOnScroll}
+                onScroll={onScroll && typeof onScroll === 'function' ? handleScroll : onScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
                 scrollToIndex={scrollToIndex}
