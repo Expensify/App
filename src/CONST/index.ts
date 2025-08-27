@@ -1065,6 +1065,7 @@ const CONST = {
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
+    RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
         ROLE: {
             ADMIN: 'admin',
@@ -1073,7 +1074,6 @@ const CONST = {
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         UNREPORTED_REPORT_ID: '0',
-        DEFAULT_REPORT_ID: '1',
         SPLIT_REPORT_ID: '-2',
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1552,6 +1552,9 @@ const CONST = {
         SKELETON_ANIMATION_SPEED: 3,
         SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',
         DEBOUNCE_HANDLE_SEARCH: 'debounce_handle_search',
+        FAST_SEARCH_TREE_CREATION: 'fast_search_tree_creation',
+        SHOW_HOVER_PREVIEW_DELAY: 270,
+        SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -2817,15 +2820,6 @@ const CONST = {
         'callMeByMyName',
     ],
 
-    // Map updated pronouns key to deprecated pronouns
-    DEPRECATED_PRONOUNS_LIST: {
-        heHimHis: 'He/him',
-        sheHerHers: 'She/her',
-        theyThemTheirs: 'They/them',
-        zeHirHirs: 'Ze/hir',
-        callMeByMyName: 'Call me by my name',
-    },
-
     POLICY: {
         TYPE: {
             PERSONAL: 'personal',
@@ -3198,14 +3192,17 @@ const CONST = {
             MASTER_CARD: 'cdf',
             VISA: 'vcf',
             AMEX: 'gl1025',
+            AMEX_1205: 'gl1205',
             STRIPE: 'stripe',
             CITIBANK: 'oauth.citibank.com',
             CAPITAL_ONE: 'oauth.capitalone.com',
             BANK_OF_AMERICA: 'oauth.bankofamerica.com',
             CHASE: 'oauth.chase.com',
             BREX: 'oauth.brex.com',
+            PEX: 'admin.pexcard.com',
             WELLS_FARGO: 'oauth.wellsfargo.com',
             AMEX_DIRECT: 'oauth.americanexpressfdx.com',
+            AMEX_FILE_DOWNLOAD: 'americanexpressfd.us',
             CSV: 'ccupload',
         },
         STEP_NAMES: ['1', '2', '3', '4'],
@@ -6548,6 +6545,7 @@ const CONST = {
             return {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
                 [this.GROUP_BY.REPORTS]: 'report',
+                [this.STATUS.EXPENSE.DRAFTS]: 'draft',
             };
         },
         DATE_MODIFIERS: {
@@ -6581,6 +6579,7 @@ const CONST = {
             STATEMENTS: 'statements',
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_CARD: 'unapprovedCard',
+            RECONCILIATION: 'reconciliation',
         },
         GROUP_PREFIX: 'group_',
     },
