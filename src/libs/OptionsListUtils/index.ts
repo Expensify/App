@@ -799,10 +799,6 @@ function createOption(
         result.private_isArchived = reportNameValuePairs?.private_isArchived;
         result.keyForList = String(report.reportID);
 
-        const reportAttribute = reportAttributesDerived?.[report.reportID];
-        result.allReportErrors = reportAttribute?.reportErrors ?? {};
-        result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : (reportAttribute?.brickRoadStatus ?? '');
-
         // Set lastMessageText - use archived message if report is archived, otherwise use report's lastMessageText
         if (result.private_isArchived) {
             result.lastMessageText = translateLocal('reportArchiveReasons.default');
@@ -811,8 +807,9 @@ function createOption(
         }
 
         // Type/category flags already set in initialization above, but update brickRoadIndicator
-        const allReportErrors = reportAttributesDerived?.[report.reportID]?.reportErrors ?? {};
-        result.brickRoadIndicator = !isEmptyObject(allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        const reportAttribute = reportAttributesDerived?.[report.reportID];
+        result.allReportErrors = reportAttribute?.reportErrors ?? {};
+        result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : (reportAttribute?.brickRoadStatus ?? '');
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- below is a boolean expression
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
