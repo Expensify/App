@@ -1,9 +1,10 @@
-import {useContext, useEffect} from 'react';
+import React, {useContext, useEffect} from 'react';
+import type {ViewProps} from 'react-native';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
-import type Reanimated from 'react-native-reanimated';
-import {useAnimatedReaction, useDerivedValue, useScrollViewOffset, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
-import type {AnimatedRef} from 'react-native-reanimated';
+import Reanimated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
+import type {SharedValue} from 'react-native-reanimated';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {Actions, ActionSheetAwareScrollViewContext, States} from './ActionSheetAwareScrollViewContext';
 
@@ -59,13 +60,18 @@ const useAnimatedKeyboard = () => {
     return {state, height, heightWhenOpened};
 };
 
-function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanimated.ScrollView>) {
-    const position = useScrollViewOffset(scrollViewAnimatedRef);
+type ActionSheetKeyboardSpaceProps = ViewProps & {
+    /** scroll offset of the parent ScrollView */
+    position?: SharedValue<number>;
+};
 
+function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
+    const styles = useThemeStyles();
     const {
         unmodifiedPaddings: {top: paddingTop = 0, bottom: paddingBottom = 0},
     } = useSafeAreaPaddings();
     const keyboard = useAnimatedKeyboard();
+    const {position} = props;
 
     // Similar to using `global` in worklet but it's just a local object
     const syncLocalWorkletState = useSharedValue(KeyboardState.UNKNOWN);
@@ -96,7 +102,7 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
         [],
     );
 
-    const spacing = useDerivedValue(() => {
+    const translateY = useDerivedValue(() => {
         const {current, previous} = currentActionSheetState.get();
 
         // We don't need to run any additional logic. it will always return 0 for idle state
@@ -243,7 +249,19 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
         }
     }, []);
 
-    return spacing;
+    const animatedStyle = useAnimatedStyle(() => ({
+        paddingTop: translateY.get(),
+    }));
+
+    return (
+        <Reanimated.View
+            style={[styles.flex1, animatedStyle]}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+        />
+    );
 }
 
-export default useActionSheetKeyboardSpacing;
+ActionSheetKeyboardSpace.displayName = 'ActionSheetKeyboardSpace';
+
+export default ActionSheetKeyboardSpace;
