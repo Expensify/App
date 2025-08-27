@@ -2434,7 +2434,7 @@ const translations = {
             reviewWorkspaceSettingsTask: {
                 title: ({workspaceSettingsLink}) => `Revisa tu [configuración del espacio de trabajo](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    'Así puedes revisar y actualizar la configuración de tu espacio de trabajo:\n' +
+                    'Instrucciones para revisar y actualizar la configuración de tu espacio de trabajo:\n' +
                     '1. Ve a Espacios de trabajo.\n' +
                     '2. Selecciona tu espacio de trabajo.\n' +
                     '3. Revisa y actualiza tu configuración.\n' +
