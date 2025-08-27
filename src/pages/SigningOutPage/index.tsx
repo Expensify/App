@@ -52,7 +52,6 @@ const SigningOutPage: SigningOutPageType = () => {
                 title={translate('signingOutPage.title')}
                 subtitle={translate('signingOutPage.subtitle')}
                 subtitleStyle={[styles.textSupporting]}
-                shouldShowLink={false}
             />
         </ScreenWrapper>
     );
