@@ -160,6 +160,16 @@ function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     return hasDistanceCustomUnit(transaction);
 }
 
+function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+    // This is used during the expense creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+    }
+
+    // This is the case for transaction objects once they have been saved to the server
+    return hasDistanceCustomUnit(transaction);
+}
+
 function isManualDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
@@ -191,9 +201,14 @@ function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL;
 }
 
-function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
-    if (isManualDistanceRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+function getRequestType(transaction: OnyxEntry<Transaction>, isManualDistanceEnabled?: boolean): IOURequestType {
+    if (isManualDistanceEnabled) {
+        if (isManualDistanceRequest(transaction)) {
+            return CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+        }
+        if (isMapDistanceRequest(transaction)) {
+            return CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+        }
     }
     if (isDistanceRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.DISTANCE;

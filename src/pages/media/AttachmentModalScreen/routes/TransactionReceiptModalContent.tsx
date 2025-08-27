@@ -1,5 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import {navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
@@ -17,6 +18,7 @@ import ROUTES from '@src/ROUTES';
 
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps) {
     const {reportID = '', transactionID = '', iouAction, iouType, readonly: readonlyProp, isFromReviewDuplicates: isFromReviewDuplicatesProp} = route.params;
+    const {isBetaEnabled} = usePermissions();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
@@ -56,7 +58,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             return;
         }
 
-        const requestType = getRequestType(transaction);
+        const requestType = getRequestType(transaction, isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE));
         const receiptFilename = transaction?.filename;
         const receiptType = transaction?.receipt?.type;
         navigateToStartStepIfScanFileCannotBeRead(
