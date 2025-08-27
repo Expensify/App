@@ -399,7 +399,7 @@ function BaseSelectionList<TItem extends ListItem>(
 
         if (targetItem && indexToScroll < CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
             pendingScrollIndexRef.current = null;
-            scrollToIndex(indexToScroll, true);
+            scrollToIndex(indexToScroll, false);
         }
     }, [currentPage, scrollToIndex, flattenedSections.allOptions]);
 
