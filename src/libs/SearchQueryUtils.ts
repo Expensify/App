@@ -355,15 +355,13 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
  */
 function getGroupByValue(groupBy?: string | string[]): SearchGroupBy | undefined {
     if (!groupBy) {
-        return undefined;
+        return;
     }
 
-    // Case 1: groupBy is a string → return as is
     if (typeof groupBy === 'string') {
         return groupBy as SearchGroupBy;
     }
 
-    // Case 2: groupBy is an array → take first element and validate
     if (Array.isArray(groupBy)) {
         const [firstValue] = groupBy;
         const allowedValues = Object.values(CONST.SEARCH.GROUP_BY) as SearchGroupBy[];
@@ -371,7 +369,7 @@ function getGroupByValue(groupBy?: string | string[]): SearchGroupBy | undefined
         return allowedValues.find((value) => value === firstValue);
     }
 
-    return undefined;
+    return;
 }
 
 /**
@@ -399,8 +397,7 @@ function buildSearchQueryJSON(query: SearchQueryString) {
         }
 
         if (result.groupBy) {
-            const groupBy = getGroupByValue(result.groupBy);
-            result.groupBy = groupBy;
+            result.groupBy = getGroupByValue(result.groupBy);
         }
 
         return result;
