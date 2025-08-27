@@ -152,6 +152,7 @@ function isSupportRequest(command: string): boolean {
         READ_COMMANDS.OPEN_PAYMENTS_PAGE,
         READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE,
         READ_COMMANDS.SEARCH_FOR_REPORTS,
+        READ_COMMANDS.OPEN_SEARCH_PAGE,
     ].some((cmd) => cmd === command);
 }
 
