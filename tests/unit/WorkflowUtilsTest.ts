@@ -197,11 +197,24 @@ describe('WorkflowUtils', () => {
     });
 
     describe('convertPolicyEmployeesToApprovalWorkflows', () => {
+        const createMockPolicy = (employees: PolicyEmployeeList, defaultApprover: string) => ({
+            id: 'test-policy',
+            name: 'Test Policy',
+            role: 'admin' as const,
+            type: 'team' as const,
+            owner: 'owner@example.com',
+            outputCurrency: 'USD',
+            isPolicyExpenseChatEnabled: true,
+            employeeList: employees,
+            approver: defaultApprover,
+        });
+
         it('Should return an empty list if there are no employees', () => {
             const employees: PolicyEmployeeList = {};
             const defaultApprover = '1@example.com';
+            const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, localeCompare: TestHelper.localeCompare});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare: TestHelper.localeCompare});
 
             expect(approvalWorkflows).toEqual([]);
         });
@@ -215,8 +228,9 @@ describe('WorkflowUtils', () => {
                 },
             };
             const defaultApprover = '1@example.com';
+            const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, localeCompare: TestHelper.localeCompare});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare: TestHelper.localeCompare});
 
             expect(approvalWorkflows).toEqual([]);
         });
@@ -235,8 +249,9 @@ describe('WorkflowUtils', () => {
                 },
             };
             const defaultApprover = '1@example.com';
+            const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, localeCompare: TestHelper.localeCompare});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare: TestHelper.localeCompare});
 
             expect(approvalWorkflows).toEqual([buildWorkflow([1, 2], [1], {isDefault: true})]);
         });
@@ -265,8 +280,9 @@ describe('WorkflowUtils', () => {
                 },
             };
             const defaultApprover = '1@example.com';
+            const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, localeCompare: TestHelper.localeCompare});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare: TestHelper.localeCompare});
 
             expect(approvalWorkflows).toEqual([buildWorkflow([2, 3], [1], {isDefault: true}), buildWorkflow([1, 4], [4])]);
         });
@@ -300,8 +316,9 @@ describe('WorkflowUtils', () => {
                 },
             };
             const defaultApprover = '1@example.com';
+            const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, localeCompare: TestHelper.localeCompare});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare: TestHelper.localeCompare});
 
             expect(approvalWorkflows).toEqual([buildWorkflow([3, 2], [1], {isDefault: true}), buildWorkflow([5], [3]), buildWorkflow([4, 1], [4])]);
         });
@@ -330,8 +347,9 @@ describe('WorkflowUtils', () => {
                 },
             };
             const defaultApprover = '1@example.com';
+            const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, localeCompare: TestHelper.localeCompare});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare: TestHelper.localeCompare});
 
             const defaultWorkflow = buildWorkflow([2, 3, 4], [1, 3, 4], {isDefault: true});
             let firstApprover = defaultWorkflow.approvers.at(0);
@@ -385,8 +403,9 @@ describe('WorkflowUtils', () => {
                 },
             };
             const defaultApprover = '1@example.com';
+            const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, localeCompare: TestHelper.localeCompare});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare: TestHelper.localeCompare});
 
             const defaultWorkflow = buildWorkflow([1, 4, 5, 6], [1], {isDefault: true});
             const secondWorkflow = buildWorkflow([2, 3], [4, 5, 6]);

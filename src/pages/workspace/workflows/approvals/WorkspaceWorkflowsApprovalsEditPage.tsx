@@ -76,11 +76,9 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return {};
         }
 
-        const defaultApprover = policy?.approver ?? policy.owner;
         const firstApprover = route.params.firstApproverEmail;
         const result = convertPolicyEmployeesToApprovalWorkflows({
-            employees: policy.employeeList ?? {},
-            defaultApprover,
+            policy,
             personalDetails,
             firstApprover,
             localeCompare,
