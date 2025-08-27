@@ -30,7 +30,7 @@ function WorkspaceReceiptPartnersPromotionBanner({policy, readOnly}: WorkspaceRe
     const {isBetaEnabled} = usePermissions();
     const policyID = policy?.id;
     const {setAsDismissed, isDismissed} = useDismissedUberBanners({policyID});
-    const shouldShowReceiptPartnersPromotionBanner = isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS) && !policy?.areReceiptPartnersEnabled && !isDismissed && !readOnly;
+    const shouldDismissBanner = !!policy?.areReceiptPartnersEnabled || !isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS) || isDismissed || readOnly;
 
     const handleConnectUber = useCallback(() => {
         if (!policyID) {
@@ -54,7 +54,7 @@ function WorkspaceReceiptPartnersPromotionBanner({policy, readOnly}: WorkspaceRe
         );
     }, [styles, shouldUseNarrowLayout, translate, handleConnectUber]);
 
-    if (shouldShowReceiptPartnersPromotionBanner) {
+    if (shouldDismissBanner) {
         return null;
     }
 
