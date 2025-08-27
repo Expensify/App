@@ -1,6 +1,5 @@
 import noop from 'lodash/noop';
 import React, {useCallback, useContext, useMemo, useState} from 'react';
-import usePrevious from '@hooks/usePrevious';
 import createDeferredPromise from '@libs/createDeferredPromise';
 
 type ModalProps = {
@@ -35,27 +34,37 @@ type ModalInfo = {
 
 function PromiseModalProvider({children}: {children: React.ReactNode}) {
     const [modalStack, setModalStack] = useState<{modals: ModalInfo[]}>({modals: []});
-    const modalStackRef = usePrevious(modalStack);
 
-    const showModal = useCallback<ModalContextType['showModal']>(
-        ({component, props, id, isCloseable = true}) => {
-            const existingModal = id ? modalStackRef.modals.find((modal: ModalInfo) => modal.id === id) : undefined;
+    const showModal = useCallback<ModalContextType['showModal']>(({component, props, id, isCloseable = true}) => {
+        // This is a promise that will resolve when the modal is closed
+        let showModalPromise: Promise<PromiseResolvePayload> | null = null;
 
+        setModalStack((prevState) => {
+            // Check current state for existing modal
+            const existingModal = id ? prevState.modals.find((modal: ModalInfo) => modal.id === id) : undefined;
             if (existingModal) {
-                return existingModal.deferred.promise;
+                // There is already a modal with this ID. Return the existing promise and don't modify state.
+                showModalPromise = existingModal.deferred.promise;
+                return prevState; // No state change needed
             }
 
+            // Create a new deferred promise to be resolved when the modal is closed
             const deferred = createDeferredPromise<PromiseResolvePayload>();
+            showModalPromise = deferred.promise;
 
-            setModalStack((prevState) => ({
+            return {
                 ...prevState,
                 modals: [...prevState.modals, {component: component as React.FunctionComponent<ModalProps>, props, deferred, isCloseable, id: id ?? String(modalID++)}],
-            }));
+            };
+        });
 
-            return deferred.promise;
-        },
-        [modalStackRef.modals],
-    );
+        // At this point, showModalPromise should always be assigned
+        if (!showModalPromise) {
+            throw new Error('Failed to create modal promise');
+        }
+
+        return showModalPromise;
+    }, []);
 
     const closeModal = useCallback<ModalContextType['closeModal']>((data = {action: 'CLOSE'}) => {
         setModalStack((prevState) => {
