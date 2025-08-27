@@ -13,13 +13,13 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {activatePhysicalExpensifyCard, clearCardListErrors} from '@libs/actions/Card';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import * as CardSettings from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -34,7 +34,7 @@ const MAGIC_INPUT_MIN_HEIGHT = 86;
 
 function ActivatePhysicalCardPage({
     route: {
-        params: {cardID = ''},
+        params: {cardID = '', backTo},
     },
 }: ActivatePhysicalCardPageProps) {
     const theme = useTheme();
@@ -50,7 +50,7 @@ function ActivatePhysicalCardPage({
     const [canShowError, setCanShowError] = useState<boolean>(false);
 
     const inactiveCard = cardList?.[cardID];
-    const cardError = ErrorUtils.getLatestErrorMessage(inactiveCard ?? {});
+    const cardError = getLatestErrorMessage(inactiveCard ?? {});
 
     const activateCardCodeInputRef = useRef<MagicCodeInputHandle>(null);
 
@@ -69,13 +69,13 @@ function ActivatePhysicalCardPage({
         if (!inactiveCard?.cardID) {
             return;
         }
-        CardSettings.clearCardListErrors(inactiveCard?.cardID);
+        clearCardListErrors(inactiveCard?.cardID);
 
         return () => {
             if (!inactiveCard?.cardID) {
                 return;
             }
-            CardSettings.clearCardListErrors(inactiveCard?.cardID);
+            clearCardListErrors(inactiveCard?.cardID);
         };
     }, [inactiveCard?.cardID]);
 
@@ -94,7 +94,7 @@ function ActivatePhysicalCardPage({
         setFormError('');
 
         if (cardError && inactiveCard?.cardID) {
-            CardSettings.clearCardListErrors(inactiveCard?.cardID);
+            clearCardListErrors(inactiveCard?.cardID);
         }
 
         setLastFourDigits(text);
@@ -112,7 +112,7 @@ function ActivatePhysicalCardPage({
             return;
         }
 
-        CardSettings.activatePhysicalExpensifyCard(lastFourDigits, inactiveCard?.cardID);
+        activatePhysicalExpensifyCard(lastFourDigits, inactiveCard?.cardID);
     }, [lastFourDigits, inactiveCard?.cardID, translate]);
 
     if (isEmptyObject(inactiveCard)) {
@@ -122,7 +122,7 @@ function ActivatePhysicalCardPage({
     return (
         <IllustratedHeaderPageLayout
             title={translate('activateCardPage.activateCard')}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID))}
+            onBackButtonPress={() => Navigation.goBack(backTo ?? ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID))}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
             illustration={LottieAnimations.Magician}
             scrollViewContainerStyles={[styles.mnh100]}
@@ -144,9 +144,7 @@ function ActivatePhysicalCardPage({
                     ref={activateCardCodeInputRef}
                 />
             </View>
-            <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pv0]}>
-                {DeviceCapabilities.canUseTouchScreen() && <BigNumberPad numberPressed={updateLastPressedDigit} />}
-            </View>
+            <View style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pv0]}>{canUseTouchScreen() && <BigNumberPad numberPressed={updateLastPressedDigit} />}</View>
             <Button
                 success
                 isDisabled={isOffline}
