@@ -24,6 +24,7 @@ import {
     formatSectionsFromSearchTerm,
     getAttendeeOptions,
     getEmptyOptions,
+    getFirstSelectedItem,
     getHeaderMessage,
     getParticipantsOption,
     getPersonalDetailSearchTerms,
@@ -33,6 +34,7 @@ import {
 } from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy as isPaidGroupPolicyFn} from '@libs/PolicyUtils';
+import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -140,10 +142,12 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     /**
      * Returns the sections needed for the OptionsSelector
      */
-    const [sections, header] = useMemo(() => {
+    const {sections, header, firstKeyForList} = useMemo(() => {
         const newSections: Array<SectionListDataType<Option>> = [];
+        let firstKey = '';
+
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
-            return [newSections, ''];
+            return {sections: newSections, header: '', firstKeyForList: firstKey};
         }
 
         const fiveRecents = [...chatOptions.recentReports].slice(0, 5);
@@ -164,7 +168,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 login: attendee.email,
                 ...getPersonalDetailByEmail(attendee.email),
             }));
-
         const formatResults = formatSectionsFromSearchTerm(
             cleanSearchTerm,
             filteredAttendees.map((attendee) => ({
@@ -182,31 +185,45 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             reportAttributesDerived,
         );
         newSections.push(formatResults.section);
+        if (!firstKey) {
+            firstKey = getFirstSelectedItem(formatResults.section?.data);
+        }
 
         newSections.push({
             title: translate('common.recents'),
             data: fiveRecents,
             shouldShow: fiveRecents.length > 0,
         });
+        if (!firstKey) {
+            firstKey = getFirstSelectedItem(fiveRecents);
+        }
 
         newSections.push({
             title: translate('common.contacts'),
             data: contactsWithRestOfRecents,
             shouldShow: contactsWithRestOfRecents.length > 0,
         });
+        if (!firstKey) {
+            firstKey = getFirstSelectedItem(contactsWithRestOfRecents);
+        }
 
         if (
             chatOptions.userToInvite &&
             !isCurrentUser({...chatOptions.userToInvite, accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID, status: chatOptions.userToInvite?.status ?? undefined})
         ) {
+            const modifiedUserToInvite = [chatOptions.userToInvite].map((participant) => {
+                const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
+                return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+            });
+
             newSections.push({
                 title: undefined,
-                data: [chatOptions.userToInvite].map((participant) => {
-                    const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
-                }),
+                data: modifiedUserToInvite,
                 shouldShow: true,
             });
+            if (!firstKey) {
+                firstKey = getFirstSelectedItem(modifiedUserToInvite);
+            }
         }
 
         const headerMessage = getHeaderMessage(
@@ -216,7 +233,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             attendees.some((attendee) => getPersonalDetailSearchTerms(attendee).join(' ').toLowerCase().includes(cleanSearchTerm)),
         );
 
-        return [newSections, headerMessage];
+        return {sections: newSections, header: headerMessage, firstKeyForList: firstKey};
     }, [
         areOptionsInitialized,
         didScreenTransitionEnd,
@@ -342,6 +359,8 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             canSelectMultiple
             isLoadingNewOptions={!!isSearchingForReports}
             shouldShowListEmptyContent={shouldShowListEmptyContent}
+            initiallyFocusedOptionKey={firstKeyForList}
+            getItemHeight={() => variables.optionRowHeight}
         />
     );
 }
