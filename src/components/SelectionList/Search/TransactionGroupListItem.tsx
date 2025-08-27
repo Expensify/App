@@ -32,7 +32,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSections, getWideAmountIndicators, shouldShowYear as shouldShowYearUtil} from '@libs/SearchUIUtils';
+import {getSections, shouldShowYear as shouldShowYearUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
@@ -241,7 +241,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, onPress, groupBy]);
 
     const shouldShowYear = shouldShowYearUtil(transactions);
-    const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(transactions);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
@@ -294,7 +293,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         ) : (
                             <>
                                 {!!transactionsSnapshot?.data && !!transactionsSnapshotMetadata && isLargeScreenWidth && (
-                                    <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader, styles.bgTransparent, styles.pl10, styles.pr3]}>
+                                    <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader, styles.bgTransparent, styles.pl9, styles.pr3]}>
                                         <SearchTableHeader
                                             canSelectMultiple
                                             data={transactionsSnapshot?.data}
@@ -303,8 +302,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                             sortOrder={undefined}
                                             sortBy={undefined}
                                             shouldShowYear={shouldShowYear}
-                                            isAmountColumnWide={shouldShowAmountInWideColumn}
-                                            isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
+                                            isAmountColumnWide
+                                            isTaxAmountColumnWide
                                             shouldShowSorting={false}
                                             shouldShowExpand={false}
                                         />
