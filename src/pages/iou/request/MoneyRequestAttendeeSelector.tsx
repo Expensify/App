@@ -161,24 +161,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         const restOfRecents = [...chatOptions.recentReports].slice(5);
         const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
 
-        const formatResults = formatSectionsFromSearchTerm(
-            cleanSearchTerm,
-            filteredAttendees.map((attendee) => ({
-                ...attendee,
-                reportID: CONST.DEFAULT_NUMBER_ID.toString(),
-                selected: true,
-                login: attendee.email,
-                ...getPersonalDetailByEmail(attendee.email),
-            })),
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
-            personalDetails,
-            true,
-            undefined,
-            reportAttributesDerived,
-        );
-        newSections.push(formatResults.section);
-
         newSections.push({
             title: translate('common.recents'),
             data: fiveRecents,
