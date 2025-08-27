@@ -23,7 +23,7 @@ import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
@@ -175,6 +175,23 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             selectedLogins.some((selectedLogin) => item.login === selectedLogin) ? {...item, isSelected: true} : item,
         );
         const personalDetailsFormatted = personalDetailsModified.map((item) => formatMemberForList(item));
+
+        // Filter all options that is a part of the search term and are not part of personalDetails
+        let filterSelectedOptions = selectedOptions.filter((participent) => !personalDetails.some((item) => participent.login === item.login));
+        if (debouncedSearchTerm !== '') {
+            filterSelectedOptions = filterSelectedOptions.filter((option) => {
+                const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
+
+                const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
+                return isPartOfSearchTerm;
+            });
+        }
+
+        sectionsArr.push({
+            title: undefined,
+            data: filterSelectedOptions,
+            shouldShow: true,
+        });
 
         sectionsArr.push({
             title: translate('common.contacts'),
