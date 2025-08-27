@@ -79,7 +79,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     });
 
     const fetchMoreUnreportedTransactions = () => {
-        if (!hasMoreUnreportedTransactionsResults || !!isLoadingUnreportedTransactions || shouldShowUnreportedTransactionsSkeletons) {
+        if (!hasMoreUnreportedTransactionsResults || isLoadingUnreportedTransactions) {
             return;
         }
         fetchUnreportedExpenses(offset + CONST.UNREPORTED_EXPENSES_PAGE_SIZE);
