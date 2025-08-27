@@ -1282,7 +1282,7 @@ function PureReportActionItem({
                         <ActionableItemButtons
                             items={actionableItemButtons}
                             shouldUseLocalization
-                            layout='horizontal'
+                            layout="horizontal"
                         />
                     )}
                 </ReportActionItemBasicMessage>
