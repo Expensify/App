@@ -108,6 +108,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                     backToRoute={route.params.backTo}
                                     shouldWaitForReportSync={shouldWaitForReportSync}
+                                    key={report?.reportID}
                                 />
                             </DragAndDropProvider>
                         </FullPageNotFoundView>
@@ -144,6 +145,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                         shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                         backToRoute={route.params.backTo}
                                         shouldWaitForReportSync={shouldWaitForReportSync}
+                                        key={report?.reportID}
                                     />
                                 </View>
                                 <PortalHost name="suggestions" />
