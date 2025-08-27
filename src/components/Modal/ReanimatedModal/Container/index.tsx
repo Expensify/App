@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import Animated, {Keyframe} from 'react-native-reanimated';
+import Animated, {Keyframe, runOnJS} from 'react-native-reanimated';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
 import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
@@ -33,8 +33,12 @@ function Container({
     const Exiting = useMemo(() => {
         const AnimationOut = new Keyframe(getModalOutAnimation(animationOut));
 
-        return AnimationOut.duration(animationOutTiming);
-    }, [animationOutTiming, animationOut]);
+        return AnimationOut.duration(animationOutTiming).withCallback(() => {
+            'worklet';
+
+            runOnJS(onCloseCallBack)();
+        });
+    }, [animationOutTiming, onCloseCallBack, animationOut]);
 
     // Temporary solution to run animation callbacks even with reduced motion setting turned on
     // since .reduceMotion method doesn't work in the current version of Reanimated (https://github.com/software-mansion/react-native-reanimated/issues/8046)
