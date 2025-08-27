@@ -5494,6 +5494,11 @@ const translations = {
                     "Les balises multi-niveaux vous aident à suivre les dépenses avec plus de précision. Assignez plusieurs balises à chaque poste—comme le département, le client ou le centre de coût—pour capturer le contexte complet de chaque dépense. Cela permet des rapports plus détaillés, des flux de travail d'approbation et des exportations comptables.",
                 onlyAvailableOnPlan: 'Les balises multi-niveaux sont uniquement disponibles sur le plan Control, à partir de',
             },
+            distanceRates: {
+                title: 'Tarifs de distance',
+                description: 'Créez et gérez vos propres tarifs, suivez en miles ou en kilomètres, et définissez des catégories par défaut pour les frais de distance.',
+                onlyAvailableOnPlan: 'Les tarifs de distance sont disponibles sur le plan Collect, à partir de',
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: "Niveaux d'approbation multiples",
                 description:

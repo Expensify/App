@@ -5492,6 +5492,11 @@ const translations = {
                     'I tag multilivello ti aiutano a monitorare le spese con maggiore precisione. Assegna più tag a ciascuna voce, come reparto, cliente o centro di costo, per catturare il contesto completo di ogni spesa. Questo consente report più dettagliati, flussi di lavoro di approvazione ed esportazioni contabili.',
                 onlyAvailableOnPlan: 'I tag multilivello sono disponibili solo nel piano Control, a partire da',
             },
+            distanceRates: {
+                title: 'Tariffe a distanza',
+                description: 'Crea e gestisci le tue tariffe, traccia in miglia o chilometri e imposta categorie predefinite per le spese di distanza.',
+                onlyAvailableOnPlan: 'Le tariffe a distanza sono disponibili con il piano Collect, a partire da',
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Livelli di approvazione multipli',
                 description:

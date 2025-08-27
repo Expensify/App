@@ -5478,6 +5478,11 @@ const translations = {
                     'Wielopoziomowe tagi pomagają śledzić wydatki z większą precyzją. Przypisz wiele tagów do każdej pozycji, takich jak dział, klient czy centrum kosztów, aby uchwycić pełny kontekst każdego wydatku. Umożliwia to bardziej szczegółowe raportowanie, przepływy pracy związane z zatwierdzaniem oraz eksporty księgowe.',
                 onlyAvailableOnPlan: 'Wielopoziomowe tagi są dostępne tylko w planie Control, zaczynając od',
             },
+            distanceRates: {
+                title: 'Stawki za odległość',
+                description: 'Twórz i zarządzaj własnymi stawkami, śledź w milach lub kilometrach i ustawiaj domyślne kategorie dla wydatków na odległość.',
+                onlyAvailableOnPlan: 'Stawki za odległość są dostępne w planie Collect, zaczynając od',
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Wiele poziomów zatwierdzania',
                 description:

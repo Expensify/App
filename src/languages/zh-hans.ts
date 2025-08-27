@@ -5393,6 +5393,11 @@ const translations = {
                 description: '多级标签帮助您更精确地跟踪费用。为每个项目分配多个标签，例如部门、客户或成本中心，以捕获每笔费用的完整上下文。这使得更详细的报告、审批流程和会计导出成为可能。',
                 onlyAvailableOnPlan: '多级标签仅在Control计划中提供，起价为',
             },
+            distanceRates: {
+                title: '距离费率',
+                description: '创建和管理您自己的费率，以英里或公里为单位进行跟踪，并为距离费用设置默认类别。',
+                onlyAvailableOnPlan: '在 Collect 计划中提供的距离费率，起价为',
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: '多级审批',
                 description: '多级审批是一种工作流工具，适用于要求一人以上审批报销单后才能进行报销的公司。',
