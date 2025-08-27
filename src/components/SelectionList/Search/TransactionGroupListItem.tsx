@@ -127,6 +127,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     canSelectMultiple={canSelectMultiple}
+                    shouldShowAction={isLargeScreenWidth}
                 />
             ),
             [CONST.SEARCH.GROUP_BY.CARD]: (

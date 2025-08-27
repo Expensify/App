@@ -21,6 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import HeaderGap from '@components/HeaderGap';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 
 type SearchGroupedTransactionsPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.GROUPED_TRANSACTIONS>;
 
@@ -28,7 +29,7 @@ type SearchGroupedTransactionsPageProps = PlatformStackScreenProps<SearchFullscr
 function SearchGroupedTransactionsPage({route}: SearchGroupedTransactionsPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {newQuery} = route.params;
+    const {newQuery, backTo} = route.params;
     const {clearSelectedTransactions} = useSearchContext();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     
@@ -125,10 +126,16 @@ function SearchGroupedTransactionsPage({route}: SearchGroupedTransactionsPagePro
             };
 
             return (
-                <MemberListItemHeader
-                    member={mockMemberGroupItem as any} // eslint-disable-line @typescript-eslint/no-unsafe-assignment
-                    onSelectRow={() => {}}
-                    canSelectMultiple={false}
+                <HeaderWithBackButton
+                    title={mockMemberGroupItem.displayName}
+                    onBackButtonPress={() => Navigation.navigate(backTo)}
+                    subtitle={mockMemberGroupItem.login}
+                    policyAvatar={{
+                        source: mockMemberGroupItem.avatar,
+                        name: mockMemberGroupItem.displayName,
+                        id: mockMemberGroupItem.accountID,
+                        type: CONST.ICON_TYPE_AVATAR,
+                    }}
                 />
             );
         }
@@ -154,21 +161,27 @@ function SearchGroupedTransactionsPage({route}: SearchGroupedTransactionsPagePro
                 count: 0,
                 total: 0,
                 currency: 'USD',
-                accountID: 0,
+                accountID: cardDetails.accountID,
                 cardName: cardDetails.cardName ?? '',
             };
 
             return (
-                <CardListItemHeader
-                    card={mockCardGroupItem as any} // eslint-disable-line @typescript-eslint/no-unsafe-assignment
-                    onSelectRow={() => {}}
-                    canSelectMultiple={false}
+                <HeaderWithBackButton
+                    title={mockCardGroupItem.displayName}
+                    onBackButtonPress={() => Navigation.navigate(backTo)}
+                    subtitle={mockCardGroupItem.cardName}
+                    policyAvatar={{
+                        source: mockCardGroupItem.avatar,
+                        name: mockCardGroupItem.displayName,
+                        id: mockCardGroupItem.accountID,
+                        type: CONST.ICON_TYPE_AVATAR,
+                    }}
                 />
             );
         }
 
         return null;
-    }, [groupInfo, currentSearchResults?.data, personalDetails, cardList]);
+    }, [groupInfo, currentSearchResults?.data, personalDetails, cardList, backTo]);
     
     // Check if we should show not found page
     const shouldShowNotFoundPage = useMemo(() => !queryJSON, [queryJSON]);
@@ -228,12 +241,9 @@ function SearchGroupedTransactionsPage({route}: SearchGroupedTransactionsPagePro
                 >
                     <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
                         {!!headerComponent && (
-                            <>
-                                <HeaderGap />
-                                <View style={[styles.mh5, styles.mb2]}>
-                                    {headerComponent}
-                                </View>
-                            </>
+                            <View style={[styles.mh5, styles.mb2, styles.mt2]}>
+                                {headerComponent}
+                            </View>
                         )}
                         {!!queryJSON && (
                             <Search
