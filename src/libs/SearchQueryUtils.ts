@@ -368,8 +368,6 @@ function getGroupByValue(groupBy?: string | string[]): SearchGroupBy | undefined
 
         return allowedValues.find((value) => value === firstValue);
     }
-
-    return;
 }
 
 /**
