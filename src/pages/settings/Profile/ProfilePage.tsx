@@ -187,8 +187,12 @@ function ProfilePage() {
                                             isUsingDefaultAvatar={isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
                                             source={avatarURL}
                                             avatarID={accountID}
-                                            onImageSelected={updateAvatar}
-                                            onImageRemoved={deleteAvatar}
+                                            onImageSelected={(file) => {
+                                                updateAvatar(file, {avatar: currentUserPersonalDetails?.avatar, avatarThumbnail: currentUserPersonalDetails?.avatarThumbnail});
+                                            }}
+                                            onImageRemoved={() => {
+                                                deleteAvatar({avatar: currentUserPersonalDetails?.avatar, fallbackIcon: currentUserPersonalDetails?.fallbackIcon});
+                                            }}
                                             size={CONST.AVATAR_SIZE.X_LARGE}
                                             avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
                                             pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
