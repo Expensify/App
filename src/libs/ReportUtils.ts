@@ -10268,7 +10268,15 @@ function prepareOnboardingOnyxData(
     userReportedIntegration?: OnboardingAccounting,
     wasInvited?: boolean,
     companySize?: OnboardingCompanySize,
+    selectedInterestedFeatures: string[] = [],
 ) {
+    const taskToFeature: Record<string, string> = {
+        [CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES]: 'categories',
+        [CONST.ONBOARDING_TASK_TYPE.ADD_ACCOUNTING_INTEGRATION]: 'accounting',
+        [CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD]: 'company-cards',
+        [CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS]: 'tags',
+    };
+
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
         onboardingMessage = getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];
@@ -10355,6 +10363,12 @@ function prepareOnboardingOnyxData(
     let createWorkspaceTaskReportID;
     const tasksData = onboardingMessage.tasks
         .filter((task) => {
+            if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+                if (selectedInterestedFeatures?.length && taskToFeature[task.type] && !selectedInterestedFeatures.includes(taskToFeature[task.type])) {
+                    return false;
+                }
+            }
+
             if (([CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES, CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS] as string[]).includes(task.type) && userReportedIntegration) {
                 return false;
             }
