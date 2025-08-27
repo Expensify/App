@@ -224,7 +224,9 @@ function updateAuthTokenIfNecessary(onyxUpdatesFromServer: OnyxEntry<OnyxUpdates
 
 export default () => {
     console.debug('[OnyxUpdateManager] Listening for updates from the server');
-    Onyx.connect({
+    // `Onyx updates` are not dependent on any changes on the UI,
+    // so it is okay to use `connectWithoutView` here.
+    Onyx.connectWithoutView({
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
         callback: (value) => {
             handleMissingOnyxUpdates(value);
