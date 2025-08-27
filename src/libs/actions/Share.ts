@@ -42,4 +42,11 @@ function saveUnknownUserDetails(user: Participant) {
     Onyx.merge(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, user);
 }
 
-export {addTempShareFile, saveUnknownUserDetails, clearShareData, addValidatedShareFile};
+/**
+ * Function to clear the unknown user details
+ */
+function clearUnknownUserDetails() {
+    Onyx.merge(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, null);
+}
+
+export {addTempShareFile, saveUnknownUserDetails, clearShareData, addValidatedShareFile, clearUnknownUserDetails};
