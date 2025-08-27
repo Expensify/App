@@ -23,7 +23,7 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
     }
 
     // Start loading the conversion library in parallel with fetching the file
-    const libraryPromise = import(/* webpackChunkName: "heic-converter" */ 'heic-to').catch((importError) => {
+    const libraryPromise = import(/* webpackMode: "eager" */ 'heic-to').catch((importError) => {
         console.error('Error loading heic-to library:', importError);
         // Re-throw a normalized error so the outer catch can handle it uniformly
         throw new Error('HEIC conversion library unavailable');
