@@ -301,6 +301,7 @@ import type {
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
+    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -3089,9 +3090,9 @@ const translations = {
         },
     },
     beneficialOwnerInfoStep: {
-        doYouOwn25percent: 'Czy posiadasz 25% lub więcej z',
-        doAnyIndividualOwn25percent: 'Czy jakiekolwiek osoby posiadają 25% lub więcej z',
-        areThereMoreIndividualsWhoOwn25percent: 'Czy istnieje więcej osób, które posiadają 25% lub więcej z',
+        doYouOwn25percent: ({companyName}: CompanyNameParams) => `Czy posiadasz 25% lub więcej udziałów w ${companyName}?`,
+        doAnyIndividualOwn25percent: ({companyName}: CompanyNameParams) => `Czy jakakolwiek osoba posiada 25% lub więcej udziałów w ${companyName}?`,
+        areThereMoreIndividualsWhoOwn25percent: ({companyName}: CompanyNameParams) => `Czy jest więcej osób, które posiadają 25% lub więcej udziałów w ${companyName}?`,
         regulationRequiresUsToVerifyTheIdentity: 'Przepisy wymagają od nas weryfikacji tożsamości każdej osoby, która posiada więcej niż 25% udziałów w firmie.',
         companyOwner: 'Właściciel firmy',
         enterLegalFirstAndLastName: 'Jakie jest prawne imię właściciela?',
@@ -3176,21 +3177,6 @@ const translations = {
         enable2FAText: 'Poważnie podchodzimy do Twojego bezpieczeństwa. Proszę skonfigurować 2FA, aby dodać dodatkową warstwę ochrony do swojego konta.',
         secureYourAccount: 'Zabezpiecz swoje konto',
     },
-    beneficialOwnersStep: {
-        additionalInformation: 'Dodatkowe informacje',
-        checkAllThatApply: 'Zaznacz wszystkie, które mają zastosowanie, w przeciwnym razie pozostaw puste.',
-        iOwnMoreThan25Percent: 'Posiadam więcej niż 25% z',
-        someoneOwnsMoreThan25Percent: 'Ktoś inny posiada więcej niż 25% z',
-        additionalOwner: 'Dodatkowy beneficjent rzeczywisty',
-        removeOwner: 'Usuń tego beneficjenta rzeczywistego',
-        addAnotherIndividual: 'Dodaj kolejną osobę, która posiada więcej niż 25% z',
-        agreement: 'Umowa:',
-        termsAndConditions: 'warunki i zasady',
-        certifyTrueAndAccurate: 'Oświadczam, że podane informacje są prawdziwe i dokładne',
-        error: {
-            certify: 'Musi poświadczyć, że informacje są prawdziwe i dokładne',
-        },
-    },
     completeVerificationStep: {
         completeVerification: 'Zakończ weryfikację',
         confirmAgreements: 'Proszę potwierdzić poniższe umowy.',
@@ -3269,10 +3255,11 @@ const translations = {
         regulationRequiresUs: 'Przepisy wymagają od nas weryfikacji tożsamości każdej osoby, która posiada więcej niż 25% udziałów w firmie.',
         iAmAuthorized: 'Jestem upoważniony do korzystania z firmowego konta bankowego na wydatki biznesowe.',
         iCertify: 'Oświadczam, że podane informacje są prawdziwe i dokładne.',
-        termsAndConditions: 'warunki i zasady',
+        iAcceptTheTermsAndConditions: `Akceptuję <a href="https://cross-border.corpay.com/tc/">regulamin</a>.`,
+        iAcceptTheTermsAndConditionsAccessibility: 'Akceptuję regulamin.',
         accept: 'Zaakceptuj i dodaj konto bankowe',
-        iConsentToThe: 'Wyrażam zgodę na',
-        privacyNotice: 'informacja o prywatności',
+        iConsentToThePrivacyNotice: 'Wyrażam zgodę na <a href="https://payments.corpay.com/compliance">politykę prywatności</a>.',
+        iConsentToThePrivacyNoticeAccessibility: 'Wyrażam zgodę na politykę prywatności.',
         error: {
             authorized: 'Musisz być kontrolującym urzędnikiem z upoważnieniem do obsługi konta bankowego firmy',
             certify: 'Proszę potwierdzić, że informacje są prawdziwe i dokładne.',
@@ -3573,11 +3560,14 @@ const translations = {
             deepDiveExpensifyCard: `<muted-text-label>Transakcje kartą Expensify będą automatycznie eksportowane na „Konto odpowiedzialności karty Expensify” utworzone za pomocą <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">naszej integracji</a>.</muted-text-label>`,
         },
         receiptPartners: {
+            connect: 'Połącz się teraz',
             uber: {
                 subtitle: 'Zautomatyzuj wydatki na podróże i dostawę posiłków w swojej organizacji.',
                 autoRemove: 'Zaproś nowych członków przestrzeni roboczej do Ubera dla Firm',
                 autoInvite: 'Dezaktywuj usuniętych członków przestrzeni roboczej w Uberze dla Firm',
                 manageInvites: 'Zarządzaj zaproszeniami',
+                bannerTitle: 'Expensify + Uber dla firm',
+                bannerDescription: 'Połącz się z Uberem dla Firm, aby zautomatyzować wydatki na podróże i dostawę posiłków w całej organizacji.',
             },
         },
         perDiem: {
@@ -4990,6 +4980,7 @@ const translations = {
                 limit: 'Limit',
                 limitType: 'Typ limitu',
                 name: 'Imię',
+                disabledApprovalForSmartLimitError: 'Proszę włączyć zatwierdzenia w <strong>Przepływy pracy > Dodaj zatwierdzenia</strong> przed skonfigurowaniem inteligentnych limitów',
             },
             deactivateCardModal: {
                 deactivate: 'Dezaktywuj',
@@ -5497,11 +5488,8 @@ const translations = {
                 perActiveMember: 'na aktywnego członka miesięcznie.',
                 perMember: 'za członka miesięcznie.',
             },
-            note: {
-                upgradeWorkspace: 'Ulepsz swoje miejsce pracy, aby uzyskać dostęp do tej funkcji, lub',
-                learnMore: 'dowiedz się więcej',
-                aboutOurPlans: 'o naszych planach i cenach.',
-            },
+            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+                `<muted-text>Zaktualizuj swoje miejsce pracy, aby uzyskać dostęp do tej funkcji, lub <a href="${subscriptionLink}">dowiedz się więcej</a> o naszych planach i cenach.</muted-text>`,
             upgradeToUnlock: 'Odblokuj tę funkcję',
             completed: {
                 headline: `Zaktualizowałeś swoje miejsce pracy!`,
@@ -6042,6 +6030,7 @@ const translations = {
         statements: 'Oświadczenia',
         unapprovedCash: 'Niezatwierdzone środki pieniężne',
         unapprovedCard: 'Niezatwierdzona karta',
+        reconciliation: 'Uzgodnienie',
         saveSearch: 'Zapisz wyszukiwanie',
         deleteSavedSearch: 'Usuń zapisaną wyszukiwarkę',
         deleteSavedSearchConfirm: 'Czy na pewno chcesz usunąć to wyszukiwanie?',
