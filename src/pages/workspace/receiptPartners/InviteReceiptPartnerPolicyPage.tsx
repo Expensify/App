@@ -71,12 +71,10 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                     ],
                     reportID: '',
                     keyForList: email,
-                });
-
-                membersList.push({
-                    ...memberForList,
                     isSelected: true,
                 });
+
+                membersList.push(memberForList);
             }
         });
 
