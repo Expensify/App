@@ -134,7 +134,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         });
 
         return combined;
-    }, [filteredOptions, selectedOptions, accountID, selectedAccountIDs]);
+    }, [filteredOptions, accountID, selectedAccountIDs]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [
