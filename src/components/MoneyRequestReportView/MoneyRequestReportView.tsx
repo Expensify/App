@@ -49,6 +49,8 @@ type MoneyRequestReportViewProps = {
 
     /** The `backTo` route that should be used when clicking back button */
     backToRoute: Route | undefined;
+
+    shouldWaitForReportSync: boolean;
 };
 
 function goBackFromSearchMoneyRequest() {
@@ -86,7 +88,8 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute, shouldWaitForReportSync}: MoneyRequestReportViewProps) {
+    debugger;
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -168,7 +171,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
     );
 
-    if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions) {
+    if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions || shouldWaitForReportSync) {
         return <InitialLoadingSkeleton styles={styles} />;
     }
 
