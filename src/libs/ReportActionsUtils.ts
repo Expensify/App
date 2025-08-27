@@ -2858,10 +2858,19 @@ function getUpdatedManualApprovalThresholdMessage(reportAction: OnyxEntry<Report
 function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>(reportAction: OnyxEntry<ReportAction>) {
     const {mentionedAccountIDs} = getOriginalMessage(reportAction as ReportAction<T>) ?? {};
 
-    if (!mentionedAccountIDs?.length) {
+    // If mentionedAccountIDs exists and has values, use the first one
+    if (mentionedAccountIDs?.length) {
+        return translateLocal('iou.changeApprover.changedApproverMessage', {managerID: mentionedAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID});
+    }
+
+    // Fallback: If mentionedAccountIDs is missing (common with OldDot take control actions),
+    // use the actorAccountID (who performed the take control action) as the new approver
+    const actorAccountID = reportAction?.actorAccountID;
+    if (!actorAccountID) {
         return '';
     }
-    return translateLocal('iou.changeApprover.changedApproverMessage', {managerID: mentionedAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID});
+
+    return translateLocal('iou.changeApprover.changedApproverMessage', {managerID: actorAccountID});
 }
 
 function isCardIssuedAction(
