@@ -7,12 +7,12 @@ const INPUT_IDS = {
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
-type MoneyRequestDeclineReasonForm = Form<
+type MoneyRequestRejectReasonForm = Form<
     InputID,
     {
         [INPUT_IDS.COMMENT]: string;
     }
 >;
 
-export type {MoneyRequestDeclineReasonForm};
+export type {MoneyRequestRejectReasonForm};
 export default INPUT_IDS;
