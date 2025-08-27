@@ -1,13 +1,14 @@
 import noop from 'lodash/noop';
 import React, {useCallback, useContext, useMemo, useState} from 'react';
+import {Alert} from 'react-native';
+
+type ModalAction = 'CONFIRM' | 'CLOSE';
+
+type ModalStateChangePayload<A extends ModalAction = ModalAction> = {action: A};
 
 type ModalProps = {
     closeModal: (param?: ModalStateChangePayload) => void;
 };
-
-type ModalAction = 'CONFIRM' | 'CANCEL' | 'CLOSE';
-
-type ModalStateChangePayload<A extends string = ModalAction> = {action: A; [key: string]: unknown};
 
 type ModalContextType = {
     showModal<P extends ModalProps>(options: {component: React.FunctionComponent<P>; props?: Omit<P, 'closeModal'>; id?: string; isCloseable?: boolean}): Promise<ModalStateChangePayload>;
@@ -27,7 +28,7 @@ type ModalInfo = {
     id: string;
     component: React.FunctionComponent<ModalProps>;
     props?: Record<string, unknown>;
-    promiseResolvers: ReturnType<typeof Promise.withResolvers<ModalStateChangePayload>>;
+    promiseWithResolvers: ReturnType<typeof Promise.withResolvers<ModalStateChangePayload>>;
     isCloseable: boolean;
 };
 
@@ -36,39 +37,40 @@ function PromiseModalProvider({children}: {children: React.ReactNode}) {
 
     const showModal = useCallback<ModalContextType['showModal']>(({component, props, id, isCloseable = true}) => {
         // This is a promise that will resolve when the modal is closed
-        let showModalPromise: Promise<ModalStateChangePayload> | null = null;
+        let closeModalPromise: Promise<ModalStateChangePayload> | null = null;
 
         setModalStack((prevState) => {
             // Check current state for existing modal
             const existingModal = id ? prevState.modals.find((modal: ModalInfo) => modal.id === id) : undefined;
             if (existingModal) {
                 // There is already a modal with this ID. Return the existing promise and don't modify state.
-                showModalPromise = existingModal.promiseResolvers.promise;
+                closeModalPromise = existingModal.promiseWithResolvers.promise;
                 return prevState; // No state change needed
             }
 
             // Create a new promise with resolvers to be resolved when the modal is closed
-            const promiseResolvers = Promise.withResolvers<ModalStateChangePayload>();
-            showModalPromise = promiseResolvers.promise;
+            const promiseWithResolvers = Promise.withResolvers<ModalStateChangePayload>();
+            closeModalPromise = promiseWithResolvers.promise;
 
             return {
                 ...prevState,
-                modals: [...prevState.modals, {component: component as React.FunctionComponent<ModalProps>, props, promiseResolvers, isCloseable, id: id ?? String(modalID++)}],
+                modals: [...prevState.modals, {component: component as React.FunctionComponent<ModalProps>, props, promiseWithResolvers, isCloseable, id: id ?? String(modalID++)}],
             };
         });
 
-        // At this point, showModalPromise should always be assigned
-        if (!showModalPromise) {
+        // At this point, closeModalPromise should always be assigned
+        if (!closeModalPromise) {
+            Alert.alert('Failed to create modal promise');
             throw new Error('Failed to create modal promise');
         }
 
-        return showModalPromise;
+        return closeModalPromise;
     }, []);
 
     const closeModal = useCallback<ModalContextType['closeModal']>((data = {action: 'CLOSE'}) => {
         setModalStack((prevState) => {
             const lastModal = prevState.modals.at(-1);
-            lastModal?.promiseResolvers.resolve(data);
+            lastModal?.promiseWithResolvers.resolve(data);
             return {
                 ...prevState,
                 modals: prevState.modals.slice(0, -1),
@@ -95,5 +97,5 @@ function PromiseModalProvider({children}: {children: React.ReactNode}) {
     );
 }
 
-export type {ModalStateChangePayload, ModalContextType, ModalInfo, ModalProps, ModalAction};
+export type {ModalProps};
 export {PromiseModalProvider, useModal};
