@@ -139,6 +139,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
             <SearchQueryListItem
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
+                shouldDisplayRBR
             />
         );
     }
@@ -148,6 +149,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            shouldDisplayRBR
         />
     );
 }
