@@ -115,7 +115,7 @@ function convertDistanceUnit(distanceInMeters: number, unit: Unit): number {
  */
 function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string {
     const convertedDistance = convertDistanceUnit(distanceInMeters, unit);
-    return convertedDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES);
+    return convertedDistance.toFixed(2);
 }
 
 /**
@@ -398,7 +398,6 @@ export default {
     getRateForDisplay,
     getMileageRates,
     getDistanceForDisplay,
-    getRoundedDistanceInUnits,
     getRateForP2P,
     getCustomUnitRateID,
     convertToDistanceInMeters,
