@@ -99,7 +99,7 @@ type Response = {
     /** Whether the account already exists */
     accountExists?: boolean;
 
-    /** Pin for Activated card */
+    /** PIN for an activated UK/EU Expensify Card */
     pin?: string;
 };
 
