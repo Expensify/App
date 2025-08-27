@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -82,8 +83,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const hasUnsupportedCurrency = !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ?? false);
     const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
+    let workspaceRoute = '';
+    const isFocused = useIsFocused();
 
-    const workspaceRoute = `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())}`;
+    // Navigation.getActiveRoute() can return the route of previous page while this page is blurred
+    // So add isFocused check to get the correct workspaceRoute
+    if (isFocused) {
+        workspaceRoute = `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())}`;
+    }
 
     const contactMethodRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`;
     const achData = reimbursementAccount?.achData;
@@ -408,6 +415,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     } else if (throttledDate) {
         errorText = <Text>{translate('bankAccount.hasBeenThrottledError')}</Text>;
     } else if (hasUnsupportedCurrency) {
+        // eslint-disable-next-line react-compiler/react-compiler
         errorText = <RenderHTML html={translate('bankAccount.hasCurrencyError', {workspaceRoute})} />;
     }
 
