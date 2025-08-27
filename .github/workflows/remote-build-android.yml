@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           submodules: ${{ matrix.is_hybrid_build || false }}
-          # token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -37,8 +37,6 @@ jobs:
 
       - name: Rock Remote Build - Android
         # rock v3
-        # uses: callstackincubator/android@8fe27a5a3efcf32b54e4741be0ba58bafc73bb0d
-        # uses: callstackincubator/android@3cb20ec17e0a8b984eb2781845ca799fb287a53d
         uses: callstackincubator/android@1a7d52dfe3ca195ccbe5ad2f06c15f2fc3835115
         env:
           GITHUB_TOKEN: ${{ github.token }}

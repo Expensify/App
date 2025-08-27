@@ -8,15 +8,10 @@ const isHybrid = process.env.IS_HYBRID_APP === 'true';
 /** @type {import('@rock-js/config').Config} */
 export default {
     remoteCacheProvider: providerGitHub({
-        owner: 'callstack-internal',
-        repository: 'Expensify-App',
+        owner: 'Expensify',
+        repository: 'App',
         token: process.env.GITHUB_TOKEN,
     }),
-    // remoteCacheProvider: providerGitHub({
-    //     owner: 'Expensify',
-    //     repository: 'App',
-    //     token: process.env.GITHUB_TOKEN,
-    // }),
     bundler: pluginMetro(),
     platforms: {
         ios: platformIOS({sourceDir: isHybrid ? './Mobile-Expensify/iOS' : './ios'}),
