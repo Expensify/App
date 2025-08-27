@@ -19,6 +19,7 @@ import {addSplitExpenseField, clearSplitTransactionDraftErrors, initDraftSplitEx
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -63,26 +64,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isCard = isCardTransaction(transaction);
 
     useEffect(() => {
-        if (!draftTransaction?.errors) {
-            return;
-        }
+        const errorString = getLatestErrorMessage(draftTransaction ?? {});
 
-        const errorKeys = Object.keys(draftTransaction.errors);
-        if (errorKeys.length === 0) {
-            return;
-        }
-
-        const firstErrorKey = errorKeys.at(0);
-        if (!firstErrorKey) {
-            return;
-        }
-
-        const errorText = draftTransaction.errors[firstErrorKey];
-        if (errorText) {
-            const errorString = typeof errorText === 'string' ? errorText : errorText.source;
+        if (errorString) {
             setErrorMessage(errorString);
         }
-    }, [draftTransaction?.errors]);
+    }, [draftTransaction, draftTransaction?.errors]);
 
     useEffect(() => {
         setErrorMessage('');
