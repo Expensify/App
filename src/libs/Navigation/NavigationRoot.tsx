@@ -146,20 +146,20 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             );
         }
 
-        // If there is no lastVisitedPath, we can do early return. We won't modify the default behavior.
-        // The same applies to HybridApp, as we always define the route to which we want to transition.
-        if (!shouldOpenLastVisitedPath(lastVisitedPath) || CONFIG.IS_HYBRID_APP) {
-            return undefined;
+        if (shouldOpenLastVisitedPath(lastVisitedPath) && !CONFIG.IS_HYBRID_APP && authenticated) {
+            // Only skip restoration if there's a specific deep link that's not the root
+            // This allows restoration when app is killed and reopened without a deep link
+            const isRootPath = !path || path === '' || path === '/';
+            const isSpecificDeepLink = path && !isRootPath && !isTransitioning;
+
+            if (!isSpecificDeepLink) {
+                Log.info('Restoring last visited path on app startup', false, {lastVisitedPath, initialUrl, path});
+                return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+            }
         }
 
-        // If the user opens the root of app "/" it will be parsed to empty string "".
-        // If the path is defined and different that empty string we don't want to modify the default behavior.
-        if (path) {
-            return;
-        }
-
-        // Otherwise we want to redirect the user to the last visited path.
-        return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+        // Default behavior - let React Navigation handle the initial state
+        return undefined;
 
         // The initialState value is relevant only on the first render.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
