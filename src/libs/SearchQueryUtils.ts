@@ -363,7 +363,7 @@ function getGroupByValue(groupBy?: SearchGroupBy | SearchGroupBy[]): SearchGroup
     }
 
     if (Array.isArray(groupBy)) {
-        return groupBy[0];
+        return groupBy.at(0);
     }
 }
 
