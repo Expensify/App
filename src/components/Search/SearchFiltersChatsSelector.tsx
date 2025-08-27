@@ -13,6 +13,7 @@ import {createOptionFromReport, filterAndOrderOptions, getAlternateText, getSear
 import type {Option, Section} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -81,10 +82,11 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         });
     }, [cleanSearchTerm, selectedOptions, defaultOptionsModified]);
 
-    const {sections, headerMessage} = useMemo(() => {
+    const {sections, headerMessage, firstKeyForList} = useMemo(() => {
         const newSections: Section[] = [];
+        let firstKey = '';
         if (!areOptionsInitialized) {
-            return {sections: [], headerMessage: undefined};
+            return {sections: [], headerMessage: undefined, firstKeyForList: firstKey};
         }
 
         newSections.push({
@@ -92,13 +94,16 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             data: chatOptions.recentReports,
             shouldShow: chatOptions.recentReports.length > 0,
         });
-
+        if (!firstKey) {
+            firstKey = chatOptions.recentReports.find((item) => item.isSelected)?.keyForList ?? "";
+        }
         const areResultsFound = didScreenTransitionEnd && chatOptions.recentReports.length === 0;
         const message = areResultsFound ? translate('common.noResultsFound') : undefined;
 
         return {
             sections: newSections,
             headerMessage: message,
+            firstKeyForList: firstKey,
         };
     }, [areOptionsInitialized, chatOptions.recentReports, didScreenTransitionEnd, reportAttributesDerived, translate]);
 
@@ -159,6 +164,8 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             onSelectRow={handleParticipantSelection}
             isLoadingNewOptions={isLoadingNewOptions}
             showLoadingPlaceholder={showLoadingPlaceholder}
+            initiallyFocusedOptionKey={firstKeyForList}
+            getItemHeight={() => variables.optionRowHeight}
         />
     );
 }
