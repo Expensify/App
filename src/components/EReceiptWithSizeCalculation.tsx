@@ -11,6 +11,8 @@ type EReceiptWithSizeCalculationProps = {
     transactionID: string | undefined;
 
     transactionItem?: TransactionListItemType | Transaction;
+
+    hoverPreview?: boolean;
 };
 
 const eReceiptAspectRatio = variables.eReceiptBGHWidth / variables.eReceiptBGHeight;
@@ -33,7 +35,8 @@ function EReceiptWithSizeCalculation(props: EReceiptWithSizeCalculationProps) {
                 style={[
                     styles.w100,
                     styles.h100,
-                    {transform: `scale(${scaleFactor}) ${styles.translateZ0.transform as string}`, transformOrigin: 'top left', aspectRatio: eReceiptAspectRatio},
+                    {transform: `scale(${scaleFactor}) ${styles.translateZ0.transform as string}`, transformOrigin: 'top left'},
+                    props.hoverPreview && {aspectRatio: eReceiptAspectRatio},
                 ]}
             >
                 <EReceipt

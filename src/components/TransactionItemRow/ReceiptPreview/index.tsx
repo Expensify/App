@@ -156,6 +156,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                         <EReceiptWithSizeCalculation
                             transactionID={transactionItem.transactionID}
                             transactionItem={transactionItem}
+                            hoverPreview
                         />
                     )}
                 </View>
