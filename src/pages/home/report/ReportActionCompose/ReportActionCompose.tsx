@@ -93,6 +93,9 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
+    /** The ID of the transaction thread report if there is a single transaction */
+    transactionThreadReportID?: string;
+
     /** Report transactions */
     reportTransactions?: OnyxEntry<OnyxTypes.Transaction[]>;
 
@@ -129,6 +132,7 @@ function ReportActionCompose({
     onComposerBlur,
     didHideComposerInput,
     reportTransactions,
+    transactionThreadReportID,
 }: ReportActionComposeProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
@@ -141,6 +145,7 @@ function ReportActionCompose({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, {canBeMissing: true});
+    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
@@ -318,11 +323,11 @@ function ReportActionCompose({
                 if (Array.isArray(attachmentFileRef.current)) {
                     // Handle multiple files
                     attachmentFileRef.current.forEach((file) => {
-                        addAttachmentReportActions(reportID, file, newCommentTrimmed, true);
+                        addAttachmentReportActions(transactionThreadReportID ?? reportID, reportID, file, newCommentTrimmed, true);
                     });
                 } else {
                     // Handle single file
-                    addAttachmentReportActions(reportID, attachmentFileRef.current, newCommentTrimmed, true);
+                    addAttachmentReportActions(transactionThreadReportID ?? reportID, reportID, attachmentFileRef.current, newCommentTrimmed, true);
                 }
                 attachmentFileRef.current = null;
             } else {
@@ -331,7 +336,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [onSubmit, reportID],
+        [onSubmit, reportID, transactionThreadReportID],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
@@ -492,6 +497,7 @@ function ReportActionCompose({
                 newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                 report,
                 parentReport: newParentReport,
+                currentDate,
             });
 
             files.forEach((file, index) => {
