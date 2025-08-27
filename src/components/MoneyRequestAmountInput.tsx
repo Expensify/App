@@ -106,7 +106,7 @@ type MoneyRequestAmountInputProps = {
 
     /** Reference to the outer element */
     forwardedRef?: ForwardedRef<BaseTextInputRef>;
-} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix'| 'onFocus' | 'onBlur'>;
+} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur'>;
 
 type Selection = {
     start: number;

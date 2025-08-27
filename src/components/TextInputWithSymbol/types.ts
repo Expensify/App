@@ -85,7 +85,17 @@ type BaseTextInputWithSymbolProps = {
     testID?: string;
 } & Pick<
     BaseTextInputProps,
-    'autoFocus' | 'autoGrow' | 'autoGrowExtraSpace' | 'autoGrowMarginSide' | 'contentWidth' | 'onPress' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur' | 'ref'
+    | 'autoFocus'
+    | 'autoGrow'
+    | 'autoGrowExtraSpace'
+    | 'autoGrowMarginSide'
+    | 'contentWidth'
+    | 'onPress'
+    | 'submitBehavior'
+    | 'shouldUseDefaultLineHeightForPrefix'
+    | 'onFocus'
+    | 'onBlur'
+    | 'ref'
 >;
 
 type TextInputWithSymbolProps = Omit<BaseTextInputWithSymbolProps, 'onSelectionChange'> & {

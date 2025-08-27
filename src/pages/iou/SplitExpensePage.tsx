@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionList/types';
+import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -32,22 +33,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
 
 type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
-
 
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {listRef,
-        viewRef,
-        footerRef,
-        bottomOffset,
-        scrollToFocusedInput,
-        SplitListItem
-    } = useDisplayFocusedInputUnderKeyboard();
-
+    const {listRef, viewRef, footerRef, bottomOffset, scrollToFocusedInput, SplitListItem} = useDisplayFocusedInputUnderKeyboard();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
@@ -192,7 +184,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 />
             </View>
         );
-    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense]);
+    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense, styles.pt3, footerRef]);
 
     const initiallyFocusedOptionKey = useMemo(
         () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
@@ -226,9 +218,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         /* Keeps input fields visible above keyboard on mobile */
                         renderScrollComponent={(props) => (
                             <KeyboardAwareScrollView
-                            // eslint-disable-next-line react/jsx-props-no-spreading
+                                // eslint-disable-next-line react/jsx-props-no-spreading
                                 {...props}
-                            bottomOffset={bottomOffset?.current ?? 0} /* Bottom offset ensures inputs stay above the "save" button */
+                                bottomOffset={bottomOffset?.current ?? 0} /* Bottom offset ensures inputs stay above the "save" button */
                             />
                         )}
                         onSelectRow={(item) => {

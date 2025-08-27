@@ -1,8 +1,6 @@
-import type { SelectionListHandle } from "@components/SelectionList/types";
-import type { View } from "react-native";
-import type SplitListItem from "@components/SelectionList/SplitListItem";
-
-
+import type {View} from 'react-native';
+import type SplitListItem from '@components/SelectionList/SplitListItem';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 
 type UseDisplayFocusedInputUnderKeyboardType = {
     listRef?: React.RefObject<SelectionListHandle | null>;
@@ -12,7 +10,5 @@ type UseDisplayFocusedInputUnderKeyboardType = {
     scrollToFocusedInput: () => void;
     SplitListItem: typeof SplitListItem;
 };
-
-
 
 export default UseDisplayFocusedInputUnderKeyboardType;
