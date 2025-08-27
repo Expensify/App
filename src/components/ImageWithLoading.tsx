@@ -23,7 +23,7 @@ type ImageWithSizeLoadingProps = {
     shouldShowOfflineIndicator?: boolean;
 } & ImageProps;
 
-function ImageWithSizeCalculation({
+function ImageWithLoading({
     onError,
     containerStyles,
     shouldShowOfflineIndicator = true,
@@ -111,5 +111,5 @@ function ImageWithSizeCalculation({
     );
 }
 
-ImageWithSizeCalculation.displayName = 'ImageWithSizeCalculation';
-export default React.memo(ImageWithSizeCalculation);
+ImageWithLoading.displayName = 'ImageWithLoading';
+export default React.memo(ImageWithLoading);
