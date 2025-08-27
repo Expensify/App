@@ -8,6 +8,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
+import variables from '@styles/variables';
 
 type SearchMultipleSelectionPickerItem = {
     name: string;
@@ -56,6 +57,8 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             noResultsFound: isEmpty,
         };
     }, [selectedItems, items, pickerTitle, debouncedSearchTerm, localeCompare]);
+    
+    const firstKey = sections?.at(0)?.data?.find((item) => item.isSelected)?.keyForList ?? null;
 
     const onSelectItem = useCallback(
         (item: Partial<OptionData & SearchMultipleSelectionPickerItem>) => {
@@ -103,6 +106,8 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             shouldShowTooltips
             canSelectMultiple
             ListItem={MultiSelectListItem}
+            initiallyFocusedOptionKey={firstKey}
+            getItemHeight={() => variables.optionRowHeightCompact}
         />
     );
 }
