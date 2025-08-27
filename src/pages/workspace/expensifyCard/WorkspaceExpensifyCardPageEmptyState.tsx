@@ -1,13 +1,14 @@
-import React, {useCallback, useContext} from 'react';
+import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadOtherAsset, loadSimpleIllustration} from '@components/Icon/chunks/illustrationLoader';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import Text from '@components/Text';
 import useDismissModalForUSD from '@hooks/useDismissModalForUSD';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -28,26 +29,16 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-const expensifyCardFeatures: FeatureListItem[] = [
-    {
-        icon: Illustrations.MoneyReceipts,
-        translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.cashBack',
-    },
-    {
-        icon: Illustrations.CreditCardsNew,
-        translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.unlimited',
-    },
-    {
-        icon: Illustrations.MoneyWings,
-        translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.spend',
-    },
-];
-
 type WorkspaceExpensifyCardPageEmptyStateProps = {
     route: PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route'];
 } & WithPolicyAndFullscreenLoadingProps;
 
 function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensifyCardPageEmptyStateProps) {
+    const {asset: MoneyReceiptsIcon} = useMemoizedLazyAsset(() => loadSimpleIllustration('MoneyReceipts'));
+    const {asset: CreditCardsNewIcon} = useMemoizedLazyAsset(() => loadSimpleIllustration('CreditCardsNew'));
+    const {asset: MoneyWingsIcon} = useMemoizedLazyAsset(() => loadSimpleIllustration('MoneyWings'));
+    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadSimpleIllustration('HandCard'));
+    const {asset: ExpensifyCardIllustrationIcon} = useMemoizedLazyAsset(() => loadOtherAsset('ExpensifyCardIllustration'));
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -72,6 +63,29 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         }
     }, [eligibleBankAccounts.length, isSetupUnfinished, policy?.id]);
 
+    const expensifyCardFeatures = useMemo(() => {
+        const features = [
+            {
+                icon: MoneyReceiptsIcon,
+                translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.cashBack' as const,
+            },
+            {
+                icon: CreditCardsNewIcon,
+                translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.unlimited' as const,
+            },
+            {
+                icon: MoneyWingsIcon,
+                translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.spend' as const,
+            },
+        ];
+        return features
+            .filter((feature) => feature.icon !== null)
+            .map((feature) => ({
+                icon: feature.icon,
+                translationKey: feature.translationKey,
+            }));
+    }, [CreditCardsNewIcon, MoneyReceiptsIcon, MoneyWingsIcon]);
+
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         if (!policy) {
             return;
@@ -84,7 +98,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
-            icon={Illustrations.HandCard}
+            icon={HandCardIcon}
             headerText={translate('workspace.common.expensifyCard')}
             route={route}
             showLoadingAsFirstRender={false}
@@ -93,7 +107,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         >
             <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <FeatureList
-                    menuItems={expensifyCardFeatures}
+                    menuItems={expensifyCardFeatures as FeatureListItem[]}
                     title={translate('workspace.moreFeatures.expensifyCard.feed.title')}
                     subtitle={translate('workspace.moreFeatures.expensifyCard.feed.subTitle')}
                     ctaText={translate(isSetupUnfinished ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard')}
@@ -114,7 +128,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                         startFlow();
                     }}
                     illustrationBackgroundColor={theme.fallbackIconColor}
-                    illustration={Illustrations.ExpensifyCardIllustration}
+                    illustration={ExpensifyCardIllustrationIcon}
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
                     titleStyles={styles.textHeadlineH1}
                 />
