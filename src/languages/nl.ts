@@ -489,6 +489,7 @@ const translations = {
         join: 'Deelnemen',
         leave: 'Verlaten',
         decline: 'Afwijzen',
+        reject: 'Afwijzen',
         transferBalance: 'Saldo overboeken',
         cantFindAddress: 'Kan je adres niet vinden?',
         enterManually: 'Voer het handmatig in',

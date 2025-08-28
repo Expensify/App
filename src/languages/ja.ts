@@ -489,6 +489,7 @@ const translations = {
         join: '参加する',
         leave: '退出',
         decline: '辞退する',
+        reject: '拒否する',
         transferBalance: '残高を移動',
         cantFindAddress: '住所が見つかりませんか？',
         enterManually: '手動で入力してください。',

@@ -218,7 +218,7 @@ function MoneyReportHeader({
         canBeMissing: true,
     });
 
-    const [dismissedDeclineUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
+    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
 
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
@@ -1045,7 +1045,7 @@ function MoneyReportHeader({
             icon: Expensicons.ThumbsDown,
             value: CONST.REPORT.SECONDARY_ACTIONS.REJECT,
             onSelected: () => {
-                if (dismissedDeclineUseExplanation) {
+                if (dismissedRejectUseExplanation) {
                     if (requestParentReportAction) {
                         rejectMoneyRequestReason(requestParentReportAction);
                     }

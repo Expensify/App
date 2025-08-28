@@ -489,6 +489,7 @@ const translations = {
         join: '加入',
         leave: '离开',
         decline: '拒绝',
+        reject: '拒绝',
         transferBalance: '转账余额',
         cantFindAddress: '找不到您的地址？',
         enterManually: '手动输入',
