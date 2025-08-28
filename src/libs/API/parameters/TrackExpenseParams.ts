@@ -29,6 +29,7 @@ type TrackExpenseParams = {
     actionableWhisperReportActionID?: string;
     customUnitRateID?: string;
     description?: string;
+    distance?: number;
 };
 
 export default TrackExpenseParams;

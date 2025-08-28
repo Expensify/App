@@ -1056,6 +1056,8 @@ const CONST = {
         REQUEST_MANUAL: 'requestManual',
         REQUEST_SCAN: 'requestScan',
         REQUEST_DISTANCE: 'requestDistance',
+        REQUEST_DISTANCE_MANUAL: 'requestDistanceManual',
+        REQUEST_DISTANCE_MAP: 'requestDistanceMap',
         PER_DIEM: 'perDiem',
         SPLIT_MANUAL: 'splitManual',
         SPLIT_SCAN: 'splitScan',
@@ -1063,6 +1065,8 @@ const CONST = {
         TRACK_MANUAL: 'trackManual',
         TRACK_SCAN: 'trackScan',
         TRACK_DISTANCE: 'trackDistance',
+        TRACK_DISTANCE_MANUAL: 'trackDistanceManual',
+        TRACK_DISTANCE_MAP: 'trackDistanceMap',
         ASSIGN_TASK: 'assignTask',
         SEND_MONEY: 'sendMoney',
         CREATE_REPORT: 'createReport',
@@ -5178,6 +5182,7 @@ const CONST = {
         NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
         IOU_REQUEST_TYPE: 'iouRequestType',
+        DISTANCE_REQUEST_TYPE: 'distanceRequestType',
         SHARE: {
             NAVIGATOR_ID: 'ShareNavigatorID',
             SHARE: 'ShareTab',
@@ -6333,6 +6338,7 @@ const CONST = {
     MAX_TAX_RATE_INTEGER_PLACES: 4,
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
     MIN_TAX_RATE_DECIMAL_PLACES: 2,
+    DISTANCE_DECIMAL_PLACES: 2,
 
     DOWNLOADS_PATH: '/Downloads',
     DOWNLOADS_TIMEOUT: 5000,

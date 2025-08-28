@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
 import type {IOURequestType} from './IOU';
-import {startMoneyRequest} from './IOU';
+import {startDistanceRequest, startMoneyRequest} from './IOU';
 import {startOutCreateTaskQuickAction} from './Task';
 
 function getQuickActionRequestType(action: QuickActionName | undefined): IOURequestType | undefined {
@@ -20,6 +20,10 @@ function getQuickActionRequestType(action: QuickActionName | undefined): IOURequ
         requestType = CONST.IOU.REQUEST_TYPE.DISTANCE;
     } else if (action === CONST.QUICK_ACTIONS.PER_DIEM) {
         requestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
+    } else if ([CONST.QUICK_ACTIONS.REQUEST_DISTANCE_MANUAL, CONST.QUICK_ACTIONS.TRACK_DISTANCE_MANUAL].some((a) => a === action)) {
+        requestType = CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+    } else if ([CONST.QUICK_ACTIONS.REQUEST_DISTANCE_MAP, CONST.QUICK_ACTIONS.TRACK_DISTANCE_MAP].some((a) => a === action)) {
+        requestType = CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
     }
 
     return requestType;
@@ -51,6 +55,14 @@ function navigateToQuickAction(isValidReport: boolean, quickAction: QuickAction,
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
+            break;
+        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE_MANUAL:
+        case CONST.QUICK_ACTIONS.REQUEST_DISTANCE_MAP:
+            selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true), true);
+            break;
+        case CONST.QUICK_ACTIONS.TRACK_DISTANCE_MANUAL:
+        case CONST.QUICK_ACTIONS.TRACK_DISTANCE_MAP:
+            selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
             break;
         default:
     }
