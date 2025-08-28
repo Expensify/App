@@ -4,7 +4,6 @@ description: Learn how Expensify Travel integrates with your Expensify account t
 keywords: [Expensify Travel, travel booking, automatic expense creation, flight expense, hotel booking, car rental, SmartScan, travel integration, trip automation, book business travel]
 
 ---
-<div id="new-expensify" markdown="1">
 
 Expensify Travel lets you book business trips and manage expenses in one place—automatically and without the need for manual entry or external tools.
 
@@ -74,4 +73,3 @@ Nope! Expensify Travel is part of your existing Expensify account.
 
 Updated booking details automatically sync with your expenses. If something looks off, you can always edit the expense manually.
 
-</div>

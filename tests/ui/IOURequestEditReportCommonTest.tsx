@@ -70,7 +70,7 @@ describe('IOURequestEditReportCommon', () => {
 
         beforeEach(() => {
             Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: createRandomPolicy(Number(FAKE_POLICY_ID)),
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
                 [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: {
                     reportID: FAKE_REPORT_ID,
                     reportName: 'Expense Report',
@@ -129,7 +129,7 @@ describe('IOURequestEditReportCommon', () => {
         beforeEach(() => {
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: {
-                    ...createRandomPolicy(Number(FAKE_POLICY_ID)),
+                    ...createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
                     role: CONST.POLICY.ROLE.USER,
                 },
                 [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: {

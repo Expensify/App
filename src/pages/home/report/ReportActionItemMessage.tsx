@@ -20,6 +20,7 @@ import {
     isApprovedOrSubmittedReportAction as isApprovedOrSubmittedReportActionUtils,
     isMemberChangeAction,
     isMoneyRequestAction,
+    isReimbursementDirectionInformationRequiredAction,
     isThreadParentMessage,
 } from '@libs/ReportActionsUtils';
 import {getIOUReportActionDisplayMessage, getReportName, hasMissingInvoiceBankAccount, isSettled} from '@libs/ReportUtils';
@@ -82,6 +83,32 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                     style={style}
                     source=""
                     styleAsDeleted={false}
+                />
+            </View>
+        );
+    }
+
+    const handleEnterSignerInfoPress = (policyID: string | undefined, bankAccountID: string | undefined, isCompleted: boolean) => {
+        if (!policyID || !bankAccountID) {
+            return;
+        }
+
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute(policyID, bankAccountID, isCompleted));
+    };
+
+    if (isReimbursementDirectionInformationRequiredAction(action)) {
+        const {bankAccountLastFour, currency, policyID, bankAccountID, completed} =
+            getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED>(action) ?? {};
+
+        return (
+            <View style={[styles.chatItemMessage, style]}>
+                <Text>{translate('signerInfoStep.isConnecting', {bankAccountLastFour, currency})}</Text>
+                <Button
+                    style={[styles.mt2, styles.alignSelfStart]}
+                    success
+                    isDisabled={completed}
+                    text={translate(completed ? 'signerInfoStep.thisStep' : 'signerInfoStep.enterSignerInfo')}
+                    onPress={() => handleEnterSignerInfoPress(policyID, bankAccountID, !!completed)}
                 />
             </View>
         );
