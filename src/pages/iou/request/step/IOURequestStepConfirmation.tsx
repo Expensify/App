@@ -723,7 +723,8 @@ function IOURequestStepConfirmation({
 
             // If any split transaction has a receipt, process each with action, transaction, and group DM as needed.
             if (iouType === CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).filter((receipt) => !!receipt).length) {
-                if (currentUserPersonalDetails.login) {
+                const currentUserLogin = currentUserPersonalDetails.login;
+                if (currentUserLogin) {
                     transactions.forEach((item, index) => {
                         const transactionReceiptFile = receiptFiles[item.transactionID];
                         if (!transactionReceiptFile) {
@@ -733,7 +734,7 @@ function IOURequestStepConfirmation({
 
                         startSplitBill({
                             participants: selectedParticipants,
-                            currentUserLogin: currentUserPersonalDetails.login ?? '',
+                            currentUserLogin,
                             currentUserAccountID: currentUserPersonalDetails.accountID,
                             comment: itemTrimmedComment,
                             receipt: transactionReceiptFile,
