@@ -9,6 +9,7 @@ import type {
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchFilterKey,
+    SearchGroupBy,
     SearchQueryJSON,
     SearchQueryString,
     SearchStatus,
@@ -341,6 +342,25 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
 }
 
 /**
+ * Normalizes the groupBy value into a single string.
+ * - If it's an array, returns the first element.
+ * - Otherwise, returns the value as is.
+ *
+ * This ensures consistent usage of groupBy across the app,
+ * since we only support filtering by a single valid groupBy key.
+ *
+ * @param groupBy - The raw groupBy value from SearchQueryJSON
+ * @returns The normalized groupBy value
+ */
+function getGroupByValue(groupBy?: SearchGroupBy | SearchGroupBy[]): SearchGroupBy | undefined {
+    if (Array.isArray(groupBy)) {
+        return groupBy.at(0);
+    }
+
+    return groupBy;
+}
+
+/**
  * Parses a given search query string into a structured `SearchQueryJSON` format.
  * This format of query is most commonly shared between components and also sent to backend to retrieve search results.
  *
@@ -362,6 +382,10 @@ function buildSearchQueryJSON(query: SearchQueryString) {
         if (result.policyID && typeof result.policyID === 'string') {
             // Ensure policyID is always an array for consistency
             result.policyID = [result.policyID];
+        }
+
+        if (result.groupBy) {
+            result.groupBy = getGroupByValue(result.groupBy);
         }
 
         return result;
@@ -1090,4 +1114,5 @@ export {
     getTodoSearchQuery,
     getUserFriendlyValue,
     getUserFriendlyKey,
+    getGroupByValue,
 };

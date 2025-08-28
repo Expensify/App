@@ -4466,9 +4466,9 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: 12,
         },
 
-        tabText: (isSelected: boolean) =>
+        tabText: (isSelected: boolean, hasIcon = false) =>
             ({
-                marginLeft: 8,
+                marginLeft: hasIcon ? 8 : 0,
                 ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
                 color: isSelected ? theme.text : theme.textSupporting,
                 lineHeight: variables.lineHeightLarge,
@@ -5140,6 +5140,7 @@ const styles = (theme: ThemeColors) =>
             flexBasis: '35%',
             marginTop: 12,
         },
+
         onboardingAccountingItem: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,
@@ -5413,6 +5414,11 @@ const styles = (theme: ThemeColors) =>
         expensifyCardIllustrationContainer: {
             width: 680,
             height: 220,
+        },
+
+        uberConfirmationIllustrationContainer: {
+            width: 260,
+            height: 172,
         },
 
         emptyStateCardIllustrationContainer: {
