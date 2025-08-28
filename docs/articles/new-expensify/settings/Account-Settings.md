@@ -3,7 +3,6 @@ title: Account Settings
 description: Learn how to update your profile settings, preferences, and notifications in Expensify.
 keywords: [New Expensify, profile, account preferences, notifications, language, theme, timezone, personal information]
 ---
-<div id="new-expensify" markdown="1">
 
 Expensify allows you to personalize your experience by customizing your profile, preferences, and notifications. This guide shows you how to update your photo, language, timezone, notification settings, and more—all from the left-hand navigation menu.
 
@@ -131,4 +130,3 @@ Yes! Your chosen theme applies across web, mobile, and desktop versions of Expen
 ## Can I set a permanent status message?
 Yes. After entering your status, choose **Never** under “Clear After” to keep it active indefinitely.
 
-</div>

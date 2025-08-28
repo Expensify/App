@@ -35,6 +35,7 @@ import {
 } from '@libs/actions/Policy/DistanceRate';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
@@ -176,6 +177,15 @@ function PolicyDistanceRatesPage({
         onNavigationCallBack: () => Navigation.goBack(),
     });
 
+    const canDisableOrDeleteRate = useCallback(
+        (rateID: string): boolean => {
+            return Object.values(customUnit?.rates ?? {}).some(
+                (distanceRate: Rate) => distanceRate?.enabled && rateID !== distanceRate?.customUnitRateID && distanceRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            );
+        },
+        [customUnit?.rates],
+    );
+
     const updateDistanceRateEnabled = useCallback(
         (value: boolean, rateID: string) => {
             if (!customUnit) {
@@ -183,17 +193,13 @@ function PolicyDistanceRatesPage({
             }
             const rate = customUnit?.rates?.[rateID];
             // Rates can be disabled or deleted as long as in the remaining rates there is always at least one enabled rate and there are no pending delete actions
-            const canDisableOrDeleteRate = Object.values(customUnit?.rates ?? {}).some(
-                (distanceRate: Rate) => distanceRate?.enabled && rateID !== distanceRate?.customUnitRateID && distanceRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            );
-
-            if (!rate?.enabled || canDisableOrDeleteRate) {
+            if (!rate?.enabled || canDisableOrDeleteRate(rateID)) {
                 setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: value}]);
             } else {
                 setIsWarningModalVisible(true);
             }
         },
-        [customUnit, policyID],
+        [canDisableOrDeleteRate, customUnit, policyID],
     );
 
     const distanceRatesList = useMemo<RateForList[]>(
@@ -221,11 +227,12 @@ function PolicyDistanceRatesPage({
                         isOn={!!value?.enabled}
                         accessibilityLabel={translate('workspace.distanceRates.trackTax')}
                         onToggle={(newValue: boolean) => updateDistanceRateEnabled(newValue, value.customUnitRateID)}
+                        showLockIcon={!canDisableOrDeleteRate(value.customUnitRateID)}
                         disabled={value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                     />
                 ),
             })),
-        [customUnitRates, translate, customUnit, policy?.pendingAction, updateDistanceRateEnabled],
+        [canDisableOrDeleteRate, customUnitRates, translate, customUnit, policy?.pendingAction, updateDistanceRateEnabled],
     );
 
     const filterRate = useCallback((rate: RateForList, searchInput: string) => {
@@ -233,7 +240,7 @@ function PolicyDistanceRatesPage({
         const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase());
         return rateText.includes(normalizedSearchInput);
     }, []);
-    const sortRates = useCallback((rates: RateForList[]) => rates, []);
+    const sortRates = useCallback((rates: RateForList[]) => rates.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')), []);
     const [inputValue, setInputValue, filteredDistanceRatesList] = useSearchResults(distanceRatesList, filterRate, sortRates);
 
     const addRate = () => {
