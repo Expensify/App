@@ -178,8 +178,8 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         );
         const personalDetailsFormatted = personalDetailsModified.map((item) => formatMemberForList(item));
 
-        // Filter all options that is a part of the search term and are not part of personalDetails
-        let filterSelectedOptions = selectedOptions.filter((participent) => !personalDetails.some((item) => participent.login === item.login));
+        // Filter selected participants which are part of personalDetails
+        let filterSelectedOptions = selectedOptions.filter((participant) => !personalDetails.some((item) => participant.login === item.login));
         if (debouncedSearchTerm !== '') {
             filterSelectedOptions = filterSelectedOptions.filter((option) => {
                 const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
