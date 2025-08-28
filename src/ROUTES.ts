@@ -5,7 +5,7 @@
  */
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
-import type {SearchFilterKey, SearchQueryString} from './components/Search/types';
+import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
@@ -61,7 +61,7 @@ const ROUTES = {
     },
     SEARCH_ADVANCED_FILTERS: {
         route: 'search/filters/:filterKey?',
-        getRoute: (filterKey?: SearchFilterKey) => {
+        getRoute: (filterKey?: SearchFilterKey | UserFriendlyKey) => {
             return `search/filters/${filterKey ?? ''}` as const;
         },
     },
