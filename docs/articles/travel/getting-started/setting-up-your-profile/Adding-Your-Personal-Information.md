@@ -4,7 +4,6 @@ description: Learn how to complete your personal travel profile in Expensify to 
 keywords: [travel profile, personal information, traveler details, travel booking, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Set up your personal travel profile to customize your Expensify Travel expense and speed up future bookings.
 
@@ -79,4 +78,3 @@ Not necessarily—but adding them up front speeds up bookings and ensures smooth
 ## Can I update this information later?
 Absolutely. Just go back to **My Profile** anytime to make changes.
 
-</div>

@@ -4,7 +4,6 @@ description: Learn how to connect Expensify with Global VaTax to simplify intern
 keywords: [Expensify CLassic, Global VaTax, VAT refund, international expenses, tax compliance]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 The Expensify-Global VaTax integration helps businesses reclaim Value Added Tax (VAT) on international expenses. If your company is based in the U.S. but conducts business abroad, you can track expenses in [Expensify](https://use.expensify.com/expense-management) and sync them with [Global VaTax](https://globalvatax.com/) to simplify VAT recovery.
 
@@ -62,4 +61,3 @@ After submission, you can monitor the progress of your VAT reclaim via the **Sub
 
 By integrating Expensify with Global VaTax, businesses can maximize VAT recovery while reducing administrative burden.
 
-</div>

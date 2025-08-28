@@ -4,7 +4,6 @@ description: Learn how to book train travel using Expensify's integrated travel 
 keywords: [book rail, train travel, travel booking, rail tickets, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Book rail tickets using Expensify's built-in travel portal, available in both Classic and New Expensify.
 
@@ -60,4 +59,3 @@ Yes. Most rail bookings include a digital ticket or QR code in the confirmation 
 ## Can I choose a seat?
 Yes, seat selection is available on supported routes. This option will appear during checkout if eligible.
 
-</div>

@@ -3,7 +3,6 @@ title: How to Pay Expenses in New Expensify
 description: Learn how to pay expenses submitted by employees, friends, or family using New Expensify.
 keywords: [New Expensify, pay expenses, reimburse friends, personal payments, pay with Expensify, expense approval]
 ---
-<div id="new-expensify" markdown="1">
 
 Paying expenses is simple, whether you're reimbursing a teammate or sending money to a friend. Here's how to make payments via Expensify.
 
@@ -58,4 +57,3 @@ Otherwise, the payment will follow the standard bank transfer timeframe, and the
 
 You can record expenses in different currencies, but all payments are made to U.S.-based personal or business bank accounts.
 
-</div>
