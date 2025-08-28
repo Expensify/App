@@ -116,7 +116,9 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.HYBRID_APP,
 ];
 
-Onyx.connect({
+// This functionality is triggered at application startup and provides the option to use it in emergency situations when
+// you need to completely erase the Onyx data on the client due to it being in an invalid state.
+Onyx.connectWithoutView({
     key: ONYXKEYS.RESET_REQUIRED,
     callback: (isResetRequired) => {
         if (!isResetRequired) {
