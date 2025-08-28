@@ -70,39 +70,6 @@ function SearchFiltersTextBase({
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
-    const content = (
-        <>
-            <HeaderWithBackButton
-                title={translate(titleKey)}
-                onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-                }}
-            />
-            <FormProvider
-                style={[styles.flex1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
-                validate={validate}
-                onSubmit={updateFilter}
-                submitButtonText={translate('common.save')}
-                enabledWhenOffline
-                shouldHideFixErrorsAlert={shouldHideFixErrorsAlert}
-            >
-                <View style={styles[inputContainerStyle]}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={filterKey}
-                        name={filterKey}
-                        defaultValue={value as string}
-                        label={translate(titleKey)}
-                        accessibilityLabel={translate(titleKey)}
-                        role={CONST.ROLE.PRESENTATION}
-                        ref={inputCallbackRef}
-                    />
-                </View>
-            </FormProvider>
-        </>
-    );
-
     return (
         <ScreenWrapper
             testID={testID}
