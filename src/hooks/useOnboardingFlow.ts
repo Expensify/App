@@ -12,8 +12,8 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import useSearchTypeMenuSections from './useSearchTypeMenuSections';
 import useOnyx from './useOnyx';
+import useSearchTypeMenuSections from './useSearchTypeMenuSections';
 
 /**
  * Hook to handle redirection to the onboarding flow based on the user's onboarding status
