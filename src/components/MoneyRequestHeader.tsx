@@ -227,7 +227,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy, report);
     }, [report, parentReport, policy, transaction]);
 
-    
     const dismissModalAndUpdateUseReject = () => {
         setIsRejectEducationalModalVisible(false);
         dismissRejectUseExplanation();

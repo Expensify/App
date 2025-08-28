@@ -11376,35 +11376,28 @@ function findReportIDForAction(action?: ReportAction): string | undefined {
         ?.replace(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, '');
 }
 function canRejectReportAction(report: Report, policy?: Policy): boolean {
-    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const isCurrentUserManager = managerID === currentUserAccountID;
     const isReportApprover = isApproverUtils(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
-    const isAdmin = isPolicyAdminPolicyUtils(policy);
     const isReportBeingProcessed = isProcessingReport(report);
     const isApproved = isReportApproved({report});
     const isReportPayer = isPayer(getSession(), report, false, policy);
     const isIOU = isIOUReport(report);
 
-    const userCanReject = isCurrentUserManager || isReportApprover || isAdmin;
+    const userCanReject = isReportApprover || isReportPayer;
 
-    // User must be an approver, policy admin, manager, or payer to reject
-    if (!isCurrentUserManager && !isReportApprover && !isAdmin && !isReportPayer) {
-        return false;
+    if (!userCanReject) {
+        return false; // must be approver or payer
     }
 
-    // If the report is an IOU report, we can reject it if user is payer (which includes admin) or manager
-    if (isIOU && userCanReject) {
-        return true;
+    if (isIOU) {
+        return true; // IOU reports can always be rejected by approver/payer
     }
 
-    // If user is a manager/approver/admin, they can reject when report is processing
-    if (!isIOU && userCanReject && isReportBeingProcessed) {
-        return true;
+    if (isReportBeingProcessed) {
+        return true; // non-IOU reports can be rejected while processing
     }
 
-    // If user is a payer, they can reject when report is approved
     if (isReportPayer && isApproved) {
-        return true;
+        return true; // payers can also reject approved reports
     }
 
     return false;
