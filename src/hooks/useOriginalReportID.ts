@@ -8,34 +8,67 @@ import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 
-function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInputOrEntry<ReportAction>): string | undefined {
+/**
+ * This hook is for finding the "original reportID" for a given reportActionID. The reportID usually is the report we are looking at,
+ * and in most cases it will be the same as the original reportID. However, in these cases the original reportID is different:
+ * - When viewing an expense report with a single transaction, the reportActions from the transaction thread and the expense report are merged, so in that case the
+ * reportAction's report may be different from the report we are viewing.
+ * - When viewing a thread report, the original reportID is the parent reportID, because the reportAction that created the thread belongs to the parent report.
+ * 
+ * @param reportID The reportID of the report we are viewing
+ * @param reportAction The reportAction we want to find the original reportID for
+ * @returns The original reportID for the given reportAction, or undefined if not found
+ *
+ */
+function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInputOrEntry<Pick<ReportAction, 'reportActionID' | 'childReportID'>>): string | undefined {
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
     const {isOffline} = useNetwork();
     const {transactions: allReportTransactions} = useTransactionsAndViolationsForReport(reportID);
 
-    const visibleTransactionsIDs = useMemo(
-        () =>
-            getAllNonDeletedTransactions(allReportTransactions, Object.values(reportActions ?? {}))
+    // This will only be found if the report with reportID is a report with a single transaction and we are merging reportActions
+    const uniqueTransactionThreadReportID = useMemo(
+        () => {
+            const visibleTransactionsIDs = getAllNonDeletedTransactions(allReportTransactions, Object.values(reportActions ?? {}))
                 .filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-                .map((transaction) => transaction.transactionID),
-        [allReportTransactions, reportActions, isOffline],
+                .map((transaction) => transaction.transactionID);
+            return getOneTransactionThreadReportID(report, chatReport, reportActions ?? ([] as ReportAction[]), isOffline, visibleTransactionsIDs);
+        },
+        [allReportTransactions, reportActions, report, chatReport, isOffline],
     );
+    // console.log('useOriginalReportID uniqueTransactionThreadReportID', uniqueTransactionThreadReportID);
+    // console.log('useOriginalReportID reportID', reportID);
+    const [uniqueTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${uniqueTransactionThreadReportID}`, {canBeMissing: true});
+    // console.log('useOriginalReportID uniqueTransactionThreadReportActions', uniqueTransactionThreadReportActions);
+
     if (!reportID) {
         return undefined;
     }
-    const currentReportAction = reportAction?.reportActionID ? reportActions?.[reportAction.reportActionID] : undefined;
-
-    if (Object.keys(currentReportAction ?? {}).length === 0) {
-        const isThreadReportParentAction = reportAction?.childReportID?.toString() === reportID;
-        if (isThreadReportParentAction) {
-            return report?.parentReportID;
-        }
-        const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? ([] as ReportAction[]), isOffline, visibleTransactionsIDs);
-        return transactionThreadReportID ?? reportID;
+    const reportActionID = reportAction?.reportActionID;
+    const currentReportAction = reportActionID ? reportActions?.[reportActionID] : undefined;
+    if (Object.keys(currentReportAction ?? {}).length > 0) {
+        // the reportActionID does belong to reportID
+        return reportID;
     }
-    return reportID;
+
+    const isThreadReportParentAction = reportAction?.childReportID?.toString() === reportID;
+    if (isThreadReportParentAction) {
+        // This reportAction is the parent action of a thread report, so the original reportID is the parentReportID
+        return report?.parentReportID;
+    }
+    
+    // If we have a uniqueTransactionThreadReportID, then we are viewing an expense report with a single transaction and merging reportActions
+    // In that case, we need to check if the reportActionID belongs to the transaction thread.
+    if (uniqueTransactionThreadReportID && reportActionID) {
+        const uniqueTransactionThreadReportAction = uniqueTransactionThreadReportActions?.[reportActionID];
+        if (Object.keys(uniqueTransactionThreadReportAction ?? {}).length > 0) {
+            return uniqueTransactionThreadReportID;
+        }
+    }
+
+    // If we reach here, we couldn't find the original reportID
+    return undefined;
 }
 
 export default useOriginalReportID;
