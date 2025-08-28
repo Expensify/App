@@ -342,53 +342,54 @@ function getFilterAmountDisplayTitle(filterKey: SearchFilterKey, context: Filter
 }
 
 function getFilterDisplayTitle(filterKey: SearchFilterKey, context: FilterContext) {
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY && context.filters[filterKey]) {
-        const filterArray = context.filters[filterKey] ?? [];
+    const nonDateFilterKey = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys | 'amount' | 'total'>;
+
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY && context.filters[nonDateFilterKey]) {
+        const filterArray = context.filters[nonDateFilterKey] ?? [];
         return filterArray.sort(context.localeCompare).join(', ');
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && context.filters[filterKey]) {
-        const filterArray = context.filters[filterKey] ?? [];
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && context.filters[nonDateFilterKey]) {
+        const filterArray = context.filters[nonDateFilterKey] ?? [];
         return filterArray
             .sort((a, b) => sortOptionsWithEmptyValue(a, b, context.localeCompare))
             .map((value) => (value === CONST.SEARCH.CATEGORY_EMPTY_VALUE ? context.translate('search.noCategory') : value))
             .join(', ');
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && context.filters[filterKey]) {
-        const filterArray = context.filters[filterKey] ?? [];
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && context.filters[nonDateFilterKey]) {
+        const filterArray = context.filters[nonDateFilterKey] ?? [];
         return filterArray
             .sort((a, b) => sortOptionsWithEmptyValue(a, b, context.localeCompare))
             .map((value) => (value === CONST.SEARCH.TAG_EMPTY_VALUE ? context.translate('search.noTag') : getCleanedTagName(value)))
             .join(', ');
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
-        return context.filters[filterKey];
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
+        return context.filters[nonDateFilterKey];
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE) {
-        const filterValue = context.filters[filterKey];
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE) {
+        const filterValue = context.filters[nonDateFilterKey];
         return filterValue ? context.translate(`common.${filterValue as ValueOf<typeof CONST.SEARCH.BOOLEAN>}`) : undefined;
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
-        const filterValue = context.filters[filterKey];
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
+        const filterValue = context.filters[nonDateFilterKey];
         return filterValue ? context.translate(`common.${filterValue as ValueOf<typeof CONST.SEARCH.DATA_TYPES>}`) : undefined;
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
-        const filterValue = context.filters[filterKey];
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
+        const filterValue = context.filters[nonDateFilterKey];
         return filterValue ? context.translate(`search.filters.groupBy.${filterValue}`) : undefined;
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
-        const filterValue = context.filters[filterKey];
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
+        const filterValue = context.filters[nonDateFilterKey];
         return filterValue ? context.translate(`search.filters.withdrawalType.${filterValue}`) : undefined;
     }
 
-    const filterValue = context.filters[filterKey];
-    return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
+    return Array.isArray(context.filters[nonDateFilterKey]) ? context.filters[nonDateFilterKey].join(', ') : context.filters[nonDateFilterKey];
 }
 
 function getStatusFilterDisplayTitle(filterKey: SearchFilterKey, context: FilterContext) {
