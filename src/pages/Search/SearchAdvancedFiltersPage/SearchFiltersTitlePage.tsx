@@ -1,34 +1,13 @@
 import React from 'react';
-import {View} from 'react-native';
-import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
+import SearchFiltersTextBase from '@components/Search/SearchFiltersTextBase';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import TextInput from '@components/TextInput';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {updateAdvancedFilters} from '@libs/actions/Search';
-import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import type ONYXKEYS from '@src/ONYXKEYS';
+
 
 function SearchFiltersTitlePage() {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
-
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
-    const title = searchAdvancedFiltersForm?.[FILTER_KEYS.TITLE];
-
-    const updateTitleFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
-        updateAdvancedFilters(values);
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-    };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM> = {};
@@ -42,41 +21,13 @@ function SearchFiltersTitlePage() {
     };
 
     return (
-        <ScreenWrapper
+        <SearchFiltersTextBase
+            filterKey="title"
+            titleKey="common.title"
             testID={SearchFiltersTitlePage.displayName}
-            shouldShowOfflineIndicatorInWideScreen
-            offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom
-            shouldEnableMaxHeight
-        >
-            <HeaderWithBackButton
-                title={translate('common.title')}
-                onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-                }}
-            />
-            <FormProvider
-                style={[styles.flex1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
-                validate={validate}
-                onSubmit={updateTitleFilter}
-                submitButtonText={translate('common.save')}
-                enabledWhenOffline
-            >
-                <View style={styles.mb5}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={FILTER_KEYS.TITLE}
-                        name={FILTER_KEYS.TITLE}
-                        defaultValue={title}
-                        label={translate('common.title')}
-                        accessibilityLabel={translate('common.title')}
-                        role={CONST.ROLE.PRESENTATION}
-                        ref={inputCallbackRef}
-                    />
-                </View>
-            </FormProvider>
-        </ScreenWrapper>
+            validate={validate}
+            shouldHideFixErrorsAlert={false}
+        />
     );
 }
 
