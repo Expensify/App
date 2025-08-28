@@ -693,6 +693,7 @@ const CONST = {
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         VACATION_DELEGATE: 'vacationDelegate',
         UBER_FOR_BUSINESS: 'uberForBusiness',
+        DUPLICATE_WORKSPACE: 'duplicateWorkspace',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

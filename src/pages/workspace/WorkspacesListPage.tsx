@@ -29,6 +29,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -100,6 +101,7 @@ function WorkspacesListPage() {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
@@ -110,6 +112,7 @@ function WorkspacesListPage() {
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: false});
+    const isDuplicatedWorkspaceEnabled = isBetaEnabled(CONST.BETAS.DUPLICATE_WORKSPACE);
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
@@ -220,7 +223,7 @@ function WorkspacesListPage() {
                 });
             }
 
-            if (isAdmin) {
+            if (isAdmin && isDuplicatedWorkspaceEnabled) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Copy,
                     text: translate('workspace.common.duplicateWorkspace'),
@@ -294,6 +297,7 @@ function WorkspacesListPage() {
             session?.email,
             activePolicyID,
             isSupportalAction,
+            isDuplicatedWorkspaceEnabled,
             setIsDeletingPaidWorkspace,
             isLoadingBill,
             shouldCalculateBillNewDot,
