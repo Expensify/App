@@ -304,7 +304,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const reportTransactions = useMemo(() => {
         const nonDeletedTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions);
-
         if (!nonDeletedTransactions) {
             return nonDeletedTransactions;
         }
