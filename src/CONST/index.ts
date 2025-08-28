@@ -655,6 +655,15 @@ const CONST = {
         },
         BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX: 'accountHolder',
     },
+    ENABLE_GLOBAL_REIMBURSEMENTS: {
+        STEP_NAMES: ['1', '2', '3'],
+        STEP: {
+            BUSINESS_INFO: 'BusinessInfoStep',
+            AGREEMENTS: 'AgreementsStep',
+            DOCUSIGN: 'DocusignStep',
+        },
+        ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
+    },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
         CORPORATION: 'Corp',
@@ -1305,6 +1314,7 @@ const CONST = {
                 RECEIPT: 'receipt',
                 DATE: 'date',
                 MERCHANT: 'merchant',
+                DESCRIPTION: 'description',
                 FROM: 'from',
                 TO: 'to',
                 CATEGORY: 'category',
@@ -3191,14 +3201,17 @@ const CONST = {
             MASTER_CARD: 'cdf',
             VISA: 'vcf',
             AMEX: 'gl1025',
+            AMEX_1205: 'gl1205',
             STRIPE: 'stripe',
             CITIBANK: 'oauth.citibank.com',
             CAPITAL_ONE: 'oauth.capitalone.com',
             BANK_OF_AMERICA: 'oauth.bankofamerica.com',
             CHASE: 'oauth.chase.com',
             BREX: 'oauth.brex.com',
+            PEX: 'admin.pexcard.com',
             WELLS_FARGO: 'oauth.wellsfargo.com',
             AMEX_DIRECT: 'oauth.americanexpressfdx.com',
+            AMEX_FILE_DOWNLOAD: 'americanexpressfd.us',
             CSV: 'ccupload',
         },
         STEP_NAMES: ['1', '2', '3', '4'],
@@ -5152,7 +5165,6 @@ const CONST = {
         NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
         IOU_REQUEST_TYPE: 'iouRequestType',
-        DISTANCE_REQUEST_TYPE: 'distanceRequestType',
         SHARE: {
             NAVIGATOR_ID: 'ShareNavigatorID',
             SHARE: 'ShareTab',
@@ -6302,7 +6314,6 @@ const CONST = {
     MAX_TAX_RATE_INTEGER_PLACES: 4,
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
     MIN_TAX_RATE_DECIMAL_PLACES: 2,
-    DISTANCE_DECIMAL_PLACES: 2,
 
     DOWNLOADS_PATH: '/Downloads',
     DOWNLOADS_TIMEOUT: 5000,
@@ -6426,6 +6437,7 @@ const CONST = {
             TITLE: 'title',
             ASSIGNEE: 'assignee',
             IN: 'in',
+            COMMENTS: 'comments',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawalID',
         },
@@ -6571,6 +6583,9 @@ const CONST = {
             RECONCILIATION: 'reconciliation',
         },
         GROUP_PREFIX: 'group_',
+        ANIMATION: {
+            FADE_DURATION: 200,
+        },
     },
 
     EXPENSE: {
