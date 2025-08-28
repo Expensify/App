@@ -52,7 +52,7 @@ import {
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getTransactionID, hasReceipt as hasReceiptTransactionUtils, isDistanceRequest, isManualDistanceRequest} from '@libs/TransactionUtils';
+import {getTransactionID, hasReceipt as hasReceiptTransactionUtils, isDistanceRequest} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import Navigation from '@navigation/Navigation';
 import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroProcessingRequestIndicator';
@@ -92,9 +92,6 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
 
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
-
-    /** The ID of the transaction thread report if there is a single transaction */
-    transactionThreadReportID?: string;
 
     /** Report transactions */
     reportTransactions?: OnyxEntry<OnyxTypes.Transaction[]>;
@@ -140,7 +137,6 @@ function ReportActionCompose({
     reportTransactions,
     nativeID,
     onLayout,
-    transactionThreadReportID,
 }: ReportActionComposeProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
@@ -242,7 +238,7 @@ function ReportActionCompose({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
     const isSingleTransactionView = useMemo(() => !!transaction && !!reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
-    const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && (isManualDistanceRequest(transaction) || !isDistanceRequest(transaction));
+    const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && !isDistanceRequest(transaction);
 
     const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
 
@@ -332,11 +328,11 @@ function ReportActionCompose({
                 if (Array.isArray(attachmentFileRef.current)) {
                     // Handle multiple files
                     attachmentFileRef.current.forEach((file) => {
-                        addAttachmentReportActions(transactionThreadReportID ?? reportID, reportID, file, newCommentTrimmed, true);
+                        addAttachmentReportActions(reportID, file, newCommentTrimmed, true);
                     });
                 } else {
                     // Handle single file
-                    addAttachmentReportActions(transactionThreadReportID ?? reportID, reportID, attachmentFileRef.current, newCommentTrimmed, true);
+                    addAttachmentReportActions(reportID, attachmentFileRef.current, newCommentTrimmed, true);
                 }
                 attachmentFileRef.current = null;
             } else {
@@ -345,7 +341,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [onSubmit, reportID, transactionThreadReportID],
+        [onSubmit, reportID],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {

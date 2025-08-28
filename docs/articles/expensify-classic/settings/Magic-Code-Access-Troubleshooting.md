@@ -3,8 +3,6 @@ title: Troubleshooting Missing Magic Code Emails
 description: Dedicated guide for resolving Magic Code login email delivery issues and accessing your Expensify account.
 keywords: [magic code not received, login email missing, cannot sign in, expensify email blocked, expensify login help, email deliverability, magic code troubleshooting, account access]
 ---
-<div id="expensify-classic" markdown="1">
-
 Magic Code emails are critical for logging into your Expensify account. If you're not receiving these emails, this guide provides step-by-step troubleshooting to help you regain access.
 
 ---
@@ -145,5 +143,3 @@ Yes. Expensify emails are:
 - **SPF and DKIM-signed** to prevent spoofing
 - **Cryptographically authenticated** to verify legitimacy
 - **Sent only from verified domains** controlled by Expensify
-
-</div>
