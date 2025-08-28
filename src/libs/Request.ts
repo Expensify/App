@@ -1,8 +1,6 @@
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import HttpUtils from './HttpUtils';
-import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
 import Log from './Log';
 import type Middleware from './Middleware/types';
 import enhanceParameters from './Network/enhanceParameters';

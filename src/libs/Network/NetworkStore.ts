@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
