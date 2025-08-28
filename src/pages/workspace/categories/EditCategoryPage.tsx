@@ -15,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import CategoryForm from './CategoryForm';
+import usePolicyData from '@hooks/usePolicyData';
 
 type EditCategoryPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_EDIT>
@@ -22,13 +23,14 @@ type EditCategoryPageProps =
 
 function EditCategoryPage({route}: EditCategoryPageProps) {
     const policyID = route.params.policyID;
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const policyData = usePolicyData(policyID);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentCategoryName = route.params.categoryName;
     const backTo = route.params?.backTo;
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_EDIT;
-
+    
+    
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
@@ -36,7 +38,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
 
             if (!newCategoryName) {
                 errors.categoryName = translate('workspace.categories.categoryRequiredError');
-            } else if (policyCategories?.[newCategoryName] && currentCategoryName !== newCategoryName) {
+            } else if (policyData.categories?.[newCategoryName] && currentCategoryName !== newCategoryName) {
                 errors.categoryName = translate('workspace.categories.existingCategoryError');
             } else if ([...newCategoryName].length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
@@ -45,7 +47,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
 
             return errors;
         },
-        [policyCategories, currentCategoryName, translate],
+        [policyData.categories, currentCategoryName, translate],
     );
 
     const editCategory = useCallback(
@@ -53,7 +55,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
             const newCategoryName = values.categoryName.trim();
             // Do not call the API if the edited category name is the same as the current category name
             if (currentCategoryName !== newCategoryName) {
-                renamePolicyCategory(policyID, {oldName: currentCategoryName, newName: values.categoryName});
+                renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: values.categoryName});
             }
 
             // Ensure Onyx.update is executed before navigation to prevent UI blinking issues, affecting the category name and rate.
@@ -95,7 +97,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
                     onSubmit={editCategory}
                     validateEdit={validate}
                     categoryName={currentCategoryName}
-                    policyCategories={policyCategories}
+                    policyCategories={policyData.categories}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
