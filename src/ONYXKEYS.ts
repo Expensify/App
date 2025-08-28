@@ -250,7 +250,7 @@ const ONYXKEYS = {
     /** If the user should see the team 2025 subscription pricing */
     NVP_PRIVATE_MANUAL_TEAM_2025_PRICING: 'nvp_private_manualTeam2025Pricing',
 
-    /** If the user dismissed the decline explanation */
+    /** If the user dismissed the reject explanation */
     NVP_DISMISSED_REJECT_USE_EXPLANATION: 'nvp_dismissedRejectUseExplanation',
 
     /** Details on whether an account is locked or not */

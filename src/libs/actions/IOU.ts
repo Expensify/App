@@ -11979,7 +11979,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
     const optimisticData: OnyxUpdate[] = [];
 
     // Create system messages in both expense report and expense thread
-    // The "declined this expense" action should come before the decline comment
+    // The "rejected this expense" action should come before the reject comment
     const baseTimestamp = DateUtils.getDBTime();
     const optimisticRejectReportAction = buildOptimisticRejectReportAction(baseTimestamp);
     const optimisticRejectReportActionComment = buildOptimisticRejectReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
@@ -12257,7 +12257,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         }
     }
 
-    // Add optimistic decline actions to the child report
+    // Add optimistic rejected actions to the child report
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
@@ -12272,7 +12272,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
         value: {
-            [optimisticRejectReportAction.reportActionID]: null, // Remove optimistic decline action
+            [optimisticRejectReportAction.reportActionID]: null, // Remove optimistic rejected action
             [optimisticRejectReportActionComment.reportActionID]: {
                 ...optimisticRejectReportActionComment,
                 pendingAction: null,
@@ -12285,7 +12285,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
         value: {
-            [optimisticRejectReportAction.reportActionID]: null, // Remove optimistic decline action
+            [optimisticRejectReportAction.reportActionID]: null, // Remove optimistic rejected action
             [optimisticRejectReportActionComment.reportActionID]: null,
         },
     });
@@ -12318,7 +12318,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         });
     }
 
-    // Child report (where decline actions are added)
+    // Child report (where rejected actions are added)
     if (childReportID) {
         reportsToUpdate.push({
             reportID: childReportID,
