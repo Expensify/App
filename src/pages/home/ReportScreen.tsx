@@ -289,8 +289,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
     const [composerHeight, setComposerHeight] = useState<number>(CONST.CHAT_FOOTER_MIN_HEIGHT);
-    // Starts with this value to avoid a big jump while the container height is being calculated in case the screen is first rendered w/ a full size composer. It's based on the perceived concierge header height on the iPhone 16 Pro.
-    const [headerHeight, setHeaderHeight] = useState<number>(73);
+    const [headerHeight, setHeaderHeight] = useState<number>(CONST.CHAT_HEADER_BASE_HEIGHT);
 
     const wasReportAccessibleRef = useRef(false);
 
