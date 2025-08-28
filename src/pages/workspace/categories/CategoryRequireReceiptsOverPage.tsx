@@ -5,8 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
+import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -15,7 +14,6 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Category from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -40,8 +38,8 @@ function CategoryRequireReceiptsOverPage({
 }: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policy = usePolicy(policyID);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const policyData = usePolicyData(policyID);
+    const {policy, categories: policyCategories} = policyData;
 
     const isAlwaysSelected = policyCategories?.[categoryName]?.maxAmountNoReceipt === 0;
     const isNeverSelected = policyCategories?.[categoryName]?.maxAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
@@ -92,10 +90,13 @@ function CategoryRequireReceiptsOverPage({
                     sections={[{data: requireReceiptsOverListData}]}
                     ListItem={RadioListItem}
                     onSelectRow={(item) => {
+                        if (policyData.policy === undefined) {
+                            return;
+                        }
                         if (typeof item.value === 'number') {
-                            Category.setPolicyCategoryReceiptsRequired(policyID, categoryName, item.value);
+                            Category.setPolicyCategoryReceiptsRequired(policyData, categoryName, item.value);
                         } else {
-                            Category.removePolicyCategoryReceiptsRequired(policyID, categoryName);
+                            Category.removePolicyCategoryReceiptsRequired(policyData, categoryName);
                         }
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
                     }}

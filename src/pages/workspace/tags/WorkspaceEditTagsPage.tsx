@@ -27,14 +27,14 @@ type WorkspaceEditTagsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_EDIT>;
 
 function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
-    const policyData = usePolicyData(route.params.policyID);
+    const {policyID, backTo, orderWeight} = route.params;
+    const policyData = usePolicyData(policyID);
     const {tags: policyTags} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const tagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
+    const tagListName = useMemo(() => getTagListName(policyTags, orderWeight), [policyTags, orderWeight]);
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const backTo = route.params.backTo;
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_EDIT;
 
     const validateTagName = useCallback(
@@ -46,12 +46,12 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
             if (values[INPUT_IDS.POLICY_TAGS_NAME]?.trim() === '0') {
                 errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.invalidTagNameError');
             }
-            if (policyTags && Object.values(policyTags).find((tag) => tag.orderWeight !== route.params.orderWeight && tag.name === values[INPUT_IDS.POLICY_TAGS_NAME])) {
+            if (policyTags && Object.values(policyTags).find((tag) => tag.orderWeight !== orderWeight && tag.name === values[INPUT_IDS.POLICY_TAGS_NAME])) {
                 errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.existingTagError');
             }
             return errors;
         },
-        [translate, policyTags, route.params.orderWeight],
+        [translate, policyTags, orderWeight],
     );
 
     const goBackToTagsSettings = useCallback(() => {
@@ -59,31 +59,23 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
             Navigation.goBack(backTo);
             return;
         }
-        Navigation.goBack(
-            route.params.orderWeight
-                ? ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(route?.params?.policyID, route.params.orderWeight)
-                : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID),
-        );
-    }, [isQuickSettingsFlow, route.params.orderWeight, route.params?.policyID, backTo]);
+        Navigation.goBack(orderWeight ? ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, orderWeight) : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(policyID));
+    }, [isQuickSettingsFlow, orderWeight, policyID, backTo]);
 
     const updateTagListName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
-            if (values[INPUT_IDS.POLICY_TAGS_NAME] !== tagListName) {
-                renamePolicyTagList(
-                    policyData,
-                    {oldName: tagListName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]},
-                    route.params.orderWeight,
-                );
+            if (policyData.policy !== undefined && values[INPUT_IDS.POLICY_TAGS_NAME] !== tagListName) {
+                renamePolicyTagList(policyData, {oldName: tagListName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, orderWeight);
             }
             goBackToTagsSettings();
         },
-        [tagListName, goBackToTagsSettings, route.params.orderWeight, policyData],
+        [tagListName, goBackToTagsSettings, orderWeight, policyData],
     );
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            policyID={route.params.policyID}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper

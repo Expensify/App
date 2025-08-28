@@ -42,11 +42,10 @@ type TagSettingsPageProps =
 
 function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const {orderWeight, policyID, tagName, backTo, parentTagsFilter} = route.params;
-
-    const policyData = usePolicyData(policyID);
-    const {policy, tags: policyTags} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const policyData = usePolicyData(policyID);
+    const {policy, tags: policyTags} = policyData;
     const policyTag = useMemo(() => getTagListByOrderWeight(policyTags, orderWeight), [policyTags, orderWeight]);
     const {environmentURL} = useEnvironment();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
@@ -78,7 +77,9 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     }
 
     const deleteTagAndHideModal = () => {
-        deletePolicyTags(policyData, [currentPolicyTag.name]);
+        if (policyData.policy !== undefined) {
+            deletePolicyTags(policyData, [currentPolicyTag.name]);
+        }
         setIsDeleteTagModalOpen(false);
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
     };

@@ -29,7 +29,6 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -91,9 +90,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
     const [isCannotMakeLastTagOptionalModalVisible, setIsCannotMakeLastTagOptionalModalVisible] = useState(false);
-    const policyID = route.params.policyID;
-    const backTo = route.params.backTo;
-    const policy = usePolicy(policyID);
+    const {backTo, policyID} = route.params;
+    const policyData = usePolicyData(policyID);
+    const {policy, tags: policyTags} = policyData;
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {environmentURL} = useEnvironment();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
@@ -102,15 +101,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
-    const policyData = usePolicyData(policyID);
+
     const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
-        () => [
-            getTagLists(policyData.tags),
-            isMultiLevelTagsPolicyUtils(policyData.tags),
-            hasDependentTagsPolicyUtils(policy, policyData.tags),
-            hasIndependentTagsPolicyUtils(policy, policyData.tags),
-        ],
-        [policy, policyData.tags],
+        () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
+        [policy, policyTags],
     );
     const canSelectMultiple = !hasDependentTags && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const fetchTags = useCallback(() => {
@@ -209,7 +203,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {
-            if (policyData?.policy === undefined) {
+            if (policyData.policy === undefined) {
                 return;
             }
             setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, 0);
@@ -219,7 +213,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean, orderWeight: number) => {
-            if (policy === undefined) {
+            if (policyData.policy === undefined) {
                 return;
             }
             setPolicyTagsRequired(policyData, value, orderWeight);
@@ -257,7 +251,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             isOn={isSwitchEnabled}
                             accessibilityLabel={translate('workspace.tags.requiresTag')}
                             onToggle={(newValue: boolean) => {
-                                if (isMakingLastRequiredTagListOptional(policy, policyData.tags, [policyTagList])) {
+                                if (isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])) {
                                     setIsCannotMakeLastTagOptionalModalVisible(true);
                                     return;
                                 }
@@ -265,7 +259,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 updateWorkspaceRequiresTag(newValue, policyTagList.orderWeight);
                             }}
                             disabled={isSwitchDisabled}
-                            showLockIcon={isMakingLastRequiredTagListOptional(policy, policyData.tags, [policyTagList])}
+                            showLockIcon={isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])}
                         />
                     ),
                 };
@@ -296,7 +290,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 />
             ),
         }));
-    }, [isMultiLevelTags, policyTagLists, hasDependentTags, translate, policy, policyData.tags, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
+    }, [isMultiLevelTags, policyTagLists, hasDependentTags, translate, policy, policyTags, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
         const tagText = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
@@ -384,7 +378,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const deleteTags = () => {
-        deletePolicyTags(policyData, selectedTags);
+        if (policyData.policy !== undefined) {
+            deletePolicyTags(policyData, selectedTags);
+        }
         setIsDeleteTagsConfirmModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
@@ -395,7 +391,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         });
     };
 
-    const isLoading = !isOffline && policyData.tags === undefined;
+    const isLoading = !isOffline && policyTags === undefined;
     const hasVisibleTags = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const navigateToImportSpreadsheet = useCallback(() => {
@@ -583,7 +579,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 text: translate('workspace.tags.notRequireTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.REQUIRE,
                 onSelected: () => {
-                    if (isMakingLastRequiredTagListOptional(policy, policyData.tags, selectedTagLists)) {
+                    if (isMakingLastRequiredTagListOptional(policy, policyTags, selectedTagLists)) {
                         setIsCannotMakeLastTagOptionalModalVisible(true);
                         return;
                     }

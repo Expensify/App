@@ -8,7 +8,6 @@ import isEmpty from 'lodash/isEmpty';
 import isNumber from 'lodash/isNumber';
 import mapValues from 'lodash/mapValues';
 import lodashMaxBy from 'lodash/maxBy';
-import type { OnyxValueWithOfflineFeedback } from '@src/types/onyx/OnyxCommon';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
@@ -60,7 +59,7 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
-import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, Icon, OnyxValueWithOfflineFeedback, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {AllConnectionName, ConnectionName} from '@src/types/onyx/Policy';
@@ -1874,9 +1873,9 @@ function pushTransactionViolationsOnyxData(
     const isPolicyUpdateEmpty = isEmptyObject(policyUpdate);
     const isPolicyTagsUpdateEmpty = isEmptyObject(policyTagsUpdate);
     const isPolicyCategoriesUpdateEmpty = isEmptyObject(policyCategoriesUpdate);
-    
+
     // If there are no updates to policy, categories or tags, return early
-    if (isPolicyUpdateEmpty && isPolicyTagsUpdateEmpty && isPolicyCategoriesUpdateEmpty ) {
+    if (isPolicyUpdateEmpty && isPolicyTagsUpdateEmpty && isPolicyCategoriesUpdateEmpty) {
         return;
     }
 
@@ -1919,7 +1918,6 @@ function pushTransactionViolationsOnyxData(
 
     // Iterate through all policy reports to find transactions that need optimistic violations
     for (const report of policyData.reports) {
-        
         // Skipping invoice reports since they should not have any category or tag violations
         if (isInvoiceReport(report)) {
             continue;
@@ -1931,10 +1929,9 @@ function pushTransactionViolationsOnyxData(
             continue;
         }
 
-        const {transactions, violations} = reportTransactionsAndViolations
+        const {transactions, violations} = reportTransactionsAndViolations;
 
         for (const transaction of Object.values(transactions)) {
-
             const existingViolations = violations[transaction.transactionID];
 
             const optimisticViolations = ViolationsUtils.getViolationsOnyxData(

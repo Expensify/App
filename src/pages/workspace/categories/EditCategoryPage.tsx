@@ -3,7 +3,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -11,26 +11,22 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {renamePolicyCategory} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import CategoryForm from './CategoryForm';
-import usePolicyData from '@hooks/usePolicyData';
 
 type EditCategoryPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_EDIT>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_EDIT>;
 
 function EditCategoryPage({route}: EditCategoryPageProps) {
-    const policyID = route.params.policyID;
+    const {backTo, policyID, categoryName: currentCategoryName} = route.params;
     const policyData = usePolicyData(policyID);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const currentCategoryName = route.params.categoryName;
-    const backTo = route.params?.backTo;
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_EDIT;
-    
-    
+
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
@@ -54,7 +50,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const newCategoryName = values.categoryName.trim();
             // Do not call the API if the edited category name is the same as the current category name
-            if (currentCategoryName !== newCategoryName) {
+            if (policyData.policy !== undefined && currentCategoryName !== newCategoryName) {
                 renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: values.categoryName});
             }
 
@@ -68,7 +64,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
                 );
             });
         },
-        [isQuickSettingsFlow, currentCategoryName, policyID, backTo],
+        [isQuickSettingsFlow, currentCategoryName, policyData, policyID, backTo],
     );
 
     return (

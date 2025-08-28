@@ -1,21 +1,20 @@
-import {useOnyx } from 'react-native-onyx';
-import type {Report, Policy, PolicyCategories, PolicyTagLists } from '@src/types/onyx';
-import type { OnyxValueWithOfflineFeedback } from '@src/types/onyx/OnyxCommon';
-import type {ReportTransactionsAndViolationsDerivedValue } from '@src/types/onyx/DerivedValues';
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
-import usePolicy from './usePolicy';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
+import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
+import useOnyx from './useOnyx';
+import usePolicy from './usePolicy';
 
 type PolicyData = {
     policy: OnyxValueWithOfflineFeedback<Policy>;
-    reports: OnyxValueWithOfflineFeedback<Report>[];
+    reports: Array<OnyxValueWithOfflineFeedback<Report>>;
     tags: PolicyTagLists;
     categories: PolicyCategories;
     transactionsAndViolations: ReportTransactionsAndViolationsDerivedValue;
 };
 
-
-function usePolicyData(policyID?: string):PolicyData {
+function usePolicyData(policyID?: string): PolicyData {
     const policy = usePolicy(policyID);
     const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
 
@@ -28,12 +27,12 @@ function usePolicyData(policyID?: string):PolicyData {
             if (!policyID) {
                 return [];
             }
-            return Object.values(reportCollection ?? {}).filter((report) => report !== undefined && report.reportID && report.policyID === policyID);
-        }
+            return Object.values(reportCollection ?? {}).filter((report) => !!report?.reportID && report.policyID === policyID);
+        },
     });
 
     const transactionsAndViolations = (reports ?? []).reduce<ReportTransactionsAndViolationsDerivedValue>((acc, report) => {
-        if (report === undefined || !report.reportID) {
+        if (!report?.reportID) {
             return acc;
         }
         const reportTransactionsAndViolations = allReportsTransactionsAndViolations?.[report.reportID];
@@ -45,12 +44,12 @@ function usePolicyData(policyID?: string):PolicyData {
 
     return {
         policy: policy as OnyxValueWithOfflineFeedback<Policy>,
-        reports: reports as OnyxValueWithOfflineFeedback<Report>[],
+        reports: reports as Array<OnyxValueWithOfflineFeedback<Report>>,
         tags: tags ?? {},
         categories: categories ?? {},
-        transactionsAndViolations: transactionsAndViolations,
+        transactionsAndViolations,
     };
 }
 
-export type {PolicyData}
+export type {PolicyData};
 export default usePolicyData;

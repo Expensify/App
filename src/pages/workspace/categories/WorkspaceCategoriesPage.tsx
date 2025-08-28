@@ -74,12 +74,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
     const [isCannotDeleteOrDisableLastCategoryModalVisible, setIsCannotDeleteOrDisableLastCategoryModalVisible] = useState(false);
     const {environmentURL} = useEnvironment();
-    const policyId = route.params.policyID;
-    const backTo = route.params?.backTo;
+    const {backTo, policyID: policyId} = route.params;
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const policyData = usePolicyData(policyId);
-    const policy = policyData.policy;
-    const policyCategories = policyData.categories;
+    const {policy, categories: policyCategories} = policyData;
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
@@ -141,6 +139,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
+            if (policyData.policy === undefined) {
+                return;
+            }
             setWorkspaceCategoryEnabled(policyData, {[categoryName]: {name: categoryName, enabled: value}});
         },
         [policyData],
@@ -360,6 +361,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             return;
                         }
                         setSelectedCategories([]);
+                        if (policyData.policy === undefined || Object.keys(categoriesToDisable).length === 0) {
+                            return;
+                        }
                         setWorkspaceCategoryEnabled(policyData, categoriesToDisable);
                     },
                 });
@@ -382,6 +386,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedCategories([]);
+                        if (policyData.policy === undefined || Object.keys(categoriesToEnable).length === 0) {
+                            return;
+                        }
                         setWorkspaceCategoryEnabled(policyData, categoriesToEnable);
                     },
                 });

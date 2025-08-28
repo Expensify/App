@@ -22,7 +22,6 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
 import {clearPolicyErrorField, setWorkspaceDefaultSpendCategory} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
@@ -47,17 +46,25 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const toggleSubtitle =
         isConnectedToAccounting && currentConnectionName ? translate('workspace.categories.needCategoryForExportToIntegration', {connectionName: currentConnectionName}) : undefined;
 
-    const updateWorkspaceRequiresCategory = useCallback((value: boolean) => setWorkspaceRequiresCategory(policyData, value), [policyData]);
+    const updateWorkspaceRequiresCategory = useCallback(
+        (value: boolean) => {
+            if (policyData.policy === undefined) {
+                return;
+            }
+            setWorkspaceRequiresCategory(policyData, value);
+        },
+        [policyData],
+    );
 
     const {sections} = useMemo(() => {
-        if (!(policyData.policy && policyData.policy.mccGroup)) {
+        if (!(policy && policy.mccGroup)) {
             return {sections: [{data: []}]};
         }
 
         return {
             sections: [
                 {
-                    data: Object.entries(policyData.policy.mccGroup).map(
+                    data: Object.entries(policy.mccGroup).map(
                         ([mccKey, mccGroup]) =>
                             ({
                                 categoryID: mccGroup.category,
@@ -70,7 +77,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                 },
             ],
         };
-    }, [policyData.policy]);
+    }, [policy]);
 
     const hasEnabledCategories = hasEnabledOptions(policyData.categories);
     const isToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledCategories || isConnectedToAccounting;

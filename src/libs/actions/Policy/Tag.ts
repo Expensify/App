@@ -26,7 +26,7 @@ import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getAllPolicyReports, pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 import CONST from '@src/CONST';
@@ -48,7 +48,7 @@ Onyx.connect({
             // and unset the draft indicator (pencil icon) alongside removing any draft comments. Clearing these values will keep the newly archived chats from being displayed in the LHN.
             // More info: https://github.com/Expensify/App/issues/14260
             const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
-            const policyReports = ReportUtils.getAllPolicyReports(policyID);
+            const policyReports = getAllPolicyReports(policyID);
             const cleanUpMergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>> = {};
             const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
             policyReports.forEach((policyReport) => {
@@ -322,7 +322,7 @@ function setWorkspaceTagEnabled(policyData: PolicyData, tagsToUpdate: Record<str
         ],
     };
 
-    ReportUtils.pushTransactionViolationsOnyxData(
+    pushTransactionViolationsOnyxData(
         onyxData,
         policyData,
         {},
@@ -421,7 +421,7 @@ function setWorkspaceTagRequired(policyData: PolicyData, tagListIndexes: number[
         ],
     };
 
-    ReportUtils.pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
 
     const parameters: SetPolicyTagListsRequired = {
         policyID,
@@ -433,10 +433,6 @@ function setWorkspaceTagRequired(policyData: PolicyData, tagListIndexes: number[
 }
 
 function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[]) {
-    if (policyData.policy === undefined || tagsToDelete.length === 0) {
-        return;
-    }
-
     const policyID = policyData.policy.id;
     const policyTag = PolicyUtils.getTagLists(policyData.tags)?.at(0);
 
@@ -501,7 +497,7 @@ function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[]) {
         ],
     };
 
-    ReportUtils.pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
 
     const parameters = {
         policyID,
@@ -580,11 +576,6 @@ function clearPolicyTagListErrors(policyID: string, tagListIndex: number) {
 }
 
 function renamePolicyTag(policyData: PolicyData, policyTag: {oldName: string; newName: string}, tagListIndex: number) {
-
-    if (policyData.policy === undefined) {
-        return;
-    }
-    
     const policyID = policyData.policy.id;
     const tagList = PolicyUtils.getTagLists(policyData.tags)?.at(tagListIndex);
     if (!tagList) {
@@ -694,7 +685,7 @@ function renamePolicyTag(policyData: PolicyData, policyTag: {oldName: string; ne
         ],
     };
 
-    ReportUtils.pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData, {}, policyTagsOptimisticData);
+    pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData, {}, policyTagsOptimisticData);
 
     const parameters: RenamePolicyTagsParams = {
         policyID,
@@ -707,9 +698,6 @@ function renamePolicyTag(policyData: PolicyData, policyTag: {oldName: string; ne
 }
 
 function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
-    if (policyData.policy === undefined) {
-        return;
-    }
     const policyID = policyData.policy.id;
     const policyOptimisticData = {
         areTagsEnabled: enabled,
@@ -770,7 +758,7 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
             value: null,
         });
-        ReportUtils.pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData, {}, defaultTagList);
+        pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData, {}, defaultTagList);
     } else if (!enabled) {
         const policyTag = PolicyUtils.getTagLists(policyData.tags).at(0);
 
@@ -806,9 +794,9 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
             },
         );
 
-        ReportUtils.pushTransactionViolationsOnyxData(onyxData, policyData, {...policyOptimisticData, requiresTag: false}, {}, policyTagsOptimisticData);
-    }else{
-        ReportUtils.pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData, {}, {});
+        pushTransactionViolationsOnyxData(onyxData, policyData, {...policyOptimisticData, requiresTag: false}, {}, policyTagsOptimisticData);
+    } else {
+        pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData);
     }
 
     const parameters: EnablePolicyTagsParams = {policyID, enabled};
@@ -907,21 +895,20 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
 }
 
 function renamePolicyTagList(policyData: PolicyData, policyTagListName: {oldName: string; newName: string}, tagListIndex: number) {
-    if (policyData.policy === undefined) {
-        return;
-    }
-
     const policyID = policyData.policy.id;
     const newName = policyTagListName.newName;
     const oldName = policyTagListName.oldName;
     const oldPolicyTags = policyData.tags?.[oldName] ?? {};
+    const policyTagsOptimisticData = {
+        [newName]: {...oldPolicyTags, name: newName, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null},
+    };
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [newName]: {...oldPolicyTags, name: newName, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null},
+                    ...policyTagsOptimisticData,
                     [oldName]: null,
                 },
             },
@@ -952,17 +939,14 @@ function renamePolicyTagList(policyData: PolicyData, policyTagListName: {oldName
         ],
     };
 
-    const policyTagLists = policyData.tags
-        ? Object.keys(policyData.tags ?? {}).reduce<PolicyTagLists>((acc, tagName) => {
-              if (tagName === oldName) {
-                  return acc;
-              }
-              acc[tagName] = {...policyData.tags?.[tagName]};
-              return acc;
-          }, {})
-        : {};
+    const tags = Object.entries(policyData.tags ?? {}).reduce<PolicyTagLists>((acc, [tagName, tag]) => {
+        if (tagName !== oldName) {
+            acc[tagName] = {...tag};
+        }
+        return acc;
+    }, {});
 
-    ReportUtils.pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, {newName: {...oldPolicyTags, name: newName, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}});
+    pushTransactionViolationsOnyxData(onyxData, {...policyData, tags}, {}, {}, policyTagsOptimisticData);
 
     const parameters: RenamePolicyTagListParams = {
         policyID,
@@ -975,10 +959,6 @@ function renamePolicyTagList(policyData: PolicyData, policyTagListName: {oldName
 }
 
 function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
-    if (policyData.policy === undefined) {
-        return;
-    }
-
     const policyID = policyData.policy.id;
     const policyOptimisticData: Partial<Policy> = {
         requiresTag,
@@ -1045,7 +1025,7 @@ function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
     onyxData.failureData?.push(getUpdatedTagsOnyxData(!requiresTag));
     onyxData.successData?.push(getUpdatedTagsOnyxData(requiresTag));
 
-    ReportUtils.pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData, {}, getUpdatedTagsData(requiresTag));
+    pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData, {}, getUpdatedTagsData(requiresTag));
 
     const parameters = {
         policyID,
@@ -1057,7 +1037,7 @@ function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
 
 function setPolicyTagsRequired(policyData: PolicyData, requiresTag: boolean, tagListIndex: number) {
     const policyTag = PolicyUtils.getTagLists(policyData.tags)?.at(tagListIndex);
-    if (!policyTag || !policyTag.name || !policyData.policy) {
+    if (!policyTag || !policyTag.name) {
         return;
     }
 
@@ -1106,13 +1086,13 @@ function setPolicyTagsRequired(policyData: PolicyData, requiresTag: boolean, tag
         ],
     };
 
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
+
     const parameters: SetPolicyTagsRequired = {
         policyID,
         tagListIndex,
         requireTagList: requiresTag,
     };
-
-    ReportUtils.pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
 
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED, parameters, onyxData);
 }
