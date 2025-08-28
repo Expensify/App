@@ -4,7 +4,7 @@ import HttpUtils from './HttpUtils';
 import Log from './Log';
 import type Middleware from './Middleware/types';
 import enhanceParameters from './Network/enhanceParameters';
-import {hasReadRequiredDataFromStorage, isSupportAuthToken} from './Network/NetworkStore';
+import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
 
 let middlewares: Middleware[] = [];
 
