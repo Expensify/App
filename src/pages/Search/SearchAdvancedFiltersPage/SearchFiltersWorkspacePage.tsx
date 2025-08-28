@@ -14,6 +14,7 @@ import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -39,7 +40,7 @@ function SearchFiltersWorkspacePage() {
 
     const [selectedOptions, setSelectedOptions] = useState<string[]>(() => (searchAdvancedFiltersForm?.policyID ? Array.from(searchAdvancedFiltersForm?.policyID) : []));
 
-    const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
+    const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput, firstKeyForList} = useWorkspaceList({
         policies,
         currentUserLogin,
         shouldShowPendingDeletePolicy: false,
@@ -110,6 +111,8 @@ function SearchFiltersWorkspacePage() {
                                     resetChanges={resetChanges}
                                 />
                             }
+                            initiallyFocusedOptionKey={firstKeyForList}
+                            getItemHeight={() => variables.optionRowHeight}
                         />
                     )}
                 </>

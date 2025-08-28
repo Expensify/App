@@ -3,6 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {ListItem, SectionListDataType} from '@components/SelectionList/types';
+import {getFirstSelectedItem} from '@libs/OptionsListUtils';
 import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -65,7 +66,7 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, search
         [searchTerm, usersWorkspaces, localeCompare],
     );
 
-    const sections = useMemo(() => {
+    const {sections, firstKeyForList} = useMemo(() => {
         const options: Array<SectionListDataType<WorkspaceListItem>> = [
             {
                 data: filteredAndSortedUserWorkspaces,
@@ -73,7 +74,8 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, search
                 indexOffset: 1,
             },
         ];
-        return options;
+        const firstKeyForList = getFirstSelectedItem(filteredAndSortedUserWorkspaces);
+        return {sections: options, firstKeyForList: firstKeyForList};
     }, [filteredAndSortedUserWorkspaces]);
 
     const shouldShowNoResultsFoundMessage = filteredAndSortedUserWorkspaces.length === 0 && usersWorkspaces.length;
@@ -83,6 +85,7 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, search
         sections,
         shouldShowNoResultsFoundMessage,
         shouldShowSearchInput,
+        firstKeyForList,
     };
 }
 
