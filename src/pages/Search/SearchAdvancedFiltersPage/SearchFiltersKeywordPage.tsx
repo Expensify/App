@@ -28,7 +28,7 @@ function SearchFiltersKeywordPage() {
 
     const updateKeywordFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         updateAdvancedFilters(values);
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     };
 
     return (
@@ -42,7 +42,7 @@ function SearchFiltersKeywordPage() {
                 <HeaderWithBackButton
                     title={translate('search.filters.keyword')}
                     onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                     }}
                 />
                 <FormProvider

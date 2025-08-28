@@ -28,7 +28,7 @@ function SearchFiltersFromPage() {
             <HeaderWithBackButton
                 title={translate('common.from')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>

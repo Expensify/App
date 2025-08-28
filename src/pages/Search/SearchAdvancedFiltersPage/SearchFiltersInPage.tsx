@@ -32,7 +32,7 @@ function SearchFiltersInPage() {
             <HeaderWithBackButton
                 title={translate('common.in')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>
