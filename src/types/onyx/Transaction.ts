@@ -559,7 +559,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         inserted?: string;
 
         /**
-         *
+         * Transaction's violations
          */
         violations?: TransactionViolation[];
     },
