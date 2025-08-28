@@ -20,7 +20,7 @@ function MerchantOrDescriptionCell({
         if (!isDescription) {
             return merchantOrDescription;
         }
-        return Parser.htmlToText(merchantOrDescription);
+        return Parser.htmlToText(merchantOrDescription).replace(/\n/g, ' ');
     }, [merchantOrDescription, isDescription]);
 
     return (
