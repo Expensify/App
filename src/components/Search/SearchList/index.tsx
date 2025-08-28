@@ -1,4 +1,4 @@
-import {useRoute} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import type {FlashList, FlashListProps, ViewToken} from '@shopify/flash-list';
 import React, {forwardRef, useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
@@ -193,7 +193,7 @@ function SearchList(
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
 
     const route = useRoute();
-    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
+    const {getScrollOffset} = useContext(ScrollOffsetContext);
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
@@ -248,29 +248,15 @@ function SearchList(
         [data],
     );
 
-    const handleOnScroll = useCallback<NonNullable<FlashListProps<SearchListItem>['onScroll']>>(
-        (e) => {
-            onScroll(e);
-            if (e.nativeEvent.layoutMeasurement.height > 0) {
-                saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+    useFocusEffect(
+        useCallback(() => {
+            const offset = getScrollOffset(route);
+
+            if (offset && listRef.current) {
+                listRef.current.scrollToOffset({offset});
             }
-        },
-        [onScroll, route, saveScrollOffset],
+        }, [getScrollOffset, route]),
     );
-
-    const handleLayout = useCallback(() => {
-        onLayout?.();
-
-        const offset = getScrollOffset(route);
-
-        requestAnimationFrame(() => {
-            if (!offset || !listRef.current) {
-                return;
-            }
-
-            listRef.current.scrollToOffset({offset});
-        });
-    }, [onLayout, getScrollOffset, route]);
 
     useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
 
@@ -420,8 +406,7 @@ function SearchList(
                 renderItem={renderItem}
                 onSelectRow={onSelectRow}
                 keyExtractor={keyExtractor}
-                // Handle both onScroll callback function and Reanimated worklet correctly
-                onScroll={onScroll && typeof onScroll === 'function' ? handleOnScroll : onScroll}
+                onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
                 columns={columns}
@@ -432,7 +417,7 @@ function SearchList(
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
                 onViewableItemsChanged={onViewableItemsChanged}
-                onLayout={handleLayout}
+                onLayout={onLayout}
                 removeClippedSubviews
                 drawDistance={1000}
                 estimatedItemSize={estimatedItemSize}
