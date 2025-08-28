@@ -304,7 +304,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         }
 
         const results = searchResults
-            ? getSections(type, searchResults.data, searchResults.search, accountID, formatPhoneNumber, groupBy).map((element) => element?.reportID ?? CONST.REPORT.DEFAULT_REPORT_ID)
+            ? getSections(type, searchResults.data, accountID, formatPhoneNumber, groupBy).map((element) => element?.reportID ?? CONST.REPORT.DEFAULT_REPORT_ID)
             : [];
         handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReports: results});
 

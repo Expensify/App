@@ -40,17 +40,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, bac
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
     let results: Array<string | undefined> = [];
     if (!!type && !!groupBy && !!currentSearchResults?.data && !!currentSearchResults?.search) {
-        const temp = getSections(
-            type,
-            currentSearchResults.data,
-            currentSearchResults.search,
-            accountID,
-            formatPhoneNumber,
-            groupBy,
-            exportReportActions,
-            lastSearchQuery?.searchKey,
-            archivedReportsIdSet,
-        );
+        const temp = getSections(type, currentSearchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, lastSearchQuery?.searchKey, archivedReportsIdSet);
         results = getSortedSections(type, status ?? '', temp, localeCompare, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
     const allReports = results;
