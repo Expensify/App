@@ -481,6 +481,12 @@ function SearchAutocompleteList(
                     text: status,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS: {
+                return Object.values(CONST.SEARCH.HAS_VALUES).map((hasValue) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.HAS,
+                    text: hasValue,
+                }));
+            }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
