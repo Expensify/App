@@ -666,6 +666,23 @@ function SearchPage({route}: SearchPageProps) {
         }
     }, []);
 
+    const footerResults = useMemo(() => {
+        const count = selectedTransactionsKeys.length || metadata?.count;
+        const total =
+            selectedTransactionsKeys.length > 0
+                ? Object.values(selectedTransactions).reduce((acc, transaction) => {
+                      acc += transaction.convertedAmount;
+                      return acc;
+                  }, 0)
+                : metadata?.total;
+
+        return {
+            count,
+            total,
+            currency: metadata?.currency,
+        };
+    }, [metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);
+
     if (shouldUseNarrowLayout) {
         return (
             <>
@@ -779,9 +796,9 @@ function SearchPage({route}: SearchPageProps) {
                                 />
                                 {shouldShowFooter && (
                                     <SearchPageFooter
-                                        count={metadata.count}
-                                        total={metadata.total}
-                                        currency={metadata.currency}
+                                        count={footerResults.count}
+                                        total={footerResults.total}
+                                        currency={footerResults.currency}
                                     />
                                 )}
                                 <DragAndDropConsumer onDrop={initScanRequest}>
