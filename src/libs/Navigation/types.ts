@@ -163,6 +163,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: undefined;
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: undefined;
+    [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS]: {
+        bankAccountID: string;
+    };
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
@@ -933,7 +936,9 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
-    [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
+    [SCREENS.KEYBOARD_SHORTCUTS]: {
+        backTo: Routes;
+    };
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
         [EXIT_SURVEY_REASON_FORM_INPUT_IDS.REASON]: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
@@ -1540,13 +1545,12 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
 
         // These are not used in the screen, but are needed for the navigation
-        // for IOURequestStepDistanceMap component
+        // for IOURequestStepDistanceManual and IOURequestStepDistanceMap components
         backTo: never;
         action: never;
         currency: never;
         pageIndex?: string;
         backToReport?: string;
-        reportActionID?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: {
         action: IOUAction;
@@ -1563,7 +1567,6 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backTo: Routes;
         backToReport?: string;
-        reportActionID?: string;
     };
 };
 
@@ -1637,6 +1640,14 @@ type ReimbursementAccountNavigatorParamList = {
         stepToOpen?: ReimbursementAccountStepToOpen;
         backTo?: Routes;
         policyID?: string;
+    };
+};
+
+type ReimbursementAccountEnterSignerInfoNavigatorParamList = {
+    [SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: {
+        policyID: string;
+        bankAccountID: string;
+        isCompleted: string;
     };
 };
 
@@ -1844,6 +1855,7 @@ type ReportsSplitNavigatorParamList = {
         backTo?: Routes;
         moneyRequestReportActionID?: string;
         transactionID?: string;
+        iouReportID?: string;
     };
     [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
 };
@@ -1879,6 +1891,17 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE]: {
+        policyID: string;
+        integration: string;
+        backTo?: Routes;
+    };
+
+    [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: {
+        policyID: string;
+        integration: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
         policyID: string;
@@ -2184,7 +2207,6 @@ type SearchFullscreenNavigatorParamList = {
     };
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: {
         reportID: string;
-        backTo?: Routes;
     };
 };
 
@@ -2337,6 +2359,7 @@ export type {
     PublicScreensParamList,
     ReferralDetailsNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
+    ReimbursementAccountEnterSignerInfoNavigatorParamList,
     NewReportWorkspaceSelectionNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,

@@ -5,7 +5,6 @@ keywords: [New Expensify, QuickBooks Desktop, Expensify integration, accounting 
 order: 2
 ---
 
-<div id="new-expensify" markdown="1">
 
 Connecting QuickBooks Desktop to Expensify helps streamline expense reporting, reimbursements, and accounting workflows. This guide walks you through connecting and configuring your import, export, and advanced settings for QuickBooks Desktop.
 
@@ -162,5 +161,4 @@ Yes. The QuickBooks Desktop integration is available on the **Control** plan.
 * **Tags**: Applied at the individual expense level, allowing different expenses on the same report to have different values
 * **Report fields**: Applied at the report level, meaning all expenses on a report share the same value
 
-</div>
 
