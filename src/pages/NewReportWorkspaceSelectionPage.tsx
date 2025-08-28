@@ -46,7 +46,6 @@ function NewReportWorkspaceSelectionPage() {
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const navigateToNewReport = useCallback(
         (optimisticReportID: string) => {
-            // On wide screens we use dismissModal instead of forceReplace to avoid performance issues
             if (isRHPOnReportInSearch) {
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
                     Navigation.dismissModal();
