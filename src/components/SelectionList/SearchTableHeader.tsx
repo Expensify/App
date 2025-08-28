@@ -145,7 +145,6 @@ type SearchTableHeaderProps = {
     shouldShowSorting: boolean;
     canSelectMultiple: boolean;
     areAllOptionalColumnsHidden: boolean;
-    shouldShowExpand?: boolean;
 };
 
 function SearchTableHeader({
@@ -159,7 +158,6 @@ function SearchTableHeader({
     canSelectMultiple,
     isAmountColumnWide,
     isTaxAmountColumnWide,
-    shouldShowExpand,
     areAllOptionalColumnsHidden,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
@@ -182,18 +180,7 @@ function SearchTableHeader({
         return;
     }
 
-    const columnConfig = [
-        ...(SearchColumns[metadata.type] ?? []),
-        ...(shouldShowExpand
-            ? [
-                  {
-                      columnName: CONST.SEARCH.TABLE_COLUMNS.EXPAND,
-                      translationKey: undefined,
-                      isColumnSortable: false,
-                  },
-              ]
-            : []),
-    ];
+    const columnConfig = SearchColumns[metadata.type] ?? [];
 
     return (
         <SortableTableHeader

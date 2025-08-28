@@ -303,7 +303,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                             isAmountColumnWide
                                             isTaxAmountColumnWide
                                             shouldShowSorting={false}
-                                            shouldShowExpand={false}
                                             columns={currentColumns}
                                             areAllOptionalColumnsHidden={areAllOptionalColumnsHidden ?? false}
                                         />
