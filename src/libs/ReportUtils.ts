@@ -11387,22 +11387,22 @@ function canRejectReportAction(report: Report, policy?: Policy): boolean {
 
     const userCanReject = isCurrentUserManager || isReportApprover || isAdmin;
 
-    // User must be an approver, policy admin, manager, or payer to decline
+    // User must be an approver, policy admin, manager, or payer to reject
     if (!isCurrentUserManager && !isReportApprover && !isAdmin && !isReportPayer) {
         return false;
     }
 
-    // If the report is an IOU report, we can decline it if user is payer (which includes admin) or manager
+    // If the report is an IOU report, we can reject it if user is payer (which includes admin) or manager
     if (isIOU && userCanReject) {
         return true;
     }
 
-    // If user is a manager/approver/admin, they can decline when report is processing
+    // If user is a manager/approver/admin, they can reject when report is processing
     if (!isIOU && userCanReject && isReportBeingProcessed) {
         return true;
     }
 
-    // If user is a payer, they can decline when report is approved
+    // If user is a payer, they can reject when report is approved
     if (isReportPayer && isApproved) {
         return true;
     }
@@ -11480,7 +11480,7 @@ function buildOptimisticRejectReportAction(created = DateUtils.getDBTime()): Opt
 }
 
 /**
- * Returns the necessary reportAction onyx data to indicate that the transaction has been declined optimistically
+ * Returns the necessary reportAction onyx data to indicate that the transaction has been rejected optimistically
  * @param [created] - Action created time
  */
 function buildOptimisticRejectReportActionComment(comment: string, created = DateUtils.getDBTime()): OptimisticRejectReportAction {

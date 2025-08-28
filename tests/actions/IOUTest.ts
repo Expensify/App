@@ -8156,7 +8156,7 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`, expenseReport);
             await waitForBatchedUpdates();
 
-            // When: Decline the money request
+            // When: Reject the money request
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
@@ -8172,7 +8172,7 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`, expenseReport);
             await waitForBatchedUpdates();
 
-            // When: Decline the money request
+            // When: Reject the money request
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
@@ -8209,7 +8209,7 @@ describe('actions/IOU', () => {
                 {
                     name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
                     type: CONST.VIOLATION_TYPES.WARNING,
-                    data: {comment: 'Test decline reason'},
+                    data: {comment: 'Test reject reason'},
                 },
             ]);
             await waitForBatchedUpdates();
