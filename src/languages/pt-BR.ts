@@ -52,6 +52,7 @@ import type {
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
     BusinessBankAccountParams,
+    BusinessRegistrationNumberParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -203,6 +204,7 @@ import type {
     SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
+    SignerInfoMessageParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
@@ -300,6 +302,7 @@ import type {
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
+    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -652,6 +655,7 @@ const translations = {
         forwardTo: 'Encaminhar para',
         merge: 'Mesclar',
         unstableInternetConnection: 'Conexão de internet instável. Verifique sua rede e tente novamente.',
+        enableGlobalReimbursements: 'Ativar reembolsos globais',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -3037,7 +3041,14 @@ const translations = {
         whatsTheBusinessName: 'Qual é o nome da empresa?',
         whatsTheBusinessAddress: 'Qual é o endereço comercial?',
         whatsTheBusinessContactInformation: 'Qual é a informação de contato comercial?',
-        whatsTheBusinessRegistrationNumber: 'Qual é o número de registro da empresa?',
+        whatsTheBusinessRegistrationNumber: ({country}: BusinessRegistrationNumberParams) => {
+            switch (country) {
+                case CONST.COUNTRY.GB:
+                    return 'Qual é o número de registro da empresa (CRN)?';
+                default:
+                    return 'Qual é o número de registro da empresa?';
+            }
+        },
         whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:
@@ -3112,9 +3123,9 @@ const translations = {
         },
     },
     beneficialOwnerInfoStep: {
-        doYouOwn25percent: 'Você possui 25% ou mais de',
-        doAnyIndividualOwn25percent: 'Algum indivíduo possui 25% ou mais de',
-        areThereMoreIndividualsWhoOwn25percent: 'Existem mais indivíduos que possuem 25% ou mais de',
+        doYouOwn25percent: ({companyName}: CompanyNameParams) => `Você possui 25% ou mais de ${companyName}?`,
+        doAnyIndividualOwn25percent: ({companyName}: CompanyNameParams) => `Algum indivíduo possui 25% ou mais de ${companyName}?`,
+        areThereMoreIndividualsWhoOwn25percent: ({companyName}: CompanyNameParams) => `Existem mais pessoas que possuem 25% ou mais da ${companyName}?`,
         regulationRequiresUsToVerifyTheIdentity: 'A regulamentação exige que verifiquemos a identidade de qualquer indivíduo que possua mais de 25% do negócio.',
         companyOwner: 'Proprietário de empresa',
         enterLegalFirstAndLastName: 'Qual é o nome legal do proprietário?',
@@ -3199,21 +3210,6 @@ const translations = {
         enable2FAText: 'Levamos sua segurança a sério. Por favor, configure a autenticação de dois fatores (2FA) agora para adicionar uma camada extra de proteção à sua conta.',
         secureYourAccount: 'Proteja sua conta',
     },
-    beneficialOwnersStep: {
-        additionalInformation: 'Informações adicionais',
-        checkAllThatApply: 'Marque todas as opções aplicáveis, caso contrário, deixe em branco.',
-        iOwnMoreThan25Percent: 'Eu possuo mais de 25% de',
-        someoneOwnsMoreThan25Percent: 'Outra pessoa possui mais de 25% de',
-        additionalOwner: 'Proprietário beneficiário adicional',
-        removeOwner: 'Remover este beneficiário final',
-        addAnotherIndividual: 'Adicionar outra pessoa que possua mais de 25% de',
-        agreement: 'Acordo:',
-        termsAndConditions: 'termos e condições',
-        certifyTrueAndAccurate: 'Eu certifico que as informações fornecidas são verdadeiras e precisas.',
-        error: {
-            certify: 'Deve certificar que as informações são verdadeiras e precisas',
-        },
-    },
     completeVerificationStep: {
         completeVerification: 'Concluir verificação',
         confirmAgreements: 'Por favor, confirme os acordos abaixo.',
@@ -3285,6 +3281,10 @@ const translations = {
         PDSandFSGDescription:
             'Nossa parceria com a Corpay utiliza uma conexão API para aproveitar sua vasta rede de parceiros bancários internacionais para viabilizar Reembolsos Globais na Expensify. De acordo com a regulamentação australiana, estamos fornecendo a você o Guia de Serviços Financeiros (FSG) e a Declaração de Divulgação de Produto (PDS) da Corpay.\n\nPor favor, leia os documentos FSG e PDS cuidadosamente, pois eles contêm detalhes completos e informações importantes sobre os produtos e serviços oferecidos pela Corpay. Guarde esses documentos para referência futura.',
         pleaseUpload: 'Por favor, envie documentação adicional abaixo para nos ajudar a verificar sua identidade como diretor ou executivo sênior da entidade empresarial.',
+        enterSignerInfo: 'Insira as informações do signatário',
+        thisStep: 'Esta etapa foi concluída',
+        isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+            `está conectando uma conta bancária empresarial em ${currency} com final ${bankAccountLastFour} ao Expensify para pagar funcionários em ${currency}. A próxima etapa exige as informações de um signatário, como um diretor ou executivo sênior.`,
     },
     agreementsStep: {
         agreements: 'Acordos',
@@ -3292,10 +3292,11 @@ const translations = {
         regulationRequiresUs: 'A regulamentação exige que verifiquemos a identidade de qualquer indivíduo que possua mais de 25% do negócio.',
         iAmAuthorized: 'Estou autorizado a usar a conta bancária empresarial para despesas comerciais.',
         iCertify: 'Certifico que as informações fornecidas são verdadeiras e precisas.',
-        termsAndConditions: 'termos e condições',
+        iAcceptTheTermsAndConditions: `Aceito os <a href="https://cross-border.corpay.com/tc/">termos e condições</a>.`,
+        iAcceptTheTermsAndConditionsAccessibility: 'Aceito os termos e condições.',
         accept: 'Aceitar e adicionar conta bancária',
-        iConsentToThe: 'Eu consinto com o',
-        privacyNotice: 'aviso de privacidade',
+        iConsentToThePrivacyNotice: 'Concordo com a <a href="https://payments.corpay.com/compliance">política de privacidade</a>.',
+        iConsentToThePrivacyNoticeAccessibility: 'Concordo com a política de privacidade.',
         error: {
             authorized: 'Você deve ser um responsável controlador com autorização para operar a conta bancária da empresa.',
             certify: 'Por favor, certifique-se de que as informações são verdadeiras e precisas.',
@@ -3595,11 +3596,36 @@ const translations = {
             deepDiveExpensifyCard: `<muted-text-label>As transações do cartão Expensify serão exportadas automaticamente para uma “Conta de responsabilidade do cartão Expensify” criada com <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nossa integração</a>.</muted-text-label>`,
         },
         receiptPartners: {
+            connect: 'Conecte-se agora',
             uber: {
                 subtitle: 'Automatize despesas de viagens e entrega de refeições em toda a sua organização.',
+                sendInvites: 'Convidar membros',
+                sendInvitesDescription: 'Esses membros do workspace ainda não têm uma conta do Uber for Business. Desmarque quaisquer membros que você não deseja convidar neste momento.',
+                confirmInvite: 'Confirmar convite',
+                manageInvites: 'Gerenciar convites',
+                confirm: 'Confirmar',
+                allSet: 'Tudo pronto',
+                readyToRoll: 'Você está pronto para começar',
+                takeBusinessRideMessage: 'Faça uma viagem de negócios e seus recibos do Uber serão importados para o Expensify. Vamos lá!',
+                all: 'Todos',
+                linked: 'Vinculado',
+                outstanding: 'Pendente',
+                status: {
+                    resend: 'Reenviar',
+                    invite: 'Convidar',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED]: 'Vinculado',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Pendente',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspenso',
+                },
+                invitationFailure: 'Falha ao convidar membros para o Uber for Business',
                 autoRemove: 'Convidar novos membros do espaço de trabalho para o Uber for Business',
                 autoInvite: 'Desativar membros removidos do espaço de trabalho do Uber for Business',
-                manageInvites: 'Gerenciar convites',
+                bannerTitle: 'Expensify + Uber para empresas',
+                bannerDescription: 'Conecte o Uber for Business para automatizar despesas de viagens e entrega de refeições em toda a sua organização.',
+                emptyContent: {
+                    title: 'Nenhum membro para exibir',
+                    subtitle: 'Procuramos em todos os lugares e não encontramos nada.',
+                },
             },
         },
         perDiem: {
@@ -5011,6 +5037,8 @@ const translations = {
                 limit: 'Limite',
                 limitType: 'Tipo de limite',
                 name: 'Nome',
+                disabledApprovalForSmartLimitError:
+                    'Por favor, ative as aprovações em <strong>Fluxos de Trabalho > Adicionar aprovações</strong> antes de configurar os limites inteligentes',
             },
             deactivateCardModal: {
                 deactivate: 'Desativar',
@@ -5522,11 +5550,8 @@ const translations = {
                 perActiveMember: 'por membro ativo por mês.',
                 perMember: 'por membro por mês.',
             },
-            note: {
-                upgradeWorkspace: 'Atualize seu espaço de trabalho para acessar este recurso, ou',
-                learnMore: 'saiba mais',
-                aboutOurPlans: 'sobre nossos planos e preços.',
-            },
+            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+                `<muted-text>Atualize seu espaço de trabalho para acessar esse recurso ou <a href="${subscriptionLink}">saiba mais</a> sobre nossos planos e preços.</muted-text>`,
             upgradeToUnlock: 'Desbloquear este recurso',
             completed: {
                 headline: `Você atualizou seu espaço de trabalho!`,
@@ -6071,6 +6096,7 @@ const translations = {
         statements: 'Declarações',
         unapprovedCash: 'Dinheiro não aprovado',
         unapprovedCard: 'Cartão não aprovado',
+        reconciliation: 'Conciliação',
         saveSearch: 'Salvar pesquisa',
         deleteSavedSearch: 'Excluir pesquisa salva',
         deleteSavedSearchConfirm: 'Tem certeza de que deseja excluir esta pesquisa?',
