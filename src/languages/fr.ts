@@ -654,6 +654,7 @@ const translations = {
         forwardTo: 'Transférer à',
         merge: 'Fusionner',
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
+        enableGlobalReimbursements: 'Activer les remboursements globaux',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -3557,11 +3558,34 @@ const translations = {
             connect: 'Connectez-vous maintenant',
             uber: {
                 subtitle: 'Automatisez les dépenses de déplacement et de livraison de repas dans toute votre organisation.',
+                sendInvites: 'Inviter des membres',
+                sendInvitesDescription:
+                    "Ces membres de l'espace de travail n'ont pas encore de compte Uber for Business. Désélectionnez les membres que vous ne souhaitez pas inviter pour le moment.",
+                confirmInvite: "Confirmer l'invitation",
+                manageInvites: 'Gérer les invitations',
+                confirm: 'Confirmer',
+                allSet: 'Tout est prêt',
+                readyToRoll: 'Vous êtes prêt à commencer',
+                takeBusinessRideMessage: "Prenez un trajet professionnel et vos reçus Uber seront importés dans Expensify. C'est parti !",
+                all: 'Tous',
+                linked: 'Lié',
+                outstanding: 'En attente',
+                status: {
+                    resend: 'Renvoyer',
+                    invite: 'Inviter',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED]: 'Lié',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'En attente',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspendu',
+                },
+                invitationFailure: "Échec de l'invitation des membres à Uber for Business",
                 autoRemove: "Inviter de nouveaux membres de l'espace de travail sur Uber",
                 autoInvite: "Désactiver les membres supprimés de l'espace de travail sur Uber",
-                manageInvites: 'Gérer les invitations',
                 bannerTitle: 'Expensify + Uber pour les entreprises',
                 bannerDescription: 'Connectez Uber for Business pour automatiser les frais de déplacement et de livraison de repas dans toute votre organisation.',
+                emptyContent: {
+                    title: 'Aucun membre à afficher',
+                    subtitle: "Nous avons cherché partout et n'avons rien trouvé.",
+                },
             },
         },
         perDiem: {
