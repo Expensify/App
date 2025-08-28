@@ -80,7 +80,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
     }, [backTo, policyID, isSuccessful]);
 
     const submit = (validateCode: string) => {
-        // NOTE: For Expensify Card backend will automatically detect the correct feedCountry to use
+        // NOTE: For Expensify Card UK/EU, the backend will automatically detect the correct feedCountry to use
         issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, validateCode, data);
     };
 
