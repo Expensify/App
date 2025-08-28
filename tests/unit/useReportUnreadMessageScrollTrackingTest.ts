@@ -219,7 +219,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
             rerender({});
 
             expect(result.current.isFloatingMessageCounterVisible).toBe(true);
-            expect(readNewestAction).toBeCalledTimes(0);
+            expect(readNewestAction).toHaveBeenCalledTimes(0);
 
             act(() => {
                 // scrolling so that the unread action is visible, should call readNewestAction
@@ -229,7 +229,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
             rerender({});
 
             // Then
-            expect(readNewestAction).toBeCalledTimes(1);
+            expect(readNewestAction).toHaveBeenCalledTimes(1);
             expect(readActionRefFalse.current).toBe(false);
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
         });
