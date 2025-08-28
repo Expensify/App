@@ -61,20 +61,20 @@ const ROUTES = {
     },
     SEARCH_ADVANCED_FILTERS: 'search/filters',
     SEARCH_ADVANCED_FILTERS_TYPE: 'search/filters/type',
-    SEARCH_ADVANCED_FILTERS_GROUP_BY: 'search/filters/groupBy',
+    SEARCH_ADVANCED_FILTERS_GROUP_BY: 'search/filters/group-by',
     SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
     SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
     SEARCH_ADVANCED_FILTERS_GROUP_CURRENCY: 'search/filters/group-currency',
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
     SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
-    SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/reportID',
+    SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/report-id',
     SEARCH_ADVANCED_FILTERS_AMOUNT: 'search/filters/amount',
     SEARCH_ADVANCED_FILTERS_CATEGORY: 'search/filters/category',
     SEARCH_ADVANCED_FILTERS_KEYWORD: 'search/filters/keyword',
     SEARCH_ADVANCED_FILTERS_CARD: 'search/filters/card',
     SEARCH_ADVANCED_FILTERS_TAX_RATE: 'search/filters/taxRate',
-    SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE: 'search/filters/expenseType',
+    SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE: 'search/filters/expense-type',
     SEARCH_ADVANCED_FILTERS_WITHDRAWAL_TYPE: 'search/filters/withdrawal-type',
     SEARCH_ADVANCED_FILTERS_TAG: 'search/filters/tag',
     SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
@@ -127,7 +127,10 @@ const ROUTES = {
     },
     SEARCH_MONEY_REQUEST_REPORT: {
         route: 'search/r/:reportID',
-        getRoute: ({reportID}: {reportID: string}) => `search/r/${reportID}` as const,
+        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
+            const baseRoute = `search/r/${reportID}` as const;
+            return getUrlWithBackToParam(baseRoute, backTo);
+        },
     },
     SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: {
         route: 'search/r/:reportID/hold',
@@ -282,6 +285,10 @@ const ROUTES = {
     },
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
+    SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS: {
+        route: 'settings/wallet/:bankAccountID/enable-global-reimbursements',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/enable-global-reimbursements` as const,
+    },
     SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
         route: 'settings/wallet/card/:domain/digital-details/update-address',
         getRoute: (domain: string) => `settings/wallet/card/${domain}/digital-details/update-address` as const,
@@ -384,7 +391,10 @@ const ROUTES = {
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
 
-    KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
+    KEYBOARD_SHORTCUTS: {
+        route: 'keyboard-shortcuts',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('keyboard-shortcuts', backTo),
+    },
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',
@@ -508,6 +518,10 @@ const ROUTES = {
     REPORT_SETTINGS_VISIBILITY: {
         route: 'r/:reportID/settings/visibility',
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/visibility` as const, backTo),
+    },
+    REPORT_CHANGE_APPROVER: {
+        route: 'r/:reportID/change-approver',
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/change-approver` as const, backTo),
     },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
@@ -1871,14 +1885,6 @@ const ROUTES = {
             }
             return getUrlWithBackToParam(`workspaces/${policyID}/per-diem`, backTo);
         },
-    },
-    WORKSPACE_DUPLICATE: {
-        route: 'workspace/:policyID/duplicate',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/duplicate`, backTo),
-    },
-    WORKSPACE_DUPLICATE_SELECT_FEATURES: {
-        route: 'workspace/:policyID/duplicate/select-features',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/duplicate/select-features`, backTo),
     },
     WORKSPACE_RECEIPT_PARTNERS: {
         route: 'workspaces/:policyID/receipt-partners',

@@ -18,7 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import {cleanFileName, resizeImageIfNeeded, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -341,13 +341,15 @@ function AttachmentPicker({
                 };
 
                 if (!shouldValidateImage && fileDataName && Str.isImage(fileDataName)) {
-                    return ImageSize.getSize(fileDataUri)
-                        .then(({width, height}) => {
-                            fileDataObject.width = width;
-                            fileDataObject.height = height;
-                            return fileDataObject;
-                        })
-                        .then((file) => getDataForUpload(file))
+                    return getDataForUpload(fileDataObject)
+                        .then((file) => resizeImageIfNeeded(file))
+                        .then((resizedFile) =>
+                            ImageSize.getSize(resizedFile.uri ?? '').then(({width, height}) => ({
+                                ...resizedFile,
+                                width,
+                                height,
+                            })),
+                        )
                         .catch(() => {
                             showImageCorruptionAlert();
                             return null;
@@ -355,18 +357,22 @@ function AttachmentPicker({
                 }
 
                 if (fileDataName && Str.isImage(fileDataName)) {
-                    return ImageSize.getSize(fileDataUri)
-                        .then(({width, height}) => {
-                            fileDataObject.width = width;
-                            fileDataObject.height = height;
+                    return getDataForUpload(fileDataObject)
+                        .then((file) => resizeImageIfNeeded(file))
+                        .then((resizedFile) =>
+                            ImageSize.getSize(resizedFile.uri ?? '').then(({width, height}) => {
+                                if (width <= 0 || height <= 0) {
+                                    showImageCorruptionAlert();
+                                    return null;
+                                }
 
-                            if (fileDataObject.width <= 0 || fileDataObject.height <= 0) {
-                                showImageCorruptionAlert();
-                                return null;
-                            }
-
-                            return getDataForUpload(fileDataObject);
-                        })
+                                return {
+                                    ...resizedFile,
+                                    width,
+                                    height,
+                                };
+                            }),
+                        )
                         .catch(() => {
                             showImageCorruptionAlert();
                             return null;
