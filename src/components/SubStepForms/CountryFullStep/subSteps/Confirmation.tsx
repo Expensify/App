@@ -41,6 +41,8 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
     const shouldAllowChange = currency === CONST.CURRENCY.EUR;
     const currencyMappedToCountry = mapCurrencyToCountry(currency);
 
+    console.log({policyID});
+
     // TODO: change this after introducing Global Reimbursements
     const countryDefaultValue = !isConnectedToPolicy ? CONST.COUNTRY.US : (reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '');
     const [selectedCountry, setSelectedCountry] = useState<string>(countryDefaultValue);
@@ -94,18 +96,20 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
                 title={currency}
                 interactive={false}
             />
-            <View style={styles.ph5}>
-                <Text style={[styles.mb3, styles.mutedTextLabel]}>
-                    {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
-                    <TextLink
-                        style={[styles.label]}
-                        onPress={handleSettingsPress}
-                    >
-                        {translate('common.settings').toLowerCase()}
-                    </TextLink>
-                    .
-                </Text>
-            </View>
+            {!!policyID && (
+                <View style={styles.ph5}>
+                    <Text style={[styles.mb3, styles.mutedTextLabel]}>
+                        {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
+                        <TextLink
+                            style={[styles.label]}
+                            onPress={handleSettingsPress}
+                        >
+                            {translate('common.settings').toLowerCase()}
+                        </TextLink>
+                        .
+                    </Text>
+                </View>
+            )}
             <InputWrapper
                 InputComponent={PushRowWithModal}
                 optionsList={shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES}
