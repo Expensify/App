@@ -373,7 +373,7 @@ function getFilterDisplayTitle(
 
     if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
         const filterValue = filters[nonDateFilterKey];
-        return filterValue ? translate('common.receipt') : undefined;
+        return filterValue ? filterValue.map((value) => translate(`search.filters.has.${value as ValueOf<typeof CONST.SEARCH.HAS_VALUES>}`)).join(', ') : undefined;
     }
 
     const filterValue = filters[nonDateFilterKey];
