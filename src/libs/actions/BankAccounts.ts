@@ -12,9 +12,11 @@ import type {
     FinishCorpayBankAccountOnboardingParams,
     OpenReimbursementAccountPageParams,
     SaveCorpayOnboardingBeneficialOwnerParams,
+    SendReminderForCorpaySignerInformationParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
+import type AskForCorpaySignerInformationParams from '@libs/API/parameters/AskForCorpaySignerInformationParams';
 import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
 import type SaveCorpayOnboardingDirectorInformationParams from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -723,6 +725,14 @@ function saveCorpayOnboardingDirectorInformation(parameters: SaveCorpayOnboardin
                     errors: null,
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM,
+                value: {
+                    isSavingSignerInformation: true,
+                    errors: null,
+                },
+            },
         ],
         successData: [
             {
@@ -730,6 +740,14 @@ function saveCorpayOnboardingDirectorInformation(parameters: SaveCorpayOnboardin
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isSavingCorpayOnboardingDirectorInformation: false,
+                    isSuccess: true,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM,
+                value: {
+                    isSavingSignerInformation: false,
                     isSuccess: true,
                 },
             },
@@ -744,10 +762,61 @@ function saveCorpayOnboardingDirectorInformation(parameters: SaveCorpayOnboardin
                     errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM,
+                value: {
+                    isSavingSignerInformation: false,
+                    isSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
         ],
     };
 
     return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION, parameters, onyxData);
+}
+
+function askForCorpaySignerInformation(parameters: AskForCorpaySignerInformationParams) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isAskingForCorpaySignerInformation: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isAskingForCorpaySignerInformation: false,
+                    isAskingForCorpaySignerInformationSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isAskingForCorpaySignerInformation: false,
+                    isAskingForCorpaySignerInformationSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
+    };
+
+    return API.write(WRITE_COMMANDS.ASK_FOR_CORPAY_SIGNER_INFORMATION, parameters, onyxData);
+}
+
+function clearReimbursementAccount() {
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
 }
 
 function finishCorpayBankAccountOnboarding(parameters: FinishCorpayBankAccountOnboardingParams) {
@@ -786,6 +855,44 @@ function finishCorpayBankAccountOnboarding(parameters: FinishCorpayBankAccountOn
     };
 
     return API.write(WRITE_COMMANDS.FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING, parameters, onyxData);
+}
+
+function sendReminderForCorpaySignerInformation(parameters: SendReminderForCorpaySignerInformationParams) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSendingReminderForCorpaySignerInformation: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSendingReminderForCorpaySignerInformation: false,
+                    isSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSendingReminderForCorpaySignerInformation: false,
+                    isSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
+    };
+
+    return API.write(WRITE_COMMANDS.SEND_REMINDER_FOR_CORPAY_SINGER_INFORMATION, parameters, onyxData);
 }
 
 function enableGlobalReimbursementsForUSDBankAccount(parameters: EnableGlobalReimbursementsForUSDBankAccountParams) {
@@ -852,6 +959,14 @@ function clearReimbursementAccountSaveCorpayOnboardingDirectorInformation() {
 
 function clearReimbursementAccountFinishCorpayBankAccountOnboarding() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isFinishingCorpayBankAccountOnboarding: null});
+}
+
+function clearEnterSignerInformationFormSave() {
+    Onyx.merge(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM, {isSuccess: null, isSavingSignerInformation: null});
+}
+
+function clearReimbursementAccountSendReminderForCorpaySignerInformation() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isSendingReminderForCorpaySignerInformation: null});
 }
 
 /**
@@ -1187,4 +1302,9 @@ export {
     clearReimbursementAccountFinishCorpayBankAccountOnboarding,
     enableGlobalReimbursementsForUSDBankAccount,
     clearEnableGlobalReimbursementsForUSDBankAccount,
+    askForCorpaySignerInformation,
+    clearReimbursementAccount,
+    clearEnterSignerInformationFormSave,
+    sendReminderForCorpaySignerInformation,
+    clearReimbursementAccountSendReminderForCorpaySignerInformation,
 };

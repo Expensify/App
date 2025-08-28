@@ -52,6 +52,7 @@ import type {
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
     BusinessBankAccountParams,
+    BusinessRegistrationNumberParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -203,6 +204,7 @@ import type {
     SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
+    SignerInfoMessageParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
@@ -3011,7 +3013,14 @@ const translations = {
         whatsTheBusinessName: "Quel est le nom de l'entreprise ?",
         whatsTheBusinessAddress: "Quelle est l'adresse de l'entreprise ?",
         whatsTheBusinessContactInformation: 'Quelles sont les coordonnées professionnelles ?',
-        whatsTheBusinessRegistrationNumber: "Quel est le numéro d'enregistrement de l'entreprise ?",
+        whatsTheBusinessRegistrationNumber: ({country}: BusinessRegistrationNumberParams) => {
+            switch (country) {
+                case CONST.COUNTRY.GB:
+                    return 'Quel est le numéro d’enregistrement de l’entreprise (CRN) ?';
+                default:
+                    return 'Quel est le numéro d’enregistrement de l’entreprise ?';
+            }
+        },
         whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:
@@ -3247,6 +3256,10 @@ const translations = {
             "Notre partenariat avec Corpay utilise une connexion API pour tirer parti de leur vaste réseau de partenaires bancaires internationaux afin d'alimenter les Remboursements Globaux dans Expensify. Conformément à la réglementation australienne, nous vous fournissons le Guide des Services Financiers (FSG) et le Document de Révélation de Produit (PDS) de Corpay.\n\nVeuillez lire attentivement les documents FSG et PDS car ils contiennent des détails complets et des informations importantes sur les produits et services offerts par Corpay. Conservez ces documents pour référence future.",
         pleaseUpload:
             "Veuillez télécharger ci-dessous des documents supplémentaires pour nous aider à vérifier votre identité en tant que directeur ou cadre supérieur de l'entité commerciale.",
+        enterSignerInfo: 'Entrez les informations du signataire',
+        thisStep: 'Cette étape a été complétée',
+        isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+            `connecte un compte bancaire professionnel en ${currency} se terminant par ${bankAccountLastFour} à Expensify pour payer les employés en ${currency}. L'étape suivante nécessite les informations d’un signataire, tel qu’un directeur ou un cadre supérieur.`,
     },
     agreementsStep: {
         agreements: 'Accords',
@@ -3563,11 +3576,34 @@ const translations = {
             connect: 'Connectez-vous maintenant',
             uber: {
                 subtitle: 'Automatisez les dépenses de déplacement et de livraison de repas dans toute votre organisation.',
+                sendInvites: 'Inviter des membres',
+                sendInvitesDescription:
+                    "Ces membres de l'espace de travail n'ont pas encore de compte Uber for Business. Désélectionnez les membres que vous ne souhaitez pas inviter pour le moment.",
+                confirmInvite: "Confirmer l'invitation",
+                manageInvites: 'Gérer les invitations',
+                confirm: 'Confirmer',
+                allSet: 'Tout est prêt',
+                readyToRoll: 'Vous êtes prêt à commencer',
+                takeBusinessRideMessage: "Prenez un trajet professionnel et vos reçus Uber seront importés dans Expensify. C'est parti !",
+                all: 'Tous',
+                linked: 'Lié',
+                outstanding: 'En attente',
+                status: {
+                    resend: 'Renvoyer',
+                    invite: 'Inviter',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED]: 'Lié',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'En attente',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspendu',
+                },
+                invitationFailure: "Échec de l'invitation des membres à Uber for Business",
                 autoRemove: "Inviter de nouveaux membres de l'espace de travail sur Uber",
                 autoInvite: "Désactiver les membres supprimés de l'espace de travail sur Uber",
-                manageInvites: 'Gérer les invitations',
                 bannerTitle: 'Expensify + Uber pour les entreprises',
                 bannerDescription: 'Connectez Uber for Business pour automatiser les frais de déplacement et de livraison de repas dans toute votre organisation.',
+                emptyContent: {
+                    title: 'Aucun membre à afficher',
+                    subtitle: "Nous avons cherché partout et n'avons rien trouvé.",
+                },
             },
         },
         perDiem: {

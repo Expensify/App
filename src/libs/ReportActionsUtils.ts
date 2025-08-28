@@ -154,6 +154,11 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
         return false;
     }
 
+    // for report actions with this type we get an empty array as message by design
+    if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED) {
+        return false;
+    }
+
     const message = reportAction?.message ?? [];
 
     if (!Array.isArray(message)) {
@@ -259,6 +264,12 @@ function isCreatedTaskReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
 
 function isTripPreview(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW);
+}
+
+function isReimbursementDirectionInformationRequiredAction(
+    reportAction: OnyxInputOrEntry<ReportAction>,
+): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED);
 }
 
 function isActionOfType<T extends ReportActionName>(action: OnyxInputOrEntry<ReportAction>, actionName: T): action is ReportAction<T> {
@@ -3166,6 +3177,7 @@ export {
     isTagModificationAction,
     isIOUActionMatchingTransactionList,
     isResolvedActionableWhisper,
+    isReimbursementDirectionInformationRequiredAction,
     shouldHideNewMarker,
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,

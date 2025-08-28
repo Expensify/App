@@ -52,6 +52,7 @@ import type {
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
     BusinessBankAccountParams,
+    BusinessRegistrationNumberParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -203,6 +204,7 @@ import type {
     SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
+    SignerInfoMessageParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
@@ -2989,7 +2991,14 @@ const translations = {
         whatsTheBusinessName: '企业名称是什么？',
         whatsTheBusinessAddress: '公司的地址是什么？',
         whatsTheBusinessContactInformation: '商业联系信息是什么？',
-        whatsTheBusinessRegistrationNumber: '营业登记号码是多少？',
+        whatsTheBusinessRegistrationNumber: ({country}: BusinessRegistrationNumberParams) => {
+            switch (country) {
+                case CONST.COUNTRY.GB:
+                    return '公司注册号（CRN）是多少？';
+                default:
+                    return '营业登记号码是多少？';
+            }
+        },
         whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:
@@ -3218,6 +3227,10 @@ const translations = {
         PDSandFSGDescription:
             '我们与 Corpay 的合作利用了 API 连接，以利用其庞大的国际银行合作伙伴网络来支持 Expensify 的全球报销。根据澳大利亚法规，我们向您提供 Corpay 的金融服务指南 (FSG) 和产品披露声明 (PDS)。\n\n请仔细阅读 FSG 和 PDS 文件，因为它们包含 Corpay 提供的产品和服务的完整详细信息和重要信息。请保留这些文件以备将来参考。',
         pleaseUpload: '请在下方上传其他文件，以帮助我们验证您作为企业实体的董事或高级管理人员的身份。',
+        enterSignerInfo: '输入签署人信息',
+        thisStep: '此步骤已完成',
+        isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+            `正在将以 ${bankAccountLastFour} 结尾的 ${currency} 公司银行账户连接到 Expensify，以便用 ${currency} 向员工付款。下一步需要董事或高级管理人员的签署人信息。`,
     },
     agreementsStep: {
         agreements: '协议',
@@ -3524,11 +3537,33 @@ const translations = {
             connect: '立即连接',
             uber: {
                 subtitle: '自动化整个组织的差旅和送餐费用。',
+                sendInvites: '邀请成员',
+                sendInvitesDescription: '这些工作区成员还没有 Uber for Business 账户。取消选择您此时不希望邀请的成员。',
+                confirmInvite: '确认邀请',
+                manageInvites: '管理邀请',
+                confirm: '确认',
+                allSet: '全部设置完毕',
+                readyToRoll: '您已准备就绪',
+                takeBusinessRideMessage: '进行商务出行，您的Uber收据将导入到Expensify。出发吧！',
+                all: '全部',
+                linked: '已关联',
+                outstanding: '待处理',
+                status: {
+                    resend: '重新发送',
+                    invite: '邀请',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED]: '已关联',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: '待处理',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: '已暂停',
+                },
+                invitationFailure: '邀请成员加入Uber for Business失败',
                 autoRemove: '邀请新工作区成员加入 Uber for Business',
                 autoInvite: '停用已从 Uber for Business 移除的工作区成员',
-                manageInvites: '管理邀请',
                 bannerTitle: 'Expensify + Uber 商务版',
                 bannerDescription: '连接 Uber for Business，以自动化整个组织的旅行和送餐费用。',
+                emptyContent: {
+                    title: '没有可显示的成员',
+                    subtitle: '我们到处寻找，但一无所获。',
+                },
             },
         },
         perDiem: {
