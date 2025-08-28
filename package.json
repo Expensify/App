@@ -130,11 +130,11 @@
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
     "expensify-common": "2.0.156",
-    "expo": "53.0.7",
+    "expo": "53.0.22",
     "expo-asset": "^11.1.2",
     "expo-av": "^15.1.5",
     "expo-font": "^13.0.4",
-    "expo-image": "^2.4.0",
+    "expo-image": "~2.4.0",
     "expo-image-manipulator": "^13.1.5",
     "fast-equals": "^5.2.2",
     "focus-trap-react": "^11.0.3",
@@ -385,7 +385,6 @@
     "send": "0.19.0",
     "regexpu-core": "5.3.2",
     "react": "19.0.0",
-    "expo": "53.0.7",
     "react-dom": "19.0.0"
   },
   "expo": {
