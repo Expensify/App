@@ -204,7 +204,7 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
             return;
         }
         if (response.pin) {
-            Onyx.merge(ONYXKEYS.ACTIVATED_CARD_PIN, response.pin);
+            Onyx.set(ONYXKEYS.ACTIVATED_CARD_PIN, response.pin);
         }
     });
 }
