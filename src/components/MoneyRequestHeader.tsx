@@ -227,12 +227,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy, report);
     }, [report, parentReport, policy, transaction]);
 
-    const hasUseDeclineDismissedRef = useRef(false);
-    const dismissModalAndUpdateUseDecline = () => {
-        setIsDeclineEducationalModalVisible(false);
-        if (!hasUseDeclineDismissedRef.current) {
+    const hasUseRejectDismissedRef = useRef(false);
+    const dismissModalAndUpdateUseReject = () => {
+        setIsRejectEducationalModalVisible(false);
+        if (!hasUseRejectDismissedRef.current) {
             dismissRejectUseExplanation();
-            hasUseDeclineDismissedRef.current = true;
+            hasUseRejectDismissedRef.current = true;
             if (parentReportAction) {
                 rejectMoneyRequestReason(parentReportAction);
             }
@@ -316,7 +316,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         rejectMoneyRequestReason(parentReportAction);
                     }
                 } else {
-                    setIsDeclineEducationalModalVisible(true);
+                    setIsRejectEducationalModalVisible(true);
                 }
             },
         },
@@ -420,10 +420,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 danger
                 shouldEnableNewFocusManagement
             />
-            {!!isDeclineEducationalModalVisible && (
+            {!!isRejectEducationalModalVisible && (
                 <HoldOrRejectEducationalModal
-                    onClose={dismissModalAndUpdateUseDecline}
-                    onConfirm={dismissModalAndUpdateUseDecline}
+                    onClose={dismissModalAndUpdateUseReject}
+                    onConfirm={dismissModalAndUpdateUseReject}
                 />
             )}
         </View>

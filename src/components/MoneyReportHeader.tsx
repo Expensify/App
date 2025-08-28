@@ -302,7 +302,7 @@ function MoneyReportHeader({
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
-    const [isDeclineEducationalModalVisible, setIsDeclineEducationalModalVisible] = useState(false);
+    const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
 
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
 
@@ -490,8 +490,8 @@ function MoneyReportHeader({
     };
 
     const statusBarProps = getStatusBarProps();
-    const dismissModalAndUpdateUseDecline = () => {
-        setIsDeclineEducationalModalVisible(false);
+    const dismissModalAndUpdateUseReject = () => {
+        setIsRejectEducationalModalVisible(false);
         dismissRejectUseExplanation();
         if (requestParentReportAction) {
                             rejectMoneyRequestReason(requestParentReportAction);
@@ -1050,7 +1050,7 @@ function MoneyReportHeader({
                         rejectMoneyRequestReason(requestParentReportAction);
                     }
                 } else {
-                    setIsDeclineEducationalModalVisible(true);
+                    setIsRejectEducationalModalVisible(true);
                 }
             },
             shouldShow: transactions.length === 1,
@@ -1402,10 +1402,10 @@ function MoneyReportHeader({
                 isVisible={isDownloadErrorModalVisible}
                 onClose={() => setIsDownloadErrorModalVisible(false)}
             />
-            {!!isDeclineEducationalModalVisible && (
+            {!!isRejectEducationalModalVisible && (
                 <HoldOrRejectEducationalModal
-                    onClose={dismissModalAndUpdateUseDecline}
-                    onConfirm={dismissModalAndUpdateUseDecline}
+                    onClose={dismissModalAndUpdateUseReject}
+                    onConfirm={dismissModalAndUpdateUseReject}
                 />
             )}
             <DecisionModal
