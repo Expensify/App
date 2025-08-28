@@ -12,6 +12,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import useSearchTypeMenuSections from './useSearchTypeMenuSections';
 import useOnyx from './useOnyx';
 import useSearchTypeMenuSections from './useSearchTypeMenuSections';
 
@@ -44,6 +45,7 @@ function useOnboardingFlowRouter() {
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (hybridApp) => hybridApp?.isSingleNewDotEntry, canBeMissing: true});
+    const {typeMenuSections} = useSearchTypeMenuSections();
 
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
@@ -69,9 +71,8 @@ function useOnboardingFlowRouter() {
                 const lastRoute = navigationState.routes.at(-1);
                 // Prevent duplicate navigation if the migrated user modal is already shown.
                 if (lastRoute?.name !== NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR) {
-                    const defaultCannedQuery = buildCannedSearchQuery();
-                    const query = defaultCannedQuery;
-                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
+                    const nonExploreTypeQuery = typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: nonExploreTypeQuery ?? buildCannedSearchQuery()}));
                     Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(true));
                 }
                 return;
