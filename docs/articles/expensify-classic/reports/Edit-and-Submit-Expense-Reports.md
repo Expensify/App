@@ -4,7 +4,6 @@ description: Learn how to create, edit, submit, and export expense reports—inc
 keywords: [expense reports, submit report, edit report, copilot, view collaborator reports, csv export, Expensify reports, report layout, report submission]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 You can easily edit and submit reports in Expensify to keep your expenses organized and ensure they go through the right approval process. 
 This guide walks you through adding expenses to a report, updating report details, submitting reports for approval, and understanding report statuses. It also covers how to view collaborator reports using Copilot access and exporting reports to CSV.
@@ -304,4 +303,3 @@ They appear as **negative expenses** (e.g., -$1.00) and reduce the report total.
 - **Invoice** – Sent between businesses to request payment.
 - **Bill** – Generated at the point of sale (e.g., in-store or service receipt).
 
-</div>

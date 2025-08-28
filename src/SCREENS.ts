@@ -59,6 +59,7 @@ const SCREENS = {
         ADVANCED_FILTERS_MERCHANT_RHP: 'Search_Advanced_Filters_Merchant_RHP',
         ADVANCED_FILTERS_REPORT_ID_RHP: 'Search_Advanced_Filters_ReportID_RHP',
         ADVANCED_FILTERS_AMOUNT_RHP: 'Search_Advanced_Filters_Amount_RHP',
+        ADVANCED_FILTERS_TOTAL_RHP: 'Search_Advanced_Filters_Total_RHP',
         ADVANCED_FILTERS_CATEGORY_RHP: 'Search_Advanced_Filters_Category_RHP',
         ADVANCED_FILTERS_KEYWORD_RHP: 'Search_Advanced_Filters_Keyword_RHP',
         ADVANCED_FILTERS_CARD_RHP: 'Search_Advanced_Filters_Card_RHP',
@@ -137,6 +138,7 @@ const SCREENS = {
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION: 'Settings_Wallet_ReportVirtualCardFraudConfirmation',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
+            ENABLE_GLOBAL_REIMBURSEMENTS: 'Settings_Wallet_Enable_Global_Reimbursements',
         },
 
         EXIT_SURVEY: {
@@ -637,6 +639,8 @@ const SCREENS = {
         DOWNGRADE: 'Workspace_Downgrade',
         PAY_AND_DOWNGRADE: 'Workspace_Pay_And_Downgrade',
         RECEIPT_PARTNERS: 'Workspace_Receipt_Partners',
+        RECEIPT_PARTNERS_INVITE: 'Workspace_Receipt_Partners_Invite',
+        RECEIPT_PARTNERS_INVITE_EDIT: 'Workspace_Receipt_Partners_Invite_Edit',
         RULES: 'Policy_Rules',
         REPORTS_DEFAULT_TITLE: 'Reports_Default_Title',
         RULES_AUTO_APPROVE_REPORTS_UNDER: 'Rules_Auto_Approve_Reports_Under',
@@ -741,6 +745,7 @@ const SCREENS = {
     },
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
+    REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO: 'Reimbursement_Account_Signer_Info',
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     SHARE: {
