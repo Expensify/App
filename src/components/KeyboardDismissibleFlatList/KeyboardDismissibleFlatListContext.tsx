@@ -35,7 +35,7 @@ const KeyboardDismissibleFlatListContext = React.createContext<KeyboardDismissib
     setListBehavior: () => {},
 });
 
-function KeyboardDismissibleFlatListContextProvider(props: PropsWithChildren) {
+function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildren) {
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
     const isModalVisible = useMemo(() => modal?.isPopover, [modal?.isPopover]);
 
@@ -141,7 +141,7 @@ function KeyboardDismissibleFlatListContextProvider(props: PropsWithChildren) {
         [height, offset, onScroll, scrollY, contentSizeHeight, layoutMeasurementHeight],
     );
 
-    return <KeyboardDismissibleFlatListContext.Provider value={value}>{props.children}</KeyboardDismissibleFlatListContext.Provider>;
+    return <KeyboardDismissibleFlatListContext.Provider value={value}>{children}</KeyboardDismissibleFlatListContext.Provider>;
 }
 
 KeyboardDismissibleFlatListContextProvider.propTypes = {
