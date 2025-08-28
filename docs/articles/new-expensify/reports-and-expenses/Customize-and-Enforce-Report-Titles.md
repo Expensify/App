@@ -3,7 +3,6 @@ title: Customize and Enforce Report Titles
 description: Learn how to set dynamic report titles using custom formulas and enforce naming consistency across your workspace.
 keywords: [New Expensify, default report title, report naming, enforce report title, report formula, dynamic report name, workspace report titles]
 ---
-<div id="new-expensify" markdown="1">
 
 Automatically generate standardized report titles across your workspace using formulas. Admins can pull in dynamic data like report type or member name, and even lock naming rules to prevent edits.
 
@@ -99,4 +98,3 @@ Add `|` functions to format results:
 | `substr:x:y` | `{report:policyname|substr:20|frontpart}` → Sales | Chains multiple functions |
 | `domain` | `{report:submit:from:email|domain}` → email.com | Returns email domain |
 
-</div>

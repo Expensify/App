@@ -3,7 +3,6 @@ title: Expensify Card Revenue-Share
 description: Learn how ExpensifyApproved! partner accountants can earn revenue by helping clients adopt the Expensify Card.
 keywords: [Expensify Card, revenue share, ExpensifyApproved! partner, accountant earnings]
 ---
-<div id="expensify-classic" markdown="1">
 
 ExpensifyApproved! Accounting Partners in the US can now earn additional income through the Expensify Card. Your firm will receive **0.5% of your clients’ total Expensify Card spend** as cashback -- More client spending means more revenue for your firm!
 
@@ -40,4 +39,3 @@ Once connected, all earned revenue will be deposited directly into this account.
 
 We understand that some firms have restrictions on receiving revenue share. If your firm cannot accept the cashback, you can choose to pass the 0.5% cashback directly to your client using your internal payment tools.
 
-</div>
