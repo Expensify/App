@@ -3,7 +3,6 @@ title: Manage Duplicate Expenses
 description: Learn how to identify and resolve potential duplicate expenses in New Expensify using the built-in Duplicate Detection tool.
 keywords: [New Expensify, duplicate expense, review duplicate, expense on hold, resolve duplicates, flagged request, Collect plan, Control plan]
 ---
-<div id="new-expensify" markdown="1">
 
 Duplicate Detection helps prevent accidental double-submission of expenses by flagging entries within a member's account that have the same **date** and **amount**. When a potential duplicate is found, a red dot appears in the left-hand menu or next to the chat where the expense lives, and the expense is placed on **hold**.
 
@@ -40,4 +39,3 @@ Yes, unless:
 - They were imported from a credit card.
 - They came from matching email receipts with different timestamps.
 
-</div>

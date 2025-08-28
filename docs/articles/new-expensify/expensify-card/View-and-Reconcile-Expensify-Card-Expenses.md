@@ -3,7 +3,6 @@ title: Filter and Reconcile the Expensify Cards
 description: Learn how to reconcile Expensify Card transactions using filters and exports in New Expensify, with tips for both card and payment reconciliation.
 keywords: [New Expensify, Expensify Card reconciliation, card filters, export transactions, payment reconciliation, report filters, posted date, settlement matching]
 ---
-<div id="new-expensify" markdown="1">
 
 Once employees use the Expensify Card, you can easily view and reconcile their transactions from the Reports page in New Expensify.
 
@@ -69,4 +68,3 @@ Not yet. A more automated reconciliation tool is in development, but for now, we
 
 Check out [Using Reports in New Expensify](https://docs.expensify.com/help/using-reports-in-new-expensify) for more details.
 
-</div>
