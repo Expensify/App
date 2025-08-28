@@ -315,7 +315,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             const transactionViolations = allReportViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] || [];
             return {
                 ...transaction,
-                violations: transactionViolations
+                violations: transactionViolations,
             };
         });
     }, [allReportTransactions, reportActions, allReportViolations]);

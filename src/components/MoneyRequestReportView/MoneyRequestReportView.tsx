@@ -114,7 +114,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
             const transactionViolations = allReportViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] || [];
             return {
                 ...transaction,
-                violations: transactionViolations
+                violations: transactionViolations,
             };
         });
     }, [reportTransactions, reportActions, allReportViolations]);
