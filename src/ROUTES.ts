@@ -184,6 +184,10 @@ const ROUTES = {
             return getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo);
         },
     },
+    CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT: {
+        route: ':policyID/connect-business-bank-account',
+        getRoute: (policyID: string) => `${policyID}/connect-business-bank-account` as const,
+    },
     PUBLIC_CONSOLE_DEBUG: {
         route: 'troubleshoot/console',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`troubleshoot/console`, backTo),
@@ -1301,10 +1305,6 @@ const ROUTES = {
             }
             return `workspaces/${policyID}/workflows` as const;
         },
-    },
-    WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT: {
-        route: 'workspaces/:policyID/workflows/connect-account',
-        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/connect-account` as const,
     },
     WORKSPACE_WORKFLOWS_APPROVALS_NEW: {
         route: 'workspaces/:policyID/workflows/approvals/new',

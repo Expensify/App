@@ -13,6 +13,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
 import {getBankAccountRoute, getPolicyExpenseChat, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
+import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 import {kycWallRef} from '@userActions/PaymentMethods';
 import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
 import {setKYCWallSource} from '@userActions/Wallet';
@@ -109,6 +110,8 @@ function KYCWall({
         setPositionAddPaymentMenu(position);
     }, [getAnchorPosition]);
 
+    const canLinkExistingBankAccount = (policy?: Policy) => policy !== undefined && getEligibleExistingBusinessBankAccounts(bankAccountList, policy.outputCurrency).length > 0;
+
     const selectPaymentMethod = useCallback(
         (paymentMethod?: PaymentMethod, policy?: Policy) => {
             if (paymentMethod) {
@@ -154,11 +157,17 @@ function KYCWall({
                     Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID));
                     return;
                 }
+
+                if (policy !== undefined && canLinkExistingBankAccount(policy)) {
+                    Navigation.navigate(ROUTES.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policy?.id));
+                    return;
+                }
+
                 const bankAccountRoute = addBankAccountRoute ?? getBankAccountRoute(chatReport);
                 Navigation.navigate(bankAccountRoute);
             }
         },
-        [addBankAccountRoute, addDebitCardRoute, chatReport, iouReport, onSelectPaymentMethod, formatPhoneNumber, lastPaymentMethod, allReports],
+        [onSelectPaymentMethod, iouReport, addDebitCardRoute, canLinkExistingBankAccount, addBankAccountRoute, chatReport, allReports, formatPhoneNumber, lastPaymentMethod],
     );
 
     /**

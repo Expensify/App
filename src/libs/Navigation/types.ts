@@ -1640,6 +1640,10 @@ type ReimbursementAccountNavigatorParamList = {
     };
 };
 
+type ConnectExistingBankAccountNavigatorParamList = {
+    [SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT]: {policyID?: string};
+};
+
 type WalletStatementNavigatorParamList = {
     [SCREENS.WALLET_STATEMENT_ROOT]: {
         /** The statement year and month as one string, i.e. 202110 */
@@ -1916,9 +1920,6 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.INVOICES]: {
@@ -2340,6 +2341,7 @@ export type {
     PublicScreensParamList,
     ReferralDetailsNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
+    ConnectExistingBankAccountNavigatorParamList,
     NewReportWorkspaceSelectionNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,

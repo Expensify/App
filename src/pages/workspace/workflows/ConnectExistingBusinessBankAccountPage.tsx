@@ -10,7 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
-import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type {ConnectExistingBankAccountNavigatorParamList} from '@navigation/types';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
 import {setWorkspaceReimbursement} from '@userActions/Policy/Policy';
@@ -20,9 +20,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type WorkspaceWorkflowsConnectExistingBankAccountPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT>;
+type ConnectExistingBusinessBankAccountPageProps = PlatformStackScreenProps<ConnectExistingBankAccountNavigatorParamList, typeof SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT>;
 
-function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWorkflowsConnectExistingBankAccountPageProps) {
+function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusinessBankAccountPageProps) {
     const policyID = route.params?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const policyName = policy?.name ?? '';
@@ -32,24 +32,28 @@ function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWork
     const {translate} = useLocalize();
 
     const handleAddBankAccountPress = () => {
-        navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+        navigateToBankAccountRoute(policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
     };
 
     const handleItemPress = ({methodID}: PaymentMethodPressHandlerParams) => {
+        if (policyID === undefined) {
+            return;
+        }
+
         const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
         setWorkspaceReimbursement({
-            policyID: route.params.policyID,
+            policyID,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
             bankAccountID: methodID ?? CONST.DEFAULT_NUMBER_ID,
             reimburserEmail: newReimburserEmail,
         });
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)));
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.closeRHPFlow());
     };
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={WorkspaceWorkflowsConnectExistingBankAccountPage.displayName}
+            testID={ConnectExistingBusinessBankAccountPage.displayName}
         >
             <HeaderWithBackButton
                 title={translate('bankAccount.addBankAccount')}
@@ -72,6 +76,6 @@ function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWork
     );
 }
 
-WorkspaceWorkflowsConnectExistingBankAccountPage.displayName = 'WorkspaceWorkflowsConnectExistingBankAccountPage';
+ConnectExistingBusinessBankAccountPage.displayName = 'ConnectExistingBusinessBankAccountPage';
 
-export default WorkspaceWorkflowsConnectExistingBankAccountPage;
+export default ConnectExistingBusinessBankAccountPage;
