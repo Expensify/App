@@ -300,8 +300,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                             sortOrder={undefined}
                                             sortBy={undefined}
                                             shouldShowYear={shouldShowYear}
-                                            isAmountColumnWide
-                                            isTaxAmountColumnWide
+                                            isAmountColumnWide={amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
+                                            isTaxAmountColumnWide={taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
                                             shouldShowSorting={false}
                                             columns={currentColumns}
                                             areAllOptionalColumnsHidden={areAllOptionalColumnsHidden ?? false}
