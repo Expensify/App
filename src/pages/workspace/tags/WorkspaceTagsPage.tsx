@@ -612,6 +612,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         connectedIntegration={connectedIntegration}
                         translatedText={translate('workspace.tags.importedFromAccountingSoftware')}
                         customTagName={policyTagLists.at(0)?.name ?? ''}
+                        isDisplayingTags
                     />
                 ) : (
                     <Text style={[styles.textNormal, styles.colorMuted]}>
