@@ -2138,7 +2138,7 @@ type AuthScreensParamList = SharedScreensParamList & {
         onClose?: () => void;
     };
     [SCREENS.PROFILE_AVATAR]: {
-        accountID: string;
+        accountID: number;
         backTo?: Routes;
         onShow?: () => void;
         onClose?: () => void;
