@@ -525,6 +525,8 @@ function AdvancedSearchFilters() {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, groupBy, translate);
             } else if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
+            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY) {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
             }
             return {
                 key,
