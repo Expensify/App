@@ -4,7 +4,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import SortableTableHeader from './SortableTableHeader';
 import type {SortableColumnName} from './types';
 
@@ -135,7 +135,7 @@ const SearchColumns = {
 
 type SearchTableHeaderProps = {
     columns: SortableColumnName[];
-    metadata: OnyxTypes.SearchResults['search'];
+    type: SearchDataTypes;
     sortBy?: SearchColumnType;
     sortOrder?: SortOrder;
     onSortPress: (column: SearchColumnType, order: SortOrder) => void;
@@ -149,7 +149,7 @@ type SearchTableHeaderProps = {
 
 function SearchTableHeader({
     columns,
-    metadata,
+    type,
     sortBy,
     sortOrder,
     onSortPress,
@@ -176,11 +176,11 @@ function SearchTableHeader({
         return;
     }
 
-    if (!SearchColumns[metadata.type]) {
+    if (!SearchColumns[type]) {
         return;
     }
 
-    const columnConfig = SearchColumns[metadata.type] ?? [];
+    const columnConfig = SearchColumns[type] ?? [];
 
     return (
         <SortableTableHeader

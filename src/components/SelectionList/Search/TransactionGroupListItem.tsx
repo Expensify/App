@@ -291,11 +291,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             </View>
                         ) : (
                             <>
-                                {!!transactionsSnapshot?.data && !!transactionsSnapshotMetadata && isLargeScreenWidth && (
+                                {isLargeScreenWidth && (
                                     <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader, styles.bgTransparent, styles.pl9, styles.pr3]}>
                                         <SearchTableHeader
                                             canSelectMultiple
-                                            metadata={transactionsSnapshotMetadata}
+                                            type={CONST.SEARCH.DATA_TYPES.EXPENSE}
                                             onSortPress={() => {}}
                                             sortOrder={undefined}
                                             sortBy={undefined}

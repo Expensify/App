@@ -831,7 +831,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                             <SearchTableHeader
                                 canSelectMultiple={canSelectMultiple}
                                 columns={columnsToShow}
-                                metadata={searchResults?.search}
+                                type={searchResults?.search.type}
                                 onSortPress={onSortPress}
                                 sortOrder={sortOrder}
                                 sortBy={sortBy}
