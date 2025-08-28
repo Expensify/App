@@ -67,6 +67,7 @@ const FILTER_KEYS = {
     REIMBURSABLE: 'reimbursable',
     BILLABLE: 'billable',
     ACTION: 'action',
+    HAS: 'has',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -121,6 +122,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.GROUP_BY,
         FILTER_KEYS.FEED,
         FILTER_KEYS.ACTION,
+        FILTER_KEYS.HAS,
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
         FILTER_KEYS.TYPE,
@@ -296,6 +298,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.REIMBURSABLE]: string;
         [FILTER_KEYS.BILLABLE]: string;
         [FILTER_KEYS.ACTION]: string;
+        [FILTER_KEYS.HAS]: string[];
     }
 >;
 

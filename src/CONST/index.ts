@@ -6369,6 +6369,9 @@ const CONST = {
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
         },
+        HAS_VALUES: {
+            RECEIPT: 'receipt',
+        },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
             APPROVE: 'approve',
