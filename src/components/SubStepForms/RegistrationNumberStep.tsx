@@ -76,7 +76,7 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
             style={[styles.mh5, styles.flexGrow1]}
             shouldHideFixErrorsAlert
         >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.whatsTheBusinessRegistrationNumber')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.whatsTheBusinessRegistrationNumber', {country})}</Text>
             <InputWrapper
                 InputComponent={TextInput}
                 label={translate('businessInfoStep.registrationNumber')}

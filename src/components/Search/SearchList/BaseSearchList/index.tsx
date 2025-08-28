@@ -27,11 +27,7 @@ function BaseSearchList({
     ListFooterComponent,
     onViewableItemsChanged,
     onLayout,
-    estimatedItemSize,
-    overrideItemLayout,
-    estimatedListSize,
     contentContainerStyle,
-    calculatedListHeight,
     flattenedItemsLength,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
@@ -122,11 +118,8 @@ function BaseSearchList({
             onLayout={onLayout}
             removeClippedSubviews
             drawDistance={1000}
-            estimatedItemSize={estimatedItemSize}
-            overrideItemLayout={overrideItemLayout}
-            estimatedListSize={estimatedListSize}
             contentContainerStyle={contentContainerStyle}
-            overrideProps={{estimatedHeightSize: calculatedListHeight}}
+            maintainVisibleContentPosition={{disabled: true}}
         />
     );
 }
