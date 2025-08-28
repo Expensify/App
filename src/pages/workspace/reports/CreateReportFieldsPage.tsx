@@ -122,7 +122,7 @@ function WorkspaceCreateReportFieldsPage({
                     onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider
-                    forwardedRef={formRef}
+                    ref={formRef}
                     style={[styles.mh5, styles.flex1]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
                     onSubmit={submitForm}

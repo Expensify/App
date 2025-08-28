@@ -105,7 +105,7 @@ type MoneyRequestAmountInputProps = {
     shouldWrapInputInContainer?: boolean;
 
     /** Reference to the outer element */
-    forwardedRef?: ForwardedRef<BaseTextInputRef>;
+    ref?: ForwardedRef<BaseTextInputRef>;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix'>;
 
 type Selection = {
@@ -143,7 +143,7 @@ function MoneyRequestAmountInput({
     shouldApplyPaddingToContainer = false,
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
-    forwardedRef,
+    ref,
     ...props
 }: MoneyRequestAmountInputProps) {
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -183,24 +183,24 @@ function MoneyRequestAmountInput({
             onSymbolButtonPress={onCurrencyButtonPress}
             onInputChange={onAmountChange}
             onBlur={formatAmount}
-            forwardedRef={(ref) => {
-                if (typeof forwardedRef === 'function') {
-                    forwardedRef(ref);
-                } else if (forwardedRef?.current) {
-                    // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
-                    forwardedRef.current = ref;
+            ref={(newRef) => {
+                if (typeof ref === 'function') {
+                    ref(newRef);
+                } else if (ref?.current) {
+                    // eslint-disable-next-line no-param-reassign
+                    ref.current = newRef;
                 }
                 // eslint-disable-next-line react-compiler/react-compiler
-                textInput.current = ref;
+                textInput.current = newRef;
             }}
-            numberFormRef={(ref) => {
+            numberFormRef={(newRef) => {
                 if (typeof moneyRequestAmountInputRef === 'function') {
-                    moneyRequestAmountInputRef(ref);
+                    moneyRequestAmountInputRef(newRef);
                 } else if (moneyRequestAmountInputRef && 'current' in moneyRequestAmountInputRef) {
                     // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
-                    moneyRequestAmountInputRef.current = ref;
+                    moneyRequestAmountInputRef.current = newRef;
                 }
-                numberFormRef.current = ref;
+                numberFormRef.current = newRef;
             }}
             symbol={getLocalizedCurrencySymbol(currency) ?? ''}
             symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}

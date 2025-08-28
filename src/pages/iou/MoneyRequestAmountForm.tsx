@@ -73,7 +73,7 @@ function MoneyRequestAmountForm({
     shouldKeepUserInput = false,
     chatReportID,
     hideCurrencySymbol = false,
-    forwardedRef,
+    ref,
 }: MoneyRequestAmountFormProps) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
@@ -217,14 +217,14 @@ function MoneyRequestAmountForm({
                     setFormError('');
                 }}
                 shouldShowBigNumberPad={canUseTouchScreen}
-                forwardedRef={(ref) => {
-                    if (typeof forwardedRef === 'function') {
-                        forwardedRef(ref);
-                    } else if (forwardedRef && 'current' in forwardedRef) {
-                        // eslint-disable-next-line no-param-reassign, react-compiler/react-compiler
-                        forwardedRef.current = ref;
+                ref={(newRef) => {
+                    if (typeof ref === 'function') {
+                        ref(newRef);
+                    } else if (ref && 'current' in ref) {
+                        // eslint-disable-next-line no-param-reassign
+                        ref.current = newRef;
                     }
-                    textInput.current = ref;
+                    textInput.current = newRef;
                 }}
                 moneyRequestAmountInputRef={moneyRequestAmountInputRef}
                 shouldKeepUserInput={shouldKeepUserInput}
