@@ -288,7 +288,7 @@ function TransactionItemRow({
                             merchantOrDescription={description}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
-                            shouldRenderAsHTML
+                            isDescription
                         />
                     )}
                 </View>
@@ -429,6 +429,7 @@ function TransactionItemRow({
                                     merchantOrDescription={merchantOrDescription}
                                     shouldShowTooltip={shouldShowTooltip}
                                     shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    isDescription={!merchant}
                                 />
                                 <TotalCell
                                     transactionItem={transactionItem}
