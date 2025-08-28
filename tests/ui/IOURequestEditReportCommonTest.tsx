@@ -84,10 +84,10 @@ describe('IOURequestEditReportCommon', () => {
             return waitForBatchedUpdates();
         });
 
-        afterEach(() => {
-            Onyx.clear();
+        afterEach(async () => {
+            await Onyx.clear();
             jest.clearAllMocks();
-            return waitForBatchedUpdates();
+            await waitForBatchedUpdates();
         });
 
         it('should not show DotIndicator when the report has brickRoadIndicator', async () => {

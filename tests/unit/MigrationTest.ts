@@ -20,10 +20,10 @@ describe('Migrations', () => {
         return waitForBatchedUpdates();
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
-        Onyx.clear();
-        return waitForBatchedUpdates();
+        await Onyx.clear();
+        await waitForBatchedUpdates();
     });
 
     describe('KeyReportActionsDraftByReportActionID', () => {

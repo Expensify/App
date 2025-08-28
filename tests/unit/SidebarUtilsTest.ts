@@ -59,7 +59,7 @@ describe('SidebarUtils', () => {
     });
 
     afterAll(async () => {
-        Onyx.clear();
+        await Onyx.clear();
         await waitForBatchedUpdates();
     });
 

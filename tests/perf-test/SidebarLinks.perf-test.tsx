@@ -67,8 +67,8 @@ describe('SidebarLinks', () => {
         TestHelper.signInWithTestUser(1, 'email1@test.com', undefined, undefined, 'One').then(waitForBatchedUpdates);
     });
 
-    afterEach(() => {
-        Onyx.clear();
+    afterEach(async () => {
+        await Onyx.clear();
     });
 
     test('[SidebarLinks] should render Sidebar with 500 reports stored', async () => {

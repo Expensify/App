@@ -39,14 +39,12 @@ xdescribe('Sidebar', () => {
     );
 
     beforeEach(() => {
+        Onyx.clear();
         // Wrap Onyx each onyx action with waitForBatchedUpdates
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         // Initialize the network key for OfflineWithFeedback
         return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
     });
-
-    // clear out Onyx after each test so that each test starts with a clean slate
-    afterEach(() => Onyx.clear());
 
     describe('in default (most recent) mode', () => {
         it('excludes a report with no participants', () => {

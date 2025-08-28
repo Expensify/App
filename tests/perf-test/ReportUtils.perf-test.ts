@@ -27,7 +27,6 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const getMockedReports = (length = 500) =>
@@ -69,8 +68,8 @@ describe('ReportUtils', () => {
         });
     });
 
-    afterAll(() => {
-        Onyx.clear();
+    afterAll(async () => {
+        await Onyx.clear();
     });
 
     test('[ReportUtils] findLastAccessedReport on 2k reports and policies', async () => {
@@ -128,7 +127,7 @@ describe('ReportUtils', () => {
         const shouldFallbackToHidden = true;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getDisplayNamesWithTooltips(personalDetails, isMultipleParticipantReport, localeCompare, shouldFallbackToHidden));
+        await measureFunction(() => getDisplayNamesWithTooltips(personalDetails, isMultipleParticipantReport, shouldFallbackToHidden));
     });
 
     test('[ReportUtils] getReportPreviewMessage on 1k policies', async () => {

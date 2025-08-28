@@ -99,8 +99,8 @@ describe('OptionsListUtils', () => {
         });
     });
 
-    afterAll(() => {
-        Onyx.clear();
+    afterAll(async () => {
+        await Onyx.clear();
     });
 
     /* Testing getSearchOptions */

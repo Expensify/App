@@ -86,7 +86,7 @@ describe('LHNOptionsList', () => {
     });
 
     afterEach(() => {
-        return Onyx.clear();
+        Onyx.clear();
     });
 
     it('shows context menu on long press', async () => {

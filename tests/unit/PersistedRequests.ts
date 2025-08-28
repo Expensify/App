@@ -25,9 +25,9 @@ beforeEach(() => {
     PersistedRequests.save(request);
 });
 
-afterEach(() => {
-    PersistedRequests.clear();
-    Onyx.clear();
+afterEach(async () => {
+    await PersistedRequests.clear();
+    await Onyx.clear();
 });
 
 describe('PersistedRequests', () => {

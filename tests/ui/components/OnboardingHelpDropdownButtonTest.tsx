@@ -87,9 +87,9 @@ describe('OnboardingHelpDropdownButton', () => {
         return waitForBatchedUpdates();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         jest.clearAllMocks();
-        Onyx.clear();
+        await Onyx.clear();
         return waitForBatchedUpdates();
     });
 

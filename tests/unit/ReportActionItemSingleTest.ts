@@ -24,8 +24,8 @@ describe('ReportActionItemSingle', () => {
     });
 
     // Clear out Onyx after each test so that each test starts with a clean slate
-    afterEach(() => {
-        Onyx.clear();
+    afterEach(async () => {
+        await Onyx.clear();
     });
 
     describe('when the Report is a DM chat', () => {

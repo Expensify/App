@@ -33,98 +33,92 @@ describe('EmojiTest', () => {
         expect(emojiMatched).toBe(true);
     });
 
-    it('matches emojis for different variants', () => {
-        // Given an emoji that has the default Unicode representation when we check if it contains only emoji then it should return true
-        expect(EmojiUtils.containsOnlyEmojis('👉')).toBe(true);
-        expect(EmojiUtils.containsOnlyEmojis('😪️')).toBe(true);
-        expect(EmojiUtils.containsOnlyEmojis('😎️')).toBe(true);
+    describe('containsOnlyEmojis - various emoji formats', () => {
+        test.each([
+            // Given an emoji that has the default Unicode representation when we check if it contains only emoji then it should return true
+            ['👉', true],
+            ['😪️', true],
+            ['😎️', true],
 
-        // Given an emoji that different cross - platform variations when we check if it contains only emoji then it should return true
-        expect(EmojiUtils.containsOnlyEmojis('🔫️')).toBe(true);
-        expect(EmojiUtils.containsOnlyEmojis('🛍')).toBe(true);
-        expect(EmojiUtils.containsOnlyEmojis('🕍')).toBe(true);
+            // Given an emoji that different cross - platform variations when we check if it contains only emoji then it should return true
+            ['🔫️', true],
+            ['🛍', true],
+            ['🕍', true],
 
-        // Given an emoji that is symbol/numerical when we check if it contains only emoji then it should return true
-        expect(EmojiUtils.containsOnlyEmojis('*️⃣')).toBe(true);
-        expect(EmojiUtils.containsOnlyEmojis('1️⃣')).toBe(true);
+            // Given an emoji that is symbol/numerical when we check if it contains only emoji then it should return true
+            ['*️⃣', true],
+            ['1️⃣', true],
 
-        // Given an emoji that has text-variant when we check if it contains only emoji then it should return true
-        expect(EmojiUtils.containsOnlyEmojis('❤️')).toBe(true);
-        expect(EmojiUtils.containsOnlyEmojis('⁉️')).toBe(true);
-        expect(EmojiUtils.containsOnlyEmojis('✳️')).toBe(true);
-        expect(EmojiUtils.containsOnlyEmojis('☠️')).toBe(true);
+            // Given an emoji that has text-variant when we check if it contains only emoji then it should return true
+            ['❤️', true],
+            ['⁉️', true],
+            ['✳️', true],
+            ['☠️', true],
 
-        // Given an emoji that has skin tone attached when we check if it contains only emoji then it should return true
-        expect(EmojiUtils.containsOnlyEmojis('👶🏽')).toBe(true);
-        expect(EmojiUtils.containsOnlyEmojis('👩🏾')).toBe(true);
-        expect(EmojiUtils.containsOnlyEmojis('👊🏾')).toBe(true);
+            // Given an emoji that has skin tone attached when we check if it contains only emoji then it should return true
+            ['👶🏽', true],
+            ['👩🏾', true],
+            ['👊🏾', true],
 
-        // Given an emoji that is composite(family) with 4+ unicode pairs when we check if it contains only emoji then it should return true
-        expect(EmojiUtils.containsOnlyEmojis('👨‍👩‍👦️')).toBe(true);
-        expect(EmojiUtils.containsOnlyEmojis('👩‍👩‍👧‍👦️')).toBe(true);
+            // Given an emoji that is composite(family) with 4+ unicode pairs when we check if it contains only emoji then it should return true
+            ['👨‍👩‍👦️', true],
+            ['👩‍👩‍👧‍👦️', true],
 
-        // Given an emoji that has a length of 2 (flags) when we check if it contains only emoji then it should return true
-        expect(EmojiUtils.containsOnlyEmojis('🇺🇲')).toBe(true);
-        expect(EmojiUtils.containsOnlyEmojis('🇮🇳')).toBe(true);
-        expect(EmojiUtils.containsOnlyEmojis('🇺🇦️')).toBe(true);
+            // Given an emoji that has a length of 2 (flags) when we check if it contains only emoji then it should return true
+            ['🇺🇲', true],
+            ['🇮🇳', true],
+            ['🇺🇦️', true],
 
-        // Given an emoji that belongs to the new version of the dataset, when we check if it contains only emoji then it should return true
-        expect(EmojiUtils.containsOnlyEmojis('🏋️')).toBe(true);
-        expect(EmojiUtils.containsOnlyEmojis('🧚‍♀️')).toBe(true);
-        expect(EmojiUtils.containsOnlyEmojis('⚰️')).toBe(true);
+            // Given an emoji that belongs to the new version of the dataset, when we check if it contains only emoji then it should return true
+            ['🏋️', true],
+            ['🧚‍♀️', true],
+            ['⚰️', true],
 
-        // Given an input when we check only single emoji with text, then it should return false
-        expect(EmojiUtils.containsOnlyEmojis('😄 is smiley')).toBe(false);
+            // Mixed emoji + text (false cases)
+            ['😄 is smiley', false],
+            ['Hi 😄👋', false],
 
-        // Given an input when we check text and multiple emojis, then it should return false
-        expect(EmojiUtils.containsOnlyEmojis('Hi 😄👋')).toBe(false);
+            // Multiple emojis (true case)
+            ['😄👋', true],
 
-        // Given an input when we only multiple emojis, then it should return true
-        expect(EmojiUtils.containsOnlyEmojis('😄👋')).toBe(true);
+            // Multiple emojis with extra whitespace (still true)
+            ['😄  👋', true],
 
-        // Given an input when we check only multiple emojis with additional whitespace, then it should return false
-        expect(EmojiUtils.containsOnlyEmojis('😄  👋')).toBe(true);
-
-        // Given an emoji with an LTR unicode, when we check if it contains only emoji, then it should return true
-        expect(EmojiUtils.containsOnlyEmojis('\u2066😄')).toBe(true);
+            // Given an emoji with an LTR unicode, when we check if it contains only emoji, then it should return true
+            ['\u2066😄', true],
+        ])('should return %s => %s', (input, expected) => {
+            expect(EmojiUtils.containsOnlyEmojis(input)).toBe(expected);
+        });
     });
 
-    it('will not match for non emoji', () => {
-        // Given a non-emoji input, when we check if it contains only emoji, then it should return false
-        expect(EmojiUtils.containsOnlyEmojis('1')).toBe(false);
-        expect(EmojiUtils.containsOnlyEmojis('a')).toBe(false);
-        expect(EmojiUtils.containsOnlyEmojis('~')).toBe(false);
-        expect(EmojiUtils.containsOnlyEmojis('𝕥𝕖𝕤𝕥')).toBe(false);
-        expect(EmojiUtils.containsOnlyEmojis('𝓣𝓮𝓼𝓽')).toBe(false);
-        expect(EmojiUtils.containsOnlyEmojis('𝕿𝖊𝖘𝖙')).toBe(false);
-        expect(EmojiUtils.containsOnlyEmojis('🆃🅴🆂🆃')).toBe(false);
-        expect(EmojiUtils.containsOnlyEmojis('🅃🄴🅂🅃')).toBe(false);
+    test.each([
+        ['😄 is smiley'],
+        ['Hi 😄👋'],
+        ['1'],
+        ['a'],
+        ['~'],
+        ['𝕥𝕖𝕤𝕥'],
+        ['𝓣𝓮𝓼𝓽'],
+        ['𝕿𝖊𝖘𝖙'],
+        ['🆃🅴🆂🆃'],
+        ['🅃🄴🅂🅃'],
+    ])('returns false for invalid emoji string "%s"', (input) => {
+        expect(EmojiUtils.containsOnlyEmojis(input)).toBe(false);
     });
 
-    it('replaces an emoji code with an emoji and a space', () => {
-        const text = 'Hi :smile:';
-        expect(EmojiUtils.replaceEmojis(text).text).toBe('Hi 😄 ');
+
+    describe('EmojiUtils.replaceEmojis text output', () => {
+        test.each([
+            ['Hi :smile:', 'Hi 😄 '],
+            ['Hi :smile::wave:', 'Hi 😄👋 '],
+            ['Hi :smile::wave:space after last emoji', 'Hi 😄👋 space after last emoji'],
+            ['Hi :smile::wave: space after last emoji', 'Hi 😄👋 space after last emoji'],
+            ['Hi :smile::wave:space when :invalidemoji: present', 'Hi 😄👋 space when :invalidemoji: present'],
+        ])('replaces emoji codes in "%s"', (input, expected) => {
+            expect(EmojiUtils.replaceEmojis(input).text).toBe(expected);
+        });
     });
 
-    it('will add a space after the last emoji', () => {
-        const text = 'Hi :smile::wave:';
-        expect(EmojiUtils.replaceEmojis(text).text).toBe('Hi 😄👋 ');
-    });
-
-    it('will add a space after the last emoji if there is text after it', () => {
-        const text = 'Hi :smile::wave:space after last emoji';
-        expect(EmojiUtils.replaceEmojis(text).text).toBe('Hi 😄👋 space after last emoji');
-    });
-
-    it('will add a space after the last emoji if there is invalid emoji after it', () => {
-        const text = 'Hi :smile::wave:space when :invalidemoji: present';
-        expect(EmojiUtils.replaceEmojis(text).text).toBe('Hi 😄👋 space when :invalidemoji: present');
-    });
-
-    it('will not add a space after the last emoji if there if last emoji is immediately followed by a space', () => {
-        const text = 'Hi :smile::wave: space after last emoji';
-        expect(EmojiUtils.replaceEmojis(text).text).toBe('Hi 😄👋 space after last emoji');
-    });
 
     it('will return correct cursor position', () => {
         const text = 'Hi :smile: there :wave:!';

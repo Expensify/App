@@ -41,15 +41,11 @@ describe('Sidebar', () => {
     });
 
     beforeEach(() => {
+        Onyx.clear();
         // Wrap Onyx each onyx action with waitForBatchedUpdates
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         // Initialize the network key for OfflineWithFeedback
         return TestHelper.signInWithTestUser(1, 'email1@test.com', undefined, undefined, 'One').then(() => Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}));
-    });
-
-    // Clear out Onyx after each test so that each test starts with a clean slate
-    afterEach(() => {
-        Onyx.clear();
     });
 
     describe('in default mode', () => {
@@ -215,7 +211,7 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4], 1);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
+           addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
             addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
             addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
 
@@ -352,7 +348,7 @@ describe('Sidebar', () => {
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
             addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');        
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -431,7 +427,7 @@ describe('Sidebar', () => {
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
             addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');            
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,

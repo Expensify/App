@@ -39,7 +39,7 @@ describe('getSecondaryAction', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        Onyx.clear();
+        await Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS, [APPROVER_ACCOUNT_ID]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_EMAIL}});
     });
@@ -1106,7 +1106,7 @@ describe('getSecondaryExportReportActions', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        Onyx.clear();
+        await Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
@@ -1300,7 +1300,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        Onyx.clear();
+        await Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
@@ -1333,7 +1333,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
 
-    it('includes REMOVE HOLD option for transaction thread report admin if he is not the holder', () => {
+       it('includes REMOVE HOLD option for transaction thread report admin if he is not the holder', () => {
         const report = {} as unknown as Report;
         const transactionThreadReport = {} as unknown as Report;
         const policy = {
