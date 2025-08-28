@@ -46,10 +46,10 @@ jobs:
         run: |
           set -e
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
-
+          echo "MORWA"
+          git diff --name-only main
           # Store list of new test files before switching branches
           NEW_TEST_FILES=$(git diff --name-only --diff-filter=A "$COMMIT_HASH" "${{ github.sha }}" -- 'tests/perf-test/**/*.perf-test.*' || true)
-          git diff --name-only --diff-filter=A "$COMMIT_HASH" "${{ github.sha }}" -- 'tests/perf-test/**/*.perf-test.*'
           if [ -n "$NEW_TEST_FILES" ]; then
             echo "New performance test files detected: $NEW_TEST_FILES"
           fi
