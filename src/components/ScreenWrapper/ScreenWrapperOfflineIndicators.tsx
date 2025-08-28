@@ -1,6 +1,5 @@
 import type {ReactNode} from 'react';
 import React, {useMemo} from 'react';
-import {Platform} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
@@ -11,6 +10,7 @@ import useNetwork from '@hooks/useNetwork';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 
 type ScreenWrapperOfflineIndicatorsProps = {
@@ -117,17 +117,9 @@ function ScreenWrapperOfflineIndicators({
         [isSoftKeyNavigation, smallScreenOfflineIndicatorBackgroundStyle, offlineIndicatorStyle, styles.pl5],
     );
 
-    const animatedIosStyles = useAnimatedStyle(() => {
-        if (Platform.OS !== 'ios') {
-            return {};
-        }
+    const platform = getPlatform();
 
-        return {
-            position: 'absolute',
-            bottom: 0,
-            transform: [{translateY: keyboardHeight.get() > paddingBottom ? -keyboardHeight.get() + paddingBottom : 0}],
-        };
-    });
+    const animatedIosStyles = useAnimatedStyle(() => StyleUtils.getOfflineIndicatorStyles(platform, keyboardHeight, paddingBottom));
 
     return (
         <>
