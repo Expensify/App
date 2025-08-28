@@ -26,10 +26,6 @@ function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>): boolean {
         return false;
     }
 
-    if (beta === CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) {
-        return false;
-    }
-
     return !!betas?.includes(beta) || canUseAllBetas(betas);
 }
 

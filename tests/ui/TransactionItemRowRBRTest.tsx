@@ -5,7 +5,6 @@ import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import type {SearchColumnType} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import CONST from '@src/CONST';
@@ -33,7 +32,7 @@ const defaultProps = {
     taxAmountColumnSize: CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
     onCheckboxPress: jest.fn(),
     shouldShowCheckbox: false,
-    columns: Object.values(CONST.REPORT.TRANSACTION_LIST.COLUMNS) as SearchColumnType[],
+    columns: Object.values(CONST.REPORT.TRANSACTION_LIST.COLUMNS),
     onButtonPress: jest.fn(),
     isParentHovered: false,
 };

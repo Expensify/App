@@ -7,9 +7,8 @@ import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SearchColumnType, SortOrder} from '@components/Search/types';
+import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLocalize from '@hooks/useLocalize';
@@ -23,8 +22,8 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
-import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
+import {getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
+import {compareValues, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
@@ -111,7 +110,6 @@ function MoneyRequestReportTransactionList({
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
-    const session = useSession();
 
     const hasPendingAction = useMemo(() => {
         return transactions.some(getTransactionPendingAction);
@@ -161,11 +159,6 @@ function MoneyRequestReportTransactionList({
                 shouldBeHighlighted: newTransactions?.includes(transaction),
             }));
     }, [newTransactions, sortBy, sortOrder, transactions, localeCompare]);
-
-    const columnsToShow = useMemo(() => {
-        const columns = getColumnsToShow(session?.accountID, transactions, true);
-        return (Object.keys(columns) as SearchColumnType[]).filter((column) => columns[column]);
-    }, [transactions, session?.accountID]);
 
     const navigateToTransaction = useCallback(
         (activeTransactionID: string) => {
@@ -269,7 +262,6 @@ function MoneyRequestReportTransactionList({
                             shouldShowSorting
                             sortBy={sortBy}
                             sortOrder={sortOrder}
-                            columns={columnsToShow}
                             dateColumnSize={dateColumnSize}
                             amountColumnSize={amountColumnSize}
                             taxAmountColumnSize={taxAmountColumnSize}
@@ -280,6 +272,7 @@ function MoneyRequestReportTransactionList({
 
                                 setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
                             }}
+                            isIOUReport={isIOUReport(report)}
                         />
                     )}
                 </View>
@@ -290,7 +283,6 @@ function MoneyRequestReportTransactionList({
                         <MoneyRequestReportTransactionItem
                             key={transaction.transactionID}
                             transaction={transaction}
-                            columns={columnsToShow}
                             report={report}
                             isSelectionModeEnabled={isMobileSelectionModeEnabled}
                             toggleTransaction={toggleTransaction}

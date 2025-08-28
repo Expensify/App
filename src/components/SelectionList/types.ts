@@ -255,6 +255,15 @@ type TransactionListItemType = ListItem &
         /** Whether we should show the merchant column */
         shouldShowMerchant: boolean;
 
+        /** Whether we should show the category column */
+        shouldShowCategory: boolean;
+
+        /** Whether we should show the tag column */
+        shouldShowTag: boolean;
+
+        /** Whether we should show the tax column */
+        shouldShowTax: boolean;
+
         /** Whether we should show the transaction year.
          * This is true if at least one transaction in the dataset was created in past years
          */
@@ -468,8 +477,6 @@ type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
-    columns?: SearchColumnType[];
-    areAllOptionalColumnsHidden?: boolean;
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -480,8 +487,6 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
     policies?: OnyxCollection<Policy>;
-    columns?: SearchColumnType[];
-    areAllOptionalColumnsHidden?: boolean;
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
