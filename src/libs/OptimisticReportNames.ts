@@ -1,14 +1,14 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import Timing from './actions/Timing';
-import type {FormulaContext} from './Formula';
 import {compute, FORMULA_PART_TYPES, parse} from './Formula';
+import type {FormulaContext} from './Formula';
 import Log from './Log';
 import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import Performance from './Performance';
@@ -377,5 +377,5 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     return updates.concat(additionalUpdates);
 }
 
-export {computeReportNameIfNeeded, getReportByTransactionID, shouldComputeReportName, updateOptimisticReportNamesFromUpdates};
+export {updateOptimisticReportNamesFromUpdates, computeReportNameIfNeeded, shouldComputeReportName, getReportByTransactionID};
 export type {UpdateContext};
