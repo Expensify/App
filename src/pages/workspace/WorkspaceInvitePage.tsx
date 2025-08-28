@@ -220,7 +220,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         });
 
         return {sections: sectionsArr, firstKeyForList: firstKey};
-    }, [areOptionsInitialized, selectedOptions, personalDetails, translate, usersToInvite]);
+    }, [debouncedSearchTerm, areOptionsInitialized, selectedOptions, personalDetails, translate, usersToInvite]);
 
     const toggleOption = (option: MemberForList) => {
         clearErrors(route.params.policyID);

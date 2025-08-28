@@ -79,7 +79,6 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         return filterAndOrderOptions(defaultOptionsModified, cleanSearchTerm, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            exc,
         });
     }, [cleanSearchTerm, selectedOptions, defaultOptionsModified]);
 
@@ -106,7 +105,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             headerMessage: message,
             firstKeyForList: firstKey,
         };
-    }, [areOptionsInitialized, chatOptions.recentReports, didScreenTransitionEnd, reportAttributesDerived, translate]);
+    }, [areOptionsInitialized, chatOptions.recentReports, didScreenTransitionEnd, translate]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());

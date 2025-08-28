@@ -855,6 +855,7 @@ function BaseSelectionList<TItem extends ListItem>(
         flattenedSections.allOptions,
         isItemSelected,
         slicedSections.length,
+        isInitialSectionListRender,
     ]);
 
     useEffect(

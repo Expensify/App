@@ -105,10 +105,14 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         return {
             ...defaultOptions,
             recentReports: defaultOptions.recentReports.map((item) =>
-                attendees.some((attendee) => attendee?.email === item.login || attendee?.accountID === item.accountID) ? {...item, isSelected: true} : item,
+                attendees.some((attendee) => (attendee?.email && attendee.email === item.login) || (attendee?.accountID && attendee.accountID === item.accountID))
+                    ? {...item, isSelected: true}
+                    : item,
             ),
             personalDetails: defaultOptions.personalDetails.map((item) =>
-                attendees.some((attendee) => attendee?.email === item.login || attendee?.accountID === item.accountID) ? {...item, isSelected: true} : item,
+                attendees.some((attendee) => (attendee?.email && attendee.email === item.login) || (attendee?.accountID && attendee.accountID === item.accountID))
+                    ? {...item, isSelected: true}
+                    : item,
             ),
         };
     }, [defaultOptions, attendees]);
@@ -154,7 +158,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         const restOfRecents = [...chatOptions.recentReports].slice(5);
         const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
 
-        // Attendees whos data does not exist in chatOptions
+        // Attendees whose data does not exist in chatOptions
         const filteredAttendees = attendees
             .filter(
                 (attendee) =>

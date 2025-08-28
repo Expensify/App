@@ -197,7 +197,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
         const sectionsList: Section[] = [];
         let firstKey = '';
 
-        // Attendees whos data does not exist in chatOptions
+        // Participents whose data does not exist in chatOptions
         const filteredSelectedOptions = selectedOptions
             .filter((participent) => !recentReports.some((item) => participent.login === item.login) && !personalDetails.some((item) => participent.login === item.login))
             .map((participent) => ({
@@ -251,7 +251,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
         }
 
         return [sectionsList, firstKey];
-    }, [selectedOptions, recentReports, personalDetails, translate, userToInvite]);
+    }, [selectedOptions, debouncedSearchTerm, reportAttributesDerived, recentReports, personalDetails, translate, userToInvite]);
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
