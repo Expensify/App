@@ -57,16 +57,16 @@ fi
 # Check if the argument is one of the desired values
 case "$BUILD" in
     --ios)
-        npx rnef run:ios --configuration $IOS_MODE --scheme "$SCHEME"
+        npx rock run:ios --configuration $IOS_MODE --scheme "$SCHEME"
         ;;
     --ipad)
-        npx rnef run:ios --simulator "iPad Pro (12.9-inch) (6th generation)" --configuration $IOS_MODE --scheme "$SCHEME"
+        npx rock run:ios --simulator "iPad Pro (12.9-inch) (6th generation)" --configuration $IOS_MODE --scheme "$SCHEME"
         ;;
     --ipad-sm)
-        npx rnef run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME"
+        npx rock run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME"
         ;;
     --android)
-        npx rnef run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only
+        npx rock run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only
         ;;
     *)
         print_error_and_exit
