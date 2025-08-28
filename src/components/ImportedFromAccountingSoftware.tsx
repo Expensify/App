@@ -28,7 +28,7 @@ type ImportedFromAccountingSoftwareProps = {
     translatedText: string;
 
     /** The custom tag name */
-    customTagName: string;
+    customTagName?: string;
 
     /** Whether we are displaying the tags */
     isDisplayingTags?: boolean;
