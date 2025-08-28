@@ -403,17 +403,6 @@ function editPerDiemRateCurrency(policyID: string, rateID: string, customUnit: C
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
 }
 
-/**
- * Simple validation check for per diem eligibleTransactionIDs
- */
-function isEligiblePerDiemTransaction(transaction: Transaction, customUnitID: string, rateID?: string): boolean {
-    return !!(
-        transaction?.comment?.customUnit?.customUnitID === customUnitID &&
-        transaction?.comment?.customUnit?.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL &&
-        (!rateID || transaction?.comment?.customUnit?.customUnitRateID === rateID)
-    );
-}
-
 export {
     generateCustomUnitID,
     enablePerDiem,
@@ -426,5 +415,4 @@ export {
     editPerDiemRateSubrate,
     editPerDiemRateAmount,
     editPerDiemRateCurrency,
-    isEligiblePerDiemTransaction,
 };

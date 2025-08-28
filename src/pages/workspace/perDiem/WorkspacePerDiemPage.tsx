@@ -139,23 +139,32 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const subRateIDs = new Set(allSubRates.map((subRate) => subRate.subRateID));
 
-    const [eligibleTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (transactions) => {
-            if (!customUnit?.customUnitID || subRateIDs.size === 0) {
-                return undefined;
-            }
-            return Object.values(transactions ?? {}).reduce((transactionIDs, transaction) => {
-                if (
-                    transaction &&
-                    transaction?.comment?.customUnit?.customUnitID === customUnit.customUnitID &&
-                    transaction?.comment?.customUnit?.subRates?.some((subRate) => subRateIDs.has(subRate.id))
-                ) {
-                    transactionIDs.add(transaction?.transactionID);
-                }
-                return transactionIDs;
-            }, new Set<string>());
-        },
+    const selectedPerDiemSubRateIDs = useMemo(() => {
+        return selectedPerDiem.map((subRate) => subRate.subRateID);
+    }, [selectedPerDiem]);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         canBeMissing: true,
+    });
+    const eligibleTransactionIDs = useMemo(() => {
+        if (!customUnit?.customUnitID || selectedPerDiemSubRateIDs.length === 0) {
+            return new Set<string>();
+        }
+
+        return Object.values(transactions ?? {}).reduce((transactionIDs, transaction) => {
+            if (
+                transaction &&
+                transaction?.comment?.customUnit?.customUnitID === customUnit.customUnitID &&
+                transaction?.comment?.customUnit?.subRates?.some((subRate) => selectedPerDiemSubRateIDs.includes(subRate.id))
+            ) {
+                transactionIDs.add(transaction?.transactionID);
+            }
+            return transactionIDs;
+        }, new Set<string>());
+    }, [transactions, customUnit, selectedPerDiemSubRateIDs]);
+    console.log('data', {
+        selectedPerDiem,
+        eligibleTransactionIDs,
+        selectedPerDiemSubRateIDs,
     });
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
         selector: (violations) => {
