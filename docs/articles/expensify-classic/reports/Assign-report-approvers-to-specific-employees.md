@@ -4,7 +4,6 @@ description: Create approval hierarchies for expense reports.
 keywords: [Expensify Classic, approve reports, levels of approval]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 In Expensify, you can set up custom approval workflows to ensure expense reports are reviewed by the right people. This guide explains how to assign report approvers to specific employees and configure multi-level approval chains.
 
@@ -65,4 +64,3 @@ Visit our [How Complex Approval Workflows Work](https://help.expensify.com/artic
 ## Can I change the approver on a report after submitting it?  
 No, once a report has been submitted, you cannot change the approver while it is in the **processing state**. If you need to send the report to a different approver, you must reopen it first. To do this, retract the report from the current approver and then resubmit it to the correct person.
 
-</div>

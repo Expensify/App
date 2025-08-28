@@ -3,7 +3,6 @@ title: Copilot Access
 description: How to add a Copilot or act as a Copilot for delegated account access
 keywords: [New Expensify, copilot, delegated access, switch accounts, expense management, account assistant, view user account, expense forwarding]
 ---
-<div id="new-expensify" markdown="1">
 
 You can assign someone access to your Expensify account as a **Copilot**. A Copilot can help manage expenses, review reports, and access your settings without sharing your login details.
 
@@ -95,4 +94,3 @@ Actions taken by a Copilot are clearly labeled as performed “on behalf of” t
 
 Yes! You can add as many Copilots as you like. (You just need to wait one minute between additions.)
 
-</div>

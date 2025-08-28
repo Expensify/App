@@ -3,7 +3,6 @@ title: Using Reports in New Expensify
 description: Discover how to leverage New Expensify's advanced Reports feature for financial data management and expense tracking.
 keywords: [New Expensify, reports feature, filter expenses, create reports]
 ---
-<div id="new-expensify" markdown="1">
 
 Expensify's Reports feature introduces a powerful way to access and manage financial data across the platform. Focusing on resolving previous inefficiencies, Reports offers enhanced filtering, expanded search capabilities, and improved user experience across devices.
 
@@ -150,4 +149,3 @@ Use the following steps to locate unsubmitted reports:
 2. Select **Expenses** from the Type-based filter.
 3. Apply the **Drafts** contextual filter to view all unsubmitted reports.
 
-</div>

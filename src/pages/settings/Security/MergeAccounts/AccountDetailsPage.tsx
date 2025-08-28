@@ -178,7 +178,7 @@ function AccountDetailsPage() {
                     validate={validate}
                     submitButtonText={translate('common.next')}
                     isSubmitButtonVisible={false}
-                    ref={formRef}
+                    forwardedRef={formRef}
                 >
                     <View style={[styles.flexGrow1, styles.mt3]}>
                         <View>
@@ -199,6 +199,7 @@ function AccountDetailsPage() {
                             autoCorrect={false}
                             onChangeText={setEmail}
                             value={email}
+                            inputMode={CONST.INPUT_MODE.EMAIL}
                         />
                         <InputWrapper
                             style={[styles.mt8]}

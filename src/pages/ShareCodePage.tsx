@@ -74,9 +74,9 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const isReport = !!report?.reportID;
-    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const subtitle = useMemo(() => {
         if (isReport) {
@@ -90,11 +90,11 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                     .join(' & ');
             }
 
-            return getParentNavigationSubtitle(report, isReportArchived).workspaceName ?? getChatRoomSubtitle(report);
+            return getParentNavigationSubtitle(report, isReportArchived).workspaceName ?? getChatRoomSubtitle(report, false, isReportArchived);
         }
 
         return currentUserPersonalDetails.login;
-    }, [isReport, currentUserPersonalDetails.login, report, isReportArchived]);
+    }, [report, currentUserPersonalDetails.login, isReport, isReportArchived]);
 
     const title = isReport ? getReportName(report) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);

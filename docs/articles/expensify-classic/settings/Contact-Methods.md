@@ -2,7 +2,6 @@
 title: Managing Contact Methods in Expensify
 description: Learn how to update or add an Email address and manage devices tied to your Expensify account.
 ---
-<div id="expensify-classic" markdown="1">
 
 Your **primary contact method** on Expensify is used for receiving all notifications and updates. Adding an additional **contact method** enables you to:
 - Change your primary Email to a new Email.
@@ -70,4 +69,3 @@ Device management is only available on the Expensify website:
 4. Review the devices with access to your account.
 5. To remove a device, click the **Revoke** button next to the device in question.
 
-</div>

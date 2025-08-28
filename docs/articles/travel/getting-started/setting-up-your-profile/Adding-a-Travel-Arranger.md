@@ -4,7 +4,6 @@ description: Learn how to assign a travel arranger to your profile so someone el
 keywords: [travel arranger, book for others, travel booking permissions, travel configuration, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Assign travel arrangers to your profile so designated teammates can book trips on your behalf. 
 
@@ -54,4 +53,3 @@ They must be assigned the **Travel Arranger** role by a Domain Admin before they
 ## Can arrangers see or approve my bookings?
 Travel arrangers can book on your behalf, but they don’t approve trips or access your personal bookings unless they created them.
 
-</div>

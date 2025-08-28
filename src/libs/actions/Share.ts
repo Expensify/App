@@ -31,5 +31,11 @@ Function storing selected user's details for the duration of share-extension flo
 function saveUnknownUserDetails(user: Participant) {
     Onyx.merge(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, user);
 }
+/**
+ * Function to clear the unknown user details
+ */
+function clearUnknownUserDetails() {
+    Onyx.merge(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, null);
+}
 
-export {addTempShareFile, saveUnknownUserDetails, clearShareData};
+export {addTempShareFile, saveUnknownUserDetails, clearShareData, clearUnknownUserDetails};

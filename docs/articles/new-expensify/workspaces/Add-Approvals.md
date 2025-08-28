@@ -3,7 +3,6 @@ title: Add Approvals
 description: Add approvals to your workspace to require additional approval before authorizing payments.
 keywords: [New Expensify, approvals, report approvals, approving reports]
 ---
-<div id="new-expensify" markdown="1">
 
 Each Expensify workspace can be configured to require additional approvals before payments are authorized. When approvals are enabled, admins can set a default approval workflow for all members or create custom workflows for individual members.
 
@@ -78,4 +77,3 @@ You can update or remove approval workflows at any time as your team or process 
 
 No. Each employee can only be assigned one approval workflow per workspace.
 
-</div>

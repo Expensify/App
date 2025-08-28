@@ -4,7 +4,6 @@ description: Troubleshoot common QuickBooks Desktop issues, including connection
 keywords: [Expensify Classic, troubleshooting QuickBooks Desktop]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 QuickBooks Desktop integration issues can sometimes disrupt your workflow. This guide walks you through the most common connection, sync, and export problems and how to quickly resolve them to keep your Workspace connection running smoothly.
 
@@ -124,4 +123,3 @@ This usually occurs when the QuickBooks Web Connector or Company File is not ope
 
    ![Expensify Exported Report](https://help.expensify.com/assets/images/quickbooks-desktop-exported-report-comments.png){:width="100%"}
 
-</div>

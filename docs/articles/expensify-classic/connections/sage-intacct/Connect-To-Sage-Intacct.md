@@ -5,7 +5,6 @@ order: 1
 keywords: [Expensify Classic, Sage Intacct]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Expensify’s integration with Sage Intacct allows you to connect using either Role-based permissions or User-based permissions.
 
@@ -458,4 +457,3 @@ Once the initial sync completes, you may receive the error "No Expense Types Fou
 
 Next, refer to the [Configure Sage Intacct](https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Configure-Sage-Intacct) article to finish setting up the Export, Coding, and Advanced tabs of the connection configuration.
 
-</div>

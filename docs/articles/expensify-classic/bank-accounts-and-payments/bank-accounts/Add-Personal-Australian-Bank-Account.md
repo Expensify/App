@@ -3,7 +3,6 @@ title: Add a Personal Australian Bank Account
 description: Receive AUD reimbursements from an Australian employer by adding your banking information
 keywords: [Expensify Classic, Australian bank account]
 ---
-<div id="expensify-classic" markdown="1">
 
 Australian employees can connect a personal deposit-only bank account to receive reimbursements for their expense reports.  
 
@@ -43,4 +42,3 @@ Your bank can provide this information. Contact them to confirm your **Bank User
 ## Can I add multiple bank accounts?  
 No, you can only add one deposit-only bank account per workspace for reimbursements.
 
-</div>

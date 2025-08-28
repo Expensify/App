@@ -3,7 +3,6 @@ title: Connect a Business Bank Account
 description: How to connect a business bank account to New Expensify in supported currencies (USD, CAD, GBP, EUR, AUD).
 keywords: [New Expensify, business bank account]
 ---
-<div id="new-expensify" markdown="1">
 
 You can connect a business bank account in **New Expensify** using the following supported currencies: **USD, CAD, GBP, EUR, and AUD**. 
 
@@ -115,4 +114,3 @@ Once completed, contact **Concierge** to re-trigger the microtransactions.
 ## Is my data safe?
 Yes! Expensify uses **bank-level security measures** and is **tested daily** by **McAfee**. Learn more about our security policies [here](https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security).
 
-</div>

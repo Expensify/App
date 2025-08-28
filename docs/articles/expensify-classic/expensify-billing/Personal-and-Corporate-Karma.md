@@ -3,7 +3,6 @@ title: Personal and Corporate Karma
 description: Details about Personal and Corporate Karma
 keywords: [Expensify Classic, karma points, personal karma, corporate karma]
 ---
-<div id="expensify-classic" markdown="1">
 
 [Expensify.org](https://www.expensify.org/about) is built on creating a transparent and convenient way to create an emotional connection between donors, volunteers, and recipients. The funds for this organization come from Corporate Karma, Personal Karma, and monetary donations.
 
@@ -49,4 +48,3 @@ As a [workspace billing owner](https://help.expensify.com/articles/expensify-cla
 
 ![Settings > Workspaces > Group > enable Corporate Karma in subscription settings](https://help.expensify.com/assets/images/ExpensifyHelp_OldDot_Karma_Group.png){:width="100%"}
 
-</div>

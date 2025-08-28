@@ -199,6 +199,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                                 displayInRows: true,
                             }}
                             secondaryAvatarContainerStyle={styles.secondAvatarInline}
+                            invitedEmailsToAccountIDs={invitedEmailsToAccountIDsDraft}
                         />
                     </View>
                     <View style={[styles.mb5]}>

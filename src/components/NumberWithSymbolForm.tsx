@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -51,6 +51,9 @@ type NumberWithSymbolFormProps = {
 
     /** Whether to wrap the input in a container */
     shouldWrapInputInContainer?: boolean;
+
+    /** Reference to the outer element */
+    forwardedRef?: ForwardedRef<BaseTextInputRef>;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -79,37 +82,35 @@ const NUM_PAD_VIEW_ID = 'numPadView';
  * Can render either a standard TextInput or a number input with BigNumberPad and symbol interaction.
  * Already handles number decimals and input validation.
  */
-function NumberWithSymbolForm(
-    {
-        value: number,
-        symbol = '',
-        symbolPosition = CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX,
-        hideSymbol = false,
-        decimals = 0,
-        maxLength,
-        errorText,
-        onInputChange,
-        onSymbolButtonPress,
-        isSymbolPressable = true,
-        shouldShowBigNumberPad = canUseTouchScreen,
-        displayAsTextInput = false,
-        footer,
-        numberFormRef,
-        label,
-        style,
-        containerStyle,
-        symbolTextStyle,
-        autoGrow = true,
-        disableKeyboard = true,
-        prefixCharacter = '',
-        hideFocusedState = true,
-        shouldApplyPaddingToContainer = false,
-        shouldUseDefaultLineHeightForPrefix = true,
-        shouldWrapInputInContainer = true,
-        ...props
-    }: NumberWithSymbolFormProps,
-    forwardedRef: ForwardedRef<BaseTextInputRef>,
-) {
+function NumberWithSymbolForm({
+    value: number,
+    symbol = '',
+    symbolPosition = CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX,
+    hideSymbol = false,
+    decimals = 0,
+    maxLength,
+    errorText,
+    onInputChange,
+    onSymbolButtonPress,
+    isSymbolPressable = true,
+    shouldShowBigNumberPad = canUseTouchScreen,
+    displayAsTextInput = false,
+    footer,
+    numberFormRef,
+    label,
+    style,
+    containerStyle,
+    symbolTextStyle,
+    autoGrow = true,
+    disableKeyboard = true,
+    prefixCharacter = '',
+    hideFocusedState = true,
+    shouldApplyPaddingToContainer = false,
+    shouldUseDefaultLineHeightForPrefix = true,
+    shouldWrapInputInContainer = true,
+    forwardedRef,
+    ...props
+}: NumberWithSymbolFormProps) {
     const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat} = useLocalize();
 
@@ -317,11 +318,11 @@ function NumberWithSymbolForm(
                 accessibilityLabel={label}
                 value={formattedNumber}
                 onChangeText={setFormattedNumber}
-                ref={(ref: BaseTextInputRef) => {
+                ref={(ref: BaseTextInputRef | null) => {
                     if (typeof forwardedRef === 'function') {
                         forwardedRef(ref);
                     } else if (forwardedRef && 'current' in forwardedRef) {
-                        // eslint-disable-next-line no-param-reassign
+                        // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
                         forwardedRef.current = ref;
                     }
                 }}
@@ -347,7 +348,7 @@ function NumberWithSymbolForm(
             onChangeAmount={setNewNumber}
             onSymbolButtonPress={onSymbolButtonPress}
             placeholder={numberFormat(0)}
-            ref={(ref: BaseTextInputRef) => {
+            ref={(ref: BaseTextInputRef | null) => {
                 if (typeof forwardedRef === 'function') {
                     forwardedRef(ref);
                 } else if (forwardedRef && 'current' in forwardedRef) {
@@ -444,5 +445,5 @@ function NumberWithSymbolForm(
 
 NumberWithSymbolForm.displayName = 'NumberWithSymbolForm';
 
-export default forwardRef(NumberWithSymbolForm);
+export default NumberWithSymbolForm;
 export type {NumberWithSymbolFormProps, NumberWithSymbolFormRef};

@@ -4,7 +4,6 @@ description: Learn how to view and export carbon emission data in Expensify, inc
 keywords: [carbon emissions, CO2 emissions, sustainability, travel analytics, emissions reporting, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Use the Analytics dashboard in Expensify to monitor CO2 emissions from travel activity, whether you're tracking personal trips or company-wide impact as a travel admin.
 
@@ -61,4 +60,3 @@ To export the data:
 ## Do canceled trips contribute to my CO2 totals?
 No. Canceled trips are excluded from carbon emission calculations.
 
-</div>

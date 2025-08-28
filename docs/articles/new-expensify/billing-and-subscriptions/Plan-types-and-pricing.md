@@ -4,7 +4,6 @@ description: A breakdown of Expensify's Collect and Control plans, with pricing,
 keywords: [New Expensify, plan types, pricing, Collect plan, Control plan, subscription discounts, member pricing, Expensify Card, free for individuals]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Expensify offers flexible pricing to match your team’s size and needs, whether you're self-employed or managing a growing business.
 
@@ -36,4 +35,3 @@ The Collect Plan is always $5/member, regardless of subscription type or card us
 
 **Note:** Expensify Cards generate 1% cash back on all U.S. purchases, or 2% if you spend $250K+/month across cards.
 
-</div>

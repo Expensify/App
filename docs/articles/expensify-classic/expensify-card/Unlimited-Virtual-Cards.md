@@ -3,7 +3,6 @@ title: Unlimited Virtual Cards
 description: Learn about virtual cards and how they help businesses improve efficiency and gain better control over company spending.
 keywords: [Expensify Classic, Expensify Card, virtual card]
 ---
-<div id="expensify-classic" markdown="1">
 
 Domain Admins can issue an **unlimited number of virtual cards** with either a fixed or monthly limit for specific purchases or recurring subscriptions (e.g., Marketing, Advertising, Travel, AWS, etc.). 
 
@@ -87,4 +86,3 @@ If a virtual card is lost or compromised, or you suspect fraud, request a new ca
 
 When a new card is requested, the old card is immediately deactivated. Always act quickly in the case of fraud to minimize financial impact.
 
-</div>

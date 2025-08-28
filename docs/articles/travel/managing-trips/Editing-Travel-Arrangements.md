@@ -4,7 +4,6 @@ description: Learn how to make changes to your existing travel bookings directly
 keywords: [edit travel, change booking, update itinerary, modify trip, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Make changes to your travel bookings directly in Expensify without needing to contact support. You can edit flights, hotels, cars, or rail bookings as long as the travel booking allows it.
 
@@ -70,4 +69,3 @@ Yes, as long as you rebook within the same trip, no new trip fee is charged.
 ## Can I change a booking directly through the airline?
 Yes, but the change may not automatically reflect in Expensify. For best results, make edits directly in Expensify.
 
-</div>

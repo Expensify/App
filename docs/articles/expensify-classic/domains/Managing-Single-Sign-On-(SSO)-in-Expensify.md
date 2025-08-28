@@ -4,7 +4,6 @@ description: Learn how to effectively manage Single Sign-On (SSO) and user authe
 keywords: [Expensify Classic, SAML, single sign-on, SSO]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Expensify supports Single Sign-On (SSO) through the SAML protocol, allowing you to optimize user authentication and improve security across your organization. Whether you're an IT admin configuring your domain or a team lead ensuring secure user access, this guide walks you through setting up and managing SAML SSO for your Expensify account
 
@@ -85,4 +84,3 @@ Refer to the full setup in Okta's documentation for attribute mapping and provis
    - Send LDAP Attributes as Claims.  
    - Transform Incoming Claim (Name ID). 
 
-</div>

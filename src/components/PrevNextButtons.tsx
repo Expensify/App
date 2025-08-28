@@ -16,10 +16,10 @@ type PrevNextButtonsProps = {
     isNextButtonDisabled?: boolean;
 
     /** Moves a user to the next item */
-    onNext?: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    onNext: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** Moves a user to the previous item */
-    onPrevious?: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    onPrevious: (event?: GestureResponderEvent | KeyboardEvent) => void;
 };
 
 function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, onPrevious}: PrevNextButtonsProps) {
@@ -33,7 +33,7 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={CONST.ROLE.BUTTON}
                 disabled={isPrevButtonDisabled}
-                style={[styles.h7, styles.mr1, styles.alignItemsCenter, styles.justifyContentCenter]}
+                style={[styles.h10, styles.mr1, styles.alignItemsCenter, styles.justifyContentCenter]}
                 onPress={onPrevious}
             >
                 <View style={[styles.reportActionContextMenuMiniButton, {backgroundColor: theme.borderLighter}, isPrevButtonDisabled && styles.buttonOpacityDisabled]}>
@@ -50,7 +50,7 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={CONST.ROLE.BUTTON}
                 disabled={isNextButtonDisabled}
-                style={[styles.h7, styles.alignItemsCenter, styles.justifyContentCenter]}
+                style={[styles.h10, styles.alignItemsCenter, styles.justifyContentCenter]}
                 onPress={onNext}
             >
                 <View style={[styles.reportActionContextMenuMiniButton, {backgroundColor: theme.borderLighter}, isNextButtonDisabled && styles.buttonOpacityDisabled]}>

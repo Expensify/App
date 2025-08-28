@@ -4,7 +4,6 @@ description: Learn how to enable invoicing in New Expensify, send invoices, and 
 keywords: [New Expensify, invoicing, send invoice, receive payments, workspace admin, invoice balance, invoice chat, Expensify invoices]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Workspace admins can enable invoicing to send professional invoices and receive payments directly through Expensify.
 
@@ -57,4 +56,3 @@ All past invoices and invoice chat rooms will remain visible, but workspace admi
 ## Why am I getting an error after entering my website while connecting a business bank account?
 For security reasons, we only support websites on private domains. If you get an error, your domain may not be recognized as private. Make sure you're using a business email with a private domain. If the issue continues, reach out to Concierge support for help.
 
-</div>

@@ -4,7 +4,6 @@ description: Learn how to request corporate hotel rates be imported into Expensi
 keywords: [corporate hotel rates, import rates, gds, travel admin, expensify concierge, account manager, travel discounts]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Corporate hotel rates can be added to Expensify Travel with help from your Account Manager or Concierge.
 
@@ -51,4 +50,3 @@ Reach out to your Account Manager or message Concierge. We’ll help you get sta
 ## How long does it take for rates to be available?
 It depends on how quickly the hotel uploads the rate to the GDS. Once the hotel takes action, activation can be completed on Expensify's side in 2-3 business days.
 
-</div>

@@ -4,7 +4,6 @@ description: Start a new private, group, or room chat
 redirect_from: articles/other/Everything-About-Chat/
 keywords: [Expensify chat, private chat, group chat, chat rooms, start chat, New Expensify]
 ---
-<div id="new-expensify" markdown="1">
 
 Expensify Chat is an instant messaging system that helps you converse with people both inside and outside of your workspace about payments, company updates, and more. Expensify Chats are held in private chats, groups, and rooms.
 
@@ -64,4 +63,3 @@ Expensify Chat is an instant messaging system that helps you converse with peopl
 
 With a group chat, you can add more participants later. A private chat does not allow new participants to be added.
 
-</div>

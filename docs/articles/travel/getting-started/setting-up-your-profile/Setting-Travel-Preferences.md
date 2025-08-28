@@ -4,7 +4,6 @@ description: Learn how to set travel preferences in your profile to personalize 
 keywords: [travel preferences, flight preferences, seat preferences, airline selection, hotel preferences, car rental, train preferences, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Set your personal travel preferences for flights, hotels, cars, and trains so that your bookings reflect your needs and comfort choices every time.
 
@@ -191,4 +190,3 @@ No, but we recommend filling in at least your air preferences for the best resul
 ## Can my travel arranger see these preferences?
 Yes. Travel arrangers will see and follow your saved preferences when booking on your behalf.
 
-</div>

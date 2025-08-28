@@ -5,7 +5,6 @@ keywords: [New Expensify, Sage Intacct settings, import configuration, export pr
 order: 3
 ---
 
-<div id="new-expensify" markdown="1">
 
 Set up and fine-tune how data flows between Expensify and Sage Intacct using import, export, and advanced configuration settings.
 
@@ -181,4 +180,3 @@ Choose how to sync reimbursement status:
 
 No. Auto-sync only affects newly approved reports. Older approved or reimbursed reports must be exported manually if they weren’t synced before enabling auto-sync.
 
-</div>

@@ -4,7 +4,6 @@ description: An overview of all the perks the Expensify Card offers
 keywords: [New Expensify, card rewards, Expensify Card perks]
 ---
 
- <div id="new-expensify" markdown="1">
 
 From cash-back rewards to discounts on popular services, the Expensify Card offers benefits that make it more than just a corporate card. In this article, we’ll highlight the various perks available to cardholders, how to access them, and how they can benefit your business operations. Whether you're looking to cut costs, streamline workflows, or unlock valuable savings, the Expensify Card perks are tailored to meet your needs.
 
@@ -225,5 +224,4 @@ Talkspace provides prescription management and personalized treatment through a 
 
 For more information on the perks of using the Expensify Card, reach out to Concierge support! 
 
-</div>
 

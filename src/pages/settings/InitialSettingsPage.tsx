@@ -131,8 +131,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const signOut = useCallback(
         (shouldForceSignout = false) => {
             if (!network.isOffline || shouldForceSignout) {
-                signOutAndRedirectToSignIn();
-                return;
+                return signOutAndRedirectToSignIn();
             }
 
             // When offline, warn the user that any actions they took while offline will be lost if they sign out
@@ -263,9 +262,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {
                     translationKey: signOutTranslationKey,
                     icon: Expensicons.Exit,
-                    action: () => {
-                        signOut(false);
-                    },
+                    action: () => signOut(false),
                 },
             ],
         };
@@ -317,9 +314,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                 icon={item.icon}
                                 iconType={item.iconType}
                                 disabled={isExecuting}
-                                onPress={singleExecution(() => {
-                                    item.action();
-                                })}
+                                onPress={singleExecution(item.action)}
                                 iconStyles={item.iconStyles}
                                 badgeText={item.badgeText}
                                 badgeStyle={item.badgeStyle}

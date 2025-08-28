@@ -739,7 +739,7 @@ describe('DebugUtils', () => {
             expect(reason).toBeNull();
         });
         it('returns correct reason when report has a valid draft comment', async () => {
-            await Onyx.set(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {[baseReport.reportID]: 'Hello world!'});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`, 'Hello world!');
             const reason = DebugUtils.getReasonForShowingRowInLHN({report: baseReport, chatReport: chatReportR14932, doesReportHaveViolations: false});
             expect(reason).toBe('debug.reasonVisibleInLHN.hasDraftComment');
         });

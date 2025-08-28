@@ -73,5 +73,3 @@ Expensify report statuses sync to the corresponding Accelo statuses:
 # How Expenses Are Imported
 
 Accelo checks for new expenses in Expensify **once every hour**. Any newly created or updated expenses since the last sync will be imported into Accelo automatically.
-
-</div>

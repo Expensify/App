@@ -3,7 +3,6 @@ title: Navigate multiple workspaces
 description: Using more than one Expensify workspace
 keywords: [Expensify Classic, default workspace]
 ---
-<div id="expensify-classic" markdown="1">
 
 If you have multiple workspaces—whether an individual workspace and a group workspace or multiple group workspaces—you’ll want to:
 - Set a default workspace. (*Note: Some domains automatically set your default workspace, and in these cases, you cannot change it.*)
@@ -39,4 +38,3 @@ If you frequently switch between multiple workspaces, always double-check that t
 
 **Note:** If you need to update the workspace that an expense report is on, click the Workspace dropdown list and choose the correct workspace.
 
-</div>

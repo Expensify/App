@@ -4,7 +4,6 @@ description: Learn how to book a rental car through the integrated travel portal
 keywords: [book a car, rental car, car rental, travel booking, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Book rental cars directly in Expensify using the integrated travel portal, available in both Classic and New Expensify.
 
@@ -59,4 +58,3 @@ Insurance offerings vary by provider. Review included coverage and optional extr
 ## Can I choose the rental company?
 Yes! Use the filters to select your preferred rental provider.
 
-</div>

@@ -4,7 +4,6 @@ description: Learn how to book a hotel using the integrated travel tool in Class
 keywords: [book a hotel, travel booking, hotel reservations, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Book hotels in Expensify using the built-in travel tool, available in both Classic and New Expensify.
 
@@ -67,4 +66,3 @@ It will be SmartScanned and added to your next report automatically.
 ## Can I add a loyalty number or special request?
 Yes! Most hotels let you enter loyalty numbers or special requests during checkout. You can also store loyalty numbers under **My Profile** > **Loyalty** for air, hotel, car, and rail programs, so it auto-populates during checkout. 
 
-</div>

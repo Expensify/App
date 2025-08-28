@@ -4,7 +4,6 @@ description: Learn how to connect company credit cards using direct feeds or Pla
 keywords: [New Expensify, direct feeds, Plaid integration, company cards, credit card import, assign cards, connect bank, manage card feeds]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Direct feeds in Expensify provide a fast, reliable way to import company card transactions. You can also use Plaid to connect your company card program, giving you even more options to manage your corporate card account directly in Expensify.
 
@@ -140,4 +139,3 @@ Some examples of supported direct feed banks include:
 - Wells Fargo  
 - Plaid enables a connection with hundreds of banks ([Plaid - European Bank Coverage](https://plaid.com/docs/resources/#european-bank-coverage))
 
-</div>

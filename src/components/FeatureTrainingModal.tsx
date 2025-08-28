@@ -16,8 +16,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import {dismissTrackTrainingModal} from '@userActions/User';
+import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import CheckboxWithLabel from './CheckboxWithLabel';
@@ -340,7 +341,7 @@ function FeatureTrainingModal({
 
         if (!willShowAgain) {
             Log.hmmm('[FeatureTrainingModal] Dismissing track training modal');
-            dismissTrackTrainingModal();
+            setNameValuePair(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING, true, false);
         }
 
         Log.hmmm('[FeatureTrainingModal] Setting modal invisible');

@@ -5,7 +5,6 @@ description: Learn how to send, format, edit, delete, report, and manage message
 keywords: [New Expensify, chat, edit messages, report chat, add members, leave room, thread]
 ---
 
-<div id="new-expensify" markdown="1">
 
 New Expensify Chat makes it easy to collaborate with teammates through messaging. This guide walks you through sending messages, formatting them, editing or deleting chats, reporting content, and managing group or room participation.
 
@@ -138,4 +137,3 @@ Rooms may have restricted posting permissions for Admins only.
 ## What happens when I flag a message?
 The moderation team reviews it, may hide or delete the message, and can restrict the sender’s account.
 
-</div>

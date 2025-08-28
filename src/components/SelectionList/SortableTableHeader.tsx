@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import type {SortOrder, TableColumnSize} from '@components/Search/types';
+import type {SearchColumnType, SortOrder, TableColumnSize} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,9 +11,10 @@ import SortableHeaderText from './SortableHeaderText';
 import type {SortableColumnName} from './types';
 
 type ColumnConfig = {
-    columnName: SortableColumnName;
+    columnName: SearchColumnType;
     translationKey: TranslationPaths | undefined;
     isColumnSortable?: boolean;
+    canBeMissing?: boolean;
 };
 
 type SearchTableHeaderProps = {
@@ -25,8 +26,9 @@ type SearchTableHeaderProps = {
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     containerStyles?: StyleProp<ViewStyle>;
-    shouldShowColumn: (columnName: SortableColumnName) => boolean;
+    shouldShowColumn: (columnName: SearchColumnType) => boolean;
     onSortPress: (column: SortableColumnName, order: SortOrder) => void;
+    areAllOptionalColumnsHidden?: boolean;
 };
 
 function SortableTableHeader({
@@ -40,6 +42,7 @@ function SortableTableHeader({
     onSortPress,
     amountColumnSize,
     taxAmountColumnSize,
+    areAllOptionalColumnsHidden,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -70,6 +73,7 @@ function SortableTableHeader({
                                     dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    !!areAllOptionalColumnsHidden,
                                 ),
                             ]}
                             isSortable={isSortable}

@@ -3,7 +3,6 @@ title: Global Reimbursement - European Union
 description: Learn how to enable international reimbursements if your business bank account is in the European Union.
 keywords: [Expensify Classic, global reimbursement, Europe, EU, EUR, SEPA, international payments, DocuSign, compliance]
 ---
-<div id="expensify-classic" markdown="1">
 
 If your business operates in the European Union, you can send international reimbursements using your EUR bank account. This article covers setup, document requirements, and SEPA support.
 
@@ -18,6 +17,7 @@ If your business operates in the European Union, you can send international reim
 - ✅ Address verification document
 - ✅ Bank statement for direct debit
 - ✅ Proof of Beneficial Ownership
+- ✅ A signed direct debit authorization form
 - ✅ Certified copies of ID & proof of address (Jersey only)
 
 ## Special Requirements:
@@ -92,4 +92,3 @@ This may include shareholder registers or legal declarations.
 ## Why are certified copies required in Jersey?
 This is a legal compliance requirement for businesses based in Jersey.
 
-</div>

@@ -3,7 +3,6 @@ title: Set Up and Manage Expensify Cards
 description: Learn how Workspace Admins can enable, issue, and manage Expensify Cards for employees, including spending limits, bank connections, and virtual card setup.
 keywords: [New Expensify, Expensify Card setup, manage virtual card, card limits, Expensify Visa, card settings, Workspace Admin]
 ---
-<div id="new-expensify" markdown="1">
 
 Workspace Admins can enable and issue Expensify Visa® Commercial Cards to manage company spending with real-time controls and flexibility across employees and subscriptions.
 
@@ -113,4 +112,3 @@ The limit is the maximum combined spending limit for all Expensify Cards in your
 - **Pending expenses:** Large, unprocessed purchases temporarily reduce your spending capacity.
 - **Processing settlements:** Until the previous cycle settles, your limit adjusts dynamically.
   
-</div>

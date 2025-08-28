@@ -15,7 +15,9 @@ getEnvironment().then((envName) => {
     ENV_NAME = envName;
 
     // We connect here, so we have the updated ENV_NAME when Onyx callback runs
-    Onyx.connect({
+    // We only use the value of shouldUseStagingServer to determine which server we should point to.
+    // Since they aren't connected to a UI anywhere, it's OK to use connectWithoutView()
+    Onyx.connectWithoutView({
         key: ONYXKEYS.ACCOUNT,
         callback: (value) => {
             // Toggling between APIs is not allowed on production and internal dev environment

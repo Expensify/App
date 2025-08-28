@@ -3,7 +3,6 @@ title: Enable-australian-reimbursements.md
 description: Learn how to set up direct reimbursements for Australian employees using ABA files in Expensify Classic.
 keywords: [Expensify, Australian reimbursements, AUD, direct reimbursement, ABA file, bank account, Expensify Classic]
 ---
-<div id="expensify-classic" markdown="1">
 
 This article explains how to set up direct reimbursements in AUD for Australian employees using ABA files that can be uploaded to your bank.
 
@@ -47,4 +46,3 @@ Australian banks do not support ACH (direct deposit) payments like U.S. accounts
 
 Yes, you can set up **Global Reimbursements** if you want to process international payments directly through Expensify.
 
-</div>

@@ -7,6 +7,7 @@ import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -115,6 +116,7 @@ function ReanimatedModal({
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillHide();
 
+            blurActiveElement();
             setIsVisibleState(false);
             setIsTransitioning(true);
         }

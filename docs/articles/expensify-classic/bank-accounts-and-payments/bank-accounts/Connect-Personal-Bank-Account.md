@@ -4,7 +4,6 @@ description: Receive reimbursements for expense reports submitted to your employ
 keyword: [Expensify Classic, deposit account, reimbursement account]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Employees can connect a personal deposit-only bank account to receive reimbursements for their expense reports.
 
@@ -83,4 +82,3 @@ The Clearing Code is made up of both the **Bank Code** and the **Branch Code** t
 - **Standard Chartered** — Bank Code: 9496. Branch Code: `0` + first 2 digits of Account No. Account No: full 10 digits.  
   Example: `1803645852` → Branch Code `018`, Clearing Code `9496018`, Account No `1803645852`.
 
-</div>

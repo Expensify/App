@@ -65,7 +65,7 @@ function AboutPage() {
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
                 icon: Expensicons.Keyboard,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS)),
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()))),
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewTheCode',

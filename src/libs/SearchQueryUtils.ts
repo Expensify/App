@@ -300,11 +300,11 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${Array.isArray(query.status) ? query.status.join(',') : query.status}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${query.groupBy}`;
 
-    let similarSearchHashInput = orderedQuery;
+    const filterSet = new Set<string>(orderedQuery);
 
     query.flatFilters
         .map((filter) => {
-            similarSearchHashInput += filter.key;
+            filterSet.add(filter.key);
 
             const filters = cloneDeep(filter.filters);
             filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
@@ -313,7 +313,7 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
         .sort()
         .forEach((filterString) => (orderedQuery += ` ${filterString}`));
 
-    const similarSearchHash = hashText(similarSearchHashInput, 2 ** 32);
+    const similarSearchHash = hashText(Array.from(filterSet).join(''), 2 ** 32);
     const recentSearchHash = hashText(orderedQuery, 2 ** 32);
 
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query.sortBy}`;
@@ -787,7 +787,9 @@ function buildUserReadableQueryString(
     const {type, status, groupBy, policyID} = queryJSON;
     const filters = queryJSON.flatFilters;
 
-    let title = status ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.join(',') : status}` : `type:${getUserFriendlyValue(type)}`;
+    let title = status
+        ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.map(getUserFriendlyValue).join(',') : getUserFriendlyValue(status)}`
+        : `type:${getUserFriendlyValue(type)}`;
 
     if (groupBy) {
         title += ` group-by:${getUserFriendlyValue(groupBy)}`;

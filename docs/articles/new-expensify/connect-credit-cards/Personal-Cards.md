@@ -4,7 +4,6 @@ description: Learn how to track and manage your personal credit card expenses in
 keywords: [New Expensify, personal cards, credit card import, CSV upload, SmartScan, eReceipts, reimbursements]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Tracking personal credit card expenses in Expensify is simple and flexible. Whether you're getting reimbursed or just organizing your spending, you can connect a personal card or upload transactions manually.
 
@@ -31,4 +30,3 @@ Once it's live, we’ll update this article with full setup instructions, screen
 
 **Stay tuned!** You can follow product announcements or contact Concierge for updates on availability.
 
-</div>

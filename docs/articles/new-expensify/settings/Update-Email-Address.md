@@ -3,7 +3,6 @@ title: Update Contact Methods
 description: Add or update contact methods for your Expensify account, including changing your default email or phone number.
 keywords: [New Expensify, change email, add email, change phone number, add phone number, contact method, update default email, account access]
 ---
-<div id="new-expensify" markdown="1">
 
 Update or add new contact methods to keep your Expensify account secure and accessible. You can add personal or secondary contact methods, change your default contact method, and remove outdated contact methods.
 
@@ -41,4 +40,3 @@ After verifying, click any contact method to:
 - You can’t remove your default contact method until another verified contact method is set as default.
 - You can add multiple contact methods for flexibility when logging in or recovering your account.
 
-</div>

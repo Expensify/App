@@ -3,7 +3,6 @@ title: Send Payments Internationally with Global Reimbursement
 description: Choose your bank location to set up global reimbursements in Expensify.
 keywords: [Expensify Classic, foreign bank validation, global reimbursement, United States, Canada, Europe, Singapore, Australia, United Kingdom, international reimbursements]
 ---
-<div id="expensify-classic" markdown="1">
 
 Expensify makes it easy to reimburse employees worldwide using global reimbursement.
 
@@ -70,4 +69,3 @@ Make sure your employee's default workspace is set to the one linked to the bank
 ## Can I connect my Canadian bank account if the currency of the account is in USD? 
 Yes, since USD is considered a local currency in Canada, you can use a Canadian bank account that uses USD for global reimbursements. 
 
-</div>

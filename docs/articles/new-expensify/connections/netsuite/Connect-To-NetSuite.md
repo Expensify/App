@@ -5,7 +5,6 @@ keywords: [New Expensify, NetSuite integration, connect NetSuite, NetSuite bundl
 order: 1
 ---
 
-<div id="new-expensify" markdown="1">
 
 Connect your Expensify Workspace to NetSuite to streamline expense syncing, reporting, and accounting. This guide walks you through installing the bundle, enabling features, and finalizing the connection.
 
@@ -180,4 +179,3 @@ Set the **Page Size** to 1000 in NetSuite. To do this:
 1. Go to **Setup > Integration > Web Services Preferences**
 2. Search for and update the **Page Size** setting
 
-</div>

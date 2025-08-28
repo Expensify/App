@@ -4,7 +4,6 @@ description: Learn how to claim and verify a private domain in Expensify to mana
 keywords: [Expensify Classic, claim a domain, domain permissions, verify domain]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 If you have a private domain (e.g., `yourcompany.com`), you can claim and verify it in Expensify to manage employee permissions and enable additional security features.
 
@@ -62,4 +61,3 @@ To add an additional domain:
 1. Add your domain email address (`@yourcompany.com`) as a **primary or secondary email** in Expensify -- [How to add an email](https://help.expensify.com/articles/expensify-classic/settings/account-settings/Change-or-add-email-address)
 2. Follow the steps above to claim and verify the new domain.
 
-</div>
