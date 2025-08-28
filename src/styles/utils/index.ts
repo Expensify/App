@@ -1966,6 +1966,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             transform: [{translateY: keyboardHeight.get() > paddingBottom ? -keyboardHeight.get() + paddingBottom : 0}],
         };
     },
+    getReportPaddingBottom: (isKeyboardActive: boolean, composerHeight: number, paddingBottom = 0, isComposerFullSize?: boolean): number => {
+        const isIOS = getPlatform() === CONST.PLATFORM.IOS;
+
+        const safeAreaBottom = !isIOS || isKeyboardActive ? 0 : paddingBottom;
+
+        return isIOS && !isComposerFullSize ? composerHeight + safeAreaBottom : safeAreaBottom;
+    },
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

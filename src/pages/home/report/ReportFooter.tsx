@@ -102,7 +102,7 @@ function ReportFooter({
     headerHeight,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
-    const styleUtils = useStyleUtils();
+    const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -215,7 +215,7 @@ function ReportFooter({
     const platform = getPlatform();
 
     const animatedStyle = useAnimatedStyle(() =>
-        styleUtils.getReportFooterStyles({
+        StyleUtils.getReportFooterStyles({
             platform,
             composerHeight,
             headerHeight,

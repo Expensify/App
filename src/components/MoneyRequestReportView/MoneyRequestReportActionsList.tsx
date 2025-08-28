@@ -3,7 +3,7 @@ import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/Vir
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {DeviceEventEmitter, InteractionManager, Platform, View} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useAnimatedReaction} from 'react-native-reanimated';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -29,6 +29,7 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
@@ -142,6 +143,7 @@ function MoneyRequestReportActionsList({
     const isFocused = useIsFocused();
     const {unmodifiedPaddings} = useSafeAreaPaddings();
     const {isKeyboardActive} = useKeyboardState();
+    const StyleUtils = useStyleUtils();
     const {contentSizeHeight, layoutMeasurementHeight, keyboardHeight, scrollY} = useKeyboardDismissibleFlatListValues();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     // wrapped in useMemo to avoid unnecessary re-renders and improve performance
@@ -644,11 +646,7 @@ function MoneyRequestReportActionsList({
     // Wrapped into useCallback to stabilize children re-renders
     const keyExtractor = useCallback((item: OnyxTypes.ReportAction) => item.reportActionID, []);
 
-    const safeAreaBottom = Platform.OS !== 'ios' || isKeyboardActive ? 0 : (unmodifiedPaddings.bottom ?? 0);
-    const bottomSpacer = useMemo(
-        () => (Platform.OS === 'ios' && !isComposerFullSize ? composerHeight + safeAreaBottom : safeAreaBottom),
-        [composerHeight, safeAreaBottom, isComposerFullSize],
-    );
+    const paddingBottom = StyleUtils.getReportPaddingBottom(isKeyboardActive, composerHeight, unmodifiedPaddings.bottom, isComposerFullSize);
 
     return (
         <View
@@ -715,7 +713,7 @@ function MoneyRequestReportActionsList({
                     />
                 </>
             )}
-            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden, {paddingBottom: bottomSpacer}]}>
+            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden, {paddingBottom}]}>
                 <FloatingMessageCounter
                     hasNewMessages={!!unreadMarkerReportActionID}
                     isActive={isFloatingMessageCounterVisible}
