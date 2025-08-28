@@ -3,6 +3,7 @@ import deburr from 'lodash/deburr';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, Report, ReportAttributesDerivedValue, ReportNameValuePairs} from '@src/types/onyx';
@@ -58,6 +59,7 @@ type GetOptionsConfig = {
     includeDomainEmail?: boolean;
     /** Note - This is a temporary optimization measure */
     removeRecentsDuplicates?: boolean;
+    extraOptions?: OptionData[];
 };
 
 type GetUserToInviteConfig = {
@@ -314,11 +316,12 @@ function getValidOptions(
         recentAttendees,
         searchString,
         maxElements,
-        recentMaxElements,
+        recentMaxElements = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         includeUserToInvite = false,
         includeCurrentUser = false,
         includeDomainEmail = false,
         removeRecentsDuplicates = true,
+        extraOptions = [],
     }: GetOptionsConfig = {},
 ) {
     // Gather shared configs:
@@ -329,13 +332,19 @@ function getValidOptions(
         [currentUserLogin]: !includeCurrentUser,
     };
 
+    let extendedOptions = options;
+    if (extraOptions.length > 0) {
+        const existingLogins = new Set(extendedOptions.map((option) => option.login));
+        const filteredExtraOptions = extraOptions.filter((option) => option.login && !existingLogins.has(option.login));
+        extendedOptions = [...options, ...filteredExtraOptions];
+    }
+
     const searchTerms = processSearchString(searchString);
     const selectedFilteringFunction = (personalDetail: OptionData) => {
         if (
             !personalDetail.isSelected ||
             !personalDetail.login ||
             !personalDetail.accountID ||
-            !!personalDetail.isOptimisticPersonalDetail ||
             (!includeDomainEmail && Str.isDomainEmail(personalDetail.login)) ||
             // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
             personalDetail.login === CONST.SETUP_SPECIALIST_LOGIN
@@ -350,7 +359,7 @@ function getValidOptions(
         return searchTerms.every((term) => searchText.includes(term));
     };
 
-    const selectedOptions = optionsOrderBy(options, personalDetailsComparator, maxElements, selectedFilteringFunction, true);
+    const selectedOptions = optionsOrderBy(extendedOptions, personalDetailsComparator, maxElements, selectedFilteringFunction, true);
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
     // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
@@ -501,6 +510,31 @@ function shallowOptionsListCompare(a: OptionData[], b: OptionData[]): boolean {
     return true;
 }
 
+/**
+ * Helper method that returns the text to be used for the header's message and title (if any)
+ */
+function getHeaderMessage(translate: LocaleContextProps['translate'], searchValue: string, hasMatchedParticipant = false): string {
+    // Without a search value, it would be very confusing to see a search validation message.
+    // Therefore, this skips the validation when there is no search value.
+    if (!searchValue) {
+        return '';
+    }
+    const isValidPhone = parsePhoneNumber(appendCountryCode(searchValue)).possible;
+
+    const isValidEmail = Str.isValidEmail(searchValue);
+
+    if (CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !isValidPhone) {
+        return translate('messages.errorMessageInvalidPhone');
+    }
+    if (/@/.test(searchValue) && !isValidEmail) {
+        return translate('messages.errorMessageInvalidEmail');
+    }
+    if (hasMatchedParticipant && (isValidEmail || isValidPhone)) {
+        return '';
+    }
+    return translate('common.noResultsFound');
+}
+
 export {
     createOption,
     getUserToInviteOption,
@@ -516,6 +550,7 @@ export {
     filterUserToInvite,
     createOptionList,
     shallowOptionsListCompare,
+    getHeaderMessage,
 };
 
 export type {OptionData, Options};
