@@ -1895,6 +1895,28 @@ const ROUTES = {
             return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners`, backTo);
         },
     },
+    WORKSPACE_RECEIPT_PARTNERS_INVITE: {
+        route: 'workspaces/:policyID/receipt-partners/:integration/invite',
+        getRoute: (policyID: string | undefined, integration: string, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_RECEIPT_PARTNERS_INVITE route');
+            }
+            return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners/${integration}/invite`, backTo);
+        },
+    },
+    WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT: {
+        route: 'workspaces/:policyID/receipt-partners/:integration/invite/edit',
+        getRoute: (policyID: string | undefined, integration: string, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT route');
+            }
+            return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners/${integration}/invite/edit`, backTo);
+        },
+    },
+    WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_ALL: 'workspaces/:policyID/receipt-partners/:integration/invite/edit/ReceiptPartnersAllTab',
+    WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_LINKED: 'workspaces/:policyID/receipt-partners/:integration/invite/edit/ReceiptPartnersLinkedTab',
+    WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_OUTSTANDING: 'workspaces/:policyID/receipt-partners/:integration/invite/edit/ReceiptPartnersOutstandingTab',
+
     WORKSPACE_PER_DIEM_IMPORT: {
         route: 'workspaces/:policyID/per-diem/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/per-diem/import` as const,
