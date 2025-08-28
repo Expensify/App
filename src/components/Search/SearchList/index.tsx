@@ -14,7 +14,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {createItemHeightCalculator} from '@components/Search/itemHeightCalculator';
 import ITEM_HEIGHTS from '@components/Search/itemHeights';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
@@ -80,6 +80,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** The search query */
     queryJSON: SearchQueryJSON;
 
+    /** Columns to show */
+    columns: SearchColumnType[];
+
     /** Whether the screen is focused */
     isFocused: boolean;
 
@@ -97,6 +100,8 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Whether mobile selection mode is enabled */
     isMobileSelectionModeEnabled: boolean;
+
+    areAllOptionalColumnsHidden: boolean;
 };
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
@@ -127,12 +132,14 @@ function SearchList(
         shouldPreventDefaultFocusOnSelectRow,
         shouldPreventLongPressRow,
         queryJSON,
+        columns,
         isFocused,
         onViewableItemsChanged,
         onLayout,
         shouldAnimate,
         estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
         isMobileSelectionModeEnabled,
+        areAllOptionalColumnsHidden,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -288,6 +295,8 @@ function SearchList(
                         item={item}
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                         queryJSONHash={hash}
+                        columns={columns}
+                        areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                         policies={policies}
                         isDisabled={isDisabled}
                         allReports={allReports}
@@ -309,6 +318,7 @@ function SearchList(
             ListItem,
             onSelectRow,
             handleLongPressRow,
+            columns,
             onCheckboxPress,
             canSelectMultiple,
             shouldPreventDefaultFocusOnSelectRow,
@@ -320,6 +330,7 @@ function SearchList(
             isUserValidated,
             personalDetails,
             userBillingFundID,
+            areAllOptionalColumnsHidden,
         ],
     );
 
@@ -413,6 +424,7 @@ function SearchList(
                 onScroll={onScroll && typeof onScroll === 'function' ? handleOnScroll : onScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
+                columns={columns}
                 scrollToIndex={scrollToIndex}
                 isFocused={isFocused}
                 flattenedItemsLength={flattenedItems.length}
