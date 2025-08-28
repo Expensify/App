@@ -46,13 +46,20 @@ jobs:
         run: |
           set -e
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
+
+          # Store list of new test files before switching branches
+          NEW_TEST_FILES=$(git diff --name-only --diff-filter=A "$COMMIT_HASH" "${{ github.sha }}" -- 'tests/perf-test/**/*.perf-test.*' || true)
+          if [ -n "$NEW_TEST_FILES" ]; then
+            echo "New performance test files detected: $NEW_TEST_FILES"
+          fi
+
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
           git switch "$BASELINE_BRANCH"
           cd Mobile-Expensify
           git checkout "$(git rev-parse HEAD)"
           cd ..
           git add Mobile-Expensify
-          npm install --force || (rm -rf node_modules && npm install --force) 
+          npm install --force || (rm -rf node_modules && npm install --force)
           NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
           git switch --force --detach -
           cd Mobile-Expensify
@@ -60,6 +67,15 @@ jobs:
           cd ..
           git add Mobile-Expensify
           git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours
+
+          # Explicitly restore new test files before checking out ours
+          if [ -n "$NEW_TEST_FILES" ]; then
+            echo "Restoring new test files from PR branch..."
+            for file in $NEW_TEST_FILES; do
+              git checkout HEAD -- "$file" || echo "Could not restore $file"
+            done
+          fi
+
           git checkout --ours .
           npm install --force || (rm -rf node_modules && npm install --force)
           NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
