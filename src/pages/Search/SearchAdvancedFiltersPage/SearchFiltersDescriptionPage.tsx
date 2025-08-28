@@ -1,10 +1,9 @@
 import React from 'react';
-import SearchFiltersTextBase from '@components/Search/SearchFiltersTextBase';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import SearchFiltersTextBase from '@components/Search/SearchFiltersTextBase';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
-
 
 function SearchFiltersDescriptionPage() {
     const {translate} = useLocalize();

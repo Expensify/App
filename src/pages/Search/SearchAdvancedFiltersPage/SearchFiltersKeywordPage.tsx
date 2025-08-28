@@ -1,7 +1,6 @@
 import React from 'react';
 import SearchFiltersTextBase from '@components/Search/SearchFiltersTextBase';
 
-
 function SearchFiltersKeywordPage() {
     return (
         <SearchFiltersTextBase
