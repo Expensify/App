@@ -80,7 +80,6 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
  * @param screens key/value pairs where the key is the name of the screen and the value is a function that returns the lazy-loaded component
  */
 function createModalStackNavigator<ParamList extends ParamListBase>(screens: Screens): React.ComponentType {
-    // const ModalStackNavigator = createPlatformStackNavigator<ParamList>();
     const ModalStackNavigator = createPlatformStackNavigator<ParamList>();
 
     function ModalStack() {
@@ -116,7 +115,6 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                             getComponent={(screens as Required<Screens>)[name as Screen]}
                             // For some reason, screenOptions is not working with function as options so we have to pass it to every screen.
                             options={getScreenOptions}
-                            // options={screenOptions}
                         />
                     ))}
                 </ModalStackNavigator.Navigator>

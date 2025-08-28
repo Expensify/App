@@ -1,4 +1,10 @@
 import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@react-navigation/stack';
+// eslint-disable-next-line no-restricted-imports
+import type {Animated, StyleProp, ViewStyle} from 'react-native';
+
+function isObjectStyle(style: Animated.WithAnimatedValue<StyleProp<ViewStyle>>): style is Record<string, unknown> {
+    return !!style && typeof style === 'object';
+}
 
 /**
  * Higher-Order Function that enhances any card style interpolator
@@ -11,34 +17,35 @@ import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@rea
 const enhanceCardStyleInterpolator = (interpolator: (props: StackCardInterpolationProps) => StackCardInterpolatedStyle, additionalStyles: Partial<StackCardInterpolatedStyle>) => {
     return (props: StackCardInterpolationProps): StackCardInterpolatedStyle => {
         // Get the original result from the provided interpolator
-        const originalResult = interpolator(props);
-
-        // Merge the original result with additional styles
-        const enhancedResult = {
-            ...originalResult,
-            ...additionalStyles,
-        };
+        const enhancedResult = {...interpolator(props)};
 
         // Deep merge nested style objects
-        if (originalResult.cardStyle && additionalStyles.cardStyle && typeof originalResult.cardStyle === 'object' && typeof additionalStyles.cardStyle === 'object') {
+        if (isObjectStyle(enhancedResult.cardStyle) && isObjectStyle(additionalStyles.cardStyle)) {
             enhancedResult.cardStyle = {
-                ...originalResult.cardStyle,
+                ...enhancedResult.cardStyle,
                 ...additionalStyles.cardStyle,
-            } as typeof originalResult.cardStyle;
+            } as typeof enhancedResult.cardStyle;
         }
 
-        if (originalResult.containerStyle && additionalStyles.containerStyle && typeof originalResult.containerStyle === 'object' && typeof additionalStyles.containerStyle === 'object') {
+        if (isObjectStyle(enhancedResult.containerStyle) && isObjectStyle(additionalStyles.containerStyle)) {
             enhancedResult.containerStyle = {
-                ...originalResult.containerStyle,
+                ...enhancedResult.containerStyle,
                 ...additionalStyles.containerStyle,
-            } as typeof originalResult.containerStyle;
+            } as typeof enhancedResult.containerStyle;
         }
 
-        if (originalResult.overlayStyle && additionalStyles.overlayStyle && typeof originalResult.overlayStyle === 'object' && typeof additionalStyles.overlayStyle === 'object') {
+        if (isObjectStyle(enhancedResult.overlayStyle) && isObjectStyle(additionalStyles.overlayStyle)) {
             enhancedResult.overlayStyle = {
-                ...originalResult.overlayStyle,
+                ...enhancedResult.overlayStyle,
                 ...additionalStyles.overlayStyle,
-            } as typeof originalResult.overlayStyle;
+            } as typeof enhancedResult.overlayStyle;
+        }
+
+        if (isObjectStyle(enhancedResult.shadowStyle) && isObjectStyle(additionalStyles.shadowStyle)) {
+            enhancedResult.shadowStyle = {
+                ...enhancedResult.shadowStyle,
+                ...additionalStyles.shadowStyle,
+            } as typeof enhancedResult.shadowStyle;
         }
 
         return enhancedResult;
