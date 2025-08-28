@@ -7080,7 +7080,7 @@ const translations = {
         isTransactionBillable: 'Elige si la transacción es facturable',
         keepThisOne: 'Mantener éste',
         confirmDetails: 'Confirma los detalles que conservas',
-        confirmDuplicatesInfo: 'Los duplicados que no conserves se guardarán para que el usuario los elimine.',
+        confirmDuplicatesInfo: 'Los duplicados que no conserves se mantendrán para que el remitente los elimine.',
         hold: 'Este gasto está retenido',
         resolvedDuplicates: 'resolvió el duplicado',
     },
