@@ -26,4 +26,3 @@ src/libs/SearchParser/autocompleteParser.js
 
 # Disable prettier in the submodule
 Mobile-Expensify
-modules/group-ib-fp
