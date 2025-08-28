@@ -654,6 +654,7 @@ const translations = {
         forwardTo: 'Inoltra a',
         merge: 'Unisci',
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la tua rete e riprova.',
+        enableGlobalReimbursements: 'Abilita i rimborsi globali',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -954,7 +955,6 @@ const translations = {
         distance: 'Distanza',
         manual: 'Manuale',
         scan: 'Scansiona',
-        map: 'Mappa',
     },
     spreadsheet: {
         upload: 'Carica un foglio di calcolo',
@@ -1250,7 +1250,6 @@ const translations = {
             invalidCategoryLength: 'Il nome della categoria supera i 255 caratteri. Si prega di accorciarlo o scegliere una categoria diversa.',
             invalidTagLength: 'Il nome del tag supera i 255 caratteri. Per favore, accorcialo o scegli un tag diverso.',
             invalidAmount: 'Si prega di inserire un importo valido prima di continuare',
-            invalidDistance: 'Si prega di inserire una distanza valida prima di continuare',
             invalidIntegerAmount: 'Inserisci un importo in dollari intero prima di continuare',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `L'importo massimo delle tasse è ${amount}`,
             invalidSplit: "La somma delle suddivisioni deve essere uguale all'importo totale",
@@ -3091,9 +3090,9 @@ const translations = {
         },
     },
     beneficialOwnerInfoStep: {
-        doYouOwn25percent: 'Possiedi il 25% o più di',
-        doAnyIndividualOwn25percent: 'Qualcuno possiede il 25% o più di',
-        areThereMoreIndividualsWhoOwn25percent: 'Ci sono più individui che possiedono il 25% o più di',
+        doYouOwn25percent: ({companyName}: CompanyNameParams) => `Possiedi il 25% o più di ${companyName}?`,
+        doAnyIndividualOwn25percent: ({companyName}: CompanyNameParams) => `Qualcuno possiede il 25% o più di ${companyName}?`,
+        areThereMoreIndividualsWhoOwn25percent: ({companyName}: CompanyNameParams) => `Ci sono altre persone che possiedono il 25% o più di ${companyName}?`,
         regulationRequiresUsToVerifyTheIdentity: "La normativa ci impone di verificare l'identità di qualsiasi individuo che possieda più del 25% dell'azienda.",
         companyOwner: "Proprietario dell'azienda",
         enterLegalFirstAndLastName: 'Qual è il nome legale del proprietario?',
@@ -3561,11 +3560,14 @@ const translations = {
             deepDiveExpensifyCard: `<muted-text-label>Le transazioni della carta Expensify verranno esportate automaticamente in un “Conto di responsabilità della carta Expensify” creato con la <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nostra integrazione</a>.</muted-text-label>`,
         },
         receiptPartners: {
+            connect: 'Connettiti ora',
             uber: {
                 subtitle: 'Automatizza le spese di viaggio e di consegna dei pasti in tutta la tua organizzazione.',
                 autoRemove: "Invita nuovi membri dell'area di lavoro su Uber for Business",
                 autoInvite: "Disattiva i membri dell'area di lavoro rimossi da Uber for Business",
                 manageInvites: 'Gestisci inviti',
+                bannerTitle: 'Expensify + Uber per le aziende',
+                bannerDescription: 'Connetti Uber for Business per automatizzare le spese di viaggio e di consegna dei pasti nella tua organizzazione.',
             },
         },
         perDiem: {
