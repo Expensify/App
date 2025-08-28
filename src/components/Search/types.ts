@@ -45,6 +45,7 @@ type SelectedReports = {
     reportID: string;
     policyID: string | undefined;
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
+    allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
     total: number;
 };
 
@@ -128,6 +129,8 @@ type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN;
 
+type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL;
+
 type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
@@ -135,6 +138,7 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
+type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
 
 type QueryFilters = Array<{
     key: SearchFilterKey;
@@ -188,6 +192,7 @@ export type {
     SearchColumnType,
     SearchBooleanFilterKeys,
     SearchDateFilterKeys,
+    SearchAmountFilterKeys,
     SearchStatus,
     SearchQueryJSON,
     SearchQueryString,
@@ -213,4 +218,5 @@ export type {
     SingularSearchStatus,
     SearchDatePreset,
     SearchWithdrawalType,
+    UserFriendlyValue,
 };

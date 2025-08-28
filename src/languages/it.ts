@@ -52,12 +52,14 @@ import type {
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
     BusinessBankAccountParams,
+    BusinessRegistrationNumberParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
     CardNextPaymentParams,
     CategoryNameParams,
+    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
     ChangeOwnerHasFailedSettlementsParams,
@@ -202,6 +204,7 @@ import type {
     SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
+    SignerInfoMessageParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
@@ -292,6 +295,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceMembersCountParams,
@@ -299,6 +303,7 @@ import type {
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
+    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -587,6 +592,7 @@ const translations = {
         network: 'Rete',
         reportID: 'ID Rapporto',
         longID: 'ID lungo',
+        withdrawalID: 'ID di prelievo',
         bankAccounts: 'Conti bancari',
         chooseFile: 'Scegli file',
         chooseFiles: 'Scegli file',
@@ -646,8 +652,11 @@ const translations = {
         getTheApp: "Scarica l'app",
         scanReceiptsOnTheGo: 'Scansiona le ricevute dal tuo telefono',
         headsUp: 'Attenzione!',
+        submitTo: 'Invia a',
+        forwardTo: 'Inoltra a',
         merge: 'Unisci',
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la tua rete e riprova.',
+        enableGlobalReimbursements: 'Abilita i rimborsi globali',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -987,6 +996,11 @@ const translations = {
             'Il file che hai caricato è vuoto o contiene dati non validi. Assicurati che il file sia formattato correttamente e contenga le informazioni necessarie prima di caricarlo di nuovo.',
         importSpreadsheet: 'Importa foglio di calcolo',
         downloadCSV: 'Scarica CSV',
+        importMemberConfirmation: () => ({
+            one: `Conferma i dettagli di seguito per un nuovo membro del workspace che verrà aggiunto come parte di questo caricamento. I membri esistenti non riceveranno aggiornamenti di ruolo né messaggi di invito.`,
+            other: (count: number) =>
+                `Conferma i dettagli di seguito per i ${count} nuovi membri del workspace che verranno aggiunti come parte di questo caricamento. I membri esistenti non riceveranno aggiornamenti di ruolo né messaggi di invito.`,
+        }),
     },
     receipt: {
         upload: 'Carica ricevuta',
@@ -1082,13 +1096,13 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `ha eliminato una spesa (${amount} per ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `ha spostato una spesa${reportName ? `da ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `spostato questa spesa${reportName ? `a <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `spostato questa spesa nel tuo <a href="${reportUrl}">spazio personale</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
                 return `ha spostato questo rapporto nello spazio di lavoro <a href="${newParentReportUrl}">${toPolicyName}</a>`;
             }
             return `ha spostato questo <a href="${movedReportUrl}">rapporto</a> nello spazio di lavoro <a href="${newParentReportUrl}">${toPolicyName}</a>`;
         },
-        unreportedTransaction: 'spostato questa spesa nel tuo spazio personale',
         pendingMatchWithCreditCard: 'Ricevuta in attesa di abbinamento con transazione della carta',
         pendingMatch: 'Partita in sospeso',
         pendingMatchWithCreditCardDescription: 'Ricevuta in attesa di abbinamento con transazione della carta. Segna come contante per annullare.',
@@ -1286,9 +1300,8 @@ const translations = {
         emptyStateUnreportedExpenseSubtitle: 'Sembra che non hai spese non segnalate. Prova a crearne una qui sotto.',
         addUnreportedExpenseConfirm: 'Aggiungi al report',
         explainHold: 'Spiega perché stai trattenendo questa spesa.',
-        undoSubmit: 'Annulla invio',
         retracted: 'retratato',
-        undoClose: 'Annulla chiusura',
+        retract: 'Ritirare',
         reopened: 'riaperto',
         reopenReport: 'Riapri rapporto',
         reopenExportedReportConfirmation: ({connectionName}: {connectionName: string}) =>
@@ -1373,6 +1386,22 @@ const translations = {
         rates: 'Tariffe',
         submitsTo: ({name}: SubmitsToParams) => `Invia a ${name}`,
         moveExpenses: () => ({one: 'Sposta spesa', other: 'Sposta spese'}),
+        changeApprover: {
+            title: 'Cambia approvatore',
+            subtitle: "Scegli un'opzione per cambiare l'approvatore di questo report.",
+            description: ({workflowSettingLink}: WorkflowSettingsParam) =>
+                `Puoi anche cambiare l'approvatore in modo permanente per tutti i report nelle tue <a href="${workflowSettingLink}">impostazioni del flusso di lavoro</a>.`,
+            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `ha cambiato l'approvatore in <mention-user accountID="${managerID}"/>`,
+            actions: {
+                addApprover: 'Aggiungi approvatore',
+                addApproverSubtitle: 'Aggiungi un approvatore aggiuntivo al flusso di lavoro esistente.',
+                bypassApprovers: 'Ignora approvatori',
+                bypassApproversSubtitle: 'Assegna te stesso come approvatore finale e salta gli approvatori rimanenti.',
+            },
+            addApprover: {
+                subtitle: 'Scegli un approvatore aggiuntivo per questo report prima di instradarlo attraverso il resto del flusso di lavoro di approvazione.',
+            },
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2988,7 +3017,14 @@ const translations = {
         whatsTheBusinessName: "Qual è il nome dell'azienda?",
         whatsTheBusinessAddress: "Qual è l'indirizzo dell'azienda?",
         whatsTheBusinessContactInformation: 'Quali sono le informazioni di contatto aziendali?',
-        whatsTheBusinessRegistrationNumber: "Qual è il numero di registrazione dell'azienda?",
+        whatsTheBusinessRegistrationNumber: ({country}: BusinessRegistrationNumberParams) => {
+            switch (country) {
+                case CONST.COUNTRY.GB:
+                    return "Qual è il numero di registrazione dell'azienda (CRN)?";
+                default:
+                    return "Qual è il numero di registrazione dell'azienda?";
+            }
+        },
         whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:
@@ -3063,9 +3099,9 @@ const translations = {
         },
     },
     beneficialOwnerInfoStep: {
-        doYouOwn25percent: 'Possiedi il 25% o più di',
-        doAnyIndividualOwn25percent: 'Qualcuno possiede il 25% o più di',
-        areThereMoreIndividualsWhoOwn25percent: 'Ci sono più individui che possiedono il 25% o più di',
+        doYouOwn25percent: ({companyName}: CompanyNameParams) => `Possiedi il 25% o più di ${companyName}?`,
+        doAnyIndividualOwn25percent: ({companyName}: CompanyNameParams) => `Qualcuno possiede il 25% o più di ${companyName}?`,
+        areThereMoreIndividualsWhoOwn25percent: ({companyName}: CompanyNameParams) => `Ci sono altre persone che possiedono il 25% o più di ${companyName}?`,
         regulationRequiresUsToVerifyTheIdentity: "La normativa ci impone di verificare l'identità di qualsiasi individuo che possieda più del 25% dell'azienda.",
         companyOwner: "Proprietario dell'azienda",
         enterLegalFirstAndLastName: 'Qual è il nome legale del proprietario?',
@@ -3150,21 +3186,6 @@ const translations = {
         enable2FAText: "Prendiamo la tua sicurezza sul serio. Imposta ora l'autenticazione a due fattori (2FA) per aggiungere un ulteriore livello di protezione al tuo account.",
         secureYourAccount: 'Proteggi il tuo account',
     },
-    beneficialOwnersStep: {
-        additionalInformation: 'Informazioni aggiuntive',
-        checkAllThatApply: 'Seleziona tutte le opzioni applicabili, altrimenti lascia vuoto.',
-        iOwnMoreThan25Percent: 'Possiedo più del 25% di',
-        someoneOwnsMoreThan25Percent: 'Qualcun altro possiede più del 25% di',
-        additionalOwner: 'Proprietario beneficiario aggiuntivo',
-        removeOwner: 'Rimuovi questo titolare effettivo',
-        addAnotherIndividual: "Aggiungi un'altra persona che possiede più del 25% di",
-        agreement: 'Accordo:',
-        termsAndConditions: 'termini e condizioni',
-        certifyTrueAndAccurate: 'Certifico che le informazioni fornite sono veritiere e accurate.',
-        error: {
-            certify: 'Deve certificare che le informazioni siano veritiere e accurate',
-        },
-    },
     completeVerificationStep: {
         completeVerification: 'Completa la verifica',
         confirmAgreements: 'Per favore, conferma gli accordi qui sotto.',
@@ -3236,6 +3257,10 @@ const translations = {
         PDSandFSGDescription:
             'La nostra partnership con Corpay utilizza una connessione API per sfruttare la loro vasta rete di partner bancari internazionali per alimentare i Rimborsi Globali in Expensify. Secondo la normativa australiana, ti forniamo la Guida ai Servizi Finanziari (FSG) e la Dichiarazione di Divulgazione del Prodotto (PDS) di Corpay.\n\nSi prega di leggere attentamente i documenti FSG e PDS poiché contengono dettagli completi e informazioni importanti sui prodotti e servizi offerti da Corpay. Conserva questi documenti per riferimento futuro.',
         pleaseUpload: "Si prega di caricare ulteriore documentazione qui sotto per aiutarci a verificare la tua identità come direttore o dirigente senior dell'entità aziendale.",
+        enterSignerInfo: 'Inserisci le informazioni del firmatario',
+        thisStep: 'Questo passaggio è stato completato',
+        isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+            `sta collegando un conto bancario aziendale in ${currency} terminante con ${bankAccountLastFour} a Expensify per pagare i dipendenti in ${currency}. Il prossimo passaggio richiede le informazioni di un firmatario, come un direttore o un dirigente.`,
     },
     agreementsStep: {
         agreements: 'Accordi',
@@ -3243,10 +3268,11 @@ const translations = {
         regulationRequiresUs: "La normativa ci impone di verificare l'identità di qualsiasi individuo che possieda più del 25% dell'azienda.",
         iAmAuthorized: 'Sono autorizzato a utilizzare il conto bancario aziendale per le spese aziendali.',
         iCertify: 'Certifico che le informazioni fornite sono veritiere e accurate.',
-        termsAndConditions: 'termini e condizioni',
+        iAcceptTheTermsAndConditions: `Accetto i <a href="https://cross-border.corpay.com/tc/">termini e le condizioni</a>.`,
+        iAcceptTheTermsAndConditionsAccessibility: 'Accetto i termini e le condizioni.',
         accept: 'Accetta e aggiungi conto bancario',
-        iConsentToThe: 'Acconsento al',
-        privacyNotice: 'informativa sulla privacy',
+        iConsentToThePrivacyNotice: `Acconsento <a href="https://payments.corpay.com/compliance">all'informativa sulla privacy</a>.`,
+        iConsentToThePrivacyNoticeAccessibility: "Acconsento all'informativa sulla privacy.",
         error: {
             authorized: "Devi essere un ufficiale di controllo con l'autorizzazione per operare sul conto bancario aziendale.",
             certify: 'Si prega di certificare che le informazioni sono veritiere e accurate',
@@ -3513,7 +3539,7 @@ const translations = {
             existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
                 `Poiché ti sei connesso a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} in precedenza, puoi scegliere di riutilizzare una connessione esistente o crearne una nuova.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Ultima sincronizzazione ${formattedDate}`,
-            authenticationError: ({connectionName}: AuthenticationErrorParams) => `Impossibile connettersi a ${connectionName} a causa di un errore di autenticazione`,
+            authenticationError: ({connectionName}: AuthenticationErrorParams) => `Impossibile connettersi a ${connectionName} a causa di un errore di autenticazione.`,
             learnMore: 'Scopri di più',
             memberAlternateText: 'I membri possono inviare e approvare i rapporti.',
             adminAlternateText: 'Gli amministratori hanno pieno accesso di modifica a tutti i report e alle impostazioni dello spazio di lavoro.',
@@ -3547,8 +3573,36 @@ const translations = {
             deepDiveExpensifyCard: `<muted-text-label>Le transazioni della carta Expensify verranno esportate automaticamente in un “Conto di responsabilità della carta Expensify” creato con la <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nostra integrazione</a>.</muted-text-label>`,
         },
         receiptPartners: {
+            connect: 'Connettiti ora',
             uber: {
                 subtitle: 'Automatizza le spese di viaggio e di consegna dei pasti in tutta la tua organizzazione.',
+                sendInvites: 'Invita membri',
+                sendInvitesDescription: 'Questi membri del workspace non hanno ancora un account Uber for Business. Deseleziona tutti i membri che non desideri invitare in questo momento.',
+                confirmInvite: 'Conferma invito',
+                manageInvites: 'Gestisci inviti',
+                confirm: 'Conferma',
+                allSet: 'Tutto pronto',
+                readyToRoll: 'Sei pronto per iniziare',
+                takeBusinessRideMessage: 'Fai un viaggio di lavoro e le tue ricevute Uber verranno importate in Expensify. Andiamo!',
+                all: 'Tutti',
+                linked: 'Collegato',
+                outstanding: 'In sospeso',
+                status: {
+                    resend: 'Reinvia',
+                    invite: 'Invita',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED]: 'Collegato',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'In attesa',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Sospeso',
+                },
+                invitationFailure: 'Impossibile invitare i membri a Uber for Business',
+                autoRemove: "Invita nuovi membri dell'area di lavoro su Uber for Business",
+                autoInvite: "Disattiva i membri dell'area di lavoro rimossi da Uber for Business",
+                bannerTitle: 'Expensify + Uber per le aziende',
+                bannerDescription: 'Connetti Uber for Business per automatizzare le spese di viaggio e di consegna dei pasti nella tua organizzazione.',
+                emptyContent: {
+                    title: 'Nessun membro da visualizzare',
+                    subtitle: 'Abbiamo cercato ovunque e non abbiamo trovato nulla.',
+                },
             },
         },
         perDiem: {
@@ -4687,6 +4741,7 @@ const translations = {
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Disconnetti Uber',
                 disconnectText: "Per disabilitare questa funzionalità, disconnetti prima l'integrazione Uber for Business.",
+                description: 'Sei sicuro di voler disconnettere questa integrazione?',
                 confirmText: 'Capito',
             },
             workflowWarningModal: {
@@ -4886,8 +4941,8 @@ const translations = {
             updateTaxCodeFailureMessage: "Si è verificato un errore durante l'aggiornamento del codice fiscale, riprova.",
         },
         emptyWorkspace: {
-            title: "Crea un'area di lavoro",
-            subtitle: 'Crea uno spazio di lavoro per tracciare le ricevute, rimborsare le spese, gestire i viaggi, inviare fatture e altro ancora, tutto alla velocità della chat.',
+            title: 'Non hai spazi di lavoro',
+            subtitle: 'Traccia ricevute, rimborsa spese, gestisci viaggi, invia fatture e altro ancora.',
             createAWorkspaceCTA: 'Inizia',
             features: {
                 trackAndCollect: 'Traccia e raccogli ricevute',
@@ -4967,6 +5022,7 @@ const translations = {
                 limit: 'Limite',
                 limitType: 'Tipo di limite',
                 name: 'Nome',
+                disabledApprovalForSmartLimitError: 'Abilita le approvazioni in <strong>Flussi di lavoro > Aggiungi approvazioni</strong> prima di impostare i limiti intelligenti',
             },
             deactivateCardModal: {
                 deactivate: 'Disattiva',
@@ -5469,15 +5525,18 @@ const translations = {
                     'I tag multilivello ti aiutano a monitorare le spese con maggiore precisione. Assegna più tag a ciascuna voce, come reparto, cliente o centro di costo, per catturare il contesto completo di ogni spesa. Questo consente report più dettagliati, flussi di lavoro di approvazione ed esportazioni contabili.',
                 onlyAvailableOnPlan: 'I tag multilivello sono disponibili solo nel piano Control, a partire da',
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
+                title: 'Livelli di approvazione multipli',
+                description:
+                    'I livelli di approvazione multipli sono uno strumento di flusso di lavoro per le aziende che richiedono a più di una persona di approvare un report prima che possa essere rimborsato.',
+                onlyAvailableOnPlan: 'I livelli di approvazione multipli sono disponibili solo nel piano Control, a partire da ',
+            },
             pricing: {
                 perActiveMember: 'per membro attivo al mese.',
                 perMember: 'per membro al mese.',
             },
-            note: {
-                upgradeWorkspace: 'Aggiorna il tuo spazio di lavoro per accedere a questa funzione, oppure',
-                learnMore: 'scopri di più',
-                aboutOurPlans: 'informazioni sui nostri piani e prezzi.',
-            },
+            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+                `<muted-text>Aggiorna il tuo spazio di lavoro per accedere a questa funzione oppure <a href="${subscriptionLink}">scopri di più</a> sui nostri piani e prezzi.</muted-text>`,
             upgradeToUnlock: 'Sblocca questa funzione',
             completed: {
                 headline: `Hai aggiornato il tuo spazio di lavoro!`,
@@ -6026,6 +6085,7 @@ const translations = {
         statements: 'Dichiarazioni',
         unapprovedCash: 'Contanti non approvati',
         unapprovedCard: 'Carta non approvata',
+        reconciliation: 'Riconciliazione',
         saveSearch: 'Salva ricerca',
         deleteSavedSearch: 'Elimina ricerca salvata',
         deleteSavedSearchConfirm: 'Sei sicuro di voler eliminare questa ricerca?',
@@ -6086,9 +6146,10 @@ const translations = {
             billable: 'Fatturabile',
             reimbursable: 'Rimborsabile',
             groupBy: {
-                reports: 'Rapporto',
-                from: 'Da',
-                card: 'Carta',
+                [CONST.SEARCH.GROUP_BY.REPORTS]: 'Rapporto',
+                [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
+                [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID di prelievo',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -6235,7 +6296,15 @@ const translations = {
                 changeType: ({oldType, newType}: ChangeTypeParams) => `cambiato tipo da ${oldType} a ${newType}`,
                 exportedToCSV: `esportato in CSV`,
                 exportedToIntegration: {
-                    automatic: ({label}: ExportedToIntegrationParams) => `esportato in ${label}`,
+                    automatic: ({label}: ExportedToIntegrationParams) => {
+                        // The label will always be in English, so we need to translate it
+                        const labelTranslations: Record<string, string> = {
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                        };
+                        const translatedLabel = labelTranslations[label] || label;
+                        return `esportato in ${translatedLabel}`;
+                    },
                     automaticActionOne: ({label}: ExportedToIntegrationParams) => `esportato su ${label} tramite`,
                     automaticActionTwo: 'impostazioni contabili',
                     manual: ({label}: ExportedToIntegrationParams) => `ha contrassegnato questo report come esportato manualmente su ${label}.`,
@@ -6380,8 +6449,9 @@ const translations = {
         levelThreeResult: 'Messaggio rimosso dal canale più avviso anonimo e messaggio segnalato per revisione.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invitali',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Invita a inviare le spese',
+        inviteToChat: 'Invita solo a chattare',
+        nothing: 'Non fare nulla',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accetta',
@@ -6532,8 +6602,7 @@ const translations = {
         overTripLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Importo superiore al limite di ${formattedLimit}/viaggio`,
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importo oltre il limite di ${formattedLimit}/persona`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importo oltre il limite giornaliero ${formattedLimit}/persona per categoria`,
-        receiptNotSmartScanned:
-            'Ricevuta e dettagli della spesa aggiunti manualmente. <a href="https://help.expensify.com/articles/expensify-classic/reports/Automatic-Receipt-Audit">Scopri di più</a>.',
+        receiptNotSmartScanned: 'Ricevuta e dettagli della spesa aggiunti manualmente.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Ricevuta richiesta';
             if (formattedLimit ?? category) {
@@ -7045,7 +7114,7 @@ const translations = {
         takeATestDrive: 'Fai un giro di prova',
     },
     migratedUserWelcomeModal: {
-        title: 'Viaggi e spese, alla velocità della chat',
+        title: 'Benvenuto in New Expensify!',
         subtitle: 'Il nuovo Expensify ha la stessa fantastica automazione, ma ora con una collaborazione straordinaria:',
         confirmText: 'Andiamo!',
         features: {

@@ -15,3 +15,10 @@
 - E/App issue: 🛑
 - PR Introducing Patch:  [NR 0.75 upgrade](https://github.com/Expensify/App/pull/45289)
 
+### [react-native-reanimated+3.19.1+003+correctly-handle-Easing.bezier.patch](react-native-reanimated+3.19.1+003+correctly-handle-Easing.bezier.patch)
+
+- Reason: The Easing.bezier animation doesn't work on web
+- Upstream PR/issue: https://github.com/software-mansion/react-native-reanimated/pull/8049
+- E/App issue: https://github.com/Expensify/App/pull/63623
+- PR Introducing Patch:  🛑
+

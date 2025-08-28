@@ -47,7 +47,7 @@ const tests = [
                 right: {
                     operator: 'eq',
                     left: 'reportID',
-                    right: 'report',
+                    right: '1234',
                 },
             },
         },
@@ -85,7 +85,7 @@ const tests = [
                 right: {
                     operator: 'eq',
                     left: 'reportID',
-                    right: 'report',
+                    right: '1234',
                 },
             },
         },
@@ -389,6 +389,16 @@ const tests = [
         },
     },
     {
+        query: 'status:all',
+        expected: {
+            type: 'expense',
+            status: '',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: null,
+        },
+    },
+    {
         query: 'amount>200 las vegas category:"Hotel : Marriott"',
         expected: {
             type: 'expense',
@@ -612,6 +622,20 @@ const keywordTests = [
                     left: 'to',
                     right: '""Unruly"" “““Glad””” """Dog""',
                 },
+            },
+        },
+    },
+    {
+        query: 'expense-type:per-diem',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'eq',
+                left: 'expenseType',
+                right: 'perDiem',
             },
         },
     },

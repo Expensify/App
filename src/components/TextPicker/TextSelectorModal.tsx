@@ -121,7 +121,6 @@ function TextSelectorModal({
             onModalHide={hide}
             shouldUseModalPaddingStyle={false}
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

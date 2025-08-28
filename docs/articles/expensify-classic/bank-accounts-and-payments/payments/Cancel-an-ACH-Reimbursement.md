@@ -3,7 +3,6 @@ title: Cancel ACH Reimbursement
 description: Learn how to cancel an ACH reimbursement in Expensify before funds are withdrawn.
 keywords: [Expensify Classic, ACH, reimbursement, cancel payment]
 ---
-<div id="expensify-classic" markdown="1">
 
 If an ACH reimbursement was processed by mistake or needs to be canceled, a **Workspace Admin** with access to the verified bank account can cancel it—**but only before the funds are withdrawn** from the payment account.
 
@@ -18,4 +17,3 @@ To cancel an ACH reimbursement:
 
 **Note:** If the reimbursement cannot be canceled within Expensify, you will need to contact your bank directly for assistance.
 
-</div>
