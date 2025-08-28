@@ -22,6 +22,7 @@ import {setActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavi
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
@@ -69,6 +70,7 @@ type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
 const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.DATE,
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
@@ -83,9 +85,17 @@ type SortedTransactions = {
 
 const isSortableColumnName = (key: unknown): key is SortableColumnName => !!sortableColumnNames.find((val) => val === key);
 
-const getTransactionKey = (transaction: OnyxTypes.Transaction, key: SortableColumnName) => {
-    const dateKey = transaction.modifiedCreated ? 'modifiedCreated' : 'created';
-    return key === CONST.SEARCH.TABLE_COLUMNS.DATE ? dateKey : key;
+const getTransactionValue = (transaction: OnyxTypes.Transaction, key: SortableColumnName) => {
+    if (key === CONST.SEARCH.TABLE_COLUMNS.DATE) {
+        const dateKey = transaction.modifiedCreated ? 'modifiedCreated' : 'created';
+        return transaction[dateKey];
+    }
+
+    if (key === CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION) {
+        return Parser.htmlToText(transaction.comment?.comment ?? '');
+    }
+
+    return transaction[key];
 };
 
 function MoneyRequestReportTransactionList({
@@ -155,7 +165,7 @@ function MoneyRequestReportTransactionList({
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions]
-            .sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy, localeCompare))
+            .sort((a, b) => compareValues(getTransactionValue(a, sortBy), getTransactionValue(b, sortBy), sortOrder, sortBy, localeCompare))
             .map((transaction) => ({
                 ...transaction,
                 shouldBeHighlighted: newTransactions?.includes(transaction),

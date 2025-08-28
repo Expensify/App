@@ -39,6 +39,7 @@ const columnConfig: ColumnConfig[] = [
         columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
         translationKey: 'common.description',
         canBeMissing: true,
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
