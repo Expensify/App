@@ -4,7 +4,6 @@ description: Learn how to connect your Lyft Business Profile with Expensify to a
 keywords: [Lyft, Expensify Classic, Business Profile, receipts, integration, expense management]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Expensify seamlessly integrates with Lyft, allowing you to automatically import receipts for work-related rides into your Expensify account.  
 
@@ -55,4 +54,3 @@ No, this integration only works with a **Lyft Business Profile**. Personal rides
 2. Select **Business Profile**.  
 3. Tap **Expense Management** and remove Expensify.  
 
-</div>
