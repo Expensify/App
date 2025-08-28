@@ -43,6 +43,10 @@
   }
 
   function updateDefaultValues(field, value) {
+    if (field === "status" && value === "all") {
+      defaultValues[field] = "";
+      return;
+    }
     defaultValues[field] = value;
   }
 }
@@ -111,6 +115,7 @@ key "key"
   = @(
       date
       / amount
+      / total
       / merchant
       / description
       / reportID
