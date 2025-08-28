@@ -45,10 +45,12 @@ function useReportActionAvatars({
 }) {
     /* Get avatar type */
     const allPersonalDetails = usePersonalDetails();
-    // eslint-disable-next-line rulesdir/no-unstable-hook-defaults
-    const [personalDetails = allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+    const [personalDetailsFromSnapshot] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
     });
+    // When the search hash changes, personalDetails from the snapshot will be undefined if it hasn't been fetched yet.
+    // Therefore, we will fall back to allPersonalDetails while the data is being fetched.
+    const personalDetails = personalDetailsFromSnapshot ?? allPersonalDetails;
 
     const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
 
