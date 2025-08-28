@@ -6636,7 +6636,7 @@ const translations = {
         isTransactionBillable: 'Scegli se la transazione è fatturabile',
         keepThisOne: 'Mantieni questo',
         confirmDetails: `Conferma i dettagli che stai conservando`,
-        confirmDuplicatesInfo: `Le richieste duplicate che non conservi saranno tenute in attesa che il membro le elimini.`,
+        confirmDuplicatesInfo: `I duplicati che non conservi verranno mantenuti per consentire al mittente di eliminarli.`,
         hold: 'Questa spesa è stata messa in sospeso',
         resolvedDuplicates: 'risolto il duplicato',
     },
