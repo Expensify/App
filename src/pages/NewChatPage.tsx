@@ -197,14 +197,14 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
         const sectionsList: Section[] = [];
         let firstKey = '';
 
-        // Participents whose data does not exist in chatOptions
+        // Participants whose data does not exist in chatOptions
         const filteredSelectedOptions = selectedOptions
-            .filter((participent) => !recentReports.some((item) => participent.login === item.login) && !personalDetails.some((item) => participent.login === item.login))
-            .map((participent) => ({
-                ...participent,
+            .filter((participant) => !recentReports.some((item) => participant.login === item.login) && !personalDetails.some((item) => participant.login === item.login))
+            .map((participant) => ({
+                ...participant,
                 reportID: CONST.DEFAULT_NUMBER_ID.toString(),
                 selected: true,
-                login: participent.login,
+                login: participant.login,
             }));
 
         const formatResults = formatSectionsFromSearchTerm(
