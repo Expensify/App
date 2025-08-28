@@ -1,9 +1,9 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
-import type {ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
+import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInput as RNTextInput, TextInputKeyPressEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInput as RNTextInput, TextInputKeyPressEventData, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -30,6 +30,12 @@ const ANIMATED_HIGHLIGHT_DURATION =
     CONST.ANIMATED_HIGHLIGHT_START_DURATION +
     CONST.ANIMATED_HIGHLIGHT_END_DELAY +
     CONST.ANIMATED_HIGHLIGHT_END_DURATION;
+
+const PAGE_SIZE = CONST.MAX_SELECTION_LIST_PAGE_LENGTH;
+
+function getStartingPage(index: number) {
+    return index >= 0 ? Math.ceil((index + 1) / PAGE_SIZE) : 1;
+}
 
 function SelectionListSingle<TItem extends ListItem>({
     data,
@@ -79,7 +85,8 @@ function SelectionListSingle<TItem extends ListItem>({
     customListHeader,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
-    const [currentPage, setCurrentPage] = useState(1);
+    const initialFocusedIndex = useMemo(() => data.findIndex((i) => i.keyForList === initiallyFocusedItemKey), [data, initiallyFocusedItemKey]);
+    const [currentPage, setCurrentPage] = useState(() => getStartingPage(initialFocusedIndex));
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
     const scrollEnabled = useScrollEnabled();
@@ -90,7 +97,7 @@ function SelectionListSingle<TItem extends ListItem>({
     const innerTextInputRef = useRef<RNTextInput | null>(null);
     const isTextInputFocusedRef = useRef<boolean>(false);
     const hasKeyBeenPressed = useRef(false);
-    const listRef = useRef<FlashList<TItem>>(null);
+    const listRef = useRef<FlashListRef<TItem>>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const isItemSelected = useCallback(
@@ -230,34 +237,32 @@ function SelectionListSingle<TItem extends ListItem>({
             const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
             return (
-                <View>
-                    <BaseSelectionListItemRenderer
-                        ListItem={ListItem}
-                        item={{
-                            shouldAnimateInHighlight: isItemHighlighted,
-                            isSelected: selected,
-                            ...item,
-                        }}
-                        setFocusedIndex={setFocusedIndex}
-                        index={index}
-                        normalizedIndex={index}
-                        isFocused={isItemFocused}
-                        isDisabled={isDisabled}
-                        showTooltip={shouldShowTooltips}
-                        canSelectMultiple={canSelectMultiple}
-                        shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
-                        selectRow={selectRow}
-                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                        rightHandSideComponent={rightHandSideComponent}
-                        isMultilineSupported={isRowMultilineSupported}
-                        isAlternateTextMultilineSupported={!!alternateTextNumberOfSupportedLines}
-                        alternateTextNumberOfLines={alternateTextNumberOfSupportedLines}
-                        shouldIgnoreFocus={shouldIgnoreFocus}
-                        wrapperStyle={listItemWrapperStyle}
-                        titleStyles={listItemTitleStyles}
-                        singleExecution={singleExecution}
-                    />
-                </View>
+                <BaseSelectionListItemRenderer
+                    ListItem={ListItem}
+                    item={{
+                        shouldAnimateInHighlight: isItemHighlighted,
+                        isSelected: selected,
+                        ...item,
+                    }}
+                    setFocusedIndex={setFocusedIndex}
+                    index={index}
+                    normalizedIndex={index}
+                    isFocused={isItemFocused}
+                    isDisabled={isDisabled}
+                    showTooltip={shouldShowTooltips}
+                    canSelectMultiple={canSelectMultiple}
+                    shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
+                    selectRow={selectRow}
+                    shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                    rightHandSideComponent={rightHandSideComponent}
+                    isMultilineSupported={isRowMultilineSupported}
+                    isAlternateTextMultilineSupported={!!alternateTextNumberOfSupportedLines}
+                    alternateTextNumberOfLines={alternateTextNumberOfSupportedLines}
+                    shouldIgnoreFocus={shouldIgnoreFocus}
+                    wrapperStyle={listItemWrapperStyle}
+                    titleStyles={listItemTitleStyles}
+                    singleExecution={singleExecution}
+                />
             );
         },
         [
@@ -281,22 +286,19 @@ function SelectionListSingle<TItem extends ListItem>({
         ],
     );
 
-    const [slicedData, ShowMoreButtonInstance] = useMemo(() => {
-        const pageSize = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
-        const partData = data.slice(0, pageSize);
-
-        const shouldShowMoreButton = data.length > pageSize;
-        const showMoreButton = shouldShowMoreButton ? (
-            <ShowMoreButton
-                containerStyle={[styles.mt2, styles.mb5]}
-                currentCount={pageSize}
-                totalCount={data.length}
-                onPress={incrementPage}
-            />
-        ) : null;
-
-        return [partData, showMoreButton];
-    }, [currentPage, data, styles.mb5, styles.mt2]);
+    const slicedData = useMemo(() => data.slice(0, PAGE_SIZE * currentPage), [data, currentPage]);
+    const ShowMoreButtonInstance = useMemo(
+        () =>
+            data.length > PAGE_SIZE * currentPage ? (
+                <ShowMoreButton
+                    containerStyle={[styles.mt2, styles.mb5]}
+                    currentCount={PAGE_SIZE * currentPage}
+                    totalCount={data.length}
+                    onPress={incrementPage}
+                />
+            ) : null,
+        [currentPage, data.length, styles.mb5, styles.mt2],
+    );
 
     const renderListEmptyContent = () => {
         if (showLoadingPlaceholder) {
@@ -332,12 +334,10 @@ function SelectionListSingle<TItem extends ListItem>({
         if (!innerTextInputRef.current) {
             return;
         }
-
         innerTextInputRef.current.focus();
     }, []);
 
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, focusTextInput}), [focusTextInput, scrollAndHighlightItem, scrollToIndex]);
-
     return (
         <View style={styles.flex1}>
             {shouldShowTextInput && (
@@ -388,7 +388,6 @@ function SelectionListSingle<TItem extends ListItem>({
                         renderItem={renderItem}
                         ref={listRef}
                         keyExtractor={(item, index) => item.keyForList ?? `${index}`}
-                        estimatedItemSize={64}
                         ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
                         scrollEnabled={scrollEnabled}
                         indicatorStyle="white"
@@ -396,8 +395,8 @@ function SelectionListSingle<TItem extends ListItem>({
                         showsVerticalScrollIndicator={showScrollIndicator}
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
-                        style={[listStyle]}
-                        initialScrollIndex={focusedIndex}
+                        style={listStyle as ViewStyle}
+                        initialScrollIndex={initialFocusedIndex}
                     />
                 </>
             )}
