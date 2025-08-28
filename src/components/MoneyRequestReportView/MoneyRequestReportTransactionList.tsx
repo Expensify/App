@@ -7,6 +7,7 @@ import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
@@ -19,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import FS from '@libs/Fullstory';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -117,6 +119,7 @@ function MoneyRequestReportTransactionList({
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const personalDetailsList = usePersonalDetails();
 
     const toggleTransaction = useCallback(
         (transactionID: string) => {
@@ -222,6 +225,8 @@ function MoneyRequestReportTransactionList({
 
     const listHorizontalPadding = styles.ph5;
 
+    const fsClass = FS.getChatFSClass(personalDetailsList, report);
+
     if (isEmptyTransactions) {
         return (
             <>
@@ -294,6 +299,7 @@ function MoneyRequestReportTransactionList({
                             taxAmountColumnSize={taxAmountColumnSize}
                             // if we add few new transactions, then we need to scroll to the first one
                             scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
+                            fsClass={fsClass}                        
                         />
                     );
                 })}

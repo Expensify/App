@@ -12,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
+import type {FSClass} from '@libs/Fullstory/types';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -62,6 +63,8 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Callback function that scrolls to this transaction in case it is newly added */
     scrollToNewTransaction?: (offset: number) => void;
+
+    fsClass?: FSClass;
 };
 
 function MoneyRequestReportTransactionItem({
@@ -76,6 +79,7 @@ function MoneyRequestReportTransactionItem({
     amountColumnSize,
     taxAmountColumnSize,
     scrollToNewTransaction,
+    fsClass,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -126,6 +130,7 @@ function MoneyRequestReportTransactionItem({
                 disabled={isTransactionPendingDelete(transaction)}
                 ref={viewRef}
                 wrapperStyle={[animatedHighlightStyle, styles.userSelectNone]}
+                fsClass={fsClass}
             >
                 <TransactionItemRow
                     transactionItem={transaction}
