@@ -127,8 +127,9 @@ export default createOnyxDerivedValueConfig({
             }
 
             const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
+            const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
             const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
-            const isReportArchived = isArchivedReport(reportNameValuePairs);
+            const isReportArchived = isArchivedReport(reportNameValuePair);
             const {hasAnyViolations, requiresAttention, reportErrors} = generateReportAttributes({
                 report,
                 chatReport,
