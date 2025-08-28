@@ -42,8 +42,6 @@ jobs:
       - name: Rock Remote Build - iOS
         # rock v3
         uses: callstackincubator/ios@08a533dbeda6adec39f94d08d820091514d1f7af
-        
-        
         env:
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
