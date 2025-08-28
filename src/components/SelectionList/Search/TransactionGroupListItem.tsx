@@ -184,7 +184,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 <View style={styles.flex1}>
                     {getHeader}
                     {shouldDisplayEmptyView ? (
-                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13, styles.gap2, canAddTransaction && styles.mv3]}>
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13, styles.gap3, canAddTransaction && styles.mv3]}>
                             <Text
                                 style={[styles.textLabelSupporting]}
                                 numberOfLines={1}
@@ -199,7 +199,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                     options={addExpenseDropdownOptions}
                                     isSplitButton={false}
                                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                                    success={false}
                                 />
                             )}
                         </View>
