@@ -136,7 +136,6 @@ import {
     getUpgradeWorkspaceMessage,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
-    isArchivedReport,
     isChatThread,
     isDefaultRoom,
     isDM,
@@ -943,7 +942,7 @@ function createOption(
     result.isOptimisticPersonalDetail = personalDetail?.isOptimisticPersonalDetail;
     if (report) {
         const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
-        const isReportArchived = isArchivedReport(reportNameValuePairs);
+        const isReportArchived = !!reportNameValuePairs?.private_isArchived;
         result.isChatRoom = reportUtilsIsChatRoom(report);
         result.isDefaultRoom = isDefaultRoom(report);
         result.private_isArchived = reportNameValuePairs?.private_isArchived;
