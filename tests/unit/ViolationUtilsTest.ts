@@ -664,17 +664,6 @@ describe('getRBRMessages', () => {
     };
 
     it('should return all violations and missing field error', () => {
-        const violations: TransactionViolation[] = [
-            {
-                name: CONST.VIOLATIONS.MISSING_CATEGORY,
-                type: CONST.VIOLATION_TYPES.VIOLATION,
-            },
-            {
-                name: CONST.VIOLATIONS.MISSING_TAG,
-                type: CONST.VIOLATION_TYPES.VIOLATION,
-            },
-        ];
-
         const missingFieldError = 'Missing required field';
 
         const result = ViolationsUtils.getRBRMessages(mockTransaction, translateLocal, missingFieldError, []);
