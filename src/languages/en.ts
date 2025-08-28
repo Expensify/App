@@ -2335,7 +2335,7 @@ const translations = {
                     `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
                     '2. Choose *Create expense*.\n' +
                     '3. Enter an amount or scan a receipt.\n' +
-                    '4. Confirm details..\n' +
+                    '4. Confirm details.\n' +
                     '5. Click *Create*.\n' +
                     '\n' +
                     `And you're done!`,
