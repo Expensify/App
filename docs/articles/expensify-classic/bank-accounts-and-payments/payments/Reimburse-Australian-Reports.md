@@ -3,7 +3,6 @@ title: reimburse-australian-reports.md
 description: Learn how to set up direct reimbursements for Australian employees using ABA files in Expensify Classic.
 keywords: [Expensify, Australian reimbursements, AUD, direct reimbursement, ABA file, bank account, Expensify Classic]
 ---
-<div id="expensify-classic" markdown="1">
 
 This article explains how Workspace Admins can reimburse AUD expense reports in Expensify Classic using Direct Reimbursement and ABA file uploads to their bank. To enable ABA reimbursements, follow the steps in this [article](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Enable-Australian-Reimbursements). 
 
@@ -74,4 +73,3 @@ Yes. Expensify supports global reimbursement for issuing direct deposits from yo
 
 Learn more about this feature here: [Global Reimbursement Australia](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Global-Reimbursement-Australia).
 
-</div>

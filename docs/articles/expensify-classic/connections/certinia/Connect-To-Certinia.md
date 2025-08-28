@@ -4,7 +4,6 @@ description: Learn how to connect Expensify to Certinia (formerly FinancialForce
 order: 1
 keywords: [Certinia, FinancialForce, Expensify Classic, Salesforce]
 ---
-<div id="expensify-classic" markdown="1">
 
 Certinia (formerly FinancialForce) is a cloud-based financial management solution built on the Salesforce platform. Expensify supports integrations with both Certinia PSA/SRP and FFA versions, allowing you to streamline expense reporting and approvals.
 
@@ -53,4 +52,3 @@ If you are using Certinia PSA/SRP, complete the following additional steps befor
 - Go to **Main Menu > + Symbol > Expense Type GLA Mappings**.  
 - Click **New** to add and configure expense type mappings.
 
-</div>
