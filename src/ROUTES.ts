@@ -184,9 +184,9 @@ const ROUTES = {
             return getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo);
         },
     },
-    CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT: {
-        route: ':policyID/connect-business-bank-account',
-        getRoute: (policyID: string) => `${policyID}/connect-business-bank-account` as const,
+    BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT: {
+        route: 'bank-account/:policyID/connect-existing-business-bank-account',
+        getRoute: (policyID: string) => `bank-account/${policyID}/connect-existing-business-bank-account` as const,
     },
     PUBLIC_CONSOLE_DEBUG: {
         route: 'troubleshoot/console',

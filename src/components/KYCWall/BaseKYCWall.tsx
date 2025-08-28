@@ -110,7 +110,10 @@ function KYCWall({
         setPositionAddPaymentMenu(position);
     }, [getAnchorPosition]);
 
-    const canLinkExistingBankAccount = (policy?: Policy) => policy !== undefined && getEligibleExistingBusinessBankAccounts(bankAccountList, policy.outputCurrency).length > 0;
+    const canLinkExistingBusinessBankAccount = useCallback(
+        (policy?: Policy) => policy !== undefined && getEligibleExistingBusinessBankAccounts(bankAccountList, policy.outputCurrency).length > 0,
+        [bankAccountList],
+    );
 
     const selectPaymentMethod = useCallback(
         (paymentMethod?: PaymentMethod, policy?: Policy) => {
@@ -158,8 +161,8 @@ function KYCWall({
                     return;
                 }
 
-                if (policy !== undefined && canLinkExistingBankAccount(policy)) {
-                    Navigation.navigate(ROUTES.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policy?.id));
+                if (policy !== undefined && canLinkExistingBusinessBankAccount(policy)) {
+                    Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policy?.id));
                     return;
                 }
 
@@ -167,7 +170,7 @@ function KYCWall({
                 Navigation.navigate(bankAccountRoute);
             }
         },
-        [onSelectPaymentMethod, iouReport, addDebitCardRoute, canLinkExistingBankAccount, addBankAccountRoute, chatReport, allReports, formatPhoneNumber, lastPaymentMethod],
+        [onSelectPaymentMethod, iouReport, addDebitCardRoute, canLinkExistingBusinessBankAccount, addBankAccountRoute, chatReport, allReports, formatPhoneNumber, lastPaymentMethod],
     );
 
     /**
