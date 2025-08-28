@@ -90,7 +90,6 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
-    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -636,6 +635,7 @@ const translations = {
         forwardTo: 'Reenviar a',
         merge: 'Fusionar',
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
+        enableGlobalReimbursements: 'Habilitar Reembolsos Globales',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -938,7 +938,6 @@ const translations = {
         distance: 'Distancia',
         manual: 'Manual',
         scan: 'Escanear',
-        map: 'Map',
     },
     spreadsheet: {
         upload: 'Importar',
@@ -1237,7 +1236,6 @@ const translations = {
             invalidCategoryLength: 'La longitud de la categoría escogida excede el máximo permitido (255). Por favor, escoge otra categoría o acorta la categoría primero.',
             invalidTagLength: 'La longitud de la etiqueta escogida excede el máximo permitido (255). Por favor, escoge otra etiqueta o acorta la etiqueta primero.',
             invalidAmount: 'Por favor, ingresa un importe válido antes de continuar',
-            invalidDistance: 'Por favor, ingresa una distancia válida antes de continuar',
             invalidIntegerAmount: 'Por favor, introduce una cantidad entera en dólares antes de continuar',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `El importe máximo del impuesto es ${amount}`,
             invalidSplit: 'La suma de las partes debe ser igual al importe total',
@@ -3539,11 +3537,14 @@ const translations = {
             deepDiveExpensifyCard: `<muted-text-label>Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nuestra integración</a>.</muted-text-label>`,
         },
         receiptPartners: {
+            connect: 'Conéctate ahora',
             uber: {
                 subtitle: 'Automatice los gastos de viajes y entrega de comidas en toda su organización.',
                 autoRemove: 'Invitar a nuevos miembros del espacio de trabajo a Uber para Empresas',
                 autoInvite: 'Desactivar miembros del espacio de trabajo eliminados de Uber para Empresas',
                 manageInvites: 'Administrar invitaciones',
+                bannerTitle: 'Expensify + Uber para empresas',
+                bannerDescription: 'Conecte Uber for Business para automatizar los gastos de viajes y entrega de comidas en toda su organización.',
             },
         },
         perDiem: {
@@ -5180,8 +5181,7 @@ const translations = {
             continuousReconciliation: 'Conciliación continua',
             saveHoursOnReconciliation:
                 'Ahorra horas de conciliación en cada período contable haciendo que Expensify concilie continuamente los extractos y liquidaciones de la Tarjeta Expensify en tu nombre.',
-            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
-                `<muted-text-label>Para activar la Conciliación Continua, activa la <a href="${accountingAdvancedSettingsLink}">auto-sync</a> para ${connectionName}.</muted-text-label>`,
+            enableContinuousReconciliation: 'Para activar la Conciliación Continua, activa la ',
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu Tarjeta Expensify.',
                 accountMatches: 'Asegúrate de que esta cuenta coincide con ',

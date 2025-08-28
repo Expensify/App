@@ -266,7 +266,7 @@ function IOURequestStartPage({
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
                                 </TopTab.Screen>
-                                {(!manualDistanceTrackingEnabled || iouType === CONST.IOU.TYPE.SPLIT) && (
+                                {!manualDistanceTrackingEnabled && (
                                     <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
                                         {() => (
                                             <TabScreenWithFocusTrapWrapper>

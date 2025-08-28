@@ -1000,6 +1000,7 @@ describe('SidebarUtils', () => {
                     card: undefined,
                     lastAction: undefined,
                     localeCompare,
+                    isReportArchived: true,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);

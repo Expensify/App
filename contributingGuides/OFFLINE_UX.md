@@ -1,1 +1,1 @@
-This file has been moved [here](contributingGuides/philosophies/OFFLINE.md).
+This file has been moved [here](philosophies/OFFLINE.md).
