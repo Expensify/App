@@ -6101,7 +6101,6 @@ const translations = {
         },
         filtersHeader: 'Filtres',
         filters: {
-            has: 'A',
             date: {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Before ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `Après ${date ?? ''}`,
@@ -6156,7 +6155,11 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Remboursement',
             },
+            has: {
+                receipt: 'Reçu',
+            },
         },
+        has: 'A',
         groupBy: 'Groupe par',
         moneyRequestReport: {
             emptyStateTitle: "Ce rapport n'a pas de dépenses.",

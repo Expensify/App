@@ -6094,7 +6094,6 @@ const translations = {
         },
         filtersHeader: 'Filters',
         filters: {
-            has: 'Heeft',
             date: {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Voor ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `Na ${date ?? ''}`,
@@ -6149,7 +6148,11 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Terugbetaling',
             },
+            has: {
+                receipt: 'Bon',
+            },
         },
+        has: 'Heeft',
         groupBy: 'Groep per',
         moneyRequestReport: {
             emptyStateTitle: 'Dit rapport heeft geen uitgaven.',

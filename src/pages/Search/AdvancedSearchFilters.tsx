@@ -172,7 +172,7 @@ const baseFilterConfig = {
     },
     has: {
         getTitle: getFilterDisplayTitle,
-        description: 'search.filters.has' as const,
+        description: 'search.has' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_HAS,
     },
     from: {

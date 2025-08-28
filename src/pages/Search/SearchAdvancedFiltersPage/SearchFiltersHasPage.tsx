@@ -66,7 +66,7 @@ function SearchFiltersHasPage() {
     }, []);
 
     const applyChanges = useCallback(() => {
-        const newHas = selectedItems.length ? selectedItems : CONST.SEARCH.HAS_VALUES.RECEIPT;
+        const newHas = selectedItems.length ? selectedItems : [CONST.SEARCH.HAS_VALUES.RECEIPT];
         updateAdvancedFilters({
             has: newHas,
         });
@@ -85,7 +85,7 @@ function SearchFiltersHasPage() {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('search.filters.has')}
+                title={translate('search.has')}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
                 }}
