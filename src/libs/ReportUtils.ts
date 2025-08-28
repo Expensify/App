@@ -1302,7 +1302,9 @@ function getPolicyType(report: OnyxInputOrEntry<Report>, policies: OnyxCollectio
  */
 function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies, reports}: GetPolicyNameParams): string {
     const noPolicyFound = returnEmptyIfNotFound ? '' : unavailableTranslation;
-    if (isEmptyObject(report) || (isEmptyObject(policies) && isEmptyObject(allPolicies) && !report?.policyName)) {
+    const parentReport = report ? getRootParentReport({report, reports}) : undefined;
+
+    if (isEmptyObject(report) || (isEmptyObject(policies) && isEmptyObject(allPolicies) && !report?.policyName && !parentReport?.policyName)) {
         return noPolicyFound;
     }
     const finalPolicy = (() => {
@@ -1315,12 +1317,10 @@ function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies,
         return policy ?? policies?.find((p) => p.id === report.policyID);
     })();
 
-    const parentReport = getRootParentReport({report, reports});
-
     // Rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || parentReport?.oldPolicyName || noPolicyFound;
+    const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || parentReport?.policyName || parentReport?.oldPolicyName || noPolicyFound;
 
     return policyName;
 }

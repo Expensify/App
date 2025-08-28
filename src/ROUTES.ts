@@ -100,12 +100,14 @@ const ROUTES = {
             backTo,
             moneyRequestReportActionID,
             transactionID,
+            iouReportID,
         }: {
             reportID: string | undefined;
             reportActionID?: string;
             backTo?: string;
             moneyRequestReportActionID?: string;
             transactionID?: string;
+            iouReportID?: string;
         }) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
@@ -121,6 +123,9 @@ const ROUTES = {
             if (moneyRequestReportActionID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
             }
+            if (iouReportID) {
+                queryParams.push(`iouReportID=${iouReportID}`);
+            }
 
             const queryString = queryParams.length > 0 ? (`${baseRoute}?${queryParams.join('&')}` as const) : baseRoute;
             return getUrlWithBackToParam(queryString, backTo);
@@ -128,10 +133,7 @@ const ROUTES = {
     },
     SEARCH_MONEY_REQUEST_REPORT: {
         route: 'search/r/:reportID',
-        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
-            const baseRoute = `search/r/${reportID}` as const;
-            return getUrlWithBackToParam(baseRoute, backTo);
-        },
+        getRoute: ({reportID}: {reportID: string}) => `search/r/${reportID}` as const,
     },
     SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: {
         route: 'search/r/:reportID/hold',

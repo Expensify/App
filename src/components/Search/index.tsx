@@ -181,6 +181,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const isFocused = useIsFocused();
     const {
         setCurrentSearchHashAndKey,
+        setCurrentSearchQueryJSON,
         setSelectedTransactions,
         selectedTransactions,
         clearSelectedTransactions,
@@ -270,7 +271,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const clearTransactionsAndSetHashAndKey = useCallback(() => {
         clearSelectedTransactions(hash);
         setCurrentSearchHashAndKey(hash, searchKey);
-    }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey]);
+        setCurrentSearchQueryJSON(queryJSON);
+    }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey, setCurrentSearchQueryJSON, queryJSON]);
 
     useFocusEffect(clearTransactionsAndSetHashAndKey);
 
@@ -591,7 +593,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             const backTo = Navigation.getActiveRoute();
 
             if (isTransactionGroupListItemType(item)) {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}));
                 return;
             }
 
