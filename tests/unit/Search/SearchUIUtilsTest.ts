@@ -1701,20 +1701,12 @@ describe('SearchUIUtils', () => {
             const resultWithTransactionKeysFirst = SearchUIUtils.getSections(
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
                 searchResultsWithTransactionKeysFirst.data,
-                searchResultsWithTransactionKeysFirst.search,
                 2074551,
                 formatPhoneNumber,
                 CONST.SEARCH.GROUP_BY.REPORTS,
             );
 
-            const resultWithNormalOrder = SearchUIUtils.getSections(
-                CONST.SEARCH.DATA_TYPES.EXPENSE,
-                searchResults.data,
-                searchResults.search,
-                2074551,
-                formatPhoneNumber,
-                CONST.SEARCH.GROUP_BY.REPORTS,
-            );
+            const resultWithNormalOrder = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS);
 
             expect(resultWithTransactionKeysFirst.length).toBe(resultWithNormalOrder.length);
 
