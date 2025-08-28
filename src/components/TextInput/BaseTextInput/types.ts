@@ -131,7 +131,7 @@ type CustomBaseTextInputProps = {
     /** A set of styles for markdown elements (such as link, h1, emoji etc.) */
     markdownStyle?: MarkdownStyle;
 
-    markdownFilterRules: string[] | undefined;
+    markdownFilterRules?: string[];
 
     /** Custom parser function for RNMarkdownTextInput */
     parser?: (input: string) => MarkdownRange[];
