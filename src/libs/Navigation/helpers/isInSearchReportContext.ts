@@ -10,7 +10,6 @@ const isInSearchReportContext = (): boolean => {
 
     const lastRootRoute = rootState.routes.at(-1);
     const lastNestedRoute = lastRootRoute?.state?.routes?.at(-1);
-    debugger;
     return lastNestedRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
 };
 
