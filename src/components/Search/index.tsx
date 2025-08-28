@@ -251,6 +251,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
             CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
             CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
+            CONST.SEARCH.SEARCH_KEYS.SUBMIT,
+            CONST.SEARCH.SEARCH_KEYS.APPROVE,
+            CONST.SEARCH.SEARCH_KEYS.PAY,
+            CONST.SEARCH.SEARCH_KEYS.EXPORT,
         ];
         return eligibleSearchKeys.includes(searchKey);
     }, [offset, searchKey]);
