@@ -46,8 +46,6 @@ jobs:
         run: |
           set -e
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
-          echo "MORWA"
-          git diff --name-only $BASELINE_BRANCH
           # Store list of new test files before switching branches
           NEW_TEST_FILES=$(git diff --name-only --diff-filter=A "$COMMIT_HASH" "${{ github.sha }}" -- 'tests/perf-test/**/*.perf-test.*' || true)
           if [ -n "$NEW_TEST_FILES" ]; then
@@ -55,6 +53,8 @@ jobs:
           fi
 
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
+          echo "MORWA"
+          git diff --name-only $BASELINE_BRANCH
           git switch "$BASELINE_BRANCH"
           cd Mobile-Expensify
           git checkout "$(git rev-parse HEAD)"
