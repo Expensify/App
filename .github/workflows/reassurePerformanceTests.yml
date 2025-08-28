@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths-ignore: [docs/**, help/**, .github/**, contributingGuides/**, tests/**, '**.md', '**.sh']
+    paths-ignore: [docs/**, help/**, .github/**, contributingGuides/**, '**.md', '**.sh']
 
 jobs:
   perf-tests:
@@ -54,7 +54,6 @@ jobs:
 
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
           echo "MORWA"
-          git diff --name-only $BASELINE_BRANCH
           git switch "$BASELINE_BRANCH"
           cd Mobile-Expensify
           git checkout "$(git rev-parse HEAD)"
