@@ -69,6 +69,17 @@ title = "title"i { return "title"; }
 assignee = "assignee"i { return "assignee"; }
 createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
 action = "action"i { return "action"; }
+total = "total"i {return "total"; }
+
+// Value transformation rules
+values
+  = perDiem
+  / report
+  / draft
+
+perDiem = "perDiem"i / "per-diem"i { return "perDiem"; }
+report = "reports"i / "report"i {return "reports"; }
+draft = "drafts"i / "draft"i {return "drafts"; }
 
 operator "operator"
   = (":" / "=") { return "eq"; }

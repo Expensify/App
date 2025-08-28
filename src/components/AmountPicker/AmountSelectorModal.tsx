@@ -48,7 +48,6 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
             onClose={onClose}
             onModalHide={onClose}
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -70,7 +69,7 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
                             {...rest}
                             value={currentValue}
                             onInputChange={setValue}
-                            ref={(ref) => inputCallbackRef(ref)}
+                            forwardedRef={(ref) => inputCallbackRef(ref)}
                         />
                         <Button
                             success

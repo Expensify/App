@@ -156,6 +156,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                                 isOn={rate?.enabled ?? false}
                                 onToggle={toggleRate}
                                 accessibilityLabel={translate('workspace.distanceRates.enableRate')}
+                                showLockIcon={!canDisableOrDeleteRate}
                             />
                         </View>
                     </OfflineWithFeedback>

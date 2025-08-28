@@ -3,7 +3,6 @@ title: Using Your Expensify Card in New Expensify
 description: Learn how to activate, use, and manage your physical and virtual Expensify Card, including Smart Limits, notifications, and troubleshooting.
 keywords: [New Expensify, Expensify Card, Smart Limit, activate card, virtual card, card notifications, card declined]
 ---
-<div id="new-expensify" markdown="1">
 
 Once you receive your Expensify Visa® Commercial Card, you can activate it and start using it immediately. When you use your Expensify Card, expenses are automatically created, and SmartScanned receipts are matched to the corresponding transactions. For most purchases, excluding lodging, Expensify also generates IRS-compliant eReceipts. If your organization doesn't require itemized receipts, you can rely on eReceipts to meet documentation requirements.
 
@@ -121,4 +120,3 @@ If your card is lost, stolen, or damaged:
 4. Enter your updated address under **Please confirm the mailing address for your new card** and click **Save**.
 5. Update your mailing address and click **Deactivate card** to complete the card replacement process. 
 
-</div>
