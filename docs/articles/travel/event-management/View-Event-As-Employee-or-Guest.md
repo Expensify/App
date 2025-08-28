@@ -40,7 +40,7 @@ If your event organizer has provided a central billing card, select it under **P
 2. Click **View Event Details** in the email.  
 3. You’ll be redirected to Expensify Travel. Select **My Trips** to see your upcoming event.  
 
-On the **Trips** page, you’ll find your event details and travel options (flight, hotel, car, rail), along with their booking status.  
+On the **Trips** page, you’ll find your event details and travel options (flight, hotel, car, rail), along with their booking status.
 
 If you haven’t booked yet, follow the same steps as employees to complete your booking.  
 
@@ -48,19 +48,19 @@ If you haven’t booked yet, follow the same steps as employees to complete your
 
 # FAQ
 
-## What if I can’t find my event on the Trips page?  
+## What if I can’t find my event on the Trips page?
 Confirm with your event organizer that you were added to the guest list. Employees should also make sure they’re signed in with their company email address.  
 
-## Can I view event details without an Expensify account?  
+## Can I view event details without an Expensify account?
 Yes. Guests can use their event invitation email to view event details, even without an Expensify account.  
 
-## How do I know if my travel has been booked?  
+## How do I know if my travel has been booked?
 The **Trips** page shows the status of each travel type (flight, hotel, car, rail). If the status says **Booked**, your reservation is confirmed.  
 
-## Can I change or cancel my travel from the Trips page?  
+## Can I change or cancel my travel from the Trips page?
 Yes. Open the trip details and follow the prompts to change or cancel. Keep in mind that change and cancellation policies depend on the airline, hotel, or rental provider.  
 
-## What should I do if I didn’t receive an invitation email?  
+## What should I do if I didn’t receive an invitation email?
 Check your spam or junk folder first. If you still can’t find it, contact your event organizer or company administrator to confirm your email was added correctly.  
 
 </div>
