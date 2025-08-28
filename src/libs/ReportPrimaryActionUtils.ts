@@ -41,7 +41,7 @@ import {
 import {getSession} from './SessionUtils';
 import {
     allHavePendingRTERViolation,
-    hasPendingAutoReportedRejectedExpenseViolation,
+    getTransactionViolations,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
@@ -322,7 +322,8 @@ function isMarkAsResolvedReportAction(
     if (!isReportSubmitter && !isAdmin) {
         return false;
     }
-    return hasPendingAutoReportedRejectedExpenseViolation(reportTransactions, violations);
+
+    return getTransactionViolations(transaction, violations)?.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
 }
 
 function isMarkAsResolvedAction(report?: Report, violations?: TransactionViolation[], policy?: Policy) {
