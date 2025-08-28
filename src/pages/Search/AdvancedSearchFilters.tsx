@@ -35,7 +35,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {CardList, PersonalDetailsList, Policy, Report, WorkspaceCardsList} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -64,11 +63,14 @@ type FilterContext = {
     groupBy: SearchGroupBy | undefined;
 };
 
-const baseFilterConfig: Record<string, {
-    getTitle: (filterKey: SearchFilterKey, context: FilterContext) => string | undefined;
-    description: TranslationPaths;
-    route: Route;
-}> = {
+const baseFilterConfig: Record<
+    string,
+    {
+        getTitle: (filterKey: SearchFilterKey, context: FilterContext) => string | undefined;
+        description: TranslationPaths;
+        route: Route;
+    }
+> = {
     type: {
         getTitle: getFilterDisplayTitle,
         description: 'common.type',
@@ -272,7 +274,7 @@ function getFilterCardDisplayTitle(filterKey: SearchFilterKey, context: FilterCo
 
 function getFilterParticipantDisplayTitle(filterKey: SearchFilterKey, context: FilterContext) {
     let accountIDs: string[] = [];
-    
+
     // Handle specific participant filter keys
     if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM) {
         accountIDs = context.filters.from ?? [];
@@ -529,7 +531,7 @@ function AdvancedSearchFilters() {
             const config = baseFilterConfig[key];
             const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(config.route)));
             const filterTitle = config.getTitle(key, filterContext);
-            
+
             const item = {
                 key,
                 title: filterTitle,
