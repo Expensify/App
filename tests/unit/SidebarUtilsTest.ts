@@ -6,6 +6,8 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
+// eslint-disable-next-line no-restricted-syntax
+import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, getAllReportErrors, getDisplayNameForParticipant, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -32,6 +34,12 @@ jest.mock('@libs/DraftCommentUtils', () => ({
     getDraftComment: jest.fn(),
     isValidDraftComment: jest.fn(),
     prepareDraftComment: jest.fn(),
+}));
+
+// Mock PolicyUtils
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    getConnectedIntegration: jest.fn(() => true),
 }));
 
 describe('SidebarUtils', () => {
@@ -344,6 +352,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 localeCompare,
+                lastAction: undefined,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
@@ -355,6 +364,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 localeCompare,
+                lastAction: undefined,
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
@@ -850,6 +860,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 localeCompare,
+                lastAction,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -909,6 +920,7 @@ describe('SidebarUtils', () => {
                 oneTransactionThreadReport: undefined,
                 card: undefined,
                 localeCompare,
+                lastAction,
             });
 
             // Then the alternate text should show @Hidden.
@@ -950,6 +962,7 @@ describe('SidebarUtils', () => {
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    lastAction: undefined,
                     localeCompare,
                 });
 
@@ -985,7 +998,9 @@ describe('SidebarUtils', () => {
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    lastAction: undefined,
                     localeCompare,
+                    isReportArchived: true,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1017,6 +1032,7 @@ describe('SidebarUtils', () => {
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    lastAction: undefined,
                     localeCompare,
                 });
 
@@ -1138,6 +1154,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    lastAction: undefined,
                     localeCompare,
                 });
                 const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(iouReport);
@@ -1181,6 +1198,7 @@ describe('SidebarUtils', () => {
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                     card: undefined,
+                    lastAction: undefined,
                     localeCompare,
                 });
 
@@ -1248,10 +1266,11 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     localeCompare,
+                    lastAction,
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
-                expect(result?.alternateText).toBe(`You invited 1 member`);
+                expect(result?.alternateText).toBe(`You: invited 1 member`);
             });
             it('returns the last action message as an alternate text if the action is MOVED type', async () => {
                 const report: Report = {
@@ -1295,6 +1314,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     localeCompare,
+                    lastAction,
                 });
 
                 expect(result?.alternateText).toBe(`You: moved this report to the Three's Workspace workspace`);
@@ -1362,6 +1382,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     localeCompare,
+                    lastAction,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
@@ -1474,6 +1495,7 @@ describe('SidebarUtils', () => {
                     oneTransactionThreadReport: undefined,
                     card: undefined,
                     localeCompare,
+                    lastAction,
                 });
 
                 expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);
