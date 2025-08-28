@@ -653,6 +653,7 @@ const translations = {
         submitTo: 'Einreichen an',
         forwardTo: 'Weiterleiten an',
         merge: 'Zusammenführen',
+        none: 'Keine',
         unstableInternetConnection: 'Instabile Internetverbindung. Bitte überprüfe dein Netzwerk und versuche es erneut.',
         enableGlobalReimbursements: 'Globale Rückerstattungen aktivieren',
     },
