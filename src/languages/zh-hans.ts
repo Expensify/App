@@ -6501,7 +6501,7 @@ const translations = {
         isTransactionBillable: '选择交易是否可计费',
         keepThisOne: 'Keep this one',
         confirmDetails: `确认您保留的详细信息`,
-        confirmDuplicatesInfo: `您不保留的重复请求将由成员删除。`,
+        confirmDuplicatesInfo: `你不保留的重复项将被保留，供提交者删除。`,
         hold: '此费用已被搁置',
         resolvedDuplicates: '解决了重复问题',
     },
