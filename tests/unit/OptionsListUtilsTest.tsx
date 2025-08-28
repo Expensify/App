@@ -635,7 +635,7 @@ describe('OptionsListUtils', () => {
             expect(currentUserOption?.accountID).toBe(2);
 
             // Then all personal details including the current user should be returned
-            expect(results.personalDetails.length).toBe(10);
+            expect(results.personalDetails.length).toBe(11);
         });
 
         it('should exclude current user when includeCurrentUser is false', () => {
@@ -648,7 +648,7 @@ describe('OptionsListUtils', () => {
             expect(currentUserOption).toBeUndefined();
 
             // Then all personal details except the current user should be returned
-            expect(results.personalDetails.length).toBe(9);
+            expect(results.personalDetails.length).toBe(10);
         });
     });
 
