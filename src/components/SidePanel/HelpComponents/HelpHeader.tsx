@@ -30,6 +30,7 @@ type HelpHeaderProps = {
 function HelpHeader({title, onBackButtonPress, onCloseButtonPress, shouldShowBackButton = true, shouldShowCloseButton = false}: HelpHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+
     const {translate} = useLocalize();
 
     return (
