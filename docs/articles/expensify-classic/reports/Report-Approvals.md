@@ -4,7 +4,6 @@ description: Learn how to configure and enforce expense report approval workflow
 keywords: [Expensify Classic, report approvals, approval workflows, approver assignments, over-limit expenses, advanced approval]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Expensify Classic lets Workspace Admins build flexible approval workflows for expense reports. You can automate simple approvals or set up detailed chains of command for large organizations.
 
@@ -266,7 +265,6 @@ Only **Domain Admins** have access.
 
 **Note:** Only posted credit card transactions will import.
 
-</div>
 
 No. Concierge Receipt Audit is automatically enabled for all Control plan workspaces and cannot be turned off.
 

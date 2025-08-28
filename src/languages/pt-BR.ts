@@ -103,7 +103,6 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
-    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -656,6 +655,7 @@ const translations = {
         forwardTo: 'Encaminhar para',
         merge: 'Mesclar',
         unstableInternetConnection: 'Conexão de internet instável. Verifique sua rede e tente novamente.',
+        enableGlobalReimbursements: 'Ativar reembolsos globais',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -957,7 +957,6 @@ const translations = {
         distance: 'Distância',
         manual: 'Manual',
         scan: 'Digitalizar',
-        map: 'Mapa',
     },
     spreadsheet: {
         upload: 'Carregar uma planilha',
@@ -1253,7 +1252,6 @@ const translations = {
             invalidCategoryLength: 'O nome da categoria excede 255 caracteres. Por favor, reduza-o ou escolha uma categoria diferente.',
             invalidTagLength: 'O nome da tag excede 255 caracteres. Por favor, reduza-o ou escolha uma tag diferente.',
             invalidAmount: 'Por favor, insira um valor válido antes de continuar.',
-            invalidDistance: 'Por favor, insira uma distância válida antes de continuar.',
             invalidIntegerAmount: 'Por favor, insira um valor em dólares inteiros antes de continuar.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `O valor máximo do imposto é ${amount}`,
             invalidSplit: 'A soma das divisões deve ser igual ao valor total',
@@ -5253,8 +5251,7 @@ const translations = {
             continuousReconciliation: 'Reconciliação Contínua',
             saveHoursOnReconciliation:
                 'Economize horas na reconciliação de cada período contábil ao permitir que a Expensify reconcilie continuamente os extratos e liquidações do Cartão Expensify em seu nome.',
-            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
-                `<muted-text-label>Para ativar a reconciliação contínua, habilite a <a href="${accountingAdvancedSettingsLink}">sincronização automática</a> para o ${connectionName}.</muted-text-label>`,
+            enableContinuousReconciliation: 'Para ativar a Reconciliação Contínua, por favor, ative',
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Escolha a conta bancária na qual os pagamentos do seu Expensify Card serão reconciliados.',
                 accountMatches: 'Certifique-se de que esta conta corresponde à sua',

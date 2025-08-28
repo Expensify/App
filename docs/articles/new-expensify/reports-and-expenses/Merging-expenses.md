@@ -4,7 +4,6 @@ description: Learn how to merge two expenses to eliminate duplicates and simplif
 keywords: [New Expensify, merge expenses, duplicate expenses, SmartScan, manual merge, combine expenses]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Merging expenses helps you quickly resolve duplicates when automatic SmartScan merges don’t catch everything. This guide walks you through manually merging two expenses from the expense view or Reports page.
 
@@ -71,4 +70,3 @@ Check these conditions:
 - At least one expense must be a cash transaction.
 - The expenses must be editable (not submitted or fully approved).
 
-</div>

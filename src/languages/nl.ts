@@ -103,7 +103,6 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
-    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -655,6 +654,7 @@ const translations = {
         forwardTo: 'Doorsturen naar',
         merge: 'Samenvoegen',
         unstableInternetConnection: 'Onstabiele internetverbinding. Controleer je netwerk en probeer het opnieuw.',
+        enableGlobalReimbursements: 'Wereldwijde terugbetalingen inschakelen',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -956,7 +956,6 @@ const translations = {
         distance: 'Afstand',
         manual: 'Handleiding',
         scan: 'Scannen',
-        map: 'Kaart',
     },
     spreadsheet: {
         upload: 'Upload een spreadsheet',
@@ -1254,7 +1253,6 @@ const translations = {
             invalidCategoryLength: 'De categorienaam overschrijdt 255 tekens. Verkort deze of kies een andere categorie.',
             invalidTagLength: 'De tagnaam overschrijdt 255 tekens. Verkort het of kies een andere tag.',
             invalidAmount: 'Voer een geldig bedrag in voordat u doorgaat.',
-            invalidDistance: 'Voer een geldige afstand in voordat u doorgaat.',
             invalidIntegerAmount: 'Voer een heel dollarbedrag in voordat u doorgaat.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Maximale belastingbedrag is ${amount}`,
             invalidSplit: 'De som van de splitsingen moet gelijk zijn aan het totale bedrag',
@@ -5256,8 +5254,7 @@ const translations = {
             continuousReconciliation: 'Continue Reconciliatie',
             saveHoursOnReconciliation:
                 'Bespaar uren op reconciliatie elke boekhoudperiode door Expensify continu Expensify Card-afschriften en afrekeningen namens u te laten reconciliëren.',
-            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
-                `<muted-text-label>Om continue afstemming mogelijk te maken, moet u <a href="${accountingAdvancedSettingsLink}">automatische synchronisatie</a> voor ${connectionName} inschakelen.</muted-text-label>`,
+            enableContinuousReconciliation: 'Om Continue Reconciliation in te schakelen, schakel alstublieft in',
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Kies de bankrekening waarmee uw Expensify Card-betalingen worden verrekend.',
                 accountMatches: 'Zorg ervoor dat dit account overeenkomt met uw',

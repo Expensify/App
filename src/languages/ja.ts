@@ -103,7 +103,6 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
-    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -656,6 +655,7 @@ const translations = {
         forwardTo: '転送先',
         merge: 'マージ',
         unstableInternetConnection: 'インターネット接続が不安定です。ネットワークを確認してもう一度お試しください。',
+        enableGlobalReimbursements: 'グローバル払い戻しを有効にする',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -958,7 +958,6 @@ const translations = {
         distance: '距離',
         manual: 'マニュアル',
         scan: 'スキャン',
-        map: '地図',
     },
     spreadsheet: {
         upload: 'スプレッドシートをアップロード',
@@ -1254,7 +1253,6 @@ const translations = {
             invalidCategoryLength: 'カテゴリ名が255文字を超えています。短くするか、別のカテゴリを選んでください。',
             invalidTagLength: 'タグ名が255文字を超えています。短くするか、別のタグを選んでください。',
             invalidAmount: '続行する前に有効な金額を入力してください',
-            invalidDistance: '続行する前に有効な距離を入力してください',
             invalidIntegerAmount: '続行する前にドルの金額を入力してください',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `最大税額は${amount}です。`,
             invalidSplit: '分割の合計は総額と等しくなければなりません。',
@@ -5231,8 +5229,7 @@ const translations = {
             reconciliationAccount: '調整口座',
             continuousReconciliation: '継続的な照合',
             saveHoursOnReconciliation: '各会計期間の調整にかかる時間を節約するために、ExpensifyがExpensify Cardの明細書と決済を継続的に調整します。',
-            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
-                `<muted-text-label>継続的な照合を有効にするため、${connectionName}の<a href="${accountingAdvancedSettingsLink}">自動同期</a>を有効にしてください。</muted-text-label>`,
+            enableContinuousReconciliation: '継続的な調整を有効にするには、有効にしてください',
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Expensifyカードの支払いを照合する銀行口座を選択してください。',
                 accountMatches: 'このアカウントがあなたのものと一致していることを確認してください',

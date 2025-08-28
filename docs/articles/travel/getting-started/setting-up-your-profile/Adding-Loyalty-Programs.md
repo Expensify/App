@@ -4,7 +4,6 @@ description: Learn how to add your personal airline, hotel, car rental, and rail
 keywords: [loyalty programs, frequent flyer, hotel rewards, car rental loyalty, rail cards, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Add your loyalty programs for air, hotel, car, and rail travel to earn rewards automatically every time you book.
 
@@ -86,4 +85,3 @@ Yes. You can store as many loyalty programs as you'd like across air, hotel, car
 ## Why didn’t I earn points on my last booking?
 Check that your **loyalty name and gender** exactly match what’s listed on your travel profile. If they don’t match, loyalty benefits may not apply.
 
-</div>
