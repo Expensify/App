@@ -1850,7 +1850,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             // When moving to another workspace
-            Report.changeReportPolicy(expenseReport, newPolicy.id);
+            Report.changeReportPolicy(expenseReport, newPolicy);
             await waitForBatchedUpdates();
 
             // Then the expense report should not be archived anymore
@@ -1904,7 +1904,7 @@ describe('actions/Report', () => {
             // When moving to another workspace
             Report.changeReportPolicyAndInviteSubmitter(
                 expenseReport,
-                '2',
+                createRandomPolicy(Number(2)),
                 {
                     [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                 },
@@ -1933,8 +1933,7 @@ describe('actions/Report', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
-            const policyID = '1';
-            Report.buildOptimisticChangePolicyData(report, policyID);
+            Report.buildOptimisticChangePolicyData(report, createRandomPolicy(Number(1)));
             expect(buildNextStep).toHaveBeenCalledWith(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
         });
     });

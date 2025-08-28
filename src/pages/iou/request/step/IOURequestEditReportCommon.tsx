@@ -12,11 +12,12 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -28,9 +29,9 @@ type TransactionGroupListItem = ListItem & {
 
 type Props = {
     backTo: Route | undefined;
-    transactionIDs?: string[];
-    selectedReportID?: string;
-    selectedPolicyID?: string;
+    transactionsReports: Report[];
+    transactionIds?: string[];
+    policyID?: string;
     selectReport: (item: TransactionGroupListItem) => void;
     removeFromReport?: () => void;
     isEditing?: boolean;
@@ -40,10 +41,10 @@ type Props = {
 
 function IOURequestEditReportCommon({
     backTo,
-    transactionIDs,
+    transactionsReports,
+    transactionIds,
     selectReport,
-    selectedReportID,
-    selectedPolicyID,
+    policyID: policyIDFromProps,
     removeFromReport,
     isEditing = false,
     isUnreported,
@@ -53,26 +54,30 @@ function IOURequestEditReportCommon({
     const {options} = useOptionsList();
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: true});
-    const reportOwnerAccountID = useMemo(() => selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, [selectedReport, currentUserPersonalDetails.accountID]);
-    const reportPolicy = usePolicy(selectedPolicyID);
+    const reportOwnerAccountID = useMemo(
+        () => transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
+        [transactionsReports, currentUserPersonalDetails.accountID],
+    );
+    const reportPolicy = usePolicy(transactionsReports.at(0)?.policyID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, (policy) => policy?.id), canBeMissing: false});
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const isOwner = selectedReport ? selectedReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
-    const isReportIOU = selectedReport ? isIOUReport(selectedReport) : false;
 
-    const reportTransactions = useReportTransactions(selectedReportID);
+    const onlyReport = transactionsReports.length === 1 ? transactionsReports.at(0) : undefined;
+    const reportTransactions = useReportTransactions(onlyReport?.reportID);
+
+    const isOwner = onlyReport ? onlyReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
+    const isReportIOU = onlyReport ? isIOUReport(onlyReport) : false;
     const isCardTransaction = useMemo(() => {
-        if (!transactionIDs || !selectedReport) {
+        if (!transactionIds || !onlyReport) {
             return false;
         }
 
         return reportTransactions
-            .filter((transaction) => transactionIDs.includes(transaction.transactionID))
+            .filter((transaction) => transactionIds.includes(transaction.transactionID))
             .some((transaction) => transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
-    }, [transactionIDs, selectedReport, reportTransactions]);
+    }, [transactionIds, onlyReport, reportTransactions]);
 
     const shouldShowRemoveFromReport = isEditing && isOwner && !isReportIOU && !isUnreported && !isCardTransaction;
 
@@ -81,9 +86,12 @@ function IOURequestEditReportCommon({
         if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
             return [];
         }
-        if (!selectedPolicyID || isSelfDM(selectedReport)) {
-            return Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
-                if (!policyID) {
+        const personalPolicyID = getPersonalPolicy()?.id;
+
+        return Object.values(allPoliciesID ?? {})
+            .filter((policyID) => personalPolicyID !== policyID)
+            .flatMap((policyID) => {
+                if (!policyID || (policyIDFromProps && policyID !== policyIDFromProps)) {
                     return [];
                 }
                 const reports = getOutstandingReportsForUser(
@@ -96,9 +104,7 @@ function IOURequestEditReportCommon({
 
                 return reports;
             });
-        }
-        return getOutstandingReportsForUser(selectedPolicyID, reportOwnerAccountID, outstandingReportsByPolicyID?.[selectedPolicyID], reportNameValuePairs, isEditing);
-    }, [outstandingReportsByPolicyID, reportOwnerAccountID, allPoliciesID, reportNameValuePairs, selectedReport, selectedPolicyID, isEditing]);
+    }, [outstandingReportsByPolicyID, reportOwnerAccountID, allPoliciesID, reportNameValuePairs, policyIDFromProps, isEditing]);
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
         if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
@@ -106,7 +112,7 @@ function IOURequestEditReportCommon({
         }
 
         return expenseReports
-            .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, selectedReportID, localeCompare))
+            .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, onlyReport?.reportID, localeCompare))
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .map((report) => {
@@ -118,11 +124,11 @@ function IOURequestEditReportCommon({
                     brickRoadIndicator: null,
                     alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
                     value: report.reportID,
-                    isSelected: report.reportID === selectedReportID,
+                    isSelected: onlyReport && report.reportID === onlyReport?.reportID,
                     policyID: matchingOption?.policyID ?? report.policyID,
                 };
             });
-    }, [outstandingReportsByPolicyID, debouncedSearchValue, expenseReports, selectedReportID, options.reports, localeCompare]);
+    }, [outstandingReportsByPolicyID, debouncedSearchValue, expenseReports, onlyReport, options.reports, localeCompare]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -136,16 +142,17 @@ function IOURequestEditReportCommon({
             return true;
         }
 
-        if (!selectedReport) {
+        const transactionReport = transactionsReports.at(0);
+        if (!transactionReport) {
             return false;
         }
 
         const isAdmin = isPolicyAdmin(reportPolicy);
-        const isOpen = isOpenReport(selectedReport);
-        const isSubmitter = isReportOwner(selectedReport);
+        const isOpen = isOpenReport(transactionReport);
+        const isSubmitter = isReportOwner(transactionReport);
         // If the report is Open, then only submitters, admins can move expenses
         return isOpen && !isAdmin && !isSubmitter;
-    }, [selectedReport, reportPolicy, expenseReports.length, shouldShowNotFoundPageFromProps]);
+    }, [transactionsReports, reportPolicy, expenseReports.length, shouldShowNotFoundPageFromProps]);
 
     return (
         <StepScreenWrapper
@@ -164,7 +171,7 @@ function IOURequestEditReportCommon({
                 textInputLabel={expenseReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
                 shouldSingleExecuteRowSelect
                 headerMessage={headerMessage}
-                initiallyFocusedOptionKey={selectedReportID}
+                initiallyFocusedOptionKey={transactionsReports.length === 1 ? transactionsReports.at(0)?.reportID : undefined}
                 ListItem={InviteMemberListItem}
                 listFooterContent={
                     shouldShowRemoveFromReport ? (

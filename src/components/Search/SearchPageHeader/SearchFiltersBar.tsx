@@ -400,7 +400,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter && hasMultipleOutputCurrency;
         const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
         const shouldDisplayPostedFilter = !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);
-        const shouldDisplayWithdrawalTypeFilter = groupBy?.value === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID && !!filterFormValues.withdrawalType;
+        const shouldDisplayWithdrawalTypeFilter = !!filterFormValues.withdrawalType;
         const shouldDisplayWithdrawnFilter = !!filterFormValues.withdrawnOn || !!filterFormValues.withdrawnAfter || !!filterFormValues.withdrawnBefore;
 
         const filterList = [
