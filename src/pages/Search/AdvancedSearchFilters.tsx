@@ -145,12 +145,12 @@ const baseFilterConfig: Record<string, {
         route: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
     },
     amount: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterAmountDisplayTitle,
         description: 'iou.amount',
         route: ROUTES.SEARCH_ADVANCED_FILTERS_AMOUNT,
     },
     total: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterAmountDisplayTitle,
         description: 'common.total',
         route: ROUTES.SEARCH_ADVANCED_FILTERS_TOTAL,
     },
@@ -320,30 +320,28 @@ function getFilterDateDisplayTitle(filterKey: SearchFilterKey, context: FilterCo
     return dateValue.join(', ');
 }
 
-function getFilterDisplayTitle(filterKey: SearchFilterKey, context: FilterContext) {
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL) {
-        const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as keyof SearchAdvancedFiltersForm;
-        const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as keyof SearchAdvancedFiltersForm;
+function getFilterAmountDisplayTitle(filterKey: SearchFilterKey, context: FilterContext) {
+    const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as keyof SearchAdvancedFiltersForm;
+    const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as keyof SearchAdvancedFiltersForm;
 
-        const lessThan = context.filters[lessThanKey];
-        const greaterThan = context.filters[greaterThanKey];
+    const lessThan = context.filters[lessThanKey];
+    const greaterThan = context.filters[greaterThanKey];
 
-        if (lessThan && greaterThan) {
-            return context.translate('search.filters.amount.between', {
-                lessThan: convertToDisplayStringWithoutCurrency(Number(lessThan)),
-                greaterThan: convertToDisplayStringWithoutCurrency(Number(greaterThan)),
-            });
-        }
-        if (lessThan) {
-            return context.translate('search.filters.amount.lessThan', {amount: convertToDisplayStringWithoutCurrency(Number(lessThan))});
-        }
-        if (greaterThan) {
-            return context.translate('search.filters.amount.greaterThan', {amount: convertToDisplayStringWithoutCurrency(Number(greaterThan))});
-        }
-        // Will never happen
-        return;
+    if (lessThan && greaterThan) {
+        return context.translate('search.filters.amount.between', {
+            lessThan: convertToDisplayStringWithoutCurrency(Number(lessThan)),
+            greaterThan: convertToDisplayStringWithoutCurrency(Number(greaterThan)),
+        });
     }
+    if (lessThan) {
+        return context.translate('search.filters.amount.lessThan', {amount: convertToDisplayStringWithoutCurrency(Number(lessThan))});
+    }
+    if (greaterThan) {
+        return context.translate('search.filters.amount.greaterThan', {amount: convertToDisplayStringWithoutCurrency(Number(greaterThan))});
+    }
+}
 
+function getFilterDisplayTitle(filterKey: SearchFilterKey, context: FilterContext) {
     if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY && context.filters[filterKey]) {
         const filterArray = context.filters[filterKey] ?? [];
         return filterArray.sort(context.localeCompare).join(', ');
