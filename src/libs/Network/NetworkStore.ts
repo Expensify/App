@@ -184,10 +184,6 @@ export {
     getCredentials,
     checkRequiredData,
     isSupportAuthToken,
-<<<<<<< HEAD
-=======
-    isSupportRequest,
     getLastShortAuthToken,
     setLastShortAuthToken,
->>>>>>> f63ce2e292d1473e4c88614f1da265019277737a
 };
