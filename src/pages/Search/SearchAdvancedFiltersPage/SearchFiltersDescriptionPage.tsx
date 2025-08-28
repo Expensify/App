@@ -21,7 +21,7 @@ function SearchFiltersDescriptionPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const description = searchAdvancedFiltersForm?.[FILTER_KEYS.DESCRIPTION];
     const {inputCallbackRef} = useAutoFocusInput();
 

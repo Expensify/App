@@ -21,7 +21,7 @@ function SearchFiltersReportIDPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const reportID = searchAdvancedFiltersForm?.[FILTER_KEYS.REPORT_ID];
     const {inputCallbackRef} = useAutoFocusInput();
 
