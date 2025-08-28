@@ -21,6 +21,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
@@ -72,12 +73,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const policy = usePolicy(policyID);
+    const policyData = usePolicyData(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: false});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true}) ?? [];
+
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const currentTagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
-    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
+    const currentTagListName = useMemo(() => getTagListName(policyData.tags, route.params.orderWeight), [policyData.tags, route.params.orderWeight]);
+    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyData.tags), [policy, policyData.tags]);
 
     const currentPolicyTag = policyTags?.[currentTagListName];
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_LIST_VIEW;
@@ -121,9 +122,9 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             if (policy === undefined) {
                 return;
             }
-            setWorkspaceTagEnabled(policy, {[tagName]: {name: tagName, enabled: value}}, route.params.orderWeight, policyCategories, allTransactionViolations);
+            setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, route.params.orderWeight);
         },
-        [allTransactionViolations, policy, policyCategories, route.params.orderWeight],
+        [policyData, route.params.orderWeight],
     );
 
     const tagList = useMemo<TagListItem[]>(
@@ -219,8 +220,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const deleteTags = () => {
-        if (policy !== undefined && selectedTags.length > 0) {
-            deletePolicyTags(policy, selectedTags, policyCategories, allTransactionViolations);
+        if (!!policyData.policy.id !== undefined && selectedTags.length > 0) {
+            deletePolicyTags(policyData, selectedTags);
         }
         setIsDeleteTagsConfirmModalVisible(false);
 
@@ -295,7 +296,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         return;
                     }
                     // Disable the selected tags
-                    setWorkspaceTagEnabled(policy, tagsToDisable, route.params.orderWeight, policyCategories, allTransactionViolations);
+                    setWorkspaceTagEnabled(policyData, tagsToDisable, route.params.orderWeight);
                 },
             });
         }
@@ -311,7 +312,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         return;
                     }
                     // Enable the selected tags
-                    setWorkspaceTagEnabled(policy, tagsToEnable, route.params.orderWeight, policyCategories, allTransactionViolations);
+                    setWorkspaceTagEnabled(policyData, tagsToEnable, route.params.orderWeight);
                 },
             });
         }
@@ -332,7 +333,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     if (policy !== undefined && !!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)) {
-        setPolicyTagsRequired(policy, false, route.params.orderWeight, policyTags, policyCategories, allTransactionViolations);
+        setPolicyTagsRequired(policyData, false, route.params.orderWeight);
     }
 
     const navigateToEditTag = () => {
@@ -395,7 +396,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                                 if (policy === undefined) {
                                     return;
                                 }
-                                setPolicyTagsRequired(policy, on, route.params.orderWeight, policyTags, policyCategories, allTransactionViolations);
+                                setPolicyTagsRequired(policyData, on, route.params.orderWeight);
                             }}
                             pendingAction={currentPolicyTag.pendingFields?.required}
                             errors={currentPolicyTag?.errorFields?.required ?? undefined}

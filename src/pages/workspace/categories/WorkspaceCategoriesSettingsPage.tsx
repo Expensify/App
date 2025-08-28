@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import CategorySelectorModal from '@components/CategorySelector/CategorySelectorModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,7 +8,7 @@ import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -34,39 +34,30 @@ type WorkspaceCategoriesSettingsPageProps = WithPolicyConnectionsProps &
     );
 
 function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSettingsPageProps) {
+    const {policyID, backTo} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const policyData = usePolicyData(policyID);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const policyID = route.params.policyID;
-    const backTo = route.params.backTo;
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const [currentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const currentConnectionName = getCurrentConnectionName(policy);
     const [isSelectorModalVisible, setIsSelectorModalVisible] = useState(false);
     const [categoryID, setCategoryID] = useState<string>();
     const [groupID, setGroupID] = useState<string>();
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS;
     const toggleSubtitle =
         isConnectedToAccounting && currentConnectionName ? translate('workspace.categories.needCategoryForExportToIntegration', {connectionName: currentConnectionName}) : undefined;
 
-    const updateWorkspaceRequiresCategory = (value: boolean) => {
-        if (policy === undefined) {
-            return;
-        }
-        setWorkspaceRequiresCategory(policy, value, policyTagLists, allTransactionViolations);
-    };
+    const updateWorkspaceRequiresCategory = useCallback((value: boolean) => setWorkspaceRequiresCategory(policyData, value), [policyData]);
 
     const {sections} = useMemo(() => {
-        if (!(currentPolicy && currentPolicy.mccGroup)) {
+        if (!(policyData.policy && policyData.policy.mccGroup)) {
             return {sections: [{data: []}]};
         }
 
         return {
             sections: [
                 {
-                    data: Object.entries(currentPolicy.mccGroup).map(
+                    data: Object.entries(policyData.policy.mccGroup).map(
                         ([mccKey, mccGroup]) =>
                             ({
                                 categoryID: mccGroup.category,
@@ -79,9 +70,9 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                 },
             ],
         };
-    }, [currentPolicy]);
+    }, [policyData.policy]);
 
-    const hasEnabledCategories = hasEnabledOptions(policyCategories ?? {});
+    const hasEnabledCategories = hasEnabledOptions(policyData.categories);
     const isToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledCategories || isConnectedToAccounting;
 
     const setNewCategory = (selectedCategory: ListItem) => {
@@ -129,7 +120,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     />
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv6]} />
                     <View style={[styles.containerWithSpaceBetween]}>
-                        {!!currentPolicy && (sections.at(0)?.data?.length ?? 0) > 0 && (
+                        {!!policyData.policy && (sections.at(0)?.data?.length ?? 0) > 0 && (
                             <SelectionList
                                 addBottomSafeAreaPadding
                                 headerContent={

@@ -8,6 +8,7 @@ import isEmpty from 'lodash/isEmpty';
 import isNumber from 'lodash/isNumber';
 import mapValues from 'lodash/mapValues';
 import lodashMaxBy from 'lodash/maxBy';
+import type { OnyxValueWithOfflineFeedback } from '@src/types/onyx/OnyxCommon';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
@@ -18,6 +19,7 @@ import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
+import type {PolicyData} from '@hooks/usePolicyData';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
@@ -53,7 +55,6 @@ import type {
     Task,
     Transaction,
     TransactionViolation,
-    TransactionViolations,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
@@ -1851,65 +1852,48 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Pushes optimistic transaction violations to OnyxData for the given policy and categories onyx update.
+ * Updates optimistic transaction violations to OnyxData for the given policy and categories onyx update.
  *
  * @param onyxData - The OnyxData object to push updates to
- * @param policy - The current policy
- * @param policyCategories - The categories of the current policy
- * @param policyTagLists - The tags of the current policy
- * @param transactionViolations - The policy transactions violations
+ * @param policyData - The current policy
  * @param policyUpdate - Changed policy properties, if none pass empty object
  * @param policyCategoriesUpdate - Changed categories properties, if none pass empty object
- * @param policyTagListsUpdate - Changed tag properties, if none pass empty object
+ * @param policyTagsUpdate - Changed tag properties, if none pass empty object
  */
 function pushTransactionViolationsOnyxData(
     onyxData: OnyxData,
-    policy: Policy,
-    policyCategories: PolicyCategories,
-    policyTagLists: PolicyTagLists,
-    transactionViolations: OnyxCollection<TransactionViolations>,
-    policyUpdate: Partial<Policy>,
+    policyData: PolicyData,
+    policyUpdate: Partial<OnyxValueWithOfflineFeedback<Policy>>,
     policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
-    policyTagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
+    policyTagsUpdate: Record<string, Partial<PolicyTagList>> = {},
 ) {
-    const isPolicyCategoriesUpdateEmpty = Object.keys(policyCategoriesUpdate).length === 0;
-    const isPolicyTagListsUpdateEmpty = Object.keys(policyTagListsUpdate).length === 0;
-
-    if (isPolicyCategoriesUpdateEmpty && isPolicyTagListsUpdateEmpty && Object.keys(policyTagListsUpdate).length === 0) {
+    if (!policyData.policy || policyData.reports.length === 0 || isEmptyObject(policyData.transactionsAndViolations)) {
         return;
     }
 
-    const reports = getAllPolicyReports(policy.id);
-
-    if (!reports || reports.length === 0) {
+    const isPolicyUpdateEmpty = isEmptyObject(policyUpdate);
+    const isPolicyTagsUpdateEmpty = isEmptyObject(policyTagsUpdate);
+    const isPolicyCategoriesUpdateEmpty = isEmptyObject(policyCategoriesUpdate);
+    
+    // If there are no updates to policy, categories or tags, return early
+    if (isPolicyUpdateEmpty && isPolicyTagsUpdateEmpty && isPolicyCategoriesUpdateEmpty ) {
         return;
     }
 
-    // Merge the existing PolicyCategories with the optimistic updates
-    const optimisticPolicyCategories: PolicyCategories = isPolicyCategoriesUpdateEmpty
-        ? policyCategories
-        : {
-              ...policyCategories,
-              ...Object.entries(policyCategoriesUpdate).reduce<PolicyCategories>((acc, [categoryName, categoryUpdate]) => {
-                  acc[categoryName] = {
-                      ...(policyCategories?.[categoryName] ?? {}),
-                      ...categoryUpdate,
-                  };
-                  return acc;
-              }, {}),
-          };
+    // Merge the existing policy with the optimistic updates
+    const optimisticPolicy = {...policyData.policy, ...policyUpdate};
 
-    // Merge the existing PolicyTagLists with the optimistic updates
-    const optimisticPolicyTagLists: PolicyTagLists = isPolicyTagListsUpdateEmpty
-        ? policyTagLists
+    // Merge the existing tagLists with the optimistic updates
+    const optimisticPolicyTagLists = isPolicyTagsUpdateEmpty
+        ? policyData.tags
         : {
-              ...policyTagLists,
-              ...Object.entries(policyTagListsUpdate).reduce<PolicyTagLists>((acc, [tagName, tagUpdate]) => {
+              ...policyData.tags,
+              ...Object.entries(policyTagsUpdate).reduce<PolicyTagLists>((acc, [tagName, tagUpdate]) => {
                   acc[tagName] = {
-                      ...(policyTagLists?.[tagName] ?? {}),
+                      ...(policyData.tags?.[tagName] ?? {}),
                       ...tagUpdate,
                       tags: {
-                          ...(policyTagLists?.[tagName]?.tags ?? {}),
+                          ...(policyData.tags?.[tagName]?.tags ?? {}),
                           ...(tagUpdate?.tags ?? {}),
                       },
                   };
@@ -1917,32 +1901,41 @@ function pushTransactionViolationsOnyxData(
               }, {}),
           };
 
-    // Merge the existing Policy with the optimistic updates
-    const optimisticPolicy = {...policy, ...policyUpdate};
+    // Merge the existing categories with the optimistic updates
+    const optimisticPolicyCategories = isPolicyCategoriesUpdateEmpty
+        ? policyData.categories
+        : {
+              ...policyData.categories,
+              ...Object.entries(policyCategoriesUpdate).reduce<PolicyCategories>((acc, [categoryName, categoryUpdate]) => {
+                  acc[categoryName] = {
+                      ...(policyData.categories?.[categoryName] ?? {}),
+                      ...categoryUpdate,
+                  };
+                  return acc;
+              }, {}),
+          };
 
     const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, optimisticPolicyTagLists);
 
-    const processedTransactionIDs = new Set<string>();
-
-    // Iterate through all reports to find transactions that need optimistic violations
-    for (const report of reports) {
-        // Skipping invoice report because should not have any category or tag violations
-        if (!report?.reportID || isInvoiceReport(report)) {
+    // Iterate through all policy reports to find transactions that need optimistic violations
+    for (const report of policyData.reports) {
+        
+        // Skipping invoice reports since they should not have any category or tag violations
+        if (isInvoiceReport(report)) {
             continue;
         }
 
-        const transactions = getReportTransactions(report.reportID);
+        const reportTransactionsAndViolations = policyData.transactionsAndViolations[report.reportID];
 
-        for (const transaction of transactions) {
-            // Skip it if transaction's optimistic violations already is pushed to ensure one update per transaction
-            const transactionID = transaction?.transactionID;
-            if (!transactionID || processedTransactionIDs.has(transactionID)) {
-                continue;
-            }
+        if (isEmptyObject(reportTransactionsAndViolations)) {
+            continue;
+        }
 
-            processedTransactionIDs.add(transactionID);
+        const {transactions, violations} = reportTransactionsAndViolations
 
-            const existingViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+        for (const transaction of Object.values(transactions)) {
+
+            const existingViolations = violations[transaction.transactionID];
 
             const optimisticViolations = ViolationsUtils.getViolationsOnyxData(
                 transaction,
@@ -1958,7 +1951,7 @@ function pushTransactionViolationsOnyxData(
                 onyxData.optimisticData?.push(optimisticViolations);
                 onyxData.failureData?.push({
                     onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
                     value: existingViolations ?? null,
                 });
             }

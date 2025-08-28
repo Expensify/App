@@ -8,8 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
+import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -28,10 +27,8 @@ type WorkspaceEditTagsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_EDIT>;
 
 function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
-    const policy = usePolicy(route.params.policyID);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route?.params?.policyID}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`, {canBeMissing: true});
-    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true});
+    const policyData = usePolicyData(route.params.policyID);
+    const {tags: policyTags} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const tagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
@@ -71,19 +68,16 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
 
     const updateTagListName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
-            if (policy !== undefined && values[INPUT_IDS.POLICY_TAGS_NAME] !== tagListName) {
+            if (values[INPUT_IDS.POLICY_TAGS_NAME] !== tagListName) {
                 renamePolicyTagList(
-                    policy,
+                    policyData,
                     {oldName: tagListName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]},
-                    policyTags,
                     route.params.orderWeight,
-                    policyCategories,
-                    allTransactionViolations,
                 );
             }
             goBackToTagsSettings();
         },
-        [tagListName, goBackToTagsSettings, route.params.orderWeight, policy, policyTags, policyCategories, allTransactionViolations],
+        [tagListName, goBackToTagsSettings, route.params.orderWeight, policyData],
     );
 
     return (

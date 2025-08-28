@@ -30,6 +30,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
@@ -93,7 +94,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {environmentURL} = useEnvironment();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
@@ -102,11 +102,15 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true});
+    const policyData = usePolicyData(policyID);
     const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
-        () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
-        [policy, policyTags],
+        () => [
+            getTagLists(policyData.tags),
+            isMultiLevelTagsPolicyUtils(policyData.tags),
+            hasDependentTagsPolicyUtils(policy, policyData.tags),
+            hasIndependentTagsPolicyUtils(policy, policyData.tags),
+        ],
+        [policy, policyData.tags],
     );
     const canSelectMultiple = !hasDependentTags && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const fetchTags = useCallback(() => {
@@ -205,12 +209,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {
-            if (policy === undefined) {
+            if (policyData?.policy === undefined) {
                 return;
             }
-            setWorkspaceTagEnabled(policy, {[tagName]: {name: tagName, enabled: value}}, 0);
+            setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, 0);
         },
-        [policy],
+        [policyData],
     );
 
     const updateWorkspaceRequiresTag = useCallback(
@@ -218,9 +222,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             if (policy === undefined) {
                 return;
             }
-            setPolicyTagsRequired(policy, value, orderWeight, policyTags, policyCategories, allTransactionViolations);
+            setPolicyTagsRequired(policyData, value, orderWeight);
         },
-        [allTransactionViolations, policy, policyCategories, policyTags],
+        [policyData],
     );
 
     const tagList = useMemo<TagListItem[]>(() => {
@@ -253,7 +257,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             isOn={isSwitchEnabled}
                             accessibilityLabel={translate('workspace.tags.requiresTag')}
                             onToggle={(newValue: boolean) => {
-                                if (isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])) {
+                                if (isMakingLastRequiredTagListOptional(policy, policyData.tags, [policyTagList])) {
                                     setIsCannotMakeLastTagOptionalModalVisible(true);
                                     return;
                                 }
@@ -261,7 +265,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 updateWorkspaceRequiresTag(newValue, policyTagList.orderWeight);
                             }}
                             disabled={isSwitchDisabled}
-                            showLockIcon={isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])}
+                            showLockIcon={isMakingLastRequiredTagListOptional(policy, policyData.tags, [policyTagList])}
                         />
                     ),
                 };
@@ -292,7 +296,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 />
             ),
         }));
-    }, [isMultiLevelTags, policyTagLists, hasDependentTags, translate, policy, policyTags, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
+    }, [isMultiLevelTags, policyTagLists, hasDependentTags, translate, policy, policyData.tags, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
         const tagText = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
@@ -380,9 +384,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const deleteTags = () => {
-        if (policy !== undefined && selectedTags.length > 0) {
-            deletePolicyTags(policy, selectedTags, policyCategories, allTransactionViolations);
-        }
+        deletePolicyTags(policyData, selectedTags);
         setIsDeleteTagsConfirmModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
@@ -393,7 +395,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         });
     };
 
-    const isLoading = !isOffline && policyTags === undefined;
+    const isLoading = !isOffline && policyData.tags === undefined;
     const hasVisibleTags = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const navigateToImportSpreadsheet = useCallback(() => {
@@ -538,7 +540,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
                     // Disable the selected tags
-                    setWorkspaceTagEnabled(policy, tagsToDisable, 0);
+                    setWorkspaceTagEnabled(policyData, tagsToDisable, 0);
                 },
             });
         }
@@ -554,7 +556,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
                     // Enable the selected tags
-                    setWorkspaceTagEnabled(policy, tagsToEnable, 0);
+                    setWorkspaceTagEnabled(policyData, tagsToEnable, 0);
                 },
             });
         }
@@ -581,7 +583,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 text: translate('workspace.tags.notRequireTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.REQUIRE,
                 onSelected: () => {
-                    if (isMakingLastRequiredTagListOptional(policy, policyTags, selectedTagLists)) {
+                    if (isMakingLastRequiredTagListOptional(policy, policyData.tags, selectedTagLists)) {
                         setIsCannotMakeLastTagOptionalModalVisible(true);
                         return;
                     }
@@ -589,7 +591,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     if (policy === undefined) {
                         return;
                     }
-                    setWorkspaceTagRequired(policy, tagListIndexesToMarkOptional, false, policyTags, policyCategories, allTransactionViolations);
+                    setWorkspaceTagRequired(policyData, tagListIndexesToMarkOptional, false);
                 },
             });
         }
@@ -604,7 +606,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     if (policy === undefined) {
                         return;
                     }
-                    setWorkspaceTagRequired(policy, tagListIndexesToMarkRequired, true, policyTags, policyCategories, allTransactionViolations);
+                    setWorkspaceTagRequired(policyData, tagListIndexesToMarkRequired, true);
                 },
             });
         }
