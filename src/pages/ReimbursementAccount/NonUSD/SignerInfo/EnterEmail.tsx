@@ -14,17 +14,22 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
+type EmailSubmitParams = {signerEmail: string; secondSignerEmail?: string};
+
 type EnterEmailProps = {
     /** Callback when the form is submitted */
-    onSubmit: () => void;
+    onSubmit: (values: EmailSubmitParams) => void;
 
     /** Whether the user is a director */
     isUserDirector: boolean;
+
+    /** Whether the page is in loading state or not */
+    isLoading?: boolean;
 };
 
 const {COMPANY_NAME, SIGNER_EMAIL, SECOND_SIGNER_EMAIL} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
-function EnterEmail({onSubmit, isUserDirector}: EnterEmailProps) {
+function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -56,6 +61,7 @@ function EnterEmail({onSubmit, isUserDirector}: EnterEmailProps) {
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate('common.next')}
             onSubmit={onSubmit}
+            isLoading={isLoading}
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
             shouldHideFixErrorsAlert={!shouldGatherBothEmails}
@@ -88,4 +94,5 @@ function EnterEmail({onSubmit, isUserDirector}: EnterEmailProps) {
 
 EnterEmail.displayName = 'EnterEmail';
 
+export type {EmailSubmitParams};
 export default EnterEmail;

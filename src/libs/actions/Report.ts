@@ -661,11 +661,8 @@ function notifyNewAction(reportID: string | undefined, accountID: number | undef
  * - Adding one comment
  * - Adding one attachment
  * - Add both a comment and attachment simultaneously
- *
- * @param reportID - The report ID where the comment should be added
- * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
  */
-function addActions(reportID: string, notifyReportID: string, text = '', file?: FileObject) {
+function addActions(reportID: string, text = '', file?: FileObject) {
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
@@ -831,23 +828,23 @@ function addActions(reportID: string, notifyReportID: string, text = '', file?: 
         successData,
         failureData,
     });
-    notifyNewAction(notifyReportID, lastAction?.actorAccountID, lastAction);
+    notifyNewAction(reportID, lastAction?.actorAccountID, lastAction);
 }
 
 /** Add an attachment and optional comment. */
-function addAttachment(reportID: string, notifyReportID: string, file: FileObject, text = '', shouldPlaySound?: boolean) {
+function addAttachment(reportID: string, file: FileObject, text = '', shouldPlaySound?: boolean) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions(reportID, notifyReportID, text, file);
+    addActions(reportID, text, file);
 }
 
 /** Add a single comment to a report */
-function addComment(reportID: string, notifyReportID: string, text: string, shouldPlaySound?: boolean) {
+function addComment(reportID: string, text: string, shouldPlaySound?: boolean) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions(reportID, notifyReportID, text);
+    addActions(reportID, text);
 }
 
 function reportActionsExist(reportID: string): boolean {
@@ -2047,10 +2044,11 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
 
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
 function editReportComment(reportID: string | undefined, originalReportAction: OnyxEntry<ReportAction>, textForNewComment: string, videoAttributeCache?: Record<string, string>) {
-    if (!reportID || !originalReportAction) {
+    const originalReportID = getOriginalReportID(reportID, originalReportAction);
+    if (!originalReportID || !originalReportAction) {
         return;
     }
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
 
     // Do not autolink if someone explicitly tries to remove a link from message.
@@ -2077,7 +2075,7 @@ function editReportComment(reportID: string | undefined, originalReportAction: O
 
     //  Delete the comment if it's empty
     if (!htmlForNewComment) {
-        deleteReportComment(reportID, originalReportAction);
+        deleteReportComment(originalReportID, originalReportAction);
         return;
     }
 
@@ -2108,12 +2106,12 @@ function editReportComment(reportID: string | undefined, originalReportAction: O
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: optimisticReportActions,
         },
     ];
 
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, canUserPerformWriteAction, optimisticReportActions as ReportActions);
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, optimisticReportActions as ReportActions);
     if (reportActionID === lastVisibleAction?.reportActionID) {
         const lastMessageText = formatReportLastMessageText(reportComment);
         const optimisticReport = {
@@ -2121,7 +2119,7 @@ function editReportComment(reportID: string | undefined, originalReportAction: O
         };
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`,
             value: optimisticReport,
         });
     }
@@ -2129,7 +2127,7 @@ function editReportComment(reportID: string | undefined, originalReportAction: O
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: {
                 [reportActionID]: {
                     ...originalReportAction,
@@ -2142,7 +2140,7 @@ function editReportComment(reportID: string | undefined, originalReportAction: O
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: {
                 [reportActionID]: {
                     pendingAction: null,
@@ -2152,7 +2150,7 @@ function editReportComment(reportID: string | undefined, originalReportAction: O
     ];
 
     const parameters: UpdateCommentParams = {
-        reportID,
+        reportID: originalReportID,
         reportComment: htmlForNewComment,
         reportActionID,
     };
@@ -5919,19 +5917,19 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policy: Policy, em
 
 /**
  * Resolves Concierge category options by adding a comment and updating the report action
- * @param reportID - The report ID where the comment should be added and the report action should be updated
- * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
+ * @param reportID - The report ID where the comment should be added
+ * @param actionReportID - The report ID where the report action should be updated (may be different for threads)
  * @param reportActionID - The specific report action ID to update
  * @param selectedCategory - The category selected by the user
  */
-function resolveConciergeCategoryOptions(reportID: string | undefined, notifyReportID: string | undefined, reportActionID: string | undefined, selectedCategory: string) {
-    if (!reportID || !reportActionID) {
+function resolveConciergeCategoryOptions(reportID: string | undefined, actionReportID: string | undefined, reportActionID: string | undefined, selectedCategory: string) {
+    if (!reportID || !actionReportID || !reportActionID) {
         return;
     }
 
-    addComment(reportID, notifyReportID ?? reportID, selectedCategory);
+    addComment(reportID, selectedCategory);
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${actionReportID}`, {
         [reportActionID]: {
             originalMessage: {
                 selectedCategory,

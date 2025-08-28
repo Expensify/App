@@ -34,18 +34,6 @@ type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C ext
         ? TransactionListItemType[]
         : TransactionGroupListItemType[];
 
-/** Model of columns to show for search results */
-type ColumnsToShow = {
-    /** Whether the category column should be shown */
-    shouldShowCategoryColumn: boolean;
-
-    /** Whether the tag column should be shown */
-    shouldShowTagColumn: boolean;
-
-    /** Whether the tax column should be shown */
-    shouldShowTaxColumn: boolean;
-};
-
 /** Model of search result state */
 type SearchResultsInfo = {
     /** Current search results offset/cursor */
@@ -66,9 +54,6 @@ type SearchResultsInfo = {
 
     /** Whether the search results are currently loading */
     isLoading: boolean;
-
-    /** The optional columns that should be shown according to policy settings */
-    columnsToShow: ColumnsToShow;
 
     /** The number of results */
     count?: number;

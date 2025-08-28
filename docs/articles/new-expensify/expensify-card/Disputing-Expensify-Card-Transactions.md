@@ -3,7 +3,6 @@ title: Disputing Expensify Card Transactions
 description: Step-by-step guide to disputing fraudulent or service-related charges on your Expensify Visa® Commercial Card
 keywords: [New Expensify, dispute, fraud on Expensify Card]
 ---
-<div id="new-expensify" markdown="1">
 
 If you encounter unrecognized, unauthorized, or fraudulent charges on your Expensify Visa® Commercial Card, you can dispute them. This guide also covers disputes related to service issues, such as damaged merchandise or incorrect transaction amounts.
 
@@ -80,4 +79,3 @@ The dispute process can take up to **90 days**.
 ## Can I cancel a dispute?
 Yes, you can cancel a filed dispute by messaging Concierge or your Account Manager via Expensify Chat. 
 
-</div>
