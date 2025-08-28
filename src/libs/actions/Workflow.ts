@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getDefaultApprover} from '@libs/PolicyUtils';
 import {calculateApprovers, convertApprovalWorkflowToPolicyEmployees} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -13,7 +14,6 @@ import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy} from '@src/types
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import { getDefaultApprover } from '@libs/PolicyUtils';
 
 let currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
 Onyx.connect({
