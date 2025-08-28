@@ -100,16 +100,13 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     const {transactions: reportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportID);
-    // const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions), [reportTransactions, reportActions]);
     const transactions = useMemo(() => {
         const nonDeletedTransactions = getAllNonDeletedTransactions(reportTransactions, reportActions);
 
-        // Handle case where nonDeletedTransactions is undefined/null
         if (!nonDeletedTransactions) {
-            return nonDeletedTransactions; // Return undefined/null as-is
+            return nonDeletedTransactions;
         }
 
-        // Enhance each transaction with its violations (working with array)
         return nonDeletedTransactions.map((transaction) => {
             const transactionViolations = allReportViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] || [];
             return {
@@ -118,6 +115,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
             };
         });
     }, [reportTransactions, reportActions, allReportViolations]);
+
     const visibleTransactions = transactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
