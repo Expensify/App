@@ -1,15 +1,15 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {Audio} from 'expo-av';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {NativeEventSubscription} from 'react-native';
-import {AppState, Linking, Platform} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import { Audio } from 'expo-av';
+import React, { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { NativeEventSubscription } from 'react-native';
+import { AppState, Linking, Platform } from 'react-native';
+import type { OnyxEntry } from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
-import {InitialURLContext} from './components/InitialURLContextProvider';
+import { InitialURLContext } from './components/InitialURLContextProvider';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
@@ -20,16 +20,16 @@ import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
 import usePriorityMode from './hooks/usePriorityChange';
-import {updateLastRoute} from './libs/actions/App';
-import {disconnect} from './libs/actions/Delegate';
+import { updateLastRoute } from './libs/actions/App';
+import { disconnect } from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
 import * as ActiveClientManager from './libs/ActiveClientManager';
-import {isSafari} from './libs/Browser';
+import { isSafari } from './libs/Browser';
 import * as Environment from './libs/Environment/Environment';
 import FS from './libs/Fullstory';
-import Growl, {growlRef} from './libs/Growl';
+import Growl, { growlRef } from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
 import Navigation from './libs/Navigation/Navigation';
@@ -45,11 +45,13 @@ import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
-import type {Route} from './ROUTES';
+import type { Route } from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
-import type {ScreenShareRequest} from './types/onyx';
+import type { ScreenShareRequest } from './types/onyx';
 
-Onyx.registerLogger(({level, message, parameters}) => {
+// dummy comment
+
+Onyx.registerLogger(({ level, message, parameters }) => {
     if (level === 'alert') {
         Log.alert(message, parameters);
         console.error(message);
@@ -90,28 +92,28 @@ function Expensify() {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
-    const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
+    const { splashScreenState, setSplashScreenState } = useContext(SplashScreenStateContext);
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
-    const {translate, preferredLocale} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE, {canBeMissing: true});
-    const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA, {canBeMissing: true});
-    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, canBeMissing: true});
-    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false, canBeMissing: true});
-    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false, canBeMissing: true});
-    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: true});
-    const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST, {canBeMissing: true});
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
-    const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
-    const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
-    const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
+    const { translate, preferredLocale } = useLocalize();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, { canBeMissing: true });
+    const [session] = useOnyx(ONYXKEYS.SESSION, { canBeMissing: true });
+    const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE, { canBeMissing: true });
+    const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA, { canBeMissing: true });
+    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, { initWithStoredValues: false, canBeMissing: true });
+    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, { initWithStoredValues: false, canBeMissing: true });
+    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, { initWithStoredValues: false, canBeMissing: true });
+    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, { canBeMissing: true });
+    const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST, { canBeMissing: true });
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, { canBeMissing: true });
+    const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, { canBeMissing: true });
+    const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, { canBeMissing: true });
+    const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, { canBeMissing: true });
 
     useDebugShortcut();
     usePriorityMode();
 
     const [initialUrl, setInitialUrl] = useState<Route | null>(null);
-    const {setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
+    const { setIsAuthenticatedAtStartup } = useContext(InitialURLContext);
     useEffect(() => {
         if (isCheckingPublicRoom) {
             return;
@@ -180,16 +182,16 @@ function Expensify() {
 
     // Log the platform and config to debug .env issues
     useEffect(() => {
-        Log.info('App launched', false, {Platform, CONFIG});
+        Log.info('App launched', false, { Platform, CONFIG });
     }, []);
 
     useEffect(() => {
         setTimeout(() => {
             const appState = AppState.currentState;
-            Log.info('[BootSplash] splash screen status', false, {appState, splashScreenState});
+            Log.info('[BootSplash] splash screen status', false, { appState, splashScreenState });
 
             if (splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE) {
-                const propsToLog: Omit<ExpensifyProps & {isAuthenticated: boolean}, 'children' | 'session'> = {
+                const propsToLog: Omit<ExpensifyProps & { isAuthenticated: boolean }, 'children' | 'session'> = {
                     isCheckingPublicRoom,
                     updateRequired,
                     updateAvailable,
@@ -198,7 +200,7 @@ function Expensify() {
                     isAuthenticated,
                     lastVisitedPath,
                 };
-                Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
+                Log.alert('[BootSplash] splash screen is still visible', { propsToLog }, false);
             }
         }, 30 * 1000);
 
@@ -244,7 +246,7 @@ function Expensify() {
 
     // This is being done since we want to play sound even when iOS device is on silent mode, to align with other platforms.
     useEffect(() => {
-        Audio.setAudioModeAsync({playsInSilentModeIOS: true});
+        Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
     }, []);
 
     useLayoutEffect(() => {
