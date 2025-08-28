@@ -70,6 +70,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
     SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/report-id',
     SEARCH_ADVANCED_FILTERS_AMOUNT: 'search/filters/amount',
+    SEARCH_ADVANCED_FILTERS_TOTAL: 'search/filters/total',
     SEARCH_ADVANCED_FILTERS_CATEGORY: 'search/filters/category',
     SEARCH_ADVANCED_FILTERS_KEYWORD: 'search/filters/keyword',
     SEARCH_ADVANCED_FILTERS_CARD: 'search/filters/card',
@@ -182,6 +183,15 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the BANK_ACCOUNT_WITH_STEP_TO_OPEN route');
             }
             return getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo);
+        },
+    },
+    BANK_ACCOUNT_ENTER_SIGNER_INFO: {
+        route: 'bank-account/enter-signer-info',
+        getRoute: (policyID: string | undefined, bankAccountID: string | undefined, isCompleted: boolean) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the BANK_ACCOUNT_ENTER_SIGNER_INFO route');
+            }
+            return `bank-account/enter-signer-info?policyID=${policyID}&bankAccountID=${bankAccountID}&isCompleted=${isCompleted}` as const;
         },
     },
     PUBLIC_CONSOLE_DEBUG: {
