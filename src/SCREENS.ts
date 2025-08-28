@@ -2,6 +2,7 @@
  * This is a file containing constants for all of the screen names. In most cases, we should use the routes for
  * navigation. But there are situations where we may need to access screen names directly.
  */
+import type {TupleToUnion} from 'type-fest';
 import type DeepValueOf from './types/utils/DeepValueOf';
 
 const PROTECTED_SCREENS = {
@@ -778,13 +779,16 @@ const SCREENS = {
 
 type Screen = DeepValueOf<typeof SCREENS>;
 
-type AttachmentModalScreen =
-    | typeof SCREENS.REPORT_ATTACHMENTS
-    | typeof SCREENS.REPORT_ADD_ATTACHMENT
-    | typeof SCREENS.REPORT_AVATAR
-    | typeof SCREENS.PROFILE_AVATAR
-    | typeof SCREENS.WORKSPACE_AVATAR
-    | typeof SCREENS.TRANSACTION_RECEIPT;
+const ATTACHMENT_MODAL_SCREENS = [
+    SCREENS.REPORT_ATTACHMENTS,
+    SCREENS.REPORT_ADD_ATTACHMENT,
+    SCREENS.REPORT_AVATAR,
+    SCREENS.PROFILE_AVATAR,
+    SCREENS.WORKSPACE_AVATAR,
+    SCREENS.TRANSACTION_RECEIPT,
+    SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW,
+] as const;
+type AttachmentModalScreen = TupleToUnion<typeof ATTACHMENT_MODAL_SCREENS>;
 
 export default SCREENS;
 export {PROTECTED_SCREENS};
