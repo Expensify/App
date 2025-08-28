@@ -305,12 +305,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const reportTransactions = useMemo(() => {
         const nonDeletedTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions);
 
-        // Handle case where nonDeletedTransactions is undefined/null
         if (!nonDeletedTransactions) {
-            return nonDeletedTransactions; // Return undefined/null as-is
+            return nonDeletedTransactions;
         }
 
-        // Enhance each transaction with its violations (working with array)
         return nonDeletedTransactions.map((transaction) => {
             const transactionViolations = allReportViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] || [];
             return {
