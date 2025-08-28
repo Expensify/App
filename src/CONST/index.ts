@@ -90,6 +90,8 @@ const connectionsVideoPaths = {
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
+const brokenConnectionScrapeStatuses: number[] = [200, 531, 530, 500, 666];
+
 // Hide not issued or not activated cards (states 2, 4) from card filter options in search, as no transactions can be made on cards in these states
 const cardHiddenFromSearchStates: number[] = [2, 4];
 
@@ -654,6 +656,15 @@ const CONST = {
         },
         BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX: 'accountHolder',
     },
+    ENABLE_GLOBAL_REIMBURSEMENTS: {
+        STEP_NAMES: ['1', '2', '3'],
+        STEP: {
+            BUSINESS_INFO: 'BusinessInfoStep',
+            AGREEMENTS: 'AgreementsStep',
+            DOCUSIGN: 'DocusignStep',
+        },
+        ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
+    },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
         CORPORATION: 'Corp',
@@ -916,6 +927,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     DEFAULT_NUMBER_ID,
+    FAKE_REPORT_ID: 'FAKE_REPORT_ID',
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
     EXPENSIFY_MOBILE_URL,
@@ -1062,6 +1074,7 @@ const CONST = {
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
+    RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
         ROLE: {
             ADMIN: 'admin',
@@ -1080,6 +1093,7 @@ const CONST = {
             HOLD: 'hold',
             DOWNLOAD_PDF: 'downloadPDF',
             CHANGE_WORKSPACE: 'changeWorkspace',
+            CHANGE_APPROVER: 'changeApprover',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
             RETRACT: 'retract',
@@ -1133,6 +1147,7 @@ const CONST = {
                 ACTIONABLE_ADD_PAYMENT_CARD: 'ACTIONABLEADDPAYMENTCARD',
                 ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
+                ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER: 'ACTIONABLEMENTIONINVITETOSUBMITEXPENSECONFIRMWHISPER',
                 ACTIONABLE_REPORT_MENTION_WHISPER: 'ACTIONABLEREPORTMENTIONWHISPER',
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 POLICY_EXPENSE_CHAT_WELCOME_WHISPER: 'POLICYEXPENSECHATWELCOMEWHISPER',
@@ -1152,6 +1167,7 @@ const CONST = {
                 DELETED_TRANSACTION: 'DELETEDTRANSACTION',
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // Deprecated OldDot Action
+                EXPENSIFY_CARD_SYSTEM_MESSAGE: 'EXPENSIFYCARDSYSTEMMESSAGE',
                 EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
                 EXPORTED_TO_INTEGRATION: 'EXPORTINTEGRATION', // OldDot Action
                 EXPORTED_TO_QUICK_BOOKS: 'EXPORTED', // Deprecated OldDot Action
@@ -1299,6 +1315,7 @@ const CONST = {
                 RECEIPT: 'receipt',
                 DATE: 'date',
                 MERCHANT: 'merchant',
+                DESCRIPTION: 'description',
                 FROM: 'from',
                 TO: 'to',
                 CATEGORY: 'category',
@@ -1315,7 +1332,11 @@ const CONST = {
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
+            INVITE_TO_SUBMIT_EXPENSE: 'inviteToSubmitExpense',
             NOTHING: 'nothing',
+        },
+        ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER: {
+            DONE: 'done',
         },
         ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION: {
             NOTHING: 'nothing',
@@ -1437,6 +1458,10 @@ const CONST = {
             REPORT_LEVEL_EXPORT: 'report_level_export',
             EXPENSE_LEVEL_EXPORT: 'detailed_export',
         },
+        EXPORT_OPTION_LABELS: {
+            REPORT_LEVEL_EXPORT: 'All Data - Report Level Export',
+            EXPENSE_LEVEL_EXPORT: 'All Data - Expense Level Export',
+        },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
         },
@@ -1537,6 +1562,9 @@ const CONST = {
         SKELETON_ANIMATION_SPEED: 3,
         SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',
         DEBOUNCE_HANDLE_SEARCH: 'debounce_handle_search',
+        FAST_SEARCH_TREE_CREATION: 'fast_search_tree_creation',
+        SHOW_HOVER_PREVIEW_DELAY: 270,
+        SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -2802,15 +2830,6 @@ const CONST = {
         'callMeByMyName',
     ],
 
-    // Map updated pronouns key to deprecated pronouns
-    DEPRECATED_PRONOUNS_LIST: {
-        heHimHis: 'He/him',
-        sheHerHers: 'She/her',
-        theyThemTheirs: 'They/them',
-        zeHirHirs: 'Ze/hir',
-        callMeByMyName: 'Call me by my name',
-    },
-
     POLICY: {
         TYPE: {
             PERSONAL: 'personal',
@@ -2881,6 +2900,12 @@ const CONST = {
             REIMBURSEMENT_YES: 'reimburseYes', // Direct
             REIMBURSEMENT_NO: 'reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
+        },
+        CASH_EXPENSE_REIMBURSEMENT_CHOICES: {
+            REIMBURSABLE_DEFAULT: 'reimbursableDefault', // Reimbursable by default
+            NON_REIMBURSABLE_DEFAULT: 'nonReimbursableDefault', // Non-reimbursable by default
+            ALWAYS_REIMBURSABLE: 'alwaysReimbursable', // Always Reimbursable
+            ALWAYS_NON_REIMBURSABLE: 'alwaysNonReimbursable', // Always Non Reimbursable
         },
         ID_FAKE: '_FAKE_',
         EMPTY: 'EMPTY',
@@ -3177,15 +3202,18 @@ const CONST = {
             MASTER_CARD: 'cdf',
             VISA: 'vcf',
             AMEX: 'gl1025',
+            AMEX_1205: 'gl1205',
             STRIPE: 'stripe',
             CITIBANK: 'oauth.citibank.com',
             CAPITAL_ONE: 'oauth.capitalone.com',
             BANK_OF_AMERICA: 'oauth.bankofamerica.com',
             CHASE: 'oauth.chase.com',
             BREX: 'oauth.brex.com',
+            PEX: 'admin.pexcard.com',
             WELLS_FARGO: 'oauth.wellsfargo.com',
             AMEX_DIRECT: 'oauth.americanexpressfdx.com',
-            CSV: '_ccupload',
+            AMEX_FILE_DOWNLOAD: 'americanexpressfd.us',
+            CSV: 'ccupload',
         },
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
@@ -3252,6 +3280,7 @@ const CONST = {
         MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
     },
     COMPANY_CARDS: {
+        BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
         CONNECTION_ERROR: 'connectionError',
         STEP: {
             SELECT_BANK: 'SelectBank',
@@ -3748,6 +3777,7 @@ const CONST = {
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
+        REIMBURSABLE: 'reimbursable',
         REPORT: 'report',
     },
     FOOTER: {
@@ -5162,6 +5192,7 @@ const CONST = {
     SF_COORDINATES: [-122.4194, 37.7749],
 
     NAVIGATION: {
+        CUSTOM_HISTORY_ENTRY_SIDE_PANEL: 'CUSTOM_HISTORY-SIDE_PANEL',
         ACTION_TYPE: {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
@@ -5175,6 +5206,7 @@ const CONST = {
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
             SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
             REPLACE_PARAMS: 'REPLACE_PARAMS',
+            TOGGLE_SIDE_PANEL_WITH_HISTORY: 'TOGGLE_SIDE_PANEL_WITH_HISTORY',
         },
     },
     TIME_PERIOD: {
@@ -5299,6 +5331,35 @@ const CONST = {
         TD_BANK: 'td bank',
         US_BANK: 'us bank',
         USAA: 'usaa',
+    },
+
+    /**
+     * Bank account names (user friendly)
+     */
+    get BANK_NAMES_USER_FRIENDLY() {
+        return {
+            [this.BANK_NAMES.EXPENSIFY]: 'Expensify',
+            [this.BANK_NAMES.AMERICAN_EXPRESS]: 'American Express',
+            [this.BANK_NAMES.BANK_OF_AMERICA]: 'Bank of America',
+            [this.BANK_NAMES.BB_T]: 'Truist',
+            [this.BANK_NAMES.CAPITAL_ONE]: 'Capital One',
+            [this.BANK_NAMES.CHASE]: 'Chase',
+            [this.BANK_NAMES.CHARLES_SCHWAB]: 'Charles Schwab',
+            [this.BANK_NAMES.CITIBANK]: 'Citibank',
+            [this.BANK_NAMES.CITIZENS_BANK]: 'Citizens',
+            [this.BANK_NAMES.DISCOVER]: 'Discover',
+            [this.BANK_NAMES.FIDELITY]: 'Fidelity',
+            [this.BANK_NAMES.GENERIC_BANK]: 'Bank',
+            [this.BANK_NAMES.HUNTINGTON_BANK]: 'Huntington',
+            [this.BANK_NAMES.HUNTINGTON_NATIONAL]: 'Huntington National',
+            [this.BANK_NAMES.NAVY_FEDERAL_CREDIT_UNION]: 'Navy Federal Credit Union',
+            [this.BANK_NAMES.PNC]: 'PNC',
+            [this.BANK_NAMES.REGIONS_BANK]: 'Regions',
+            [this.BANK_NAMES.SUNTRUST]: 'SunTrust',
+            [this.BANK_NAMES.TD_BANK]: 'TD Bank',
+            [this.BANK_NAMES.US_BANK]: 'U.S. Bank',
+            [this.BANK_NAMES.USAA]: 'USAA',
+        };
     },
 
     /**
@@ -6267,6 +6328,7 @@ const CONST = {
 
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
+        EXITING_ANIMATION_DURATION: 200,
         DATA_TYPES: {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
@@ -6314,8 +6376,9 @@ const CONST = {
         },
         GROUP_BY: {
             REPORTS: 'reports',
-            MEMBERS: 'members',
-            CARDS: 'cards',
+            FROM: 'from',
+            CARD: 'card',
+            WITHDRAWAL_ID: 'withdrawal-id',
         },
         BOOLEAN: {
             YES: 'yes',
@@ -6375,6 +6438,9 @@ const CONST = {
             TITLE: 'title',
             ASSIGNEE: 'assignee',
             IN: 'in',
+            COMMENTS: 'comments',
+            CARD: 'card',
+            WITHDRAWAL_ID: 'withdrawalID',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -6400,6 +6466,7 @@ const CONST = {
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
             CURRENCY: 'currency',
+            GROUP_CURRENCY: 'groupCurrency',
             MERCHANT: 'merchant',
             DESCRIPTION: 'description',
             FROM: 'from',
@@ -6446,6 +6513,7 @@ const CONST = {
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expense-type',
             CURRENCY: 'currency',
+            GROUP_CURRENCY: 'group-currency',
             MERCHANT: 'merchant',
             DESCRIPTION: 'description',
             FROM: 'from',
@@ -6457,7 +6525,7 @@ const CONST = {
             TAX_RATE: 'tax-rate',
             CARD_ID: 'card',
             FEED: 'feed',
-            REPORT_ID: 'reportid',
+            REPORT_ID: 'report-id',
             KEYWORD: 'keyword',
             IN: 'in',
             SUBMITTED: 'submitted',
@@ -6473,6 +6541,15 @@ const CONST = {
             BILLABLE: 'billable',
             ACTION: 'action',
         },
+
+        // Maps an internal search value to the user friendly display text, e.g. `perDiem` -> `per-diem`
+        get SEARCH_USER_FRIENDLY_VALUES_MAP() {
+            return {
+                [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
+                [this.GROUP_BY.REPORTS]: 'report',
+                [this.STATUS.EXPENSE.DRAFTS]: 'draft',
+            };
+        },
         DATE_MODIFIERS: {
             ON: 'On',
             AFTER: 'After',
@@ -6481,6 +6558,7 @@ const CONST = {
         DATE_PRESETS: {
             NEVER: 'never',
             LAST_MONTH: 'last-month',
+            THIS_MONTH: 'this-month',
             LAST_STATEMENT: 'last-statement',
         },
         SNAPSHOT_ONYX_KEYS: [
@@ -6503,6 +6581,11 @@ const CONST = {
             STATEMENTS: 'statements',
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_CARD: 'unapprovedCard',
+            RECONCILIATION: 'reconciliation',
+        },
+        GROUP_PREFIX: 'group_',
+        ANIMATION: {
+            FADE_DURATION: 200,
         },
     },
 
@@ -6642,6 +6725,14 @@ const CONST = {
                 name: 'Advanced Approvals' as const,
                 title: `workspace.upgrade.approvals.title` as const,
                 description: `workspace.upgrade.approvals.description` as const,
+                icon: 'AdvancedApprovalsSquare',
+            },
+            multiApprovalLevels: {
+                id: 'multiApprovalLevels' as const,
+                alias: 'multi-approval-levels' as const,
+                name: 'Multiple approval levels' as const,
+                title: `workspace.upgrade.multiApprovalLevels.title` as const,
+                description: `workspace.upgrade.multiApprovalLevels.description` as const,
                 icon: 'AdvancedApprovalsSquare',
             },
             glCodes: {
@@ -6962,6 +7053,7 @@ const CONST = {
 
     BILLING: {
         TYPE_FAILED_2018: 'failed_2018',
+        TYPE_STRIPE_FAILED_AUTHENTICATION: 'failed_stripe_authentication',
     },
 
     ONBOARDING_HELP: {
