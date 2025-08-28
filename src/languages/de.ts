@@ -1394,7 +1394,7 @@ const translations = {
             educationalText: 'Wenn du noch nicht bereit bist, eine Ausgabe zu genehmigen oder zu bezahlen, kannst du sie halten oder ablehnen.',
             holdExpenseTitle: 'Halte eine Ausgabe zurück, um vor der Genehmigung oder Zahlung weitere Details anzufordern.',
             heldExpenseLeftBehindTitle: 'Zurückgehaltene Ausgaben bleiben zurück, wenn du einen gesamten Bericht genehmigst.',
-            declineExpenseTitle: 'Lehne eine Ausgabe ab, die du nicht genehmigen oder bezahlen möchtest.',
+            rejectExpenseTitle: 'Lehne eine Ausgabe ab, die du nicht genehmigen oder bezahlen möchtest.',
             reasonPageTitle: 'Ausgabe ablehnen',
             reasonPageDescription1:
                 'Lehne eine Ausgabe ab, wenn du sie niemals genehmigen oder bezahlen möchtest. Andernfalls verwende "Halten", um die Ausgabe zu pausieren und nach mehr Kontext zu fragen.',

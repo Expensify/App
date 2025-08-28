@@ -1378,7 +1378,7 @@ const translations = {
             educationalText: "If you're not ready to approve or pay an expense, you can hold or reject it.",
             holdExpenseTitle: 'Hold an expense to ask for more details before approval or payment.',
             heldExpenseLeftBehindTitle: 'Held expenses are left behind when you approve an entire report.',
-            declineExpenseTitle: "Reject an expense that you don't intend to approve or pay.",
+            rejectExpenseTitle: "Reject an expense that you don't intend to approve or pay.",
             reasonPageTitle: 'Reject expense',
             reasonPageDescription1: 'Reject an expense if you don\'t ever plan on approving or paying it. Otherwise, use "hold" to pause the expense and ask for more context.',
             reasonPageDescription2: "If you're going to reject the expense, please add a comment to explain why:",

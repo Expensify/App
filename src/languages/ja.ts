@@ -1391,7 +1391,7 @@ const translations = {
             educationalText: '経費を承認または支払う準備ができていない場合は、保留または却下できます。',
             holdExpenseTitle: '承認または支払いの前に詳細を確認するため、経費を保留にします。',
             heldExpenseLeftBehindTitle: 'レポート全体を承認すると、保留中の経費は除外されます。',
-            declineExpenseTitle: '承認または支払うつもりのない経費を却下します。',
+            rejectExpenseTitle: '承認または支払うつもりのない経費を却下します。',
             reasonPageTitle: '経費を却下',
             reasonPageDescription1: '経費を承認または支払う予定がない場合は却下してください。そうでない場合は「保留」を使って一時停止し、追加の文脈を求めてください。',
             reasonPageDescription2: '経費を却下する場合は、その理由を説明するコメントを追加してください：',

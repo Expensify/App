@@ -1375,7 +1375,7 @@ const translations = {
             educationalText: 'Si no estás listo para aprobar o pagar un gasto, puedes retenerlo o rechazarlo.',
             holdExpenseTitle: 'Retén un gasto para pedir más detalles antes de aprobarlo o pagarlo.',
             heldExpenseLeftBehindTitle: 'Los gastos retenidos se dejan atrás cuando apruebas un informe completo.',
-            declineExpenseTitle: 'Rechaza un gasto que no tienes intención de aprobar o pagar.',
+            rejectExpenseTitle: 'Rechaza un gasto que no tienes intención de aprobar o pagar.',
             reasonPageTitle: 'Rechazar gasto',
             reasonPageDescription1: 'Rechaza un gasto si no planeas aprobarlo o pagarlo nunca. De lo contrario, utiliza "Retener" para pausar el gasto y pedir más contexto.',
             reasonPageDescription2: 'Si vas a rechazar el gasto, por favor añade un comentario para explicar el motivo:',

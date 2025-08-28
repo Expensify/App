@@ -1375,7 +1375,7 @@ const translations = {
             educationalText: '如果你还没准备好批准或支付一笔报销，可以选择保留或拒绝。',
             holdExpenseTitle: '保留报销，以便在批准或支付之前要求更多细节。',
             heldExpenseLeftBehindTitle: '当你批准整个报销单时，已保留的报销会被忽略。',
-            declineExpenseTitle: '拒绝你不打算批准或支付的报销。',
+            rejectExpenseTitle: '拒绝你不打算批准或支付的报销。',
             reasonPageTitle: '拒绝报销',
             reasonPageDescription1: '如果你永远不打算批准或支付该报销，请拒绝它。否则，请使用“保留”来暂停报销并请求更多背景信息。',
             reasonPageDescription2: '如果你要拒绝该报销，请添加评论解释原因：',

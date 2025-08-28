@@ -1389,7 +1389,7 @@ const translations = {
             educationalText: 'Jeśli nie jesteś gotów zatwierdzić lub opłacić wydatku, możesz go wstrzymać lub odrzucić.',
             holdExpenseTitle: 'Wstrzymaj wydatek, aby poprosić o więcej szczegółów przed zatwierdzeniem lub opłaceniem.',
             heldExpenseLeftBehindTitle: 'Wydatki wstrzymane są pomijane, gdy zatwierdzasz cały raport.',
-            declineExpenseTitle: 'Odrzuć wydatek, którego nie zamierzasz zatwierdzić ani opłacić.',
+            rejectExpenseTitle: 'Odrzuć wydatek, którego nie zamierzasz zatwierdzić ani opłacić.',
             reasonPageTitle: 'Odrzuć wydatek',
             reasonPageDescription1:
                 'Odrzuć wydatek, jeśli nigdy nie planujesz go zatwierdzić ani opłacić. W przeciwnym razie użyj „Wstrzymaj”, aby zatrzymać wydatek i poprosić o dodatkowy kontekst.',

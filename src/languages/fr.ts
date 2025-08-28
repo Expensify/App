@@ -1397,7 +1397,7 @@ const translations = {
             educationalText: "Si vous n'êtes pas prêt à approuver ou à payer une dépense, vous pouvez la mettre en attente ou la rejeter.",
             holdExpenseTitle: 'Mettez une dépense en attente pour demander plus de détails avant de l’approuver ou de la payer.',
             heldExpenseLeftBehindTitle: 'Les dépenses mises en attente sont laissées de côté lorsque vous approuvez un rapport complet.',
-            declineExpenseTitle: 'Rejetez une dépense que vous n’avez pas l’intention d’approuver ou de payer.',
+            rejectExpenseTitle: 'Rejetez une dépense que vous n’avez pas l’intention d’approuver ou de payer.',
             reasonPageTitle: 'Rejeter la dépense',
             reasonPageDescription1:
                 'Rejetez une dépense si vous ne prévoyez jamais de l’approuver ou de la payer. Sinon, utilisez "Mettre en attente" pour la suspendre et demander plus de contexte.',

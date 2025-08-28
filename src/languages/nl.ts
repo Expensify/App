@@ -1392,7 +1392,7 @@ const translations = {
             educationalText: 'Als je nog niet klaar bent om een uitgave goed te keuren of te betalen, kun je deze vasthouden of afwijzen.',
             holdExpenseTitle: 'Houd een uitgave vast om meer details te vragen voordat je deze goedkeurt of betaalt.',
             heldExpenseLeftBehindTitle: 'Vasthouden uitgaven blijven achter wanneer je een volledig rapport goedkeurt.',
-            declineExpenseTitle: 'Wijs een uitgave af die je niet van plan bent goed te keuren of te betalen.',
+            rejectExpenseTitle: 'Wijs een uitgave af die je niet van plan bent goed te keuren of te betalen.',
             reasonPageTitle: 'Uitgave afwijzen',
             reasonPageDescription1: 'Wijs een uitgave af als je deze nooit wilt goedkeuren of betalen. Gebruik anders "Vasthouden" om de uitgave te pauzeren en om meer context te vragen.',
             reasonPageDescription2: 'Als je de uitgave gaat afwijzen, voeg dan een opmerking toe om uit te leggen waarom:',

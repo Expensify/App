@@ -1390,7 +1390,7 @@ const translations = {
             educationalText: 'Se você não estiver pronto para aprovar ou pagar uma despesa, pode retê-la ou rejeitá-la.',
             holdExpenseTitle: 'Retenha uma despesa para pedir mais detalhes antes da aprovação ou do pagamento.',
             heldExpenseLeftBehindTitle: 'As despesas retidas ficam de fora quando você aprova um relatório inteiro.',
-            declineExpenseTitle: 'Rejeite uma despesa que você não pretende aprovar ou pagar.',
+            rejectExpenseTitle: 'Rejeite uma despesa que você não pretende aprovar ou pagar.',
             reasonPageTitle: 'Rejeitar despesa',
             reasonPageDescription1: 'Rejeite uma despesa se você nunca planeja aprová-la ou pagá-la. Caso contrário, use "Reter" para pausar a despesa e pedir mais contexto.',
             reasonPageDescription2: 'Se você for rejeitar a despesa, por favor adicione um comentário explicando o motivo:',

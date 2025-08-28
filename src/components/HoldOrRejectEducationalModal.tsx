@@ -20,7 +20,7 @@ type SectionMenuItem = {
     titleTranslationKey: TranslationPaths;
 };
 
-type HoldOrDeclineEducationalModalProps = {
+type HoldOrRejectEducationalModalProps = {
     /** Method to trigger when pressing outside of the popover menu to close it */
     onClose: () => void;
 
@@ -39,11 +39,11 @@ const menuSections: SectionMenuItem[] = [
     },
     {
         icon: Illustrations.ThumbsDown,
-        titleTranslationKey: 'iou.reject.declineExpenseTitle',
+        titleTranslationKey: 'iou.reject.rejectExpenseTitle',
     },
 ];
 
-function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrDeclineEducationalModalProps) {
+function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 

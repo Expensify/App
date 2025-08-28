@@ -1390,7 +1390,7 @@ const translations = {
             educationalText: 'Se non sei pronto ad approvare o pagare una spesa, puoi trattenerla o rifiutarla.',
             holdExpenseTitle: 'Trattieni una spesa per chiedere maggiori dettagli prima dell’approvazione o del pagamento.',
             heldExpenseLeftBehindTitle: 'Le spese trattenute vengono lasciate indietro quando approvi un intero report.',
-            declineExpenseTitle: 'Rifiuta una spesa che non intendi approvare o pagare.',
+            rejectExpenseTitle: 'Rifiuta una spesa che non intendi approvare o pagare.',
             reasonPageTitle: 'Rifiuta spesa',
             reasonPageDescription1:
                 'Rifiuta una spesa se non hai intenzione di approvarla o pagarla mai. Altrimenti, utilizza "Trattenere" per metterla in pausa e chiedere maggior contesto.',
