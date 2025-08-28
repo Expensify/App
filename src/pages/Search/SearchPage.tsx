@@ -666,21 +666,14 @@ function SearchPage({route}: SearchPageProps) {
         }
     }, []);
 
-    const footerResults = useMemo(() => {
-        const count = selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected ? selectedTransactionsKeys.length : metadata?.count;
-        const total =
-            selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected
-                ? Object.values(selectedTransactions).reduce((acc, transaction) => {
-                      acc += -transaction.convertedAmount;
-                      return acc;
-                  }, 0)
-                : metadata?.total;
+    const footerData = useMemo(() => {
+        const shouldUseClientTotal = selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected;
 
-        return {
-            count,
-            total,
-            currency: metadata?.currency,
-        };
+        const currency = metadata?.currency;
+        const count = shouldUseClientTotal ? selectedTransactionsKeys.length : metadata?.count;
+        const total = shouldUseClientTotal ? Object.values(selectedTransactions).reduce((acc, transaction) => acc - transaction.convertedAmount, 0) : metadata?.total;
+
+        return {count, total, currency};
     }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);
 
     if (shouldUseNarrowLayout) {
@@ -796,9 +789,9 @@ function SearchPage({route}: SearchPageProps) {
                                 />
                                 {shouldShowFooter && (
                                     <SearchPageFooter
-                                        count={footerResults.count}
-                                        total={footerResults.total}
-                                        currency={footerResults.currency}
+                                        count={footerData.count}
+                                        total={footerData.total}
+                                        currency={footerData.currency}
                                     />
                                 )}
                                 <DragAndDropConsumer onDrop={initScanRequest}>
