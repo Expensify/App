@@ -10,8 +10,8 @@ import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
+import type {RootNavigatorParamList} from './libs/Navigation/types';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
-import type {AttachmentModalScreenParams} from './pages/media/AttachmentModalScreen/types';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
@@ -440,6 +440,16 @@ const ROUTES = {
             return getUrlWithBackToParam(`${baseRoute}${queryString}` as const, backTo);
         },
     },
+    REPORT_ATTACHMENTS: {
+        route: 'attachment',
+        getRoute: (params?: ReportAttachmentsRouteParams) => getAttachmentModalScreenRoute('attachment', params),
+    },
+    REPORT_ADD_ATTACHMENT: {
+        route: 'r/:reportID/attachment/add',
+        getRoute: (reportID: string, params?: ReportAddAttachmentRouteParams) => {
+            return getAttachmentModalScreenRoute(`r/${reportID}/attachment/add`, params);
+        },
+    },
     REPORT_AVATAR: {
         route: 'r/:reportID/avatar',
         getRoute: (reportID: string, policyID?: string) => {
@@ -473,10 +483,6 @@ const ROUTES = {
             }
             return getUrlWithBackToParam(`r/${reportID}/details/shareCode` as const, backTo);
         },
-    },
-    ATTACHMENTS: {
-        route: 'attachment',
-        getRoute: (params?: AttachmentRouteParams) => getAttachmentModalScreenRoute('attachment', params),
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
@@ -2780,12 +2786,14 @@ const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
 export {getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS};
 export default ROUTES;
 
-type AttachmentsRoute = typeof ROUTES.ATTACHMENTS.route;
+type ReportAttachmentsRoute = typeof ROUTES.REPORT_ATTACHMENTS.route;
 type ReportAddAttachmentRoute = `r/${string}/attachment/add`;
-type AttachmentRoutes = AttachmentsRoute | ReportAddAttachmentRoute;
-type AttachmentRouteParams = AttachmentModalScreenParams;
+type AttachmentRoutes = ReportAttachmentsRoute | ReportAddAttachmentRoute;
 
-function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: AttachmentRouteParams) {
+type ReportAttachmentsRouteParams = RootNavigatorParamList[typeof SCREENS.REPORT_ATTACHMENTS];
+type ReportAddAttachmentRouteParams = RootNavigatorParamList[typeof SCREENS.REPORT_ADD_ATTACHMENT];
+
+function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: ReportAttachmentsRouteParams | ReportAddAttachmentRouteParams) {
     if (!params?.source) {
         return url;
     }

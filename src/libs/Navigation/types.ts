@@ -16,7 +16,8 @@ import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
-import type {AttachmentModalScreenParams} from '@pages/media/AttachmentModalScreen/types';
+import type {AvatarSource} from '@libs/UserUtils';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -1857,7 +1858,6 @@ type ReportsSplitNavigatorParamList = {
         transactionID?: string;
         iouReportID?: string;
     };
-    [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
 };
 
 type SettingsSplitNavigatorParamList = {
@@ -2113,51 +2113,68 @@ type PublicScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: NavigatorScreenParams<TestToolsModalModalNavigatorParamList>;
 };
 
-type AuthScreensParamList = SharedScreensParamList & {
-    [SCREENS.CONCIERGE]: undefined;
-    [SCREENS.TRACK_EXPENSE]: undefined;
-    [SCREENS.SUBMIT_EXPENSE]: undefined;
-    [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
-    [SCREENS.PROFILE_AVATAR]: {
-        accountID: string;
-        backTo?: Routes;
+type AttachmentModalScreensParamList = {
+    [SCREENS.REPORT_ATTACHMENTS]: {
+        source?: AvatarSource;
+        reportID?: string;
+        accountID?: number;
+        attachmentID?: string;
+        type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+        fallbackSource?: AvatarSource;
+        isAuthTokenRequired?: boolean;
+        originalFileName?: string;
+        attachmentLink?: string;
+        headerTitle?: string;
+        hashKey?: number;
+        maybeIcon?: boolean;
+        onShow?: () => void;
+        onClose?: () => void;
     };
-    [SCREENS.WORKSPACE_AVATAR]: {
-        policyID: string;
-        letter?: UpperCaseCharacters;
-    };
-    [SCREENS.WORKSPACE_JOIN_USER]: {
-        policyID: string;
-        email: string;
+    [SCREENS.REPORT_ADD_ATTACHMENT]: {
+        reportID?: string;
+        accountID?: number;
+        attachmentID?: string;
+        source?: AvatarSource;
+        file?: FileObject | FileObject[];
+        type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+        isAuthTokenRequired?: boolean;
+        originalFileName?: string;
+        attachmentLink?: string;
+        hashKey?: number;
+        headerTitle?: string;
+        shouldDisableSendButton?: boolean;
+        onConfirm?: (file: FileObject | FileObject[]) => void;
+        onShow?: () => void;
+        onClose?: () => void;
     };
     [SCREENS.REPORT_AVATAR]: {
         reportID: string;
         policyID?: string;
+        onShow?: () => void;
+        onClose?: () => void;
     };
-    [SCREENS.WORKSPACES_LIST]: {
+    [SCREENS.PROFILE_AVATAR]: {
+        accountID: number;
         backTo?: Routes;
+        onShow?: () => void;
+        onClose?: () => void;
     };
-    [SCREENS.NOT_FOUND]: undefined;
-    [SCREENS.REQUIRE_TWO_FACTOR_AUTH]: undefined;
-    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
-    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
-    [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
-    [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
-    [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
-    [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
-    [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
-    [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: NavigatorScreenParams<ExplanationModalNavigatorParamList>;
-    [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
-    [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: NavigatorScreenParams<TestDriveModalNavigatorParamList>;
-    [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: NavigatorScreenParams<TestDriveDemoNavigatorParamList>;
-    [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
-    [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
+    [SCREENS.WORKSPACE_AVATAR]: {
+        policyID: string;
+        letter?: UpperCaseCharacters;
+        onShow?: () => void;
+        onClose?: () => void;
+    };
     [SCREENS.TRANSACTION_RECEIPT]: {
         reportID: string;
         transactionID: string;
         readonly?: string;
         isFromReviewDuplicates?: string;
+        action?: IOUAction;
+        iouType?: IOUType;
         mergeTransactionID?: string;
+        onShow?: () => void;
+        onClose?: () => void;
     };
     [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: {
         reportID: string;
@@ -2166,11 +2183,41 @@ type AuthScreensParamList = SharedScreensParamList & {
         iouType: IOUType;
         readonly: string;
     };
-    [SCREENS.CONNECTION_COMPLETE]: undefined;
-    [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
-    [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
-    [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: NavigatorScreenParams<TestToolsModalModalNavigatorParamList>;
 };
+
+type AuthScreensParamList = SharedScreensParamList &
+    AttachmentModalScreensParamList & {
+        [SCREENS.CONCIERGE]: undefined;
+        [SCREENS.TRACK_EXPENSE]: undefined;
+        [SCREENS.SUBMIT_EXPENSE]: undefined;
+
+        [SCREENS.WORKSPACE_JOIN_USER]: {
+            policyID: string;
+            email: string;
+        };
+        [SCREENS.WORKSPACES_LIST]: {
+            backTo?: Routes;
+        };
+        [SCREENS.NOT_FOUND]: undefined;
+        [SCREENS.REQUIRE_TWO_FACTOR_AUTH]: undefined;
+        [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
+        [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
+        [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
+        [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
+        [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
+        [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
+        [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
+        [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: NavigatorScreenParams<ExplanationModalNavigatorParamList>;
+        [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
+        [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: NavigatorScreenParams<TestDriveModalNavigatorParamList>;
+        [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: NavigatorScreenParams<TestDriveDemoNavigatorParamList>;
+        [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
+        [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
+        [SCREENS.CONNECTION_COMPLETE]: undefined;
+        [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
+        [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
+        [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: NavigatorScreenParams<TestToolsModalModalNavigatorParamList>;
+    };
 
 type SearchReportParamList = {
     [SCREENS.SEARCH.REPORT_RHP]: {
@@ -2407,4 +2454,5 @@ export type {
     ReportChangeApproverParamList,
     TestToolsModalModalNavigatorParamList,
     MergeTransactionNavigatorParamList,
+    AttachmentModalScreensParamList,
 };

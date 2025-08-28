@@ -2,13 +2,14 @@ import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import Modal from '@components/Modal';
 import Navigation from '@libs/Navigation/Navigation';
-import type {OnCloseOptions} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import type {AttachmentModalOnCloseOptions} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import CONST from '@src/CONST';
+import type {AttachmentModalScreenType} from '..';
 import type AttachmentModalContainerProps from './types';
 
-function AttachmentModalContainer({contentProps, modalType, onShow, onClose, shouldHandleNavigationBack}: AttachmentModalContainerProps) {
+function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({contentProps, modalType, onShow, onClose, shouldHandleNavigationBack}: AttachmentModalContainerProps<Screen>) {
     const [isVisible, setIsVisible] = useState(true);
     const attachmentsContext = useContext(AttachmentModalContext);
     const [shouldDisableAnimationAfterInitialMount, setShouldDisableAnimationAfterInitialMount] = useState(false);
@@ -21,7 +22,7 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose, sho
      * This ensures smooth modal closing behavior without causing delays in closing.
      */
     const closeModal = useCallback(
-        (options?: OnCloseOptions) => {
+        (options?: AttachmentModalOnCloseOptions) => {
             attachmentsContext.setCurrentAttachment(undefined);
             setIsVisible(false);
 

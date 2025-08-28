@@ -35,7 +35,7 @@ const DEFAULT_VALUE = `Composer can do the following:
 
 function Default(props: ComposerProps) {
     const StyleUtils = useStyleUtils();
-    const [pastedFile, setPastedFile] = useState<FileObject | null>(null);
+    const [pastedFile, setPastedFile] = useState<FileObject | FileObject[]>();
     const [comment, setComment] = useState(DEFAULT_VALUE);
     const renderedHTML = parser.replace(comment ?? '');
     const [selection, setSelection] = useState<TextSelection>(() => ({start: DEFAULT_VALUE.length, end: DEFAULT_VALUE.length, positionX: 0, positionY: 0}));

@@ -1,8 +1,8 @@
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
-import type SCREENS from '@src/SCREENS';
 import type ModalType from '@src/types/utils/ModalType';
-import type {AttachmentModalBaseContentProps} from './AttachmentModalBaseContent';
+import type {AttachmentModalScreenType} from '.';
+import type {AttachmentModalBaseContentProps} from './AttachmentModalBaseContent/types';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -27,17 +27,26 @@ type AttachmentModalModalProps = {
     shouldHandleNavigationBack?: boolean;
 };
 
-type AttachmentModalScreenParams = AttachmentModalBaseContentProps &
-    AttachmentModalModalProps & {
-        file?: FileObject;
-        reportID?: string;
-        policyID?: string;
-        transactionID?: string;
-        readonly?: boolean;
-        isFromReviewDuplicates?: boolean;
-        hashKey?: number;
-    };
+// {
+//     file?: FileObject | FileObject[];
+//     reportID?: string;
+//     policyID?: string;
+//     transactionID?: string;
+//     readonly?: boolean;
+//     isFromReviewDuplicates?: boolean;
+//     hashKey?: number;
+//     backTo?: Routes;
+//     letter?: UpperCaseCharacters;
 
-type AttachmentModalScreenProps = PlatformStackScreenProps<RootNavigatorParamList, typeof SCREENS.ATTACHMENTS>;
+//     /** The iou action of the expense creation flow of which we are displaying the receipt for. */
+//     iouAction?: IOUAction;
 
-export type {AttachmentModalScreenParams, AttachmentModalModalProps, AttachmentModalScreenProps, FileObject, ImagePickerResponse};
+//     /** The iou type of the expense creation flow of which we are displaying the receipt for. */
+//     iouType?: IOUType;
+// };
+
+type AttachmentModalScreenBaseParams = AttachmentModalBaseContentProps & AttachmentModalModalProps;
+
+type AttachmentModalScreenProps<Screen extends AttachmentModalScreenType> = PlatformStackScreenProps<RootNavigatorParamList, Screen>;
+
+export type {AttachmentModalScreenBaseParams, AttachmentModalModalProps, AttachmentModalScreenProps, FileObject, ImagePickerResponse};
