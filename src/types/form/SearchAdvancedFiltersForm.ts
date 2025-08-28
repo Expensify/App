@@ -67,6 +67,9 @@ const FILTER_KEYS = {
     REIMBURSABLE: 'reimbursable',
     BILLABLE: 'billable',
     ACTION: 'action',
+    PURCHASE_AMOUNT_LESS_THAN: 'purchaseAmountLessThan',
+    PURCHASE_AMOUNT_GREATER_THAN: 'purchaseAmountGreaterThan',
+    PURCHASE_CURRENCY: 'purchaseCurrency',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -296,6 +299,9 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.REIMBURSABLE]: string;
         [FILTER_KEYS.BILLABLE]: string;
         [FILTER_KEYS.ACTION]: string;
+        [FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN]: string;
+        [FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN]: string;
+        [FILTER_KEYS.PURCHASE_CURRENCY]: string[];
     }
 >;
 
