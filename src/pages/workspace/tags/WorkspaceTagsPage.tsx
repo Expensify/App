@@ -619,7 +619,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         {!hasDependentTags && (
                             <>
                                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.employeesSeeTagsAs')}</Text>
-                                <Text style={[styles.textBold, styles.colorMuted]}>{policyTagLists.at(0)?.name ?? ''}</Text>
+                                <Text style={[styles.textBold, styles.colorMuted]}>{policyTagLists.at(0)?.name}</Text>
                                 <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
                             </>
                         )}
