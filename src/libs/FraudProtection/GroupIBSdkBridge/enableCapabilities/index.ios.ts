@@ -1,2 +1,4 @@
-export default function enableCapabilities() {
+function enableCapabilities() {
 }
+
+export default enableCapabilities;

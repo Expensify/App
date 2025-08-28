@@ -17,6 +17,7 @@ declare module 'group-ib-fp' {
       enableAndroidCapability(capability: AndroidCapability, callback?: (e: any, isRun: boolean) => void): void;
       setCustomerId(iOSCustomerId: string, androidCustomerId: string, errorCallback?: (e: string) => void): void;
       setTargetURL(url: string, errorCallback?: (e: string) => void): void;
+      setGlobalIdURL(url: string, errorCallback?: (e: string) => void): void;
       setSessionId(id: string, errorCallback?: (e: string) => void): void;
       setAttributeTitle(key: string, value: string, format: FPAttributeFormat, errorCallback?: (e: string) => void): void;
       run(errorCallback?: (e: string) => void): void;
