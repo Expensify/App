@@ -1,6 +1,7 @@
 import noop from 'lodash/noop';
 import React, {useCallback, useContext, useMemo, useState} from 'react';
 import Log from '@libs/Log';
+import CONST from '@src/CONST';
 
 type ModalAction = 'CONFIRM' | 'CLOSE';
 
@@ -60,7 +61,7 @@ function PromiseModalProvider({children}: {children: React.ReactNode}) {
 
         // At this point, closeModalPromise should always be assigned
         if (!closeModalPromise) {
-            Log.alert('[ENSURE_BUGBOT] Failed to create modal promise. This should never happen.');
+            Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} Failed to create modal promise. This should never happen.`);
             throw new Error('Failed to create modal promise');
         }
 
