@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -81,23 +81,32 @@ function IOURequestEditReportCommon({
         if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
             return [];
         }
-        if (!selectedPolicyID || isSelfDM(selectedReport)) {
-            return Object.values(allPoliciesID ?? {}).flatMap((policyID) => {
-                if (!policyID) {
-                    return [];
-                }
-                const reports = getOutstandingReportsForUser(
-                    policyID,
-                    reportOwnerAccountID,
-                    outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
-                    reportNameValuePairs,
-                    isEditing,
-                );
+        const personalPolicyID = getPersonalPolicy()?.id;
+        if (!selectedPolicyID || selectedPolicyID === personalPolicyID || isSelfDM(selectedReport)) {
+            return Object.values(allPoliciesID ?? {})
+                .filter((policyID) => personalPolicyID !== policyID)
+                .flatMap((policyID) => {
+                    if (!policyID || policyID !== selectedPolicyID) {
+                        return [];
+                    }
+                    const reports = getOutstandingReportsForUser(
+                        policyID,
+                        reportOwnerAccountID,
+                        outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
+                        reportNameValuePairs,
+                        isEditing,
+                    );
 
-                return reports;
-            });
+                    return reports;
+                });
         }
-        return getOutstandingReportsForUser(selectedPolicyID, reportOwnerAccountID, outstandingReportsByPolicyID?.[selectedPolicyID], reportNameValuePairs, isEditing);
+        return getOutstandingReportsForUser(
+            selectedPolicyID,
+            reportOwnerAccountID,
+            outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
+            reportNameValuePairs,
+            isEditing,
+        );
     }, [outstandingReportsByPolicyID, reportOwnerAccountID, allPoliciesID, reportNameValuePairs, selectedReport, selectedPolicyID, isEditing]);
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
