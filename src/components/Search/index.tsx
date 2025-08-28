@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import SearchTableHeader, {expenseHeaders} from '@components/SelectionList/SearchTableHeader';
+import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionList/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
@@ -73,6 +73,8 @@ type SearchProps = {
     handleSearch: (value: SearchParams) => void;
     isMobileSelectionModeEnabled: boolean;
 };
+
+const expenseHeaders = getExpenseHeaders();
 
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
