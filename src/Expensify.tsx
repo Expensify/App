@@ -49,6 +49,8 @@ import type {Route} from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
 
+// Add dummy comment
+
 Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
         Log.alert(message, parameters);
