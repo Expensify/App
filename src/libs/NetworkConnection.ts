@@ -71,7 +71,9 @@ let shouldForceOffline = false;
 let isPoorConnectionSimulated: boolean | undefined;
 let connectionChanges: ConnectionChanges | undefined;
 let isNetworkInitialized = false;
-Onyx.connect({
+// We do not depend on updates on the UI to determine the network status
+// or the offline status, so we can use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
