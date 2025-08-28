@@ -67,16 +67,12 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             },
         );
     }, [areOptionsInitialized, options.personalDetails, options.reports]);
-
+    const selectedAccountIDsSet = new Set(selectedOptions.map(({accountID}) => accountID));
     const defaultOptionsModified = useMemo(() => {
         return {
             ...defaultOptions,
-            recentReports: defaultOptions.recentReports.map((item) =>
-                selectedOptions.some((selectedOption) => selectedOption.accountID === item.accountID) ? {...item, isSelected: true} : item,
-            ),
-            personalDetails: defaultOptions.personalDetails.map((item) =>
-                selectedOptions.some((selectedOption) => selectedOption.accountID === item.accountID) ? {...item, isSelected: true} : item,
-            ),
+            recentReports: defaultOptions.recentReports.map((item) => (selectedAccountIDsSet.has(item.accountID) ? {...item, isSelected: true} : item)),
+            personalDetails: defaultOptions.personalDetails.map((item) => (selectedAccountIDsSet.has(item.accountID) ? {...item, isSelected: true} : item)),
         };
     }, [defaultOptions, selectedOptions]);
 
@@ -217,6 +213,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             showLoadingPlaceholder={showLoadingPlaceholder}
             initiallyFocusedOptionKey={firstKeyForList}
             getItemHeight={() => variables.optionRowHeightCompact}
+            initialNumToRender={firstKeyForList ? CONST.MAX_SELECTION_LIST_PAGE_LENGTH : undefined}
         />
     );
 }

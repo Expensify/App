@@ -74,8 +74,8 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, search
                 indexOffset: 1,
             },
         ];
-        const firstKeyForList = getFirstSelectedItem(filteredAndSortedUserWorkspaces);
-        return {sections: options, firstKeyForList: firstKeyForList};
+        const firstKey = getFirstSelectedItem(filteredAndSortedUserWorkspaces);
+        return {sections: options, firstKeyForList: firstKey};
     }, [filteredAndSortedUserWorkspaces]);
 
     const shouldShowNoResultsFoundMessage = filteredAndSortedUserWorkspaces.length === 0 && usersWorkspaces.length;
