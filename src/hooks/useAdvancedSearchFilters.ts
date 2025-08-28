@@ -27,6 +27,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
             CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
@@ -45,6 +46,7 @@ const typeFiltersKeys = {
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
@@ -75,6 +77,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
         ],
         [
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
@@ -93,6 +96,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
             CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
@@ -107,6 +111,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
         ],
         [
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
@@ -209,6 +214,7 @@ function useAdvancedSearchFilters() {
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length !== 0);
     const shouldDisplayGroupByFilter = !!groupBy && groupBy !== CONST.SEARCH.GROUP_BY.REPORTS;
+    const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter;
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
@@ -238,6 +244,9 @@ function useAdvancedSearchFilters() {
                             return;
                         }
                         if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY && !shouldDisplayGroupByFilter) {
+                            return;
+                        }
+                        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY && !shouldDisplayGroupCurrencyFilter) {
                             return;
                         }
                         return key;
