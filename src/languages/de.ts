@@ -1406,8 +1406,6 @@ const translations = {
             rejectedStatus:
                 'Diese Ausgabe wurde abgelehnt. Es wird darauf gewartet, dass du das Problem/die Probleme behebst und sie als gelöst markierst, um die Einreichung zu ermöglichen.',
             reportActions: {
-                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
-                    `entfernte <a href="${linkToReport}">${amount}${merchant ? ` von ${merchant}` : ''}</a>`,
                 rejectedExpense: 'lehnte diese Ausgabe ab',
                 markedAsResolved: 'markierte den Ablehnungsgrund als gelöst',
             },

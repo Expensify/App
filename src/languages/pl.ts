@@ -1400,8 +1400,6 @@ const translations = {
             markAsResolved: 'Oznacz jako rozwiązane',
             rejectedStatus: 'Ten wydatek został odrzucony. Oczekiwanie, aż rozwiążesz problem(y) i oznaczysz jako rozwiązane, aby umożliwić przesłanie.',
             reportActions: {
-                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
-                    `usunął <a href="${linkToReport}">${amount}${merchant ? ` od ${merchant}` : ''}</a>`,
                 rejectedExpense: 'odrzucił ten wydatek',
                 markedAsResolved: 'oznaczył powód odrzucenia jako rozwiązany',
             },

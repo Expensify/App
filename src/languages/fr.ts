@@ -1408,8 +1408,6 @@ const translations = {
             markAsResolved: 'Marquer comme résolu',
             rejectedStatus: 'Cette dépense a été rejetée. En attente que vous corrigiez le(s) problème(s) et la marquiez comme résolue pour permettre la soumission.',
             reportActions: {
-                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
-                    `a supprimé <a href="${linkToReport}">${amount}${merchant ? ` de ${merchant}` : ''}</a>`,
                 rejectedExpense: 'a rejeté cette dépense',
                 markedAsResolved: 'a marqué la raison du rejet comme résolue',
             },

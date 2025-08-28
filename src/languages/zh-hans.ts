@@ -1385,8 +1385,6 @@ const translations = {
             markAsResolved: '标记为已解决',
             rejectedStatus: '该报销已被拒绝。请先解决问题并标记为已解决，才能重新提交。',
             reportActions: {
-                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
-                    `已移除 <a href="${linkToReport}">${amount}${merchant ? `（来自 ${merchant}）` : ''}</a>`,
                 rejectedExpense: '已拒绝该报销',
                 markedAsResolved: '已将拒绝原因标记为已解决',
             },

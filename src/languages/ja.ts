@@ -1401,8 +1401,6 @@ const translations = {
             markAsResolved: '解決済みにする',
             rejectedStatus: 'この経費は却下されました。問題を解決し、解決済みにマークすることで提出が可能になります。',
             reportActions: {
-                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
-                    `<a href="${linkToReport}">${amount}${merchant ? `（${merchant} から）` : ''}</a> を削除しました`,
                 rejectedExpense: 'この経費を却下しました',
                 markedAsResolved: '却下理由を解決済みとしてマークしました',
             },

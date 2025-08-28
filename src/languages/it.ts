@@ -1401,8 +1401,6 @@ const translations = {
             markAsResolved: 'Segna come risolto',
             rejectedStatus: 'Questa spesa è stata rifiutata. In attesa che tu risolva il/i problema/i e la segni come risolta per abilitare l’invio.',
             reportActions: {
-                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
-                    `ha rimosso <a href="${linkToReport}">${amount}${merchant ? ` da ${merchant}` : ''}</a>`,
                 rejectedExpense: 'ha rifiutato questa spesa',
                 markedAsResolved: 'ha segnato il motivo del rifiuto come risolto',
             },

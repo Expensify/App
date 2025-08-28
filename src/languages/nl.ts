@@ -1402,8 +1402,6 @@ const translations = {
             markAsResolved: 'Markeren als opgelost',
             rejectedStatus: 'Deze uitgave is afgewezen. Er wordt gewacht tot jij het/de probleem(en) oplost en het markeert als opgelost om indienen mogelijk te maken.',
             reportActions: {
-                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
-                    `heeft <a href="${linkToReport}">${amount}${merchant ? ` van ${merchant}` : ''}</a> verwijderd`,
                 rejectedExpense: 'wees deze uitgave af',
                 markedAsResolved: 'markeerde de reden van afwijzing als opgelost',
             },

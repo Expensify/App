@@ -1387,8 +1387,6 @@ const translations = {
             markAsResolved: 'Mark as resolved',
             rejectedStatus: 'This expense was rejected. Waiting on you to fix the issue(s) and mark as resolved to enable submission.',
             reportActions: {
-                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
-                    `removed <a href="${linkToReport}">${amount}${merchant ? ` from ${merchant}` : ''}</a>`,
                 rejectedExpense: 'rejected this expense',
                 markedAsResolved: 'marked the rejection reason as resolved',
             },
