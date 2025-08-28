@@ -3,7 +3,6 @@ title: Merge Accounts
 description: Learn how to merge two Expensify accounts into one and keep all your data in a single login.
 keywords: [Expensify Classic, merge accounts, combine logins, consolidate email addresses, multiple accounts]
 ---
-<div id="expensify-classic" markdown="1">
 
 If you have more than one Expensify account—like a personal and a company account—you can merge them. This brings all your reports, receipts, settings, and data into one place.
 
@@ -53,4 +52,3 @@ The following will be brought into your primary account:
 - You **cannot** merge a company account **into** a personal account.
 - Merging is only available on the web (not the mobile app).
 
-</div>

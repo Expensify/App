@@ -3,7 +3,6 @@ title: Join Your Company's Workspace
 description: Get started with Expensify as an employee or company member.
 keywords: [Expensify Classic, getting started, join a company workspace]
 ---
-<div id="expensify-classic" markdown="1">
 
 Getting started with Expensify is quick and easy, whether you're a new employee or an existing team member joining a company workspace. This guide walks you through downloading the app, setting up your profile, managing expenses, and securing your account.
 
@@ -131,4 +130,3 @@ Add an extra layer of security to help keep your financial data safe and secure 
 
 Check out this resource for additional instructions on [setting up 2FA](https://help.expensify.com/articles/expensify-classic/settings/Enable-two-factor-authentication).
 
-</div>

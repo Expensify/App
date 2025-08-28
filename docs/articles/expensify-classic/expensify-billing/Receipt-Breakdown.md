@@ -3,7 +3,6 @@ title: receipts-breakdown.md
 description: This article explains how to read your Expensify receipt, including billing charges, discounts, and activity by workspace.
 keywords: billing receipt, receipt breakdown, billing history, expensify invoice, billing owner, discounts, expensify card, activity breakdown
 ---
-<div id="expensify-classic" markdown="1">
 
 This article explains how to understand your monthly Expensify receipt as a billing owner—including what you’re being charged for, where discounts are applied, and how to identify savings.
 
@@ -67,4 +66,3 @@ This section lists each **workspace name** with its **unique ID**, along with bi
 - Plan type (Collect or Control)
 - Any applied discounts
 
-</div>

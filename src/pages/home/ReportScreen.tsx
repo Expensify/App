@@ -52,7 +52,6 @@ import {
     isCreatedAction,
     isDeletedParentAction,
     isMoneyRequestAction,
-    isSentMoneyReportAction,
     isTransactionThread,
     isWhisperAction,
     shouldReportActionBeVisible,
@@ -323,7 +322,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         canBeMissing: true,
     });
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
-    const isSentMoneyReport = useMemo(() => reportActions.some((action) => isSentMoneyReportAction(action)), [reportActions]);
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
     // wrapping in useMemo to stabilize children re-rendering
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -920,8 +918,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             isComposerFullSize={!!isComposerFullSize}
                                             lastReportAction={lastReportAction}
                                             reportTransactions={reportTransactions}
-                                            // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
-                                            transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
                                         />
                                     ) : null}
                                 </View>
