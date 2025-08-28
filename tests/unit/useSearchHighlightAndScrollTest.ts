@@ -36,7 +36,6 @@ describe('useSearchHighlightAndScroll', () => {
                 personalDetailsList: {},
             },
             search: {
-                columnsToShow: {shouldShowCategoryColumn: true, shouldShowTagColumn: true, shouldShowTaxColumn: true},
                 hasMoreResults: false,
                 hasResults: true,
                 offset: 0,
@@ -59,7 +58,10 @@ describe('useSearchHighlightAndScroll', () => {
             flatFilters: [],
             hash: 123,
             recentSearchHash: 456,
+            similarSearchHash: 789,
         },
+        searchKey: undefined,
+        shouldCalculateTotals: false,
         offset: 0,
     };
 
@@ -93,7 +95,7 @@ describe('useSearchHighlightAndScroll', () => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
-        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, offset: 0});
+        expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false});
     });
 
     it('should not trigger search when not focused', () => {
@@ -151,7 +153,7 @@ describe('useSearchHighlightAndScroll', () => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         rerender(updatedProps);
-        expect(search).toHaveBeenCalledWith({queryJSON: chatProps.queryJSON, offset: 0});
+        expect(search).toHaveBeenCalledWith({queryJSON: chatProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false});
     });
 
     it('should not trigger search when new transaction removed and focused', () => {

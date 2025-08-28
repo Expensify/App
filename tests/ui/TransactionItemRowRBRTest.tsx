@@ -4,7 +4,8 @@ import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import type {SearchColumnType} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import CONST from '@src/CONST';
@@ -32,20 +33,19 @@ const defaultProps = {
     taxAmountColumnSize: CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
     onCheckboxPress: jest.fn(),
     shouldShowCheckbox: false,
-    columns: Object.values(CONST.REPORT.TRANSACTION_LIST.COLUMNS),
+    columns: Object.values(CONST.REPORT.TRANSACTION_LIST.COLUMNS) as SearchColumnType[],
     onButtonPress: jest.fn(),
     isParentHovered: false,
 };
 
 // Helper function to render TransactionItemRow with providers
-const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearchFields, isInReportTableView = true) => {
+const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearchFields) => {
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
             <TransactionItemRow
                 transactionItem={transactionItem}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}
-                isInReportTableView={isInReportTableView}
             />
         </ComposeProviders>,
     );
@@ -292,7 +292,7 @@ describe('TransactionItemRowRBR', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction, false);
+        renderTransactionItemRow(mockTransaction);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed
@@ -316,7 +316,7 @@ describe('TransactionItemRowRBR', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction, false);
+        renderTransactionItemRow(mockTransaction);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with both violations
@@ -346,7 +346,7 @@ describe('TransactionItemRowRBR', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, mockViolations);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction, false);
+        renderTransactionItemRow(mockTransaction);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with missing merchant error and violations
@@ -368,7 +368,7 @@ describe('TransactionItemRowRBR', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT_ID}`, mockReport);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction, false);
+        renderTransactionItemRow(mockTransaction);
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with missing merchant error
@@ -382,7 +382,7 @@ describe('TransactionItemRowRBR', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${MOCK_TRANSACTION_ID}`, []);
 
         // When rendering the transaction item row
-        renderTransactionItemRow(mockTransaction, false);
+        renderTransactionItemRow(mockTransaction);
         await waitForBatchedUpdates();
 
         // Then the RBR message should not be displayed

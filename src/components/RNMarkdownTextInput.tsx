@@ -1,7 +1,7 @@
 import type {MarkdownTextInputProps} from '@expensify/react-native-live-markdown';
 import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import Animated, {useSharedValue} from 'react-native-reanimated';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import useTheme from '@hooks/useTheme';
@@ -18,13 +18,14 @@ type AnimatedMarkdownTextInputRef = typeof AnimatedMarkdownTextInput & MarkdownT
 // Make the parser prop optional for this component because we are always defaulting to `parseExpensiMark`
 type RNMarkdownTextInputWithRefProps = Omit<MarkdownTextInputProps, 'parser'> & {
     parser?: MarkdownTextInputProps['parser'];
+    ref?: ForwardedRef<AnimatedMarkdownTextInputRef>;
 };
 
-function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTextInputWithRefProps, ref: ForwardedRef<AnimatedMarkdownTextInputRef>) {
+function RNMarkdownTextInputWithRef({maxLength, parser, ref, ...props}: RNMarkdownTextInputWithRefProps) {
     const theme = useTheme();
 
-    const {mentionsList, currentUserMentions} = useShortMentionsList();
-    const mentionsSharedVal = useSharedValue<string[]>(mentionsList);
+    const {availableLoginsList, currentUserMentions} = useShortMentionsList();
+    const mentionsSharedVal = useSharedValue<string[]>(availableLoginsList);
     const inputRef = useRef<AnimatedMarkdownTextInputRef>(null);
 
     // Expose the ref to the parent component
@@ -63,9 +64,9 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTex
         runOnLiveMarkdownRuntime(() => {
             'worklet';
 
-            mentionsSharedVal.set(mentionsList);
+            mentionsSharedVal.set(availableLoginsList);
         })();
-    }, [mentionsList, mentionsSharedVal]);
+    }, [availableLoginsList, mentionsSharedVal]);
 
     return (
         <AnimatedMarkdownTextInput
@@ -87,5 +88,5 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTex
 
 RNMarkdownTextInputWithRef.displayName = 'RNTextInputWithRef';
 
-export default forwardRef(RNMarkdownTextInputWithRef);
+export default RNMarkdownTextInputWithRef;
 export type {AnimatedMarkdownTextInputRef};

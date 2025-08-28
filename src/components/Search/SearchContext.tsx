@@ -1,6 +1,7 @@
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
-import {isTransactionCardGroupListItemType, isTransactionListItemType, isTransactionMemberGroupListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -8,47 +9,52 @@ import type {SearchContext, SearchContextData, SelectedTransactions} from './typ
 
 const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
+    currentSearchKey: undefined,
     selectedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
     isOnSearch: false,
     shouldTurnOffSelectionMode: false,
+    shouldResetSearchQuery: false,
 };
 
 const defaultSearchContext: SearchContext = {
     ...defaultSearchContextData,
     lastSearchType: undefined,
-    isExportMode: false,
-    shouldShowExportModeOption: false,
+    areAllMatchingItemsSelected: false,
+    showSelectAllMatchingItems: false,
     shouldShowFiltersBarLoading: false,
     setLastSearchType: () => {},
-    setCurrentSearchHash: () => {},
+    setCurrentSearchHashAndKey: () => {},
     setSelectedTransactions: () => {},
     removeTransaction: () => {},
     clearSelectedTransactions: () => {},
     setShouldShowFiltersBarLoading: () => {},
-    setShouldShowExportModeOption: () => {},
-    setExportMode: () => {},
+    shouldShowSelectAllMatchingItems: () => {},
+    selectAllMatchingItems: () => {},
+    setShouldResetSearchQuery: () => {},
 };
 
 const Context = React.createContext<SearchContext>(defaultSearchContext);
 
 function SearchContextProvider({children}: ChildrenProps) {
-    const [shouldShowExportModeOption, setShouldShowExportModeOption] = useState(false);
-    const [isExportMode, setExportMode] = useState(false);
+    const [showSelectAllMatchingItems, shouldShowSelectAllMatchingItems] = useState(false);
+    const [areAllMatchingItemsSelected, selectAllMatchingItems] = useState(false);
     const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
     const [lastSearchType, setLastSearchType] = useState<string | undefined>(undefined);
     const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
     const areTransactionsEmpty = useRef(true);
 
-    const setCurrentSearchHash = useCallback((searchHash: number) => {
+    const setCurrentSearchHashAndKey = useCallback((searchHash: number, searchKey: SearchKey | undefined) => {
         setSearchContextData((prevState) => {
-            if (searchHash === prevState.currentSearchHash) {
+            if (searchHash === prevState.currentSearchHash && searchKey === prevState.currentSearchKey) {
                 return prevState;
             }
+
             return {
                 ...prevState,
                 currentSearchHash: searchHash,
+                currentSearchKey: searchKey,
             };
         });
     }, []);
@@ -71,28 +77,24 @@ function SearchContextProvider({children}: ChildrenProps) {
 
         if (data.length && data.every(isTransactionReportGroupListItemType)) {
             selectedReports = data
-                .filter((item) => isMoneyRequestReport(item) && item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected))
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
-        }
-
-        if (data.length && data.every(isTransactionMemberGroupListItemType)) {
-            selectedReports = data
-                .flatMap((item) => item.transactions)
-                .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
-        }
-
-        if (data.length && data.every(isTransactionCardGroupListItemType)) {
-            selectedReports = data
-                .flatMap((item) => item.transactions)
-                .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
-        }
-
-        if (data.length && data.every(isTransactionListItemType)) {
+                .filter((item) => isMoneyRequestReport(item) && item.transactions.length > 0 && item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected))
+                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action]}) => ({
+                    reportID,
+                    action,
+                    total,
+                    policyID,
+                    allActions,
+                }));
+        } else if (data.length && data.every(isTransactionListItemType)) {
             selectedReports = data
                 .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
+                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action]}) => ({
+                    reportID,
+                    action,
+                    total,
+                    policyID,
+                    allActions,
+                }));
         }
 
         setSearchContextData((prevState) => ({
@@ -123,8 +125,10 @@ function SearchContextProvider({children}: ChildrenProps) {
                 selectedTransactions: {},
                 selectedReports: [],
             }));
-            setShouldShowExportModeOption(false);
-            setExportMode(false);
+
+            // Unselect all transactions and hide the "select all matching items" option
+            shouldShowSelectAllMatchingItems(false);
+            selectAllMatchingItems(false);
         },
         [
             searchContextData.currentSearchHash,
@@ -167,34 +171,42 @@ function SearchContextProvider({children}: ChildrenProps) {
         [searchContextData.selectedTransactionIDs, searchContextData.selectedTransactions],
     );
 
+    const setShouldResetSearchQuery = useCallback((shouldReset: boolean) => {
+        setSearchContextData((prevState) => ({
+            ...prevState,
+            shouldResetSearchQuery: shouldReset,
+        }));
+    }, []);
+
     const searchContext = useMemo<SearchContext>(
         () => ({
             ...searchContextData,
             removeTransaction,
-            setCurrentSearchHash,
+            setCurrentSearchHashAndKey,
             setSelectedTransactions,
             clearSelectedTransactions,
             shouldShowFiltersBarLoading,
             setShouldShowFiltersBarLoading,
             lastSearchType,
             setLastSearchType,
-            shouldShowExportModeOption,
-            setShouldShowExportModeOption,
-            isExportMode,
-            setExportMode,
+            showSelectAllMatchingItems,
+            shouldShowSelectAllMatchingItems,
+            areAllMatchingItemsSelected,
+            selectAllMatchingItems,
+            setShouldResetSearchQuery,
         }),
         [
             searchContextData,
-            setCurrentSearchHash,
+            removeTransaction,
+            setCurrentSearchHashAndKey,
             setSelectedTransactions,
             clearSelectedTransactions,
             shouldShowFiltersBarLoading,
             lastSearchType,
-            shouldShowExportModeOption,
-            setShouldShowExportModeOption,
-            isExportMode,
-            setExportMode,
-            removeTransaction,
+            shouldShowSelectAllMatchingItems,
+            showSelectAllMatchingItems,
+            areAllMatchingItemsSelected,
+            setShouldResetSearchQuery,
         ],
     );
 

@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
-import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -45,6 +45,7 @@ type SelectedReports = {
     reportID: string;
     policyID: string | undefined;
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
+    allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
     total: number;
 };
 
@@ -52,7 +53,7 @@ type SelectedReports = {
 type PaymentData = {
     reportID: string;
     amount: number;
-    paymentType: PaymentMethodType;
+    paymentType: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
 };
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
@@ -67,18 +68,21 @@ type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
+type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
 
 type SearchContextData = {
     currentSearchHash: number;
+    currentSearchKey: SearchKey | undefined;
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
     isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
+    shouldResetSearchQuery: boolean;
 };
 
 type SearchContext = SearchContextData & {
-    setCurrentSearchHash: (hash: number) => void;
+    setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;
@@ -94,10 +98,11 @@ type SearchContext = SearchContextData & {
     setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     lastSearchType: string | undefined;
-    shouldShowExportModeOption: boolean;
-    setShouldShowExportModeOption: (shouldShow: boolean) => void;
-    isExportMode: boolean;
-    setExportMode: (on: boolean) => void;
+    showSelectAllMatchingItems: boolean;
+    shouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
+    areAllMatchingItemsSelected: boolean;
+    selectAllMatchingItems: (on: boolean) => void;
+    setShouldResetSearchQuery: (shouldReset: boolean) => void;
 };
 
 type ASTNode = {
@@ -119,7 +124,8 @@ type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED;
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN;
 
 type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
@@ -128,6 +134,7 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
+type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
 
 type QueryFilters = Array<{
     key: SearchFilterKey;
@@ -151,6 +158,8 @@ type SearchQueryJSON = {
     hash: number;
     /** Hash used for putting queries in recent searches list. It ignores sortOrder and sortBy, because we want to treat queries differing only in sort params as the same query */
     recentSearchHash: number;
+    /** Use similarSearchHash to test if two searchers are similar i.e. have same filters but not necessary same values */
+    similarSearchHash: number;
     flatFilters: QueryFilters;
 } & SearchQueryAST;
 
@@ -168,7 +177,9 @@ type SearchAutocompleteQueryRange = {
 
 type SearchParams = {
     queryJSON: SearchQueryJSON;
+    searchKey: SearchKey | undefined;
     offset: number;
+    shouldCalculateTotals: boolean;
 };
 
 export type {
@@ -201,4 +212,6 @@ export type {
     SearchGroupBy,
     SingularSearchStatus,
     SearchDatePreset,
+    SearchWithdrawalType,
+    UserFriendlyValue,
 };

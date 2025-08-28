@@ -1,10 +1,13 @@
+import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateQuickbooksDesktopAutoSync, updateQuickbooksDesktopShouldAutoCreateVendor} from '@libs/actions/connections/QuickbooksDesktop';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -12,12 +15,14 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 function QuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ADVANCED>>();
 
     const qbdToggleSettingItems = [
         {
@@ -25,9 +30,14 @@ function QuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.qbd.advancedConfig.autoSyncDescription'),
             switchAccessibilityLabel: translate('workspace.qbd.advancedConfig.autoSyncDescription'),
             isActive: !!qbdConfig?.autoSync?.enabled,
-            onToggle: (isOn: boolean) => QuickbooksDesktop.updateQuickbooksDesktopAutoSync(policyID, isOn),
+            onToggle: (isOn: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+                updateQuickbooksDesktopAutoSync(policyID, isOn);
+            },
             subscribedSetting: CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC,
-            errors: ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC),
+            errors: getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC),
             pendingAction: settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC], qbdConfig?.pendingFields),
         },
         {
@@ -36,10 +46,10 @@ function QuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsProps) {
             switchAccessibilityLabel: translate('workspace.qbd.advancedConfig.createEntitiesDescription'),
             isActive: !!qbdConfig?.shouldAutoCreateVendor,
             onToggle: (isOn: boolean) => {
-                QuickbooksDesktop.updateQuickbooksDesktopShouldAutoCreateVendor(policyID, isOn);
+                updateQuickbooksDesktopShouldAutoCreateVendor(policyID, isOn);
             },
             subscribedSetting: CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR,
-            errors: ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR),
+            errors: getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR),
             pendingAction: settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR], qbdConfig?.pendingFields),
         },
     ];
@@ -53,7 +63,7 @@ function QuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
         >
             {qbdToggleSettingItems.map((item) => (
                 <ToggleSettingOptionRow
