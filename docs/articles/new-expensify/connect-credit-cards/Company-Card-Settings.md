@@ -3,7 +3,6 @@ title: Company Card Settings
 description: Learn how to manage company card settings, export transactions to accounting software, and enable eReceipts for efficient expense tracking in Expensify.
 keywords: [New Expensify, company cards, card feed settings, accounting exports, ereceipts, expense automation, card management]
 ---
-<div id="new-expensify" markdown="1">
 
 Workspace Admins can manage company card settings, export logic, and eReceipt functionality at the workspace level. This guide outlines how to configure your company card connection, route expenses to accounting systems, and automate receipt handling.
 
@@ -79,4 +78,3 @@ Transactions import **after a card is assigned**. Once a purchase **posts** (typ
 
 **Note:** Pending transactions are not imported.
 
-</div>

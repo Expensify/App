@@ -240,6 +240,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS]: {
+                            path: ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: {
                             path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
                             exact: true,
@@ -727,6 +731,27 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE]: {
                             path: ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.route,
+                        },
+                        [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE]: {
+                            path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.route,
+                        },
+
+                        [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: {
+                            path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.route,
+                            screens: {
+                                [CONST.TAB.RECEIPT_PARTNERS.ALL]: {
+                                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_ALL,
+                                    exact: true,
+                                },
+                                [CONST.TAB.RECEIPT_PARTNERS.LINKED]: {
+                                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_LINKED,
+                                    exact: true,
+                                },
+                                [CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING]: {
+                                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_OUTSTANDING,
+                                    exact: true,
+                                },
+                            },
                         },
                         [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORY_SETTINGS.route,
@@ -1273,12 +1298,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.DISTANCE_REQUEST_CREATE.route,
                             exact: true,
                             screens: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                'distance-map': {
+                                map: {
                                     path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MAP.route,
                                 },
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                'distance-manual': {
+                                manual: {
                                     path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL.route,
                                 },
                             },
