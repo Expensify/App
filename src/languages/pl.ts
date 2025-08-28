@@ -397,6 +397,7 @@ const translations = {
         contacts: 'Kontakty',
         recents: 'Ostatnie',
         close: 'Zamknij',
+        comment: 'Komentarz',
         download: 'Pobierz',
         downloading: 'Pobieranie',
         uploading: 'Przesyłanie plików',

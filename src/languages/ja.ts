@@ -397,6 +397,7 @@ const translations = {
         contacts: '連絡先',
         recents: '最近のもの',
         close: '閉じる',
+        comment: 'コメント',
         download: 'ダウンロード',
         downloading: 'ダウンロード中',
         uploading: 'アップロード中',

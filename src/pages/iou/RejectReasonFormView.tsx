@@ -5,19 +5,17 @@ import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type ONYXKEYS from '@src/ONYXKEYS';
 import CONST from '@src/CONST';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
 
 type RejectReasonFormViewProps = {
-    backTo?: string;
     onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => void;
     validate: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => Partial<Record<'comment', string | undefined>>;
 };
 
-function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormViewProps) {
+function RejectReasonFormView({validate, onSubmit}: RejectReasonFormViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
