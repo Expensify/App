@@ -133,10 +133,7 @@ const ROUTES = {
     },
     SEARCH_MONEY_REQUEST_REPORT: {
         route: 'search/r/:reportID',
-        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
-            const baseRoute = `search/r/${reportID}` as const;
-            return getUrlWithBackToParam(baseRoute, backTo);
-        },
+        getRoute: ({reportID}: {reportID: string}) => `search/r/${reportID}` as const,
     },
     SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: {
         route: 'search/r/:reportID/hold',

@@ -593,7 +593,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             const backTo = Navigation.getActiveRoute();
 
             if (isTransactionGroupListItemType(item)) {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}));
                 return;
             }
 
