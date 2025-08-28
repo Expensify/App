@@ -90,7 +90,7 @@ This section explains **what is considered billable activity** and how active me
   - Reimburse/Pay  
   - Export  
 
-:point_right: **Important:** If you are acting as a **Copilot**, both you and the person you are acting on behalf of will count as active members when performing any of the actions listed above.  
+**Important:** If you are acting as a **Copilot**, both you and the person you are acting on behalf of will count as active members when performing any of the actions listed above.  
 
 In addition, you’ll also be considered an **active member** if you send more than **2 total messages** in a given month:  
 
