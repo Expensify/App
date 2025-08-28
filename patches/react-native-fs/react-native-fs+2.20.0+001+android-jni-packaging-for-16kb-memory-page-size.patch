@@ -1,0 +1,27 @@
+diff --git a/node_modules/react-native-fs/android/build.gradle b/node_modules/react-native-fs/android/build.gradle
+index ddef857..7fa789c 100644
+--- a/node_modules/react-native-fs/android/build.gradle
++++ b/node_modules/react-native-fs/android/build.gradle
+@@ -23,10 +23,22 @@ android {
+         targetSdkVersion safeExtGet('targetSdkVersion', 26)
+         versionCode 1
+         versionName "1.0"
++
++        externalNativeBuild {
++            cmake {
++                arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
++            }
++        }
+     }
+     lintOptions {
+         abortOnError false
+     }
++
++    packagingOptions {
++        jniLibs {
++            useLegacyPackaging true
++        }
++    }
+ }
+ 
+ dependencies {
