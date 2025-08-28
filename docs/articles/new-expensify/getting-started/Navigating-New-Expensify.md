@@ -3,7 +3,6 @@ title: Navigating New Expensify
 description: A guide to navigating New Expensify using the left-hand bar, workspace filters, and mobile layout.
 keywords: [New Expensify, navigation, LHB, left-hand bar, workspace filter, mobile tabs, UI layout, reports tab, account page]
 ---
-<div id="new-expensify" markdown="1">
 
 New Expensify features an intuitive, cross-platform navigation experience that makes it easy to access key tools like Inbox, Reports, Workspaces, and Account settings. This article outlines how to navigate New Expensify on both desktop and mobile.
 
@@ -98,4 +97,3 @@ Use the **Workspace filter** inside the Filters menu under the **Reports** tab t
 
 Yes. New Expensify offers a consistent experience across web and mobile, using the same tab layout and filtering tools.
 
-</div>
