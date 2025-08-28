@@ -43,6 +43,10 @@
   }
 
   function updateDefaultValues(field, value) {
+    if (field === "status" && value === "all") {
+      defaultValues[field] = "";
+      return;
+    }
     defaultValues[field] = value;
   }
 }
