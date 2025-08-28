@@ -2,7 +2,7 @@ type RejectMoneyRequestParams = {
     transactionID: string;
     reportID: string;
     comment: string;
-    movedToReportID?: string;
+    rejectedReportID?: string;
     removedFromReportActionID?: string;
     rejectedActionReportActionID: string;
     rejectedCommentReportActionID: string;

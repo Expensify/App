@@ -32,6 +32,7 @@ import type {
     RetractReportParams,
     SendInvoiceParams,
     SendMoneyParams,
+    SetNameValuePairParams,
     ShareTrackedExpenseParams,
     SplitBillParams,
     SplitTransactionParams,
@@ -11969,7 +11970,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
     const childReportID = reportAction?.childReportID;
 
     let movedToReport;
-    let movedToReportID;
+    let rejectedReportID;
     let urlToNavigateBack;
 
     const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
@@ -12131,7 +12132,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
 
         if (existingOpenReport) {
             movedToReport = existingOpenReport;
-            movedToReportID = existingOpenReport.reportID;
+            rejectedReportID = existingOpenReport.reportID;
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
@@ -12158,7 +12159,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                 },
             });
         } else {
-            movedToReportID = generateReportID();
+            rejectedReportID = generateReportID();
         }
         optimisticData.push(
             {
@@ -12172,7 +12173,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
-                    reportID: movedToReportID,
+                    reportID: rejectedReportID,
                 },
             },
         );
@@ -12326,9 +12327,9 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
     }
 
     // Moved to report (if transaction is moved to another report)
-    if (movedToReportID && movedToReportID !== reportID) {
+    if (rejectedReportID && rejectedReportID !== reportID) {
         reportsToUpdate.push({
-            reportID: movedToReportID,
+            reportID: rejectedReportID,
             lastVisibleActionCreated: optimisticRejectReportActionComment.created,
         });
     }
@@ -12376,7 +12377,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         transactionID,
         reportID,
         comment,
-        movedToReportID,
+        rejectedReportID,
         rejectedActionReportActionID: optimisticRejectReportAction.reportActionID,
         rejectedCommentReportActionID: optimisticRejectReportActionComment.reportActionID,
     };
