@@ -103,7 +103,6 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
-    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -655,6 +654,7 @@ const translations = {
         forwardTo: 'Encaminhar para',
         merge: 'Mesclar',
         unstableInternetConnection: 'Conexão de internet instável. Verifique sua rede e tente novamente.',
+        enableGlobalReimbursements: 'Ativar reembolsos globais',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -5233,8 +5233,7 @@ const translations = {
             continuousReconciliation: 'Reconciliação Contínua',
             saveHoursOnReconciliation:
                 'Economize horas na reconciliação de cada período contábil ao permitir que a Expensify reconcilie continuamente os extratos e liquidações do Cartão Expensify em seu nome.',
-            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
-                `<muted-text-label>Para ativar a reconciliação contínua, habilite a <a href="${accountingAdvancedSettingsLink}">sincronização automática</a> para o ${connectionName}.</muted-text-label>`,
+            enableContinuousReconciliation: 'Para ativar a Reconciliação Contínua, por favor, ative',
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Escolha a conta bancária na qual os pagamentos do seu Expensify Card serão reconciliados.',
                 accountMatches: 'Certifique-se de que esta conta corresponde à sua',
