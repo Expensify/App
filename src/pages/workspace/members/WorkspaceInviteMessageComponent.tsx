@@ -212,6 +212,7 @@ function WorkspaceInviteMessageComponent({
                             }}
                             secondaryAvatarContainerStyle={styles.secondAvatarInline}
                             shouldShowTooltip={shouldShowTooltip}
+                            invitedEmailsToAccountIDs={invitedEmailsToAccountIDsDraft}
                         />
                     </View>
                     <View style={[styles.mb5]}>
@@ -243,7 +244,7 @@ function WorkspaceInviteMessageComponent({
                             onChangeText={(text: string) => {
                                 setWelcomeNote(text);
                             }}
-                            ref={(element: AnimatedTextInputRef) => {
+                            ref={(element: AnimatedTextInputRef | null) => {
                                 if (!element) {
                                     return;
                                 }
