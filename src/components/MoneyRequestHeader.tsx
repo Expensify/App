@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -227,15 +227,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         return getSecondaryTransactionThreadActions(parentReport, transaction, Object.values(reportActions), policy, report);
     }, [report, parentReport, policy, transaction]);
 
-    const hasUseRejectDismissedRef = useRef(false);
+    
     const dismissModalAndUpdateUseReject = () => {
         setIsRejectEducationalModalVisible(false);
-        if (!hasUseRejectDismissedRef.current) {
-            dismissRejectUseExplanation();
-            hasUseRejectDismissedRef.current = true;
-            if (parentReportAction) {
-                rejectMoneyRequestReason(parentReportAction);
-            }
+        dismissRejectUseExplanation();
+        if (parentReportAction) {
+            rejectMoneyRequestReason(parentReportAction);
         }
     };
 
