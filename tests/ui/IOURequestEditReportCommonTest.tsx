@@ -11,6 +11,7 @@ import type {Report} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 const FAKE_REPORT_ID = '1';
 const FAKE_POLICY_ID = '1';
@@ -103,7 +104,7 @@ describe('IOURequestEditReportCommon', () => {
 
             // When the component is rendered with the transaction reports
             renderIOURequestEditReportCommon({transactionsReports: mockTransactionsReports});
-            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
 
             // Then the expense report should be displayed
             const reportItem = screen.getByText('Expense Report');
