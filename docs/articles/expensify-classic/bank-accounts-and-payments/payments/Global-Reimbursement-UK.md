@@ -3,7 +3,6 @@ title: Global Reimbursement - United Kingdom
 description: Learn how to enable international reimbursements if your business bank account is in the United Kingdom.
 keywords: [Expensify Classic, global reimbursement, United Kingdom, GBP, UK, international payments, direct deposit, DocuSign, compliance]
 ---
-<div id="expensify-classic" markdown="1">
 
 If your business operates out of the U.K., you can enable global reimbursements from your GBP business account in Expensify. Follow this guide to complete the setup and start reimbursing internationally.
 
@@ -21,6 +20,7 @@ If your business operates out of the U.K., you can enable global reimbursements 
 - ✅ Bank statement
 - ✅ Proof of Beneficial Ownership
 - ✅ Copy of ID & Address for Signatories
+- ✅ A signed direct debit authorization form
 
 ---
 
@@ -87,4 +87,3 @@ Yes. Once verified, any admin on the workspace can use the bank account to issue
 ## What is a signatory?
 A signatory is someone authorized to act on behalf of the business, typically a director or senior finance admin.
 
-</div>

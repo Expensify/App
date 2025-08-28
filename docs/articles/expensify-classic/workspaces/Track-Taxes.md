@@ -3,7 +3,6 @@ title: Track Taxes
 description: How to track taxes and apply them to expenses
 keywords: [Expensify Classic, track taxes]
 ---
-<div id="expensify-classic" markdown="1">
 
 Expensify's tax tracking allows you to create tax rates and codes for domestic and foreign currencies and different expense categories. Once you've enabled tax tracking, your default tax rate is automatically applied to all expenses. 
 
@@ -85,4 +84,3 @@ If you are simply trying to calculate the price before tax, you can use the form
 
 **Price before tax = (Total price) ÷ (1 + Tax rate)**
 
-</div>
