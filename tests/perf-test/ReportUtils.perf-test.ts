@@ -1,7 +1,9 @@
+import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import createRandomPolicyCategories from 'tests/utils/collections/policyCategory';
 import createRandomPolicyTags from 'tests/utils/collections/policyTags';
+import usePolicyData from '@hooks/usePolicyData';
 import {
     canDeleteReportAction,
     canShowReportRecipientLocalTime,
@@ -203,13 +205,14 @@ describe('ReportUtils', () => {
         await measureFunction(() => getTransactionDetails(transaction, 'yyyy-MM-dd'));
     });
 
-    test('[ReportUtils] pushTransactionViolationsOnyxData on 1k reports with 3 transactions on each report', async () => {
+    test('[ReportUtils] pushTransactionViolationsOnyxData on 1k reports with 100 expenses on each report', async () => {
         // Current policy with categories and tags enabled but does not require them
         const policy = {
             ...createRandomPolicy(1),
             areCategoriesEnabled: true,
-            requiresCategory: false,
             areTagsEnabled: true,
+
+            requiresCategory: false,
             requiresTag: false,
         };
 
@@ -220,7 +223,7 @@ describe('ReportUtils', () => {
         };
 
         // Create a report collection with 1000 reports linked to the policy
-        const reportCollection = Object.values(getMockedReports(1000)).reduce<Record<string, Report>>((acc, report) => {
+        const reportCollection = Object.values(getMockedReports(10000)).reduce<Record<string, Report>>((acc, report) => {
             acc[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {
                 ...report,
                 policyID: policy.id,
@@ -228,15 +231,17 @@ describe('ReportUtils', () => {
             return acc;
         }, {});
 
-        // Create a transaction collection with 3 transactions for each report
+        // Create a transaction collection with 8 transactions for each report
         const transactionCollection = Object.values(reportCollection).reduce<Record<string, Transaction>>((acc, report, index) => {
-            for (let transactionIndex = 0; transactionIndex < 3; transactionIndex++) {
-                const transactionID = index + transactionIndex * 1000;
+            for (let transactionIndex = 0; transactionIndex < 100; transactionIndex++) {
+                const transactionID = index * 10 + transactionIndex;
+
                 // Create a transaction with no category and no tag
                 acc[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {
                     ...createRandomTransaction(transactionID),
                     reportID: report.reportID,
                     category: undefined,
+                    tag: undefined,
                 };
             }
             return acc;
@@ -258,18 +263,25 @@ describe('ReportUtils', () => {
             return acc;
         }, {});
 
+        const policyTags = createRandomPolicyTags('Tags', 8);
+        const policyCategories = createRandomPolicyCategories(8);
+
         await Onyx.multiSet({
             ...reportCollection,
             ...transactionCollection,
             ...reportActionsCollection,
             [ONYXKEYS.COLLECTION.POLICY]: {[policy.id]: policy},
+            [ONYXKEYS.COLLECTION.POLICY_TAGS]: {[policy.id]: policyTags},
+            [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: {[policy.id]: policyCategories},
         });
 
-        const policyTags = createRandomPolicyTags('Tags', 8);
-        const policyCategories = createRandomPolicyCategories(8);
-
         await waitForBatchedUpdates();
-        await measureFunction(() => pushTransactionViolationsOnyxData({}, policy, policyCategories, policyTags, {}, policyOptimisticData, {}, {}));
+
+        const {result: policyData} = renderHook(() => usePolicyData(policy.id));
+
+        const onyxData = {optimisticData: [], failureData: []};
+
+        await measureFunction(() => pushTransactionViolationsOnyxData(onyxData, policyData.current, policyOptimisticData));
     });
 
     test('[ReportUtils] getIOUReportActionDisplayMessage on 1k policies', async () => {

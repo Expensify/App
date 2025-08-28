@@ -1,4 +1,6 @@
+import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import usePolicyData from '@hooks/usePolicyData';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Category from '@src/libs/actions/Policy/Category';
@@ -31,7 +33,9 @@ describe('actions/PolicyCategory', () => {
 
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Category.setWorkspaceRequiresCategory(fakePolicy, true);
+
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id));
+            Category.setWorkspaceRequiresCategory(policyData.current, true);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -116,7 +120,9 @@ describe('actions/PolicyCategory', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-            Category.renamePolicyCategory(fakePolicy.id, {
+
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id));
+            Category.renamePolicyCategory(policyData.current, {
                 oldName: oldCategoryName ?? '',
                 newName: newCategoryName,
             });
@@ -169,7 +175,9 @@ describe('actions/PolicyCategory', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-            Category.setWorkspaceCategoryEnabled(fakePolicy, categoriesToUpdate);
+
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id));
+            Category.setWorkspaceCategoryEnabled(policyData.current, categoriesToUpdate);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -214,7 +222,9 @@ describe('actions/PolicyCategory', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-            Category.deleteWorkspaceCategories(fakePolicy, categoriesToDelete);
+
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id));
+            Category.deleteWorkspaceCategories(policyData.current, categoriesToDelete);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({

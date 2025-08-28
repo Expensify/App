@@ -4,6 +4,7 @@ import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import usePolicyData from '@hooks/usePolicyData';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
@@ -82,10 +83,21 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTag, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {
+    Beta,
+    OnyxInputOrEntry,
+    PersonalDetailsList,
+    Policy,
+    PolicyEmployeeList,
+    PolicyTag,
+    Report,
+    ReportAction,
+    ReportActions,
+    ReportNameValuePairs,
+    Transaction,
+} from '@src/types/onyx';
 import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {Participant} from '@src/types/onyx/Report';
-import type {OnyxData} from '@src/types/onyx/Request';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
@@ -4600,6 +4612,9 @@ describe('ReportUtils', () => {
             // Populating Onyx with required data
             await Onyx.multiSet({
                 ...fakePolicyReports,
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}`]: fakePolicyTagsLists,
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`]: fakePolicyCategories,
+                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`]: {
                     [mockIOUAction.reportActionID]: mockIOUAction,
                 },
@@ -4611,9 +4626,11 @@ describe('ReportUtils', () => {
                 },
             });
 
-            const onyxData: OnyxData = {optimisticData: [], failureData: []};
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicyID));
 
-            pushTransactionViolationsOnyxData(onyxData, fakePolicy, fakePolicyCategories, fakePolicyTagsLists, {}, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate);
+            const onyxData = {optimisticData: [], failureData: []};
+
+            pushTransactionViolationsOnyxData(onyxData, policyData.current, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate);
 
             expect(onyxData).toMatchObject({
                 // Expecting the optimistic data to contain the OUT_OF_POLICY violations for the deleted category and tag
