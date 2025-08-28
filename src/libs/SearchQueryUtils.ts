@@ -532,6 +532,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.IN ||
                     filterKey === FILTER_KEYS.ASSIGNEE ||
                     filterKey === FILTER_KEYS.POLICY_ID ||
+                    filterKey === FILTER_KEYS.HAS ||
                     filterKey === FILTER_KEYS.EXPORTER) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
