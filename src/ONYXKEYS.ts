@@ -115,7 +115,9 @@ const ONYXKEYS = {
     /** Information about the current session (authToken, accountID, email, loading, error) */
     SESSION: 'session',
     STASHED_SESSION: 'stashedSession',
+
     BETAS: 'betas',
+    BETA_CONFIGURATION: 'betaConfiguration',
 
     /** Whether the user is a member of a policy other than their personal */
     HAS_NON_PERSONAL_POLICY: 'hasNonPersonalPolicy',

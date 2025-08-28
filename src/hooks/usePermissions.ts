@@ -1,5 +1,5 @@
 import {useContext, useMemo} from 'react';
-import {BetasContext} from '@components/OnyxListItemProvider';
+import {BetaConfigurationContext, BetasContext} from '@components/OnyxListItemProvider';
 import Permissions from '@libs/Permissions';
 import type Beta from '@src/types/onyx/Beta';
 
@@ -9,9 +9,10 @@ let permissionKey: PermissionKey;
 
 export default function usePermissions(): UsePermissions {
     const betas = useContext(BetasContext);
+    const betaConfiguration = useContext(BetaConfigurationContext);
     return useMemo(() => {
         const permissions: UsePermissions = {
-            isBetaEnabled: (beta: Beta) => Permissions.isBetaEnabled(beta, betas),
+            isBetaEnabled: (beta: Beta) => Permissions.isBetaEnabled(beta, betas, betaConfiguration),
         };
 
         for (permissionKey in Permissions) {
