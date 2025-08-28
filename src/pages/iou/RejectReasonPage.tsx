@@ -19,7 +19,7 @@ type RejectReasonPageProps =
 function RejectReasonPage({route}: RejectReasonPageProps) {
     const {translate} = useLocalize();
 
-    const {transactionID, reportID} = route.params;
+    const {transactionID, reportID, backTo} = route.params;
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
         const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment);
@@ -50,6 +50,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
         <RejectReasonFormView
             onSubmit={onSubmit}
             validate={validate}
+            backTo={backTo}
         />
     );
 }
