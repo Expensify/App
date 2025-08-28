@@ -47,6 +47,7 @@ import type {
     EReceiptColorName,
     EreceiptColorStyle,
     ParsableStyle,
+    ReportFooterStyle,
     SVGAvatarColorStyle,
     TextColorStyle,
 } from './types';
@@ -1900,6 +1901,52 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                   }
                 : {},
             containerStyle: {paddingBottom},
+        };
+    },
+    getReportFooterStyles: ({
+        platform,
+        headerHeight,
+        isKeyboardActive,
+        keyboardHeight,
+        windowHeight,
+        isComposerFullSize,
+        paddingBottom = 0,
+        paddingTop = 0,
+        composerHeight,
+    }: ReportFooterStyle): ViewStyle => {
+        'worklet';
+
+        const isIOS = platform === CONST.PLATFORM.IOS;
+
+        const correctedHeaderHeight = isIOS ? paddingTop + headerHeight : headerHeight;
+
+        const getSpacerHeight = () => {
+            if (isComposerFullSize) {
+                if (isKeyboardActive) {
+                    return windowHeight - keyboardHeight.get() - correctedHeaderHeight;
+                }
+
+                return windowHeight - correctedHeaderHeight;
+            }
+
+            return isIOS ? composerHeight : 'auto';
+        };
+
+        const transform = isComposerFullSize ? [] : [{translateY: keyboardHeight.get() > paddingBottom ? -keyboardHeight.get() : -paddingBottom}];
+
+        if (isIOS) {
+            return {
+                position: 'absolute',
+                bottom: 0,
+                width: '100%',
+                transform,
+                height: getSpacerHeight(),
+                paddingBottom: isComposerFullSize && !isKeyboardActive ? 16 : 0,
+            };
+        }
+
+        return {
+            height: isComposerFullSize ? '100%' : 'auto',
         };
     },
 });

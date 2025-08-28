@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
@@ -21,10 +21,12 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useShortMentionsList from '@hooks/useShortMentionsList';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addComment} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
@@ -100,6 +102,7 @@ function ReportFooter({
     headerHeight,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
+    const styleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {windowWidth, windowHeight} = useWindowDimensions();
@@ -209,38 +212,21 @@ function ReportFooter({
 
     const unmodifiedPaddingBottom = useMemo(() => unmodifiedPaddings?.bottom ?? 0, [unmodifiedPaddings.bottom]);
 
-    const animatedStyle = useAnimatedStyle(() => {
-        const correctedHeaderHeight = Platform.OS === 'ios' ? (unmodifiedPaddings.top ?? 0) + headerHeight : headerHeight;
+    const platform = getPlatform();
 
-        const getHeight = () => {
-            if (isComposerFullSize) {
-                if (isKeyboardActive) {
-                    return windowHeight - keyboardHeight.get() - correctedHeaderHeight;
-                }
-
-                return windowHeight - correctedHeaderHeight;
-            }
-
-            return Platform.OS === 'ios' ? composerHeight : 'auto';
-        };
-
-        const transform = isComposerFullSize ? [] : [{translateY: keyboardHeight.get() > unmodifiedPaddingBottom ? -keyboardHeight.get() : -unmodifiedPaddingBottom}];
-
-        if (Platform.OS === 'ios') {
-            return {
-                position: 'absolute',
-                bottom: 0,
-                width: '100%',
-                transform,
-                height: getHeight(),
-                paddingBottom: isComposerFullSize && !isKeyboardActive ? 16 : 0,
-            };
-        }
-
-        return {
-            height: isComposerFullSize ? '100%' : 'auto',
-        };
-    });
+    const animatedStyle = useAnimatedStyle(() =>
+        styleUtils.getReportFooterStyles({
+            platform,
+            composerHeight,
+            headerHeight,
+            isKeyboardActive,
+            keyboardHeight,
+            windowHeight,
+            isComposerFullSize,
+            paddingBottom: unmodifiedPaddingBottom,
+            paddingTop: unmodifiedPaddings.top,
+        }),
+    );
 
     const onLayoutInternal = useCallback(
         (event: LayoutChangeEvent) => {
