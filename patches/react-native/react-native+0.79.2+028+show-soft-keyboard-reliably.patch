@@ -1,0 +1,22 @@
+diff --git a/ReactEditText.java b/ReactEditText.java
+index 095313e..3ebbd6a 100644
+--- a/ReactEditText.java
++++ b/ReactEditText.java
+@@ -1164,6 +1164,17 @@ public class ReactEditText extends AppCompatEditText {
+     mDidAttachToWindow = true;
+   }
+ 
++  @Override
++  public void onWindowFocusChanged(boolean hasWindowFocus) {
++    if (hasWindowFocus) {
++      requestFocus();
++      post(() -> {
++        requestFocus();
++        showSoftKeyboard();
++      });
++    }
++  }
++
+   @Override
+   public void onFinishTemporaryDetach() {
+     super.onFinishTemporaryDetach();
