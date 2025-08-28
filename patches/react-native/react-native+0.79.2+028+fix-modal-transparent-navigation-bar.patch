@@ -8,9 +8,9 @@ index 139a1c1..f6d1faa 100644
  
 +      // If enforceNavigationBarContrast is explicitly set in the app theme (AppTheme),
 +      // we need to override the default behaviour for edge-to-edge mode in WindowUtils.setSystemBarsTranslucency.
-+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
++      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 +        val attrs = intArrayOf(android.R.attr.enforceNavigationBarContrast)
-+        val ta = context.obtainStyledAttributes(R.style.AppTheme, attrs)
++        val ta = context.obtainStyledAttributes(R.style.Theme_FullScreenDialog, attrs)
 +
 +        if (ta.length() == 1) {
 +          val enforceNavigationBarContrastStyleValue = ta.getBoolean(0, false)
