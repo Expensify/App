@@ -371,6 +371,11 @@ function getFilterDisplayTitle(
         return filterValue ? translate(`search.filters.withdrawalType.${filterValue}`) : undefined;
     }
 
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
+        const filterValue = filters[nonDateFilterKey];
+        return filterValue ? translate('common.receipt') : undefined;
+    }
+
     const filterValue = filters[nonDateFilterKey];
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }
