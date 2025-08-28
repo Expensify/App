@@ -147,6 +147,7 @@ const SCREENS = {
         },
 
         DELEGATE: {
+            VERIFY_ACCOUNT: 'Settings_Delegate_VerifyAccount',
             ADD_DELEGATE: 'Settings_Delegate_Add',
             DELEGATE_ROLE: 'Settings_Delegate_Role',
             DELEGATE_CONFIRM: 'Settings_Delegate_Confirm',
@@ -177,6 +178,7 @@ const SCREENS = {
     TWO_FACTOR_AUTH: {
         ROOT: 'Settings_TwoFactorAuth_Root',
         VERIFY: 'Settings_TwoFactorAuth_Verify',
+        VERIFY_ACCOUNT: 'Settings_TwoFactorAuth_VerifyAccount',
         SUCCESS: 'Settings_TwoFactorAuth_Success',
         DISABLED: 'Settings_TwoFactorAuth_Disabled',
         DISABLE: 'Settings_TwoFactorAuth_Disable',
