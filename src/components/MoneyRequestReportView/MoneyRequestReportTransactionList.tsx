@@ -81,7 +81,7 @@ type SortedTransactions = {
     sortOrder: SortOrder;
 };
 
-const isSortableColumnName = (key: unknown): key is SortableColumnName => !!sortableColumnNames.find((val) => val === key);
+const isSortableColumnName = (key: unknown): key is SortableColumnName => !!sortableColumnNames.find((val) => val === key) || key === CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION;
 
 const getTransactionKey = (transaction: OnyxTypes.Transaction, key: SortableColumnName) => {
     const dateKey = transaction.modifiedCreated ? 'modifiedCreated' : 'created';
