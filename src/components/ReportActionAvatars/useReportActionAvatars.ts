@@ -33,6 +33,7 @@ function useReportActionAvatars({
     policyID: passedPolicyID,
     fallbackDisplayName = '',
     invitedEmailsToAccountIDs,
+    shouldUseFallbackDefaultAvatar = false,
 }: {
     report: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
@@ -42,6 +43,7 @@ function useReportActionAvatars({
     policyID?: string;
     fallbackDisplayName?: string;
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
+    shouldUseFallbackDefaultAvatar?: boolean;
 }) {
     /* Get avatar type */
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -110,7 +112,7 @@ function useReportActionAvatars({
             type: CONST.ICON_TYPE_AVATAR,
             source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
             name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? invitedEmail ?? '',
-            fallbackIcon: RandomAvatarUtils.getAvatarForContact(String(id)),
+            fallbackIcon: shouldUseFallbackDefaultAvatar ? RandomAvatarUtils.getAvatarForContact(String(id)) : undefined,
         };
     });
 
