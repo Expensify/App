@@ -58,9 +58,10 @@ import {
     getCountOfEnabledTagsOfList,
     getCountOfRequiredTagLists,
     getSubmitToAccountID,
-    isUserInvitedToWorkspace,
+    isCurrentUserMemberOfAnyPolicy,
 } from './PolicyUtils';
 import {
+    getChangedApproverActionMessage,
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
     getIOUReportIDFromReportActionPreview,
@@ -77,6 +78,7 @@ import {
     getReportActionHtml,
     getReportActionMessageText,
     getRetractedMessage,
+    getRoomChangeLogMessage,
     getSortedReportActions,
     getTravelUpdateMessage,
     getUpdateRoomDescriptionMessage,
@@ -88,9 +90,11 @@ import {
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction,
+    isInviteOrRemovedAction,
     isMarkAsClosedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
+    isMovedAction,
     isMovedTransactionAction,
     isOldDotReportAction,
     isPendingRemove,
@@ -103,7 +107,6 @@ import {
     isUnapprovedAction,
     shouldReportActionBeVisible,
 } from './ReportActionsUtils';
-import type {OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction,
     formatReportLastMessageText,
@@ -115,6 +118,7 @@ import {
     getDowngradeWorkspaceMessage,
     getIcons,
     getMoneyRequestSpendBreakdown,
+    getMovedActionMessage,
     getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
     getPolicyChangeMessage,
@@ -157,6 +161,7 @@ import {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
+import type {OptionData} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
 import type {AvatarSource} from './UserUtils';
@@ -735,7 +740,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         const lastIOUMoneyReportAction = iouReport?.reportID
             ? allSortedReportActions[iouReport.reportID]?.find(
                   (reportAction, key): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
-                      shouldReportActionBeVisible(reportAction, key, canUserPerformWriteAction(report)) &&
+                      shouldReportActionBeVisible(reportAction, key, canUserPerformWriteAction(report, isReportArchived)) &&
                       reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                       isMoneyRequestAction(reportAction),
               )
@@ -805,7 +810,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = getUpgradeWorkspaceMessage();
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
         lastMessageTextFromReport = getDowngradeWorkspaceMessage();
-    } else if (isActionableAddPaymentCard(lastReportAction) || isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED)) {
+    } else if (isActionableAddPaymentCard(lastReportAction)) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         lastMessageTextFromReport = getExportIntegrationLastMessageText(lastReportAction);
@@ -829,10 +834,16 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = getPolicyChangeMessage(lastReportAction);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
         lastMessageTextFromReport = getTravelUpdateMessage(lastReportAction);
+    } else if (isInviteOrRemovedAction(lastReportAction)) {
+        lastMessageTextFromReport = getRoomChangeLogMessage(lastReportAction);
     } else if (isRenamedAction(lastReportAction)) {
         lastMessageTextFromReport = getRenamedAction(lastReportAction, isExpenseReport(report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {
         lastMessageTextFromReport = getDeletedTransactionMessage(lastReportAction);
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+        lastMessageTextFromReport = getChangedApproverActionMessage(lastReportAction);
+    } else if (isMovedAction(lastReportAction)) {
+        lastMessageTextFromReport = getMovedActionMessage(lastReportAction, report);
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
@@ -942,8 +953,9 @@ function createOption(
         result.shouldShowSubscript = shouldReportShowSubscript(report, !!result.private_isArchived);
         result.isPolicyExpenseChat = reportUtilsIsPolicyExpenseChat(report);
         result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat ?? false;
-        result.allReportErrors = reportAttributesDerived?.[report.reportID]?.reportErrors ?? {};
-        result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        const reportAttribute = reportAttributesDerived?.[report.reportID];
+        result.allReportErrors = reportAttribute?.reportErrors ?? {};
+        result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : (reportAttribute?.brickRoadStatus ?? '');
         result.pendingAction = report.pendingFields ? (report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat) : undefined;
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
@@ -966,7 +978,7 @@ function createOption(
         result.tooltipText = getReportParticipantsTitle(visibleParticipantAccountIDs);
 
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
-        subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
+        subtitle = getChatRoomSubtitle(report, true, !!result.private_isArchived);
 
         const lastAction = lastVisibleReportActions[report.reportID];
         // lastActorAccountID can be an empty string
@@ -1088,7 +1100,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
     } else if (option.isInvoiceRoom) {
         option.text = getReportName(report);
         option.alternateText = translateLocal('workspace.common.invoices');
-    } else if (unknownUserDetails && !option.text) {
+    } else if (unknownUserDetails) {
         option.text = unknownUserDetails.text ?? unknownUserDetails.login;
         option.alternateText = unknownUserDetails.login;
         option.participantsList = [{...unknownUserDetails, displayName: unknownUserDetails.login, accountID: unknownUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID}];
@@ -1716,7 +1728,7 @@ function isValidReport(option: SearchOption<Report>, config: GetValidReportsConf
         return false;
     }
 
-    if (!canUserPerformWriteAction(option.item) && !includeReadOnly) {
+    if (!canUserPerformWriteAction(option.item, !!option.private_isArchived) && !includeReadOnly) {
         return false;
     }
 
@@ -1876,7 +1888,7 @@ function getRestrictedLogins(config: GetOptionsConfig, options: OptionList, canS
             !canShowManagerMcTest ||
             (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) ||
             !Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST, config.betas) ||
-            isUserInvitedToWorkspace(),
+            isCurrentUserMemberOfAnyPolicy(),
     };
 }
 
@@ -2069,6 +2081,7 @@ function getSearchOptions(
     maxResults?: number,
     includeUserToInvite?: boolean,
     includeRecentReports = true,
+    includeCurrentUser = false,
 ): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -2087,6 +2100,7 @@ function getSearchOptions(
         shouldBoldTitleByDefault: !isUsedInChatFinder,
         excludeHiddenThreads: true,
         maxElements: maxResults,
+        includeCurrentUser,
         searchString: searchQuery,
         includeUserToInvite,
     });
