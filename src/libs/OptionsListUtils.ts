@@ -942,7 +942,6 @@ function createOption(
     result.isOptimisticPersonalDetail = personalDetail?.isOptimisticPersonalDetail;
     if (report) {
         const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
-        const isReportArchived = !!reportNameValuePairs?.private_isArchived;
         result.isChatRoom = reportUtilsIsChatRoom(report);
         result.isDefaultRoom = isDefaultRoom(report);
         result.private_isArchived = reportNameValuePairs?.private_isArchived;
@@ -963,7 +962,7 @@ function createOption(
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-        result.isUnread = isUnread(report, oneTransactionThreadReport, isReportArchived);
+        result.isUnread = isUnread(report, oneTransactionThreadReport, !!reportNameValuePairs?.private_isArchived);
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
