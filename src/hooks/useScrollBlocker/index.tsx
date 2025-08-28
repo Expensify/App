@@ -7,7 +7,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
  */
 export default function useScrollBlocker() {
     const [isScrolling, setIsScrolling] = useState(false);
-    const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const startScrollBlock = useCallback(() => {
         setIsScrolling(true);
     }, []);
