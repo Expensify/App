@@ -96,6 +96,7 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
                             isCurrencyPressable={false}
                             currency={currency}
                             ref={inputCallbackRef}
+                            autoFocus
                         />
                     </FormProvider>
                 </FullPageBlockingView>
