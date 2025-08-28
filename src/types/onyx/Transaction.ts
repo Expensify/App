@@ -90,6 +90,9 @@ type Comment = {
     /** Collection of split expenses */
     splitExpenses?: SplitExpense[];
 
+    /** Total that the user currently owes for splitExpenses */
+    splitExpensesTotal?: number;
+
     /** Violations that were dismissed */
     dismissedViolations?: Partial<Record<ViolationName, Record<string, string | number>>>;
 
