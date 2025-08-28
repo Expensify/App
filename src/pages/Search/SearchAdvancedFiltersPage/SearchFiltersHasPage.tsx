@@ -27,11 +27,6 @@ function SearchFiltersHasPage() {
         if (!searchAdvancedFiltersForm?.has) {
             return [];
         }
-
-        if (typeof searchAdvancedFiltersForm.has === 'string') {
-            return searchAdvancedFiltersForm.has.split(',');
-        }
-
         return searchAdvancedFiltersForm.has;
     });
 
