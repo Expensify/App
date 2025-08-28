@@ -11,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import {openReport} from '@libs/actions/Report';
 import {isMultipleAttachmentsValidationResult, isSingleAttachmentValidationResult} from '@libs/AttachmentValidation';
 import {getFileValidationErrorText} from '@libs/fileDownload/FileUtils';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentContentProps, AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
@@ -21,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type Modify from '@src/types/utils/Modify';
 import useFileUploadValidation from './hooks/useFileUploadValidation';
 import useNavigateToReportOnRefresh from './hooks/useNavigateToReportOnRefresh';
 import useReportAttachmentModalType from './hooks/useReportAttachmentModalType';
@@ -36,9 +38,7 @@ const convertFileToAttachment = (file: FileObject | undefined): Attachment => {
     };
 };
 
-type ReportAddAttachmentScreenParams = AttachmentModalScreenParams & {
-    source?: string;
-};
+type ReportAddAttachmentScreenParams = Modify<AttachmentModalScreenParams, RootNavigatorParamList[typeof SCREENS.REPORT_ADD_ATTACHMENT]>;
 
 function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ADD_ATTACHMENT>) {
     const {

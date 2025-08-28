@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
-import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
@@ -9,12 +9,10 @@ import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/Attachm
 import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type Modify from '@src/types/utils/Modify';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
-type WorkspaceAvatarScreenParams = Omit<AttachmentModalScreenParams, 'policyID'> & {
-    policyID: string;
-    letter?: UpperCaseCharacters;
-};
+type WorkspaceAvatarScreenParams = Modify<AttachmentModalScreenParams, RootNavigatorParamList[typeof SCREENS.TRANSACTION_RECEIPT] | RootNavigatorParamList[typeof SCREENS.WORKSPACE_AVATAR]>;
 
 function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.WORKSPACE_AVATAR>) {
     const {policyID, letter: fallbackLetter} = route.params;

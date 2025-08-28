@@ -1,11 +1,11 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {openReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
@@ -17,16 +17,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type Modify from '@src/types/utils/Modify';
 import useNavigateToReportOnRefresh from './hooks/useNavigateToReportOnRefresh';
 import useReportAttachmentModalType from './hooks/useReportAttachmentModalType';
 
-type ReportAttachmentScreenParams = Omit<AttachmentModalScreenParams, 'reportID' | 'source' | 'type' | 'accountID'> & {
-    reportID: string;
-    source: string;
-    type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
-    accountID: number;
-    hashKey?: number;
-};
+type ReportAttachmentScreenParams = Modify<AttachmentModalScreenParams, RootNavigatorParamList[typeof SCREENS.REPORT_ATTACHMENTS]>;
 
 function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ATTACHMENTS>) {
     const {attachmentID, type, source: sourceParam, isAuthTokenRequired, attachmentLink, originalFileName, accountID, reportID, hashKey, headerTitle, onShow, onClose} = route.params;

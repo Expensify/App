@@ -21,10 +21,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type Modify from '@src/types/utils/Modify';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
-type TransactionReceiptScreenParams = Omit<AttachmentModalScreenParams, 'reportID'> &
-    (RootNavigatorParamList[typeof SCREENS.TRANSACTION_RECEIPT] | RootNavigatorParamList[typeof SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]);
+type TransactionReceiptScreenParams = Modify<
+    AttachmentModalScreenParams,
+    RootNavigatorParamList[typeof SCREENS.TRANSACTION_RECEIPT] | RootNavigatorParamList[typeof SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]
+>;
 
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
     const {translate} = useLocalize();

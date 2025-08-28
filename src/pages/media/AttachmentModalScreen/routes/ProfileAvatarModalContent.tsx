@@ -2,6 +2,7 @@ import React, {useEffect, useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {openPublicProfilePage} from '@libs/actions/PersonalDetails';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
@@ -11,14 +12,10 @@ import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from '@pag
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Routes} from '@src/types/onyx/Transaction';
+import type Modify from '@src/types/utils/Modify';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
-type ProfileAvatarScreenParams = Omit<AttachmentModalScreenParams, 'accountID'> & {
-    accountID: number;
-    backTo?: Routes;
-};
-
+type ProfileAvatarScreenParams = Modify<AttachmentModalScreenParams, RootNavigatorParamList[typeof SCREENS.PROFILE_AVATAR]>;
 function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.PROFILE_AVATAR>) {
     const {accountID = CONST.DEFAULT_NUMBER_ID} = route.params;
     const {formatPhoneNumber} = useLocalize();

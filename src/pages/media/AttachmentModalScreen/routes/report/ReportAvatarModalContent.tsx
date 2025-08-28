@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import useOnyx from '@hooks/useOnyx';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, isGroupChat, isThread} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
@@ -8,11 +9,9 @@ import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hoo
 import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type Modify from '@src/types/utils/Modify';
 
-type ReportAvatarScreenParams = Omit<AttachmentModalScreenParams, 'reportID'> & {
-    reportID: string;
-    policyID?: string;
-};
+type ReportAvatarScreenParams = Modify<AttachmentModalScreenParams, RootNavigatorParamList[typeof SCREENS.REPORT_AVATAR]>;
 
 function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.REPORT_AVATAR>) {
     const {reportID, policyID} = route.params;
