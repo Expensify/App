@@ -39,7 +39,6 @@ import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/
 import {
     buildTransactionThread,
     changeMoneyRequestHoldStatus,
-    rejectMoneyRequestReason,
     getArchiveReason,
     getIntegrationExportIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
@@ -56,6 +55,7 @@ import {
     isReportOwner,
     navigateOnDeleteExpense,
     navigateToDetailsPage,
+    rejectMoneyRequestReason,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
@@ -494,7 +494,7 @@ function MoneyReportHeader({
         setIsRejectEducationalModalVisible(false);
         dismissRejectUseExplanation();
         if (requestParentReportAction) {
-                            rejectMoneyRequestReason(requestParentReportAction);
+            rejectMoneyRequestReason(requestParentReportAction);
         }
     };
 
