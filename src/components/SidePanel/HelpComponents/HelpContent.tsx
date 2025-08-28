@@ -6,7 +6,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 // https://github.com/react-native-modal/react-native-modal/issues/236
 import HeaderGap from '@components/HeaderGap';
 import getHelpContent from '@components/SidePanel/getHelpContent';
-import HelpHeader from '@components/SidePanel/HelpComponents/HelpHeader';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -21,6 +20,7 @@ import {getExpenseType} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Screen} from '@src/SCREENS';
+import HelpHeader from './HelpHeader';
 
 type HelpContentProps = {
     closeSidePanel: (shouldUpdateNarrow?: boolean) => void;

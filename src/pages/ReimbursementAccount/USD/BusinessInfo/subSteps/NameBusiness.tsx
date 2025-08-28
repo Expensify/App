@@ -25,7 +25,8 @@ function NameBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const shouldDisableCompanyName = !!(
         bankAccountID &&
         defaultCompanyName &&
-        ![CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.VERIFYING].includes(bankAccountState as typeof CONST.BANK_ACCOUNT.STATE.SETUP | typeof CONST.BANK_ACCOUNT.STATE.VERIFYING)
+        bankAccountState !== CONST.BANK_ACCOUNT.STATE.SETUP &&
+        bankAccountState !== CONST.BANK_ACCOUNT.STATE.VERIFYING
     );
 
     const validate = useCallback(
