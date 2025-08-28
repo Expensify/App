@@ -2095,7 +2095,7 @@ type PublicScreensParamList = SharedScreensParamList & {
 
 type AttachmentModalScreensParamList = {
     [SCREENS.REPORT_ATTACHMENTS]: {
-        source: AvatarSource;
+        source?: AvatarSource;
         reportID?: string;
         accountID?: number;
         attachmentID?: string;

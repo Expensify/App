@@ -1,4 +1,5 @@
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import type ModalType from '@src/types/utils/ModalType';
 import type {AttachmentModalScreenType} from '.';
 import type {AttachmentModalBaseContentProps} from './AttachmentModalBaseContent/types';
