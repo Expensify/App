@@ -664,6 +664,9 @@ const CONST = {
         },
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
     },
+    ENTER_SIGNER_INFO: {
+        ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
+    },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
         CORPORATION: 'Corp',
@@ -1196,6 +1199,7 @@ const CONST = {
                 REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // Deprecated OldDot Action
                 REIMBURSEMENT_SETUP: 'REIMBURSEMENTSETUP', // Deprecated OldDot Action
                 REIMBURSEMENT_SETUP_REQUESTED: 'REIMBURSEMENTSETUPREQUESTED', // Deprecated OldDot Action
+                REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED: 'DIRECTORINFORMATIONREQUIRED',
                 REJECTED: 'REJECTED',
                 REMOVED_FROM_APPROVAL_CHAIN: 'REMOVEDFROMAPPROVALCHAIN',
                 DEMOTED_FROM_WORKSPACE: 'DEMOTEDFROMWORKSPACE',
@@ -6502,6 +6506,7 @@ const CONST = {
             POSTED: 'posted',
             WITHDRAWAL_TYPE: 'withdrawalType',
             WITHDRAWN: 'withdrawn',
+            TOTAL: 'total',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
@@ -6525,6 +6530,7 @@ const CONST = {
             GROUP_BY: 'group-by',
             DATE: 'date',
             AMOUNT: 'amount',
+            TOTAL: 'total',
             EXPENSE_TYPE: 'expense-type',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'group-currency',
@@ -6568,6 +6574,10 @@ const CONST = {
             ON: 'On',
             AFTER: 'After',
             BEFORE: 'Before',
+        },
+        AMOUNT_MODIFIERS: {
+            LESS_THAN: 'LessThan',
+            GREATER_THAN: 'GreaterThan',
         },
         DATE_PRESETS: {
             NEVER: 'never',

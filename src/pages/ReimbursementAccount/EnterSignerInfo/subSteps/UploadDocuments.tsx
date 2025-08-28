@@ -7,12 +7,13 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import UploadFile from '@components/UploadFile';
+import useEnterSignerInfoStepFormSubmit from '@hooks/useEnterSignerInfoStepFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
+import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/utils/getNeededDocumentsStatusForSignerInfo';
@@ -21,39 +22,34 @@ import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/For
 import {openExternalLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 
-type UploadDocumentsProps = SubStepProps;
+type UploadDocumentsProps = SubStepProps & {policyID: string};
 
-const {ADDRESS_PROOF, PROOF_OF_DIRECTORS, COPY_OF_ID, CODICE_FISCALE} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
-const signerInfoKeys = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
-
-function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
+function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
-    const policyID = reimbursementAccount?.achData?.policyID;
+    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [environmentUrl, setEnvironmentUrl] = useState<string | null>(null);
 
     const currency = policy?.outputCurrency ?? '';
-    const countryStepCountryValue = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
-    const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, countryStepCountryValue);
-    const isPDSandFSGDownloaded = reimbursementAccount?.achData?.corpay?.downloadedPDSandFSG ?? reimbursementAccountDraft?.[signerInfoKeys.DOWNLOADED_PDS_AND_FSG] ?? false;
+    const country = mapCurrencyToCountry(currency);
+    const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, country);
+    const isPDSandFSGDownloaded = enterSignerInfoFormDraft?.[INPUT_IDS.DOWNLOADED_PDS_AND_FSG] ?? false;
     const [isPDSandFSGDownloadedTouched, setIsPDSandFSGDownloadedTouched] = useState<boolean>(false);
 
-    const copyOfIDInputID = COPY_OF_ID;
-    const addressProofInputID = ADDRESS_PROOF;
-    const directorsProofInputID = PROOF_OF_DIRECTORS;
-    const codiceFiscaleInputID = CODICE_FISCALE;
+    const copyOfIDInputID = INPUT_IDS.SIGNER_COPY_OF_ID;
+    const addressProofInputID = INPUT_IDS.SIGNER_ADDRESS_PROOF;
+    const directorsProofInputID = INPUT_IDS.PROOF_OF_DIRECTORS;
+    const codiceFiscaleInputID = INPUT_IDS.SIGNER_CODICE_FISCALE;
 
     const defaultValues: Record<string, FileObject[]> = {
-        [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? (reimbursementAccountDraft?.[copyOfIDInputID] ?? []) : [],
-        [addressProofInputID]: Array.isArray(reimbursementAccountDraft?.[addressProofInputID]) ? (reimbursementAccountDraft?.[addressProofInputID] ?? []) : [],
-        [directorsProofInputID]: Array.isArray(reimbursementAccountDraft?.[directorsProofInputID]) ? (reimbursementAccountDraft?.[directorsProofInputID] ?? []) : [],
-        [codiceFiscaleInputID]: Array.isArray(reimbursementAccountDraft?.[codiceFiscaleInputID]) ? (reimbursementAccountDraft?.[codiceFiscaleInputID] ?? []) : [],
+        [copyOfIDInputID]: Array.isArray(enterSignerInfoFormDraft?.[copyOfIDInputID]) ? (enterSignerInfoFormDraft?.[copyOfIDInputID] ?? []) : [],
+        [addressProofInputID]: Array.isArray(enterSignerInfoFormDraft?.[addressProofInputID]) ? (enterSignerInfoFormDraft?.[addressProofInputID] ?? []) : [],
+        [directorsProofInputID]: Array.isArray(enterSignerInfoFormDraft?.[directorsProofInputID]) ? (enterSignerInfoFormDraft?.[directorsProofInputID] ?? []) : [],
+        [codiceFiscaleInputID]: Array.isArray(enterSignerInfoFormDraft?.[codiceFiscaleInputID]) ? (enterSignerInfoFormDraft?.[codiceFiscaleInputID] ?? []) : [],
     };
 
     const [uploadedIDs, setUploadedID] = useState<FileObject[]>(defaultValues[copyOfIDInputID]);
@@ -66,25 +62,25 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     }, []);
 
     const STEP_FIELDS = useMemo(
-        (): Array<FormOnyxKeys<'reimbursementAccount'>> => [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID],
+        (): Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>> => [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID],
         [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID],
     );
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
             setIsPDSandFSGDownloadedTouched(true);
             return getFieldRequiredErrors(values, STEP_FIELDS);
         },
         [STEP_FIELDS],
     );
 
-    const handleSubmit = useReimbursementAccountStepFormSubmit({
+    const handleSubmit = useEnterSignerInfoStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,
         shouldSaveDraft: isEditing,
     });
 
-    const handleSubmitWithDownload = (values: FormOnyxValues<'reimbursementAccount'>) => {
+    const handleSubmitWithDownload = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>) => {
         if (isDocumentNeededStatus.isPRDAndFSGNeeded && !isPDSandFSGDownloaded) {
             return;
         }
@@ -94,33 +90,33 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
 
     const handleRemoveFile = (fileName: string, uploadedFiles: FileObject[], inputID: string, setFiles: React.Dispatch<React.SetStateAction<FileObject[]>>) => {
         const newUploadedIDs = uploadedFiles.filter((file) => file.name !== fileName);
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: newUploadedIDs});
+        setDraftValues(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM, {[inputID]: newUploadedIDs});
         setFiles(newUploadedIDs);
     };
 
     const handleSelectFile = (files: FileObject[], uploadedFiles: FileObject[], inputID: string, setFiles: React.Dispatch<React.SetStateAction<FileObject[]>>) => {
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: [...uploadedFiles, ...files]});
+        setDraftValues(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM, {[inputID]: [...uploadedFiles, ...files]});
         setFiles((prev) => [...prev, ...files]);
     };
 
     const setUploadError = (error: string, inputID: string) => {
         if (!error) {
-            clearErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
+            clearErrorFields(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
             return;
         }
 
-        setErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: {onUpload: error}});
+        setErrorFields(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM, {[inputID]: {onUpload: error}});
     };
 
     const handleDownload = () => {
         openExternalLink(`${environmentUrl}/pdfs/PDSAndFSG.pdf`);
         setIsPDSandFSGDownloadedTouched(true);
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[signerInfoKeys.DOWNLOADED_PDS_AND_FSG]: true});
+        setDraftValues(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM, {[INPUT_IDS.DOWNLOADED_PDS_AND_FSG]: true});
     };
 
     return (
         <FormProvider
-            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+            formID={ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={handleSubmitWithDownload}
             validate={validate}
@@ -223,7 +219,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         onRemove={(fileName) => {
                             handleRemoveFile(fileName, uploadedCodiceFiscale, codiceFiscaleInputID, setUploadedCodiceFiscale);
                         }}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        acceptedFileTypes={[...CONST.ENTER_SIGNER_INFO.ALLOWED_FILE_TYPES]}
                         value={uploadedCodiceFiscale}
                         inputID={codiceFiscaleInputID}
                         setError={(error) => {
@@ -246,7 +242,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         <DotIndicatorMessage
                             style={[styles.formError, styles.mt3]}
                             type="error"
-                            messages={{[signerInfoKeys.DOWNLOADED_PDS_AND_FSG]: translate('common.error.fieldRequired')}}
+                            messages={{[INPUT_IDS.DOWNLOADED_PDS_AND_FSG]: translate('common.error.fieldRequired')}}
                         />
                     )}
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.PDSandFSGDescription')}</Text>
