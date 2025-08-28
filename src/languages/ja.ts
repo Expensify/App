@@ -6059,6 +6059,7 @@ const translations = {
         },
         filtersHeader: 'フィルター',
         filters: {
+            has: '含む',
             date: {
                 before: ({date}: OptionalParam<DateParams> = {}) => `${date ?? ''}の前に`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `After ${date ?? ''}`,

@@ -170,6 +170,11 @@ const baseFilterConfig = {
         description: 'common.tag' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_TAG,
     },
+    has: {
+        getTitle: getFilterDisplayTitle,
+        description: 'search.filters.has' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_HAS,
+    },
     from: {
         getTitle: getFilterParticipantDisplayTitle,
         description: 'common.from' as const,

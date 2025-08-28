@@ -6061,6 +6061,7 @@ const translations = {
         },
         filtersHeader: 'Filters',
         filters: {
+            has: 'Has',
             date: {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Before ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `After ${date ?? ''}`,

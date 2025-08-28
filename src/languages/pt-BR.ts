@@ -6095,6 +6095,7 @@ const translations = {
         },
         filtersHeader: 'Filtros',
         filters: {
+            has: 'Tem',
             date: {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Antes de ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `Após ${date ?? ''}`,

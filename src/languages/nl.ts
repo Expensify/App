@@ -6094,6 +6094,7 @@ const translations = {
         },
         filtersHeader: 'Filters',
         filters: {
+            has: 'Heeft',
             date: {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Voor ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `Na ${date ?? ''}`,

@@ -67,6 +67,7 @@ const SCREENS = {
         ADVANCED_FILTERS_EXPENSE_TYPE_RHP: 'Search_Advanced_Filters_Expense_Type_RHP',
         ADVANCED_FILTERS_WITHDRAWAL_TYPE_RHP: 'Search_Advanced_Filters_Withdrawal_Type_RHP',
         ADVANCED_FILTERS_TAG_RHP: 'Search_Advanced_Filters_Tag_RHP',
+        ADVANCED_FILTERS_HAS_RHP: 'Search_Advanced_Filters_Has_RHP',
         ADVANCED_FILTERS_FROM_RHP: 'Search_Advanced_Filters_From_RHP',
         ADVANCED_FILTERS_TO_RHP: 'Search_Advanced_Filters_To_RHP',
         ADVANCED_FILTERS_TITLE_RHP: 'Search_Advanced_Filters_Title_RHP',

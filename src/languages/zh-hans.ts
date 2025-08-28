@@ -5977,6 +5977,7 @@ const translations = {
         },
         filtersHeader: '筛选器',
         filters: {
+            has: '有',
             date: {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Before ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `After ${date ?? ''}`,
