@@ -5,23 +5,19 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {openReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
-import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type Modify from '@src/types/utils/Modify';
 import useNavigateToReportOnRefresh from './hooks/useNavigateToReportOnRefresh';
 import useReportAttachmentModalType from './hooks/useReportAttachmentModalType';
-
-type ReportAttachmentScreenParams = Modify<AttachmentModalScreenParams, RootNavigatorParamList[typeof SCREENS.REPORT_ATTACHMENTS]>;
 
 function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ATTACHMENTS>) {
     const {attachmentID, type, source: sourceParam, isAuthTokenRequired, attachmentLink, originalFileName, accountID, reportID, hashKey, headerTitle, onShow, onClose} = route.params;
@@ -128,4 +124,3 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
 ReportAttachmentModalContent.displayName = 'ReportAttachmentModalContent';
 
 export default ReportAttachmentModalContent;
-export type {ReportAttachmentScreenParams};

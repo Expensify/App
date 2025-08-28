@@ -6,10 +6,10 @@ import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/Attac
 import type {AttachmentModalOnCloseOptions} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import CONST from '@src/CONST';
-import type {AttachmentModalScreen} from '@src/SCREENS';
+import type {AttachmentModalScreenType} from '..';
 import type AttachmentModalContainerProps from './types';
 
-function AttachmentModalContainer<Screen extends AttachmentModalScreen>({contentProps, modalType, onShow, onClose, shouldHandleNavigationBack}: AttachmentModalContainerProps<Screen>) {
+function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({contentProps, modalType, onShow, onClose, shouldHandleNavigationBack}: AttachmentModalContainerProps<Screen>) {
     const [isVisible, setIsVisible] = useState(true);
     const attachmentsContext = useContext(AttachmentModalContext);
     const [shouldDisableAnimationAfterInitialMount, setShouldDisableAnimationAfterInitialMount] = useState(false);

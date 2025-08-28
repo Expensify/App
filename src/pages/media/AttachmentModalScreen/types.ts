@@ -1,7 +1,6 @@
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {RootNavigatorParamList} from '@libs/Navigation/types';
-import type {AttachmentModalScreen} from '@src/SCREENS';
 import type ModalType from '@src/types/utils/ModalType';
+import type {AttachmentModalScreenType} from '.';
 import type {AttachmentModalBaseContentProps} from './AttachmentModalBaseContent/types';
 
 /**
@@ -45,8 +44,8 @@ type AttachmentModalModalProps = {
 //     iouType?: IOUType;
 // };
 
-type AttachmentModalScreenParams = AttachmentModalBaseContentProps & AttachmentModalModalProps;
+type AttachmentModalScreenBaseParams = AttachmentModalBaseContentProps & AttachmentModalModalProps;
 
-type AttachmentModalScreenProps<Screen extends AttachmentModalScreen> = PlatformStackScreenProps<RootNavigatorParamList, Screen>;
+type AttachmentModalScreenProps<Screen extends AttachmentModalScreenType> = PlatformStackScreenProps<RootNavigatorParamList, Screen>;
 
-export type {AttachmentModalScreenParams, AttachmentModalModalProps, AttachmentModalScreenProps, FileObject, ImagePickerResponse};
+export type {AttachmentModalScreenBaseParams, AttachmentModalModalProps, AttachmentModalScreenProps, FileObject, ImagePickerResponse};

@@ -8,7 +8,6 @@ import useOnyx from '@hooks/useOnyx';
 import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
@@ -16,18 +15,12 @@ import {getRequestType, hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasR
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentModalBaseContentProps, ThreeDotsMenuItemGenerator} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
-import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type Modify from '@src/types/utils/Modify';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
-
-type TransactionReceiptScreenParams = Modify<
-    AttachmentModalScreenParams,
-    RootNavigatorParamList[typeof SCREENS.TRANSACTION_RECEIPT] | RootNavigatorParamList[typeof SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]
->;
 
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
     const {translate} = useLocalize();
@@ -259,4 +252,3 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 TransactionReceiptModalContent.displayName = 'TransactionReceiptModalContent';
 
 export default TransactionReceiptModalContent;
-export type {TransactionReceiptScreenParams};

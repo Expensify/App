@@ -59,7 +59,6 @@ import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroPro
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
-import type {ReportAddAttachmentScreenParams} from '@pages/media/AttachmentModalScreen/routes/report/ReportAddAttachmentModalContent';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
 import {initMoneyRequest, replaceReceipt, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
@@ -70,6 +69,7 @@ import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userA
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -487,7 +487,8 @@ function ReportActionCompose({
     const reportAttachmentsContext = useContext(AttachmentModalContext);
     const showAttachmentModalScreen = useCallback(
         (file: FileObject | FileObject[]) => {
-            reportAttachmentsContext.setCurrentAttachment<ReportAddAttachmentScreenParams>({
+            reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.REPORT_ADD_ATTACHMENT>({
+                reportID,
                 file,
                 headerTitle: translate('reportActionCompose.sendAttachment'),
                 onConfirm: addAttachment,

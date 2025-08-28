@@ -18,6 +18,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import AttachmentPicker from './AttachmentPicker';
@@ -334,7 +335,7 @@ function AvatarWithImagePicker({
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
     const showAttachmentModalScreen = useCallback(() => {
-        reportAttachmentsContext.setCurrentAttachment({
+        reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.REPORT_ATTACHMENTS>({
             source: previewSource,
             fallbackSource: fallbackIcon,
             headerTitle,
