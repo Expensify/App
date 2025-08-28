@@ -4,7 +4,6 @@ description: Learn how to set up and manage per diem rates within a workspace in
 keywords: [New Expensify, per diem, expense settings, daily rate, import per diem, configure per diem, edit per diem rates]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Per Diem allows workspace admins to assign fixed daily rates for travel or other recurring allowances. Once enabled, it appears as its own menu item in the workspace settings, giving you full control over importing, editing, and categorizing daily allowances.
 
@@ -83,4 +82,3 @@ Per Diem is only available when submitting expenses within a workspace where the
 
 Yes. You can select multiple rates at once and apply bulk actions, such as editing or deleting them from the list view.
 
-</div>

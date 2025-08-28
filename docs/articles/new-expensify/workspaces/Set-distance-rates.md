@@ -3,7 +3,6 @@ title: Set Distance Rates
 description: Set and manage distance rates for mileage reimbursement in your Expensify workspace.
 keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates]
 ---
-<div id="new-expensify" markdown="1">
 
 Distance rates allow your workspace to reimburse mileage-based travel. Admins can create and manage one or more rates that members can select when submitting distance expenses.
 
@@ -57,4 +56,3 @@ You can apply actions to multiple rates at once from the main Distance Rates pag
 
 **Reminder:** When the feature is turned on, your workspace must always have at least one active distance rate.
 
-</div>
