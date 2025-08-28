@@ -515,7 +515,8 @@ function AdvancedSearchFilters() {
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS
             ) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
