@@ -7,6 +7,7 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem, SelectionListProps} from '@components/SelectionList/types';
 import type Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 type BaseSelectionListSections<TItem extends ListItem> = {
     sections: SelectionListProps<TItem>['sections'];
@@ -58,18 +59,20 @@ describe('BaseSelectionList', () => {
         const {sections, canSelectMultiple, initialNumToRender, setSearchText, searchText} = props;
         const focusedKey = sections[0].data.find((item) => item.isSelected)?.keyForList;
         return (
-            <BaseSelectionList
-                sections={sections}
-                textInputLabel="common.search"
-                ListItem={RadioListItem}
-                onSelectRow={onSelectRowMock}
-                shouldSingleExecuteRowSelect
-                canSelectMultiple={canSelectMultiple}
-                initiallyFocusedOptionKey={focusedKey}
-                initialNumToRender={initialNumToRender}
-                onChangeText={setSearchText}
-                textInputValue={searchText}
-            />
+            <OnyxListItemProvider>
+                <BaseSelectionList
+                    sections={sections}
+                    textInputLabel="common.search"
+                    ListItem={RadioListItem}
+                    onSelectRow={onSelectRowMock}
+                    shouldSingleExecuteRowSelect
+                    canSelectMultiple={canSelectMultiple}
+                    initiallyFocusedOptionKey={focusedKey}
+                    initialNumToRender={initialNumToRender}
+                    onChangeText={setSearchText}
+                    textInputValue={searchText}
+                />
+            </OnyxListItemProvider>
         );
     }
 
