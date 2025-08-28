@@ -810,7 +810,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowSorting = !groupBy;
-    const shouldShowTableHeader = isLargeScreenWidth && !isChat;
+    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !groupBy;
+    const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!groupBy || groupBy === CONST.SEARCH.GROUP_BY.REPORTS);
 
     return (
         <SearchScopeProvider isOnSearch>
@@ -843,7 +844,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         )
                     }
                     contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
-                    containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
+                    containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     onScroll={onSearchListScroll}
                     onEndReachedThreshold={0.75}

@@ -6,8 +6,8 @@ import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SearchGroupBy} from '@components/Search/types';
-import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
+import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
+import SearchTableHeader, {expenseHeaders} from '@components/SelectionList/SearchTableHeader';
 import type {
     ListItem,
     TransactionCardGroupListItemType,
@@ -31,7 +31,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSections, shouldShowYear as shouldShowYearUtil} from '@libs/SearchUIUtils';
+import {getColumnsToShow, getSections, shouldShowYear as shouldShowYearUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
@@ -57,15 +57,15 @@ function TransactionGroupListItem<TItem extends ListItem>({
     groupBy,
     accountID,
     isOffline,
-    areAllOptionalColumnsHidden,
+    areAllOptionalColumnsHidden: areAllOptionalColumnsHiddenProp,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {selectedTransactions, currentSearchHash} = useSearchContext();
+    const {selectedTransactions} = useSearchContext();
     const selectedTransactionIDs = Object.keys(selectedTransactions);
-    const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash ?? currentSearchHash}`, {canBeMissing: true});
+    const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`, {canBeMissing: true});
     const transactionsSnapshotMetadata = useMemo(() => {
         return transactionsSnapshot?.search;
     }, [transactionsSnapshot]);
@@ -77,12 +77,32 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (!transactionsSnapshot?.data) {
             return [];
         }
-        const sectionData = getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, transactionsSnapshot?.data, transactionsSnapshot?.search, accountID, formatPhoneNumber) as TransactionListItemType[];
+        const sectionData = getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, transactionsSnapshot?.data, accountID, formatPhoneNumber) as TransactionListItemType[];
         return sectionData.map((transactionItem) => ({
             ...transactionItem,
             isSelected: selectedTransactionIDs.includes(transactionItem.transactionID),
         }));
-    }, [isGroupByReports, transactionsSnapshot?.data, transactionsSnapshot?.search, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDs]);
+    }, [isGroupByReports, transactionsSnapshot?.data, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDs]);
+
+    const currentColumns = useMemo(() => {
+        if (isGroupByReports) {
+            return columns ?? [];
+        }
+        if (!transactionsSnapshot?.data) {
+            return [];
+        }
+        const columnsToShow = getColumnsToShow(accountID, transactionsSnapshot?.data, false, transactionsSnapshot?.search.type === CONST.SEARCH.DATA_TYPES.TASK);
+
+        return (Object.keys(columnsToShow) as SearchColumnType[]).filter((col) => columnsToShow[col]);
+    }, [accountID, columns, isGroupByReports, transactionsSnapshot?.data, transactionsSnapshot?.search.type]);
+
+    const areAllOptionalColumnsHidden = useMemo(() => {
+        if (isGroupByReports) {
+            return areAllOptionalColumnsHiddenProp ?? false;
+        }
+        const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
+        return canBeMissingColumns.every((column) => !currentColumns.includes(column));
+    }, [areAllOptionalColumnsHiddenProp, currentColumns, isGroupByReports]);
 
     const selectedItemsLength = useMemo(() => {
         return transactions.reduce((acc, transaction) => {
@@ -284,8 +304,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                             isTaxAmountColumnWide
                                             shouldShowSorting={false}
                                             shouldShowExpand={false}
-                                            columns={columns}
-                                            areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                                            columns={currentColumns}
+                                            areAllOptionalColumnsHidden={areAllOptionalColumnsHidden ?? false}
                                         />
                                     </View>
                                 )}
@@ -302,7 +322,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                         shouldUseNarrowLayout={!isLargeScreenWidth}
                                         shouldShowCheckbox={!!canSelectMultiple}
                                         onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                        columns={columns}
+                                        columns={currentColumns}
                                         onButtonPress={() => {
                                             openReportInRHP(transaction);
                                         }}
