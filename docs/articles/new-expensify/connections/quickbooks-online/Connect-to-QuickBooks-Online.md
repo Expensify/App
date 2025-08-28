@@ -5,7 +5,6 @@ keywords: [New Expensify, QuickBooks Online, QBO integration, connect QuickBooks
 order: 1
 ---
 
-<div id="new-expensify" markdown="1">
 
 To use the QuickBooks Online connection, you must have a QuickBooks Online account and an Expensify **Collect** plan. The **QuickBooks Self-Employed** subscription is not supported.
 
@@ -86,4 +85,3 @@ To fix it:
 2. Select **Enter credentials**
 3. Enter your **Intuit login** again to reconnect
 
-</div>
