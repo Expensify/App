@@ -675,7 +675,6 @@ describe('getRBRMessages', () => {
 
     it('should filter out empty strings', () => {
         const result = ViolationsUtils.getRBRMessages(mockTransaction, translateLocal, undefined, []);
-
         const expectedResult = `${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
 
         expect(result).toBe(expectedResult);
