@@ -74,7 +74,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isReportArchived = useReportIsArchived(report?.reportID);
+    const isReportArchived = useReportIsArchived(report?.parentReportID);
 
     const isReport = !!report?.reportID;
 

@@ -195,7 +195,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
     const isSelfDMTrackExpenseReport = isTrackExpenseReport && isSelfDMUtil(parentReport);
-    const isReportArchived = useReportIsArchived(report?.reportID);
+    const isReportArchived = useReportIsArchived(report?.parentReportID);
     const isArchivedRoom = useMemo(() => isArchivedNonExpenseReport(report, isReportArchived), [report, isReportArchived]);
     const shouldDisableRename = useMemo(() => shouldDisableRenameUtil(report, isReportArchived), [report, isReportArchived]);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isReportArchived);
