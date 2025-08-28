@@ -137,8 +137,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         return [customUnits, allRates, allSubRatesMemo];
     }, [policy]);
 
-    const subRateIDs = new Set(allSubRates.map((subRate) => subRate.subRateID));
-
     const selectedPerDiemSubRateIDs = useMemo(() => {
         return selectedPerDiem.map((subRate) => subRate.subRateID);
     }, [selectedPerDiem]);
