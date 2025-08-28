@@ -8,6 +8,7 @@ import Onyx from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -2178,8 +2179,8 @@ function getAttendeeOptions(
         });
     }
 
-    const filteredRecentAttendees = recentAttendees
-        .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
+    // attendees list might lack some personal data such as accountID and login at this point - fetch those here
+    const RecentAttendeesWithDetails = recentAttendees
         .map((attendee) => ({
             ...attendee,
             login: attendee.email ?? attendee.displayName,
@@ -2196,11 +2197,11 @@ function getAttendeeOptions(
             includeOwnedWorkspaceChats,
             includeRecentReports: false,
             includeP2P,
-            includeSelectedOptions: false,
+            includeSelectedOptions: true,
             includeSelfDM: false,
             includeInvoiceRooms,
             action,
-            recentAttendees: filteredRecentAttendees,
+            recentAttendees: RecentAttendeesWithDetails,
         },
     );
 }
@@ -2408,6 +2409,16 @@ function getFirstKeyForList(data?: Option[] | null) {
     return firstNonEmptyDataObj?.keyForList ? firstNonEmptyDataObj?.keyForList : '';
 }
 
+/**
+ * Helper method to get the `keyForList` for the first selected item
+ */
+function getFirstSelectedItem(data?: Option[] | WorkspaceListItem[] | null) {
+    if (!data?.length) {
+        return '';
+    }
+
+    return data.find((item) => item.isSelected)?.keyForList ?? '';
+}
 function getPersonalDetailSearchTerms(item: Partial<OptionData>) {
     if (item.accountID === currentUserAccountID) {
         return getCurrentUserSearchTerms(item);
@@ -2751,6 +2762,7 @@ export {
     getCurrentUserSearchTerms,
     getEmptyOptions,
     getFirstKeyForList,
+    getFirstSelectedItem,
     getHeaderMessage,
     getHeaderMessageForNonUserList,
     getIOUConfirmationOptionsFromPayeePersonalDetail,

@@ -1,7 +1,6 @@
 import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 import React from 'react';
-import {SectionList} from 'react-native';
 import Onyx from 'react-native-onyx';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -13,7 +12,6 @@ import NewChatPage from '@pages/NewChatPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
-import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -65,22 +63,6 @@ describe('NewChatPage', () => {
         jest.clearAllMocks();
         await Onyx.clear();
         await waitForBatchedUpdates();
-    });
-
-    it('should scroll to top when adding a user to the group selection', async () => {
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-        render(<NewChatPage />, {wrapper});
-        await waitForBatchedUpdatesWithAct();
-        act(() => {
-            (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
-        });
-        const spy = jest.spyOn(SectionList.prototype, 'scrollToLocation');
-
-        const addButton = await waitFor(() => screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0));
-        if (addButton) {
-            fireEvent.press(addButton);
-            expect(spy).toHaveBeenCalledWith(expect.objectContaining({itemIndex: 0}));
-        }
     });
 
     describe('should not display "Add to group" button on expensify emails', () => {

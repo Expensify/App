@@ -4,8 +4,10 @@ import MultiSelectListItem from '@components/SelectionList/MultiSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import {getFirstSelectedItem} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
@@ -33,46 +35,31 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     }, [initiallySelectedItems]);
 
     const {sections, noResultsFound} = useMemo(() => {
-        const selectedItemsSection = selectedItems
-            .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
+        const itemsSection = items
+            .filter((item) => item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
             .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
             .map((item) => ({
                 text: item.name,
                 keyForList: item.name,
-                isSelected: true,
+                isSelected: selectedItems.some((selectedItem) => selectedItem.value === item.value),
                 value: item.value,
             }));
-        const remainingItemsSection = items
-            .filter(
-                (item) =>
-                    !selectedItems.some((selectedItem) => selectedItem.value.toString() === item.value.toString()) && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()),
-            )
-            .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
-            .map((item) => ({
-                text: item.name,
-                keyForList: item.name,
-                isSelected: false,
-                value: item.value,
-            }));
-        const isEmpty = !selectedItemsSection.length && !remainingItemsSection.length;
+        const isEmpty = !itemsSection.length;
         return {
             sections: isEmpty
                 ? []
                 : [
                       {
-                          title: undefined,
-                          data: selectedItemsSection,
-                          shouldShow: selectedItemsSection.length > 0,
-                      },
-                      {
                           title: pickerTitle,
-                          data: remainingItemsSection,
-                          shouldShow: remainingItemsSection.length > 0,
+                          data: itemsSection,
+                          shouldShow: itemsSection.length > 0,
                       },
                   ],
             noResultsFound: isEmpty,
         };
     }, [selectedItems, items, pickerTitle, debouncedSearchTerm, localeCompare]);
+
+    const firstKey = getFirstSelectedItem(sections?.at(0)?.data);
 
     const onSelectItem = useCallback(
         (item: Partial<OptionData & SearchMultipleSelectionPickerItem>) => {
@@ -120,6 +107,8 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             shouldShowTooltips
             canSelectMultiple
             ListItem={MultiSelectListItem}
+            initiallyFocusedOptionKey={firstKey}
+            getItemHeight={() => variables.optionRowHeightCompact}
         />
     );
 }
