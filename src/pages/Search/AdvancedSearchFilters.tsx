@@ -85,37 +85,37 @@ const baseFilterConfig: Record<string, {
         route: ROUTES.SEARCH_ADVANCED_FILTERS_STATUS,
     },
     date: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterDateDisplayTitle,
         description: 'common.date',
         route: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
     },
     submitted: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterDateDisplayTitle,
         description: 'search.filters.submitted',
         route: ROUTES.SEARCH_ADVANCED_FILTERS_SUBMITTED,
     },
     approved: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterDateDisplayTitle,
         description: 'search.filters.approved',
         route: ROUTES.SEARCH_ADVANCED_FILTERS_APPROVED,
     },
     paid: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterDateDisplayTitle,
         description: 'search.filters.paid',
         route: ROUTES.SEARCH_ADVANCED_FILTERS_PAID,
     },
     exported: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterDateDisplayTitle,
         description: 'search.filters.exported',
         route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPORTED,
     },
     posted: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterDateDisplayTitle,
         description: 'search.filters.posted',
         route: ROUTES.SEARCH_ADVANCED_FILTERS_POSTED,
     },
     withdrawn: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterDateDisplayTitle,
         description: 'search.filters.withdrawn',
         route: ROUTES.SEARCH_ADVANCED_FILTERS_WITHDRAWN,
     },
@@ -221,12 +221,12 @@ const baseFilterConfig: Record<string, {
     },
     billable: {
         getTitle: getFilterDisplayTitle,
-        description: 'common.billable',
+        description: 'common.billable' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_BILLABLE,
     },
     policyID: {
         getTitle: getFilterWorkspaceDisplayTitle,
-        description: 'workspace.common.workspace',
+        description: 'workspace.common.workspace' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_WORKSPACE,
     },
 };
@@ -296,36 +296,34 @@ function getFilterParticipantDisplayTitle(filterKey: SearchFilterKey, context: F
         .join(', ');
 }
 
-function getFilterDisplayTitle(filterKey: SearchFilterKey, context: FilterContext) {
-    if (DATE_FILTER_KEYS.includes(filterKey as SearchDateFilterKeys)) {
-        const keyOn = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
-        const keyAfter = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
-        const keyBefore = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
-        const dateOn = context.filters[keyOn];
-        const dateAfter = context.filters[keyAfter];
-        const dateBefore = context.filters[keyBefore];
-        const dateValue = [];
+function getFilterDateDisplayTitle(filterKey: SearchFilterKey, context: FilterContext) {
+    const keyOn = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
+    const keyAfter = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
+    const keyBefore = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
+    const dateOn = context.filters[keyOn];
+    const dateAfter = context.filters[keyAfter];
+    const dateBefore = context.filters[keyBefore];
+    const dateValue = [];
 
-        if (dateOn) {
-            dateValue.push(isSearchDatePreset(dateOn) ? context.translate(`search.filters.date.presets.${dateOn}`) : context.translate('search.filters.date.on', {date: dateOn}));
-        }
-
-        if (dateAfter) {
-            dateValue.push(context.translate('search.filters.date.after', {date: dateAfter}));
-        }
-
-        if (dateBefore) {
-            dateValue.push(context.translate('search.filters.date.before', {date: dateBefore}));
-        }
-
-        return dateValue.join(', ');
+    if (dateOn) {
+        dateValue.push(isSearchDatePreset(dateOn) ? context.translate(`search.filters.date.presets.${dateOn}`) : context.translate('search.filters.date.on', {date: dateOn}));
     }
 
-    const nonDateFilterKey = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys>;
+    if (dateAfter) {
+        dateValue.push(context.translate('search.filters.date.after', {date: dateAfter}));
+    }
 
-    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL) {
-        const lessThanKey = `${nonDateFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as keyof SearchAdvancedFiltersForm;
-        const greaterThanKey = `${nonDateFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as keyof SearchAdvancedFiltersForm;
+    if (dateBefore) {
+        dateValue.push(context.translate('search.filters.date.before', {date: dateBefore}));
+    }
+
+    return dateValue.join(', ');
+}
+
+function getFilterDisplayTitle(filterKey: SearchFilterKey, context: FilterContext) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL) {
+        const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as keyof SearchAdvancedFiltersForm;
+        const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as keyof SearchAdvancedFiltersForm;
 
         const lessThan = context.filters[lessThanKey];
         const greaterThan = context.filters[greaterThanKey];
@@ -346,52 +344,52 @@ function getFilterDisplayTitle(filterKey: SearchFilterKey, context: FilterContex
         return;
     }
 
-    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY && context.filters[nonDateFilterKey]) {
-        const filterArray = context.filters[nonDateFilterKey] ?? [];
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY && context.filters[filterKey]) {
+        const filterArray = context.filters[filterKey] ?? [];
         return filterArray.sort(context.localeCompare).join(', ');
     }
 
-    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && context.filters[nonDateFilterKey]) {
-        const filterArray = context.filters[nonDateFilterKey] ?? [];
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY && context.filters[filterKey]) {
+        const filterArray = context.filters[filterKey] ?? [];
         return filterArray
             .sort((a, b) => sortOptionsWithEmptyValue(a, b, context.localeCompare))
             .map((value) => (value === CONST.SEARCH.CATEGORY_EMPTY_VALUE ? context.translate('search.noCategory') : value))
             .join(', ');
     }
 
-    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && context.filters[nonDateFilterKey]) {
-        const filterArray = context.filters[nonDateFilterKey] ?? [];
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG && context.filters[filterKey]) {
+        const filterArray = context.filters[filterKey] ?? [];
         return filterArray
             .sort((a, b) => sortOptionsWithEmptyValue(a, b, context.localeCompare))
             .map((value) => (value === CONST.SEARCH.TAG_EMPTY_VALUE ? context.translate('search.noTag') : getCleanedTagName(value)))
             .join(', ');
     }
 
-    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
-        return context.filters[nonDateFilterKey];
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
+        return context.filters[filterKey];
     }
 
-    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE) {
-        const filterValue = context.filters[nonDateFilterKey];
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE) {
+        const filterValue = context.filters[filterKey];
         return filterValue ? context.translate(`common.${filterValue as ValueOf<typeof CONST.SEARCH.BOOLEAN>}`) : undefined;
     }
 
-    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
-        const filterValue = context.filters[nonDateFilterKey];
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
+        const filterValue = context.filters[filterKey];
         return filterValue ? context.translate(`common.${filterValue as ValueOf<typeof CONST.SEARCH.DATA_TYPES>}`) : undefined;
     }
 
-    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
-        const filterValue = context.filters[nonDateFilterKey];
+    if (filterKey === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
+        const filterValue = context.filters[filterKey];
         return filterValue ? context.translate(`search.filters.groupBy.${filterValue}`) : undefined;
     }
 
-    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
-        const filterValue = context.filters[nonDateFilterKey];
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
+        const filterValue = context.filters[filterKey];
         return filterValue ? context.translate(`search.filters.withdrawalType.${filterValue}`) : undefined;
     }
 
-    const filterValue = context.filters[nonDateFilterKey];
+    const filterValue = context.filters[filterKey];
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }
 
