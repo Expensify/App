@@ -4825,7 +4825,6 @@ function updateMoneyRequestTaxRate({transactionID, optimisticReportActionID, tax
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, policy, policyTagList, policyCategories);
 
-    console.log({params});
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
 }
 
