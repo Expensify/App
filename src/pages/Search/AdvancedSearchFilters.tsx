@@ -58,7 +58,7 @@ const baseFilterConfig = {
     groupBy: {
         getTitle: getFilterDisplayTitle,
         description: 'search.groupBy' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY),
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY),
     },
     status: {
         getTitle: getStatusFilterDisplayTitle,
@@ -108,7 +108,7 @@ const baseFilterConfig = {
     groupCurrency: {
         getTitle: getFilterDisplayTitle,
         description: 'common.groupCurrency' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY),
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_CURRENCY),
     },
     merchant: {
         getTitle: getFilterDisplayTitle,
@@ -123,7 +123,7 @@ const baseFilterConfig = {
     reportID: {
         getTitle: getFilterDisplayTitle,
         description: 'common.reportID' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID),
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.REPORT_ID),
     },
     amount: {
         getTitle: getFilterDisplayTitle,
@@ -148,27 +148,27 @@ const baseFilterConfig = {
     cardID: {
         getTitle: getFilterCardDisplayTitle,
         description: 'common.card' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID),
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CARD_ID),
     },
     taxRate: {
         getTitle: getFilterTaxRateDisplayTitle,
         description: 'workspace.taxes.taxRate' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE),
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TAX_RATE),
     },
     expenseType: {
         getTitle: getFilterExpenseDisplayTitle,
         description: 'search.expenseType' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE),
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPENSE_TYPE),
     },
     withdrawalType: {
         getTitle: getFilterDisplayTitle,
         description: 'search.withdrawalType' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE),
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_TYPE),
     },
     withdrawalID: {
         getTitle: getFilterDisplayTitle,
         description: 'common.withdrawalID' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID),
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_ID),
     },
     tag: {
         getTitle: getFilterDisplayTitle,
@@ -213,7 +213,7 @@ const baseFilterConfig = {
     policyID: {
         getTitle: getFilterWorkspaceDisplayTitle,
         description: 'workspace.common.workspace' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID),
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID),
     },
 };
 
