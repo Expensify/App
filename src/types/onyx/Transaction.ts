@@ -594,7 +594,7 @@ type TransactionCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION
 /** Transaction that is not associated with any report */
 type UnreportedTransaction = Omit<Transaction, 'reportID'> & {
     /** The ID of the report that this transaction is associated with. */
-    reportID: "0";
+    reportID: '0';
 };
 
 export default Transaction;

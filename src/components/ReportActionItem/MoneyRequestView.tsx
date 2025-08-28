@@ -1,16 +1,16 @@
-import { Str } from 'expensify-common';
+import {Str} from 'expensify-common';
 import mapValues from 'lodash/mapValues';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View } from 'react-native';
-import type { OnyxCollection, OnyxEntry } from 'react-native-onyx';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import { usePolicyCategories, usePolicyTags } from '@components/OnyxListItemProvider';
-import ReceiptAudit, { ReceiptAuditMessages } from '@components/ReceiptAudit';
+import {usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvider';
+import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -27,37 +27,71 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import useViolations from '@hooks/useViolations';
-import type { ViolationField } from '@hooks/useViolations';
-import { getCompanyCardDescription } from '@libs/CardUtils';
-import { isCategoryMissing } from '@libs/CategoryUtils';
-import { convertToDisplayString } from '@libs/CurrencyUtils';
+import type {ViolationField} from '@hooks/useViolations';
+import {getCompanyCardDescription} from '@libs/CardUtils';
+import {isCategoryMissing} from '@libs/CategoryUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import { isReceiptError } from '@libs/ErrorUtils';
+import {isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import { hasEnabledOptions } from '@libs/OptionsListUtils';
-import { getLengthOfTag, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled } from '@libs/PolicyUtils';
-import { getThumbnailAndImageURIs } from '@libs/ReceiptUtils';
-import { getOriginalMessage, isMoneyRequestAction, isPayAction } from '@libs/ReportActionsUtils';
-import { canEditFieldOfMoneyRequest, canEditMoneyRequest, canUserPerformWriteAction as canUserPerformWriteActionReportUtils, getCreationReportErrors, getReportName, getTransactionDetails, getTripIDFromTransactionParentReportID, isInvoiceReport, isPaidGroupPolicy, isReportApproved, isReportInGroupPolicy, isSettled as isSettledReportUtils, isTrackExpenseReport } from '@libs/ReportUtils';
-import type { TransactionDetails } from '@libs/ReportUtils';
-import { hasEnabledTags } from '@libs/TagsOptionsListUtils';
-import { didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils, getAmount, getBillable, getCurrency, getDescription, getDistanceInMeters, getReimbursable, getTagForDisplay, getTaxName, hasMissingSmartscanFields, hasReceipt as hasReceiptTransactionUtils, hasReservationList, hasRoute as hasRouteTransactionUtils, isCardTransaction as isCardTransactionTransactionUtils, isDistanceRequest as isDistanceRequestTransactionUtils, isExpenseSplit, isExpenseUnreported as isExpenseUnreportedTransactionUtils, isPerDiemRequest as isPerDiemRequestTransactionUtils, isScanning, shouldShowAttendees as shouldShowAttendeesTransactionUtils } from '@libs/TransactionUtils';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import {getLengthOfTag, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
+import {getOriginalMessage, isMoneyRequestAction, isPayAction} from '@libs/ReportActionsUtils';
+import {
+    canEditFieldOfMoneyRequest,
+    canEditMoneyRequest,
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    getCreationReportErrors,
+    getReportName,
+    getTransactionDetails,
+    getTripIDFromTransactionParentReportID,
+    isInvoiceReport,
+    isPaidGroupPolicy,
+    isReportApproved,
+    isReportInGroupPolicy,
+    isSettled as isSettledReportUtils,
+    isTrackExpenseReport,
+} from '@libs/ReportUtils';
+import type {TransactionDetails} from '@libs/ReportUtils';
+import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {
+    didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
+    getAmount,
+    getBillable,
+    getCurrency,
+    getDescription,
+    getDistanceInMeters,
+    getReimbursable,
+    getTagForDisplay,
+    getTaxName,
+    hasMissingSmartscanFields,
+    hasReceipt as hasReceiptTransactionUtils,
+    hasReservationList,
+    hasRoute as hasRouteTransactionUtils,
+    isCardTransaction as isCardTransactionTransactionUtils,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
+    isExpenseSplit,
+    isExpenseUnreported as isExpenseUnreportedTransactionUtils,
+    isPerDiemRequest as isPerDiemRequestTransactionUtils,
+    isScanning,
+    shouldShowAttendees as shouldShowAttendeesTransactionUtils,
+} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
-import { cleanUpMoneyRequest, updateMoneyRequestBillable, updateMoneyRequestReimbursable } from '@userActions/IOU';
-import { navigateToConciergeChatAndDeleteReport } from '@userActions/Report';
-import { clearAllRelatedReportActionErrors } from '@userActions/ReportActions';
-import { clearError, getLastModifiedExpense, revert } from '@userActions/Transaction';
+import {cleanUpMoneyRequest, updateMoneyRequestBillable, updateMoneyRequestReimbursable} from '@userActions/IOU';
+import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
+import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
+import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
 import CONST from '@src/CONST';
-import type { TranslationPaths } from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type { TransactionPendingFieldsKey } from '@src/types/onyx/Transaction';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ReportActionItemImage from './ReportActionItemImage';
-
 
 type MoneyRequestViewProps = {
     /** All the data of the report collection */

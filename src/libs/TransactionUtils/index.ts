@@ -1884,7 +1884,7 @@ function createUnreportedExpenseSections(transactions: Array<Transaction | undef
 }
 
 function isExpenseUnreported(transaction?: Transaction): transaction is UnreportedTransaction {
-    return transaction?.reportID === "0";
+    return transaction?.reportID === '0';
 }
 
 export {
