@@ -675,11 +675,8 @@ function AuthScreens() {
                 />
                 <RootStack.Screen
                     name={SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW}
-                    options={{
-                        headerShown: false,
-                        presentation: Presentation.TRANSPARENT_MODAL,
-                    }}
-                    getComponent={loadReceiptView}
+                    options={attachmentModalScreenOptions}
+                    getComponent={loadAttachmentModalScreen}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
