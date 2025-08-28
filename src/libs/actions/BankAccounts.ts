@@ -8,6 +8,7 @@ import type {
     BankAccountHandlePlaidErrorParams,
     ConnectBankAccountParams,
     DeletePaymentBankAccountParams,
+    EnableGlobalReimbursementsForUSDBankAccountParams,
     FinishCorpayBankAccountOnboardingParams,
     OpenReimbursementAccountPageParams,
     SaveCorpayOnboardingBeneficialOwnerParams,
@@ -897,6 +898,48 @@ function sendReminderForCorpaySignerInformation(parameters: SendReminderForCorpa
     return API.write(WRITE_COMMANDS.SEND_REMINDER_FOR_CORPAY_SINGER_INFORMATION, parameters, onyxData);
 }
 
+function enableGlobalReimbursementsForUSDBankAccount(parameters: EnableGlobalReimbursementsForUSDBankAccountParams) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS,
+                value: {
+                    isEnablingGlobalReimbursements: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS,
+                value: {
+                    isEnablingGlobalReimbursements: false,
+                    isSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS,
+                value: {
+                    isEnablingGlobalReimbursements: false,
+                    isSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
+    };
+
+    return API.write(WRITE_COMMANDS.ENABLE_GLOBAL_REIMBURSEMENTS_FOR_USD_BANK_ACCOUNT, parameters, onyxData);
+}
+
+function clearEnableGlobalReimbursementsForUSDBankAccount() {
+    Onyx.merge(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS, {isSuccess: null, isEnablingGlobalReimbursements: null});
+}
+
 function clearCorpayBankAccountFields() {
     Onyx.set(ONYXKEYS.CORPAY_FIELDS, null);
 }
@@ -1260,6 +1303,8 @@ export {
     clearCorpayBankAccountFields,
     finishCorpayBankAccountOnboarding,
     clearReimbursementAccountFinishCorpayBankAccountOnboarding,
+    enableGlobalReimbursementsForUSDBankAccount,
+    clearEnableGlobalReimbursementsForUSDBankAccount,
     askForCorpaySignerInformation,
     clearReimbursementAccount,
     clearEnterSignerInformationFormSave,

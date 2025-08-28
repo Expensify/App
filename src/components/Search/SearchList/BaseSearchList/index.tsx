@@ -14,6 +14,7 @@ const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<Se
 
 function BaseSearchList({
     data,
+    columns,
     renderItem,
     onSelectRow,
     keyExtractor,
@@ -103,7 +104,7 @@ function BaseSearchList({
         return () => removeKeyDownPressListener(setHasKeyBeenPressed);
     }, [setHasKeyBeenPressed]);
 
-    const extraData = useMemo(() => [focusedIndex, isFocused], [focusedIndex, isFocused]);
+    const extraData = useMemo(() => [focusedIndex, isFocused, columns], [focusedIndex, isFocused, columns]);
 
     return (
         <AnimatedFlashListComponent

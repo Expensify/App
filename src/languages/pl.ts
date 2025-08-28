@@ -656,6 +656,7 @@ const translations = {
         forwardTo: 'Przekaż do',
         merge: 'Scal',
         unstableInternetConnection: 'Niestabilne połączenie internetowe. Sprawdź swoją sieć i spróbuj ponownie.',
+        enableGlobalReimbursements: 'Włącz globalne zwroty',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
