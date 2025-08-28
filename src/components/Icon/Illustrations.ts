@@ -51,7 +51,7 @@ import JewelBoxGreen from '@assets/images/product-illustrations/jewel-box--green
 import JewelBoxPink from '@assets/images/product-illustrations/jewel-box--pink.svg';
 import JewelBoxYellow from '@assets/images/product-illustrations/jewel-box--yellow.svg';
 import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
-import ModalHoldOrDecline from '@assets/images/product-illustrations/modal-hold-or-decline.svg';
+import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import MoneyEnvelopeBlue from '@assets/images/product-illustrations/money-envelope--blue.svg';
 import MoneyMousePink from '@assets/images/product-illustrations/money-mouse--pink.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
@@ -328,7 +328,7 @@ export {
     Flash,
     ExpensifyMobileApp,
     ReportReceipt,
-    ModalHoldOrDecline,
+    ModalHoldOrReject,
     ThumbsDown,
     PlaidCompanyCardDetailLarge,
     PlaidCompanyCardDetail,

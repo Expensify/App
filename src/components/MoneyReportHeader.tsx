@@ -108,7 +108,7 @@ import DecisionModal from './DecisionModal';
 import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 import Header from './Header';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import HoldOrDeclineEducationalModal from './HoldOrDeclineEducationalModal';
+import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
@@ -1403,7 +1403,7 @@ function MoneyReportHeader({
                 onClose={() => setIsDownloadErrorModalVisible(false)}
             />
             {!!isDeclineEducationalModalVisible && (
-                <HoldOrDeclineEducationalModal
+                <HoldOrRejectEducationalModal
                     onClose={dismissModalAndUpdateUseDecline}
                     onConfirm={dismissModalAndUpdateUseDecline}
                 />

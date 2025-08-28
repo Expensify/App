@@ -43,7 +43,7 @@ const menuSections: SectionMenuItem[] = [
     },
 ];
 
-function HoldOrDeclineEducationalModal({onClose, onConfirm}: HoldOrDeclineEducationalModalProps) {
+function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrDeclineEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -54,7 +54,7 @@ function HoldOrDeclineEducationalModal({onClose, onConfirm}: HoldOrDeclineEducat
             title={translate('iou.reject.educationalTitle')}
             description={translate('iou.reject.educationalText')}
             confirmText={translate('common.buttonConfirm')}
-            image={Illustrations.ModalHoldOrDecline}
+            image={Illustrations.ModalHoldOrReject}
             contentFitImage="cover"
             width={variables.holdEducationModalWidth}
             illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
@@ -85,6 +85,6 @@ function HoldOrDeclineEducationalModal({onClose, onConfirm}: HoldOrDeclineEducat
     );
 }
 
-HoldOrDeclineEducationalModal.displayName = 'HoldOrDeclineEducationalModal';
+HoldOrRejectEducationalModal.displayName = 'HoldOrRejectEducationalModal';
 
-export default HoldOrDeclineEducationalModal;
+export default HoldOrRejectEducationalModal;

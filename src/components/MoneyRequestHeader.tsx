@@ -46,7 +46,7 @@ import ConfirmModal from './ConfirmModal';
 import DecisionModal from './DecisionModal';
 import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import HoldOrDeclineEducationalModal from './HoldOrDeclineEducationalModal';
+import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import LoadingBar from './LoadingBar';
@@ -421,7 +421,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 shouldEnableNewFocusManagement
             />
             {!!isDeclineEducationalModalVisible && (
-                <HoldOrDeclineEducationalModal
+                <HoldOrRejectEducationalModal
                     onClose={dismissModalAndUpdateUseDecline}
                     onConfirm={dismissModalAndUpdateUseDecline}
                 />
