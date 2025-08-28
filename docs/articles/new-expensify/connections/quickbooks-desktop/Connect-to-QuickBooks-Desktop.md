@@ -38,7 +38,7 @@ To connect QuickBooks Desktop to Expensify, you must log in as an Admin in Quick
 
 ---
 
-# Step 3: Authorize and Finalize the Connection\
+# Step 3: Authorize and Finalize the Connection
 
 1. In QuickBooks Desktop, select **Yes, always allow access, even when QuickBooks is not running**, then click **Continue**  
 2. Click **OK**, then click **Yes**  
