@@ -193,7 +193,7 @@ function StatusPage() {
             <FormProvider
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM}
                 style={[styles.flexGrow1, styles.flex1]}
-                ref={formRef}
+                forwardedRef={formRef}
                 submitButtonText={translate('statusPage.save')}
                 submitButtonStyles={[styles.mh5, styles.flexGrow1]}
                 onSubmit={updateStatus}
