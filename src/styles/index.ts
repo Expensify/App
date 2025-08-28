@@ -3687,18 +3687,6 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
-        popoverMenuOffset: (windowWidth: number) =>
-            ({
-                ...getPopOverVerticalOffset(180),
-                horizontal: windowWidth - 355,
-            }) satisfies AnchorPosition,
-
-        popoverButtonDropdownMenuOffset: (windowWidth: number) =>
-            ({
-                ...getPopOverVerticalOffset(70),
-                horizontal: windowWidth - 20,
-            }) satisfies AnchorPosition,
-
         iPhoneXSafeArea: {
             backgroundColor: theme.appBG,
             flex: 1,
