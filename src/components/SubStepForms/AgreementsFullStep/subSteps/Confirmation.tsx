@@ -2,21 +2,15 @@ import React, {useCallback, useMemo} from 'react';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isRequiredFulfilled} from '@libs/ValidationUtils';
 import requiresDocusignStep from '@pages/ReimbursementAccount/NonUSD/utils/requiresDocusignStep';
-import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
-import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-
-const {AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT, PROVIDE_TRUTHFUL_INFORMATION, AGREE_TO_TERMS_AND_CONDITIONS, CONSENT_TO_PRIVACY_NOTICE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const STEP_FIELDS = [AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT, PROVIDE_TRUTHFUL_INFORMATION, AGREE_TO_TERMS_AND_CONDITIONS, CONSENT_TO_PRIVACY_NOTICE];
+import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
 function IsAuthorizedToUseBankAccountLabel() {
     const {translate} = useLocalize();
@@ -38,95 +32,110 @@ function ConsentToPrivacyNoticeLabel() {
     return <RenderHTML html={translate('agreementsStep.iConsentToThePrivacyNotice')} />;
 }
 
-const INPUT_KEYS = {
-    PROVIDE_TRUTHFUL_INFORMATION: INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION,
-    AGREE_TO_TERMS_AND_CONDITIONS: INPUT_IDS.ADDITIONAL_DATA.CORPAY.AGREE_TO_TERMS_AND_CONDITIONS,
-    CONSENT_TO_PRIVACY_NOTICE: INPUT_IDS.ADDITIONAL_DATA.CORPAY.CONSENT_TO_PRIVACY_NOTICE,
-    AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT: INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT,
+type ConfirmationProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
+    /** Default values for inputs */
+    defaultValues: Partial<Record<FormOnyxKeys<TFormID>, boolean>>;
+
+    /** The ID of the form */
+    formID: TFormID;
+
+    /** Input IDs for field in the form */
+    inputIDs: {
+        provideTruthfulInformation: FormOnyxKeys<TFormID>;
+        agreeToTermsAndConditions: FormOnyxKeys<TFormID>;
+        consentToPrivacyNotice: FormOnyxKeys<TFormID>;
+        authorizedToBindClientToAgreement: FormOnyxKeys<TFormID>;
+    };
+
+    /** Indicates that action is being processed */
+    isLoading: boolean;
+
+    /** Currency of related account */
+    currency: string;
 };
 
-type ConfirmationProps = SubStepProps & {
-    policyCurrency: string | undefined;
-};
-
-function Confirmation({onNext, policyCurrency}: ConfirmationProps) {
+function Confirmation<TFormID extends keyof OnyxFormValuesMapping>({defaultValues, formID, inputIDs, isLoading, onNext, currency}: ConfirmationProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
-    const agreementsStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-    const isDocusignStepRequired = requiresDocusignStep(policyCurrency);
+    const isDocusignStepRequired = requiresDocusignStep(currency);
+
+    const stepFields = useMemo(
+        () => [inputIDs.authorizedToBindClientToAgreement, inputIDs.provideTruthfulInformation, inputIDs.agreeToTermsAndConditions, inputIDs.consentToPrivacyNotice],
+        [inputIDs],
+    );
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+        (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
+            const errors = getFieldRequiredErrors(values, stepFields);
 
-            if (!isRequiredFulfilled(values[AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT])) {
-                errors[AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT] = translate('agreementsStep.error.authorized');
+            if (!isRequiredFulfilled(values[inputIDs.authorizedToBindClientToAgreement] as string)) {
+                errors[inputIDs.authorizedToBindClientToAgreement] = translate('agreementsStep.error.authorized');
             }
 
-            if (!isRequiredFulfilled(values[PROVIDE_TRUTHFUL_INFORMATION])) {
-                errors[PROVIDE_TRUTHFUL_INFORMATION] = translate('agreementsStep.error.certify');
+            if (!isRequiredFulfilled(values[inputIDs.provideTruthfulInformation] as string)) {
+                errors[inputIDs.provideTruthfulInformation] = translate('agreementsStep.error.certify');
             }
 
-            if (!isRequiredFulfilled(values[AGREE_TO_TERMS_AND_CONDITIONS])) {
-                errors[AGREE_TO_TERMS_AND_CONDITIONS] = translate('common.error.acceptTerms');
+            if (!isRequiredFulfilled(values[inputIDs.agreeToTermsAndConditions] as string)) {
+                errors[inputIDs.agreeToTermsAndConditions] = translate('common.error.acceptTerms');
             }
 
-            if (!isRequiredFulfilled(values[CONSENT_TO_PRIVACY_NOTICE])) {
-                errors[CONSENT_TO_PRIVACY_NOTICE] = translate('agreementsStep.error.consent');
+            if (!isRequiredFulfilled(values[inputIDs.consentToPrivacyNotice] as string)) {
+                errors[inputIDs.consentToPrivacyNotice] = translate('agreementsStep.error.consent');
             }
 
             return errors;
         },
-        [translate],
+        [inputIDs.agreeToTermsAndConditions, inputIDs.authorizedToBindClientToAgreement, inputIDs.consentToPrivacyNotice, inputIDs.provideTruthfulInformation, stepFields, translate],
     );
 
     return (
         <FormProvider
-            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+            formID={formID}
             onSubmit={onNext}
             validate={validate}
             submitButtonText={isDocusignStepRequired ? translate('common.confirm') : translate('agreementsStep.accept')}
             style={[styles.mh5, styles.flexGrow1]}
+            enabledWhenOffline={false}
+            isLoading={isLoading}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('agreementsStep.pleaseConfirm')}</Text>
             {!isDocusignStepRequired && <Text style={[styles.pv3, styles.textSupporting]}>{translate('agreementsStep.regulationRequiresUs')}</Text>}
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
                 accessibilityLabel={translate('agreementsStep.iAmAuthorized')}
-                inputID={AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT}
+                inputID={inputIDs.authorizedToBindClientToAgreement as string}
                 style={styles.mt6}
                 LabelComponent={IsAuthorizedToUseBankAccountLabel}
-                defaultValue={agreementsStepValues[AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT]}
+                defaultValue={defaultValues[inputIDs.authorizedToBindClientToAgreement]}
                 shouldSaveDraft
             />
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
                 accessibilityLabel={translate('agreementsStep.iCertify')}
-                inputID={PROVIDE_TRUTHFUL_INFORMATION}
+                inputID={inputIDs.provideTruthfulInformation as string}
                 style={styles.mt6}
                 LabelComponent={CertifyTrueAndAccurateLabel}
-                defaultValue={agreementsStepValues[PROVIDE_TRUTHFUL_INFORMATION]}
+                defaultValue={defaultValues[inputIDs.provideTruthfulInformation]}
                 shouldSaveDraft
             />
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
                 accessibilityLabel={translate('agreementsStep.iAcceptTheTermsAndConditionsAccessibility')}
-                inputID={AGREE_TO_TERMS_AND_CONDITIONS}
+                inputID={inputIDs.agreeToTermsAndConditions as string}
                 style={styles.mt6}
                 LabelComponent={TermsAndConditionsLabel}
-                defaultValue={agreementsStepValues[AGREE_TO_TERMS_AND_CONDITIONS]}
+                defaultValue={defaultValues[inputIDs.agreeToTermsAndConditions]}
                 shouldSaveDraft
             />
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
                 accessibilityLabel={translate('agreementsStep.iConsentToThePrivacyNoticeAccessibility')}
-                inputID={CONSENT_TO_PRIVACY_NOTICE}
+                inputID={inputIDs.consentToPrivacyNotice as string}
                 style={styles.mt6}
                 LabelComponent={ConsentToPrivacyNoticeLabel}
-                defaultValue={agreementsStepValues[CONSENT_TO_PRIVACY_NOTICE]}
+                defaultValue={defaultValues[inputIDs.consentToPrivacyNotice]}
                 shouldSaveDraft
             />
         </FormProvider>
