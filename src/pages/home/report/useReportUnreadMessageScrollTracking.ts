@@ -1,5 +1,5 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -20,6 +20,9 @@ type Args = {
     /** The index of the unread report action */
     unreadMarkerReportActionIndex: number;
 
+    /** Whether the report has newer actions to load */
+    hasNewerActions: boolean;
+
     /** Callback to call on every scroll event */
     onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 };
@@ -27,6 +30,7 @@ type Args = {
 export default function useReportUnreadMessageScrollTracking({
     reportID,
     currentVerticalScrollingOffsetRef,
+    hasNewerActions,
     readActionSkippedRef,
     onTrackScrolling,
     unreadMarkerReportActionIndex,
@@ -50,23 +54,24 @@ export default function useReportUnreadMessageScrollTracking({
         if (event) {
             onTrackScrolling(event);
         }
+
         const hasUnreadMarkerReportAction = unreadMarkerReportActionIndex !== -1;
 
-        // display floating button if we're scrolled more than the offset
-        if (
-            currentVerticalScrollingOffsetRef.current > CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
-            !isFloatingMessageCounterVisible &&
-            !hasUnreadMarkerReportAction
-        ) {
+        const isScrolledToEnd = currentVerticalScrollingOffsetRef.current <= CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD;
+
+        // When we have an unread message, display floating button if we're scrolled more than the offset
+        if (!isScrolledToEnd && !hasUnreadMarkerReportAction && !isFloatingMessageCounterVisible) {
             setIsFloatingMessageCounterVisible(true);
         }
 
-        // hide floating button if we're scrolled closer than the offset
-        if (
-            currentVerticalScrollingOffsetRef.current < CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
-            isFloatingMessageCounterVisible &&
-            !hasUnreadMarkerReportAction
-        ) {
+        // Hide floating button if we're scrolled closer than the offset and mark message as read
+        if (isScrolledToEnd && !hasUnreadMarkerReportAction && isFloatingMessageCounterVisible && !hasNewerActions) {
+            if (readActionSkippedRef.current) {
+                // eslint-disable-next-line react-compiler/react-compiler,no-param-reassign
+                readActionSkippedRef.current = false;
+                readNewestAction(reportID);
+            }
+
             setIsFloatingMessageCounterVisible(false);
         }
     };
