@@ -168,7 +168,7 @@ const baseFilterConfig = {
     withdrawalID: {
         getTitle: getFilterDisplayTitle,
         description: 'common.withdrawalID' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_WITHDRAWAL_ID,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID),
     },
     tag: {
         getTitle: getFilterDisplayTitle,
