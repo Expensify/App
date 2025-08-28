@@ -11,7 +11,7 @@ Automatically generate standardized report titles across your workspace using fo
 
 # Customize Report Titles Using Formulas
 
-**Navigation:**
+**To set a custom report title on your workspace:**
 1. Head to **Settings > Workspace > [Workspace Name] > Rules**.
 2. Scroll to **Custom Report Names**.
 3. Configure the title formula using your preferred formulas (see below).
