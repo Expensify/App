@@ -21,7 +21,7 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
-function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration: OnyxEntry<BetaConfiguration>): boolean {
+function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?: OnyxEntry<BetaConfiguration>): boolean {
     const hasAllBetasEnabled = canUseAllBetas(betas);
     const isFeatureEnabled = !!betas?.includes(beta);
 
