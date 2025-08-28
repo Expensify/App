@@ -57,7 +57,7 @@ const columnConfig: ColumnConfig[] = [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-        translationKey: 'common.total',
+        translationKey: 'iou.amount',
     },
 ];
 

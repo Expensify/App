@@ -1,39 +1,34 @@
 import React from 'react';
 import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
+import useEnterSignerInfoStepFormSubmit from '@hooks/useEnterSignerInfoStepFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import WhyLink from '@pages/ReimbursementAccount/WhyLink';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 
-type DateOfBirthProps = SubStepProps;
-
-const {SIGNER_DATE_OF_BIRTH} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-
-function DateOfBirth({onNext, onMove, isEditing}: DateOfBirthProps) {
+function DateOfBirth({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const inputID = SIGNER_DATE_OF_BIRTH;
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
-    const defaultValue = reimbursementAccount?.achData?.corpay?.[inputID] ?? reimbursementAccountDraft?.[inputID] ?? '';
+    const inputID = INPUT_IDS.SIGNER_DATE_OF_BIRTH;
+    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT, {canBeMissing: false});
+    const defaultValue = enterSignerInfoFormDraft?.[inputID] ?? '';
 
-    const handleSubmit = useReimbursementAccountStepFormSubmit({
+    const handleSubmit = useEnterSignerInfoStepFormSubmit({
         fieldIds: [inputID],
         onNext,
         shouldSaveDraft: isEditing,
     });
 
     return (
-        <DateOfBirthStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
+        <DateOfBirthStep<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>
             isEditing={isEditing}
             onNext={onNext}
             onMove={onMove}
-            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+            formID={ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM}
             formTitle={translate('signerInfoStep.whatsYourDOB')}
             onSubmit={handleSubmit}
             stepFields={[inputID]}
