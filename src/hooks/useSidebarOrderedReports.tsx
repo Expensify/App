@@ -10,6 +10,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import useCurrentReportID from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDeepCompareRef from './useDeepCompareRef';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
@@ -24,6 +25,7 @@ type SidebarOrderedReportsContextProviderProps = {
 
 type SidebarOrderedReportsContextValue = {
     orderedReports: OnyxTypes.Report[];
+    orderedReportIDs: string[];
     currentReportID: string | undefined;
     policyMemberAccountIDs: number[];
 };
@@ -32,6 +34,7 @@ type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherTh
 
 const SidebarOrderedReportsContext = createContext<SidebarOrderedReportsContextValue>({
     orderedReports: [],
+    orderedReportIDs: [],
     currentReportID: '',
     policyMemberAccountIDs: [],
 });
@@ -172,12 +175,14 @@ function SidebarOrderedReportsContextProvider({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, policies, transactionViolations, reportNameValuePairs, reportAttributes]);
 
+    const deepComparedReportsToDisplayInLHN = useDeepCompareRef(reportsToDisplayInLHN);
+
     useEffect(() => {
         setCurrentReportsToDisplay(reportsToDisplayInLHN);
     }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
-        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, reportNameValuePairs, reportAttributes),
+        () => SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, reportNameValuePairs, reportAttributes),
         // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [reportsToDisplayInLHN, localeCompare],
@@ -218,6 +223,7 @@ function SidebarOrderedReportsContextProvider({
             const updatedReports = getOrderedReports(updatedReportIDs);
             return {
                 orderedReports: updatedReports,
+                orderedReportIDs: updatedReportIDs,
                 currentReportID: derivedCurrentReportID,
                 policyMemberAccountIDs,
             };
@@ -225,6 +231,7 @@ function SidebarOrderedReportsContextProvider({
 
         return {
             orderedReports,
+            orderedReportIDs,
             currentReportID: derivedCurrentReportID,
             policyMemberAccountIDs,
         };

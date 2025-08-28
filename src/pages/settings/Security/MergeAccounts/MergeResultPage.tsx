@@ -17,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import closeReactNativeApp from '@userActions/HybridApp';
+import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openOldDotLink} from '@userActions/Link';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -115,7 +115,7 @@ function MergeResultPage() {
                 secondaryButtonText: translate('mergeAccountsPage.mergePendingSAML.goToExpensifyClassic'),
                 onSecondaryButtonPress: () => {
                     if (CONFIG.IS_HYBRID_APP) {
-                        closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+                        closeReactNativeApp({shouldSetNVP: true});
                         return;
                     }
                     openOldDotLink(CONST.OLDDOT_URLS.INBOX, false);
