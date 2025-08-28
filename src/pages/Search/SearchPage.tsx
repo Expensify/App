@@ -667,11 +667,11 @@ function SearchPage({route}: SearchPageProps) {
     }, []);
 
     const footerResults = useMemo(() => {
-        const count = selectedTransactionsKeys.length || metadata?.count;
+        const count = selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected ? selectedTransactionsKeys.length : metadata?.count;
         const total =
-            selectedTransactionsKeys.length > 0
+            selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected
                 ? Object.values(selectedTransactions).reduce((acc, transaction) => {
-                      acc += transaction.convertedAmount;
+                      acc += -transaction.convertedAmount;
                       return acc;
                   }, 0)
                 : metadata?.total;
@@ -681,7 +681,7 @@ function SearchPage({route}: SearchPageProps) {
             total,
             currency: metadata?.currency,
         };
-    }, [metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);
+    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);
 
     if (shouldUseNarrowLayout) {
         return (
