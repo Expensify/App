@@ -34,7 +34,7 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
         );
     }
 
-    if (route.name === SCREENS.TRANSACTION_RECEIPT) {
+    if (route.name === SCREENS.TRANSACTION_RECEIPT || route.name === SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW) {
         return (
             <TransactionReceiptModalContent
                 route={{...route, params: paramsWithContext}}

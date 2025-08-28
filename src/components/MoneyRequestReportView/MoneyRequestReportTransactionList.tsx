@@ -7,8 +7,9 @@ import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
+import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLocalize from '@hooks/useLocalize';
@@ -21,17 +22,19 @@ import {setActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavi
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
-import {compareValues, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {generateReportID, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import MoneyRequestReportTotalSpend from './MoneyRequestReportTotalSpend';
@@ -73,6 +76,8 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
 ];
 
+type ReportScreenNavigationProps = ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+
 type SortableColumnName = TupleToUnion<typeof sortableColumnNames>;
 
 type SortedTransactions = {
@@ -110,6 +115,7 @@ function MoneyRequestReportTransactionList({
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
+    const session = useSession();
 
     const hasPendingAction = useMemo(() => {
         return transactions.some(getTransactionPendingAction);
@@ -160,21 +166,36 @@ function MoneyRequestReportTransactionList({
             }));
     }, [newTransactions, sortBy, sortOrder, transactions, localeCompare]);
 
+    const columnsToShow = useMemo(() => {
+        const columns = getColumnsToShow(session?.accountID, transactions, true);
+        return (Object.keys(columns) as SearchColumnType[]).filter((column) => columns[column]);
+    }, [transactions, session?.accountID]);
+
+    /**
+     * Navigate to the transaction thread for a transaction, creating one optimistically if it doesn't yet exist.
+     */
     const navigateToTransaction = useCallback(
         (activeTransactionID: string) => {
             const iouAction = getIOUActionForTransactionID(reportActions, activeTransactionID);
-            const reportIDToNavigate = iouAction?.childReportID;
-            if (!reportIDToNavigate) {
-                return;
-            }
-
             const backTo = Navigation.getActiveRoute();
+            const reportIDToNavigate = iouAction?.childReportID ?? generateReportID();
+
+            const routeParams = {
+                reportID: reportIDToNavigate,
+                backTo,
+            } as ReportScreenNavigationProps;
+
+            if (!iouAction?.childReportID) {
+                routeParams.moneyRequestReportActionID = iouAction?.reportActionID;
+                routeParams.transactionID = activeTransactionID;
+                routeParams.iouReportID = isMoneyRequestAction(iouAction) ? getOriginalMessage(iouAction)?.IOUReportID : undefined;
+            }
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigation
             const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
             setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs).then(() => {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
             });
         },
         [reportActions, sortedTransactions],
@@ -262,6 +283,7 @@ function MoneyRequestReportTransactionList({
                             shouldShowSorting
                             sortBy={sortBy}
                             sortOrder={sortOrder}
+                            columns={columnsToShow}
                             dateColumnSize={dateColumnSize}
                             amountColumnSize={amountColumnSize}
                             taxAmountColumnSize={taxAmountColumnSize}
@@ -272,7 +294,6 @@ function MoneyRequestReportTransactionList({
 
                                 setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
                             }}
-                            isIOUReport={isIOUReport(report)}
                         />
                     )}
                 </View>
@@ -283,6 +304,7 @@ function MoneyRequestReportTransactionList({
                         <MoneyRequestReportTransactionItem
                             key={transaction.transactionID}
                             transaction={transaction}
+                            columns={columnsToShow}
                             report={report}
                             isSelectionModeEnabled={isMobileSelectionModeEnabled}
                             toggleTransaction={toggleTransaction}

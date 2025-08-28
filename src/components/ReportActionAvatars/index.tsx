@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeed, ReportAction} from '@src/types/onyx';
+import type {CompanyCardFeed, InvitedEmailsToAccountIDs, ReportAction} from '@src/types/onyx';
 import type {HorizontalStacking} from './ReportActionAvatar';
 import ReportActionAvatar from './ReportActionAvatar';
 import useReportActionAvatars from './useReportActionAvatars';
@@ -57,6 +57,9 @@ type ReportActionAvatarsProps = {
 
     /** Display name used as a fallback for avatar tooltip */
     fallbackDisplayName?: string;
+
+    /** Invited emails to account IDs */
+    invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
 };
 
 /**
@@ -85,6 +88,7 @@ function ReportActionAvatars({
     isInReportAction = false,
     useProfileNavigationWrapper,
     fallbackDisplayName,
+    invitedEmailsToAccountIDs,
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
 
@@ -113,6 +117,7 @@ function ReportActionAvatars({
         accountIDs,
         policyID,
         fallbackDisplayName,
+        invitedEmailsToAccountIDs,
     });
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = notPreciseAvatarType;
@@ -127,7 +132,7 @@ function ReportActionAvatars({
 
     const [primaryAvatar, secondaryAvatar] = icons;
 
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && !!secondaryAvatar?.name) {
+    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && (!!secondaryAvatar?.name || !!subscriptCardFeed)) {
         return (
             <ReportActionAvatar.Subscript
                 primaryAvatar={primaryAvatar}
@@ -139,6 +144,7 @@ function ReportActionAvatars({
                 subscriptCardFeed={subscriptCardFeed}
                 useProfileNavigationWrapper={useProfileNavigationWrapper}
                 fallbackDisplayName={fallbackDisplayName}
+                reportID={reportID}
             />
         );
     }
@@ -154,6 +160,7 @@ function ReportActionAvatars({
                 shouldShowTooltip={shouldShowTooltip}
                 useProfileNavigationWrapper={useProfileNavigationWrapper}
                 fallbackDisplayName={fallbackDisplayName}
+                reportID={reportID}
             />
         );
     }
@@ -170,6 +177,7 @@ function ReportActionAvatars({
                 isHovered={isHovered}
                 fallbackDisplayName={fallbackDisplayName}
                 useProfileNavigationWrapper={useProfileNavigationWrapper}
+                reportID={reportID}
             />
         );
     }
@@ -185,6 +193,7 @@ function ReportActionAvatars({
             fallbackIcon={primaryAvatar.fallbackIcon}
             fallbackDisplayName={fallbackDisplayName}
             useProfileNavigationWrapper={useProfileNavigationWrapper}
+            reportID={reportID}
         />
     );
 }

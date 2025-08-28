@@ -157,15 +157,43 @@ type UberReceiptPartner = {
          */
         requestID?: string;
     };
+    /**
+     * auto invite for uber connection
+     */
+    autoInvite?: boolean;
+    /**
+     * auto remove for uber connection
+     */
+    autoRemove?: boolean;
+    /**
+     * organization id for connected uber
+     */
+    organizationID?: string;
+
+    /**
+     * Mapping of workspace member email to Uber employee status
+     */
+    employees?: Record<
+        string,
+        {
+            /**
+             * status of the employee
+             */
+            status?: string;
+        }
+    >;
+    /**
+     * Collection of errors coming from BE
+     */
+    errors?: OnyxCommon.Errors;
+    /**
+     * Collection of form field errors
+     */
+    errorFields?: OnyxCommon.ErrorFields;
 };
 
 /** Policy Receipt partners */
-type ReceiptPartners = {
-    /**
-     * uber partner
-     */
-    [CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER]: UberReceiptPartner;
-};
+type ReceiptPartners = Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<UberReceiptPartner>>;
 
 /** Policy disabled fields */
 type DisabledFields = {
@@ -1798,6 +1826,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether transactions should be billable by default */
         defaultBillable?: boolean;
+
+        /** Whether transactions should be reimbursable by default */
+        defaultReimbursable?: boolean;
 
         /** The workspace description */
         description?: string;
