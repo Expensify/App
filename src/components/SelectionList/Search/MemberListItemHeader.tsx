@@ -29,9 +29,12 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
+
+    /** Whether to show the action cell */
+    shouldShowAction?: boolean;
 };
 
-function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onSelectRow, onCheckboxPress, isDisabled, canSelectMultiple}: MemberListItemHeaderProps<TItem>) {
+function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onSelectRow, onCheckboxPress, isDisabled, canSelectMultiple, shouldShowAction = false}: MemberListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -40,7 +43,6 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onSel
         () => [formatPhoneNumber(getDisplayNameOrDefault(memberItem)), formatPhoneNumber(memberItem.login ?? '')],
         [memberItem, formatPhoneNumber],
     );
-    const shouldShowAction = isLargeScreenWidth;
 
     return (
         <View>

@@ -41,6 +41,7 @@ const SCREENS = {
         ROOT: 'Search_Root',
         MONEY_REQUEST_REPORT: 'Search_Money_Request_Report',
         MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Search_Money_Request_Report_Hold_Transactions',
+        GROUPED_TRANSACTIONS: 'Search_Grouped_Transactions',
         REPORT_RHP: 'Search_Report_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_TYPE_RHP: 'Search_Advanced_Filters_Type_RHP',

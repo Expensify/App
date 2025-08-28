@@ -2209,6 +2209,10 @@ type SearchFullscreenNavigatorParamList = {
         reportID: string;
         backTo?: Routes;
     };
+    [SCREENS.SEARCH.GROUPED_TRANSACTIONS]: {
+        newQuery: string;
+        backTo?: Routes;
+    };
 };
 
 type SearchAdvancedFiltersParamList = {
