@@ -1,35 +1,16 @@
 import React, {createContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
+import getDefaultWideRHPContextValue from './default';
 import type {WideRHPContextType} from './types';
 
 const expandedRHPProgress = new Animated.Value(0);
 const secondOverlayProgress = new Animated.Value(0);
 const receiptPaneRHPWidth = new Animated.Value(0);
 
-const WideRHPContext = createContext<WideRHPContextType>({
-    wideRHPRouteKeys: [],
-    expandedRHPProgress,
-    secondOverlayProgress,
-    shouldRenderSecondaryOverlay: false,
-    showWideRHPVersion: () => {},
-    cleanWideRHPRouteKey: () => {},
-    markReportIDAsExpense: () => {},
-    isReportIDMarkedAsExpense: () => false,
-    dismissToWideReport: () => {},
-});
+const WideRHPContext = createContext<WideRHPContextType>(getDefaultWideRHPContextValue());
 
-const value: WideRHPContextType = {
-    wideRHPRouteKeys: [],
-    expandedRHPProgress,
-    secondOverlayProgress,
-    shouldRenderSecondaryOverlay: false,
-    showWideRHPVersion: () => {},
-    cleanWideRHPRouteKey: () => {},
-    markReportIDAsExpense: () => {},
-    isReportIDMarkedAsExpense: () => false,
-    dismissToWideReport: () => {},
-};
+const value: WideRHPContextType = getDefaultWideRHPContextValue();
 
 function WideRHPContextProvider({children}: React.PropsWithChildren) {
     return <WideRHPContext.Provider value={value}>{children}</WideRHPContext.Provider>;

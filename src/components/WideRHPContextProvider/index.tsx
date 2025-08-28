@@ -8,6 +8,7 @@ import type {NavigationRoute} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import getDefaultWideRHPContextValue from './default';
 import type {WideRHPContextType} from './types';
 
 const expandedRHPProgress = new Animated.Value(0);
@@ -25,17 +26,7 @@ const calculateReceiptPaneRHPWidth = (windowWidth: number) => {
 // This animated value is necessary to have a responsive rhp width for the range 800px to 840px.
 const receiptPaneRHPWidth = new Animated.Value(calculateReceiptPaneRHPWidth(Dimensions.get('window').width));
 
-const WideRHPContext = createContext<WideRHPContextType>({
-    wideRHPRouteKeys: [],
-    expandedRHPProgress,
-    secondOverlayProgress,
-    shouldRenderSecondaryOverlay: false,
-    showWideRHPVersion: () => {},
-    cleanWideRHPRouteKey: () => {},
-    dismissToWideReport: () => {},
-    markReportIDAsExpense: () => {},
-    isReportIDMarkedAsExpense: () => false,
-});
+const WideRHPContext = createContext<WideRHPContextType>(getDefaultWideRHPContextValue());
 
 function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [wideRHPRouteKeys, setWideRHPRouteKeys] = useState<string[]>([]);
@@ -222,4 +213,4 @@ function useShowWideRHPVersion(condition: boolean) {
 
 export default WideRHPContextProvider;
 
-export {expandedRHPProgress, secondOverlayProgress, WideRHPContext, useShowWideRHPVersion, receiptPaneRHPWidth};
+export {expandedRHPProgress, receiptPaneRHPWidth, secondOverlayProgress, useShowWideRHPVersion, WideRHPContext};
