@@ -1,3 +1,4 @@
+import type {NavigatorScreenParams} from '@react-navigation/native';
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 // We use animated because it is used in the react-navigation
 // eslint-disable-next-line no-restricted-imports
@@ -34,11 +35,11 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const screenListeners = useMemo(
         () => ({
             blur: () => {
-                if (
-                    // @ts-expect-error There is something wrong with a types here and it's don't see the params list
-                    navigation.getState().routes.find((routes) => routes.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params?.screen === SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE ||
-                    route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE
-                ) {
+                const rhpParams = navigation.getState().routes.find((innerRoute) => innerRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params as
+                    | NavigatorScreenParams<RightModalNavigatorParamList>
+                    | undefined;
+
+                if (rhpParams?.screen === SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE || route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE) {
                     return;
                 }
                 // Delay clearing review duplicate data till the RHP is completely closed
