@@ -47,7 +47,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import type {ArchivedReportsIDSet, SearchKey} from '@libs/SearchUIUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -235,25 +235,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
     const suggestedSearches = useMemo(() => getSuggestedSearches(defaultCardFeed?.id, accountID), [defaultCardFeed?.id, accountID]);
 
+    const shouldCalculateTotals = offset === 0;
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
     const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
-
-    const shouldCalculateTotals = useMemo(() => {
-        if (offset !== 0) {
-            return false;
-        }
-        if (!searchKey) {
-            return false;
-        }
-
-        const eligibleSearchKeys: Partial<SearchKey[]> = [
-            CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
-            CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
-            CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
-            CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
-        ];
-        return eligibleSearchKeys.includes(searchKey);
-    }, [offset, searchKey]);
 
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(
