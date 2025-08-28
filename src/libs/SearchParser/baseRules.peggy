@@ -70,6 +70,7 @@ assignee = "assignee"i { return "assignee"; }
 createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
 action = "action"i { return "action"; }
 total = "total"i {return "total"; }
+has = "has"i {return "has"; }
 
 // Value transformation rules
 values

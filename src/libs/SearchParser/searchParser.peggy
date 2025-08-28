@@ -146,6 +146,7 @@ key "key"
       / reimbursable
       / billable
       / action
+      / has
     )
 
 filterKey

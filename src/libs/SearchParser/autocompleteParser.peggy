@@ -87,6 +87,7 @@ autocompleteKey "key"
       / exported
       / withdrawn
       / posted
+      / has
     )
 
 filterKey
