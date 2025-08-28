@@ -322,7 +322,7 @@ function NumberWithSymbolForm({
                     if (typeof ref === 'function') {
                         ref(newRef);
                     } else if (ref && 'current' in ref) {
-                        // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
+                        // eslint-disable-next-line no-param-reassign
                         ref.current = newRef;
                     }
                 }}
