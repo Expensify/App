@@ -266,7 +266,6 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
                 newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
             } else {
                 newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID}];
-                selectionListRef?.current?.scrollToIndex(0, true);
             }
 
             selectionListRef?.current?.clearInputAfterSelect?.();
