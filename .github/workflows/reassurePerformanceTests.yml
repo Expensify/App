@@ -54,6 +54,7 @@ jobs:
 
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
           echo "MORWA"
+          git diff --name-only "$COMMIT_HASH" "${{ github.sha }}" || true
           git switch "$BASELINE_BRANCH"
           cd Mobile-Expensify
           git checkout "$(git rev-parse HEAD)"
