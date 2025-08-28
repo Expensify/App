@@ -397,6 +397,7 @@ const translations = {
         contacts: '联系人',
         recents: '最近',
         close: '关闭',
+        comment: '评论',
         download: '下载',
         downloading: '下载中',
         uploading: '上传中',
