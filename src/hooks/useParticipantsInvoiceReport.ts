@@ -32,7 +32,7 @@ function useParticipantsInvoiceReport(receiverID: string | number | undefined, r
         }
     };
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: (c) => mapOnyxCollectionItems(c, reportSelector)});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: (c) => mapOnyxCollectionItems(c, reportSelector)}, [receiverID, receiverType, policyID]);
     const existingInvoiceReport = Object.values(allReports ?? {}).find((report) => !!report);
     const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${existingInvoiceReport?.reportID}`, {
         canBeMissing: true,
