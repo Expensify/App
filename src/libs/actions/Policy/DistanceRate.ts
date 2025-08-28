@@ -17,7 +17,6 @@ import {buildOnyxDataForPolicyDistanceRateUpdates} from '@libs/PolicyDistanceRat
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import type {TransactionViolation} from '@src/types/onyx';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
@@ -48,7 +47,7 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
 }
 
-function enablePolicyDistanceRates(policyID: string, enabled: boolean, customUnit: CustomUnit | undefined, backTo?: Route) {
+function enablePolicyDistanceRates(policyID: string, enabled: boolean, customUnit: CustomUnit | undefined) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -122,7 +121,7 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean, customUni
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        goBackWhenEnableFeature(policyID, backTo);
+        goBackWhenEnableFeature(policyID);
     }
 }
 

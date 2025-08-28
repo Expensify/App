@@ -7,7 +7,6 @@ import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
@@ -637,14 +636,6 @@ function goBackFromInvalidPolicy() {
     Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
 }
 
-function goBackFromPolicyPages(backTo?: Route) {
-    if (backTo) {
-        Navigation.goBack(backTo);
-        return;
-    }
-    Navigation.popToSidebar();
-}
-
 /** Get a tax with given ID from policy */
 function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefined {
     return policy?.taxRates?.taxes?.[taxID];
@@ -1264,9 +1255,9 @@ function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
     return cleanedCustomUnit;
 }
 
-function goBackWhenEnableFeature(policyID: string, backTo?: Route) {
+function goBackWhenEnableFeature(policyID: string) {
     setTimeout(() => {
-        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID, backTo));
+        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
     }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
 }
 
@@ -1697,7 +1688,6 @@ export {
     getPolicyRole,
     hasIndependentTags,
     getLengthOfTag,
-    goBackFromPolicyPages,
     isPolicyMemberWithoutPendingDelete,
     getPolicyEmployeeAccountIDs,
     isMemberPolicyAdmin,

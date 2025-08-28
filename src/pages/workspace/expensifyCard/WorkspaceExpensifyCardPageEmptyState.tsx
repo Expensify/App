@@ -90,7 +90,6 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             showLoadingAsFirstRender={false}
             shouldShowOfflineIndicatorInWideScreen
             addBottomSafeAreaPadding
-            backButtonRoute={route.params.backTo}
         >
             <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <FeatureList
