@@ -1,9 +1,8 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction, TransactionViolation} from '@src/types/onyx';
+import type {TransactionViolation} from '@src/types/onyx';
 
-let previousTransactions: OnyxCollection<Transaction> = {};
 let previousViolations: OnyxCollection<TransactionViolation[]> = {};
 const transactionReportIDMapping: Record<string, string> = {};
 
@@ -78,7 +77,6 @@ export default createOnyxDerivedValueConfig({
             transactionReportIDMapping[transactionKey] = reportID;
         }
 
-        previousTransactions = transactions;
         previousViolations = violations;
 
         return reportTransactionsAndViolations;
