@@ -3,7 +3,6 @@ title: Report Suspicious Activity
 description: Learn how to report suspicious activity and lock your account in New Expensify, when to use it, what features are blocked, and how users can regain access.
 keywords: [locked account, New Expensify, lock features, wallet disabled, card suspended, 2FA blocked, unlock account, suspicious activity]
 ---
-<div id="new-expensify" markdown="1">
 
 The Lock Account tool blocks access to high-risk features when an account is suspected to be compromised. It protects sensitive data by preventing unauthorized actions and triggering internal review by the Expensify team.
 
@@ -91,4 +90,3 @@ Once security checks are completed, the Expensify team will unlock the account.
 
 For your security, only Expensify Support can unlock an account. This prevents malicious users from reversing a lock if they’ve gained access. To get help, reach out to Concierge support via chat. We’ll respond as quickly as possible.
 
-</div>

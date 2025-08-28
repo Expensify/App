@@ -164,6 +164,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: undefined;
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: undefined;
+    [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS]: {
+        bankAccountID: string;
+    };
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
@@ -934,7 +937,9 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
-    [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
+    [SCREENS.KEYBOARD_SHORTCUTS]: {
+        backTo: Routes;
+    };
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
         [EXIT_SURVEY_REASON_FORM_INPUT_IDS.REASON]: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
