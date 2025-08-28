@@ -3,7 +3,6 @@ title: Unapproved Spend
 description: See all unapproved cash and card spend in one place so you can close the books without missing anything.
 keywords: [unapproved spend, unapproved cash, unapproved card, accounting, liabilities, month-end close, New Expensify, workspace admin, approvals, reimbursements, card feed]
 ---
-<div id="new-expensify" markdown="1">
 
 Unapproved expenses that haven’t been recorded yet can create hidden liabilities. The Unapproved Spend views bring them together in one place so you can post accruals, follow up with submitters, and keep your general ledger accurate.
 
@@ -69,4 +68,3 @@ You’ll need to be a Workspace Admin with approvals turned on, plus either reim
 ## Can I filter unapproved card expenses by feed?
 Yes. If you have more than one card feed, a **Feed** filter will appear so you can review one account at a time.
 
-</div>

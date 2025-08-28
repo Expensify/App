@@ -54,6 +54,9 @@ type TabSelectorItemProps = {
 
     /** Parent width, for computing tooltip placement */
     parentWidth?: number;
+
+    /** Whether tabs should have equal width */
+    equalWidth?: boolean;
 };
 
 function TabSelectorItem({
@@ -70,6 +73,7 @@ function TabSelectorItem({
     renderProductTrainingTooltip,
     parentX = 0,
     parentWidth = 0,
+    equalWidth = false,
 }: TabSelectorItemProps) {
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
@@ -112,7 +116,7 @@ function TabSelectorItem({
         <AnimatedPressableWithFeedback
             accessibilityLabel={title}
             style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
-            wrapperStyle={[styles.flexGrow1]}
+            wrapperStyle={[equalWidth ? styles.flex1 : styles.flexGrow1]}
             onPress={onPress}
             onHoverIn={() => setIsHovered(true)}
             onHoverOut={() => setIsHovered(false)}
@@ -131,6 +135,7 @@ function TabSelectorItem({
                     title={title}
                     activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
                     inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
+                    hasIcon={!!icon}
                 />
             )}
         </AnimatedPressableWithFeedback>
