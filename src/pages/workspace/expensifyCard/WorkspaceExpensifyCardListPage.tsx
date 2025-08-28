@@ -25,7 +25,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSearchResults from '@hooks/useSearchResults';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearIssueNewCardFormData, setIssueNewCardStepAndData} from '@libs/actions/Card';
@@ -79,6 +81,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const isBankAccountVerified = !cardOnWaitlist;
     const {windowHeight} = useWindowDimensions();
+    const StyleUtils = useStyleUtils();
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
 
     // Currently Expensify Cards only support USD, once support for more currencies is implemented, we will need to update this
@@ -92,6 +95,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const filterCard = useCallback((card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails), [personalDetails]);
     const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare), [personalDetails, localeCompare]);
     const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
+    const insets = useSafeAreaInsets();
+    const {paddingTop, paddingBottom} = StyleUtils.getPlatformSafeAreaPadding(insets);
+    const effectiveWindowHeight = windowHeight - paddingTop - paddingBottom;
 
     const handleIssueCardPress = () => {
         clearIssueNewCardFormData();
@@ -239,16 +245,21 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     addBottomSafeAreaPadding
                     showsVerticalScrollIndicator={false}
                 >
-                    <View style={{height: windowHeight - headerHeight}}>
+                    <View style={{height: effectiveWindowHeight - headerHeight}}>
                         <FlatList
                             data={filteredSortedCards}
                             renderItem={renderItem}
                             ListHeaderComponent={renderListHeader}
-                            contentContainerStyle={bottomSafeAreaPaddingStyle}
+                            contentContainerStyle={[bottomSafeAreaPaddingStyle, {minHeight: effectiveWindowHeight}]}
+                            ListFooterComponentStyle={[styles.flexGrow1, styles.justifyContentEnd]}
+                            ListFooterComponent={
+                                <View style={[styles.workspaceSection]}>
+                                    <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
+                                </View>
+                            }
                             keyboardShouldPersistTaps="handled"
                         />
                     </View>
-                    <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
                 </ScrollView>
             )}
         </ScreenWrapper>
