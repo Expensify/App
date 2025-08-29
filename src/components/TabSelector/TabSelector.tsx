@@ -65,6 +65,10 @@ function getIconTitleAndTestID(route: string, translate: LocaleContextProps['tra
             return {icon: Expensicons.Receipt, title: translate('common.submit'), testID: 'submit'};
         case CONST.TAB_REQUEST.PER_DIEM:
             return {icon: Expensicons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
+        case CONST.TAB_REQUEST.DISTANCE_MAP:
+            return {icon: Expensicons.Map, title: translate('tabSelector.map'), testID: 'distanceMap'};
+        case CONST.TAB_REQUEST.DISTANCE_MANUAL:
+            return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'distanceManual'};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
