@@ -1,5 +1,4 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import {View} from 'react-native';
@@ -24,21 +23,19 @@ import Footer from './Footer';
 import SignInPageContent from './SignInPageContent';
 import SignInPageHero from './SignInPageHero';
 import scrollViewContentContainerStyles from './signInPageStyles';
-import type {SignInPageLayoutProps, SignInPageLayoutRef} from './types';
+import type {SignInPageLayoutProps} from './types';
 
-function SignInPageLayout(
-    {
-        customHeadline,
-        customHeroBody,
-        shouldShowWelcomeHeader = false,
-        welcomeHeader,
-        welcomeText = '',
-        shouldShowWelcomeText = false,
-        navigateFocus = () => {},
-        children,
-    }: SignInPageLayoutProps,
-    ref: ForwardedRef<SignInPageLayoutRef>,
-) {
+function SignInPageLayout({
+    customHeadline,
+    customHeroBody,
+    shouldShowWelcomeHeader = false,
+    welcomeHeader,
+    welcomeText = '',
+    shouldShowWelcomeText = false,
+    navigateFocus = () => {},
+    children,
+    ref,
+}: SignInPageLayoutProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -195,4 +192,4 @@ function SignInPageLayout(
 
 SignInPageLayout.displayName = 'SignInPageLayout';
 
-export default forwardRef(SignInPageLayout);
+export default SignInPageLayout;

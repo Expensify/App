@@ -68,6 +68,7 @@ import TadaYellow from '@assets/images/product-illustrations/tada--yellow.svg';
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
+import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
 import BigVault from '@assets/images/simple-illustrations/emptystate__big-vault.svg';
@@ -84,6 +85,7 @@ import Building from '@assets/images/simple-illustrations/simple-illustration__b
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
+import PinkCar from '@assets/images/simple-illustrations/simple-illustration__car_pink.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
 import CoffeeMug from '@assets/images/simple-illustrations/simple-illustration__coffeemug.svg';
@@ -96,6 +98,7 @@ import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustrat
 import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustration__creditcardeyes.svg';
 import CreditCardsNewGreen from '@assets/images/simple-illustrations/simple-illustration__creditcards--green.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
+import EmptyShelves from '@assets/images/simple-illustrations/simple-illustration__empty-shelves.svg';
 import EmptyState from '@assets/images/simple-illustrations/simple-illustration__empty-state.svg';
 import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
@@ -174,6 +177,7 @@ export {
     CoffeeMug,
     ConciergeBlue,
     ConciergeExclamation,
+    PinkCar,
     CreditCardsBlue,
     EmailAddress,
     EmptyCardState,
@@ -206,6 +210,7 @@ export {
     TadaBlue,
     ToddBehindCloud,
     ToddWithPhones,
+    ToddInCar,
     GpsTrackOrange,
     ShieldYellow,
     MoneyReceipts,
@@ -326,4 +331,5 @@ export {
     ReceiptsStackedOnPin,
     PaperAirplane,
     CardReplacementSuccess,
+    EmptyShelves,
 };

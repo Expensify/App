@@ -105,6 +105,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.ReportChangeWorkspaceModalStackNavigator}
                         />
                         <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER}
+                            component={ModalStackNavigators.ReportChangeApproverModalStackNavigator}
+                        />
+                        <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.REPORT_SETTINGS}
                             component={ModalStackNavigators.ReportSettingsModalStackNavigator}
                         />
@@ -196,6 +200,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE}
                             component={ModalStackNavigators.TransactionDuplicateStackNavigator}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.MERGE_TRANSACTION}
+                            component={ModalStackNavigators.MergeTransactionStackNavigator}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.TRAVEL}

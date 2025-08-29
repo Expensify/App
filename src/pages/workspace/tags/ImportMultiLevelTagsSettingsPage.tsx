@@ -86,7 +86,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
             >
                 <HeaderWithBackButton
                     title={translate('workspace.tags.importTags')}
-                    onBackButtonPress={() => Navigation.goBack(backTo)}
+                    onBackButtonPress={() => Navigation.goBack(backTo ?? ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID))}
                 />
                 <FullPageOfflineBlockingView>
                     <Text style={[styles.textSupporting, styles.textNormal, styles.ph5]}>{translate('workspace.tags.configureMultiLevelTags')}</Text>

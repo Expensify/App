@@ -9,8 +9,6 @@ import Text from '@components/Text';
 import VideoPlayer from '@components/VideoPlayer';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
-import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import CONST from '@src/CONST';
 import type {EmptyStateComponentProps, VideoLoadedEventType} from './types';
 
@@ -37,7 +35,6 @@ function EmptyStateComponent({
     const styles = useThemeStyles();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const doesSubtitleContainCustomEmoji = containsCustomEmoji(subtitle ?? '') && !containsOnlyCustomEmoji(subtitle ?? '');
 
     const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
         if (!event) {
@@ -103,15 +100,7 @@ function EmptyStateComponent({
                     <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
                     <View style={[shouldUseNarrowLayout ? styles.p5 : styles.p8, cardContentStyles]}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
-                        {subtitleText ??
-                            (doesSubtitleContainCustomEmoji ? (
-                                <TextWithEmojiFragment
-                                    style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}
-                                    message={subtitle}
-                                />
-                            ) : (
-                                <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>
-                            ))}
+                        {subtitleText ?? <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>}
                         {children}
                         {!isEmpty(buttons) && (
                             <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn]}>

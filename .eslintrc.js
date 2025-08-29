@@ -14,6 +14,7 @@ const restrictedImportPaths = [
             'Text',
             'ScrollView',
             'Animated',
+            'findNodeHandle',
         ],
         message: [
             '',
@@ -104,6 +105,10 @@ const restrictedImportPaths = [
         name: 'react-native-onyx',
         importNames: ['useOnyx'],
         message: "Please use '@hooks/useOnyx' instead.",
+    },
+    {
+        name: '@src/utils/findNodeHandle',
+        message: "Do not use 'findNodeHandle' as it is no longer supported on web.",
     },
 ];
 

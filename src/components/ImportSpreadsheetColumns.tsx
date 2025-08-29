@@ -74,7 +74,7 @@ function ImportSpreadsheetColumns({
                         {customHeaderText ?? (
                             <>
                                 {translate('spreadsheet.importDescription')}
-                                <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>
+                                <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>.
                             </>
                         )}
                     </Text>
