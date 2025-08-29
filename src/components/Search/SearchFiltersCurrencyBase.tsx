@@ -55,7 +55,7 @@ function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: Sear
     }, [currencyList, selectedCurrencyData]);
 
     const handleOnSubmit = (values: string[] | string | undefined) => {
-        updateAdvancedFilters({[filterKey]: values});
+        updateAdvancedFilters({[filterKey]: values ?? null});
     };
 
     return (
