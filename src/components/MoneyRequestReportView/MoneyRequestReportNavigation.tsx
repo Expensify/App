@@ -47,7 +47,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     const currentIndex = allReports.indexOf(reportID ?? CONST.REPORT.DEFAULT_REPORT_ID);
     const allReportsCount = lastSearchQuery?.previousLengthOfResults ?? 0;
 
-    const hideNextButton = !lastSearchQuery?.hasMoreResults && currentIndex === allReports.length - 1;
+    const hideNextButton = !lastSearchQuery?.hasMoreResults || currentIndex === allReports.length - 1;
     const hidePrevButton = currentIndex === 0;
     const styles = useThemeStyles();
     const shouldDisplayNavigationArrows = allReports && allReports.length > 1 && !(currentIndex === -1 || !lastSearchQuery?.queryJSON);
