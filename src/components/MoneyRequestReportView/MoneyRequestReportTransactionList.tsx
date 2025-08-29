@@ -26,7 +26,7 @@ import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canAddTransaction, getAddExpenseDropdownOptions, generateReportID, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+import {canAddTransaction, generateReportID, getAddExpenseDropdownOptions, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
