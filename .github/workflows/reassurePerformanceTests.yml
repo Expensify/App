@@ -45,7 +45,7 @@ jobs:
         shell: bash
         run: |
           set -e
-          NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
+
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
           # Store list of new test files before switching branches
           NEW_TEST_FILES=$(git diff --name-only --diff-filter=A "$COMMIT_HASH" "${{ github.sha }}" -- 'tests/perf-test/**/*.perf-test.*' || true)
@@ -68,7 +68,7 @@ jobs:
           cd ..
           git add Mobile-Expensify
           npm install --force || (rm -rf node_modules && npm install --force)
-          NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+          # NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
           git switch --force --detach -
           cd Mobile-Expensify
           git checkout "$(git rev-parse HEAD)"
@@ -80,13 +80,14 @@ jobs:
 
           # Restore new test files after checkout --ours
           if [ -n "$NEW_TEST_FILES" ]; then
-            echo "Restoring new test files after checkout --ours..."
+            echo "MORWA: Restoring new test files from original PR commit..."
             for file in $NEW_TEST_FILES; do
-              git checkout HEAD -- "$file" || echo "Could not restore $file"
+              git checkout "${{ github.sha }}" -- "$file" || echo "MORWA: Could not restore $file"
+              echo "MORWA: Restored $file"
             done
           fi
           npm install --force || (rm -rf node_modules && npm install --force)
-          # NODE_OPTIONS=--experimenta l-vm-modules npx reassure --branch
+          NODE_OPTIONS=--experimenta l-vm-modules npx reassure --branch
 
       - name: Validate output.json
         id: validateReassureOutput
