@@ -1,8 +1,0 @@
-diff --git a/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModule.java b/node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java
-similarity index 100%
-rename from node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModule.java
-rename to node_modules/@react-native-community/netinfo/android/src/main/java/com/reactnativecommunity/netinfo/NetInfoModuleImpl.java
-diff --git a/node_modules/@react-native-community/netinfo/ios/RNCNetInfo.m b/node_modules/@react-native-community/netinfo/ios/RNCNetInfo.mm
-similarity index 100%
-rename from node_modules/@react-native-community/netinfo/ios/RNCNetInfo.m
-rename to node_modules/@react-native-community/netinfo/ios/RNCNetInfo.mm
