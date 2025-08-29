@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 function SearchFiltersCurrencyPage() {
     return (
         <SearchFiltersCurrencyBase
+            multiselect
             title="search.filters.currency"
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY}
         />

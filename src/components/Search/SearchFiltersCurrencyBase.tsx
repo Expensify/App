@@ -12,31 +12,37 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SearchMultipleSelectionPicker from './SearchMultipleSelectionPicker';
-import type {SearchMultipleSelectionPickerItem} from './SearchMultipleSelectionPicker';
+import type {SearchSingleSelectionPickerItem} from './SearchSingleSelectionPicker';
+import SearchSingleSelectionPicker from './SearchSingleSelectionPicker';
 import type {SearchCurrencyFilterKeys} from './types';
 
 type SearchFiltersCurrencyBaseProps = {
+    multiselect?: boolean;
     title: TranslationPaths;
     filterKey: SearchCurrencyFilterKeys;
 };
 
-function SearchFiltersCurrencyBase({title, filterKey}: SearchFiltersCurrencyBaseProps) {
+function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: SearchFiltersCurrencyBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const selectedCurrenciesCodes = searchAdvancedFiltersForm?.[filterKey];
+    const selectedCurrencyData = searchAdvancedFiltersForm?.[filterKey];
 
     const {selectedCurrenciesItems, currencyItems} = useMemo(() => {
-        const selectedCurrencies: SearchMultipleSelectionPickerItem[] = [];
-        const currencies: SearchMultipleSelectionPickerItem[] = [];
+        const currencies: SearchSingleSelectionPickerItem[] = [];
+        const selectedCurrencies: SearchSingleSelectionPickerItem[] = [];
 
         Object.keys(currencyList ?? {}).forEach((currencyCode) => {
             if (currencyList?.[currencyCode]?.retired) {
                 return;
             }
 
-            if (selectedCurrenciesCodes?.includes(currencyCode) && !selectedCurrencies.some((currencyItem) => currencyItem.value === currencyCode)) {
+            if (Array.isArray(selectedCurrencyData) && selectedCurrencyData?.includes(currencyCode) && !selectedCurrencies.some((currencyItem) => currencyItem.value === currencyCode)) {
+                selectedCurrencies.push({name: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
+            }
+
+            if (!Array.isArray(selectedCurrencyData) && selectedCurrencyData === currencyCode) {
                 selectedCurrencies.push({name: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
             }
 
@@ -46,9 +52,9 @@ function SearchFiltersCurrencyBase({title, filterKey}: SearchFiltersCurrencyBase
         });
 
         return {selectedCurrenciesItems: selectedCurrencies, currencyItems: currencies};
-    }, [currencyList, selectedCurrenciesCodes]);
+    }, [currencyList, selectedCurrencyData]);
 
-    const handleOnSubmit = (values: string[]) => {
+    const handleOnSubmit = (values: string[] | string | undefined) => {
         updateAdvancedFilters({[filterKey]: values});
     };
 
@@ -67,11 +73,20 @@ function SearchFiltersCurrencyBase({title, filterKey}: SearchFiltersCurrencyBase
                 }}
             />
             <View style={[styles.flex1]}>
-                <SearchMultipleSelectionPicker
-                    items={currencyItems}
-                    initiallySelectedItems={selectedCurrenciesItems}
-                    onSaveSelection={handleOnSubmit}
-                />
+                {multiselect && (
+                    <SearchMultipleSelectionPicker
+                        items={currencyItems}
+                        initiallySelectedItems={selectedCurrenciesItems}
+                        onSaveSelection={handleOnSubmit}
+                    />
+                )}
+                {!multiselect && (
+                    <SearchSingleSelectionPicker
+                        items={currencyItems}
+                        initiallySelectedItem={selectedCurrenciesItems.at(0)}
+                        onSaveSelection={handleOnSubmit}
+                    />
+                )}
             </View>
         </ScreenWrapper>
     );
