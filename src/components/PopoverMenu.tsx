@@ -396,9 +396,7 @@ function BasePopoverMenu({
             return;
         }
         setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
-        if (JSON.stringify(currentMenuItems) !== JSON.stringify(menuItems)) {
-            setCurrentMenuItems(menuItems);
-        }
+        setCurrentMenuItems(menuItems);
 
         // Update the focused item to match the selected item, but only when the popover is not visible.
         // This ensures that if the popover is visible, highlight from the keyboard navigation is not overridden
