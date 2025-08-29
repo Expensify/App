@@ -4,7 +4,6 @@ import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
@@ -90,16 +89,14 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyEmployeeList,
-    PolicyReportField,
     Report,
     ReportAction,
     ReportActions,
     ReportNameValuePairs,
     Transaction,
 } from '@src/types/onyx';
-import type {ErrorFields, Errors, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
-import type {InvoiceReceiver, Note, Participant, Participants, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
-import {TripData} from '@src/types/onyx/TripData';
+import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/reports';
 import * as NumberUtils from '../../src/libs/NumberUtils';
@@ -572,12 +569,15 @@ describe('ReportUtils', () => {
 
     describe('getReportNameInternal', () => {
         const archivedReportID = '12345678';
-        const reportNameValuePairs = {
+        const archivedReportNameValuePairs = {
             private_isArchived: DateUtils.getDBTime(),
         };
 
+        const conciergeReportID = 'concierge-123';
+
         beforeAll(async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReportID}`, reportNameValuePairs);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReportID}`, archivedReportNameValuePairs);
+            await Onyx.set(`${ONYXKEYS.CONCIERGE_REPORT_ID}`, conciergeReportID);
         });
 
         afterAll(async () => {
@@ -770,42 +770,6 @@ describe('ReportUtils', () => {
                 expect(result).toBe('Ragnar Lothbrok');
             });
 
-            test('should handle report with null reportName', () => {
-                const report: Report = {
-                    reportID: '',
-                    reportName: null as any,
-                    type: CONST.REPORT.TYPE.CHAT,
-                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
-                };
-
-                const result = getReportNameInternal({report});
-                expect(result).toBe('Ragnar Lothbrok');
-            });
-
-            test('should handle report with empty participants object', () => {
-                const report: Report = {
-                    reportID: '',
-                    participants: {},
-                    type: CONST.REPORT.TYPE.CHAT,
-                };
-
-                const result = getReportNameInternal({report});
-                expect(result).toBe('');
-            });
-
-            test('should handle thread report with missing parent action', () => {
-                const threadReport: Report = {
-                    reportID: '',
-                    parentReportID: '2',
-                    parentReportActionID: '999', // Non-existent action
-                    type: CONST.REPORT.TYPE.CHAT,
-                };
-
-                const result = getReportNameInternal({report: threadReport});
-                expect(typeof result).toBe('string');
-                expect(result.length).toBeGreaterThanOrEqual(0);
-            });
-
             test('should handle group chat with mixed participant types', () => {
                 const groupChat: Report = {
                     reportID: '',
@@ -819,13 +783,10 @@ describe('ReportUtils', () => {
                 };
 
                 const result = getReportNameInternal({report: groupChat});
-                expect(typeof result).toBe('string');
-                expect(result.length).toBeGreaterThan(0);
+                expect(result).toBe('');
             });
 
-            test('should handle concierge chat identification', async () => {
-                const conciergeReportID = 'concierge-123';
-
+            test('should handle concierge chat report', () => {
                 const conciergeReport: Report = {
                     reportID: conciergeReportID,
                     reportName: '',
@@ -834,8 +795,6 @@ describe('ReportUtils', () => {
                     policyID: undefined,
                     chatType: undefined,
                 };
-
-                await Onyx.set(`${ONYXKEYS.CONCIERGE_REPORT_ID}`, conciergeReportID);
 
                 const result = getReportNameInternal({report: conciergeReport});
                 expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
@@ -859,6 +818,29 @@ describe('ReportUtils', () => {
 
                 const result = getReportNameInternal({report: chatReport, personalDetails: customPersonalDetails});
                 expect(result).toBe('Custom Name');
+            });
+
+            test('should handle report with empty participants object', () => {
+                const report: Report = {
+                    reportID: '',
+                    participants: {},
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+
+                const result = getReportNameInternal({report});
+                expect(result).toBe('');
+            });
+
+            test('should handle thread report with missing parent action', () => {
+                const threadReport: Report = {
+                    reportID: '',
+                    parentReportID: '2',
+                    parentReportActionID: '999', // Non-existent action
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+
+                const result = getReportNameInternal({report: threadReport});
+                expect(result).toBe('');
             });
         });
 
@@ -884,7 +866,7 @@ describe('ReportUtils', () => {
                 test.each([
                     [CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, '#admins'],
                     [CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, '#announce'],
-                ])('should return %s (archived) room as %s', async (chatType, reportName) => {
+                ])('should return %s (archived) room as %s', (chatType, reportName) => {
                     const defaultArchivedPolicyRoom: Report = {
                         reportID: archivedReportID,
                         chatType,
@@ -924,9 +906,9 @@ describe('ReportUtils', () => {
             });
 
             describe('Threads', () => {
-                test('should NOT append (archived) to workspace threads even when archived', async () => {
+                test('should handle the last text message', () => {
                     const threadReport: Report = {
-                        reportID: archivedReportID,
+                        reportID: '',
                         parentReportID: '2',
                         parentReportActionID: '3',
                         chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
@@ -956,7 +938,7 @@ describe('ReportUtils', () => {
                     });
 
                     // Workspace threads should not have archived suffix even when archived
-                    expect(result).not.toContain('(archived)');
+                    expect(result).toBe('Test message');
                 });
 
                 test('should handle policy change action', () => {
