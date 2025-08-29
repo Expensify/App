@@ -11847,6 +11847,7 @@ export {
     isMoneyRequestReportEligibleForMerge,
     getReportStatusTranslation,
     getMovedActionMessage,
+    getReportNameInternal,
 };
 
 export type {
