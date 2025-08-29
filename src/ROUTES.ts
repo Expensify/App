@@ -79,6 +79,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_WITHDRAWAL_TYPE: 'search/filters/withdrawal-type',
     SEARCH_ADVANCED_FILTERS_WITHDRAWAL_ID: 'search/filters/withdrawal-id',
     SEARCH_ADVANCED_FILTERS_TAG: 'search/filters/tag',
+    SEARCH_ADVANCED_FILTERS_HAS: 'search/filters/has',
     SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
     SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
     SEARCH_ADVANCED_FILTERS_IN: 'search/filters/in',

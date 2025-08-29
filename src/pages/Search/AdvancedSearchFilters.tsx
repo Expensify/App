@@ -175,6 +175,11 @@ const baseFilterConfig = {
         description: 'common.tag' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_TAG,
     },
+    has: {
+        getTitle: getFilterDisplayTitle,
+        description: 'search.has' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_HAS,
+    },
     from: {
         getTitle: getFilterParticipantDisplayTitle,
         description: 'common.from' as const,
@@ -371,6 +376,11 @@ function getFilterDisplayTitle(
         return filterValue ? translate(`search.filters.withdrawalType.${filterValue}`) : undefined;
     }
 
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
+        const filterValue = filters[nonDateFilterKey];
+        return filterValue ? filterValue.map((value) => translate(`search.filters.has.${value as ValueOf<typeof CONST.SEARCH.HAS_VALUES>}`)).join(', ') : undefined;
+    }
+
     const filterValue = filters[nonDateFilterKey];
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }
@@ -515,8 +525,9 @@ function AdvancedSearchFilters() {
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
             ) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {

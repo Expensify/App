@@ -6373,6 +6373,9 @@ const CONST = {
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
         },
+        HAS_VALUES: {
+            RECEIPT: 'receipt',
+        },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
             APPROVE: 'approve',
@@ -6517,6 +6520,7 @@ const CONST = {
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
             ACTION: 'action',
+            HAS: 'has',
             WITHDRAWAL_ID: 'withdrawalID',
         },
         TAG_EMPTY_VALUE: 'none',
@@ -6565,6 +6569,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             ACTION: 'action',
+            HAS: 'has',
             WITHDRAWAL_ID: 'withdrawal-id',
         },
 
