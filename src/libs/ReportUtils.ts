@@ -5497,7 +5497,7 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 /**
  * Gets the parent navigation subtitle for the report
  */
-function getParentNavigationSubtitle(report: OnyxEntry<Report>, isReportArchived = false): ParentNavigationSummaryParams {
+function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportArchived = false): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
     if (isEmptyObject(parentReport)) {
         const ownerAccountID = report?.ownerAccountID;
@@ -5521,7 +5521,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isReportArchived
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
         let reportName = `${getPolicyName({report: parentReport})} & ${getInvoicePayerName(parentReport)}`;
 
-        if (isArchivedNonExpenseReport(parentReport, isReportArchived)) {
+        if (isArchivedNonExpenseReport(parentReport, isParentReportArchived)) {
             reportName += ` (${translateLocal('common.archived')})`;
         }
 
