@@ -721,7 +721,6 @@ function IOURequestStepConfirmation({
 
             const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
 
-            // If any split transaction has a receipt, process each with action, transaction, and group DM as needed.
             if (iouType === CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).filter((receipt) => !!receipt).length) {
                 const currentUserLogin = currentUserPersonalDetails.login;
                 if (currentUserLogin) {
@@ -732,6 +731,7 @@ function IOURequestStepConfirmation({
                         }
                         const itemTrimmedComment = item?.comment?.comment?.trim() ?? '';
 
+                        // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
                         startSplitBill({
                             participants: selectedParticipants,
                             currentUserLogin,
