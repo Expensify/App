@@ -1,4 +1,5 @@
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
 // This file is used to define relation between workspace split navigator's central screens and RHP screens.
@@ -262,7 +263,13 @@ const WORKSPACE_TO_RHP: Partial<Record<keyof WorkspaceSplitNavigatorParamList, s
         SCREENS.WORKSPACE.RULES_CUSTOM,
         SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT,
     ],
-    [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: [],
+    [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: [
+        SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE,
+        SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT,
+        CONST.TAB.RECEIPT_PARTNERS.ALL,
+        CONST.TAB.RECEIPT_PARTNERS.LINKED,
+        CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING,
+    ],
     [SCREENS.WORKSPACE.PER_DIEM]: [
         SCREENS.WORKSPACE.PER_DIEM_IMPORT,
         SCREENS.WORKSPACE.PER_DIEM_IMPORTED,
