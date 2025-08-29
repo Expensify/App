@@ -5226,7 +5226,7 @@ function getReportNameInternal({
         return getPolicyChangeMessage(parentReportAction);
     }
 
-    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.ACTION_REROUTE)) {
         return getChangedApproverActionMessage(parentReportAction);
     }
 

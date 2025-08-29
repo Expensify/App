@@ -840,7 +840,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = getRenamedAction(lastReportAction, isExpenseReport(report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {
         lastMessageTextFromReport = getDeletedTransactionMessage(lastReportAction);
-    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ACTION_REROUTE)) {
         lastMessageTextFromReport = getChangedApproverActionMessage(lastReportAction);
     } else if (isMovedAction(lastReportAction)) {
         lastMessageTextFromReport = getMovedActionMessage(lastReportAction, report);
