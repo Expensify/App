@@ -10,6 +10,9 @@ import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actio
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
+import {isPolicyMember} from '@libs/PolicyUtils';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
 import {getBankAccountRoute, getPolicyExpenseChat, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
@@ -122,15 +125,18 @@ function KYCWall({
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT || policy) {
                 if (iouReport && isIOUReport(iouReport)) {
                     if (policy) {
-                        const policyExpenseChatReportID = getPolicyExpenseChat(iouReport.ownerAccountID, policy.id, allReports)?.reportID;
-                        if (!policyExpenseChatReportID) {
+                        const submitterAccountID = iouReport.ownerAccountID;
+                        const submitterEmail = getLoginByAccountID(submitterAccountID ?? CONST.DEFAULT_NUMBER_ID) ?? '';
+                        const submitterLogin = addSMSDomainIfPhoneNumber(submitterEmail);
+                        const isMember = !!submitterAccountID && !!submitterEmail && isPolicyMember(policy, submitterLogin);
+                        if (!isMember) {
                             const {policyExpenseChatReportID: newPolicyExpenseChatReportID} = moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy.id, formatPhoneNumber) ?? {};
                             savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[policy.id]);
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newPolicyExpenseChatReportID));
                         } else {
-                            moveIOUReportToPolicy(iouReport.reportID, policy.id, true);
+                            const {policyExpenseChatReportID: newPolicyExpenseChatReportID} = moveIOUReportToPolicy(iouReport.reportID, policy.id, true);
                             savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[policy.id]);
-                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(policyExpenseChatReportID));
+                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newPolicyExpenseChatReportID));
                         }
 
                         if (policy?.achAccount) {
