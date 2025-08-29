@@ -622,6 +622,34 @@ describe('OptionsListUtils', () => {
             // Then all of the reports should be shown including the archived rooms, except for the thread report with notificationPreferences hidden.
             expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 1);
         });
+
+        it('should include current user when includeCurrentUser is true for type:chat from suggestions', () => {
+            // Given a set of options where the current user is Iron Man (accountID: 2)
+            // When we call getSearchOptions with includeCurrentUser set to true
+            const results = getSearchOptions(OPTIONS, [CONST.BETAS.ALL], true, true, '', undefined, false, true, true);
+
+            // Then the current user should be included in personalDetails
+            const currentUserOption = results.personalDetails.find((option) => option.login === 'tonystark@expensify.com');
+            expect(currentUserOption).toBeDefined();
+            expect(currentUserOption?.text).toBe('Iron Man');
+            expect(currentUserOption?.accountID).toBe(2);
+
+            // Then all personal details including the current user should be returned
+            expect(results.personalDetails.length).toBe(11);
+        });
+
+        it('should exclude current user when includeCurrentUser is false', () => {
+            // Given a set of options where the current user is Iron Man (accountID: 2)
+            // When we call getSearchOptions with includeCurrentUser set to false (default behavior)
+            const results = getSearchOptions(OPTIONS, [CONST.BETAS.ALL], true, true, '', undefined, false, true, false);
+
+            // Then the current user should not be included in personalDetails
+            const currentUserOption = results.personalDetails.find((option) => option.login === 'tonystark@expensify.com');
+            expect(currentUserOption).toBeUndefined();
+
+            // Then all personal details except the current user should be returned
+            expect(results.personalDetails.length).toBe(10);
+        });
     });
 
     describe('orderOptions()', () => {

@@ -4,7 +4,6 @@ description: Learn how to migrate your company’s email domain and update user 
 keywords: [Expensify Classic, domain migration, change email address, update company domain, migrate workspace]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 If your company updates its email domain (e.g., from `@old-domain.com` to `@new-domain.com`), Expensify offers two migration options: **automatic** and **manual**. This guide walks you through both.
 
@@ -63,4 +62,3 @@ Yes! Migrating preserves your account history, reports, and settings as long as 
 
 They’ll need to [merge their accounts](https://help.expensify.com/articles/expensify-classic/settings/account-settings/Merge-accounts) to keep everything in one place.
 
-</div>

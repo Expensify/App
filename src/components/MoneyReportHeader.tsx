@@ -20,9 +20,10 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported, openReport, openUnreportedExpense} from '@libs/actions/Report';
-import {queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {queueExportSearchWithTemplate, search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
+import Log from '@libs/Log';
 import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -294,7 +295,7 @@ function MoneyReportHeader({
 
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
-    const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey} = useSearchContext();
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
@@ -399,9 +400,27 @@ function MoneyReportHeader({
             } else {
                 startAnimation();
                 payMoneyRequest(type, chatReport, moneyRequestReport, undefined, true);
+                if (currentSearchQueryJSON) {
+                    search({
+                        searchKey: currentSearchKey,
+                        shouldCalculateTotals: true,
+                        offset: 0,
+                        queryJSON: currentSearchQueryJSON,
+                    });
+                }
             }
         },
-        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, showDelegateNoAccessModal, isInvoiceReport, moneyRequestReport, startAnimation],
+        [
+            chatReport,
+            isAnyTransactionOnHold,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
+            isInvoiceReport,
+            moneyRequestReport,
+            startAnimation,
+            currentSearchQueryJSON,
+            currentSearchKey,
+        ],
     );
 
     const confirmApproval = () => {
@@ -413,6 +432,14 @@ function MoneyReportHeader({
         } else {
             startApprovedAnimation();
             approveMoneyRequest(moneyRequestReport, true);
+            if (currentSearchQueryJSON) {
+                search({
+                    searchKey: currentSearchKey,
+                    shouldCalculateTotals: true,
+                    offset: 0,
+                    queryJSON: currentSearchQueryJSON,
+                });
+            }
         }
     };
 
@@ -696,6 +723,14 @@ function MoneyReportHeader({
                         return;
                     }
                     submitReport(moneyRequestReport);
+                    if (currentSearchQueryJSON) {
+                        search({
+                            searchKey: currentSearchKey,
+                            shouldCalculateTotals: true,
+                            offset: 0,
+                            queryJSON: currentSearchQueryJSON,
+                        });
+                    }
                 }}
             />
         ),
@@ -974,6 +1009,18 @@ function MoneyReportHeader({
                 Navigation.navigate(ROUTES.REPORT_WITH_ID_CHANGE_WORKSPACE.getRoute(moneyRequestReport.reportID, Navigation.getActiveRoute()));
             },
         },
+        [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER]: {
+            text: translate('iou.changeApprover.title'),
+            icon: Expensicons.Workflows,
+            value: CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER,
+            onSelected: () => {
+                if (!moneyRequestReport) {
+                    Log.warn('Change approver secondary action triggered without moneyRequestReport data.');
+                    return;
+                }
+                Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER.getRoute(moneyRequestReport.reportID, Navigation.getActiveRoute()));
+            },
+        },
         [CONST.REPORT.SECONDARY_ACTIONS.DELETE]: {
             text: translate('common.delete'),
             icon: Expensicons.Trashcan,
@@ -987,7 +1034,7 @@ function MoneyReportHeader({
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
-            text: translate('iou.undoSubmit'),
+            text: translate('iou.retract'),
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,
             onSelected: () => {
@@ -995,7 +1042,7 @@ function MoneyReportHeader({
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
-            text: translate('iou.undoClose'),
+            text: translate('iou.retract'),
             icon: Expensicons.CircularArrowBackwards,
             value: CONST.REPORT.SECONDARY_ACTIONS.REOPEN,
             onSelected: () => {
@@ -1193,7 +1240,9 @@ function MoneyReportHeader({
                     {!!applicableSecondaryActions.length && KYCMoreDropdown}
                 </View>
             )}
+
             {isMoreContentShown && <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5]}>{moreContent}</View>}
+
             <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />
             {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
@@ -1365,7 +1414,6 @@ function MoneyReportHeader({
                 isVisible={isPDFModalVisible}
                 type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
                 innerContainerStyle={styles.pv0}
-                shouldUseReanimatedModal
             >
                 <View style={[styles.m5]}>
                     <View>

@@ -28,7 +28,12 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep, shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {
+    isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
+    navigateToStartMoneyRequestStep,
+    shouldShowReceiptEmptyState,
+    shouldUseTransactionDraft,
+} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
@@ -66,6 +71,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {RecentlyUsedCategories} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -133,6 +139,7 @@ function IOURequestStepConfirmation({
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${realPolicyID}`, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     /*
@@ -157,8 +164,10 @@ function IOURequestStepConfirmation({
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt>>({});
-    const requestType = getRequestType(transaction);
-    const isDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+    const requestType = getRequestType(transaction, isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE));
+    const isDistanceRequest =
+        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE || requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP || requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+    const isManualDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
 
@@ -298,7 +307,7 @@ function IOURequestStepConfirmation({
 
     useEffect(() => {
         transactions.forEach((item) => {
-            if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !!item?.category) {
+            if (!isDistanceRequest || !!item?.category) {
                 return;
             }
             setMoneyRequestCategory(item.transactionID, defaultCategory, policy?.id);
@@ -330,15 +339,8 @@ function IOURequestStepConfirmation({
         if (transaction?.isFromGlobalCreate && !transaction.receipt?.isTestReceipt) {
             // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
             if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
-                // TODO: temporary fix for multi-files dnd; check if other flow can use reportID instead of transaction?.reportID
-                const shouldUseNewScanFlow = iouType === CONST.IOU.TYPE.TRACK || iouType === CONST.IOU.TYPE.SUBMIT;
-                const backToReportID =
-                    shouldUseNewScanFlow && !transaction?.participants?.at(0)?.isPolicyExpenseChat
-                        ? reportID
-                        : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                          transaction?.reportID || reportID;
-                const iouTypeForRoute = shouldUseNewScanFlow ? CONST.IOU.TYPE.CREATE : iouType;
-                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouTypeForRoute, initialTransactionID, backToReportID, undefined, action), {
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, initialTransactionID, transaction?.reportID || reportID, undefined, action), {
                     compareParams: false,
                 });
                 return;
@@ -526,7 +528,7 @@ function IOURequestStepConfirmation({
     );
 
     const submitPerDiemExpense = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string) => {
+        (selectedParticipants: Participant[], trimmedComment: string, policyRecentlyUsedCategoriesParam?: RecentlyUsedCategories) => {
             if (!transaction) {
                 return;
             }
@@ -546,6 +548,7 @@ function IOURequestStepConfirmation({
                     policy,
                     policyTagList: policyTags,
                     policyCategories,
+                    policyRecentlyUsedCategories: policyRecentlyUsedCategoriesParam,
                 },
                 recentlyUsedParams: {
                     destinations: recentlyUsedDestinations,
@@ -592,6 +595,7 @@ function IOURequestStepConfirmation({
                     },
                     transactionParams: {
                         amount: item.amount,
+                        distance: isManualDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined,
                         currency: item.currency,
                         created: item.created,
                         merchant: item.merchant,
@@ -632,6 +636,7 @@ function IOURequestStepConfirmation({
             action,
             customUnitRateID,
             isDraftPolicy,
+            isManualDistanceRequest,
         ],
     );
 
@@ -655,6 +660,7 @@ function IOURequestStepConfirmation({
                 transactionParams: {
                     amount: transaction.amount,
                     comment: trimmedComment,
+                    distance: isManualDistanceRequest ? (transaction.comment?.customUnit?.quantity ?? undefined) : undefined,
                     created: transaction.created,
                     currency: transaction.currency,
                     merchant: transaction.merchant,
@@ -678,6 +684,7 @@ function IOURequestStepConfirmation({
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             iouType,
+            isManualDistanceRequest,
             policy,
             policyCategories,
             policyTags,
@@ -797,7 +804,18 @@ function IOURequestStepConfirmation({
             }
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                sendInvoice(currentUserPersonalDetails.accountID, transaction, report, currentTransactionReceiptFile, policy, policyTags, policyCategories);
+                sendInvoice(
+                    currentUserPersonalDetails.accountID,
+                    transaction,
+                    report,
+                    currentTransactionReceiptFile,
+                    policy,
+                    policyTags,
+                    policyCategories,
+                    undefined,
+                    undefined,
+                    policyRecentlyUsedCategories,
+                );
                 return;
             }
 
@@ -842,7 +860,7 @@ function IOURequestStepConfirmation({
             }
 
             if (isPerDiemRequest) {
-                submitPerDiemExpense(selectedParticipants, trimmedComment);
+                submitPerDiemExpense(selectedParticipants, trimmedComment, policyRecentlyUsedCategories);
                 return;
             }
 
@@ -909,9 +927,10 @@ function IOURequestStepConfirmation({
             policy,
             policyTags,
             policyCategories,
+            policyRecentlyUsedCategories,
             trackExpense,
-            submitPerDiemExpense,
             userLocation,
+            submitPerDiemExpense,
         ],
     );
 
@@ -1033,6 +1052,8 @@ function IOURequestStepConfirmation({
         showPreviousTransaction();
     };
 
+    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest, isManualDistanceRequest);
+
     const shouldShowSmartScanFields =
         !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
 
@@ -1042,7 +1063,10 @@ function IOURequestStepConfirmation({
             testID={IOURequestStepConfirmation.displayName}
             headerGapStyles={isDraggingOver ? [styles.dropWrapper] : []}
         >
-            <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
+            <DragAndDropProvider
+                setIsDraggingOver={setIsDraggingOver}
+                isDisabled={!showReceiptEmptyState}
+            >
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
@@ -1114,6 +1138,7 @@ function IOURequestStepConfirmation({
                         iouMerchant={transaction?.merchant}
                         iouCreated={transaction?.created}
                         isDistanceRequest={isDistanceRequest}
+                        isManualDistanceRequest={isManualDistanceRequest}
                         isPerDiemRequest={isPerDiemRequest}
                         shouldShowSmartScanFields={shouldShowSmartScanFields}
                         action={action}

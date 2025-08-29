@@ -45,6 +45,7 @@ import {
     getFilteredReportActionsForReportView,
     getIOUActionForReportID,
     getOneTransactionThreadReportID,
+    getReportAction,
     isCreatedAction,
     isDeletedParentAction,
     isMoneyRequestAction,
@@ -59,6 +60,7 @@ import {
     generateReportID,
     getParticipantsAccountIDsForDisplay,
     getReportOfflinePendingActionAndErrors,
+    getReportOrDraftReport,
     getReportTransactions,
     isChatThread,
     isConciergeChatReport,
@@ -406,9 +408,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         navigation.setParams({reportActionID: ''});
     }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation, report, childReport]);
 
-    const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute);
-
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
+
     const isLinkedActionDeleted = useMemo(
         () => !!linkedAction && !shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)),
         [linkedAction, report, isReportArchived],
@@ -492,18 +494,20 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        const moneyRequestReportActionID: string | undefined = route.params?.moneyRequestReportActionID;
-        const transactionID: string | undefined = route.params?.transactionID;
+        const {moneyRequestReportActionID, transactionID, iouReportID} = route.params;
 
         // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
         // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
-        if (transactionID && currentUserEmail) {
-            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, transactionID);
+        if (transactionID && currentUserEmail && !report) {
+            const iouReport = getReportOrDraftReport(iouReportID);
+            const iouAction = getReportAction(iouReportID, moneyRequestReportActionID);
+            const optimisticTransactionThread = buildTransactionThread(iouAction, iouReport, undefined, reportIDFromRoute);
+            openReport(reportIDFromRoute, undefined, [currentUserEmail], optimisticTransactionThread, moneyRequestReportActionID, false, [], undefined, transactionID);
             return;
         }
 
         // If there is one transaction thread that has not yet been created, we should create it.
-        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport && parentReportAction?.childMoneyRequestCount === 1) {
+        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) {
             createOneTransactionThreadReport();
             return;
         }
@@ -513,12 +517,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         reportMetadata.isOptimisticReport,
         report,
         isOffline,
-        route.params?.moneyRequestReportActionID,
-        route.params?.transactionID,
+        route.params,
         currentUserEmail,
         transactionThreadReportID,
         transactionThreadReport,
-        parentReportAction?.childMoneyRequestCount,
         reportIDFromRoute,
         reportActionIDFromRoute,
         createOneTransactionThreadReport,

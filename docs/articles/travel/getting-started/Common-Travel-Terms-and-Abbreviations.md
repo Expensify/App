@@ -4,7 +4,6 @@ description: Learn the most common terms and abbreviations used in the travel in
 keywords: [travel terms, travel abbreviations, business travel glossary, common travel lingo, travel vocabulary, industry jargon]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Understanding the common terminology and abbreviations used in the travel industry helps travelers, approvers, and admins communicate more clearly, navigate bookings more effectively, and make better-informed decisions.
 

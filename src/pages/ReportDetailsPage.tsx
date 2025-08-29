@@ -202,14 +202,14 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => {
-        const subtitle = getChatRoomSubtitle(report);
+        const subtitle = getChatRoomSubtitle(report, false, isReportArchived);
 
         if (subtitle) {
             return subtitle;
         }
 
         return '';
-    }, [report]);
+    }, [isReportArchived, report]);
 
     const isSystemChat = useMemo(() => isSystemChatUtil(report), [report]);
     const isGroupChat = useMemo(() => isGroupChatUtil(report), [report]);
@@ -766,7 +766,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
-            deleteTask(report);
+            deleteTask(report, isReportArchived);
             return;
         }
 
@@ -792,6 +792,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         removeTransaction,
         report,
         requestParentReportAction,
+        isReportArchived,
     ]);
 
     // A flag to indicate whether the user chose to delete the transaction or not

@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getTagList, getTagListName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isPolicyAdmin} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getTag} from '@libs/TransactionUtils';
+import {getTag, getTagArrayFromName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -76,7 +76,7 @@ function IOURequestStepTag({
         let updatedTag: string;
 
         if (hasDependentTags) {
-            const tagParts = transactionTag ? transactionTag.split(':') : [];
+            const tagParts = transactionTag ? getTagArrayFromName(transactionTag) : [];
 
             if (isSelectedTag) {
                 // Deselect: clear this and all child tags
