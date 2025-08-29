@@ -47,7 +47,7 @@ describe('usePermissions', () => {
 
         // Ensure result.current is not null or undefined before accessing properties
         expect(result.current.isBetaEnabled(CONST.BETAS.ALL)).toBe(true);
-        expect(result.current.isBlockedFromSpotnanaTravel).toBe(false);
+        expect(result.current.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)).toBe(true);
         expect(result.current.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS)).toBe(true);
     });
 
@@ -64,7 +64,7 @@ describe('usePermissions', () => {
 
         // Initially, check the value for the initial betas
         expect(result.current.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS)).toBe(true);
-        expect(result.current.isBlockedFromSpotnanaTravel).toBe(true);
+        expect(result.current.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)).toBe(true);
         expect(result.current.isBetaEnabled(CONST.BETAS.ALL)).toBe(false);
 
         Onyx.merge(ONYXKEYS.BETAS, updatedBetas);
@@ -72,7 +72,34 @@ describe('usePermissions', () => {
         await waitForBatchedUpdatesWithAct();
 
         // After update, check the value for the updated betas
-        expect(result.current.isBlockedFromSpotnanaTravel).toBe(false);
+        expect(result.current.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)).toBe(true);
         expect(result.current.isBetaEnabled(CONST.BETAS.ALL)).toBe(true);
+    });
+
+    it('should handle explicit only betas correctly', async () => {
+        // Given: A beta configuration with explicit only betas and an account with 'all' beta enabled, but not the explicit only beta
+        const explicitOnlyBeta = CONST.BETAS.MANUAL_DISTANCE;
+        const betaConfiguration = {
+            explicitOnly: [explicitOnlyBeta],
+        };
+
+        Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.ALL]);
+        Onyx.set(ONYXKEYS.BETA_CONFIGURATION, betaConfiguration);
+        await waitForBatchedUpdatesWithAct();
+
+        const {result} = renderHook(() => usePermissions(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // When: Checking if the account is in the explicit only beta
+        // Then: The beta check should return false because explicit-only betas override the 'all' beta
+        expect(result.current.isBetaEnabled(explicitOnlyBeta)).toBe(false);
+
+        // Given: The explicit only beta is explicitly enabled
+        Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.ALL, explicitOnlyBeta]);
+        await waitForBatchedUpdatesWithAct();
+
+        // When: Checking if the account is in the explicit only beta
+        // Then: The beta check should return true because the beta is explicitly enabled
+        expect(result.current.isBetaEnabled(explicitOnlyBeta)).toBe(true);
     });
 });
