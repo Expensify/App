@@ -46,6 +46,7 @@ import {
     getParentNavigationSubtitle,
     getParticipantsList,
     getPolicyExpenseChat,
+    getPreferredScannableIOUType,
     getReasonAndReportActionThatRequiresAttention,
     getReportIDFromLink,
     getReportName,
@@ -1525,6 +1526,32 @@ describe('ReportUtils', () => {
                 // Should not include SUBMIT
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(false);
             });
+        });
+    });
+
+    describe('getPreferredScannableIOUType', () => {
+        it('returns TRACK for self DM when TRACK is available', () => {
+            const report = createSelfDM(1, currentUserAccountID);
+            const result = getPreferredScannableIOUType([CONST.IOU.TYPE.TRACK, CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.SPLIT], report);
+            expect(result).toBe(CONST.IOU.TYPE.TRACK);
+        });
+
+        it('returns SUBMIT when TRACK is unavailable and SUBMIT is available', () => {
+            const report = createRegularChat(2, [currentUserAccountID, 1]);
+            const result = getPreferredScannableIOUType([CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.SPLIT], report);
+            expect(result).toBe(CONST.IOU.TYPE.SUBMIT);
+        });
+
+        it('returns SPLIT when only SPLIT is available', () => {
+            const report = createRegularChat(3, [currentUserAccountID, 1]);
+            const result = getPreferredScannableIOUType([CONST.IOU.TYPE.SPLIT], report);
+            expect(result).toBe(CONST.IOU.TYPE.SPLIT);
+        });
+
+        it('returns undefined when no preferred options are available', () => {
+            const report = createRegularChat(4, [currentUserAccountID, 1]);
+            const result = getPreferredScannableIOUType([CONST.IOU.TYPE.PAY], report);
+            expect(result).toBeUndefined();
         });
     });
 
