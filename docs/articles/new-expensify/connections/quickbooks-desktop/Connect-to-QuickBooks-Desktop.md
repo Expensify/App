@@ -5,7 +5,6 @@ keywords: [New Expensify, QuickBooks Desktop, Web Connector, accounting integrat
 order: 1
 ---
 
-<div id="new-expensify" markdown="1">
 
 QuickBooks Desktop is accounting software designed for small and medium-sized businesses. Connecting Expensify to QuickBooks Desktop streamlines your expense management and accounting workflows.
 
@@ -38,7 +37,7 @@ To connect QuickBooks Desktop to Expensify, you must log in as an Admin in Quick
 
 ---
 
-# Step 3: Authorize and Finalize the Connection\
+# Step 3: Authorize and Finalize the Connection
 
 1. In QuickBooks Desktop, select **Yes, always allow access, even when QuickBooks is not running**, then click **Continue**  
 2. Click **OK**, then click **Yes**  
@@ -79,4 +78,3 @@ Yes, in general. However:
 - This also applies to debit card exports (QuickBooks Desktop treats these as non-reimbursable checks)  
 - Non-reimbursable checks must have a **positive** amount
 
-</div>
