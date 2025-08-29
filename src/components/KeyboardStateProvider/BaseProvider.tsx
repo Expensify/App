@@ -25,5 +25,7 @@ function BaseKeyboardStateProvider({children, keyboardHeight, keyboardActiveHeig
     return <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>;
 }
 
+BaseKeyboardStateProvider.displayName = 'BaseKeyboardStateProvider';
+
 export type {KeyboardStateContextValue};
 export {BaseKeyboardStateProvider, KeyboardStateContext};

@@ -3,7 +3,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
 import {measureRenders} from 'reassure';
-import {KeyboardStateProvider} from '@components/KeyboardState';
+import {KeyboardStateProvider} from '@components/KeyboardStateProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {EmojiPickerRef} from '@libs/actions/EmojiPickerAction';
 import type Navigation from '@libs/Navigation/Navigation';

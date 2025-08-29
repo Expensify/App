@@ -19,6 +19,8 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
             const windowHeight = window.innerHeight;
             const estimatedKeyboardHeight = windowHeight - viewportHeight;
 
+            // Use a 100px threshold to differentiate a virtual keyboard from smaller viewport resizes,
+            // like the browser's address bar. This is a common heuristic for web keyboard detection.
             const shown = estimatedKeyboardHeight > 100;
             setKeyboardHeight(shown ? estimatedKeyboardHeight : 0);
             setIsKeyboardActive(shown);
@@ -61,5 +63,7 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
         </BaseKeyboardStateProvider>
     );
 }
+
+KeyboardStateProvider.displayName = 'KeyboardStateProvider';
 
 export {KeyboardStateProvider, KeyboardStateContext};

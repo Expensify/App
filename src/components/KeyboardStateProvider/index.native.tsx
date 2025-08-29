@@ -1,4 +1,3 @@
-// KeyboardState/index.native.ts
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ReactElement} from 'react';
 import {KeyboardEvents, useKeyboardHandler} from 'react-native-keyboard-controller';
@@ -72,5 +71,7 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
         </BaseKeyboardStateProvider>
     );
 }
+
+KeyboardStateProvider.displayName = 'KeyboardStateProvider';
 
 export {KeyboardStateProvider, KeyboardStateContext};
