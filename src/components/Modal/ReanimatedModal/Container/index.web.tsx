@@ -31,7 +31,18 @@ function Container({
             return;
         }
         isInitiated.set(true);
-        initProgress.set(withTiming(1, {duration: animationInTiming, easing, reduceMotion: ReduceMotion.Never}, onOpenCallBack));
+        initProgress.set(
+            withTiming(
+                1,
+                {
+                    duration: animationInTiming,
+                    easing,
+                    // ensuring the callback is called even with reduced motion setting turned on
+                    reduceMotion: ReduceMotion.Never,
+                },
+                onOpenCallBack,
+            ),
+        );
     }, [animationInTiming, onOpenCallBack, initProgress, isInitiated]);
 
     // instead of an entering transition since keyframe animations break keyboard on mWeb Chrome (#62799)
@@ -43,6 +54,7 @@ function Container({
                 .duration(animationOutTiming)
                 // eslint-disable-next-line react-compiler/react-compiler
                 .withCallback(() => onCloseCallbackRef.current())
+                // ensuring the callback is called even with reduced motion setting turned on
                 .reduceMotion(ReduceMotion.Never),
         [animationOutTiming, animationOut],
     );

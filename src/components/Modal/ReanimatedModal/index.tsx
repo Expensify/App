@@ -7,6 +7,7 @@ import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -115,15 +116,17 @@ function ReanimatedModal({
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillHide();
 
+            blurActiveElement();
             setIsVisibleState(false);
             setIsTransitioning(true);
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isVisible, isContainerOpen, isTransitioning]);
 
-    const backdropStyle: ViewStyle = useMemo(() => {
-        return {width: windowWidth, height: windowHeight, backgroundColor: backdropColor};
-    }, [windowWidth, windowHeight, backdropColor]);
+    const backdropStyle: ViewStyle = useMemo(
+        () => ({width: windowWidth, height: windowHeight, backgroundColor: backdropColor, opacity: backdropOpacity}),
+        [windowWidth, windowHeight, backdropColor, backdropOpacity],
+    );
 
     const onOpenCallBack = useCallback(() => {
         setIsTransitioning(false);
