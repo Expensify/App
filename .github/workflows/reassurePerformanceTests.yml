@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths-ignore: [docs/**, help/**, .github/**, contributingGuides/**, '**.md', '**.sh']
+    paths-ignore: [docs/**, help/**, .github/**, contributingGuides/**, tests/**, '**.md', '**.sh']
 
 jobs:
   perf-tests:
@@ -45,60 +45,22 @@ jobs:
         shell: bash
         run: |
           set -e
-
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
-          # Store list of new test files before switching branches
-          NEW_TEST_FILES=$(git diff --name-only --diff-filter=A "$COMMIT_HASH" "${{ github.sha }}" || true)
-          echo "MORWA: Debug - COMMIT_HASH: $COMMIT_HASH"
-          echo "MORWA: Debug - github.sha: ${{ github.sha }}"
-          echo "MORWA: Debug - All new files: $(git diff --name-only --diff-filter=A "$COMMIT_HASH" "${{ github.sha }}" || true)"
-          echo "MORWA: Debug - Pattern match result: $NEW_TEST_FILES"
-          if [ -n "$NEW_TEST_FILES" ]; then
-            echo "MORWA: New performance test files detected: $NEW_TEST_FILES"
-          else
-            echo "MORWA: No new performance test files detected"
-          fi
-
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
-          echo "MORWA"
-          git diff --name-only "$COMMIT_HASH" "${{ github.sha }}" || true
           git switch "$BASELINE_BRANCH"
           cd Mobile-Expensify
           git checkout "$(git rev-parse HEAD)"
           cd ..
           git add Mobile-Expensify
           npm install --force || (rm -rf node_modules && npm install --force)
-          # NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+          NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
           git switch --force --detach -
           cd Mobile-Expensify
           git checkout "$(git rev-parse HEAD)"
           cd ..
           git add Mobile-Expensify
           git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours
-
-          git checkout --ours .
-
-          # Restore new test files after checkout --ours
-          if [ -n "$NEW_TEST_FILES" ]; then
-            echo "MORWA: Restoring new test files from original PR commit..."
-            for file in $NEW_TEST_FILES; do
-              git checkout "${{ github.sha }}" -- "$file" || echo "MORWA: Could not restore $file"
-              echo "MORWA: Restored $file"
-            done
-          fi
           npm install --force || (rm -rf node_modules && npm install --force)
-
-          # Verify new test files are present before running reassure
-          if [ -n "$NEW_TEST_FILES" ]; then
-            echo "MORWA: Verifying new test files before reassure run..."
-            for file in $NEW_TEST_FILES; do
-              if [ -f "$file" ]; then
-                echo "MORWA: ✓ $file exists"
-              else
-                echo "MORWA: ✗ $file MISSING"
-              fi
-            done
-          fi
           NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
 
       - name: Validate output.json
