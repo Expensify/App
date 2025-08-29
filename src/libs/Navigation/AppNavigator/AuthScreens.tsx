@@ -104,15 +104,6 @@ function initializePusher() {
     });
 }
 
-function handleNetworkReconnect(lastUpdateIDAppliedToClient: number | undefined, isLoadingApp: boolean) {
-    if (isLoadingApp) {
-        App.openApp();
-    } else {
-        Log.info('[handleNetworkReconnect] Sending ReconnectApp');
-        App.reconnectApp(lastUpdateIDAppliedToClient);
-    }
-}
-
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
@@ -161,6 +152,9 @@ function AuthScreens() {
     const {toggleSearch} = useSearchRouterContext();
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
+    const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
+    // eslint-disable-next-line react-compiler/react-compiler
+    lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
         canBeMissing: true,
@@ -196,6 +190,15 @@ function AuthScreens() {
             (!!isOnboardingLoading || !!prevIsOnboardingLoading)
         );
     }, [onboardingCompanySize, isOnboardingCompleted, isOnboardingLoading, prevIsOnboardingLoading]);
+
+    const handleNetworkReconnect = (isLoadingAppParam: boolean) => {
+        if (isLoadingAppParam) {
+            App.openApp();
+        } else {
+            Log.info('[handleNetworkReconnect] Sending ReconnectApp');
+            App.reconnectApp(lastUpdateIDAppliedToClientRef.current);
+        }
+    }
 
     useEffect(() => {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
@@ -245,7 +248,7 @@ function AuthScreens() {
         }
 
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => handleNetworkReconnect(lastUpdateIDAppliedToClient, !!isLoadingApp));
+        NetworkConnection.onReconnect(() => handleNetworkReconnect(!!isLoadingApp));
         PusherConnectionManager.init();
         initializePusher();
         // Sometimes when we transition from old dot to new dot, the client is not the leader
