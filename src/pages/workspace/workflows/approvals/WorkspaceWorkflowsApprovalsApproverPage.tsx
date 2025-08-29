@@ -58,6 +58,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
     const [allApprovers, setAllApprovers] = useState<SelectionListApprover[]>([]);
     const shouldShowTextInput = allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
@@ -142,7 +143,9 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         }
 
         const filteredApprovers =
-            debouncedSearchTerm !== '' ? tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? '']) : approvers;
+            debouncedSearchTerm !== ''
+                ? tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? ''])
+                : approvers;
 
         const data = sortAlphabetically(filteredApprovers, 'text', localeCompare);
         return [
@@ -154,18 +157,19 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         ];
     }, [
         isApprovalWorkflowLoading,
-        approversFromWorkflow,
-        isDefault,
-        approverIndex,
-        debouncedSearchTerm,
-        defaultApprover,
-        personalDetails,
         employeeList,
-        selectedApproverEmail,
-        membersEmail,
+        debouncedSearchTerm,
+        countryCode,
+        localeCompare,
         policy?.preventSelfApproval,
         policy?.owner,
-        localeCompare,
+        membersEmail,
+        approversFromWorkflow,
+        selectedApproverEmail,
+        isDefault,
+        approverIndex,
+        defaultApprover,
+        personalDetails,
     ]);
 
     const shouldShowListEmptyContent = !debouncedSearchTerm && !!approvalWorkflow && !sections.at(0)?.data.length && !isApprovalWorkflowLoading;
