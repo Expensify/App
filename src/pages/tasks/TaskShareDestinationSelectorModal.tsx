@@ -9,7 +9,6 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
@@ -17,8 +16,9 @@ import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {filterAndOrderOptions, getHeaderMessage, getShareDestinationOptions} from '@libs/OptionsListUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
-import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport} from '@libs/ReportUtils';
+import {canCreateTaskInReport, canUserPerformWriteAction, isArchivedReport, isCanceledTaskReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {setShareDestinationValue} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,10 +37,10 @@ const selectReportHandler = (option: unknown) => {
     Navigation.goBack(ROUTES.NEW_TASK.getRoute());
 };
 
-const reportFilter = (reportOptions: Array<SearchOption<Report>>) =>
+const reportFilter = (reportOptions: Array<SearchOption<Report>>, archivedReportsIDList: ArchivedReportsIDSet) =>
     (reportOptions ?? []).reduce((filtered: Array<SearchOption<Report>>, option) => {
         const report = option.item;
-        const isReportArchived = useReportIsArchived(report?.reportID);
+        const isReportArchived = archivedReportsIDList.has(report?.reportID);
         if (canUserPerformWriteAction(report, isReportArchived) && canCreateTaskInReport(report) && !isCanceledTaskReport(report)) {
             filtered.push(option);
         }
@@ -58,6 +58,24 @@ function TaskShareDestinationSelectorModal() {
     const {options: optionList, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        canBeMissing: true,
+        selector: (all): ArchivedReportsIDSet => {
+            const ids = new Set<string>();
+            if (!all) {
+                return ids;
+            }
+
+            const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
+            for (const [key, value] of Object.entries(all)) {
+                if (isArchivedReport(value)) {
+                    const reportID = key.slice(prefixLength);
+                    ids.add(reportID);
+                }
+            }
+            return ids;
+        },
+    });
 
     const textInputHint = useMemo(() => (isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''), [isOffline, translate]);
 
@@ -71,7 +89,7 @@ function TaskShareDestinationSelectorModal() {
                 header: '',
             };
         }
-        const filteredReports = reportFilter(optionList.reports);
+        const filteredReports = reportFilter(optionList.reports, archivedReportsIdSet);
         const {recentReports} = getShareDestinationOptions(filteredReports, optionList.personalDetails, [], [], {}, true);
         const header = getHeaderMessage(recentReports && recentReports.length !== 0, false, '');
         return {
@@ -81,7 +99,7 @@ function TaskShareDestinationSelectorModal() {
             currentUserOption: null,
             header,
         };
-    }, [areOptionsInitialized, optionList.personalDetails, optionList.reports]);
+    }, [areOptionsInitialized, optionList.personalDetails, optionList.reports, archivedReportsIdSet]);
 
     const options = useMemo(() => {
         if (debouncedSearchValue.trim() === '') {
