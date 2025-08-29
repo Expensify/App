@@ -232,6 +232,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 categories: selectedItems.includes('categories'),
                 tags: selectedItems.includes('tags'),
                 taxes: selectedItems.includes('taxes'),
+                perDiem: selectedItems.includes('perDiem'),
                 reimbursements: selectedItems.includes('invoices'),
                 expenses: selectedItems.includes('rules'),
                 customUnits: selectedItems.includes('distanceRates'),
