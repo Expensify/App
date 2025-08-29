@@ -45,11 +45,18 @@ jobs:
         shell: bash
         run: |
           set -e
+          NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
           # Store list of new test files before switching branches
           NEW_TEST_FILES=$(git diff --name-only --diff-filter=A "$COMMIT_HASH" "${{ github.sha }}" -- 'tests/perf-test/**/*.perf-test.*' || true)
+          echo "MORWA: Debug - COMMIT_HASH: $COMMIT_HASH"
+          echo "MORWA: Debug - github.sha: ${{ github.sha }}"
+          echo "MORWA: Debug - All new files: $(git diff --name-only --diff-filter=A "$COMMIT_HASH" "${{ github.sha }}" || true)"
+          echo "MORWA: Debug - Pattern match result: $NEW_TEST_FILES"
           if [ -n "$NEW_TEST_FILES" ]; then
-            echo "New performance test files detected: $NEW_TEST_FILES"
+            echo "MORWA: New performance test files detected: $NEW_TEST_FILES"
+          else
+            echo "MORWA: No new performance test files detected"
           fi
 
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
@@ -79,7 +86,7 @@ jobs:
             done
           fi
           npm install --force || (rm -rf node_modules && npm install --force)
-          NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
+          # NODE_OPTIONS=--experimenta l-vm-modules npx reassure --branch
 
       - name: Validate output.json
         id: validateReassureOutput
