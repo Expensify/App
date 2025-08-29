@@ -203,6 +203,7 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
     isFetchingWaypointsFromServer,
+    isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isOnHold,
     isPendingCardOrScanningTransaction,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
@@ -304,6 +305,7 @@ type TrackExpenseInformation = {
 
 type TrackedExpenseTransactionParams = Omit<BaseTransactionParams, 'taxCode' | 'taxAmount'> & {
     waypoints?: string;
+    distance?: number;
     transactionID: string | undefined;
     receipt?: Receipt;
     taxCode: string;
@@ -400,6 +402,7 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     originalTransactionID?: string;
     isTestDrive?: boolean;
     source?: string;
+    distance?: number;
 };
 
 type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
@@ -519,8 +522,9 @@ type BuildOnyxDataForMoneyRequestParams = {
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
     attendees?: Attendee[];
-    validWaypoints: WaypointCollection;
+    validWaypoints?: WaypointCollection;
     splitShares?: SplitShares;
+    distance?: number;
 };
 
 type CreateDistanceRequestInformation = {
@@ -555,6 +559,7 @@ type TrackExpenseTransactionParams = {
     created: string | undefined;
     merchant?: string;
     comment?: string;
+    distance?: number;
     receipt?: Receipt;
     category?: string;
     tag?: string;
@@ -631,6 +636,7 @@ type GetTrackExpenseInformationTransactionParams = {
     billable?: boolean;
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     attendees?: Attendee[];
+    distance?: number;
 };
 
 type GetTrackExpenseInformationParticipantParams = {
@@ -955,16 +961,23 @@ function initMoneyRequest({
     };
     let requestCategory: string | null = null;
 
-    // Add initial empty waypoints when starting a distance expense
-    if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP) {
-        comment.waypoints = {
-            waypoint0: {keyForList: 'start_waypoint'},
-            waypoint1: {keyForList: 'stop_waypoint'},
-        };
+    // Set up initial distance expense state
+    if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL) {
         if (!isFromGlobalCreate) {
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
             const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
             comment.customUnit = {customUnitRateID};
+        }
+        if (comment.customUnit) {
+            comment.customUnit.quantity = null;
+        }
+        if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL) {
+            comment.waypoints = undefined;
+        } else {
+            comment.waypoints = {
+                waypoint0: {keyForList: 'start_waypoint'},
+                waypoint1: {keyForList: 'stop_waypoint'},
+            };
         }
     }
 
@@ -1283,6 +1296,10 @@ function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex:
     };
 
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+}
+
+function setMoneyRequestDistance(transactionID: string, distanceAsFloat: number, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {customUnit: {quantity: distanceAsFloat}}});
 }
 
 /**
@@ -3341,6 +3358,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const {
         attendees,
         amount,
+        distance,
         comment = '',
         currency,
         source = '',
@@ -3423,7 +3441,11 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     // STEP 3: Build an optimistic transaction with the receipt
     const isDistanceRequest =
-        existingTransaction && (existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE || existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+        existingTransaction &&
+        (existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
+            existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
+            existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
+    const isManualDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
     let optimisticTransaction = buildOptimisticTransaction({
         existingTransactionID,
         existingTransaction,
@@ -3431,6 +3453,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         policy,
         transactionParams: {
             amount: isExpenseReport(iouReport) ? -amount : amount,
+            distance,
             currency,
             reportID: iouReport.reportID,
             comment,
@@ -3445,7 +3468,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             taxAmount: isExpenseReport(iouReport) ? -(taxAmount ?? 0) : taxAmount,
             billable,
             reimbursable: isPolicyExpenseChat ? reimbursable : true,
-            pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+            pendingFields: isDistanceRequest && !isManualDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
         },
         isDemoTransactionParam: isSelectedManagerMcTest(participant.login) || transactionParams.receipt?.isTestDriveReceipt,
     });
@@ -3829,7 +3852,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     const {parentChatReport, moneyRequestReportID = '', existingTransactionID, participantParams, policyParams, transactionParams, retryParams} = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
-    const {comment, amount, currency, created, merchant, receipt, category, tag, taxCode, taxAmount, billable, linkedTrackedExpenseReportAction, attendees} = transactionParams;
+    const {comment, amount, currency, created, distance, merchant, receipt, category, tag, taxCode, taxAmount, billable, linkedTrackedExpenseReportAction, attendees} = transactionParams;
 
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -3920,6 +3943,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         filename = existingTransaction?.filename;
     }
     const isDistanceRequest = existingTransaction && isDistanceRequestTransactionUtils(existingTransaction);
+    const isManualDistanceRequest = existingTransaction && isManualDistanceRequestTransactionUtils(existingTransaction);
     let optimisticTransaction = buildOptimisticTransaction({
         existingTransactionID,
         existingTransaction,
@@ -3929,6 +3953,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             currency,
             reportID: shouldUseMoneyReport && iouReport ? iouReport.reportID : CONST.REPORT.UNREPORTED_REPORT_ID,
             comment,
+            distance,
             created,
             merchant,
             receipt: receiptObject,
@@ -3937,7 +3962,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             taxCode,
             taxAmount,
             billable,
-            pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+            pendingFields: isDistanceRequest && !isManualDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
             reimbursable: false,
             filename,
             attendees,
@@ -5076,6 +5101,7 @@ type AddTrackedExpenseToPolicyParam = {
     modifiedExpenseReportActionID: string;
     moneyRequestCreatedReportActionID: string | undefined;
     moneyRequestPreviewReportActionID: string;
+    distance: number | undefined;
 } & ConvertTrackedWorkspaceParams;
 
 type ConvertTrackedExpenseToRequestParams = {
@@ -5095,6 +5121,7 @@ type ConvertTrackedExpenseToRequestParams = {
         created: string;
         attendees?: Attendee[];
         transactionThreadReportID?: string;
+        distance?: number;
     };
     chatParams: {
         reportID: string;
@@ -5123,6 +5150,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         amount,
+        distance,
         currency,
         comment,
         merchant,
@@ -5149,6 +5177,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
     if (workspaceParams) {
         const params = {
             amount,
+            distance,
             currency,
             comment,
             created,
@@ -5171,6 +5200,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
     const parameters = {
         attendees,
         amount,
+        distance,
         currency,
         comment,
         created,
@@ -5930,6 +5960,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         created = '',
         merchant = '',
         comment = '',
+        distance,
         receipt,
         category,
         tag,
@@ -5970,6 +6001,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             created,
             merchant,
             comment,
+            distance,
             receipt: undefined,
             category,
             tag,
@@ -6014,6 +6046,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             transactionParams: {
                 comment,
                 amount,
+                distance,
                 currency,
                 created,
                 merchant,
@@ -6057,6 +6090,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 amount,
                 currency,
                 comment,
+                distance,
                 merchant,
                 created,
                 taxCode,
@@ -6105,6 +6139,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 amount,
                 currency,
                 comment,
+                distance,
                 merchant,
                 created,
                 taxCode: taxCode ?? '',
@@ -6148,6 +6183,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 amount,
                 currency,
                 comment,
+                distance,
                 created,
                 merchant,
                 iouReportID: iouReport?.reportID,
@@ -7534,6 +7570,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     const {
         amount,
         comment,
+        distance,
         currency,
         created,
         category,
@@ -7553,6 +7590,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
+    const isManualDistanceRequest = isEmptyObject(validWaypoints);
 
     const optimisticReceipt: Receipt = {
         source: ReceiptGeneric as ReceiptSource,
@@ -7561,7 +7599,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     let parameters: CreateDistanceRequestParams;
     let onyxData: OnyxData;
-    const sanitizedWaypoints = sanitizeRecentWaypoints(validWaypoints);
+    const sanitizedWaypoints = !isManualDistanceRequest ? sanitizeRecentWaypoints(validWaypoints) : null;
     if (iouType === CONST.IOU.TYPE.SPLIT) {
         const {
             splitData,
@@ -7642,11 +7680,12 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             },
             transactionParams: {
                 amount,
+                distance,
                 currency,
                 comment,
                 created,
                 merchant,
-                receipt: optimisticReceipt,
+                receipt: !isManualDistanceRequest ? optimisticReceipt : undefined,
                 category,
                 tag,
                 taxCode,
@@ -7659,6 +7698,14 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
         onyxData = moneyRequestOnyxData;
 
+        if (transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP || isManualDistanceRequest) {
+            onyxData?.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
+                value: transaction.iouRequestType,
+            });
+        }
+
         parameters = {
             comment,
             iouReportID: iouReport.reportID,
@@ -7669,6 +7716,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             createdIOUReportActionID,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             waypoints: JSON.stringify(sanitizedWaypoints),
+            distance,
             created,
             category,
             tag,
@@ -12543,6 +12591,7 @@ export {
     setMoneyRequestDateAttribute,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
+    setMoneyRequestDistance,
     setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
