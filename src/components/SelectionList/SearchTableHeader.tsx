@@ -227,5 +227,5 @@ function SearchTableHeader({
 }
 
 SearchTableHeader.displayName = 'SearchTableHeader';
-export {expenseHeaders};
+export {getExpenseHeaders};
 export default SearchTableHeader;
