@@ -132,7 +132,7 @@ import {
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Account, Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
+import type {Account, Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, PolicyTagLists, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
@@ -198,6 +198,7 @@ type ContextMenuActionPayload = {
     anchorRef?: RefObject<View | null>;
     moneyRequestAction: ReportAction | undefined;
     card?: Card;
+    policyTags?: PolicyTagLists;
     originalReport: OnyxEntry<ReportType>;
     isTryNewDotNVPDismissed?: boolean;
 };
@@ -497,7 +498,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fall back to
         // the `text` and `icon`
-        onPress: (closePopover, {reportAction, transaction, selection, report, reportID, card, originalReport, isTryNewDotNVPDismissed}) => {
+        onPress: (closePopover, {reportAction, transaction, selection, report, reportID, card, policyTags, originalReport, isTryNewDotNVPDismissed}) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
             const messageHtml = getActionHtml(reportAction);
             const messageText = getReportActionMessageText(reportAction);
@@ -514,7 +515,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = html ?? text;
                     setClipboardMessage(displayMessage);
                 } else if (isModifiedExpenseAction(reportAction)) {
-                    const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: reportID, reportAction});
+                    const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: reportID, reportAction, policyTags: policyTags ?? {}});
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
                     const {expenseReportID} = getOriginalMessage(reportAction) ?? {};

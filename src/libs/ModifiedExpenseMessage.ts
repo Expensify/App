@@ -16,19 +16,6 @@ import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils'
 import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 
-let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allPolicyTags = {};
-            return;
-        }
-        allPolicyTags = value;
-    },
-});
-
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -162,10 +149,12 @@ function getForReportAction({
     reportOrID,
     reportAction,
     searchReports,
+    policyTags,
 }: {
     reportOrID: string | SearchReport | undefined;
     reportAction: OnyxEntry<ReportAction>;
     searchReports?: SearchReport[];
+    policyTags: PolicyTagLists;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
@@ -175,6 +164,7 @@ function getForReportAction({
     if (typeof reportOrID === 'string') {
         report = searchReports ? searchReports.find((r) => r.reportID === reportOrID) : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
     } else {
+        // eslint-disable-next-line -- TODO remove it when its safe to remove
         report = reportOrID;
     }
 
@@ -264,7 +254,6 @@ function getForReportAction({
 
     const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
     if (hasModifiedTag) {
-        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`] ?? {};
         const transactionTag = reportActionOriginalMessage?.tag ?? '';
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
         const splittedTag = getTagArrayFromName(transactionTag);
