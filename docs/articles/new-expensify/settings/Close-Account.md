@@ -3,7 +3,6 @@ title: Close Account
 description: Close an Expensify account and learn how to resolve common issues that prevent account deletion.
 keywords: [New Expensify, close account, delete Expensify account, remove user, deactivate account, cancel account, terminate]
 ---
-<div id="new-expensify" markdown="1">
 
 Closing your Expensify account will permanently delete associated personal data. However, expenses shared with others, such as approved or reimbursed company expenses, will remain visible to those users. Expensify may also retain certain records to comply with legal requirements.
 
@@ -34,4 +33,3 @@ If you're unable to close your account, it’s likely due to one of the followin
 
 If you're still having trouble, reach out to **Concierge** for additional assistance.
 
-</div>

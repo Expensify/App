@@ -3,7 +3,6 @@ title: Approve Expenses
 description: Approve, hold, and unapprove submitted expenses
 keywords: [New Expensify, approve expenses, hold expenses, unapprove report, workspace approval workflow, expense approval, reimburse expenses, pending expense, Expensify Card, expense status, expense settings]
 ---
-<div id="new-expensify" markdown="1">
 
 Expenses can be created through manual entry, tracking distance, or scanning a receipt. They can be submitted to an individual or to a workspace. For steps on creating and submitting expenses, check out [Create an Expense](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Create-an-expense).
 
@@ -88,4 +87,3 @@ Expensify Card expenses show as pending until the merchant posts them. This can 
 ## What are expense reports? 
 Expense reports group multiple expenses into one batch for review or payment. Draft reports collect new expenses automatically. You can check the status of an expense under **Reports > Expenses**.
 
-</div>

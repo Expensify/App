@@ -169,6 +169,19 @@ type UberReceiptPartner = {
      * organization id for connected uber
      */
     organizationID?: string;
+
+    /**
+     * Mapping of workspace member email to Uber employee status
+     */
+    employees?: Record<
+        string,
+        {
+            /**
+             * status of the employee
+             */
+            status?: string;
+        }
+    >;
     /**
      * Collection of errors coming from BE
      */

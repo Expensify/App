@@ -4,7 +4,6 @@ description: Learn how actions such as Approve, Pay, Export, and Hold behave in 
 keywords: [New Expensify, report actions, approver actions, submitter actions]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Expense and report actions vary depending on the member role (submitter, approver, payer, admin) and the report's status (draft, outstanding, approved, done, paid). This guide outlines what to expect when reviewing, approving, paying, exporting, or managing expenses and reports based on varying workspace settings and report status.
 
@@ -73,4 +72,3 @@ The **Cancel payment** option is only available for in-app payments and only bef
 
 This option won't be available if the payment was made manually outside of Expensify. In that case, use **Unapprove** instead.
 
-</div>

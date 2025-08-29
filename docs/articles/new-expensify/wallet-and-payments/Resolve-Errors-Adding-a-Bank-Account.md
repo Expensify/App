@@ -2,7 +2,6 @@
 title: Resolve Errors Adding a Bank Account
 description: Troubleshooting issues adding a business bank account in Expensify.
 ---
-<div id="new-expensify" markdown="1">
 
 Expensify is required to verify the identity of the individual who is connecting a business bank account.
 
@@ -18,4 +17,3 @@ Expensify is required to verify the identity of the individual who is connecting
 
 If the issue persists, please contact your Account Manager or Concierge for further troubleshooting assistance.
 
-</div>

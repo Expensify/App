@@ -3,7 +3,6 @@ title: Update the Mailing Address for Your Expensify Card
 description: Learn how to update the mailing address for your Expensify Visa® Commercial Card, with or without requesting a replacement.
 keywords: [Expensify Card, update address, mailing address, card replacement, new card, lost card, Wallet]
 ---
-<div id="new-expensify" markdown="1">
 
 This article explains how to update your mailing address for the Expensify Visa® Commercial Card—whether you simply need to change the address on file or send a new card to the new location.
 
@@ -36,4 +35,3 @@ Your address is now updated! If the card hasn't shipped yet, it will automatical
 
 Your new Expensify Visa® Commercial Card will arrive in **3-5 business days**.
 
-</div>

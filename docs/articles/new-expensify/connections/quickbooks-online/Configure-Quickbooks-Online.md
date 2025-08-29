@@ -4,7 +4,6 @@ description: Configure your QuickBooks Online connection with Expensify.
 keywords: [New Expensify, QuickBooks Online, Expensify integration, accounting settings, import settings, export settings]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Connecting QuickBooks Online to Expensify helps streamline expense tracking and financial reporting for admins and employees. This guide walks you through how to configure import, export, and advanced settings for the QuickBooks Online integration.
 
@@ -104,4 +103,3 @@ This is likely due to the **Locations** import setting. Locations can only be us
 - Turn off location imports  
 - Or upgrade to the **Control** plan
 
-</div>

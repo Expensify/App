@@ -3,7 +3,6 @@ title: Assign a Task via Chat
 description: Assign and track tasks in Expensify chats using the task creation and assignment features.
 keywords: [New Expensify, assign task, task management, chat task, task tracking]
 ---
-<div id="new-expensify" markdown="1">
 
 You can create and assign tasks to yourself or other members directly within a chat. Tasks help keep conversations actionable and organized, especially in 1:1 or group chats.
 
@@ -32,4 +31,3 @@ The task **creator** and the **assignee** can:
 
 ✅ **Note:** When a task is completed, it will be visibly marked as done in the chat and can be reopened if needed.
 
-</div>

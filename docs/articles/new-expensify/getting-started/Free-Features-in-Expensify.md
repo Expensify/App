@@ -4,7 +4,6 @@ description: Learn what features are available for free in Expensify and how ind
 keywords: [New Expensify, free features, SmartScan, expense tracking, tax deductions, budgeting, freelance receipts, personal finance, CSV export, gig worker tools]
 ---
 
-<div id="new-expensify" markdown="1">
 
 You can use Expensify without joining a paid workspace! This guide outlines the free features available to individuals who want to manage personal, freelance, or household expenses.
 
@@ -86,4 +85,3 @@ No. You can export your expenses anytime as a spreadsheet or CSV.
 
 You can [create or join a workspace](https://help.expensify.com/articles/new-expensify/getting-started/Track-Personal-Expenses#create-a-workspace) to unlock features like categories, bank connections, accounting integrations, and company card support.
 
-</div>

@@ -342,6 +342,13 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                         name: 'lottiePlayer',
                         chunks: 'all',
                     },
+                    // heic-to library is used sparsely and we want to load it as a separate chunk
+                    // to reduce the potential bundled size of the initial chunk
+                    heicTo: {
+                        test: /[\\/]node_modules[\\/](heic-to)[\\/]/,
+                        name: 'heicTo',
+                        chunks: 'all',
+                    },
                     // Extract all 3rd party dependencies (~75% of App) to separate js file
                     // This gives a more efficient caching - 3rd party deps don't change as often as main source
                     // When dependencies don't change webpack would produce the same js file (and content hash)

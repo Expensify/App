@@ -72,6 +72,7 @@ function Size({onNext}: SizeProps) {
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={defaultValues[INPUT_IDS.SUBSCRIPTION_SIZE]}
                     shouldSaveDraft
+                    inputMode={CONST.INPUT_MODE.NUMERIC}
                 />
                 <Text style={[styles.formHelp, styles.mt2]}>{translate('subscription.subscriptionSize.eachMonth')}</Text>
                 <Text style={[styles.formHelp, styles.mt2]}>{translate('subscription.subscriptionSize.note')}</Text>

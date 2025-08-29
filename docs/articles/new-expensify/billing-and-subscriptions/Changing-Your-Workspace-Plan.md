@@ -3,7 +3,6 @@ title: Change Workspace Plan
 description: Learn how to update your Expensify workspace subscription, downgrade to a free account, or delete your workspace with step-by-step instructions.
 keywords: [New Expensify, workspace plan, subscription, downgrade, cancel subscription, delete workspace]
 ---
-<div id="new-expensify" markdown="1">
 
 Take a look at this resource to learn how to update your Expensify workspace subscription, downgrade to a free account, or delete your workspace entirely.
 
@@ -55,4 +54,3 @@ No. Once a workspace is deleted, it cannot be reopened or reactivated. To use Ex
 
 Deleting a workspace will permanently remove workspace-specific settings like company cards. However, your expenses and reports will remain unless you close your Expensify account entirely.
 
-</div>

@@ -4,7 +4,6 @@ description: Learn how to integrate Egencia with Expensify to automatically impo
 keywords: [Egencia, travel booking, Expensify Classic]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Expensify’s API helps connect your account to third-party tools like NetSuite, Xero, and even internal systems like Workday. This guide includes tips, usage examples, and common troubleshooting questions — many sourced from customers who’ve done it before.
 
@@ -58,4 +57,3 @@ If your company uses a **central purchasing account**, you can forward all Egenc
   - Is **non-reimbursable**.
   - **Will not be exported** to an integrated accounting system.
 
-</div>

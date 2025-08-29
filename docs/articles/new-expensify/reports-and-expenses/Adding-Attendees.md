@@ -3,7 +3,6 @@ title: Adding Attendees
 description: Learn how to add attendees to your expenses and resolve category limit errors by splitting the cost across participants.
 keywords: [New Expensify, add attendees, expense attendees, split expense, category limit, attendee allocation]
 ---
-<div id="new-expensify" markdown="1">
 
 You can add attendees to an expense to indicate who participated in a meal, meeting, or event. This is especially helpful when your company has per-person category limits, as Expensify can split the cost evenly across all attendees to help avoid violations.
 
@@ -35,4 +34,3 @@ If an expense exceeds a category limit set by your admin, you can resolve the is
 
 🕵️ **Note:** Expensify automatically records attendee changes on the expense report. These system messages cannot be edited, ensuring a clear and secure history of all attendee updates.
 
-</div>

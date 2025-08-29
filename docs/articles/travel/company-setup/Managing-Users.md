@@ -4,7 +4,6 @@ description: Learn how travel admins can view and manage traveler profiles, role
 keywords: [manage users, travel roles, edit traveler profile, expensify travel admin, legal entity, secondary approvers, travel arranger]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Travel admins can view, edit, and configure traveler profiles under the **Users** section of Expensify Travel.
 
@@ -97,4 +96,3 @@ Every user must be assigned to a legal entity (Expensify workspace) in order to 
 ## Can users assign their own arrangers or secondary approvers?
 Yes. Users can update their arrangers and secondary approvers in their own profile settings if permitted.
 
-</div>

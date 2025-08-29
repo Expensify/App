@@ -4,7 +4,6 @@ description: Learn how to create and submit expenses in Expensify using SmartSca
 keywords: [New Expensify, create expense, SmartScan, manual expense, distance expense, submit expense, expense report, New Expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Expensify makes it easy to create expenses through SmartScanning a receipt, uploading manually, forwarding by email, or tracking distance. You can submit an expense to either an individual or a workspace, depending on how you're using Expensify.
 
@@ -159,4 +158,3 @@ If you're submitting to someone for the first time, their contact information wi
 **Safari:**
 - Tap **aA > Website Settings > Camera > Allow**, then tap **Done** and refresh the page.
 
-</div>

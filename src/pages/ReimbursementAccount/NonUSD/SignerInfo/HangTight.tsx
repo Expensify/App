@@ -1,24 +1,60 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {clearReimbursementAccountSendReminderForCorpaySignerInformation, sendReminderForCorpaySignerInformation} from '@userActions/BankAccounts';
+import ONYXKEYS from '@src/ONYXKEYS';
 
-function HangTight({tempSubmit}: {tempSubmit: () => void}) {
+type HangTightProps = {
+    /** ID of policy */
+    policyID: string | undefined;
+
+    /** ID of bank account */
+    bankAccountID: number;
+};
+
+function HangTight({policyID, bankAccountID}: HangTightProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
 
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const signerEmail = reimbursementAccount?.achData?.corpay?.signerEmail;
+    const secondSignerEmail = reimbursementAccount?.achData?.corpay?.secondSignerEmail;
+    const error = getLatestErrorMessage(reimbursementAccount);
+
     const handleSendReminder = () => {
-        // TODO this should send a message to the email provided in the previous step
-        tempSubmit();
+        if (!signerEmail || !policyID) {
+            return;
+        }
+
+        sendReminderForCorpaySignerInformation({policyID, bankAccountID, signerEmail, secondSignerEmail});
     };
+
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (reimbursementAccount?.errors || reimbursementAccount?.isSendingReminderForCorpaySignerInformation || !reimbursementAccount?.isSuccess) {
+            return;
+        }
+
+        if (reimbursementAccount?.isSuccess) {
+            clearReimbursementAccountSendReminderForCorpaySignerInformation();
+        }
+
+        return () => {
+            clearReimbursementAccountSendReminderForCorpaySignerInformation();
+        };
+    }, [reimbursementAccount]);
 
     return (
         <ScrollView
@@ -34,16 +70,24 @@ function HangTight({tempSubmit}: {tempSubmit: () => void}) {
                     />
                 </View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3, styles.mt5]}>{translate('signerInfoStep.hangTight')}</Text>
-                <Text style={[styles.mutedTextLabel, styles.mh5]}>{translate('signerInfoStep.weAreWaiting')}</Text>
+                <Text style={[styles.textAlignCenter, styles.mutedTextLabel, styles.mh5]}>{translate('signerInfoStep.weAreWaiting')}</Text>
             </View>
             <View style={[styles.ph5, styles.flexGrow1, styles.justifyContentEnd]}>
+                {!!error && error.length > 0 && (
+                    <DotIndicatorMessage
+                        textStyles={[styles.formError]}
+                        type="error"
+                        messages={{error}}
+                    />
+                )}
                 <Button
                     success
                     style={[styles.w100]}
                     onPress={handleSendReminder}
                     large
-                    icon={Expensicons.Bell}
+                    icon={reimbursementAccount?.isSendingReminderForCorpaySignerInformation ? undefined : Expensicons.Bell}
                     text={translate('signerInfoStep.sendReminder')}
+                    isLoading={reimbursementAccount?.isSendingReminderForCorpaySignerInformation}
                 />
             </View>
         </ScrollView>

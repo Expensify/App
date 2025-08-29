@@ -56,6 +56,7 @@ function IOURequestStepCurrency({
 
     return (
         <StepScreenWrapper
+            shouldEnableKeyboardAvoidingView={false}
             headerTitle={translate('common.selectCurrency')}
             onBackButtonPress={() => navigateBack()}
             shouldShowWrapper

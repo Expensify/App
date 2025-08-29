@@ -2,7 +2,6 @@
 title: Pay an Invoice
 description: process to pay an invoice
 ---
-<div id="new-expensify" markdown="1">
 
 {% include info.html %}
 Anyone who receives an Expensify invoice can pay it using Expensify—even if they don’t have an Expensify account.
@@ -58,4 +57,3 @@ You will be prompted to choose a payment method when paying future invoices.
 
 {% include faq-end.md %}
 
-</div>

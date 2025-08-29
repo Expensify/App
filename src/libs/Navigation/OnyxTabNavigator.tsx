@@ -61,6 +61,9 @@ type OnyxTabNavigatorProps = ChildrenProps & {
 
     /** Callback to handle the Pager's internal onPageSelected event callback */
     onTabSelect?: ({index}: {index: number}) => void;
+
+    /** Whether tabs should have equal width */
+    equalWidth?: boolean;
 };
 
 const TopTab = createMaterialTopTabNavigator<ParamListBase, string>();
@@ -105,6 +108,7 @@ function OnyxTabNavigator({
     renderProductTrainingTooltip,
     lazyLoadEnabled = false,
     onTabSelect,
+    equalWidth = false,
     ...rest
 }: OnyxTabNavigatorProps) {
     const isFirstMount = useRef(true);
@@ -145,12 +149,13 @@ function OnyxTabNavigator({
                     shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                     shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                     renderProductTrainingTooltip={renderProductTrainingTooltip}
+                    equalWidth={equalWidth}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
             );
         },
-        [TabBar, onTabBarFocusTrapContainerElementChanged, shouldShowLabelWhenInactive, shouldShowProductTrainingTooltip, renderProductTrainingTooltip],
+        [TabBar, onTabBarFocusTrapContainerElementChanged, shouldShowLabelWhenInactive, shouldShowProductTrainingTooltip, renderProductTrainingTooltip, equalWidth],
     );
 
     // If the selected tab changes, we need to update the focus trap container element of the active tab

@@ -4,7 +4,6 @@ description: Learn how to book travel for guests in Expensify, even if they don�
 keywords: [book guest travel, guest traveler, expensify travel, book for non-member, travel booking, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Any member with guest booking permission can book travel for a guest, aka someone who doesn’t have an Expensify account.
 
@@ -64,4 +63,3 @@ No. Guest travelers don’t need an account to receive or use their travel reser
 ## Will the travel show up in my reports?
 Yes. The booking appears in your Expensify account, and receipts are automatically added to an expense report.
 
-</div>

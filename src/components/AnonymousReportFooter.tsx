@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-// eslint-disable-next-line no-restricted-syntax
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import type {Report} from '@src/types/onyx';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
@@ -43,7 +42,9 @@ function AnonymousReportFooter({isSmallSizeLayout = false, report}: AnonymousRep
                     <Button
                         success
                         text={translate('common.signIn')}
-                        onPress={signOutAndRedirectToSignIn as () => void}
+                        onPress={() => {
+                            signOutAndRedirectToSignIn();
+                        }}
                     />
                 </View>
             </View>

@@ -3,7 +3,6 @@ title: Request the Expensify Card
 description: Learn how to request, activate, and manage the Expensify Card, including virtual card setup, replacement procedures, and eligibility requirements.
 keywords: [Expensify Classic, Expensify Card, request a card, new card]
 ---
-<div id="expensify-classic" markdown="1">
 
 This guide provides details on how you and your employees can request and use the Expensify Card.
 
@@ -95,4 +94,3 @@ If the card is marked as delivered but not received:
 
 Yes, if you have a business bank account and IRS registration for your company, you can use the Expensify Card as an individual business owner.
 
-</div>

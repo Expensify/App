@@ -31,11 +31,6 @@ function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: 
             return;
         }
 
-        if (fieldName === DOWNLOADED_PDS_AND_FSG) {
-            // hardcoded "true" temporarily - it will be handled properly in separate PR
-            signerDetails[fieldName] = true;
-        }
-
         if (!reimbursementAccountDraft?.[fieldName]) {
             return;
         }

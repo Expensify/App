@@ -4,7 +4,6 @@ description: Learn how to export your expenses and reports in CSV or PDF format 
 keywords: [New Expensify, export expenses, export reports, CSV export, PDF export, download reports, accounting integration, report templates]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Expensify offers flexible options to search and export expenses and reports in various formats. You can export them directly to an accounting integration, as a CSV, or as a PDF—right from the web or mobile app.
 
@@ -113,4 +112,3 @@ Excel may remove them automatically. To prevent this:
 2. Select your CSV.
 3. Set columns with leading zeros to **Text format**.
 
-</div>

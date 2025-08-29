@@ -3,7 +3,6 @@ title: Billing and Subscriptions
 description: Understand how Collect and Control plans are billed in Expensify, including pricing tiers, eligibility, and how to transfer billing ownership.
 keywords: [New Expensify, subscription, pricing, collect plan, control plan, transfer billing]
 ---
-<div id="new-expensify" markdown="1">
 
 Expensify offers two plans: **Collect** and **Control**:
 - **Collect** is ideal for small teams that need a simple way to track receipts and get reimbursed.  
@@ -117,4 +116,3 @@ To transfer billing ownership of a workspace:
 
 If your first workspace was created **before April 1, 2025**, your billing follows our previous pricing structure. If you need help understanding your charges, reach out to **Concierge** or your **Account Manager** via chat.
 
-</div>

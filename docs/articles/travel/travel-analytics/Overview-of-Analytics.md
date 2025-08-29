@@ -82,5 +82,3 @@ Yes, analytics are updated automatically as bookings are made, changed, or cance
 
 **Can I filter company-wide reports by department or cost center?**  
 Yes, depending on how your organization is set up, filters for departments or cost centers may be available in the Company Reports view.
-
-</div>

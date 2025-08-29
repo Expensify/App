@@ -5,7 +5,6 @@ keywords: [New Expensify, subscription, billing, payment card, cancel subscripti
 
 ---
 
-<div id="new-expensify" markdown="1">
 
 Easily manage your subscription in New Expensify—update payment details, adjust your plan, request early cancellation, or delete a workspace if needed.
 
@@ -56,4 +55,3 @@ To permanently delete a workspace and downgrade to a free account:
 
 Visit our [Billing page](https://help.expensify.com/new-expensify/hubs/billing-and-subscriptions/) for full pricing details.
 
-</div>
