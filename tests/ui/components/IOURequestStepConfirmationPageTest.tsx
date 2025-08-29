@@ -6,7 +6,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {translateLocal} from '@libs/Localize';
 import IOURequestStepConfirmationWithWritableReportOrNotFound from '@pages/iou/request/step/IOURequestStepConfirmation';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Transaction from '@src/types/onyx/Transaction';
+import type Transaction from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
 import {signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
