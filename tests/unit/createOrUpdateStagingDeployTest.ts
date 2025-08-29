@@ -139,7 +139,7 @@ const baseIssueList = [`https://github.com/${process.env.GITHUB_REPOSITORY}/issu
 // eslint-disable-next-line max-len
 const baseExpectedOutput = (version = '1.0.2-1', includeMobileExpensifyCompare = true) =>
     // cspell:disable
-    `**Release Version:** \`${version}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n${includeMobileExpensifyCompare ? `**Mobile-Expensify Changes:** https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/compare/production...staging\r\n` : ''}\r\n> 💡 **Deployer FYI:** This checklist was generated using a new process. PR list from original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled \`staging\`, in the \`createChecklist\` action. Please tag @Julesssss with any issues.\r\n\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
+    `**Release Version:** \`${version}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n${includeMobileExpensifyCompare ? `**Mobile-Expensify Changes:** https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/compare/production...staging\r\n` : ''}\r\n**This release contains changes from the following pull requests:**\r\n`;
 // cspell:enable
 const openCheckbox = '- [ ] ';
 const closedCheckbox = '- [x] ';
@@ -209,7 +209,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
             title: `Deploy Checklist: New Expensify ${fns.format(new Date(), 'yyyy-MM-dd')}`,
-            labels: [CONST.LABELS.STAGING_DEPLOY],
+            labels: [CONST.LABELS.STAGING_DEPLOY, CONST.LABELS.LOCK_DEPLOY],
             html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
             assignees: [CONST.APPLAUSE_BOT],
             body:
@@ -259,7 +259,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
             title: `Deploy Checklist: New Expensify ${fns.format(new Date(), 'yyyy-MM-dd')}`,
-            labels: [CONST.LABELS.STAGING_DEPLOY],
+            labels: [CONST.LABELS.STAGING_DEPLOY, CONST.LABELS.LOCK_DEPLOY],
             html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
             assignees: [CONST.APPLAUSE_BOT],
             body:

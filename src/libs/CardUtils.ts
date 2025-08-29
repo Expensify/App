@@ -277,6 +277,8 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
     const feedIcons = {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: Illustrations.VisaCompanyCardDetailLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: Illustrations.AmexCardCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_1205]: Illustrations.AmexCardCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_FILE_DOWNLOAD]: Illustrations.AmexCardCompanyCardDetailLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: Illustrations.MasterCardCompanyCardDetailLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT]: Illustrations.AmexCardCompanyCardDetailLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.BANK_OF_AMERICA]: Illustrations.BankOfAmericaCompanyCardDetailLarge,
@@ -287,6 +289,7 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
         [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: Illustrations.BrexCompanyCardDetailLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: Illustrations.StripeCompanyCardDetailLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: illustrations.GenericCSVCompanyCardLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.PEX]: illustrations.GenericCompanyCardLarge,
         [CONST.EXPENSIFY_CARD.BANK]: ExpensifyCardImage,
     };
 
@@ -347,6 +350,9 @@ function getBankName(feedType: CompanyCardFeed): string {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: 'Wells Fargo',
         [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: 'Brex',
         [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: CONST.COMPANY_CARDS.CARD_TYPE.CSV,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_1205]: 'American Express',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_FILE_DOWNLOAD]: 'American Express',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.PEX]: 'PEX',
     };
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
@@ -392,7 +398,9 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
     const feedName = getBankName(feed);
     const formattedFeedName = shouldAddCardsSuffix ? translateLocal('workspace.companyCards.feedName', {feedName}) : feedName;
 
-    return customFeedName ?? formattedFeedName;
+    // Custom feed name can be empty. Fallback to default feed name
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return customFeedName || formattedFeedName;
 }
 
 function getPlaidInstitutionIconUrl(feedName?: string) {
@@ -635,7 +643,9 @@ function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefin
         return false;
     }
 
-    return Object.values(feedCards).some((card) => !isEmptyObject(card) && card.bank !== feedToExclude && card.lastScrapeResult !== 200);
+    return Object.values(feedCards).some(
+        (card) => !isEmptyObject(card) && card.bank !== feedToExclude && card.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult),
+    );
 }
 
 /**
