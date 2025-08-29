@@ -5125,7 +5125,11 @@ function deleteAppReport(reportID: string | undefined) {
  * @param policyID - The ID of the policy to move the report to
  * @param isFromSettlementButton - Whether the action is from report preview
  */
-function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlementButton?: boolean) {
+function moveIOUReportToPolicy(
+    reportID: string,
+    policyID: string,
+    isFromSettlementButton?: boolean,
+): {policyExpenseChatReportID?: string} | undefined {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
@@ -5146,17 +5150,40 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
     const policyName = policy.name ?? '';
     const iouReportID = iouReport.reportID;
     const employeeAccountID = iouReport.ownerAccountID;
-    const expenseChatReportId = getPolicyExpenseChat(employeeAccountID, policyID)?.reportID;
-
-    if (!expenseChatReportId) {
-        return;
-    }
+    const expenseChatReportID = getPolicyExpenseChat(employeeAccountID, policyID)?.reportID;
+    const optimisticExpenseChatReportID = expenseChatReportID ?? generateReportID();
 
     const optimisticData: OnyxUpdate[] = [];
-
+    const failureData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
 
-    const failureData: OnyxUpdate[] = [];
+    // If we generated an optimistic policy expense chat ID, create minimal optimistic placeholders
+    if (!expenseChatReportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticExpenseChatReportID}`,
+            value: {isOptimisticReport: true},
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseChatReportID}`,
+            value: {
+                reportID: optimisticExpenseChatReportID,
+                policyID,
+                ownerAccountID: employeeAccountID,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseChatReportID}`,
+            value: null,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticExpenseChatReportID}`,
+            value: null,
+        });
+    }
 
     // Next we need to convert the IOU report to Expense report.
     // We need to change:
@@ -5166,7 +5193,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
     // - update the chatReportID to point to the expense chat if the policy has policy expense chat enabled
     const expenseReport = {
         ...iouReport,
-        chatReportID: policy.isPolicyExpenseChatEnabled ? expenseChatReportId : undefined,
+        chatReportID: policy.isPolicyExpenseChatEnabled ? expenseChatReportID : undefined,
         policyID,
         policyName,
         parentReportID: iouReport.parentReportID,
@@ -5238,12 +5265,12 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
         // Add the reportPreview action to expense chat
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
             value: {[reportPreview.reportActionID]: {...reportPreview, childReportName: expenseReport.reportName, created: DateUtils.getDBTime()}},
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
             value: {[reportPreview.reportActionID]: null},
         });
     }
@@ -5307,9 +5334,12 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
         policyID,
         changePolicyReportActionID: changePolicyReportAction.reportActionID,
         dmMovedReportActionID: movedReportAction.reportActionID,
+        optimisticReportID: expenseChatReportId,
     };
 
     API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_EXISTING_POLICY, parameters, {optimisticData, successData, failureData});
+
+    return {policyExpenseChatReportID: expenseChatReportId};
 }
 
 /**
