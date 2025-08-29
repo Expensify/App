@@ -17,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {inviteToGroupChat, searchInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {appendCountryCode} from '@libs/LoginUtils';
+import {appendCountryCodeWithCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
@@ -58,6 +58,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
     const {translate, formatPhoneNumber} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
 
@@ -210,12 +211,16 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         }
         if (
             !inviteOptions.userToInvite &&
-            excludedUsers[parsePhoneNumber(appendCountryCode(processedLogin)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(processedLogin)) : processedLogin]
+            excludedUsers[
+                parsePhoneNumber(appendCountryCodeWithCountryCode(processedLogin, countryCode ?? 1)).possible
+                    ? addSMSDomainIfPhoneNumber(appendCountryCodeWithCountryCode(processedLogin, countryCode ?? 1))
+                    : processedLogin
+            ]
         ) {
             return translate('messages.userIsAlreadyMember', {login: processedLogin, name: reportName ?? ''});
         }
         return getHeaderMessage(inviteOptions.recentReports.length + inviteOptions.personalDetails.length !== 0, !!inviteOptions.userToInvite, processedLogin);
-    }, [debouncedSearchTerm, inviteOptions.userToInvite, inviteOptions.recentReports.length, inviteOptions.personalDetails.length, excludedUsers, translate, reportName]);
+    }, [debouncedSearchTerm, inviteOptions.userToInvite, inviteOptions.recentReports.length, inviteOptions.personalDetails.length, excludedUsers, countryCode, translate, reportName]);
 
     const footerContent = useMemo(
         () => (
