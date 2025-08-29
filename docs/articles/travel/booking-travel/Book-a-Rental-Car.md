@@ -63,10 +63,4 @@ To view your trip:
 2. Tap **Inbox**.
 3. Find the thread named after your upcoming trip.
 
-Inside the thread, you’ll find:
-
-- All current travel and car rental details
-- Nearby restaurant suggestions
-- Local attractions and events
-
 </div>
