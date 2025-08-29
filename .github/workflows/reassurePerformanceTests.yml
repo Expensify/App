@@ -87,7 +87,7 @@ jobs:
             done
           fi
           npm install --force || (rm -rf node_modules && npm install --force)
-          NODE_OPTIONS=--experimenta l-vm-modules npx reassure --branch
+          NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
 
       - name: Validate output.json
         id: validateReassureOutput
