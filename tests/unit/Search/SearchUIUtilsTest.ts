@@ -1355,6 +1355,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         total: 20,
         groupedBy: 'withdrawal-id',
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         bankName: CONST.BANK_NAMES.CHASE,
@@ -1366,6 +1367,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         total: 40,
         groupedBy: 'withdrawal-id',
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
