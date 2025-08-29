@@ -1,71 +1,56 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import type {PropsWithChildren, RefObject} from 'react';
+import React, {createContext, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import SidePanelActions from '@libs/actions/SidePanel';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type {SidePanel} from '@src/types/onyx';
 import KeyboardUtils from '@src/utils/keyboard';
-import useLocalize from './useLocalize';
-import useOnyx from './useOnyx';
-import useResponsiveLayout from './useResponsiveLayout';
-import useWindowDimensions from './useWindowDimensions';
 
-/**
- * Hook to get the display status of the Side Panel
- */
-function useSidePanelDisplayStatus() {
-    const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {preferredLocale} = useLocalize();
-    const [sidePanelNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL, {canBeMissing: true});
-    const [isModalCenteredVisible = false] = useOnyx(ONYXKEYS.MODAL, {
-        canBeMissing: true,
-        selector: (modal) =>
-            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT ||
-            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
-            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SMALL ||
-            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED,
-    });
+type SidePanelContextProps = {
+    isSidePanelTransitionEnded: boolean;
+    isSidePanelHiddenOrLargeScreen: boolean;
+    shouldHideSidePanel: boolean;
+    shouldHideSidePanelBackdrop: boolean;
+    shouldHideHelpButton: boolean;
+    shouldHideToolTip: boolean;
+    sidePanelOffset: RefObject<Animated.Value>;
+    sidePanelTranslateX: RefObject<Animated.Value>;
+    openSidePanel: () => void;
+    closeSidePanel: () => void;
+    sidePanelNVP?: SidePanel;
+};
 
-    const isLanguageUnsupported = preferredLocale !== CONST.LOCALES.EN;
-    const isSidePanelVisible = isExtraLargeScreenWidth ? sidePanelNVP?.open : sidePanelNVP?.openNarrowScreen;
-
-    // The Side Panel is hidden when:
-    // - NVP is not set or it is false
-    // - language is unsupported
-    // - modal centered is visible
-    const shouldHideSidePanel = !isSidePanelVisible || isLanguageUnsupported || isModalCenteredVisible || !sidePanelNVP;
-    const isSidePanelHiddenOrLargeScreen = !isSidePanelVisible || isLanguageUnsupported || isExtraLargeScreenWidth || !sidePanelNVP;
-
-    // The help button is hidden when:
-    // - side pane nvp is not set
-    // - Side Panel is displayed currently
-    // - language is unsupported
-    const shouldHideHelpButton = !sidePanelNVP || !shouldHideSidePanel || isLanguageUnsupported;
-    const shouldHideSidePanelBackdrop = shouldHideSidePanel || isExtraLargeScreenWidth || shouldUseNarrowLayout;
-
-    return {
-        shouldHideSidePanel,
-        isSidePanelHiddenOrLargeScreen,
-        shouldHideHelpButton,
-        shouldHideSidePanelBackdrop,
-        sidePanelNVP,
-    };
-}
+const SidePanelContext = createContext<SidePanelContextProps>({
+    isSidePanelTransitionEnded: true,
+    isSidePanelHiddenOrLargeScreen: true,
+    shouldHideSidePanel: true,
+    shouldHideSidePanelBackdrop: true,
+    shouldHideHelpButton: true,
+    shouldHideToolTip: false,
+    sidePanelOffset: {current: new Animated.Value(0)},
+    sidePanelTranslateX: {current: new Animated.Value(0)},
+    openSidePanel: () => {},
+    closeSidePanel: () => {},
+});
 
 /**
  * Hook to get the animated position of the Side Panel and the margin of the navigator
  */
-function useSidePanel() {
+function SidePanelContextProvider({children}: PropsWithChildren) {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
 
     const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(true);
-    const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, sidePanelNVP} = useSidePanelDisplayStatus();
+    const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, isSidePanelHiddenOrLargeScreen, sidePanelNVP} = useSidePanelDisplayStatus();
     const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
 
     const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
@@ -117,19 +102,35 @@ function useSidePanel() {
         [isExtraLargeScreenWidth, sidePanelNVP],
     );
 
-    return {
-        sidePanelNVP,
-        isSidePanelTransitionEnded,
-        shouldHideSidePanel,
-        shouldHideSidePanelBackdrop,
-        shouldHideHelpButton,
-        shouldHideToolTip,
-        sidePanelOffset,
-        sidePanelTranslateX,
-        openSidePanel,
-        closeSidePanel,
-    };
+    const value = useMemo(
+        () => ({
+            isSidePanelTransitionEnded,
+            isSidePanelHiddenOrLargeScreen,
+            shouldHideSidePanel,
+            shouldHideSidePanelBackdrop,
+            shouldHideHelpButton,
+            shouldHideToolTip,
+            sidePanelOffset,
+            sidePanelTranslateX,
+            openSidePanel,
+            closeSidePanel,
+            sidePanelNVP,
+        }),
+        [
+            closeSidePanel,
+            isSidePanelHiddenOrLargeScreen,
+            isSidePanelTransitionEnded,
+            openSidePanel,
+            shouldHideHelpButton,
+            shouldHideSidePanel,
+            shouldHideSidePanelBackdrop,
+            shouldHideToolTip,
+            sidePanelNVP,
+        ],
+    );
+
+    return <SidePanelContext.Provider value={value}>{children}</SidePanelContext.Provider>;
 }
 
-export default useSidePanel;
-export {useSidePanelDisplayStatus};
+export default SidePanelContextProvider;
+export {SidePanelContext};

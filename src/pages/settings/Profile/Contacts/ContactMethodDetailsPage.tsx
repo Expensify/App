@@ -21,7 +21,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
     clearContactMethod,
@@ -65,7 +64,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const {formatPhoneNumber, translate} = useLocalize();
     const theme = useTheme();
     const themeStyles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
@@ -315,7 +313,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 threeDotsMenuItems={getThreeDotsMenuItems()}
                 shouldShowThreeDotsButton={getThreeDotsMenuItems().length > 0}
                 shouldOverlayDots
-                threeDotsAnchorPosition={themeStyles.threeDotsPopoverOffset(windowWidth)}
                 onThreeDotsButtonPress={() => {
                     // Hide the keyboard when the user clicks the three-dot menu.
                     // Use blurActiveElement() for mWeb and KeyboardUtils.dismiss() for native apps.
