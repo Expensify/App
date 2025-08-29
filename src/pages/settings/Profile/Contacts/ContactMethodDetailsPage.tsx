@@ -61,6 +61,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const isDeletingRef = useRef(false);
 
     const {formatPhoneNumber, translate} = useLocalize();
     const theme = useTheme();
@@ -93,6 +94,9 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         return addSMSDomainIfPhoneNumber(decodeURIComponent(beforeAtSign + afterAtSign));
     }, [route.params.contactMethod]);
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
+    const loginDataRef = useRef(loginData);
+    loginDataRef.current = loginData;
+
     const isDefaultContactMethod = useMemo(() => session?.email === loginData?.partnerUserID, [session?.email, loginData?.partnerUserID]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
     const prevPendingDeletedLogin = usePrevious(loginData?.pendingFields?.deletedLogin);
@@ -150,6 +154,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      * Delete the contact method and hide the modal
      */
     const confirmDeleteAndHideModal = useCallback(() => {
+        isDeletingRef.current = true;
         toggleDeleteModal(false);
         deleteContactMethod(contactMethod, loginList ?? {}, backTo);
     }, [contactMethod, loginList, toggleDeleteModal, backTo]);
@@ -345,7 +350,12 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                         handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber)}
                         validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
-                        clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
+                        clearError={() => {
+                            if (isDeletingRef.current || !loginDataRef.current) {
+                                return;
+                            }
+                            clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent');
+                        }}
                         sendValidateCode={() => requestContactMethodValidateCode(contactMethod)}
                         descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
                         forwardedRef={validateCodeFormRef}
