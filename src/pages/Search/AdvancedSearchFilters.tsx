@@ -530,7 +530,7 @@ function AdvancedSearchFilters() {
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE
             ) {
