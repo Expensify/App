@@ -83,18 +83,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    Beta,
-    OnyxInputOrEntry,
-    PersonalDetailsList,
-    Policy,
-    PolicyEmployeeList,
-    Report,
-    ReportAction,
-    ReportActions,
-    ReportNameValuePairs,
-    Transaction,
-} from '@src/types/onyx';
+import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
@@ -585,7 +574,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.CONCIERGE_REPORT_ID}`, null);
         });
 
-        describe('Expense Reports', () => {
+        describe('IOU Reports', () => {
             test('should handle IOU report with multiple transactions', () => {
                 const iouReport: Report = {
                     reportID: '',
@@ -598,23 +587,6 @@ describe('ReportUtils', () => {
 
                 const result = getReportNameInternal({report: iouReport});
                 expect(result).toContain('$50.00');
-            });
-
-            test('should handle expense report with approval status', () => {
-                const expenseReport: Report = {
-                    reportID: '',
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    ownerAccountID: 1,
-                    managerID: currentUserAccountID,
-                    total: 10000,
-                    currency: 'USD',
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                    policyID: policy.id,
-                };
-
-                const result = getReportNameInternal({report: expenseReport, policy});
-                expect(result).toContain('$100.00');
             });
 
             test('should handle multiple currencies in display', () => {
@@ -630,23 +602,9 @@ describe('ReportUtils', () => {
                 const result = getReportNameInternal({report: iouReport});
                 expect(result).toContain('€2,500.00');
             });
+        });
 
-            test('should handle closed expense report with no expenses', () => {
-                const expenseReport: Report = {
-                    reportID: '',
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                    policyID: policy.id,
-                };
-
-                const result = getReportNameInternal({
-                    report: expenseReport,
-                    transactions: [], // No transactions
-                });
-
-                expect(result).toBe('Deleted report');
-            });
-
+        describe('Expense Reports', () => {
             test('should handle forwarded action with automatic flag', () => {
                 const expenseReport: Report = {
                     reportID: '',
@@ -783,17 +741,13 @@ describe('ReportUtils', () => {
                 };
 
                 const result = getReportNameInternal({report: groupChat});
-                expect(result).toBe('');
+                expect(result).toBe('Ragnar, floki@vikings.net');
             });
 
             test('should handle concierge chat report', () => {
                 const conciergeReport: Report = {
                     reportID: conciergeReportID,
-                    reportName: '',
-                    ownerAccountID: undefined,
                     participants: {},
-                    policyID: undefined,
-                    chatType: undefined,
                 };
 
                 const result = getReportNameInternal({report: conciergeReport});
@@ -801,19 +755,20 @@ describe('ReportUtils', () => {
             });
 
             test('should use custom personal details when provided', () => {
+                const customUser = {
+                    accountID: 1,
+                    displayName: 'Custom Name',
+                    firstName: 'Custom',
+                    login: 'custom@test.com',
+                };
                 const customPersonalDetails = {
-                    1: {
-                        accountID: 1,
-                        displayName: 'Custom Name',
-                        firstName: 'Custom',
-                        login: 'custom@test.com',
-                    },
+                    [customUser.accountID]: customUser,
                 };
 
                 const chatReport: Report = {
                     reportID: '',
                     type: CONST.REPORT.TYPE.CHAT,
-                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, customUser.accountID]),
                 };
 
                 const result = getReportNameInternal({report: chatReport, personalDetails: customPersonalDetails});
@@ -844,8 +799,8 @@ describe('ReportUtils', () => {
             });
         });
 
-        describe('Workspace Reports', () => {
-            describe('Rooms', () => {
+        describe('Policy Reports', () => {
+            describe('Default Rooms', () => {
                 test.each([
                     [CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, '#admins'],
                     [CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, '#announce'],
@@ -876,12 +831,48 @@ describe('ReportUtils', () => {
 
                     const {result: isReportArchived} = renderHook(() => useReportIsArchived(defaultArchivedPolicyRoom.reportID));
 
-                    const result = getReportNameInternal({report: defaultArchivedPolicyRoom, policy, isReportArchived: isReportArchived.current});
+                    const result = getReportNameInternal({policy, report: defaultArchivedPolicyRoom, isReportArchived: isReportArchived.current});
                     expect(result).toBe(`${reportName} (archived)`);
                 });
             });
 
             describe('Expenses', () => {
+                test('should handle expense report with approval status', () => {
+                    const expenseReport: Report = {
+                        reportID: '',
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        ownerAccountID: 1,
+                        managerID: currentUserAccountID,
+                        total: 10000,
+                        currency: 'USD',
+                        stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                        statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                        policyID: policy.id,
+                    };
+
+                    const result = getReportNameInternal({report: expenseReport, policy});
+                    expect(result).toContain('$100.00');
+                });
+
+                test('should handle closed expense report with no expenses', () => {
+                    const expenseReport: Report = {
+                        reportID: '',
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                        policyID: policy.id,
+                    };
+
+                    const result = getReportNameInternal({
+                        report: expenseReport,
+                        policy,
+                        transactions: [], // No transactions
+                    });
+
+                    expect(result).toBe('Deleted report');
+                });
+            });
+
+            describe('Expense Chats', () => {
                 const policyExpenseChat: Report = {
                     reportID: '',
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
@@ -893,11 +884,11 @@ describe('ReportUtils', () => {
                 test('Active', () => {
                     const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyExpenseChat.reportID));
 
-                    const result = getReportNameInternal({report: policyExpenseChat, policy, isReportArchived: isReportArchived.current});
+                    const result = getReportNameInternal({policy, report: policyExpenseChat, isReportArchived: isReportArchived.current});
                     expect(result).toBe("Ragnar Lothbrok's expenses");
                 });
 
-                test('Archived', async () => {
+                test('Archived', () => {
                     const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedReportID));
 
                     const result = getReportNameInternal({report: policyExpenseChat, policy, isReportArchived: isReportArchived.current});
@@ -905,7 +896,7 @@ describe('ReportUtils', () => {
                 });
             });
 
-            describe('Threads', () => {
+            describe('Thread', () => {
                 test('should handle the last text message', () => {
                     const threadReport: Report = {
                         reportID: '',
@@ -932,6 +923,7 @@ describe('ReportUtils', () => {
                     const {result: isReportArchived} = renderHook(() => useReportIsArchived(threadReport.reportID));
 
                     const result = getReportNameInternal({
+                        policy,
                         report: threadReport,
                         isReportArchived: isReportArchived.current,
                         parentReportActionParam: parentReportAction,
