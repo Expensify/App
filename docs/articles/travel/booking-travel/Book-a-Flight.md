@@ -4,7 +4,6 @@ description: Learn how to book flights in Expensify using the built-in travel po
 keywords: [book a flight, travel booking, flight reservations, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Book flights through Expensify's integrated travel portal—available in both Classic and New Expensify—with a few easy steps.
 
@@ -70,4 +69,3 @@ Flight changes or cancellations depend on the airline’s policy and the flight 
 
 You can manage your bookings by going to **Trips** > **My Trips**.
 
-</div>
