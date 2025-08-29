@@ -100,7 +100,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (isGroupByReports) {
             return areAllOptionalColumnsHiddenProp ?? false;
         }
-        const canBeMissingColumns = getExpenseHeaders(groupBy).filter((header) => header.canBeMissing).map((header) => header.columnName);
+        const canBeMissingColumns = getExpenseHeaders(groupBy)
+            .filter((header) => header.canBeMissing)
+            .map((header) => header.columnName);
         return canBeMissingColumns.every((column) => !currentColumns.includes(column));
     }, [areAllOptionalColumnsHiddenProp, currentColumns, groupBy, isGroupByReports]);
 
@@ -206,7 +208,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.FROM]: (
                 <MemberListItemHeader
                     member={groupItem as TransactionMemberGroupListItemType}
-                    onSelectRow={onPress}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     canSelectMultiple={canSelectMultiple}
@@ -217,7 +218,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.CARD]: (
                 <CardListItemHeader
                     card={groupItem as TransactionCardGroupListItemType}
-                    onSelectRow={onPress}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     isFocused={isFocused}
@@ -229,7 +229,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: (
                 <WithdrawalIDListItemHeader
                     withdrawalID={groupItem as TransactionWithdrawalIDGroupListItemType}
-                    onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     canSelectMultiple={canSelectMultiple}
@@ -242,7 +241,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         return headers[groupBy];
-    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, onPress, groupBy]);
+    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, groupBy]);
 
     const shouldShowYear = shouldShowYearUtil(transactions);
 
@@ -305,6 +304,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                             shouldShowSorting={false}
                                             columns={currentColumns}
                                             areAllOptionalColumnsHidden={areAllOptionalColumnsHidden ?? false}
+                                            groupBy={groupBy}
                                         />
                                     </View>
                                 )}
@@ -329,7 +329,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                         isReportItemChild
                                         isInSingleTransactionReport={groupItem.transactions.length === 1}
                                         areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                                        groupBy={groupBy}
                                     />
                                 ))}
                                 {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (

@@ -25,12 +25,7 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
     canSelectMultiple: boolean | undefined;
 };
 
-function WithdrawalIDListItemHeader<TItem extends ListItem>({
-    withdrawalID: withdrawalIDItem,
-    onCheckboxPress,
-    isDisabled,
-    canSelectMultiple,
-}: WithdrawalIDListItemHeaderProps<TItem>) {
+function WithdrawalIDListItemHeader<TItem extends ListItem>({withdrawalID: withdrawalIDItem, onCheckboxPress, isDisabled, canSelectMultiple}: WithdrawalIDListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
