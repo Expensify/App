@@ -12,7 +12,7 @@ import {getIOUActionForReportID} from './ReportActionsUtils';
 import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {getCurrency, getReimbursable, isCardTransaction} from './TransactionUtils';
+import {getCurrency, getReimbursable, isCardTransaction, isMerchantMissing} from './TransactionUtils';
 
 const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 
@@ -139,6 +139,9 @@ function getMergeFieldValue(transactionDetails: TransactionDetails | undefined, 
     }
     if (field === 'reportID') {
         return transaction.reportID;
+    }
+    if (field === 'merchant' && isMerchantMissing(transaction)) {
+        return '';
     }
 
     return transactionDetails[field] ?? '';

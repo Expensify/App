@@ -160,6 +160,17 @@ describe('MergeTransactionUtils', () => {
             // Then it should return the amount as positive because it's an unreported expense
             expect(result).toBe(1000);
         });
+
+        it('should return empty string when merchant is missing', () => {
+            // Given a transaction with a missing merchant
+            const transaction = {...createRandomTransaction(0), merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, modifiedMerchant: ''};
+
+            // When we get the merchant field value
+            const result = getMergeFieldValue(getTransactionDetails(transaction), transaction, 'merchant');
+
+            // Then it should return an empty string because the merchant is missing
+            expect(result).toBe('');
+        });
     });
 
     describe('getMergeFieldTranslationKey', () => {
