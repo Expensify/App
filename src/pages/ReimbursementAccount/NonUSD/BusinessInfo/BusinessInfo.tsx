@@ -1,6 +1,8 @@
+import {Str} from 'expensify-common';
 import type {ComponentType} from 'react';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
@@ -72,6 +74,7 @@ const INPUT_KEYS = {
 function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProps) {
     const {translate} = useLocalize();
 
+    const {isDevelopment} = useEnvironment();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -92,6 +95,8 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
         saveCorpayOnboardingCompanyDetails(
             {
                 ...businessInfoStepValues,
+                // Corpay does not accept emails with a "+" character and will not let us connect account at the end of whole flow
+                businessConfirmationEmail: isDevelopment ? Str.replaceAll(businessInfoStepValues.businessConfirmationEmail, '+', '') : businessInfoStepValues.businessConfirmationEmail,
                 fundSourceCountries: country,
                 fundDestinationCountries: country,
                 currencyNeeded: currency,
@@ -99,7 +104,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
             },
             bankAccountID,
         );
-    }, [country, currency, bankAccountID, businessInfoStepValues]);
+    }, [businessInfoStepValues, isDevelopment, country, currency, bankAccountID]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

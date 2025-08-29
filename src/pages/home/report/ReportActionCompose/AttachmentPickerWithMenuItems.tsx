@@ -27,7 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {canCreateTaskInReport, getPayeeName, isPaidGroupPolicy, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
-import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU';
+import {startMoneyRequest} from '@userActions/IOU';
 import {close} from '@userActions/Modal';
 import {createNewReport, setIsComposerFullSize} from '@userActions/Report';
 import {clearOutTaskInfoAndNavigate} from '@userActions/Task';
@@ -177,7 +177,7 @@ function AttachmentPickerWithMenuItems({
                               icon: Expensicons.Location,
                               text: translate('quickAction.recordDistance'),
                               shouldCallAfterModalHide: shouldUseNarrowLayout,
-                              onSelected: () => selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
+                              onSelected: () => selectOption(() => null, true),
                           },
                       ]
                     : []),
@@ -211,7 +211,7 @@ function AttachmentPickerWithMenuItems({
                               icon: Expensicons.Location,
                               text: translate('iou.trackDistance'),
                               shouldCallAfterModalHide: shouldUseNarrowLayout,
-                              onSelected: () => selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
+                              onSelected: () => selectOption(() => null, true),
                           },
                       ]
                     : []),

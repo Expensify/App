@@ -52,6 +52,7 @@ import type {
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
     BusinessBankAccountParams,
+    BusinessRegistrationNumberParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -103,7 +104,6 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
-    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -204,6 +204,7 @@ import type {
     SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
+    SignerInfoMessageParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
@@ -655,6 +656,7 @@ const translations = {
         forwardTo: 'Transférer à',
         merge: 'Fusionner',
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
+        enableGlobalReimbursements: 'Activer les remboursements globaux',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -959,7 +961,6 @@ const translations = {
         distance: 'Distance',
         manual: 'Manuel',
         scan: 'Scanner',
-        map: 'Carte',
     },
     spreadsheet: {
         upload: 'Télécharger une feuille de calcul',
@@ -1258,7 +1259,6 @@ const translations = {
             invalidCategoryLength: 'Le nom de la catégorie dépasse 255 caractères. Veuillez le raccourcir ou choisir une autre catégorie.',
             invalidTagLength: "Le nom de l'étiquette dépasse 255 caractères. Veuillez le raccourcir ou choisir une autre étiquette.",
             invalidAmount: 'Veuillez entrer un montant valide avant de continuer',
-            invalidDistance: 'Veuillez entrer une distance valide avant de continuer',
             invalidIntegerAmount: 'Veuillez entrer un montant en dollars entiers avant de continuer.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Le montant maximal de la taxe est ${amount}`,
             invalidSplit: 'La somme des répartitions doit être égale au montant total',
@@ -3008,7 +3008,14 @@ const translations = {
         whatsTheBusinessName: "Quel est le nom de l'entreprise ?",
         whatsTheBusinessAddress: "Quelle est l'adresse de l'entreprise ?",
         whatsTheBusinessContactInformation: 'Quelles sont les coordonnées professionnelles ?',
-        whatsTheBusinessRegistrationNumber: "Quel est le numéro d'enregistrement de l'entreprise ?",
+        whatsTheBusinessRegistrationNumber: ({country}: BusinessRegistrationNumberParams) => {
+            switch (country) {
+                case CONST.COUNTRY.GB:
+                    return 'Quel est le numéro d’enregistrement de l’entreprise (CRN) ?';
+                default:
+                    return 'Quel est le numéro d’enregistrement de l’entreprise ?';
+            }
+        },
         whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:
@@ -3244,6 +3251,10 @@ const translations = {
             "Notre partenariat avec Corpay utilise une connexion API pour tirer parti de leur vaste réseau de partenaires bancaires internationaux afin d'alimenter les Remboursements Globaux dans Expensify. Conformément à la réglementation australienne, nous vous fournissons le Guide des Services Financiers (FSG) et le Document de Révélation de Produit (PDS) de Corpay.\n\nVeuillez lire attentivement les documents FSG et PDS car ils contiennent des détails complets et des informations importantes sur les produits et services offerts par Corpay. Conservez ces documents pour référence future.",
         pleaseUpload:
             "Veuillez télécharger ci-dessous des documents supplémentaires pour nous aider à vérifier votre identité en tant que directeur ou cadre supérieur de l'entité commerciale.",
+        enterSignerInfo: 'Entrez les informations du signataire',
+        thisStep: 'Cette étape a été complétée',
+        isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+            `connecte un compte bancaire professionnel en ${currency} se terminant par ${bankAccountLastFour} à Expensify pour payer les employés en ${currency}. L'étape suivante nécessite les informations d’un signataire, tel qu’un directeur ou un cadre supérieur.`,
     },
     agreementsStep: {
         agreements: 'Accords',
@@ -3560,11 +3571,34 @@ const translations = {
             connect: 'Connectez-vous maintenant',
             uber: {
                 subtitle: 'Automatisez les dépenses de déplacement et de livraison de repas dans toute votre organisation.',
+                sendInvites: 'Inviter des membres',
+                sendInvitesDescription:
+                    "Ces membres de l'espace de travail n'ont pas encore de compte Uber for Business. Désélectionnez les membres que vous ne souhaitez pas inviter pour le moment.",
+                confirmInvite: "Confirmer l'invitation",
+                manageInvites: 'Gérer les invitations',
+                confirm: 'Confirmer',
+                allSet: 'Tout est prêt',
+                readyToRoll: 'Vous êtes prêt à commencer',
+                takeBusinessRideMessage: "Prenez un trajet professionnel et vos reçus Uber seront importés dans Expensify. C'est parti !",
+                all: 'Tous',
+                linked: 'Lié',
+                outstanding: 'En attente',
+                status: {
+                    resend: 'Renvoyer',
+                    invite: 'Inviter',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED]: 'Lié',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'En attente',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspendu',
+                },
+                invitationFailure: "Échec de l'invitation des membres à Uber for Business",
                 autoRemove: "Inviter de nouveaux membres de l'espace de travail sur Uber",
                 autoInvite: "Désactiver les membres supprimés de l'espace de travail sur Uber",
-                manageInvites: 'Gérer les invitations',
                 bannerTitle: 'Expensify + Uber pour les entreprises',
                 bannerDescription: 'Connectez Uber for Business pour automatiser les frais de déplacement et de livraison de repas dans toute votre organisation.',
+                emptyContent: {
+                    title: 'Aucun membre à afficher',
+                    subtitle: "Nous avons cherché partout et n'avons rien trouvé.",
+                },
             },
         },
         perDiem: {
@@ -5239,8 +5273,7 @@ const translations = {
             continuousReconciliation: 'Réconciliation Continue',
             saveHoursOnReconciliation:
                 'Gagnez des heures sur la réconciliation à chaque période comptable en laissant Expensify réconcilier en continu les relevés et les règlements de la carte Expensify pour vous.',
-            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
-                `<muted-text-label>Pour activer la réconciliation continue, veuillez activer la <a href="${accountingAdvancedSettingsLink}">synchronisation automatique</a> pour ${connectionName}.</muted-text-label>`,
+            enableContinuousReconciliation: 'Pour activer la Réconciliation Continue, veuillez activer',
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choisissez le compte bancaire sur lequel les paiements de votre carte Expensify seront rapprochés.',
                 accountMatches: 'Assurez-vous que ce compte correspond à votre',
