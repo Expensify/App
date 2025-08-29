@@ -146,6 +146,8 @@ key "key"
       / reimbursable
       / billable
       / action
+      / purchaseCurrency
+      / purchaseAmount
     )
 
 filterKey
