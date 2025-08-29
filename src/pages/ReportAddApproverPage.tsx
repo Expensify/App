@@ -42,7 +42,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const {translate, localeCompare} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
 
     const currentUserDetails = useCurrentUserPersonalDetails();
 
