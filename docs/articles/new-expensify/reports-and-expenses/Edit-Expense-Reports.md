@@ -4,7 +4,6 @@ description: Learn how to retract, edit, and manage expense reports in New Expen
 keywords: [New Expensify, retract report, undo submit, undo close, edit submitted report, reopen report, resubmit report, accounting export]
 ---
 
-<div id="new-expensify" markdown="1">
 
 If you submitted a report too early or need to make changes, you can easily update it by retracting the report using **Undo submit** or **Undo close**. This returns the report to an editable state.
 
@@ -76,4 +75,3 @@ You can't retract a report that’s already been **approved** or **paid**.
 You’ll see a warning modal before reopening. Any edits won’t sync to the external system. If you make changes to the report, those will need to be manually reconciled in the accounting system.
 
 
-</div>
