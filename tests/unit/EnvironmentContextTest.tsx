@@ -112,5 +112,39 @@ describe('EnvironmentProvider', () => {
             const expectedOutput = '<a href="https://dev.new.expensify.com/workspaces/123/more-features?param=value">More Features</a>';
             expect(adjustExpensifyLinksForEnv(inputHtml)).toBe(expectedOutput);
         });
+
+        it('should handle partial HTML with a single Expensify link', async () => {
+            await setupTest(CONST.ENVIRONMENT.STAGING, 'https://staging.new.expensify.com');
+            const inputHtml = 'Read up on <a href="https://new.expensify.com/help">Expensify Help</a> to find out more.';
+            const expectedOutput = 'Read up on <a href="https://staging.new.expensify.com/help">Expensify Help</a> to find out more.';
+            expect(adjustExpensifyLinksForEnv(inputHtml)).toBe(expectedOutput);
+        });
+
+        it('should handle partial HTML with multiple Expensify links', async () => {
+            await setupTest(CONST.ENVIRONMENT.DEV, 'https://dev.new.expensify.com');
+            const inputHtml = 'Check <a href="https://new.expensify.com/help">Help</a> or <a href="https://new.expensify.com/support">Support</a>.';
+            const expectedOutput = 'Check <a href="https://dev.new.expensify.com/help">Help</a> or <a href="https://dev.new.expensify.com/support">Support</a>.';
+            expect(adjustExpensifyLinksForEnv(inputHtml)).toBe(expectedOutput);
+        });
+
+        it('should handle partial HTML with mixed Expensify and non-Expensify links', async () => {
+            await setupTest(CONST.ENVIRONMENT.STAGING, 'https://staging.new.expensify.com');
+            const inputHtml = 'Visit <a href="https://new.expensify.com/help">Expensify Help</a> or <a href="https://example.com">Example</a> for more info.';
+            const expectedOutput = 'Visit <a href="https://staging.new.expensify.com/help">Expensify Help</a> or <a href="https://example.com">Example</a> for more info.';
+            expect(adjustExpensifyLinksForEnv(inputHtml)).toBe(expectedOutput);
+        });
+
+        it('should handle partial HTML with no HTML tags', async () => {
+            await setupTest(CONST.ENVIRONMENT.DEV, 'https://dev.new.expensify.com');
+            const inputHtml = 'Just text with no links or tags.';
+            expect(adjustExpensifyLinksForEnv(inputHtml)).toBe(inputHtml);
+        });
+
+        it('should handle partial HTML with incomplete anchor tags', async () => {
+            await setupTest(CONST.ENVIRONMENT.STAGING, 'https://staging.new.expensify.com');
+            const inputHtml = 'Link: <a href="https://new.expensify.com/help">Help</a> and <a>broken link</a>.';
+            const expectedOutput = 'Link: <a href="https://staging.new.expensify.com/help">Help</a> and <a>broken link</a>.';
+            expect(adjustExpensifyLinksForEnv(inputHtml)).toBe(expectedOutput);
+        });
     });
 });
