@@ -773,6 +773,8 @@ const transactionsListItems = [
                 type: CONST.VIOLATION_TYPES.VIOLATION,
             },
         ],
+        convertedAmount: -5000,
+        convertedCurrency: 'USD',
     },
     {
         accountID: 18439984,
@@ -839,6 +841,8 @@ const transactionsListItems = [
         isActionLoading: false,
         hasViolation: undefined,
         violations: [],
+        convertedAmount: -5000,
+        convertedCurrency: 'USD',
     },
     {
         accountID: 18439984,
@@ -905,6 +909,8 @@ const transactionsListItems = [
         isActionLoading: false,
         hasViolation: undefined,
         violations: [],
+        convertedAmount: -5000,
+        convertedCurrency: 'USD',
     },
 ] as TransactionListItemType[];
 
@@ -1008,6 +1014,8 @@ const transactionReportGroupListItems = [
                 filename: undefined,
                 isActionLoading: false,
                 violations: [],
+                convertedAmount: -5000,
+                convertedCurrency: 'USD',
             },
         ],
         type: 'expense',
@@ -1117,6 +1125,8 @@ const transactionReportGroupListItems = [
                 errors: undefined,
                 filename: undefined,
                 isActionLoading: false,
+                convertedAmount: -5000,
+                convertedCurrency: 'USD',
             },
         ],
         type: 'expense',
