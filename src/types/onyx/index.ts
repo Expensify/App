@@ -6,6 +6,7 @@ import type {AssignCard} from './AssignCard';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
+import type BetaConfiguration from './BetaConfiguration';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingReceiptDetails from './BillingReceiptDetails';
 import type BillingStatus from './BillingStatus';
@@ -132,6 +133,7 @@ export type {
     BankAccount,
     BankAccountList,
     Beta,
+    BetaConfiguration,
     BlockedFromConcierge,
     Card,
     CardList,
