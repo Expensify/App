@@ -1,4 +1,4 @@
-import {generateIsEmptyReport, generateReportAttributes, generateReportName, isValidReport} from '@libs/ReportUtils';
+import {generateIsEmptyReport, generateReportAttributes, generateReportName, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
@@ -131,13 +131,15 @@ export default createOnyxDerivedValueConfig({
             }
 
             const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
+            const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
             const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
-            const {hasAnyViolations, requiresAttention, isReportArchived, reportErrors} = generateReportAttributes({
+            const isReportArchived = isArchivedReport(reportNameValuePair);
+            const {hasAnyViolations, requiresAttention, reportErrors} = generateReportAttributes({
                 report,
                 chatReport,
                 reportActions,
                 transactionViolations,
-                reportNameValuePairs,
+                isReportArchived,
             });
 
             let brickRoadStatus;
