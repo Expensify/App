@@ -5101,17 +5101,40 @@ function moveIOUReportToPolicy(
     const policyName = policy.name ?? '';
     const iouReportID = iouReport.reportID;
     const employeeAccountID = iouReport.ownerAccountID;
-    const expenseChatReportId = getPolicyExpenseChat(employeeAccountID, policyID)?.reportID;
-
-    if (!expenseChatReportId) {
-        return;
-    }
+    const expenseChatReportID = getPolicyExpenseChat(employeeAccountID, policyID)?.reportID;
+    const optimisticExpenseChatReportID = expenseChatReportID ?? generateReportID();
 
     const optimisticData: OnyxUpdate[] = [];
-
+    const failureData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
 
-    const failureData: OnyxUpdate[] = [];
+    // If we generated an optimistic policy expense chat ID, create minimal optimistic placeholders
+    if (!expenseChatReportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticExpenseChatReportID}`,
+            value: {isOptimisticReport: true},
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseChatReportID}`,
+            value: {
+                reportID: optimisticExpenseChatReportID,
+                policyID,
+                ownerAccountID: employeeAccountID,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseChatReportID}`,
+            value: null,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticExpenseChatReportID}`,
+            value: null,
+        });
+    }
 
     // Next we need to convert the IOU report to Expense report.
     // We need to change:
@@ -5121,7 +5144,7 @@ function moveIOUReportToPolicy(
     // - update the chatReportID to point to the expense chat if the policy has policy expense chat enabled
     const expenseReport = {
         ...iouReport,
-        chatReportID: policy.isPolicyExpenseChatEnabled ? expenseChatReportId : undefined,
+        chatReportID: policy.isPolicyExpenseChatEnabled ? expenseChatReportID : undefined,
         policyID,
         policyName,
         parentReportID: iouReport.parentReportID,
@@ -5193,12 +5216,12 @@ function moveIOUReportToPolicy(
         // Add the reportPreview action to expense chat
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
             value: {[reportPreview.reportActionID]: {...reportPreview, childReportName: expenseReport.reportName, created: DateUtils.getDBTime()}},
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportId}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
             value: {[reportPreview.reportActionID]: null},
         });
     }
