@@ -732,6 +732,27 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE]: {
                             path: ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.route,
                         },
+                        [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE]: {
+                            path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.route,
+                        },
+
+                        [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: {
+                            path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.route,
+                            screens: {
+                                [CONST.TAB.RECEIPT_PARTNERS.ALL]: {
+                                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_ALL,
+                                    exact: true,
+                                },
+                                [CONST.TAB.RECEIPT_PARTNERS.LINKED]: {
+                                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_LINKED,
+                                    exact: true,
+                                },
+                                [CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING]: {
+                                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_OUTSTANDING,
+                                    exact: true,
+                                },
+                            },
+                        },
                         [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORY_SETTINGS.route,
                         },
@@ -916,6 +937,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
                             exact: true,
                         },
+                        [SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.route,
                         [SCREENS.KEYBOARD_SHORTCUTS]: {
                             path: ROUTES.KEYBOARD_SHORTCUTS.route,
                         },
@@ -1277,10 +1299,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.DISTANCE_REQUEST_CREATE.route,
                             exact: true,
                             screens: {
-                                map: {
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                'distance-map': {
                                     path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MAP.route,
                                 },
-                                manual: {
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                'distance-manual': {
                                     path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL.route,
                                 },
                             },
@@ -1477,12 +1501,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_DESCRIPTION_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIPTION,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_REPORT_ID_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_AMOUNT_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_AMOUNT,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_TOTAL_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TOTAL,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_CATEGORY_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_KEYWORD_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_KEYWORD,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_CARD_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_CARD,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_TAX_RATE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_EXPENSE_TYPE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_WITHDRAWAL_TYPE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_WITHDRAWAL_TYPE,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_WITHDRAWAL_ID_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_WITHDRAWAL_ID,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_TAG_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TAG,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_FROM_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_TO_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
