@@ -154,6 +154,11 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
         return false;
     }
 
+    // for report actions with this type we get an empty array as message by design
+    if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED) {
+        return false;
+    }
+
     const message = reportAction?.message ?? [];
 
     if (!Array.isArray(message)) {
@@ -203,6 +208,10 @@ function isReversedTransaction(reportAction: OnyxInputOrEntry<ReportAction | Opt
 
 function isPendingRemove(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return getReportActionMessage(reportAction)?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
+}
+
+function isPendingHide(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+    return getReportActionMessage(reportAction)?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE;
 }
 
 function isMoneyRequestAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
@@ -267,6 +276,12 @@ function isCreatedTaskReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
 
 function isTripPreview(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW);
+}
+
+function isReimbursementDirectionInformationRequiredAction(
+    reportAction: OnyxInputOrEntry<ReportAction>,
+): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED);
 }
 
 function isActionOfType<T extends ReportActionName>(action: OnyxInputOrEntry<ReportAction>, actionName: T): action is ReportAction<T> {
@@ -926,7 +941,7 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<
     return (
         shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction) &&
         (!(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) || isActionableMentionWhisper(reportAction)) &&
-        !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction))
+        !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction) && !isPendingHide(reportAction))
     );
 }
 
@@ -3174,6 +3189,7 @@ export {
     isTagModificationAction,
     isIOUActionMatchingTransactionList,
     isResolvedActionableWhisper,
+    isReimbursementDirectionInformationRequiredAction,
     shouldHideNewMarker,
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
@@ -3237,6 +3253,7 @@ export {
     getReceiptScanFailedMessage,
     getChangedApproverActionMessage,
     getDelegateAccountIDFromReportAction,
+    isPendingHide,
 };
 
 export type {LastVisibleMessage};

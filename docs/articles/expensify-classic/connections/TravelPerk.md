@@ -5,7 +5,6 @@ description: Learn how to seamlessly integrate TravelPerk with Expensify to auto
 keywords: [Expensify Classic, TravelPerk, travel expenses, corporate travel]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Connect your TravelPerk and Expensify accounts to automatically sync travel bookings as expenses, making travel management effortless and efficient.
 
@@ -51,4 +50,3 @@ Before you begin, make sure you have:
 
 By connecting TravelPerk and Expensify, you eliminate manual data entry and simplify your travel workflow.
 
-</div>
