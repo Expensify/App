@@ -16,6 +16,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {
     getOriginalMessage,
+    getReportAction,
     isDeletedParentAction as isDeletedParentActionReportActionsUtils,
     isMoneyRequestAction,
     isReversedTransaction as isReversedTransactionReportActionsUtils,
@@ -25,6 +26,7 @@ import {
 import {generateReportID} from '@libs/ReportUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {openReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -119,7 +121,14 @@ function MoneyRequestAction({
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
         if (!action?.childReportID && transactionID && action.reportActionID) {
             const optimisticReportID = generateReportID();
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, action.reportActionID, transactionID, Navigation.getActiveRoute()));
+            const iouAction = getReportAction(action.reportID, action.reportActionID);
+
+            // It's possible the iou report and iou report action data isn't in the onyx yet (if the user accesses the action from the Search page). So we need to make sure to load it.
+            if (!iouReport || !iouAction) {
+                openReport(action.reportID);
+            }
+
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, action.reportActionID, transactionID, Navigation.getActiveRoute(), action.reportID));
             return;
         }
 
