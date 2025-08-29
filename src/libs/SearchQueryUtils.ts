@@ -1033,7 +1033,7 @@ function getTodoSearchQuery(action: TodoSearchType, userAccountID: number | unde
             return buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
                 from: [`${userAccountID}`],
             });
         case CONST.SEARCH.SEARCH_KEYS.APPROVE:
