@@ -1,0 +1,13 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/RNLiveMarkdown.podspec b/node_modules/@expensify/react-native-live-markdown/RNLiveMarkdown.podspec
+index 21de59d..7165118 100644
+--- a/node_modules/@expensify/react-native-live-markdown/RNLiveMarkdown.podspec
++++ b/node_modules/@expensify/react-native-live-markdown/RNLiveMarkdown.podspec
+@@ -24,7 +24,7 @@ Pod::Spec.new do |s|
+ 
+   s.source_files = "apple/**/*.{h,m,mm}", "cpp/**/*.{h,cpp}"
+ 
+-  s.dependency "RNReanimated/worklets"
++  s.dependency "RNWorklets"
+ 
+   s.xcconfig = {
+     "OTHER_CFLAGS" => "$(inherited) -DREACT_NATIVE_MINOR_VERSION=#{react_native_minor_version}",
