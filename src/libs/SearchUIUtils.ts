@@ -1709,11 +1709,7 @@ function getSortedReportActionData(data: ReportActionListItemType[], localeCompa
  * Checks if the search results contain any data, useful for determining if the search results are empty.
  */
 function isSearchResultsEmpty(searchResults: SearchResults) {
-    return !Object.keys(searchResults?.data).some(
-        (key) =>
-            key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) &&
-            (searchResults?.data[key as keyof typeof searchResults.data] as SearchTransaction)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
+    return !Object.keys(searchResults?.data).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
 }
 
 /**
@@ -1827,7 +1823,7 @@ function createTypeMenuSections(
                                               if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
                                                   const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
                                                   Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID}));
                                                   });
                                                   return;
                                               }
