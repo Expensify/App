@@ -1,12 +1,11 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {InteractionManager} from 'react-native';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -26,15 +25,25 @@ type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {backTo, action, iouType, transactionID, reportID: reportIDFromRoute, reportActionID} = route.params;
+    const [allReports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`, {canBeMissing: false});
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const reportID = isUnreported ? transaction?.participants?.at(0)?.reportID : transaction?.reportID;
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false});
+    const transactionReport = Object.values(allReports ?? {}).find((report) => report?.reportID === transaction?.reportID);
+    const participantReportID = transaction?.participants?.at(0)?.reportID;
+    const participantReport = Object.values(allReports ?? {}).find((report) => report?.reportID === participantReportID);
+    const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, transactionReport?.policyID)) || isUnreported;
+    const outstandingReportID = isPolicyExpenseChat(participantReport) ? participantReport?.iouReportID : participantReportID;
+    const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-
+    const selectedReport = useMemo(() => {
+        if (!selectedReportID) {
+            return undefined;
+        }
+        return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`];
+    }, [allReports, selectedReportID]);
+    const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateReport = action === CONST.IOU.ACTION.CREATE;
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
-    const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
 
     const handleGoBack = () => {
         if (isEditing) {
@@ -136,10 +145,10 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
-            transactionsReports={transactionReport ? [transactionReport] : []}
-            transactionIds={transaction ? [transaction.transactionID] : []}
             selectReport={selectReport}
-            policyID={!isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined}
+            transactionIDs={transaction ? [transaction.transactionID] : []}
+            selectedReportID={selectedReport?.reportID}
+            selectedPolicyID={!isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined}
             removeFromReport={removeFromReport}
             isEditing={isEditing}
             isUnreported={isUnreported}
