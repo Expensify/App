@@ -4,6 +4,7 @@
 import {AppRegistry} from 'react-native';
 import App from './src/App';
 import Config from './src/CONFIG';
+import './src/polyfills/PromiseWithResolvers';
 import additionalAppSetup from './src/setup';
 
 // Define EXPO_OS before any imports to prevent console errors from Expo DOM components
