@@ -31,7 +31,14 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
     isIndeterminate?: boolean;
 };
 
-function WithdrawalIDListItemHeader<TItem extends ListItem>({withdrawalID: withdrawalIDItem, onCheckboxPress, isDisabled, canSelectMultiple, isIndeterminate, isSelectAllChecked}: WithdrawalIDListItemHeaderProps<TItem>) {
+function WithdrawalIDListItemHeader<TItem extends ListItem>({
+    withdrawalID: withdrawalIDItem,
+    onCheckboxPress,
+    isDisabled,
+    canSelectMultiple,
+    isIndeterminate,
+    isSelectAllChecked,
+}: WithdrawalIDListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
