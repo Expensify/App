@@ -18,8 +18,8 @@ describe('maskOnyxState', () => {
         const input = {session: mockSession};
         const result = ExportOnyxState.maskOnyxState(input) as ExampleOnyxState;
 
-        expect(result.session.authToken).toBe('***');
-        expect(result.session.encryptedAuthToken).toBe('***');
+        expect(result.session.authToken).toBe('********************');
+        expect(result.session.encryptedAuthToken).toBe('*************************');
     });
 
     it('should not mask fragile data when isMaskingFragileDataEnabled is false', () => {
@@ -28,8 +28,8 @@ describe('maskOnyxState', () => {
         };
         const result = ExportOnyxState.maskOnyxState(input) as ExampleOnyxState;
 
-        expect(result.session.authToken).toBe('***');
-        expect(result.session.encryptedAuthToken).toBe('***');
+        expect(result.session.authToken).toBe('********************');
+        expect(result.session.encryptedAuthToken).toBe('*************************');
         expect(result.session.email).toBe('user@example.com');
     });
 
@@ -39,8 +39,8 @@ describe('maskOnyxState', () => {
         };
         const result = ExportOnyxState.maskOnyxState(input, true) as ExampleOnyxState;
 
-        expect(result.session.authToken).toBe('***');
-        expect(result.session.encryptedAuthToken).toBe('***');
+        expect(result.session.authToken).toBe('********************');
+        expect(result.session.encryptedAuthToken).toBe('*************************');
     });
 
     it('should mask emails as a string value in property with a random email', () => {
@@ -96,7 +96,7 @@ describe('maskOnyxState', () => {
 
         const result = ExportOnyxState.maskOnyxState(input, true) as ExampleOnyxState;
 
-        expect(result.edits).toEqual(['***', '***']);
+        expect(result.edits).toEqual(['***', '**']);
         expect(result.lastMessageHtml).toEqual('***');
     });
 });
