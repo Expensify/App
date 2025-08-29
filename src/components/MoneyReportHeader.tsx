@@ -1171,13 +1171,6 @@ function MoneyReportHeader({
         </KYCWall>
     );
 
-    const headerNavigation = isReportInSearch ? (
-        <MoneyRequestReportNavigation
-            reportID={moneyRequestReport?.reportID}
-            shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
-        />
-    ) : undefined;
-
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
             <HeaderWithBackButton
@@ -1239,7 +1232,12 @@ function MoneyReportHeader({
                         />
                     )}
                 </View>
-                {headerNavigation}
+                {isReportInSearch && (
+                    <MoneyRequestReportNavigation
+                        reportID={moneyRequestReport?.reportID}
+                        shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
+                    />
+                )}
             </View>
 
             <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />

@@ -29,7 +29,7 @@ import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
-import saveLastSearchParams from './ReportNavigation';
+import {saveLastSearchParams} from './ReportNavigation';
 
 type OnyxSearchResponse = {
     data: [];
@@ -308,13 +308,13 @@ function search({
     searchKey,
     offset,
     shouldCalculateTotals = false,
-    prevReports,
+    prevReportsLength,
 }: {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
     offset?: number;
     shouldCalculateTotals?: boolean;
-    prevReports?: Array<string | undefined>;
+    prevReportsLength?: number;
 }) {
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
@@ -342,12 +342,12 @@ function search({
             if (response?.search?.offset) {
                 // Indicates that search results are extended from the Report view (with navigation between reports),
                 // using previous results to enable correct counter behavior.
-                if (prevReports) {
+                if (prevReportsLength) {
                     saveLastSearchParams({
                         queryJSON,
                         offset,
                         hasMoreResults: !!response?.search?.hasMoreResults,
-                        previousLengthOfResults: prevReports.length,
+                        previousLengthOfResults: prevReportsLength,
                         allowPostSearchRecount: false,
                     });
                 }

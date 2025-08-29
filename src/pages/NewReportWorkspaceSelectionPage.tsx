@@ -20,7 +20,7 @@ import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import isRHPOnSearchReportContext from '@navigation/helpers/isRHPOnSearchReportContext';
+import isRHPOnSearchMoneyRequestReportPage from '@navigation/helpers/isRHPOnSearchMoneyRequestReportPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -38,7 +38,7 @@ function NewReportWorkspaceSelectionPage() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const isRHPOnReportInSearch = isRHPOnSearchReportContext();
+    const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();

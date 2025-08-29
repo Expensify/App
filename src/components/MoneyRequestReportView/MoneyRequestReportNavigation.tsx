@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {selectArchivedReportsIdSet, selectFilteredReportActions} from '@libs/ReportUtils';
 import {getSections, getSortedSections} from '@libs/SearchUIUtils';
 import Navigation from '@navigation/Navigation';
-import saveLastSearchParams from '@userActions/ReportNavigation';
+import {saveLastSearchParams} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,8 +39,8 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
     const {type, status, sortBy, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
     let results: Array<string | undefined> = [];
     if (!!type && !!groupBy && !!currentSearchResults?.data && !!currentSearchResults?.search) {
-        const temp = getSections(type, currentSearchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, lastSearchQuery?.searchKey, archivedReportsIdSet);
-        results = getSortedSections(type, status ?? '', temp, localeCompare, sortBy, sortOrder, groupBy).map((value) => value.reportID);
+        const searchData = getSections(type, currentSearchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, lastSearchQuery?.searchKey, archivedReportsIdSet);
+        results = getSortedSections(type, status ?? '', searchData, localeCompare, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }
     const allReports = results;
 
@@ -87,14 +87,14 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
 
     const goToNextReport = () => {
         if (currentIndex === -1 || allReports.length === 0 || !lastSearchQuery?.queryJSON) {
-            return '';
+            return;
         }
         if (currentIndex > allReports.length * 0.75 && lastSearchQuery?.hasMoreResults) {
             const newOffset = (lastSearchQuery.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE;
             search({
                 queryJSON: lastSearchQuery.queryJSON,
                 offset: newOffset,
-                prevReports: allReports,
+                prevReportsLength: allReports.length,
                 shouldCalculateTotals: false,
                 searchKey: lastSearchQuery.searchKey,
             });
@@ -106,7 +106,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
 
     const goToPrevReport = () => {
         if (currentIndex === -1 || allReports.length === 0) {
-            return '';
+            return;
         }
 
         const prevIndex = (currentIndex - 1) % allReports.length;
