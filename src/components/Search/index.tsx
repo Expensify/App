@@ -181,6 +181,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const isFocused = useIsFocused();
     const {
         setCurrentSearchHashAndKey,
+        setCurrentSearchQueryJSON,
         setSelectedTransactions,
         selectedTransactions,
         clearSelectedTransactions,
@@ -270,7 +271,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const clearTransactionsAndSetHashAndKey = useCallback(() => {
         clearSelectedTransactions(hash);
         setCurrentSearchHashAndKey(hash, searchKey);
-    }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey]);
+        setCurrentSearchQueryJSON(queryJSON);
+    }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey, setCurrentSearchQueryJSON, queryJSON]);
 
     useFocusEffect(clearTransactionsAndSetHashAndKey);
 
@@ -570,6 +572,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             }
 
             if (isTransactionWithdrawalIDGroupListItemType(item)) {
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.entryID}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQuery}));
                 return;
             }
 
@@ -591,7 +598,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             const backTo = Navigation.getActiveRoute();
 
             if (isTransactionGroupListItemType(item)) {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}));
                 return;
             }
 

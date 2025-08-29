@@ -949,6 +949,7 @@ const translations = {
         distance: 'Distance',
         manual: 'Manual',
         scan: 'Scan',
+        map: 'Map',
     },
     spreadsheet: {
         upload: 'Upload a spreadsheet',
@@ -1242,6 +1243,7 @@ const translations = {
             invalidCategoryLength: 'The category name exceeds 255 characters. Please shorten it or choose a different category.',
             invalidTagLength: 'The tag name exceeds 255 characters. Please shorten it or choose a different tag.',
             invalidAmount: 'Please enter a valid amount before continuing',
+            invalidDistance: 'Please enter a valid distance before continuing',
             invalidIntegerAmount: 'Please enter a whole dollar amount before continuing',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Maximum tax amount is ${amount}`,
             invalidSplit: 'The sum of splits must equal the total amount',
@@ -2336,7 +2338,7 @@ const translations = {
                     `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
                     '2. Choose *Create expense*.\n' +
                     '3. Enter an amount or scan a receipt.\n' +
-                    '4. Confirm details..\n' +
+                    '4. Confirm details.\n' +
                     '5. Click *Create*.\n' +
                     '\n' +
                     `And you're done!`,

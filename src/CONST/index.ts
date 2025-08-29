@@ -5178,6 +5178,7 @@ const CONST = {
         NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
         IOU_REQUEST_TYPE: 'iouRequestType',
+        DISTANCE_REQUEST_TYPE: 'distanceRequestType',
         SHARE: {
             NAVIGATOR_ID: 'ShareNavigatorID',
             SHARE: 'ShareTab',
@@ -6333,6 +6334,7 @@ const CONST = {
     MAX_TAX_RATE_INTEGER_PLACES: 4,
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
     MIN_TAX_RATE_DECIMAL_PLACES: 2,
+    DISTANCE_DECIMAL_PLACES: 2,
 
     DOWNLOADS_PATH: '/Downloads',
     DOWNLOADS_TIMEOUT: 5000,
@@ -6515,6 +6517,7 @@ const CONST = {
             ACTION: 'action',
             PURCHASE_AMOUNT: 'purchaseAmount',
             PURCHASE_CURRENCY: 'purchaseCurrency',
+            WITHDRAWAL_ID: 'withdrawalID',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
@@ -6564,9 +6567,8 @@ const CONST = {
             ACTION: 'action',
             PURCHASE_AMOUNT: 'purchase-amount',
             PURCHASE_CURRENCY: 'purchase-currency',
+            WITHDRAWAL_ID: 'withdrawal-id',
         },
-
-        // Maps an internal search value to the user friendly display text, e.g. `perDiem` -> `per-diem`
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',

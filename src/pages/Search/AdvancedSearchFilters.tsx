@@ -165,6 +165,11 @@ const baseFilterConfig = {
         description: 'search.withdrawalType' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_WITHDRAWAL_TYPE,
     },
+    withdrawalID: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.withdrawalID' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_WITHDRAWAL_ID,
+    },
     tag: {
         getTitle: getFilterDisplayTitle,
         description: 'common.tag' as const,
@@ -524,9 +529,10 @@ function AdvancedSearchFilters() {
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE
             ) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
