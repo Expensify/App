@@ -32,11 +32,8 @@ function getCachedAttachment(attachmentID: string, attachment: OnyxEntry<Attachm
     }
 
     return CacheAPI.get(CONST.CACHE_API_KEYS.ATTACHMENTS, attachment.attachmentID)?.then((response) => {
-        if (!response) {
-            throw new Error('Failed to get attachment');
-        }
         return response
-            .blob()
+            ?.blob()
             .then((attachmentFile) => {
                 const source = URL.createObjectURL(attachmentFile);
                 return source;
