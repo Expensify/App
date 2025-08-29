@@ -202,7 +202,7 @@ function MoneyRequestReportTransactionList({
                 routeParams.iouReportID = isMoneyRequestAction(iouAction) ? getOriginalMessage(iouAction)?.IOUReportID : undefined;
             }
 
-            setOptimisticTransactionThread(reportIDToNavigate, iouAction.parentReportID, iouAction.reportActionID);
+            setOptimisticTransactionThread(reportIDToNavigate, iouAction?.parentReportID, iouAction?.reportActionID);
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigation
@@ -211,7 +211,7 @@ function MoneyRequestReportTransactionList({
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
             });
         },
-        [reportActions],
+        [reportActions, sortedTransactions],
     );
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
