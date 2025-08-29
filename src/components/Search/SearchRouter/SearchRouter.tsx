@@ -1,4 +1,4 @@
-import {findFocusedRoute, useFocusEffect, useNavigationState} from '@react-navigation/native';
+import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
@@ -25,7 +25,6 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
-import getPlatform from '@libs/getPlatform';
 import {scrollToRight} from '@libs/InputUtils';
 import Log from '@libs/Log';
 import backHistory from '@libs/Navigation/helpers/backHistory';
@@ -100,8 +99,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
-    const platform = getPlatform();
-    const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
 
     // The actual input text that the user sees
     const [textInputValue, , setTextInputValue] = useDebouncedState('', 500);
@@ -464,24 +461,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
 
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    /** We added a delay to focus on text input to allow navigation/modal animations to get completed, see issue https://github.com/Expensify/App/issues/65855 for more details */
-    useFocusEffect(
-        useCallback(() => {
-            if (!isNative) {
-                return;
-            }
-            focusTimeoutRef.current = setTimeout(() => {
-                if (!textInputRef.current) {
-                    return;
-                }
-                textInputRef?.current?.focus();
-            }, CONST.ANIMATED_TRANSITION);
-
-            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
-        }, [isNative]),
-    );
-
     return (
         <View
             style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
@@ -521,7 +500,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 selection={selection}
                 substitutionMap={autocompleteSubstitutions}
                 ref={textInputRef}
-                autoFocus={!isNative}
             />
             {shouldShowList && (
                 <SearchAutocompleteList
