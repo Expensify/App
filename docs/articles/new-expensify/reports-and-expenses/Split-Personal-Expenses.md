@@ -3,7 +3,6 @@ title: Split Personal Expenses
 description: Learn how to split an expense with others in New Expensify, including how to initiate a chat before making a request.
 keywords: [split expense, shared cost, request payment, Expensify Wallet, start chat, New Expensify]
 ---
-<div id="new-expensify" markdown="1">
 
 Splitting a personal expense lets you share a bill with others by requesting payment for their portion directly through New Expensify.
 
@@ -53,4 +52,3 @@ The split feature is accessed through the chat thread. Starting a chat ensures y
 
 They can pay through Expensify Wallet if it's enabled, or settle the amount outside Expensify. You can continue the conversation in the chat to coordinate payment.
 
-</div>

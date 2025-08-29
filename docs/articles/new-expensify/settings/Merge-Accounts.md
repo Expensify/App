@@ -4,7 +4,6 @@ description: Learn how to merge multiple Expensify accounts to consolidate data 
 keywords: [merge accounts, New Expensify, account consolidation, personal account, company account, merge data]
 ---
 
-<div id="new-expensify" markdown="1">
 
 If you have multiple Expensify accounts, you can merge them into a single login. This combines all of your receipts, expenses, reports, invoices, imported cards, Copilots, and workspace access into one account for easier management.
 
@@ -49,4 +48,3 @@ The following items from the merged account will be transferred to your primary 
 - Co-pilots
 - Group workspace settings
 
-</div>

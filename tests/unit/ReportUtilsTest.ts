@@ -37,6 +37,7 @@ import {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
     getChatByParticipants,
+    getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
     getDisplayNamesWithTooltips,
     getGroupChatName,
@@ -47,6 +48,7 @@ import {
     getParentNavigationSubtitle,
     getParticipantsList,
     getPolicyExpenseChat,
+    getPolicyExpenseChatName,
     getReasonAndReportActionThatRequiresAttention,
     getReportIDFromLink,
     getReportName,
@@ -391,6 +393,38 @@ describe('ReportUtils', () => {
             expect(participants.at(1)?.name).toBe('floki@vikings.net');
             expect(participants.at(1)?.id).toBe(2);
             expect(participants.at(1)?.type).toBe('avatar');
+        });
+    });
+
+    describe('getPolicyExpenseChatName', () => {
+        it("returns owner's display name when available", () => {
+            const report = {
+                ownerAccountID: 1,
+                reportName: 'Fallback Report Name',
+            } as unknown as OnyxEntry<Report>;
+
+            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
+            expect(name).toBe(translateLocal('workspace.common.policyExpenseChatName', {displayName: 'Ragnar Lothbrok'}));
+        });
+
+        it('falls back to owner login when display name not present', () => {
+            const report = {
+                ownerAccountID: 2,
+                reportName: 'Fallback Report Name',
+            } as unknown as OnyxEntry<Report>;
+
+            const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
+            expect(name).toBe(translateLocal('workspace.common.policyExpenseChatName', {displayName: 'floki'}));
+        });
+
+        it('returns report name when no personal details or owner', () => {
+            const report = {
+                ownerAccountID: undefined,
+                reportName: 'Fallback Report Name',
+            } as unknown as OnyxEntry<Report>;
+
+            const name = getPolicyExpenseChatName({report, personalDetailsList: {}});
+            expect(name).toBe('Fallback Report Name');
         });
     });
 
@@ -1098,6 +1132,134 @@ describe('ReportUtils', () => {
             };
 
             expect(requiresAttentionFromCurrentUser(report)).toBe(false);
+        });
+    });
+
+    describe('getChatRoomSubtitle', () => {
+        beforeAll(async () => {
+            await Onyx.clear();
+            const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
+            await Onyx.multiSet({
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                ...policyCollectionDataSet,
+            });
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+            const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
+            await Onyx.multiSet({
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                ...policyCollectionDataSet,
+            });
+        });
+
+        it('should return empty string for chat thread', () => {
+            const report = createWorkspaceThread(1);
+            const result = getChatRoomSubtitle(report);
+            expect(result).toBe('');
+        });
+
+        it('should return "Your space" for self DM', () => {
+            const report = createSelfDM(1, currentUserAccountID);
+            const result = getChatRoomSubtitle(report);
+            expect(result).toBe('Your space');
+        });
+
+        it('should return "Invoices" for invoice room', () => {
+            const report = createInvoiceRoom(1);
+            const result = getChatRoomSubtitle(report);
+            expect(result).toBe('Invoices');
+        });
+
+        it('should return empty string for non-default, non-user-created, non-policy-expense chat', () => {
+            const report = createRegularChat(1, [currentUserAccountID, 2]);
+            const result = getChatRoomSubtitle(report);
+            expect(result).toBe('');
+        });
+
+        it('should return domain name for domain room', () => {
+            const report = createDomainRoom(1);
+            report.reportName = '#example.com';
+            const result = getChatRoomSubtitle(report);
+            expect(result).toBe('example.com');
+        });
+
+        it('should return policy name for admin room', () => {
+            const report = createAdminRoom(1);
+            report.policyID = policy.id;
+            const result = getChatRoomSubtitle(report);
+            expect(result).toBe(policy.name);
+        });
+
+        it('should return policy name for announce room', () => {
+            const report = createAnnounceRoom(1);
+            report.policyID = policy.id;
+            const result = getChatRoomSubtitle(report);
+            expect(result).toBe(policy.name);
+        });
+
+        it('should return policy name for user created policy room', () => {
+            const report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                policyID: policy.id,
+            };
+            const result = getChatRoomSubtitle(report);
+            expect(result).toBe(policy.name);
+        });
+
+        it('should return policy name for policy expense chat when not in create expense flow', () => {
+            const report = createPolicyExpenseChat(1);
+            report.policyID = policy.id;
+            const result = getChatRoomSubtitle(report);
+            expect(result).toBe(policy.name);
+        });
+
+        it('should return empty string for expense report (not default/user-created/policy-expense)', () => {
+            const report = createExpenseReport(1);
+            report.policyID = policy.id;
+            const result = getChatRoomSubtitle(report);
+            expect(result).toBe('');
+        });
+
+        it('should return empty string for expense report in create expense flow (not default/user-created/policy-expense)', () => {
+            const report = createExpenseReport(1);
+            report.policyID = policy.id;
+            const result = getChatRoomSubtitle(report, true, false);
+            expect(result).toBe('');
+        });
+
+        it('should return oldPolicyName when report is archived', () => {
+            const report = createAdminRoom(1);
+            report.oldPolicyName = 'Old Policy Name';
+            const result = getChatRoomSubtitle(report, false, true);
+            expect(result).toBe('Old Policy Name');
+        });
+
+        it('should return empty string when report is archived but has no oldPolicyName', () => {
+            const report = createAdminRoom(1);
+            report.oldPolicyName = undefined;
+            const result = getChatRoomSubtitle(report, false, true);
+            expect(result).toBe('');
+        });
+
+        it('should prioritize isReportArchived over other conditions', () => {
+            const report = createAdminRoom(1);
+            report.policyID = policy.id;
+            report.oldPolicyName = 'Archived Policy';
+            const result = getChatRoomSubtitle(report, true, true);
+            expect(result).toBe('Archived Policy');
+        });
+
+        it('should handle with only report data', () => {
+            const report = createAdminRoom(1);
+            report.policyID = policy.id;
+            const result = getChatRoomSubtitle(report);
+            expect(result).toBe(policy.name);
         });
     });
 

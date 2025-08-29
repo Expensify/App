@@ -3,7 +3,6 @@ import React, {useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import BookTravelButton from '@components/BookTravelButton';
 import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
@@ -15,6 +14,7 @@ import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
+import type {SearchGroupBy} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -45,7 +45,7 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
     similarSearchHash: number;
-    groupBy?: ValueOf<typeof CONST.SEARCH.GROUP_BY>;
+    groupBy?: SearchGroupBy | undefined;
     type: SearchDataTypes;
     hasResults: boolean;
 };
@@ -251,7 +251,7 @@ function EmptySearchView({similarSearchHash, type, groupBy, hasResults}: EmptySe
                                           if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
                                               const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation);
                                               Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID}));
                                               });
                                           } else {
                                               Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
