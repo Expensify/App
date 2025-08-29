@@ -41,6 +41,7 @@ import type {
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
     BusinessBankAccountParams,
+    BusinessRegistrationNumberParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -92,7 +93,6 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
-    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -193,6 +193,7 @@ import type {
     SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
+    SignerInfoMessageParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
@@ -646,6 +647,7 @@ const translations = {
         forwardTo: 'Forward to',
         merge: 'Merge',
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
+        enableGlobalReimbursements: 'Enable Global Reimbursements',
         actionRequired: 'Action required',
         locked: 'Locked',
     },
@@ -2337,7 +2339,7 @@ const translations = {
                     `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
                     '2. Choose *Create expense*.\n' +
                     '3. Enter an amount or scan a receipt.\n' +
-                    '4. Confirm details..\n' +
+                    '4. Confirm details.\n' +
                     '5. Click *Create*.\n' +
                     '\n' +
                     `And you're done!`,
@@ -3009,7 +3011,14 @@ const translations = {
         whatsTheBusinessName: "What's the business name?",
         whatsTheBusinessAddress: "What's the business address?",
         whatsTheBusinessContactInformation: "What's the business contact information?",
-        whatsTheBusinessRegistrationNumber: "What's the business registration number?",
+        whatsTheBusinessRegistrationNumber: ({country}: BusinessRegistrationNumberParams) => {
+            switch (country) {
+                case CONST.COUNTRY.GB:
+                    return "What's the Company Registration Number (CRN)?";
+                default:
+                    return "What's the business registration number?";
+            }
+        },
         whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:
@@ -3225,7 +3234,7 @@ const translations = {
         legalName: 'Legal name',
         proofOf: 'Proof of personal address',
         enterOneEmail: ({companyName}: CompanyNameParams) => `Enter the email of director or senior officer at ${companyName}`,
-        regulationRequiresOneMoreDirector: 'Regulation requires at least more director or senior officer as a signer.',
+        regulationRequiresOneMoreDirector: 'Regulation requires at least one more director or senior officer as a signer.',
         hangTight: 'Hang tight...',
         enterTwoEmails: ({companyName}: CompanyNameParams) => `Enter the emails of two directors or senior officers at ${companyName}`,
         sendReminder: 'Send a reminder',
@@ -3240,6 +3249,10 @@ const translations = {
         PDSandFSGDescription:
             "Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay's Financial Services Guide (FSG) and Product Disclosure Statement (PDS).\n\nPlease read the FSG and PDS documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.",
         pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a director or senior officer of the business entity.',
+        enterSignerInfo: 'Enter signer info',
+        thisStep: 'This step has been completed',
+        isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+            `is connecting a ${currency} business bank account ending in ${bankAccountLastFour} to Expensify to pay employees in ${currency}. The next step requires signer info from a director or senior officer.`,
     },
     agreementsStep: {
         agreements: 'Agreements',
@@ -3555,11 +3568,33 @@ const translations = {
             connect: 'Connect now',
             uber: {
                 subtitle: 'Automate travel and meal delivery expenses across your organization.',
+                sendInvites: 'Send invites',
+                sendInvitesDescription: "These workspace members don't have an Uber for Business account yet. Unselect any members you do not wish to invite at this time.",
+                confirmInvite: 'Confirm invite',
+                manageInvites: 'Manage invites',
+                confirm: 'Confirm',
+                allSet: 'All set',
+                readyToRoll: "You're ready to roll",
+                takeBusinessRideMessage: 'Take a business ride and your Uber receipts will import into Expensify. Scoot!',
+                all: 'All',
+                linked: 'Linked',
+                outstanding: 'Outstanding',
+                status: {
+                    resend: 'Resend',
+                    invite: 'Invite',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED]: 'Linked',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Pending',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspended',
+                },
+                invitationFailure: 'Failed to invite members to Uber for Business',
                 autoRemove: 'Invite new workspace members to Uber for Business',
                 autoInvite: 'Deactivate removed workspace members from Uber for Business',
-                manageInvites: 'Manage invites',
                 bannerTitle: 'Expensify + Uber for Business',
                 bannerDescription: 'Connect Uber for Business to automate travel and meal delivery expenses across your organization.',
+                emptyContent: {
+                    title: 'No members to display',
+                    subtitle: 'We looked everywhere and couldn’t find anything.',
+                },
             },
         },
         perDiem: {
@@ -5213,8 +5248,7 @@ const translations = {
             continuousReconciliation: 'Continuous Reconciliation',
             saveHoursOnReconciliation:
                 'Save hours on reconciliation each accounting period by having Expensify continuously reconcile Expensify Card statements and settlements on your behalf.',
-            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
-                `<muted-text-label>In order to enable Continuous Reconciliation, please enable <a href="${accountingAdvancedSettingsLink}">auto-sync</a> for ${connectionName}.</muted-text-label>`,
+            enableContinuousReconciliation: 'In order to enable Continuous Reconciliation, please enable ',
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
                 accountMatches: 'Make sure this account matches your ',
