@@ -29,7 +29,7 @@ function RNMaskedTextInputWithRef({ref, ...props}: RNMaskedTextInputWithRefProps
                 if (typeof ref !== 'function') {
                     return;
                 }
-                ref(refHandle as AnimatedTextInputRef);
+                ref(refHandle as AnimatedTextInputRef | null);
             }}
             // eslint-disable-next-line
             {...props}
