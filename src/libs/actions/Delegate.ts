@@ -60,6 +60,9 @@ Onyx.connect({
     },
 });
 
+// Track disconnect status to prevent multiple concurrent disconnect calls
+let isDisconnectInProgress = false;
+
 const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.PREFERRED_THEME,
@@ -186,6 +189,21 @@ function connect(email: string, isFromOldDot = false) {
 }
 
 function disconnect() {
+    // Prevent multiple concurrent disconnect calls which can cause the second call
+    // to use the restored normal token instead of the original delegate token
+    if (isDisconnectInProgress) {
+        Log.info('[Delegate] Disconnect already in progress, ignoring duplicate call');
+        return;
+    }
+
+    // Ensure we're actually connected as a delegate before attempting to disconnect
+    if (!isConnectedAsDelegate()) {
+        Log.info('[Delegate] Not connected as delegate, nothing to disconnect');
+        return;
+    }
+
+    isDisconnectInProgress = true;
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -275,6 +293,10 @@ function disconnect() {
         })
         .catch((error) => {
             Log.alert('[Delegate] Error disconnecting as a delegate', {error});
+        })
+        .finally(() => {
+            // Reset the disconnect status flag regardless of success or failure
+            isDisconnectInProgress = false;
         });
 }
 
