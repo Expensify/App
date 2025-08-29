@@ -12,7 +12,9 @@ type UseDownloadAttachmentProps = {
     draftTransactionID?: string;
 };
 
-function useDownloadAttachment({isAuthTokenRequired, type, draftTransactionID}: UseDownloadAttachmentProps = {}) {
+function useDownloadAttachment(props?: UseDownloadAttachmentProps) {
+    const {isAuthTokenRequired = false, type, draftTransactionID} = props ?? {isAuthTokenRequired: false, type: undefined, draftTransactionID: undefined};
+
     /**
      * Download the currently viewed attachment.
      */
