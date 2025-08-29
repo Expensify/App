@@ -321,6 +321,8 @@ const searchResults: OnyxTypes.SearchResults = {
             errors: undefined,
             filename: undefined,
             isActionLoading: false,
+            convertedAmount: -5000,
+            convertedCurrency: 'USD',
         },
         [`transactions_${transactionID2}`]: {
             accountID: adminAccountID,
@@ -365,6 +367,8 @@ const searchResults: OnyxTypes.SearchResults = {
             errors: undefined,
             filename: undefined,
             isActionLoading: false,
+            convertedAmount: -5000,
+            convertedCurrency: 'USD',
         },
         ...allViolations,
         [`transactions_${transactionID3}`]: {
@@ -410,6 +414,8 @@ const searchResults: OnyxTypes.SearchResults = {
             filename: undefined,
             isActionLoading: false,
             hasViolation: undefined,
+            convertedAmount: -5000,
+            convertedCurrency: 'USD',
         },
         [`transactions_${transactionID4}`]: {
             accountID: adminAccountID,
@@ -454,6 +460,8 @@ const searchResults: OnyxTypes.SearchResults = {
             filename: undefined,
             isActionLoading: false,
             hasViolation: undefined,
+            convertedAmount: -5000,
+            convertedCurrency: 'USD',
         },
     },
     search: {
@@ -692,6 +700,8 @@ const transactionsListItems = [
         isActionLoading: false,
         hasViolation: false,
         violations: [],
+        convertedAmount: -5000,
+        convertedCurrency: 'USD',
     },
     {
         accountID: 18439984,
@@ -2218,6 +2228,8 @@ describe('SearchUIUtils', () => {
                     transactionID: '1805965960759424086',
                     transactionThreadReportID: '4139222832581831',
                     transactionType: 'cash',
+                    convertedAmount: -5000,
+                    convertedCurrency: 'USD',
                 },
             },
             search: {
