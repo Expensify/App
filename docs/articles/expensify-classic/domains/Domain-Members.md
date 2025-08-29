@@ -4,7 +4,6 @@ description: Learn how to manage domain members and admins in Expensify.
 keywords: [Expensify Classic, domain members, verify domain, domain admin, update domain permissions]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Managing domain members in Expensify ensures control over access and settings within your organization. This guide walks you through adding, removing, and promoting users to streamline domain administration.
 
@@ -72,4 +71,3 @@ The email address of a Domain Admin does not need to be on the same domain as th
 3. Click **Domain Admins**.
 4. Enter the member’s email or phone number and click **Add Admin**.
 
-</div>
