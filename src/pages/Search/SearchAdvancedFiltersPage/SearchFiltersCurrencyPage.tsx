@@ -16,9 +16,8 @@ import ROUTES from '@src/ROUTES';
 function SearchFiltersCurrencyPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-    const [searchAdvancedFiltersForm = {}] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    const selectedCurrenciesCodes = searchAdvancedFiltersForm?.currency;
+    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
     const {selectedCurrenciesItems, currencyItems} = useMemo(() => {
         const selectedCurrencies: SearchMultipleSelectionPickerItem[] = [];
