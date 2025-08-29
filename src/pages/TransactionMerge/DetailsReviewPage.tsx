@@ -126,6 +126,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         transactionID,
         hasOnceLoadedTransactionThreadReportActions,
         iouActionForTargetTransaction,
+        iouReportForTargetTransaction,
         currentUserEmail,
         targetTransaction?.transactionID,
     ]);
