@@ -8,12 +8,6 @@ function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
 }
 
-// eslint-disable-next-line rulesdir/no-beta-handler
-function isBlockedFromSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
-    // Don't check for all betas or nobody can use test travel on dev
-    return !!betas?.includes(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
-}
-
 /**
  * Link previews are temporarily disabled.
  */
@@ -36,6 +30,5 @@ function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?:
 
 export default {
     canUseLinkPreviews,
-    isBlockedFromSpotnanaTravel,
     isBetaEnabled,
 };

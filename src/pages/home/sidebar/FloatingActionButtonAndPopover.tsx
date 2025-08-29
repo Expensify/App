@@ -126,7 +126,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const prevIsFocused = usePrevious(isFocused);
     const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
     const {isOffline} = useNetwork();
-    const {isBlockedFromSpotnanaTravel, isBetaEnabled} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
+    const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
     const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin, canBeMissing: true});
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
