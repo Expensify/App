@@ -899,8 +899,6 @@ type OriginalMessageIntegrationMessage = {
  * Model of Take Control action original message
  */
 type OriginalMessageTakeControl = {
-    /**  Whether the action was taken on newDot or oldDot */
-    isNewDot: boolean;
     /** Time the action was created */
     lastModified: string;
     /** Tagged account IDs of new approvers */

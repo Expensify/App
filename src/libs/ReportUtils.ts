@@ -7626,7 +7626,6 @@ function buildOptimisticChangeApproverReportAction(managerID: number, actorAccou
             },
         ],
         originalMessage: {
-            isNewDot: true,
             lastModified: created,
             mentionedAccountIDs: [managerID],
         },
