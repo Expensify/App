@@ -61,8 +61,7 @@ const ROUTES = {
     },
     SEARCH_ADVANCED_FILTERS: {
         route: 'search/filters/:filterKey?',
-        getRoute: (filterKey?: SearchFilterKey | UserFriendlyKey) =>
-            (filterKey ? `search/filters/${filterKey}` : 'search/filters') as const,
+        getRoute: (filterKey?: SearchFilterKey | UserFriendlyKey) => (filterKey ? `search/filters/${filterKey}` : 'search/filters') as const,
     },
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
