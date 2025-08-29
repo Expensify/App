@@ -56,9 +56,7 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
     useDelayedAutoFocus(internalInputRef, shouldDelayAutoFocus);
 
     const helpLink = useMemo(() => {
-        return Object.prototype.hasOwnProperty.call(CONST.REGISTRATION_NUMBER_HELP_URL, country)
-            ? CONST.REGISTRATION_NUMBER_HELP_URL[country as keyof typeof CONST.REGISTRATION_NUMBER_HELP_URL]
-            : CONST.REGISTRATION_NUMBER_HELP_URL.EU;
+        return CONST.REGISTRATION_NUMBER_HELP_URL[country as keyof typeof CONST.REGISTRATION_NUMBER_HELP_URL] ?? CONST.REGISTRATION_NUMBER_HELP_URL.EU;
     }, [country]);
 
     const validate = useCallback(
