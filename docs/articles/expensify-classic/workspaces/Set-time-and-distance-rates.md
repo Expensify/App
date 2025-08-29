@@ -3,7 +3,6 @@ title: Set Time and Distance Rates
 description: Configure default hourly and mileage reimbursement rates at the workspace level for consistent billing and expense tracking.
 keywords: [Expensify Classic, distance rates, mileage rates, time tracking, hourly rates, workspace settings]
 ---
-<div id="expensify-classic" markdown="1">
 
 Set default rates at the workspace level to track billable time and mileage expenses. This ensures accurate and consistent reimbursement for your team.
 
@@ -31,4 +30,3 @@ To enable hourly rate reimbursement:
 2. Toggle **Enable hourly rate expenses**
 3. Enter the **default hourly rate**
 
-</div>

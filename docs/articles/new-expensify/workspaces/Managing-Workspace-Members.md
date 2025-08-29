@@ -4,7 +4,6 @@ description: Learn how to add, remove, and manage user roles in a New Expensify 
 keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, invite users]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Managing members in a workspace helps ensure that the right people can submit, approve, and review expenses. This guide walks through how to invite, remove, and update roles for members in New Expensify.
 
@@ -99,4 +98,3 @@ You must be a **Workspace Admin**, and the email or phone number of the individu
 
 Yes. Use the search tool during invite or import members using a spreadsheet (see the **Invite Multiple Members via Spreadsheet** section above.
 
-</div>
