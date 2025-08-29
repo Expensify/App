@@ -19,6 +19,12 @@ import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {ButtonWithDropdownMenuProps, ButtonWithDropdownMenuRef} from './types';
 
+const defaultAnchorAlignment = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    // we assume that popover menu opens below the button, anchor is at TOP
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+};
+
 function ButtonWithDropdownMenuInner<IValueType>({ref, ...props}: ButtonWithDropdownMenuProps<IValueType>) {
     const {
         success = true,
@@ -32,10 +38,7 @@ function ButtonWithDropdownMenuInner<IValueType>({ref, ...props}: ButtonWithDrop
         style,
         disabledStyle,
         buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
-        anchorAlignment = {
-            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
-        },
+        anchorAlignment = defaultAnchorAlignment,
         buttonRef,
         onPress,
         options,
