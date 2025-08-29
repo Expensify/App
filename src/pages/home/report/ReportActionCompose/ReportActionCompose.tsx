@@ -233,12 +233,15 @@ function ReportActionCompose({
 
     const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
 
-    const scannableOption = getPreferredScannableIOUType(temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived), report);
+    const scannableIouType = useMemo(
+        () => getPreferredScannableIOUType(temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived), report),
+        [report, policy, reportParticipantIDs, isReportArchived],
+    );
     const shouldDisplayDualDropZone = useMemo(() => {
         const parentReport = getParentReport(report);
         const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
-        return (shouldAddOrReplaceReceipt && !isSettledOrApproved) || !!scannableOption;
-    }, [shouldAddOrReplaceReceipt, report, scannableOption]);
+        return (shouldAddOrReplaceReceipt && !isSettledOrApproved) || !!scannableIouType;
+    }, [shouldAddOrReplaceReceipt, report, scannableIouType]);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
@@ -512,7 +515,7 @@ function ReportActionCompose({
                 setMoneyRequestParticipantsFromReport(newTransactionID, report);
             });
             Navigation.navigate(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, scannableOption ?? CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID),
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, scannableIouType ?? CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID),
             );
         }
     };
