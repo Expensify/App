@@ -12577,6 +12577,7 @@ function addReportApprover(report: OnyxEntry<OnyxTypes.Report>, newApproverEmail
                 value: {
                     [takeControlReportAction.reportActionID]: {
                         pendingAction: null,
+                        errors: null,
                     },
                 },
             },
@@ -12587,15 +12588,6 @@ function addReportApprover(report: OnyxEntry<OnyxTypes.Report>, newApproverEmail
                 key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
                 value: {
                     managerID: report.managerID,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-                value: {
-                    [takeControlReportAction.reportActionID]: {
-                        pendingAction: null,
-                    },
                 },
             },
             {
