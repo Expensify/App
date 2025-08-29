@@ -1328,7 +1328,7 @@ function getOptimisticChatReport(accountID: number): OptimisticChatReport {
 
 function createTransactionThreadReport(iouReport: OnyxEntry<Report>, iouReportAction: OnyxEntry<ReportAction>): OptimisticChatReport | undefined {
     if (!iouReport || !iouReportAction) {
-        // Log error
+        Log.warn('Cannot build transaction thread report without iouReport and iouReportAction parameters');
         return;
     }
     const optimisticTransactionThreadReportID = generateReportID();
