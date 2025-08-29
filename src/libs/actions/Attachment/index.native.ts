@@ -8,6 +8,19 @@ import type {Attachment} from '@src/types/onyx';
 function cacheAttachment(attachmentID: string, uri: string, type?: string) {
     const isMarkdownAttachment = !uri.startsWith('file://');
     let mimeType = type;
+
+    if (!isMarkdownAttachment && mimeType) {
+        const fileType = getMimeType(mimeType);
+        const fileName = `${attachmentID}.${fileType}`;
+        const destPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+        RNFS.copyFile(uri, destPath).then(() => {
+            Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
+                attachmentID,
+                source: destPath,
+            });
+        });
+    }
+
     fetch(uri)
         .then((response) => {
             if (!response.ok) {
@@ -22,11 +35,11 @@ function cacheAttachment(attachmentID: string, uri: string, type?: string) {
             return response.arrayBuffer();
         })
         .then((bufferData) => {
-            // If mimeType is not set properly, then we need to exit
-            if (!mimeType) {
+            const fileType = getMimeType(mimeType ?? '');
+            // If fileType is not set properly, then we need to exit
+            if (!fileType) {
                 return;
             }
-            const fileType = getMimeType(mimeType);
             const finalData = btoa(String.fromCharCode(...new Uint8Array(bufferData)));
             const fileName = `${attachmentID}.${fileType}`;
             const filePath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
@@ -49,6 +62,7 @@ function cacheAttachment(attachmentID: string, uri: string, type?: string) {
 }
 
 function getCachedAttachment(attachmentID: string, attachment: OnyxEntry<Attachment>, currentSource: string) {
+    console.log('getCachedAttachment', attachmentID, attachment, currentSource);
     if (!attachment || (attachment?.remoteSource && attachment.remoteSource !== currentSource)) {
         cacheAttachment(attachmentID, currentSource);
         return Promise.resolve(currentSource);
