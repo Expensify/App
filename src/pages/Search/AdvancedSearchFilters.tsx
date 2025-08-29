@@ -215,6 +215,11 @@ const baseFilterConfig = {
         description: 'workspace.common.workspace' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_WORKSPACE,
     },
+    action: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.action' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_ACTION,
+    },
 };
 
 function getFilterWorkspaceDisplayTitle(filters: SearchAdvancedFiltersForm, policies: WorkspaceListItem[]) {
