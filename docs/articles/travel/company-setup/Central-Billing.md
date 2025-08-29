@@ -69,7 +69,7 @@ Only **Travel Admins** can enable and manage Central Billing. Once enabled, Trav
    - **Traveler type**  
      - **All Travelers** – All workspace members and guests  
      - **Employee** – Workspace members only  
-     - **Company guest** – Guests with company association  
+     - **Company guest** – Guests without a company email
      - **Personal guest** – Guests without a company email  
 
    - **Trip type**  
@@ -116,7 +116,7 @@ Yes. Travel cards can only be used for bookings made through Expensify Travel. M
 
 ### Can I disable a Central Billing card?
 Yes. To remove a card:  
-1. Go to **Program > Company > Payment > Payment Methods**  .
+1. Go to **Program > Company > Payment > Payment Methods**.
 2. Click the three dots next to the card.  
 3. Select **Remove Payment Method**.  
 4. All pending bookings tied to that card will be automatically suspended.  
