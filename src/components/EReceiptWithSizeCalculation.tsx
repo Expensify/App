@@ -8,10 +8,13 @@ import EReceipt from './EReceipt';
 import type {TransactionListItemType} from './SelectionList/types';
 
 type EReceiptWithSizeCalculationProps = {
+    /* TransactionID of the transaction this EReceipt corresponds to */
     transactionID: string | undefined;
 
+    /** The transaction data in search */
     transactionItem?: TransactionListItemType | Transaction;
 
+    /** Whether the eReceipt should preserve aspect ratio */
     shouldUseAspectRatio?: boolean;
 };
 
