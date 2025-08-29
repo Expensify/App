@@ -1651,12 +1651,7 @@ const translations = {
         restoreStashed: 'Wiederherstellen des zwischengespeicherten Logins',
         signOutConfirmationText: 'Sie verlieren alle Offline-Änderungen, wenn Sie sich abmelden.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: 'Lesen Sie die',
-            phrase2: 'Nutzungsbedingungen',
-            phrase3: 'und',
-            phrase4: 'Datenschutz',
-        },
+        readTheTermsAndPrivacy: `<muted-micro-text>Lesen Sie die <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Nutzungsbedingungen</a> und <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Datenschutz</a>.</muted-micro-text>`,
         help: 'Hilfe',
         whatIsNew: 'Was ist neu',
         accountSettings: 'Kontoeinstellungen',

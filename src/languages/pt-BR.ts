@@ -1643,12 +1643,7 @@ const translations = {
         restoreStashed: 'Restaurar login armazenado',
         signOutConfirmationText: 'Você perderá todas as alterações offline se sair.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: 'Leia o',
-            phrase2: 'Termos de Serviço',
-            phrase3: 'e',
-            phrase4: 'Privacidade',
-        },
+        readTheTermsAndPrivacy: `<muted-micro-text>Leia o <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termos de Serviço</a> e <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidade</a>.</muted-micro-text>`,
         help: 'Ajuda',
         whatIsNew: 'O que há de novo',
         accountSettings: 'Configurações da conta',
