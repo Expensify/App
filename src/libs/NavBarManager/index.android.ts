@@ -1,4 +1,5 @@
 import {NativeModules} from 'react-native';
+import CONST from '@src/CONST';
 import type NavBarManager from './types';
 
 const navBarManager: NavBarManager = {
@@ -6,7 +7,7 @@ const navBarManager: NavBarManager = {
         NativeModules.RNNavBarManager.setButtonStyle(style);
     },
     getType: () => {
-        return NativeModules.RNNavBarManager.getType();
+        return CONST.NAVIGATION_BAR_TYPE.GESTURE_BAR;
     },
 };
 
