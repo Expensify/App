@@ -23,17 +23,20 @@ import {setActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavi
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+import Parser from '@libs/Parser';
+import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {generateReportID, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import MoneyRequestReportTotalSpend from './MoneyRequestReportTotalSpend';
@@ -70,10 +73,13 @@ type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
 const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.DATE,
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
 ];
+
+type ReportScreenNavigationProps = ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
 
 type SortableColumnName = TupleToUnion<typeof sortableColumnNames>;
 
@@ -84,9 +90,17 @@ type SortedTransactions = {
 
 const isSortableColumnName = (key: unknown): key is SortableColumnName => !!sortableColumnNames.find((val) => val === key);
 
-const getTransactionKey = (transaction: OnyxTypes.Transaction, key: SortableColumnName) => {
-    const dateKey = transaction.modifiedCreated ? 'modifiedCreated' : 'created';
-    return key === CONST.SEARCH.TABLE_COLUMNS.DATE ? dateKey : key;
+const getTransactionValue = (transaction: OnyxTypes.Transaction, key: SortableColumnName) => {
+    if (key === CONST.SEARCH.TABLE_COLUMNS.DATE) {
+        const dateKey = transaction.modifiedCreated ? 'modifiedCreated' : 'created';
+        return transaction[dateKey];
+    }
+
+    if (key === CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION) {
+        return Parser.htmlToText(transaction.comment?.comment ?? '');
+    }
+
+    return transaction[key];
 };
 
 function MoneyRequestReportTransactionList({
@@ -156,7 +170,7 @@ function MoneyRequestReportTransactionList({
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions]
-            .sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy, localeCompare))
+            .sort((a, b) => compareValues(getTransactionValue(a, sortBy), getTransactionValue(b, sortBy), sortOrder, sortBy, localeCompare))
             .map((transaction) => ({
                 ...transaction,
                 shouldBeHighlighted: newTransactions?.includes(transaction),
@@ -168,15 +182,25 @@ function MoneyRequestReportTransactionList({
         return (Object.keys(columns) as SearchColumnType[]).filter((column) => columns[column]);
     }, [transactions, session?.accountID]);
 
+    /**
+     * Navigate to the transaction thread for a transaction, creating one optimistically if it doesn't yet exist.
+     */
     const navigateToTransaction = useCallback(
         (activeTransactionID: string) => {
             const iouAction = getIOUActionForTransactionID(reportActions, activeTransactionID);
-            const reportIDToNavigate = iouAction?.childReportID;
-            if (!reportIDToNavigate) {
-                return;
-            }
-
             const backTo = Navigation.getActiveRoute();
+            const reportIDToNavigate = iouAction?.childReportID ?? generateReportID();
+
+            const routeParams = {
+                reportID: reportIDToNavigate,
+                backTo,
+            } as ReportScreenNavigationProps;
+
+            if (!iouAction?.childReportID) {
+                routeParams.moneyRequestReportActionID = iouAction?.reportActionID;
+                routeParams.transactionID = activeTransactionID;
+                routeParams.iouReportID = isMoneyRequestAction(iouAction) ? getOriginalMessage(iouAction)?.IOUReportID : undefined;
+            }
 
             setOptimisticTransactionThread(reportIDToNavigate, iouAction.parentReportID, iouAction.reportActionID);
 
@@ -184,7 +208,7 @@ function MoneyRequestReportTransactionList({
             // to display prev/next arrows in RHP for navigation
             const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
             setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs).then(() => {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
             });
         },
         [reportActions],

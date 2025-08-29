@@ -6,6 +6,7 @@ import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
@@ -54,7 +55,8 @@ const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Jo
 
 function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
     const {translate} = useLocalize();
-    const {isDevelopment} = useEnvironment();
+    const {isProduction} = useEnvironment();
+    const {isBetaEnabled} = usePermissions();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
@@ -69,7 +71,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
     const [isUserDirector, setIsUserDirector] = useState(false);
     const primaryLogin = account?.primaryLogin ?? '';
     // Corpay does not accept emails with a "+" character and will not let us connect account at the end of whole flow
-    const signerEmail = isDevelopment ? Str.replaceAll(primaryLogin, '+', '') : primaryLogin;
+    const signerEmail = !isProduction && isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ? Str.replaceAll(primaryLogin, '+', '') : primaryLogin;
 
     const submit = useCallback(() => {
         const {signerDetails, signerFiles} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, signerEmail, isUserOwner);
