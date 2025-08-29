@@ -113,6 +113,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.NVP_PREFERRED_LOCALE,
     ONYXKEYS.CREDENTIALS,
     ONYXKEYS.PRESERVED_USER_SESSION,
+    ONYXKEYS.HYBRID_APP,
 ];
 
 Onyx.connect({
@@ -287,7 +288,7 @@ function getOnyxDataForOpenOrReconnect(
     // This ensures that any report with a draft comment is preserved in Onyx even if it doesn’t contain chat history
     const reportsWithDraftComments = Object.entries(allReportsWithDraftComments ?? {})
         .filter(([, value]) => value !== null)
-        .map(([key]) => key.replace(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, ''))
+        .map(([key]) => key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ''))
         .map((reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
 
     reportsWithDraftComments?.forEach((report) => {
