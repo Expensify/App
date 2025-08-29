@@ -16,10 +16,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 type MoneyRequestReportNavigationProps = {
     reportID?: string;
     shouldDisplayNarrowVersion: boolean;
-    backTo?: string;
 };
 
-function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, backTo}: MoneyRequestReportNavigationProps) {
+function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: MoneyRequestReportNavigationProps) {
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
@@ -83,7 +82,6 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion, bac
         }
         Navigation.setParams({
             reportID: reportId,
-            backTo: backTo ?? '',
         });
     };
 

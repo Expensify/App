@@ -1175,7 +1175,6 @@ function MoneyReportHeader({
         <MoneyRequestReportNavigation
             reportID={moneyRequestReport?.reportID}
             shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
-            backTo={route.params?.backTo}
         />
     ) : undefined;
 
