@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {clamp, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -45,15 +45,20 @@ type SearchPageNarrowProps = {
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     searchResults?: SearchResults;
     isMobileSelectionModeEnabled: boolean;
+    footerData: {
+        count: number | undefined;
+        total: number | undefined;
+        currency: string | undefined;
+    };
 };
 
-function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMobileSelectionModeEnabled}: SearchPageNarrowProps) {
+function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMobileSelectionModeEnabled, footerData}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {clearSelectedTransactions, selectedTransactions, areAllMatchingItemsSelected} = useSearchContext();
+    const {clearSelectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
     const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
@@ -64,8 +69,6 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
-
-    const metadata = searchResults?.search;
 
     const handleBackButtonPress = useCallback(() => {
         if (!isMobileSelectionModeEnabled) {
@@ -120,17 +123,6 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
             search(value);
         }
     }, []);
-
-    const footerData = useMemo(() => {
-        const selectedTransactionsKeys = Object.keys(selectedTransactions);
-        const shouldUseClientTotal = selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected;
-
-        const currency = metadata?.currency;
-        const count = shouldUseClientTotal ? selectedTransactionsKeys.length : metadata?.count;
-        const total = shouldUseClientTotal ? Object.values(selectedTransactions).reduce((acc, transaction) => acc - transaction.convertedAmount, 0) : metadata?.total;
-
-        return {count, total, currency};
-    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions]);
 
     if (!queryJSON) {
         return (
