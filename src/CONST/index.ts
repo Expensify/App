@@ -6569,11 +6569,8 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             ACTION: 'action',
-<<<<<<< HEAD
             HAS: 'has',
-=======
             WITHDRAWAL_ID: 'withdrawal-id',
->>>>>>> main
         },
 
         // Maps an internal search value to the user friendly display text, e.g. `perDiem` -> `per-diem`
