@@ -52,7 +52,7 @@ const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoring
 
 const defaultListOptions = {
     userToInvite: null,
-    recentReports: [],
+    recentOptions: [],
     personalDetails: [],
     selectedOptions: [],
 };

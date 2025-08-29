@@ -258,8 +258,8 @@ function canCreateOptimisticPersonalDetailOption({
     return currentUserLogin !== addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() && currentUserLogin !== searchValue?.toLowerCase();
 }
 
-function filterUserToInvite(options: Omit<Options, 'userToInvite' | 'selectedOptions'>, currentUserLogin: string, searchValue: string, config?: GetUserToInviteConfig): OptionData | null {
-    const {canInviteUser = true, loginsToExclude = {}} = config ?? {};
+function filterUserToInvite(options: Omit<Options, 'userToInvite' | 'selectedOptions'>, currentUserLogin: string, config: GetUserToInviteConfig): OptionData | null {
+    const {searchValue, canInviteUser = true, loginsToExclude = {}} = config ?? {};
     if (!canInviteUser) {
         return null;
     }
@@ -280,7 +280,6 @@ function filterUserToInvite(options: Omit<Options, 'userToInvite' | 'selectedOpt
         ...loginsToExclude,
     };
     return getUserToInviteOption({
-        searchValue,
         loginsToExclude: excludeLogins,
         ...config,
     });
@@ -446,7 +445,7 @@ function getValidOptions(
 
     let userToInvite: OptionData | null = null;
     if (includeUserToInvite) {
-        userToInvite = filterUserToInvite({recentOptions, personalDetails: personalDetailsOptions}, currentUserLogin, searchString ?? '');
+        userToInvite = filterUserToInvite({recentOptions, personalDetails: personalDetailsOptions}, currentUserLogin, {searchValue: searchString ?? '', loginsToExclude});
     }
 
     return {

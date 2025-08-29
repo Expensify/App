@@ -28,7 +28,7 @@ type Section = SectionBase & {
 
 const defaultListOptions = {
     userToInvite: null,
-    recentReports: [],
+    recentOptions: [],
     personalDetails: [],
     selectedOptions: [],
 };
