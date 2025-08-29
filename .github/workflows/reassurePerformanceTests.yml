@@ -87,6 +87,18 @@ jobs:
             done
           fi
           npm install --force || (rm -rf node_modules && npm install --force)
+
+          # Verify new test files are present before running reassure
+          if [ -n "$NEW_TEST_FILES" ]; then
+            echo "MORWA: Verifying new test files before reassure run..."
+            for file in $NEW_TEST_FILES; do
+              if [ -f "$file" ]; then
+                echo "MORWA: ✓ $file exists"
+              else
+                echo "MORWA: ✗ $file MISSING"
+              fi
+            done
+          fi
           NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
 
       - name: Validate output.json
