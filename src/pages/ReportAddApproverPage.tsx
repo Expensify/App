@@ -22,7 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
-import {getManagerAccountEmail, getMemberAccountIDsForWorkspace, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace, isPolicyAdmin} from '@libs/PolicyUtils';
 import {isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
@@ -54,6 +54,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
         const approvers: SelectionListApprover[] = [];
 
         if (employeeList) {
+            const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
             const availableApprovers = Object.values(employeeList)
                 .map((employee): SelectionListApprover | null => {
                     const isAdmin = employee?.role === CONST.REPORT.ROLE.ADMIN;
@@ -62,15 +63,13 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                     if (!email) {
                         return null;
                     }
+                    const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? CONST.DEFAULT_NUMBER_ID);
 
-                    if (getManagerAccountEmail(policy, report) === email) {
+                    if (report.managerID === accountID) {
                         return null;
                     }
 
-                    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
-                    const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
                     const {avatar, displayName = email} = personalDetails?.[accountID] ?? {};
-
                     return {
                         text: displayName,
                         alternateText: email,
@@ -100,7 +99,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 shouldShow: true,
             },
         ];
-    }, [employeeList, debouncedSearchTerm, localeCompare, policy, report, personalDetails, selectedApproverEmail, translate]);
+    }, [employeeList, debouncedSearchTerm, localeCompare, report, personalDetails, selectedApproverEmail, translate]);
 
     const shouldShowListEmptyContent = !debouncedSearchTerm && !sections.at(0)?.data.length;
 
