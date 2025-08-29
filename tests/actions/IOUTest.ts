@@ -141,6 +141,7 @@ jest.mock('@src/libs/SearchQueryUtils', () => ({
         status: '',
         flatFilters: [],
     })),
+    buildCannedSearchQuery: jest.fn(),
     buildSearchQueryJSON: jest.fn(),
 }));
 
