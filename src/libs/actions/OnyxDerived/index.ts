@@ -81,12 +81,6 @@ function init() {
                 context.areAllConnectionsSet = areAllConnectionsSet;
                 context.sourceValues = sourceKey && sourceValue !== undefined ? {[sourceKey]: sourceValue} : undefined;
 
-                // If we got a source key and value, add it to the sourceValues object
-                if (sourceKey && sourceValue !== undefined) {
-                    context.sourceValues = {
-                        [sourceKey]: sourceValue,
-                    };
-                }
                 // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
                 const newDerivedValue = compute(dependencyValues, context);
                 Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
