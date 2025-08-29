@@ -4185,7 +4185,6 @@ function getUpdateMoneyRequestParams(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.reportID}`,
             value: {
-                lastVisibleActionCreated: updatedReportAction.created,
                 lastReadTime: updatedReportAction.created,
             },
         });
@@ -4193,7 +4192,6 @@ function getUpdateMoneyRequestParams(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.reportID}`,
             value: {
-                lastVisibleActionCreated: transactionThread?.lastVisibleActionCreated,
                 lastReadTime: transactionThread?.lastReadTime,
             },
         });
