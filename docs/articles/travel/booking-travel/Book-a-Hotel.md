@@ -79,10 +79,4 @@ To view your trip:
 2. Tap **Inbox**.
 3. Find a thread named after your upcoming trip.
 
-This thread includes:
-
-- All current hotel and travel details
-- Local restaurant suggestions
-- Nearby attractions and events
-
 </div>
