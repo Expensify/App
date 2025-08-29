@@ -1,7 +1,8 @@
+import type {TupleToUnion} from 'type-fest';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import SCREENS from '@src/SCREENS';
 import type ModalType from '@src/types/utils/ModalType';
-import type {AttachmentModalScreenType} from '.';
 import type {AttachmentModalBaseContentProps} from './AttachmentModalBaseContent/types';
 
 /**
@@ -27,8 +28,18 @@ type AttachmentModalModalProps = {
     shouldHandleNavigationBack?: boolean;
 };
 
+const ATTACHMENT_MODAL_SCREENS = [
+    SCREENS.ATTACHMENTS,
+    SCREENS.REPORT_AVATAR,
+    SCREENS.PROFILE_AVATAR,
+    SCREENS.WORKSPACE_AVATAR,
+    SCREENS.TRANSACTION_RECEIPT,
+    SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW,
+];
+type AttachmentModalScreenType = TupleToUnion<typeof ATTACHMENT_MODAL_SCREENS>;
+
 type AttachmentModalScreenBaseParams = AttachmentModalBaseContentProps & AttachmentModalModalProps;
 
 type AttachmentModalScreenProps<Screen extends AttachmentModalScreenType> = PlatformStackScreenProps<RootNavigatorParamList, Screen>;
 
-export type {AttachmentModalScreenBaseParams, AttachmentModalModalProps, AttachmentModalScreenProps, FileObject, ImagePickerResponse};
+export type {AttachmentModalScreenType, AttachmentModalScreenBaseParams, AttachmentModalModalProps, AttachmentModalScreenProps, FileObject, ImagePickerResponse};

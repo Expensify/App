@@ -5,8 +5,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import type {AttachmentModalOnCloseOptions} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+import type {AttachmentModalScreenType} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
-import type {AttachmentModalScreenType} from '..';
 import type AttachmentModalContainerProps from './types';
 
 function AttachmentModalContainer<Screen extends AttachmentModalScreenType>({contentProps, modalType, onShow, onClose, shouldHandleNavigationBack}: AttachmentModalContainerProps<Screen>) {

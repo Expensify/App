@@ -1,9 +1,8 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type {AttachmentModalScreenType} from '.';
 import type AttachmentModalScreenParams from './routes/types';
-import type {AttachmentModalScreenBaseParams} from './types';
+import type {AttachmentModalScreenBaseParams, AttachmentModalScreenType} from './types';
 
 type AttachmentModalContextValue = {
     isAttachmentHidden: (reportActionID: string) => boolean;
