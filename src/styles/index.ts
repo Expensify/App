@@ -2290,6 +2290,11 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        emojiHeaderContainerWidth: (isSmallScreenWidth: boolean, windowWidth: number) =>
+            ({
+                width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
+            }) satisfies ViewStyle,
+
         emojiSkinToneTitle: {
             ...spacing.pv1,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
@@ -4036,12 +4041,10 @@ const styles = (theme: ThemeColors) =>
             verticalAlign: 'middle',
         },
 
-        stickyHeaderEmoji: (isSmallScreenWidth: boolean, windowWidth: number) =>
-            ({
-                position: 'absolute',
-                width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
-                ...spacing.mh4,
-            }) satisfies ViewStyle,
+        stickyHeaderEmoji: {
+            position: 'absolute',
+            ...spacing.mh4,
+        } satisfies ViewStyle,
 
         reactionCounterText: {
             fontSize: 13,
@@ -4471,9 +4474,9 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: 12,
         },
 
-        tabText: (isSelected: boolean) =>
+        tabText: (isSelected: boolean, hasIcon = false) =>
             ({
-                marginLeft: 8,
+                marginLeft: hasIcon ? 8 : 0,
                 ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
                 color: isSelected ? theme.text : theme.textSupporting,
                 lineHeight: variables.lineHeightLarge,
@@ -5145,6 +5148,7 @@ const styles = (theme: ThemeColors) =>
             flexBasis: '35%',
             marginTop: 12,
         },
+
         onboardingAccountingItem: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,
@@ -5418,6 +5422,11 @@ const styles = (theme: ThemeColors) =>
         expensifyCardIllustrationContainer: {
             width: 680,
             height: 220,
+        },
+
+        uberConfirmationIllustrationContainer: {
+            width: 260,
+            height: 172,
         },
 
         emptyStateCardIllustrationContainer: {

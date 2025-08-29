@@ -7,7 +7,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
-import SearchTableHeader, {expenseHeaders} from '@components/SelectionList/SearchTableHeader';
+import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionList/SearchTableHeader';
 import type {
     ListItem,
     TransactionCardGroupListItemType,
@@ -100,9 +100,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (isGroupByReports) {
             return areAllOptionalColumnsHiddenProp ?? false;
         }
-        const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
+        const canBeMissingColumns = getExpenseHeaders(groupBy).filter((header) => header.canBeMissing).map((header) => header.columnName);
         return canBeMissingColumns.every((column) => !currentColumns.includes(column));
-    }, [areAllOptionalColumnsHiddenProp, currentColumns, isGroupByReports]);
+    }, [areAllOptionalColumnsHiddenProp, currentColumns, groupBy, isGroupByReports]);
 
     const selectedItemsLength = useMemo(() => {
         return transactions.reduce((acc, transaction) => {
@@ -329,6 +329,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                         isReportItemChild
                                         isInSingleTransactionReport={groupItem.transactions.length === 1}
                                         areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                                        groupBy={groupBy}
                                     />
                                 ))}
                                 {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (

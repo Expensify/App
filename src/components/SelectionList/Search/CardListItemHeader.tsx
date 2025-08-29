@@ -12,15 +12,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
-import ActionCell from './ActionCell';
 import TotalCell from './TotalCell';
 
 type CardListItemHeaderProps<TItem extends ListItem> = {
     /** The card currently being looked at */
     card: TransactionCardGroupListItemType;
-
-    /** Callback to fire when the item is pressed */
-    onSelectRow: (item: TItem) => void;
 
     /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
@@ -43,7 +39,6 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
 
 function CardListItemHeader<TItem extends ListItem>({
     card: cardItem,
-    onSelectRow,
     onCheckboxPress,
     isDisabled,
     isFocused,
@@ -99,15 +94,6 @@ function CardListItemHeader<TItem extends ListItem>({
                         currency={cardItem.currency}
                     />
                 </View>
-                {shouldShowAction && (
-                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
-                        <ActionCell
-                            action={CONST.SEARCH.ACTION_TYPES.VIEW}
-                            goToItem={() => onSelectRow(cardItem as unknown as TItem)}
-                            isSelected={cardItem.isSelected}
-                        />
-                    </View>
-                )}
             </View>
         </View>
     );

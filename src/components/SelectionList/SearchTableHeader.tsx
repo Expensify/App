@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
-import type {SearchColumnType, SortOrder} from '@components/Search/types';
+import type {ValueOf} from 'type-fest';
+import type {SearchColumnType, SearchGroupBy, SortOrder} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -15,7 +16,7 @@ type SearchColumnConfig = {
     canBeMissing?: boolean;
 };
 
-const expenseHeaders: SearchColumnConfig[] = [
+const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
         translationKey: 'common.receipt',
@@ -76,7 +77,7 @@ const expenseHeaders: SearchColumnConfig[] = [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-        translationKey: 'common.total',
+        translationKey: groupBy ? 'common.total' : 'iou.amount',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -125,13 +126,21 @@ const taskHeaders: SearchColumnConfig[] = [
     },
 ];
 
-const SearchColumns = {
-    [CONST.SEARCH.DATA_TYPES.EXPENSE]: expenseHeaders,
-    [CONST.SEARCH.DATA_TYPES.INVOICE]: expenseHeaders,
-    [CONST.SEARCH.DATA_TYPES.TRIP]: expenseHeaders,
-    [CONST.SEARCH.DATA_TYPES.TASK]: taskHeaders,
-    [CONST.SEARCH.DATA_TYPES.CHAT]: null,
-};
+function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy?: SearchGroupBy) {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            return getExpenseHeaders(groupBy);
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            return getExpenseHeaders(groupBy);
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return getExpenseHeaders(groupBy);
+        case CONST.SEARCH.DATA_TYPES.TASK:
+            return taskHeaders;
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+        default:
+            return null;
+    }
+}
 
 type SearchTableHeaderProps = {
     columns: SortableColumnName[];
@@ -145,6 +154,7 @@ type SearchTableHeaderProps = {
     shouldShowSorting: boolean;
     canSelectMultiple: boolean;
     areAllOptionalColumnsHidden: boolean;
+    groupBy: SearchGroupBy | undefined;
 };
 
 function SearchTableHeader({
@@ -159,6 +169,7 @@ function SearchTableHeader({
     isAmountColumnWide,
     isTaxAmountColumnWide,
     areAllOptionalColumnsHidden,
+    groupBy,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -176,11 +187,11 @@ function SearchTableHeader({
         return;
     }
 
-    if (!SearchColumns[type]) {
+    const columnConfig = getSearchColumns(type, groupBy);
+
+    if (!columnConfig) {
         return;
     }
-
-    const columnConfig = SearchColumns[type] ?? [];
 
     return (
         <SortableTableHeader
@@ -206,5 +217,5 @@ function SearchTableHeader({
 }
 
 SearchTableHeader.displayName = 'SearchTableHeader';
-export {expenseHeaders};
+export {getExpenseHeaders};
 export default SearchTableHeader;

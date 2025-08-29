@@ -801,6 +801,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      */
     onEndReachedThreshold?: number;
 
+    /** Whether to skip the Show More button pagination logic */
+    shouldSkipShowMoreButton?: boolean;
+
     /**
      * While maxToRenderPerBatch tells the amount of items rendered per batch, setting updateCellsBatchingPeriod tells your VirtualizedList the delay in milliseconds between batch renders (how frequently your component will be rendering the windowed items).
      * https://reactnative.dev/docs/optimizing-flatlist-configuration#updatecellsbatchingperiod
