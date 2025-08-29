@@ -6283,6 +6283,7 @@ const translations = {
         genericUpdateReportFieldFailureMessage: "Errore imprevisto durante l'aggiornamento del campo. Si prega di riprovare più tardi.",
         genericUpdateReportNameEditFailureMessage: 'Errore imprevisto durante la rinomina del rapporto. Per favore riprova più tardi.',
         noActivityYet: 'Nessuna attività ancora',
+        connectionSettings: 'Impostazioni di connessione',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `modificato ${fieldName} da ${oldValue} a ${newValue}`,
@@ -6355,6 +6356,9 @@ const translations = {
                 removedConnection: ({connectionName}: ConnectionNameParams) => `rimosso il collegamento a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `connesso a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'ha lasciato la chat',
+            },
+            error: {
+                invalidCredentials: 'Credenziali non valide, controlla la configurazione della tua connessione.',
             },
         },
     },
