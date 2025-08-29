@@ -106,7 +106,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     reportMetadata={reportMetadata}
                                     policy={policy}
                                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
-                                    backToRoute={route.params.backTo}
                                     shouldWaitForReportSync={shouldWaitForReportSync}
                                     key={report?.reportID}
                                 />
@@ -143,7 +142,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                         reportMetadata={reportMetadata}
                                         policy={policy}
                                         shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
-                                        backToRoute={route.params.backTo}
                                         shouldWaitForReportSync={shouldWaitForReportSync}
                                         key={report?.reportID}
                                     />
