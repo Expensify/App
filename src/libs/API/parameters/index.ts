@@ -127,6 +127,7 @@ export type {default as LeaveGroupChatParams} from './LeaveGroupChatParams';
 export type {default as TogglePolicyUberAutoRemovePageParams} from './TogglePolicyUberAutoRemovePageParams';
 export type {default as InviteToRoomParams} from './InviteToRoomParams';
 export type {default as InviteToGroupChatParams} from './InviteToGroupChatParams';
+export type {default as InviteWorkspaceEmployeesToUberParams} from './InviteWorkspaceEmployeesToUberParams';
 export type {default as RemoveFromRoomParams} from './RemoveFromRoomParams';
 export type {default as RemoveFromGroupChatParams} from './RemoveFromGroupChatParams';
 export type {default as FlagCommentParams} from './FlagCommentParams';
@@ -400,6 +401,7 @@ export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsPa
 export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';
 export type {default as DeleteAppReportParams} from './DeleteAppReportParams';
 export type {default as SaveCorpayOnboardingDirectorInformationParams} from './SaveCorpayOnboardingDirectorInformationParams';
+export type {default as AskForCorpaySignerInformationParams} from './AskForCorpaySignerInformationParams';
 export type {default as MoveIOUReportToPolicyAndInviteSubmitterParams} from './MoveIOUReportToPolicyAndInviteSubmitterParams';
 export type {default as MoveIOUReportToExistingPolicyParams} from './MoveIOUReportToExistingPolicyParams';
 export type {default as ChangeReportPolicyParams} from './ChangeReportPolicyParams';
@@ -420,4 +422,5 @@ export type {default as OpenUnreportedExpensesPageParams} from './OpenUnreported
 export type {default as VerifyTestDriveRecipientParams} from './VerifyTestDriveRecipientParams';
 export type {default as ExportSearchWithTemplateParams} from './ExportSearchWithTemplateParams';
 export type {default as AssignReportToMeParams} from './AssignReportToMeParams';
-export type {default as SaveReportDraftCommentParams} from './SaveReportDraftCommentParams';
+export type {default as EnableGlobalReimbursementsForUSDBankAccountParams} from './EnableGlobalReimbursementsForUSDBankAccountParams';
+export type {default as SendReminderForCorpaySignerInformationParams} from './SendReminderForCorpaySignerInformationParams';

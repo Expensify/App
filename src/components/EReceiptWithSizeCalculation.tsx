@@ -13,6 +13,8 @@ type EReceiptWithSizeCalculationProps = {
     transactionItem?: TransactionListItemType | Transaction;
 };
 
+const eReceiptAspectRatio = variables.eReceiptBGHWidth / variables.eReceiptBGHeight;
+
 function EReceiptWithSizeCalculation(props: EReceiptWithSizeCalculationProps) {
     const [scaleFactor, setScaleFactor] = useState(0);
     const styles = useThemeStyles();
@@ -28,7 +30,11 @@ function EReceiptWithSizeCalculation(props: EReceiptWithSizeCalculationProps) {
                 onLayout={onLayout}
                 // We are applying transform of 0 translateZ to avoid a sub-pixel rendering error of a thin 1px line
                 // appearing on EReceipts on web, specifically in chrome. More details in https://github.com/Expensify/App/pull/59944#issuecomment-2797249923.
-                style={[styles.w100, styles.h100, {transform: `scale(${scaleFactor}) ${styles.translateZ0.transform as string}`, transformOrigin: 'top left'}]}
+                style={[
+                    styles.w100,
+                    styles.h100,
+                    {transform: `scale(${scaleFactor}) ${styles.translateZ0.transform as string}`, transformOrigin: 'top left', aspectRatio: eReceiptAspectRatio},
+                ]}
             >
                 <EReceipt
                     // eslint-disable-next-line react/jsx-props-no-spreading
