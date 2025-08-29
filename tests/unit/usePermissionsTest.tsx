@@ -76,13 +76,17 @@ describe('usePermissions', () => {
         expect(result.current.isBetaEnabled(CONST.BETAS.ALL)).toBe(true);
     });
 
-    it('should handle explicit only betas correctly', async () => {
-        // Given: A beta configuration with explicit only betas and an account with 'all' beta enabled, but not the explicit only beta
+    it('should handle explicit only and exclusion betas correctly', async () => {
+        // Given: A beta configuration with both explicit only and exclusion betas
         const explicitOnlyBeta = CONST.BETAS.MANUAL_DISTANCE;
+        const exclusionBeta = CONST.BETAS.PREVENT_SPOTNANA_TRAVEL;
         const betaConfiguration = {
             explicitOnly: [explicitOnlyBeta],
+            exclusion: [exclusionBeta],
         };
 
+        // Test explicit only beta behavior
+        // Given: Account with 'all' beta enabled, but not the explicit only beta
         Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.ALL]);
         Onyx.set(ONYXKEYS.BETA_CONFIGURATION, betaConfiguration);
         await waitForBatchedUpdatesWithAct();
@@ -101,5 +105,30 @@ describe('usePermissions', () => {
         // When: Checking if the account is in the explicit only beta
         // Then: The beta check should return true because the beta is explicitly enabled
         expect(result.current.isBetaEnabled(explicitOnlyBeta)).toBe(true);
+
+        // Test exclusion beta behavior
+        // Given: Account with 'all' beta enabled, but not the exclusion beta
+        Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.ALL]);
+        await waitForBatchedUpdatesWithAct();
+
+        // When: Checking if the account is in the exclusion beta
+        // Then: The beta check should return false because exclusion betas are not enabled by 'all' beta
+        expect(result.current.isBetaEnabled(exclusionBeta)).toBe(false);
+
+        // Given: The exclusion beta is explicitly enabled
+        Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.ALL, exclusionBeta]);
+        await waitForBatchedUpdatesWithAct();
+
+        // When: Checking if the account is in the exclusion beta
+        // Then: The beta check should return true because the beta is explicitly enabled
+        expect(result.current.isBetaEnabled(exclusionBeta)).toBe(true);
+
+        // Given: Neither 'all' nor the exclusion beta are enabled
+        Onyx.set(ONYXKEYS.BETAS, []);
+        await waitForBatchedUpdatesWithAct();
+
+        // When: Checking if the account is in the exclusion beta
+        // Then: The beta check should return false since neither beta is enabled
+        expect(result.current.isBetaEnabled(exclusionBeta)).toBe(false);
     });
 });
