@@ -610,8 +610,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     ROUTES.SEARCH_REPORT.getRoute({
                         reportID: generatedReportID,
                         backTo,
-                        moneyRequestReportActionID: item.moneyRequestReportActionID,
-                        transactionID: item.transactionID,
+                        // moneyRequestReportActionID: item.moneyRequestReportActionID,
+                        // transactionID: item.transactionID,
                     }),
                 );
                 return;
