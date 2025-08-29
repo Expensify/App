@@ -304,9 +304,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const reportTransactions = useMemo(() => {
         const nonDeletedTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions);
-        if (!nonDeletedTransactions) {
-            return nonDeletedTransactions;
-        }
 
         return nonDeletedTransactions.map((transaction) => {
             const transactionViolations = allReportViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] || [];

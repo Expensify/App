@@ -103,10 +103,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const transactions = useMemo(() => {
         const nonDeletedTransactions = getAllNonDeletedTransactions(reportTransactions, reportActions);
 
-        if (!nonDeletedTransactions) {
-            return nonDeletedTransactions;
-        }
-
         return nonDeletedTransactions.map((transaction) => {
             const transactionViolations = allReportViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] || [];
             return {
