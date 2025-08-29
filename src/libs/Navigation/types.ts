@@ -1545,12 +1545,13 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
 
         // These are not used in the screen, but are needed for the navigation
-        // for IOURequestStepDistanceManual and IOURequestStepDistanceMap components
+        // for IOURequestStepDistanceMap component
         backTo: never;
         action: never;
         currency: never;
         pageIndex?: string;
         backToReport?: string;
+        reportActionID?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: {
         action: IOUAction;
@@ -1567,6 +1568,7 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backTo: Routes;
         backToReport?: string;
+        reportActionID?: string;
     };
 };
 
@@ -1864,14 +1866,14 @@ type SettingsSplitNavigatorParamList = {
     [SCREENS.SETTINGS.ROOT]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
     [SCREENS.SETTINGS.SECURITY]: undefined;
-    [SCREENS.SETTINGS.PROFILE.ROOT]: {
+    [SCREENS.SETTINGS.PROFILE.ROOT]?: {
         backTo?: Routes;
     };
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
-    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: {backTo?: Routes};
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]?: {backTo?: Routes};
 };
 
 type WorkspaceSplitNavigatorParamList = {
@@ -2207,7 +2209,6 @@ type SearchFullscreenNavigatorParamList = {
     };
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: {
         reportID: string;
-        backTo?: Routes;
     };
 };
 

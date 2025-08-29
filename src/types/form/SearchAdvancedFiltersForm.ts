@@ -68,6 +68,7 @@ const FILTER_KEYS = {
     BILLABLE: 'billable',
     ACTION: 'action',
     HAS: 'has',
+    WITHDRAWAL_ID: 'withdrawalID',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -123,6 +124,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.FEED,
         FILTER_KEYS.ACTION,
         FILTER_KEYS.HAS,
+        FILTER_KEYS.WITHDRAWAL_ID,
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
         FILTER_KEYS.TYPE,
@@ -169,6 +171,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_ON,
         FILTER_KEYS.EXPORTER,
         FILTER_KEYS.ACTION,
+        FILTER_KEYS.WITHDRAWAL_ID,
     ],
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
         FILTER_KEYS.TYPE,
@@ -299,6 +302,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.BILLABLE]: string;
         [FILTER_KEYS.ACTION]: string;
         [FILTER_KEYS.HAS]: string[];
+        [FILTER_KEYS.WITHDRAWAL_ID]: string;
     }
 >;
 
