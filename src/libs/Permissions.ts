@@ -21,7 +21,7 @@ function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?:
 
     // Explicit only betas and exclusion betas are not enabled only by the 'all' beta. Explicit only betas must be set explicitly to enable the feature.
     // Exclusion betas are designed to disable features, so being on the 'all' beta should not disable these features as that contradicts its purpose.
-    if ((betaConfiguration?.explicitOnly?.includes(beta) ?? false) || (betaConfiguration?.exclusion?.includes(beta) ?? false) && hasAllBetasEnabled && !isFeatureEnabled) {
+    if (((betaConfiguration?.explicitOnly?.includes(beta) ?? false) || (betaConfiguration?.exclusion?.includes(beta) ?? false)) && hasAllBetasEnabled && !isFeatureEnabled) {
         return false;
     }
 
