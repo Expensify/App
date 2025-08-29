@@ -219,7 +219,7 @@ function StatusPage() {
                         />
                         <InputWrapper
                             InputComponent={TextInput}
-                            ref={inputCallbackRef}
+                            autoFocus
                             inputID={INPUT_IDS.STATUS_TEXT}
                             role={CONST.ROLE.PRESENTATION}
                             label={translate('statusPage.message')}
