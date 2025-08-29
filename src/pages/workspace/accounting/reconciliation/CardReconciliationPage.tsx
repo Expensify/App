@@ -1,11 +1,10 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import useEnvironment from '@hooks/useEnvironment';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -42,7 +41,6 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const policyID = policy?.id;
     const allCardSettings = useExpensifyCardFeeds(policyID);
-    const {environmentURL} = useEnvironment();
 
     const fullySetUpCardSetting = useMemo(() => {
         const entries = Object.entries(allCardSettings ?? {});
@@ -88,23 +86,27 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
         }
     };
 
-    const accountingAdvancedSettingsLink = useMemo(() => {
-        const backTo = Navigation.getActiveRoute();
+    const navigateToAdvancedSettings = useCallback(() => {
         switch (connection) {
             case CONST.POLICY.CONNECTIONS.ROUTE.QBO:
-                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID, backTo)}`;
+                Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID, Navigation.getActiveRoute()));
+                break;
             case CONST.POLICY.CONNECTIONS.ROUTE.XERO:
-                return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.getRoute(policyID, backTo)}`;
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.getRoute(policyID, Navigation.getActiveRoute()));
+                break;
             case CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE:
-                return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID, backTo)}`;
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID, Navigation.getActiveRoute()));
+                break;
             case CONST.POLICY.CONNECTIONS.ROUTE.SAGE_INTACCT:
-                return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID)}`;
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
+                break;
             case CONST.POLICY.CONNECTIONS.ROUTE.QBD:
-                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.getRoute(policyID, backTo)}`;
+                Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.getRoute(policyID, Navigation.getActiveRoute()));
+                break;
             default:
-                return '';
+                break;
         }
-    }, [connection, policyID, environmentURL]);
+    }, [connection, policyID]);
 
     const fetchPolicyAccountingData = useCallback(() => {
         if (!policyID) {
@@ -148,14 +150,16 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                         wrapperStyle={styles.ph5}
                     />
                     {!autoSync && (
-                        <View style={[styles.renderHTML, styles.ph5, styles.mt2]}>
-                            <RenderHTML
-                                html={translate('workspace.accounting.enableContinuousReconciliation', {
-                                    accountingAdvancedSettingsLink,
-                                    connectionName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName],
-                                })}
-                            />
-                        </View>
+                        <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.mt2]}>
+                            {translate('workspace.accounting.enableContinuousReconciliation')}
+                            <TextLink
+                                style={styles.fontSizeLabel}
+                                onPress={navigateToAdvancedSettings}
+                            >
+                                {translate('workspace.accounting.autoSync').toLowerCase()}
+                            </TextLink>{' '}
+                            {translate('common.conjunctionFor')} {CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}
+                        </Text>
                     )}
                     {!!paymentBankAccountID && !!isContinuousReconciliationOn && (
                         <MenuItemWithTopDescription
