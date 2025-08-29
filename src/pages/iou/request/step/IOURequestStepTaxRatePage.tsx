@@ -7,7 +7,7 @@ import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getTaxName, getTaxValue, isExpenseUnreported as isExpenseUnreportedTransactionUtils} from '@libs/TransactionUtils';
-import * as IOU from '@userActions/IOU';
+import {setDraftSplitTransaction, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, updateMoneyRequestTaxRate} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -70,7 +70,7 @@ function IOURequestStepTaxRatePage({
         const taxAmount = getTaxAmount(policy, currentTransaction, taxes.code, getAmount(currentTransaction, false, true));
 
         if (isEditingSplitBill) {
-            IOU.setDraftSplitTransaction(currentTransaction.transactionID, {
+            setDraftSplitTransaction(currentTransaction.transactionID, {
                 taxAmount: convertToBackendAmount(taxAmount ?? 0),
                 taxCode: taxes.code,
             });
@@ -80,7 +80,7 @@ function IOURequestStepTaxRatePage({
 
         if (isEditing) {
             const newTaxCode = taxes.code;
-            IOU.updateMoneyRequestTaxRate({
+            updateMoneyRequestTaxRate({
                 transactionID: currentTransaction?.transactionID ?? '-1',
                 optimisticReportActionID: report?.reportID ?? '-1',
                 taxCode: newTaxCode,
@@ -98,8 +98,8 @@ function IOURequestStepTaxRatePage({
             return;
         }
         const amountInSmallestCurrencyUnits = convertToBackendAmount(taxAmount);
-        IOU.setMoneyRequestTaxRate(currentTransaction?.transactionID, taxes?.code ?? '');
-        IOU.setMoneyRequestTaxAmount(currentTransaction.transactionID, amountInSmallestCurrencyUnits);
+        setMoneyRequestTaxRate(currentTransaction?.transactionID, taxes?.code ?? '');
+        setMoneyRequestTaxAmount(currentTransaction.transactionID, amountInSmallestCurrencyUnits);
 
         navigateBack();
     };
