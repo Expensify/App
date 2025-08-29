@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import type {Report as OnyxReport} from '@src/types/onyx';
 import HttpUtils from '@src/libs/HttpUtils';
 import handleUnusedOptimisticID from '@src/libs/Middleware/HandleUnusedOptimisticID';
 import * as MainQueue from '@src/libs/Network/MainQueue';
@@ -7,6 +6,7 @@ import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as Request from '@src/libs/Request';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report as OnyxReport} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
@@ -215,10 +215,7 @@ describe('Middleware', () => {
 
             expect(global.fetch).toHaveBeenCalledTimes(1);
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/MoveIOUReportToExistingPolicy?', expect.anything());
-            TestHelper.assertFormDataMatchesObject(
-                ({optimisticReportID: '1234'} as unknown) as OnyxReport,
-                ((global.fetch as jest.Mock).mock.calls.at(0) as FormDataObject[]).at(1)?.body,
-            );
+            TestHelper.assertFormDataMatchesObject({optimisticReportID: '1234'} as unknown as OnyxReport, ((global.fetch as jest.Mock).mock.calls.at(0) as FormDataObject[]).at(1)?.body);
         });
     });
 });

@@ -33,8 +33,7 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
             if (!preexistingReportID) {
                 return;
             }
-            const oldReportID =
-                key.split(ONYXKEYS.COLLECTION.REPORT).at(-1) ?? request.data?.reportID ?? request.data?.optimisticReportID;
+            const oldReportID = key.split(ONYXKEYS.COLLECTION.REPORT).at(-1) ?? request.data?.reportID ?? request.data?.optimisticReportID;
 
             if (isFromSequentialQueue) {
                 const ongoingRequest = PersistedRequests.getOngoingRequest();
