@@ -25,8 +25,8 @@ type SearchFiltersCurrencyBaseProps = {
 function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: SearchFiltersCurrencyBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
     const selectedCurrencyData = searchAdvancedFiltersForm?.[filterKey];
 
     const {selectedCurrenciesItems, currencyItems} = useMemo(() => {
