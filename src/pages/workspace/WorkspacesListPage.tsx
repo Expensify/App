@@ -35,6 +35,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
+import {clearDeleteMemberError} from '@libs/actions/Policy/Member';
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
@@ -309,6 +310,20 @@ function WorkspacesListPage() {
             return [];
         }
 
+        const getBrickRoadIndicator = (policy: PolicyType) => {
+            if (!isPolicyAdmin(policy)) {
+                const hasEmployeeErrors = Object.keys(policy.employeeList?.[session?.email ?? '']?.errors ?? {}).length > 0;
+                return hasEmployeeErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+            }
+
+            if (reimbursementAccountBrickRoadIndicator) {
+                return reimbursementAccountBrickRoadIndicator;
+            }
+
+            const isSyncInProgress = isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy);
+            return getPolicyBrickRoadIndicatorStatus(policy, isSyncInProgress);
+        };
+
         return Object.values(policies)
             .filter((policy): policy is PolicyType => shouldShowPolicy(policy, isOffline, session?.email))
             .map((policy): WorkspaceItem => {
@@ -336,16 +351,26 @@ function WorkspacesListPage() {
                     title: policy.name,
                     icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
                     action: () => navigateToWorkspace(policy.id),
-                    brickRoadIndicator: !isPolicyAdmin(policy)
-                        ? undefined
-                        : (reimbursementAccountBrickRoadIndicator ??
-                          getPolicyBrickRoadIndicatorStatus(
-                              policy,
-                              isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
-                          )),
+                    brickRoadIndicator: getBrickRoadIndicator(policy),
                     pendingAction: policy.pendingAction,
-                    errors: policy.errors,
-                    dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
+                    errors: (() => {
+                        const mergedErrors = {
+                            ...(policy.errors ?? {}),
+                            ...(policy.employeeList?.[session?.email ?? '']?.errors ?? {}),
+                        };
+                        return Object.keys(mergedErrors).length > 0 ? mergedErrors : undefined;
+                    })(),
+                    dismissError: () => {
+                        const hasEmployeeErrors = Object.keys(policy.employeeList?.[session?.email ?? '']?.errors ?? {}).length > 0;
+                        if (hasEmployeeErrors) {
+                            const employeeData = policy.employeeList?.[session?.email ?? ''];
+                            if (employeeData?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && session?.accountID) {
+                                clearDeleteMemberError(policy.id, session.accountID);
+                            }
+                        } else {
+                            dismissWorkspaceError(policy.id, policy.pendingAction);
+                        }
+                    },
                     disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                     iconFill: theme.textLight,
@@ -357,7 +382,7 @@ function WorkspacesListPage() {
                     employeeList: policy.employeeList,
                 };
             });
-    }, [reimbursementAccount?.errors, policies, isOffline, session?.email, allConnectionSyncProgresses, theme.textLight, navigateToWorkspace]);
+    }, [reimbursementAccount?.errors, policies, isOffline, session?.email, allConnectionSyncProgresses, theme.textLight, navigateToWorkspace, session?.accountID]);
 
     const filterWorkspace = useCallback((workspace: WorkspaceItem, inputValue: string) => workspace.title.toLowerCase().includes(inputValue), []);
     const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title)), [localeCompare]);
