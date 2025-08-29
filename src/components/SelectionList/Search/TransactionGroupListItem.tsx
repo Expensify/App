@@ -232,6 +232,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     canSelectMultiple={canSelectMultiple}
+                    isSelectAllChecked={isSelectAllChecked}
+                    isIndeterminate={isIndeterminate}
                 />
             ),
         };

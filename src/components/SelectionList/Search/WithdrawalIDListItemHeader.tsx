@@ -23,9 +23,15 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
+
+    /** Whether all transactions are selected */
+    isSelectAllChecked?: boolean;
+
+    /** Whether only some transactions are selected */
+    isIndeterminate?: boolean;
 };
 
-function WithdrawalIDListItemHeader<TItem extends ListItem>({withdrawalID: withdrawalIDItem, onCheckboxPress, isDisabled, canSelectMultiple}: WithdrawalIDListItemHeaderProps<TItem>) {
+function WithdrawalIDListItemHeader<TItem extends ListItem>({withdrawalID: withdrawalIDItem, onCheckboxPress, isDisabled, canSelectMultiple, isIndeterminate, isSelectAllChecked}: WithdrawalIDListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
@@ -42,9 +48,10 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({withdrawalID: withd
                     {!!canSelectMultiple && (
                         <Checkbox
                             onPress={() => onCheckboxPress?.(withdrawalIDItem as unknown as TItem)}
-                            isChecked={withdrawalIDItem.isSelected}
+                            isChecked={isSelectAllChecked}
                             disabled={!!isDisabled || withdrawalIDItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
+                            isIndeterminate={isIndeterminate}
                         />
                     )}
                     <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
