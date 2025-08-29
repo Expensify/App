@@ -12,6 +12,7 @@ import type {
 } from '@react-navigation/native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
+import type {FileObject} from '@components/AttachmentComposerModal';
 import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
@@ -2129,6 +2130,9 @@ type AttachmentModalScreensParamList = {
         headerTitle?: string;
         hashKey?: number;
         maybeIcon?: boolean;
+        file?: FileObject;
+        shouldDisableSendButton?: boolean;
+        onConfirm?: (file: FileObject) => void;
         onShow?: () => void;
         onClose?: () => void;
     };

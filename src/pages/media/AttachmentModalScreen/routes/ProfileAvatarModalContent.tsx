@@ -41,7 +41,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     );
 
     return (
-        <AttachmentModalContainer<typeof SCREENS.PROFILE_AVATAR>
+        <AttachmentModalContainer
             navigation={navigation}
             contentProps={contentProps}
         />

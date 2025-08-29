@@ -7,7 +7,6 @@ import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/Attachm
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.REPORT_AVATAR>) {
     const {reportID, policyID} = route.params;
@@ -34,16 +33,13 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
         };
     }, [policy, report]);
 
-    const onDownloadAttachment = useDownloadAttachment();
-
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
             ...attachment,
             shouldShowNotFoundPage: !report?.reportID && !isLoadingApp,
             isLoading: (!report?.reportID || !policy?.id) && !!isLoadingApp,
-            onDownloadAttachment,
         }),
-        [attachment, isLoadingApp, policy?.id, report?.reportID, onDownloadAttachment],
+        [attachment, isLoadingApp, policy?.id, report?.reportID],
     );
 
     return (

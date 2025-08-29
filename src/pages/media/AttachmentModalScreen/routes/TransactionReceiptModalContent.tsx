@@ -31,8 +31,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const receiptURIs = getThumbnailAndImageURIs(transaction);
 
     const isLocalFile = receiptURIs.isLocalFile;
-    const readonly = !!readonlyProp;
-    const isFromReviewDuplicates = !!isFromReviewDuplicatesProp;
+    const readonly = readonlyProp === 'true';
+    const isFromReviewDuplicates = isFromReviewDuplicatesProp === 'true';
     const imageSource = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
@@ -109,6 +109,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             isTrackExpenseAction: isTrackExpenseActionValue,
             originalFileName: isDraftTransaction ? transaction?.filename : receiptURIs?.filename,
             isLoading: !transaction && reportMetadata?.isLoadingInitialReportActions,
+            action,
+            iouType,
             draftTransactionID: isDraftTransaction ? transactionID : undefined,
             shouldShowNotFoundPage,
             onRequestDeleteReceipt: () => setIsDeleteReceiptConfirmModalVisible?.(true),
@@ -118,6 +120,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             canDeleteReceipt,
             canEditReceipt,
             imageSource,
+            action,
+            iouType,
             isDeleteReceiptConfirmModalVisible,
             isDraftTransaction,
             isEReceipt,

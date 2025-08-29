@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
@@ -12,8 +11,8 @@ import type SCREENS from '@src/SCREENS';
 function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.WORKSPACE_AVATAR>) {
     const {policyID} = route.params;
 
-    const policy = usePolicy(policyID);
-    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true, initWithStoredValues: false});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
     const avatarURL = policy?.avatarURL ?? getDefaultWorkspaceAvatar(policy?.name ?? '');
 
@@ -31,7 +30,7 @@ function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenP
     );
 
     return (
-        <AttachmentModalContainer<typeof SCREENS.WORKSPACE_AVATAR>
+        <AttachmentModalContainer
             navigation={navigation}
             contentProps={contentProps}
         />
