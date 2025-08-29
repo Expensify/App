@@ -228,6 +228,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
                             path: ROUTES.SETTINGS_REPORT_FRAUD.route,
                             exact: true,
@@ -338,6 +342,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PROFILE.ADDRESS_STATE]: {
                             path: ROUTES.SETTINGS_ADDRESS_STATE.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.DELEGATE.VERIFY_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: {

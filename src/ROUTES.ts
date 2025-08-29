@@ -252,6 +252,7 @@ const ROUTES = {
     SETTINGS_LOCK_ACCOUNT: 'settings/security/lock-account',
     SETTINGS_UNLOCK_ACCOUNT: 'settings/security/unlock-account',
     SETTINGS_FAILED_TO_LOCK_ACCOUNT: 'settings/security/failed-to-lock-account',
+    SETTINGS_DELEGATE_VERIFY_ACCOUNT: 'settings/security/delegate/verify-account',
     SETTINGS_ADD_DELEGATE: 'settings/security/delegate',
     SETTINGS_DELEGATE_ROLE: {
         route: 'settings/security/delegate/:login/role/:role',
@@ -271,6 +272,7 @@ const ROUTES = {
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
+    SETTINGS_WALLET_VERIFY_ACCOUNT: 'settings/wallet/verify-account',
     SETTINGS_WALLET_DOMAIN_CARD: {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
@@ -2778,7 +2780,7 @@ const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
     [SCREENS.WORKSPACE.INITIAL]: ['backTo'],
 } as const;
 
-export {getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS};
+export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS};
 export default ROUTES;
 
 type AttachmentsRoute = typeof ROUTES.ATTACHMENTS.route;
