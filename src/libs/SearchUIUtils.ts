@@ -913,6 +913,7 @@ function getTransactionsSections(
 
             const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID);
             const transactionSection: TransactionListItemType = {
+                iouRequestType: transactionItem.iouRequestType,
                 action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                 allActions,
                 report,
