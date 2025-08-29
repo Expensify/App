@@ -198,7 +198,7 @@ function AuthScreens() {
             Log.info('[handleNetworkReconnect] Sending ReconnectApp');
             App.reconnectApp(lastUpdateIDAppliedToClientRef.current);
         }
-    }
+    };
 
     useEffect(() => {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
