@@ -11,6 +11,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import {deleteMoneyRequest, deleteTrackExpense} from '@libs/actions/IOU';
 import {deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
@@ -43,6 +44,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const originalReportIDRef = useRef<string | undefined>(undefined);
     const selectionRef = useRef('');
     const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
+    const isReportArchived = useReportIsArchived(reportIDRef.current);
 
     const cursorRelativePosition = useRef({
         horizontal: 0,
@@ -301,13 +303,13 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             }
         } else if (reportAction) {
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(reportIDRef.current, reportAction);
+                deleteReportComment(reportIDRef.current, reportAction, isReportArchived);
             });
         }
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
-    }, [duplicateTransactions, duplicateTransactionViolations]);
+    }, [duplicateTransactions, duplicateTransactionViolations, isReportArchived]);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));

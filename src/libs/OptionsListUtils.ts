@@ -852,7 +852,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         !isReportArchived &&
         (report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED || (lastOriginalReportAction?.reportActionID && isDeletedAction(lastOriginalReportAction)))
     ) {
-        return lastMessageTextFromReport || (getReportLastMessage(reportID).lastMessageText ?? '');
+        return lastMessageTextFromReport || (getReportLastMessage(reportID, undefined, isReportArchived).lastMessageText ?? '');
     }
 
     // When the last report action has unknown mentions (@Hidden), we want to consistently show @Hidden in LHN and report screen
@@ -962,7 +962,7 @@ function createOption(
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-        result.isUnread = isUnread(report, oneTransactionThreadReport);
+        result.isUnread = isUnread(report, oneTransactionThreadReport, !!result.private_isArchived);
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
