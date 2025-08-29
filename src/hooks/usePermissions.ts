@@ -16,13 +16,12 @@ export default function usePermissions(): UsePermissions {
         };
 
         for (permissionKey in Permissions) {
-            if (betas && permissionKey !== 'isBetaEnabled') {
+            if (permissionKey !== 'isBetaEnabled') {
                 const checkerFunction = Permissions[permissionKey];
-
-                permissions[permissionKey] = checkerFunction(betas);
+                permissions[permissionKey] = checkerFunction();
             }
         }
 
         return permissions;
-    }, [betas]);
+    }, [betas, betaConfiguration]);
 }
