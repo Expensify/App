@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -28,9 +28,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {buildTransactionThread, generateReportID, getReportOrDraftReport} from '@libs/ReportUtils';
 import {getCurrency} from '@libs/TransactionUtils';
-import {openReport} from '@userActions/Report';
+import {createTransactionThreadReport, openReport} from '@userActions/Report';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,6 +54,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         canBeMissing: true,
     });
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
+    const [iouReportForTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
     const [iouActionForTargetTransaction] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction?.reportID}`,
         {
@@ -89,24 +89,6 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         setDiffFields(conflictFields as MergeFieldKey[]);
     }, [targetTransaction, sourceTransaction, transactionID]);
 
-    const createTargetTransactionThreadReport = useCallback(() => {
-        const transactionThreadReportID = generateReportID();
-        const iouReport = getReportOrDraftReport(targetTransaction?.reportID);
-        const optimisticTransactionThread = buildTransactionThread(iouActionForTargetTransaction, iouReport, undefined, transactionThreadReportID);
-
-        openReport(
-            transactionThreadReportID,
-            undefined,
-            currentUserEmail ? [currentUserEmail] : [],
-            optimisticTransactionThread,
-            iouActionForTargetTransaction?.reportActionID,
-            false,
-            [],
-            undefined,
-            targetTransaction?.transactionID,
-        );
-    }, [currentUserEmail, iouActionForTargetTransaction, targetTransaction?.reportID, targetTransaction?.transactionID]);
-
     useEffect(() => {
         if (!isCheckingDataBeforeGoNext) {
             return;
@@ -119,7 +101,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
             // If the report was already loaded before, but there are still no transaction thread report info, it means it hasn't been created yet.
             // So we should create it.
             if (hasOnceLoadedTransactionThreadReportActions) {
-                createTargetTransactionThreadReport();
+                createTransactionThreadReport(iouReportForTargetTransaction, iouActionForTargetTransaction);
                 setIsCheckingDataBeforeGoNext(false);
                 Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
                 return;
@@ -144,9 +126,9 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         transactionID,
         hasOnceLoadedTransactionThreadReportActions,
         iouActionForTargetTransaction,
+        iouReportForTargetTransaction,
         currentUserEmail,
         targetTransaction?.transactionID,
-        createTargetTransactionThreadReport,
     ]);
 
     // Handle selection
