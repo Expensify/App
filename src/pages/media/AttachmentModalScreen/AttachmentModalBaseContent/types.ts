@@ -12,7 +12,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 type OnValidateFileCallback = (file: FileObject | undefined, setFile: (file: FileObject | undefined) => void) => void;
 
-type OnCloseOptions = {
+type AttachmentModalOnCloseOptions = {
     shouldCallDirectly?: boolean;
     onAfterClose?: () => void;
 };
@@ -115,7 +115,7 @@ type AttachmentModalBaseContentProps = {
     onConfirm?: (file: FileObject) => void;
 
     /** Callback triggered when the modal is closed */
-    onClose?: (options?: OnCloseOptions) => void;
+    onClose?: (options?: AttachmentModalOnCloseOptions) => void;
 
     /** Callback triggered when the confirm modal is closed */
     onConfirmModalClose?: () => void;
@@ -133,4 +133,4 @@ type AttachmentModalBaseContentProps = {
     onValidateFile?: OnValidateFileCallback;
 };
 
-export type {AttachmentModalBaseContentProps, OnCloseOptions, OnValidateFileCallback};
+export type {AttachmentModalBaseContentProps, AttachmentModalOnCloseOptions, OnValidateFileCallback};
