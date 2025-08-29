@@ -3362,6 +3362,7 @@ function openReportFromDeepLink(
     currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>,
     currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>,
     onboardingInitialPath: OnyxEntry<string>,
+    reports: OnyxCollection<Report>,
 ) {
     const reportID = getReportIDFromLink(url);
     const isAuthenticated = hasAuthToken();
@@ -3443,7 +3444,7 @@ function openReportFromDeepLink(
 
                             const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
                                 // Check if the report exists in the collection
-                                const report = reportParam ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                                const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                                 // If the report does not exist, navigate to the last accessed report or Concierge chat
                                 if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
                                     const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
@@ -3460,7 +3461,11 @@ function openReportFromDeepLink(
                             };
                             // If we log with deeplink with reportID and data for this report is not available yet,
                             // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
-                            if (reportID && !isAuthenticated && !allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) {
+                            if (
+                                reportID &&
+                                !isAuthenticated &&
+                                (!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID)
+                            ) {
                                 const reportConnection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                                     // eslint-disable-next-line rulesdir/prefer-early-return
