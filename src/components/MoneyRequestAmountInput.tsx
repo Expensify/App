@@ -82,6 +82,18 @@ type MoneyRequestAmountInputProps = {
     /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
     shouldApplyPaddingToContainer?: boolean;
 
+    /** Whether the amount is negative */
+    isNegative?: boolean;
+
+    /** Function to toggle the amount to negative */
+    toggleNegative?: () => void;
+
+    /** Function to clear the negative amount */
+    clearNegative?: () => void;
+
+    /** Whether to allow flipping amount */
+    allowFlippingAmount?: boolean;
+
     /** The testID of the input. Used to locate this view in end-to-end tests. */
     testID?: string;
 
@@ -144,6 +156,10 @@ function MoneyRequestAmountInput({
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
     forwardedRef,
+    isNegative = false,
+    allowFlippingAmount = false,
+    toggleNegative,
+    clearNegative,
     ...props
 }: MoneyRequestAmountInputProps) {
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -220,11 +236,15 @@ function MoneyRequestAmountInput({
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             contentWidth={contentWidth}
+            isNegative={isNegative}
             testID={testID}
             errorText={props.errorText}
             footer={props.footer}
             autoGrowExtraSpace={autoGrowExtraSpace}
             submitBehavior={submitBehavior}
+            allowFlippingAmount={allowFlippingAmount}
+            toggleNegative={toggleNegative}
+            clearNegative={clearNegative}
         />
     );
 }

@@ -1197,6 +1197,7 @@ const translations = {
         invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Zakelijke rekening • ${lastFour}`,
         nextStep: 'Volgende stappen',
         finished: 'Voltooid',
+        flip: 'Omdraaien',
         sendInvoice: ({amount}: RequestAmountParams) => `Verstuur ${amount} factuur`,
         submitAmount: ({amount}: RequestAmountParams) => `Verstuur ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `voor ${comment}` : ''}`,
