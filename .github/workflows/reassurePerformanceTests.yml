@@ -48,7 +48,7 @@ jobs:
 
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
           # Store list of new test files before switching branches
-          NEW_TEST_FILES=$(git diff --name-only --diff-filter=A "$COMMIT_HASH" "${{ github.sha }}" -- 'tests/perf-test/**/*.perf-test.*' || true)
+          NEW_TEST_FILES=$(git diff --name-only --diff-filter=A "$COMMIT_HASH" "${{ github.sha }}" || true)
           echo "MORWA: Debug - COMMIT_HASH: $COMMIT_HASH"
           echo "MORWA: Debug - github.sha: ${{ github.sha }}"
           echo "MORWA: Debug - All new files: $(git diff --name-only --diff-filter=A "$COMMIT_HASH" "${{ github.sha }}" || true)"
