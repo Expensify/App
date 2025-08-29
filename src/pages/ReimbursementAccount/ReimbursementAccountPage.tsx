@@ -323,6 +323,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 }
                 setUSDBankAccountStep(null);
                 setBankAccountSubStep(null);
+                if (!policyIDParam) {
+                    clearReimbursementAccountDraft();
+                }
                 break;
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                 setPlaidEvent(null);
