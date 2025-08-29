@@ -37,7 +37,6 @@ function CategorySelectorModal({policyID, isVisible, currentCategory, onCategory
             onClose={onClose}
             onModalHide={onClose}
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={[styles.pb0]}

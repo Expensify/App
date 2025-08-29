@@ -61,21 +61,23 @@ const ROUTES = {
     },
     SEARCH_ADVANCED_FILTERS: 'search/filters',
     SEARCH_ADVANCED_FILTERS_TYPE: 'search/filters/type',
-    SEARCH_ADVANCED_FILTERS_GROUP_BY: 'search/filters/groupBy',
+    SEARCH_ADVANCED_FILTERS_GROUP_BY: 'search/filters/group-by',
     SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
     SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
     SEARCH_ADVANCED_FILTERS_GROUP_CURRENCY: 'search/filters/group-currency',
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
     SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
-    SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/reportID',
+    SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/report-id',
     SEARCH_ADVANCED_FILTERS_AMOUNT: 'search/filters/amount',
+    SEARCH_ADVANCED_FILTERS_TOTAL: 'search/filters/total',
     SEARCH_ADVANCED_FILTERS_CATEGORY: 'search/filters/category',
     SEARCH_ADVANCED_FILTERS_KEYWORD: 'search/filters/keyword',
     SEARCH_ADVANCED_FILTERS_CARD: 'search/filters/card',
     SEARCH_ADVANCED_FILTERS_TAX_RATE: 'search/filters/taxRate',
-    SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE: 'search/filters/expenseType',
+    SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE: 'search/filters/expense-type',
     SEARCH_ADVANCED_FILTERS_WITHDRAWAL_TYPE: 'search/filters/withdrawal-type',
+    SEARCH_ADVANCED_FILTERS_WITHDRAWAL_ID: 'search/filters/withdrawal-id',
     SEARCH_ADVANCED_FILTERS_TAG: 'search/filters/tag',
     SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
     SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
@@ -99,12 +101,14 @@ const ROUTES = {
             backTo,
             moneyRequestReportActionID,
             transactionID,
+            iouReportID,
         }: {
             reportID: string | undefined;
             reportActionID?: string;
             backTo?: string;
             moneyRequestReportActionID?: string;
             transactionID?: string;
+            iouReportID?: string;
         }) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
@@ -119,6 +123,9 @@ const ROUTES = {
             }
             if (moneyRequestReportActionID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
+            }
+            if (iouReportID) {
+                queryParams.push(`iouReportID=${iouReportID}`);
             }
 
             const queryString = queryParams.length > 0 ? (`${baseRoute}?${queryParams.join('&')}` as const) : baseRoute;
@@ -179,6 +186,15 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the BANK_ACCOUNT_WITH_STEP_TO_OPEN route');
             }
             return getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo);
+        },
+    },
+    BANK_ACCOUNT_ENTER_SIGNER_INFO: {
+        route: 'bank-account/enter-signer-info',
+        getRoute: (policyID: string | undefined, bankAccountID: string | undefined, isCompleted: boolean) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the BANK_ACCOUNT_ENTER_SIGNER_INFO route');
+            }
+            return `bank-account/enter-signer-info?policyID=${policyID}&bankAccountID=${bankAccountID}&isCompleted=${isCompleted}` as const;
         },
     },
     PUBLIC_CONSOLE_DEBUG: {
@@ -282,6 +298,10 @@ const ROUTES = {
     },
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
+    SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS: {
+        route: 'settings/wallet/:bankAccountID/enable-global-reimbursements',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/enable-global-reimbursements` as const,
+    },
     SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
         route: 'settings/wallet/card/:domain/digital-details/update-address',
         getRoute: (domain: string) => `settings/wallet/card/${domain}/digital-details/update-address` as const,
@@ -384,7 +404,10 @@ const ROUTES = {
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
 
-    KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
+    KEYBOARD_SHORTCUTS: {
+        route: 'keyboard-shortcuts',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('keyboard-shortcuts', backTo),
+    },
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',
@@ -508,6 +531,10 @@ const ROUTES = {
     REPORT_SETTINGS_VISIBILITY: {
         route: 'r/:reportID/settings/visibility',
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/visibility` as const, backTo),
+    },
+    REPORT_CHANGE_APPROVER: {
+        route: 'r/:reportID/change-approver',
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/change-approver` as const, backTo),
     },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
@@ -933,9 +960,9 @@ const ROUTES = {
             `create/${iouType as string}/start/${transactionID}/${reportID}/per-diem/${backToReport ?? ''}` as const,
     },
 
-    MONEY_REQUEST_RECEIPT_VIEW_MODAL: {
-        route: 'receipt-view-modal/:transactionID',
-        getRoute: (transactionID: string, backTo: string) => getUrlWithBackToParam(`receipt-view-modal/${transactionID}`, backTo),
+    MONEY_REQUEST_RECEIPT_VIEW: {
+        route: 'receipt-view/:transactionID',
+        getRoute: (transactionID: string, backTo: string) => getUrlWithBackToParam(`receipt-view/${transactionID}`, backTo),
     } as const,
 
     MONEY_REQUEST_STATE_SELECTOR: {
@@ -954,14 +981,14 @@ const ROUTES = {
             `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/${backToReport ?? ''}` as const,
     },
     DISTANCE_REQUEST_CREATE_TAB_MAP: {
-        route: 'map/:backToReport?',
+        route: 'distance-map/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/map/${backToReport ?? ''}` as const,
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/distance-map/${backToReport ?? ''}` as const,
     },
     DISTANCE_REQUEST_CREATE_TAB_MANUAL: {
-        route: 'manual/:backToReport?',
+        route: 'distance-manual/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/manual/${backToReport ?? ''}` as const,
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/distance-manual/${backToReport ?? ''}` as const,
     },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
@@ -1881,6 +1908,28 @@ const ROUTES = {
             return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners`, backTo);
         },
     },
+    WORKSPACE_RECEIPT_PARTNERS_INVITE: {
+        route: 'workspaces/:policyID/receipt-partners/:integration/invite',
+        getRoute: (policyID: string | undefined, integration: string, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_RECEIPT_PARTNERS_INVITE route');
+            }
+            return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners/${integration}/invite`, backTo);
+        },
+    },
+    WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT: {
+        route: 'workspaces/:policyID/receipt-partners/:integration/invite/edit',
+        getRoute: (policyID: string | undefined, integration: string, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT route');
+            }
+            return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners/${integration}/invite/edit`, backTo);
+        },
+    },
+    WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_ALL: 'workspaces/:policyID/receipt-partners/:integration/invite/edit/ReceiptPartnersAllTab',
+    WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_LINKED: 'workspaces/:policyID/receipt-partners/:integration/invite/edit/ReceiptPartnersLinkedTab',
+    WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_OUTSTANDING: 'workspaces/:policyID/receipt-partners/:integration/invite/edit/ReceiptPartnersOutstandingTab',
+
     WORKSPACE_PER_DIEM_IMPORT: {
         route: 'workspaces/:policyID/per-diem/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/per-diem/import` as const,

@@ -1,8 +1,7 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {
     LayoutChangeEvent,
     NativeSyntheticEvent,
@@ -42,117 +41,116 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import BaseSelectionListItemRenderer from './BaseSelectionListItemRenderer';
 import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
-import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle, SelectionListProps} from './types';
+import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListProps} from './types';
 
 const getDefaultItemHeight = () => variables.optionRowHeight;
 
-function BaseSelectionList<TItem extends ListItem>(
-    {
-        sections,
-        ListItem,
-        shouldUseUserSkeletonView,
-        canSelectMultiple = false,
-        onSelectRow,
-        shouldSingleExecuteRowSelect = false,
-        onCheckboxPress,
-        onSelectAll,
-        onDismissError,
-        getItemHeight = getDefaultItemHeight,
-        textInputLabel = '',
-        textInputPlaceholder = '',
-        textInputValue = '',
-        textInputStyle,
-        textInputHint,
-        textInputMaxLength,
-        inputMode = CONST.INPUT_MODE.TEXT,
-        onChangeText,
-        initiallyFocusedOptionKey = '',
-        onScroll,
-        onScrollBeginDrag,
-        headerMessage = '',
-        confirmButtonText = '',
-        onConfirm,
-        headerContent,
-        footerContent,
-        listFooterContent,
-        footerContentAbovePagination,
-        listEmptyContent,
-        showScrollIndicator = true,
-        showLoadingPlaceholder = false,
-        LoadingPlaceholderComponent = OptionsListSkeletonView,
-        showConfirmButton = false,
-        isConfirmButtonDisabled = false,
-        shouldUseDefaultTheme = false,
-        shouldPreventDefaultFocusOnSelectRow = false,
-        containerStyle,
-        sectionListStyle,
-        disableKeyboardShortcuts = false,
-        children,
-        autoCorrect,
-        shouldStopPropagation = false,
-        shouldPreventDefault = true,
-        shouldShowTooltips = true,
-        shouldUseDynamicMaxToRenderPerBatch = false,
-        rightHandSideComponent,
-        isLoadingNewOptions = false,
-        onLayout,
-        customListHeader,
-        customListHeaderHeight = 0,
-        listHeaderWrapperStyle,
-        isRowMultilineSupported = false,
-        isAlternateTextMultilineSupported = false,
-        alternateTextNumberOfLines = 2,
-        textInputRef,
-        headerMessageStyle,
-        confirmButtonStyles,
-        shouldHideListOnInitialRender = true,
-        textInputIconLeft,
-        sectionTitleStyles,
-        textInputAutoFocus = true,
-        shouldShowTextInputAfterHeader = false,
-        shouldShowHeaderMessageAfterHeader = false,
-        includeSafeAreaPaddingBottom = true,
-        shouldTextInputInterceptSwipe = false,
-        listHeaderContent,
-        onEndReached = () => {},
-        onEndReachedThreshold,
-        windowSize = 5,
-        updateCellsBatchingPeriod = 50,
-        removeClippedSubviews = true,
-        shouldDelayFocus = true,
-        onArrowFocus = () => {},
-        shouldUpdateFocusedIndex = false,
-        onLongPressRow,
-        shouldShowTextInput = !!textInputLabel || !!textInputIconLeft,
-        shouldShowListEmptyContent = true,
-        listItemWrapperStyle,
-        shouldIgnoreFocus = false,
-        scrollEventThrottle,
-        contentContainerStyle,
-        shouldKeepFocusedItemAtTopOfViewableArea = false,
-        shouldDebounceScrolling = false,
-        shouldPreventActiveCellVirtualization = false,
-        shouldScrollToFocusedIndex = true,
-        isSmallScreenWidth,
-        onContentSizeChange,
-        listItemTitleStyles,
-        initialNumToRender = 12,
-        listItemTitleContainerStyles,
-        isScreenFocused = false,
-        shouldSubscribeToArrowKeyEvents = true,
-        shouldClearInputOnSelect = true,
-        addBottomSafeAreaPadding,
-        addOfflineIndicatorBottomSafeAreaPadding,
-        fixedNumItemsForLoader,
-        loaderSpeed,
-        errorText,
-        shouldUseDefaultRightHandSideCheckmark,
-        selectedItems = [],
-        isSelected,
-        canShowProductTrainingTooltip,
-    }: SelectionListProps<TItem>,
-    ref: ForwardedRef<SelectionListHandle>,
-) {
+function BaseSelectionList<TItem extends ListItem>({
+    sections,
+    ListItem,
+    shouldUseUserSkeletonView,
+    canSelectMultiple = false,
+    onSelectRow,
+    shouldSingleExecuteRowSelect = false,
+    onCheckboxPress,
+    onSelectAll,
+    onDismissError,
+    getItemHeight = getDefaultItemHeight,
+    textInputLabel = '',
+    textInputPlaceholder = '',
+    textInputValue = '',
+    textInputStyle,
+    textInputHint,
+    textInputMaxLength,
+    inputMode = CONST.INPUT_MODE.TEXT,
+    onChangeText,
+    initiallyFocusedOptionKey = '',
+    onScroll,
+    onScrollBeginDrag,
+    headerMessage = '',
+    confirmButtonText = '',
+    onConfirm,
+    headerContent,
+    footerContent,
+    listFooterContent,
+    footerContentAbovePagination,
+    listEmptyContent,
+    showScrollIndicator = true,
+    showLoadingPlaceholder = false,
+    LoadingPlaceholderComponent = OptionsListSkeletonView,
+    showConfirmButton = false,
+    isConfirmButtonDisabled = false,
+    shouldUseDefaultTheme = false,
+    shouldPreventDefaultFocusOnSelectRow = false,
+    containerStyle,
+    sectionListStyle,
+    disableKeyboardShortcuts = false,
+    children,
+    autoCorrect,
+    shouldStopPropagation = false,
+    shouldPreventDefault = true,
+    shouldShowTooltips = true,
+    shouldUseDynamicMaxToRenderPerBatch = false,
+    rightHandSideComponent,
+    isLoadingNewOptions = false,
+    onLayout,
+    customListHeader,
+    customListHeaderHeight = 0,
+    listHeaderWrapperStyle,
+    isRowMultilineSupported = false,
+    isAlternateTextMultilineSupported = false,
+    alternateTextNumberOfLines = 2,
+    textInputRef,
+    headerMessageStyle,
+    confirmButtonStyles,
+    shouldHideListOnInitialRender = true,
+    textInputIconLeft,
+    sectionTitleStyles,
+    textInputAutoFocus = true,
+    shouldShowTextInputAfterHeader = false,
+    shouldShowHeaderMessageAfterHeader = false,
+    includeSafeAreaPaddingBottom = true,
+    shouldTextInputInterceptSwipe = false,
+    listHeaderContent,
+    onEndReached = () => {},
+    onEndReachedThreshold,
+    shouldSkipShowMoreButton = false,
+    windowSize = 5,
+    updateCellsBatchingPeriod = 50,
+    removeClippedSubviews = true,
+    shouldDelayFocus = true,
+    onArrowFocus = () => {},
+    shouldUpdateFocusedIndex = false,
+    onLongPressRow,
+    shouldShowTextInput = !!textInputLabel || !!textInputIconLeft,
+    shouldShowListEmptyContent = true,
+    listItemWrapperStyle,
+    shouldIgnoreFocus = false,
+    scrollEventThrottle,
+    contentContainerStyle,
+    shouldKeepFocusedItemAtTopOfViewableArea = false,
+    shouldDebounceScrolling = false,
+    shouldPreventActiveCellVirtualization = false,
+    shouldScrollToFocusedIndex = true,
+    isSmallScreenWidth,
+    onContentSizeChange,
+    listItemTitleStyles,
+    initialNumToRender = 12,
+    listItemTitleContainerStyles,
+    isScreenFocused = false,
+    shouldSubscribeToArrowKeyEvents = true,
+    shouldClearInputOnSelect = true,
+    addBottomSafeAreaPadding,
+    addOfflineIndicatorBottomSafeAreaPadding,
+    fixedNumItemsForLoader,
+    loaderSpeed,
+    errorText,
+    shouldUseDefaultRightHandSideCheckmark,
+    selectedItems = [],
+    isSelected,
+    canShowProductTrainingTooltip,
+    ref,
+}: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const listRef = useRef<RNSectionList<TItem, SectionWithIndexOffset<TItem>>>(null);
@@ -299,6 +297,12 @@ function BaseSelectionList<TItem extends ListItem>(
     }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, itemHeights, getItemHeight]);
 
     const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
+        if (shouldSkipShowMoreButton) {
+            // When skipping the Show More button, return all sections without any slicing
+            const processedSections = getSectionsWithIndexOffset(sections as Array<SectionListDataType<TItem>>);
+            return [processedSections, null];
+        }
+
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
         const processedSections = getSectionsWithIndexOffset(
             sections.map((section) => {
@@ -325,7 +329,7 @@ function BaseSelectionList<TItem extends ListItem>(
         // we don't need to add styles here as they change
         // we don't need to add flattenedSections here as they will change along with sections
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [sections, currentPage]);
+    }, [sections, currentPage, shouldSkipShowMoreButton]);
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
     const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
@@ -1069,4 +1073,4 @@ function BaseSelectionList<TItem extends ListItem>(
 
 BaseSelectionList.displayName = 'BaseSelectionList';
 
-export default forwardRef(BaseSelectionList);
+export default BaseSelectionList;

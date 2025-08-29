@@ -45,6 +45,7 @@ type SelectedReports = {
     reportID: string;
     policyID: string | undefined;
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
+    allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
     total: number;
 };
 
@@ -72,6 +73,7 @@ type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
 type SearchContextData = {
     currentSearchHash: number;
     currentSearchKey: SearchKey | undefined;
+    currentSearchQueryJSON: SearchQueryJSON | undefined;
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
@@ -82,6 +84,7 @@ type SearchContextData = {
 
 type SearchContext = SearchContextData & {
     setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
+    setCurrentSearchQueryJSON: (searchQueryJSON: SearchQueryJSON | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;
@@ -125,6 +128,8 @@ type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN;
+
+type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL;
 
 type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
@@ -187,6 +192,7 @@ export type {
     SearchColumnType,
     SearchBooleanFilterKeys,
     SearchDateFilterKeys,
+    SearchAmountFilterKeys,
     SearchStatus,
     SearchQueryJSON,
     SearchQueryString,
