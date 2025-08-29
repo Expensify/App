@@ -950,6 +950,13 @@ const CONST = {
     SET_NOTIFICATION_LINK: 'https://community.expensify.com/discussion/5651/deep-dive-best-practices-when-youre-running-into-trouble-receiving-emails-from-expensify',
     GITHUB_URL: 'https://github.com/Expensify/App',
     HELP_LINK_URL: `${USE_EXPENSIFY_URL}/usa-patriot-act`,
+    REGISTRATION_NUMBER_HELP_URL: {
+        AU: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-Australia',
+        CA: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-Canada',
+        EU: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-Europe',
+        UK: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-United-Kingdom',
+        US: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-United-States',
+    },
     ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
     GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
     ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
