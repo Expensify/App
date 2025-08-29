@@ -1,8 +1,8 @@
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
-import type SCREENS from '@src/SCREENS';
 import type ModalType from '@src/types/utils/ModalType';
-import type {AttachmentModalBaseContentProps} from './AttachmentModalBaseContent';
+import type {AttachmentModalScreenType} from '.';
+import type {AttachmentModalBaseContentProps} from './AttachmentModalBaseContent/types';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -27,17 +27,8 @@ type AttachmentModalModalProps = {
     shouldHandleNavigationBack?: boolean;
 };
 
-type AttachmentModalScreenParams = AttachmentModalBaseContentProps &
-    AttachmentModalModalProps & {
-        file?: FileObject;
-        reportID?: string;
-        policyID?: string;
-        transactionID?: string;
-        readonly?: boolean;
-        isFromReviewDuplicates?: boolean;
-        hashKey?: number;
-    };
+type AttachmentModalScreenBaseParams = AttachmentModalBaseContentProps & AttachmentModalModalProps;
 
-type AttachmentModalScreenProps = PlatformStackScreenProps<RootNavigatorParamList, typeof SCREENS.ATTACHMENTS>;
+type AttachmentModalScreenProps<Screen extends AttachmentModalScreenType> = PlatformStackScreenProps<RootNavigatorParamList, Screen>;
 
-export type {AttachmentModalScreenParams, AttachmentModalModalProps, AttachmentModalScreenProps, FileObject, ImagePickerResponse};
+export type {AttachmentModalScreenBaseParams, AttachmentModalModalProps, AttachmentModalScreenProps, FileObject, ImagePickerResponse};

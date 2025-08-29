@@ -6,16 +6,32 @@ import ReportAttachmentModalContent from './routes/ReportAttachmentModalContent'
 import ReportAvatarModalContent from './routes/ReportAvatarModalContent';
 import TransactionReceiptModalContent from './routes/TransactionReceiptModalContent';
 import WorkspaceAvatarModalContent from './routes/WorkspaceAvatarModalContent';
-import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from './types';
+import type {AttachmentModalScreenProps} from './types';
+
+type RouteType<Screen extends AttachmentModalScreenType> = AttachmentModalScreenProps<Screen>['route'];
+type NavigationType<Screen extends AttachmentModalScreenType> = AttachmentModalScreenProps<Screen>['navigation'];
+
+const ATTACHMENT_MODAL_SCREENS = {
+    [SCREENS.ATTACHMENTS]: ReportAttachmentModalContent,
+    [SCREENS.REPORT_AVATAR]: ReportAvatarModalContent,
+    [SCREENS.PROFILE_AVATAR]: ProfileAvatarModalContent,
+    [SCREENS.WORKSPACE_AVATAR]: WorkspaceAvatarModalContent,
+    [SCREENS.TRANSACTION_RECEIPT]: TransactionReceiptModalContent,
+    [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: TransactionReceiptModalContent,
+};
+const ATTACHMENT_MODAL_SCREEN_ENTRIES = Object.entries(ATTACHMENT_MODAL_SCREENS);
+
+type AttachmentModalScreenType = keyof typeof ATTACHMENT_MODAL_SCREENS;
 
 /**
  * The attachment modal screen can take various different shapes. This is the main screen component that receives the route and
  * navigation props from the parent screen and renders the correct modal content based on the route.
  */
-function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) {
+function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route, navigation}: AttachmentModalScreenProps<Screen>) {
     const attachmentsContext = useContext(AttachmentModalContext);
-    const paramsWithContext: AttachmentModalScreenParams = useMemo(() => {
-        const currentAttachment = attachmentsContext.getCurrentAttachment();
+
+    const paramsWithContext = useMemo(() => {
+        const currentAttachment = attachmentsContext.getCurrentAttachment<Screen>();
 
         if (currentAttachment) {
             return {...route.params, ...currentAttachment};
@@ -23,56 +39,24 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
         return route.params;
     }, [attachmentsContext, route.params]);
 
-    if (route.name === SCREENS.ATTACHMENTS) {
-        return (
-            <ReportAttachmentModalContent
-                route={{...route, params: paramsWithContext}}
-                navigation={navigation}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...paramsWithContext}
-            />
-        );
+    const ModalContent = ATTACHMENT_MODAL_SCREEN_ENTRIES.find(([screenName]) => screenName === route.name)?.[1];
+
+    if (!ModalContent) {
+        return null;
     }
 
-    if (route.name === SCREENS.TRANSACTION_RECEIPT || route.name === SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW) {
-        return (
-            <TransactionReceiptModalContent
-                route={{...route, params: paramsWithContext}}
-                navigation={navigation}
-            />
-        );
-    }
+    type ModalContentType = React.FC<{route: RouteType<typeof route.name>; navigation: NavigationType<typeof route.name>}>;
+    const Content = ModalContent as ModalContentType;
 
-    if (route.name === SCREENS.PROFILE_AVATAR) {
-        return (
-            <ProfileAvatarModalContent
-                route={{...route, params: paramsWithContext}}
-                navigation={navigation}
-            />
-        );
-    }
-
-    if (route.name === SCREENS.WORKSPACE_AVATAR) {
-        return (
-            <WorkspaceAvatarModalContent
-                route={{...route, params: paramsWithContext}}
-                navigation={navigation}
-            />
-        );
-    }
-
-    if (route.name === SCREENS.REPORT_AVATAR) {
-        return (
-            <ReportAvatarModalContent
-                route={{...route, params: paramsWithContext}}
-                navigation={navigation}
-            />
-        );
-    }
-
-    return null;
+    return (
+        <Content
+            route={{...route, params: paramsWithContext} as RouteType<typeof route.name>}
+            navigation={navigation as NavigationType<typeof route.name>}
+        />
+    );
 }
 
 AttachmentModalScreen.displayName = 'AttachmentModalScreen';
 
 export default AttachmentModalScreen;
+export type {AttachmentModalScreenType};
