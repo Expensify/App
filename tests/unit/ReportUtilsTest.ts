@@ -48,8 +48,8 @@ import {
     getParentNavigationSubtitle,
     getParticipantsList,
     getPolicyExpenseChat,
-    getPreferredScannableIOUType,
     getPolicyExpenseChatName,
+    getPreferredScannableIOUType,
     getReasonAndReportActionThatRequiresAttention,
     getReportIDFromLink,
     getReportName,
@@ -1718,7 +1718,7 @@ describe('ReportUtils', () => {
             expect(result).toBe(CONST.IOU.TYPE.TRACK);
         });
 
-        it('returns SUBMIT when TRACK is unavailable and SUBMIT is available', () => {
+        it('priority returns SUBMIT if both SUBMIT and SPLIT are available', () => {
             const report = createRegularChat(2, [currentUserAccountID, 1]);
             const result = getPreferredScannableIOUType([CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.SPLIT], report);
             expect(result).toBe(CONST.IOU.TYPE.SUBMIT);
