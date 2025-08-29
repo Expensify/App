@@ -58,14 +58,6 @@ Onyx.connect({
     },
 });
 
-let preservedUserSession: OnyxTypes.Session | undefined;
-Onyx.connect({
-    key: ONYXKEYS.PRESERVED_USER_SESSION,
-    callback: (value) => {
-        preservedUserSession = value;
-    },
-});
-
 let preservedShouldUseStagingServer: boolean | undefined;
 Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
@@ -94,6 +86,16 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
+    },
+});
+
+let preservedUserSession: OnyxTypes.Session | undefined;
+
+// We called `connectWithoutView` here because it is not connected to any UI
+Onyx.connectWithoutView({
+    key: ONYXKEYS.PRESERVED_USER_SESSION,
+    callback: (value) => {
+        preservedUserSession = value;
     },
 });
 
@@ -286,7 +288,7 @@ function getOnyxDataForOpenOrReconnect(
     // This ensures that any report with a draft comment is preserved in Onyx even if it doesn’t contain chat history
     const reportsWithDraftComments = Object.entries(allReportsWithDraftComments ?? {})
         .filter(([, value]) => value !== null)
-        .map(([key]) => key.replace(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, ''))
+        .map(([key]) => key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ''))
         .map((reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
 
     reportsWithDraftComments?.forEach((report) => {

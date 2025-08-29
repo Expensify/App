@@ -56,10 +56,10 @@ import Timing from '@userActions/Timing';
 import * as Welcome from '@userActions/Welcome';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
@@ -99,7 +99,8 @@ Onyx.connect({
     },
 });
 
-Onyx.connect({
+// Use connectWithoutView because it is only for fullstory initialization
+Onyx.connectWithoutView({
     key: ONYXKEYS.USER_METADATA,
     callback: Fullstory.consentAndIdentify,
 });
@@ -470,7 +471,6 @@ function beginSignIn(email: string) {
 
     const params: BeginSignInParams = {email};
 
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.read(READ_COMMANDS.BEGIN_SIGNIN, params, {optimisticData, successData, failureData});
 }
 
@@ -536,11 +536,12 @@ function signUpUser() {
 function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettings, tryNewDot?: TryNewDot) {
     const {hybridApp, ...newDotOnyxValues} = hybridAppSettings;
 
-    const clearOnyxBeforeSignIn = () => {
+    const clearOnyxIfSigningIn = () => {
         if (!hybridApp.useNewDotSignInPage) {
             return Promise.resolve();
         }
 
+        Log.info(`[HybridApp] Clearing onyx after transition from OldDot. useNewDotSignInPage set to ${hybridApp.useNewDotSignInPage}`);
         return redirectToSignIn();
     };
 
@@ -553,13 +554,14 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
         resetDidUserLogInDuringSession();
     };
 
-    return clearOnyxBeforeSignIn()
+    return clearOnyxIfSigningIn()
         .then(() => {
             // This section controls copilot changes
             const currentUserEmail = getCurrentUserEmail();
 
             // If ND and OD account are the same - do nothing
             if (hybridApp?.delegateAccessData?.oldDotCurrentUserEmail === currentUserEmail) {
+                Log.info('[HybridApp] User did not switch account on OldDot side');
                 return;
             }
 
@@ -573,7 +575,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                       [ONYXKEYS.STASHED_SESSION]: {},
                   };
 
-            // Account was changed on OD side - clear onyx and apply data
+            Log.info('[HybridApp] User switched account on OldDot side. Clearing onyx and applying delegate data');
             return Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS).then(() =>
                 Onyx.multiSet({
                     ...stashedData,
@@ -594,6 +596,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                 })
                     .then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: hybridApp?.delegateAccessData?.oldDotCurrentUserEmail}))
                     .then(() => {
+                        Log.info('[HybridApp] Calling openApp to get delegate account details');
                         confirmReadyToOpenApp();
                         return openApp();
                     }),
@@ -608,6 +611,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
         .then(resetDidUserLoginDuringSessionIfNeeded)
         .then(() => Promise.all(Object.entries(newDotOnyxValues).map(([key, value]) => Onyx.merge(key as OnyxKey, value ?? {}))))
         .then(() => {
+            Log.info('[HybridApp] Setup after transition from OldDot finished');
             isHybridAppSetupFinished = true;
             return Promise.resolve();
         })
@@ -647,6 +651,7 @@ function beginGoogleSignIn(token: string | null) {
 function signInWithShortLivedAuthToken(authToken: string) {
     const {optimisticData, finallyData} = getShortLivedLoginParams();
     API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true}, {optimisticData, finallyData});
+    NetworkStore.setLastShortAuthToken(authToken);
 }
 
 /**
@@ -714,11 +719,7 @@ function signIn(validateCode: string, twoFactorAuthCode?: string) {
             params.validateCode = validateCode || credentials.validateCode;
         }
 
-        API.write(WRITE_COMMANDS.SIGN_IN_USER, params, {
-            optimisticData,
-            successData,
-            failureData,
-        });
+        API.write(WRITE_COMMANDS.SIGN_IN_USER, params, {optimisticData, successData, failureData});
     });
 }
 
@@ -845,20 +846,11 @@ function clearSignInData() {
 }
 
 /**
- * Reset all current params of the Home route
+ * Reset navigation to a brand new state with Home as the initial screen.
  */
-function resetHomeRouteParams() {
+function resetNavigationState() {
     Navigation.isNavigationReady().then(() => {
-        const routes = navigationRef.current?.getState()?.routes;
-        const homeRoute = routes?.find((route) => route.name === SCREENS.HOME);
-
-        const emptyParams: Record<string, undefined> = {};
-        Object.keys(homeRoute?.params ?? {}).forEach((paramKey) => {
-            emptyParams[paramKey] = undefined;
-        });
-
-        Navigation.setParams(emptyParams, homeRoute?.key ?? '');
-        Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+        navigationRef.resetRoot({index: 0, routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]});
     });
 }
 
@@ -876,7 +868,7 @@ function cleanupSession() {
     PersistedRequests.clear();
     NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
-    resetHomeRouteParams();
+    resetNavigationState();
     clearCache().then(() => {
         Log.info('Cleared all cache data', true, {}, true);
     });
@@ -1463,4 +1455,5 @@ export {
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,
+    getShortLivedLoginParams,
 };

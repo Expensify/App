@@ -10,7 +10,11 @@ const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 type AnimatedTextInputRef = typeof AnimatedTextInput & TextInput & HTMLInputElement;
 
-function RNTextInputWithRef(props: TextInputProps, ref: ForwardedRef<AnimatedTextInputRef>) {
+type RNTextInputWithRefProps = TextInputProps & {
+    ref?: ForwardedRef<AnimatedTextInputRef>;
+};
+
+function RNTextInputWithRef({ref, ...props}: RNTextInputWithRefProps) {
     const theme = useTheme();
 
     return (
@@ -32,5 +36,5 @@ function RNTextInputWithRef(props: TextInputProps, ref: ForwardedRef<AnimatedTex
 
 RNTextInputWithRef.displayName = 'RNTextInputWithRef';
 
-export default React.forwardRef(RNTextInputWithRef);
+export default RNTextInputWithRef;
 export type {AnimatedTextInputRef};
