@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import Button from '@components/Button';
@@ -17,13 +17,9 @@ import mergeRefs from '@libs/mergeRefs';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
-import type {ButtonWithDropdownMenuProps} from './types';
+import type {ButtonWithDropdownMenuProps, ButtonWithDropdownMenuRef} from './types';
 
-type ButtonWithDropdownMenuRef = {
-    setIsMenuVisible: (visible: boolean) => void;
-};
-
-function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuProps<IValueType>, ref: React.Ref<ButtonWithDropdownMenuRef>) {
+function ButtonWithDropdownMenuInner<IValueType>({ref, ...props}: ButtonWithDropdownMenuProps<IValueType>) {
     const {
         success = true,
         isSplitButton = true,
@@ -319,7 +315,7 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
 }
 
 ButtonWithDropdownMenuInner.displayName = 'ButtonWithDropdownMenu';
-const ButtonWithDropdownMenu = forwardRef(ButtonWithDropdownMenuInner) as <IValueType>(
+const ButtonWithDropdownMenu = ButtonWithDropdownMenuInner as <IValueType>(
     props: ButtonWithDropdownMenuProps<IValueType> & {ref?: React.Ref<ButtonWithDropdownMenuRef>},
 ) => ReturnType<typeof ButtonWithDropdownMenuInner>;
 export default ButtonWithDropdownMenu;

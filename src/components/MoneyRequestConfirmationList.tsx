@@ -144,6 +144,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the expense is a distance expense */
     isDistanceRequest: boolean;
 
+    /** Whether the expense is a manual distance expense */
+    isManualDistanceRequest: boolean;
+
     /** Whether the expense is a per diem expense */
     isPerDiemRequest?: boolean;
 
@@ -183,6 +186,12 @@ type MoneyRequestConfirmationListProps = {
     /** The PDF password callback */
     onPDFPassword?: () => void;
 
+    /** Function to toggle reimbursable */
+    onToggleReimbursable?: (isOn: boolean) => void;
+
+    /** Flag indicating if the IOU is reimbursable */
+    iouIsReimbursable?: boolean;
+
     /** Show remove expense confirmation modal */
     showRemoveExpenseConfirmModal?: () => void;
 };
@@ -196,6 +205,7 @@ function MoneyRequestConfirmationList({
     iouType = CONST.IOU.TYPE.SUBMIT,
     iouAmount,
     isDistanceRequest,
+    isManualDistanceRequest,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     iouCategory = '',
@@ -225,6 +235,8 @@ function MoneyRequestConfirmationList({
     isConfirming,
     onPDFLoadError,
     onPDFPassword,
+    iouIsReimbursable = true,
+    onToggleReimbursable,
     showRemoveExpenseConfirmModal,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
@@ -1126,6 +1138,7 @@ function MoneyRequestConfirmationList({
             iouType={iouType}
             isCategoryRequired={isCategoryRequired}
             isDistanceRequest={isDistanceRequest}
+            isManualDistanceRequest={isManualDistanceRequest}
             isPerDiemRequest={isPerDiemRequest}
             isMerchantEmpty={isMerchantEmpty}
             isMerchantRequired={isMerchantRequired}
@@ -1154,6 +1167,8 @@ function MoneyRequestConfirmationList({
             unit={unit}
             onPDFLoadError={onPDFLoadError}
             onPDFPassword={onPDFPassword}
+            iouIsReimbursable={iouIsReimbursable}
+            onToggleReimbursable={onToggleReimbursable}
             isReceiptEditable={isReceiptEditable}
         />
     );
