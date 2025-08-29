@@ -4,16 +4,7 @@ description: Learn how to contact travel agent support via chat, phone, or email
 keywords: travel agent support, Expensify Travel, assisted booking, trip fees, travel help, Book travel button
 ---
 
-Need help booking or changing travel plans? You can contact travel agent support via chat, phone, or email. It’s free to ask questions — fees only apply if a travel agent books or modifies travel on your behalf.
-
----
-
-# How to access the travel tool
-
-- **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
-- **In Expensify Classic:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
-
-**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+Need help booking or changing travel plans? You can contact travel agent support via chat, phone, or email. It’s free to ask questions; fees only apply if a travel agent books or modifies travel on your behalf.
 
 ---
 
@@ -29,9 +20,18 @@ Anyone with access to Expensify Travel can contact travel agent support.
 
 ---
 
+## How to access the travel tool
+
+- **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
+- **In Expensify Classic:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
+
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+
+---
+
 ## How assisted trip fees work
 
-It’s always free to ask questions. You’ll only be charged a fee if a travel agent books or changes a trip for you.
+You can always ask questions for free. You’ll only be charged a fee if a travel agent books or changes a trip for you.
 
 Here’s a breakdown of the fees:
 
@@ -67,7 +67,5 @@ Yes. Once a trip becomes an assisted trip, you can contact travel agent support 
 
 ## What’s the difference between the $15 and $25 trip fees?
 
-- **$15:** If you book or change travel yourself  
-- **$25:** If you ask a travel agent to do it for you, this includes unlimited support for that trip, including changes
-
-</div>
+- **$15:** If you book or change travel yourself  .
+- **$25:** If you ask a travel agent to do it for you, this includes unlimited support for that trip, including changes.
