@@ -6,7 +6,6 @@ import type {ListItem, TransactionMemberGroupListItemType} from '@components/Sel
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
@@ -42,7 +41,6 @@ function MemberListItemHeader<TItem extends ListItem>({
 }: MemberListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {isLargeScreenWidth} = useResponsiveLayout();
     const [formattedDisplayName, formattedLogin] = useMemo(
         () => [formatPhoneNumber(getDisplayNameOrDefault(memberItem)), formatPhoneNumber(memberItem.login ?? '')],
         [memberItem, formatPhoneNumber],

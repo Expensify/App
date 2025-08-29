@@ -6,7 +6,6 @@ import getBankIcon from '@components/Icon/BankIcons';
 import type {ListItem, TransactionWithdrawalIDGroupListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
@@ -34,7 +33,6 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
 }: WithdrawalIDListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isLargeScreenWidth} = useResponsiveLayout();
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
     const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
