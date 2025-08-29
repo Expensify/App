@@ -271,10 +271,14 @@ type ArchivedReportsIDSet = ReadonlySet<string>;
  * *NOTE* When rendering the LHN, you should use the "createTypeMenuSections" method, which
  * contains the conditionals for rendering each of these.
  *
+ * Keep all suggested search declarations in this object.
  * If you are updating this function, do not add more params unless absolutely necessary for the searches. The amount of data needed to
  * get the list of searches should be as minimal as possible.
  *
- * These searches should be as static as possible, and should not contain conditionals, or any other logic
+ * These searches should be as static as possible, and should not contain conditionals, or any other logic.
+ *
+ * If you are trying to access data about a specific search, you do NOT need to subscribe to the data (such as feeds) if it does not
+ * affect the specific query you are looking for
  */
 function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defaultFeedID?: string): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
     return {
