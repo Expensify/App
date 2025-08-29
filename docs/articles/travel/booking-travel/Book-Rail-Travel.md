@@ -64,9 +64,4 @@ To view it:
 2. Tap **Inbox**.  
 3. Find the thread named after your upcoming trip.  
 
-Inside the thread, you’ll see:  
-- Up-to-date train travel details  
-- Local restaurant suggestions  
-- Nearby attractions and events  
-
 </div>
