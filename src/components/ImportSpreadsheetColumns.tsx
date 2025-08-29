@@ -80,8 +80,7 @@ function ImportSpreadsheetColumns({
                     </Text>
                     {shouldShowColumnHeader && (
                         <View style={[styles.mt7, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                            <Text>{translate('spreadsheet.fileContainsHeader')}</Text>
-
+                            <Text style={[styles.flex1, styles.mr2]}>{translate('spreadsheet.fileContainsHeader')}</Text>
                             <Switch
                                 accessibilityLabel={translate('spreadsheet.fileContainsHeader')}
                                 isOn={containsHeader}
