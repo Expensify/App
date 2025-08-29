@@ -243,10 +243,13 @@ function SearchList(
     useFocusEffect(
         useCallback(() => {
             const offset = getScrollOffset(route);
+            requestAnimationFrame(() => {
+                if (!offset || !listRef.current) {
+                    return;
+                }
 
-            if (offset && listRef.current) {
                 listRef.current.scrollToOffset({offset});
-            }
+            });
         }, [getScrollOffset, route]),
     );
 
