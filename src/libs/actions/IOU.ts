@@ -12029,7 +12029,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
     const childReportID = reportAction?.childReportID;
 
     let movedToReport;
-    let rejectedReportID;
+    let rejectedToReportID;
     let urlToNavigateBack;
 
     const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
@@ -12191,7 +12191,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
 
         if (existingOpenReport) {
             movedToReport = existingOpenReport;
-            rejectedReportID = existingOpenReport.reportID;
+            rejectedToReportID = existingOpenReport.reportID;
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
@@ -12218,7 +12218,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                 },
             });
         } else {
-            rejectedReportID = generateReportID();
+            rejectedToReportID = generateReportID();
         }
         optimisticData.push(
             {
@@ -12232,7 +12232,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
-                    reportID: rejectedReportID,
+                    reportID: rejectedToReportID,
                 },
             },
         );
@@ -12386,9 +12386,9 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
     }
 
     // Moved to report (if transaction is moved to another report)
-    if (rejectedReportID && rejectedReportID !== reportID) {
+    if (rejectedToReportID && rejectedToReportID !== reportID) {
         reportsToUpdate.push({
-            reportID: rejectedReportID,
+            reportID: rejectedToReportID,
             lastVisibleActionCreated: optimisticRejectReportActionComment.created,
         });
     }
@@ -12436,7 +12436,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         transactionID,
         reportID,
         comment,
-        rejectedReportID,
+        rejectedToReportID,
         rejectedActionReportActionID: optimisticRejectReportAction.reportActionID,
         rejectedCommentReportActionID: optimisticRejectReportActionComment.reportActionID,
     };
