@@ -195,7 +195,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             )}
             titleStyles={styles.accountSettingsSectionTitle}
         >
-            <View style={[styles.mt3, styles.gap3]}>
+            <View style={[styles.mt3]}>
                 {individualExpenseRulesItems.map((item) => (
                     <OfflineWithFeedback
                         pendingAction={item.pendingAction}
