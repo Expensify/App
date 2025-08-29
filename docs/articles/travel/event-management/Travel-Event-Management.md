@@ -64,7 +64,7 @@ Admins can pay for all bookings at once using a central card.
 - **Default description**: Displayed to attendees.  
 - **Notes to coordinator**: Private notes for admins.  
 
-5. Select **Save** to finish.  
+Select **Save** to finish.  
 
 ---
 
