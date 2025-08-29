@@ -638,6 +638,7 @@ const translations = {
         merge: 'Fusionar',
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
         enableGlobalReimbursements: 'Habilitar Reembolsos Globales',
+        purchaseAmount: 'Importe de compra',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -6127,6 +6128,7 @@ const translations = {
             withdrawn: 'Retirada',
             billable: 'Facturable',
             reimbursable: 'Reembolsable',
+            purchaseCurrency: 'Moneda de compra',
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.REPORTS]: 'Informe',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
