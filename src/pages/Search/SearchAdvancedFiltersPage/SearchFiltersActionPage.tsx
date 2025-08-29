@@ -21,13 +21,13 @@ function SearchFiltersActionPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    const [selectedItem, setSelectedItem] = useState(searchAdvancedFiltersForm?.withdrawalType);
+    const [selectedItem, setSelectedItem] = useState(searchAdvancedFiltersForm?.action);
 
     const listData: Array<ListItem<SearchAction>> = useMemo(() => {
-        return getActionOptions(translate).map((withdrawalTypeOption) => ({
-            text: withdrawalTypeOption.text,
-            keyForList: withdrawalTypeOption.value,
-            isSelected: selectedItem === withdrawalTypeOption.value,
+        return getActionOptions(translate).map((action) => ({
+            text: action.text,
+            keyForList: action.value,
+            isSelected: selectedItem === action.value,
         }));
     }, [translate, selectedItem]);
 
@@ -40,7 +40,7 @@ function SearchFiltersActionPage() {
     }, []);
 
     const applyChanges = useCallback(() => {
-        updateAdvancedFilters({withdrawalType: selectedItem ?? null});
+        updateAdvancedFilters({action: selectedItem ?? null});
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     }, [selectedItem]);
 
@@ -52,7 +52,7 @@ function SearchFiltersActionPage() {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('search.withdrawalType')}
+                title={translate('common.action')}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
                 }}
