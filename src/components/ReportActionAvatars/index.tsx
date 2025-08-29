@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeed, ReportAction} from '@src/types/onyx';
+import type {CompanyCardFeed, InvitedEmailsToAccountIDs, ReportAction} from '@src/types/onyx';
 import type {HorizontalStacking} from './ReportActionAvatar';
 import ReportActionAvatar from './ReportActionAvatar';
 import useReportActionAvatars from './useReportActionAvatars';
@@ -57,6 +57,9 @@ type ReportActionAvatarsProps = {
 
     /** Display name used as a fallback for avatar tooltip */
     fallbackDisplayName?: string;
+
+    /** Invited emails to account IDs */
+    invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
 };
 
 /**
@@ -85,6 +88,7 @@ function ReportActionAvatars({
     isInReportAction = false,
     useProfileNavigationWrapper,
     fallbackDisplayName,
+    invitedEmailsToAccountIDs,
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
 
@@ -92,7 +96,9 @@ function ReportActionAvatars({
         potentialReportID ??
         ([CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW].find((act) => act === action?.actionName) ? action?.childReportID : undefined);
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    // reportID can be an empty string causing Onyx to fetch the whole collection
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || undefined}`, {canBeMissing: true});
 
     const shouldStackHorizontally = !!horizontalStacking;
     const isHorizontalStackingAnObject = shouldStackHorizontally && typeof horizontalStacking !== 'boolean';
@@ -110,6 +116,8 @@ function ReportActionAvatars({
         shouldUseCardFeed: !!subscriptCardFeed,
         accountIDs,
         policyID,
+        fallbackDisplayName,
+        invitedEmailsToAccountIDs,
     });
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = notPreciseAvatarType;
@@ -124,7 +132,7 @@ function ReportActionAvatars({
 
     const [primaryAvatar, secondaryAvatar] = icons;
 
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT) {
+    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && (!!secondaryAvatar?.name || !!subscriptCardFeed)) {
         return (
             <ReportActionAvatar.Subscript
                 primaryAvatar={primaryAvatar}
@@ -136,6 +144,7 @@ function ReportActionAvatars({
                 subscriptCardFeed={subscriptCardFeed}
                 useProfileNavigationWrapper={useProfileNavigationWrapper}
                 fallbackDisplayName={fallbackDisplayName}
+                reportID={reportID}
             />
         );
     }
@@ -151,11 +160,12 @@ function ReportActionAvatars({
                 shouldShowTooltip={shouldShowTooltip}
                 useProfileNavigationWrapper={useProfileNavigationWrapper}
                 fallbackDisplayName={fallbackDisplayName}
+                reportID={reportID}
             />
         );
     }
 
-    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL && icons.length !== 1) {
+    if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL && !!secondaryAvatar?.name) {
         return (
             <ReportActionAvatar.Multiple.Diagonal
                 shouldShowTooltip={shouldShowTooltip}
@@ -167,6 +177,7 @@ function ReportActionAvatars({
                 isHovered={isHovered}
                 fallbackDisplayName={fallbackDisplayName}
                 useProfileNavigationWrapper={useProfileNavigationWrapper}
+                reportID={reportID}
             />
         );
     }
@@ -182,6 +193,7 @@ function ReportActionAvatars({
             fallbackIcon={primaryAvatar.fallbackIcon}
             fallbackDisplayName={fallbackDisplayName}
             useProfileNavigationWrapper={useProfileNavigationWrapper}
+            reportID={reportID}
         />
     );
 }

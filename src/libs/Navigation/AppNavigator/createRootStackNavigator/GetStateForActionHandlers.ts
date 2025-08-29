@@ -2,10 +2,14 @@ import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigatio
 import {StackActions} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
 import SCREENS_WITH_NAVIGATION_TAB_BAR from '@components/Navigation/TopLevelNavigationTabBar/SCREENS_WITH_NAVIGATION_TAB_BAR';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
+import {isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
+import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import type {OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType} from './types';
+import type {OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, ToggleSidePanelWithHistoryActionType} from './types';
 
 const MODAL_ROUTES_TO_DISMISS: string[] = [
     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
@@ -17,6 +21,7 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
     SCREENS.NOT_FOUND,
     SCREENS.ATTACHMENTS,
     SCREENS.TRANSACTION_RECEIPT,
+    SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW,
     SCREENS.PROFILE_AVATAR,
     SCREENS.WORKSPACE_AVATAR,
     SCREENS.REPORT_AVATAR,
@@ -79,8 +84,18 @@ function handlePushFullscreenAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const stateWithNavigator = stackRouter.getStateForAction(state, action, configOptions);
+    const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
     const navigatorName = action.payload.name;
+
+    // If we navigate to the central screen of the split navigator, we need to filter this navigator from preloadedRoutes to remove a sidebar screen from the state
+    const shouldFilterPreloadedRoutes =
+        getIsNarrowLayout() &&
+        isSplitNavigatorName(navigatorName) &&
+        targetScreen !== SPLIT_TO_SIDEBAR[navigatorName] &&
+        state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
+
+    const adjustedState = shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)} : state;
+    const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
     if (!stateWithNavigator) {
         Log.hmmm(`[handlePushAction] ${navigatorName} has not been found in the navigation state.`);
@@ -88,10 +103,9 @@ function handlePushFullscreenAction(
     }
 
     const lastFullScreenRoute = stateWithNavigator.routes.at(-1);
-    const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
 
     // Transitioning to all central screens in each split should be animated
-    if (lastFullScreenRoute?.key && actionPayloadScreen && !SCREENS_WITH_NAVIGATION_TAB_BAR.includes(actionPayloadScreen)) {
+    if (lastFullScreenRoute?.key && targetScreen && !SCREENS_WITH_NAVIGATION_TAB_BAR.includes(targetScreen)) {
         screensWithEnteringAnimation.add(lastFullScreenRoute.key);
     }
 
@@ -154,6 +168,26 @@ function handleNavigatingToModalFromModal(
     return stackRouter.getStateForAction(modifiedState, action, configOptions);
 }
 
+function handleToggleSidePanelWithHistoryAction(state: StackNavigationState<ParamListBase>, action: ToggleSidePanelWithHistoryActionType) {
+    // This shouldn't ever happen as the history should be always defined. It's for type safety.
+    if (!state?.history) {
+        return state;
+    }
+
+    // If it's set to true, we need to add the side panel history entry if it's not already there.
+    if (action.payload.isVisible && state.history.at(-1) !== CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL) {
+        return {...state, history: [...state.history, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL]};
+    }
+
+    // If it's set to false, we need to remove the side panel history entry if it's there.
+    if (!action.payload.isVisible) {
+        return {...state, history: state.history.filter((entry) => entry !== CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL)};
+    }
+
+    // Else, do not change history.
+    return state;
+}
+
 export {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
@@ -162,4 +196,5 @@ export {
     handleReplaceReportsSplitNavigatorAction,
     screensWithEnteringAnimation,
     workspaceSplitsWithoutEnteringAnimation,
+    handleToggleSidePanelWithHistoryAction,
 };

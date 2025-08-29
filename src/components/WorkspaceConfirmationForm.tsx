@@ -1,5 +1,4 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
@@ -91,15 +90,6 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
     const userCurrency = allPersonalDetails?.[session?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.localCurrencyCode ?? CONST.CURRENCY.USD;
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
-    const route = useRoute();
-    const currencyParam = route.params && 'currency' in route.params && !!route.params.currency ? (route.params.currency as string) : undefined;
-    const currencyValue = !!currencyList && currencyParam && currencyParam in currencyList ? currencyParam : userCurrency;
-    const [currency] = useState(currencyValue);
-
-    useEffect(() => {
-        Navigation.setParams({currency});
-    }, [currency]);
 
     const [workspaceAvatar, setWorkspaceAvatar] = useState<{avatarUri: string | null; avatarFileName?: string | null; avatarFileType?: string | null}>({
         avatarUri: null,
@@ -205,9 +195,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                                 InputComponent={CurrencyPicker}
                                 inputID={INPUT_IDS.CURRENCY}
                                 label={translate('workspace.editor.currencyInputLabel')}
-                                defaultValue={currency}
-                                shouldSyncPickerVisibilityWithNavigation
-                                shouldSaveCurrencyInNavigation
+                                defaultValue={userCurrency}
                             />
                         </View>
                     </View>
