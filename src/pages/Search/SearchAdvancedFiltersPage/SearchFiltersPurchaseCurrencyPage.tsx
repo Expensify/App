@@ -42,7 +42,7 @@ function SearchFiltersPurchaseCurrencyPage() {
     }, [currencyList, selectedCurrenciesCodes]);
 
     const handleOnSubmit = (values: string[]) => {
-        updateAdvancedFilters({currency: values});
+        updateAdvancedFilters({purchaseCurrency: values});
     };
 
     return (
