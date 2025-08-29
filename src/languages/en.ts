@@ -1391,9 +1391,6 @@ const translations = {
             addApprover: {
                 subtitle: 'Choose an additional approver for this report before we route through the rest of the approval workflow.',
             },
-            error: {
-                genericChangeApproverFailureMessage: 'Unexpected error bypassing the approver. Please try again later.',
-            },
         },
     },
     transactionMerge: {

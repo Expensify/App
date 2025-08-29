@@ -12518,15 +12518,6 @@ function assignReportToMe(report: OnyxEntry<OnyxTypes.Report>, accountID: number
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-                value: {
-                    [takeControlReportAction.reportActionID]: {
-                        errors: getMicroSecondOnyxErrorWithTranslationKey('iou.changeApprover.error.genericChangeApproverFailureMessage'),
-                    },
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`,
                 value: currentNextStep,
             },
