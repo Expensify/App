@@ -5988,6 +5988,17 @@ function resolveConciergeCategoryOptions(reportID: string | undefined, actionRep
     } as Partial<ReportActions>);
 }
 
+function setOptimisticTransactionThread(reportID?: string, parentReportID?: string, parentReportActionID?: string) {
+    if (!reportID) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        parentReportID,
+        parentReportActionID,
+    });
+}
+
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
 
 export {
@@ -6101,4 +6112,5 @@ export {
     changeReportPolicyAndInviteSubmitter,
     removeFailedReport,
     openUnreportedExpense,
+    setOptimisticTransactionThread,
 };
