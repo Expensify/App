@@ -228,7 +228,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
 
     const openAdvancedFilters = useCallback(() => {
         updateAdvancedFilters(filterFormValues, true);
-        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [filterFormValues]);
 
     const typeComponent = useCallback(
