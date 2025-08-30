@@ -1,29 +1,48 @@
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
-index 095313e..5e99f26 100644
+index 095313e..b152400 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
-@@ -424,7 +424,9 @@ public class ReactEditText extends AppCompatEditText {
+@@ -136,6 +136,7 @@ public class ReactEditText extends AppCompatEditText {
+   private int mFontWeight = ReactConstants.UNSET;
+   private int mFontStyle = ReactConstants.UNSET;
+   private boolean mAutoFocus = false;
++  private boolean mShowKeyboardDelayed = false;
+   private boolean mContextMenuHidden = false;
+   private boolean mDidAttachToWindow = false;
+   private boolean mSelectTextOnFocus = false;
+@@ -424,7 +425,8 @@ public class ReactEditText extends AppCompatEditText {
    private boolean requestFocusProgramatically() {
      boolean focused = super.requestFocus(View.FOCUS_DOWN, null);
      if (isInTouchMode() && getShowSoftInputOnFocus()) {
 -      showSoftKeyboard();
-+      post(() -> {
-+        showSoftKeyboard();
-+      });
++      mShowKeyboardDelayed = true;
++      showSoftKeyboardReliably();
      }
  
      return focused;
-@@ -1164,6 +1166,16 @@ public class ReactEditText extends AppCompatEditText {
+@@ -1164,6 +1166,28 @@ public class ReactEditText extends AppCompatEditText {
      mDidAttachToWindow = true;
    }
  
 +  @Override
 +  public void onWindowFocusChanged(boolean hasWindowFocus) {
-+    if (hasWindowFocus && mAutoFocus) {
-+      requestFocus();
-+      post(() -> {
-+        showSoftKeyboard();
-+      });
++    super.onWindowFocusChanged(hasWindowFocus);
++
++    if(hasWindowFocus && mAutoFocus) {
++      requestFocusProgramatically();
++    } else {
++      showSoftKeyboardReliably();
++    }
++  }
++
++  private void showSoftKeyboardReliably() {
++    if(hasWindowFocus() && (mShowKeyboardDelayed || mAutoFocus)) {
++      if(isFocused()) {
++        post(() -> {
++          showSoftKeyboard();
++        });
++      }
++      mShowKeyboardDelayed = false;
 +    }
 +  }
 +
