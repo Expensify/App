@@ -598,7 +598,6 @@ function MoneyRequestReportActionsList({
         },
         [reportScrollManager],
     );
-    const reportHasComments = visibleReportActions.length > 0;
 
     /**
      * Runs when the FlatList finishes laying out
@@ -721,9 +720,8 @@ function MoneyRequestReportActionsList({
                                     transactions={transactions}
                                     newTransactions={newTransactions}
                                     reportActions={reportActions}
-                                    hasComments={reportHasComments}
-                                    isLoadingInitialReportActions={showReportActionsLoadingState}
                                     scrollToNewTransaction={scrollToNewTransaction}
+                                    policy={policy}
                                 />
                             </>
                         }
