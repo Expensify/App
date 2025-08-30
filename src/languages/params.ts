@@ -453,6 +453,7 @@ type RemoveMemberPromptParams = {
 type IssueVirtualCardParams = {
     assignee: string;
     link: string;
+    isCardDeactivated?: boolean;
 };
 
 type ApprovalWorkflowErrorParams = {
