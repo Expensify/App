@@ -60,7 +60,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
-    const {isBlockedFromSpotnanaTravel, isBetaEnabled} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
     const [isVerificationModalVisible, setVerificationModalVisibility] = useState(false);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -81,7 +81,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
     const bookATrip = useCallback(() => {
         setErrorMessage('');
 
-        if (isBlockedFromSpotnanaTravel) {
+        if (isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)) {
             setPreventionModalVisibility(true);
             return;
         }
@@ -146,7 +146,6 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
             Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(Navigation.getActiveRoute()));
         }
     }, [
-        isBlockedFromSpotnanaTravel,
         primaryContactMethod,
         policy,
         groupPaidPolicies.length,
