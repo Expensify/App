@@ -1,0 +1,29 @@
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {init, sendEvent, setAttribute, setAuthenticationData} from './GroupIBSdkBridge';
+
+let sessionID: string = Str.guid();
+let identity: string | undefined = undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        const isAuthenticated = !!(session?.authToken ?? null);
+        let newIdentity = isAuthenticated ? (session?.accountID?.toString() ?? '') : '';
+        if (newIdentity !== identity) {
+            identity = newIdentity;
+            sessionID = typeof identity === 'string' && identity.length > 0 ? Str.guid() : '';
+            setAuthenticationData(identity, sessionID);
+        }
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (account) => {
+        setAttribute('email', account?.primaryLogin ?? '');
+        setAttribute('mfa', account?.requiresTwoFactorAuth ? '2fa_enabled' : '2fa_disabled');
+    },
+});
+
+export default {init, sendEvent};
