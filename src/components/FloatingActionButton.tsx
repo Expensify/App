@@ -48,7 +48,7 @@ type FloatingActionButtonProps = {
 };
 
 function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, isTooltipAllowed, ref}: FloatingActionButtonProps) {
-    const {success, buttonDefaultBG, textLight} = useTheme();
+    const {success, successHover, buttonDefaultBG, textLight} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
@@ -142,17 +142,29 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                 shouldUseHapticsOnLongPress
                 testID="floating-action-button"
             >
-                <Animated.View style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, animatedStyle]}>
-                    <Svg
-                        width={fabSize}
-                        height={fabSize}
+                {(state) => (
+                    <Animated.View
+                        style={[
+                            styles.floatingActionButton,
+                            {borderRadius},
+                            isLHBVisible && styles.floatingActionButtonSmall,
+                            animatedStyle,
+                            // Apply success-hover background while hovered (when not active)
+                            state.hovered && {backgroundColor: successHover},
+                        ]}
+                        testID="fab-animated-container"
                     >
-                        <AnimatedPath
-                            d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
-                            fill={textLight}
-                        />
-                    </Svg>
-                </Animated.View>
+                        <Svg
+                            width={fabSize}
+                            height={fabSize}
+                        >
+                            <AnimatedPath
+                                d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}
+                                fill={textLight}
+                            />
+                        </Svg>
+                    </Animated.View>
+                )}
             </PressableWithoutFeedback>
         </EducationalTooltip>
     );
