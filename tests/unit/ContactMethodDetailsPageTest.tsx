@@ -83,4 +83,23 @@ describe('ContactMethodDetailsPage', () => {
         // Then resetContactMethodValidateCodeSentState should not be called
         expect(UserActions.resetContactMethodValidateCodeSentState).not.toHaveBeenCalled();
     });
+
+    it('should not call resetContactMethodValidateCodeSentState when the login data has no partnerUserID', async () => {
+        // Given a login list with a contact method that has no partnerUserID
+        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+            [fakeEmail]: {
+                partnerName: 'expensify.com',
+                partnerUserID: '',
+                validatedDate: '',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        // Given the page is rendered
+        render(<ContactMethodDetailsPageRenderer />);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then resetContactMethodValidateCodeSentState should not be called
+        expect(UserActions.resetContactMethodValidateCodeSentState).not.toHaveBeenCalled();
+    });
 });
