@@ -1,7 +1,7 @@
 import {PortalHost} from '@gorhom/portal';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList} from 'react-native';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -47,6 +47,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${report?.reportID}`, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
@@ -89,6 +90,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                         shouldEnableMaxHeight
                         offlineIndicatorStyle={styles.mtAuto}
                         headerGapStyles={styles.searchHeaderGap}
+                        shouldEnableKeyboardAvoidingView={isComposerFullSize || Platform.OS !== 'ios'}
+                        includeSafeAreaPaddingBottom={Platform.OS !== 'ios'}
                     >
                         <FullPageNotFoundView
                             shouldShow={shouldShowNotFoundPage}
@@ -121,6 +124,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                     shouldEnableMaxHeight
                     offlineIndicatorStyle={styles.mtAuto}
                     headerGapStyles={[styles.searchHeaderGap, styles.h0]}
+                    shouldEnableKeyboardAvoidingView={isComposerFullSize || Platform.OS !== 'ios'}
+                    includeSafeAreaPaddingBottom={Platform.OS !== 'ios'}
                 >
                     <View style={[styles.searchSplitContainer, styles.flexColumn, styles.flex1]}>
                         <FullPageNotFoundView
