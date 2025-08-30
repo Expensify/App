@@ -156,6 +156,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                         <EReceiptWithSizeCalculation
                             transactionID={transactionItem.transactionID}
                             transactionItem={transactionItem}
+                            shouldUseAspectRatio
                         />
                     )}
                 </View>
@@ -165,4 +166,5 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
     );
 }
 
+ReceiptPreview.displayName = 'HoverReceiptPreview';
 export default ReceiptPreview;

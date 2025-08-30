@@ -65,6 +65,7 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
                                 source={thumbnailSource}
                                 shouldUseThumbnailImage
                                 shouldUseInitialObjectPosition
+                                isAuthTokenRequired
                             />
                         )}
                     </View>
