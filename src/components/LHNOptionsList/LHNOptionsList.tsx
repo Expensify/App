@@ -4,6 +4,7 @@ import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
+import {deepEqual} from 'fast-equals';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -413,4 +414,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
 LHNOptionsList.displayName = 'LHNOptionsList';
 
-export default memo(LHNOptionsList);
+export default memo(LHNOptionsList, (prevProps, nextProps) => {
+  return deepEqual(prevProps.data, nextProps.data);
+});
