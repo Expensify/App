@@ -85,8 +85,18 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
-    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
-    const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions), [reportTransactions, reportActions]);
+    const {transactions: reportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportID);
+    const transactions = useMemo(() => {
+        const nonDeletedTransactions = getAllNonDeletedTransactions(reportTransactions, reportActions);
+
+        return nonDeletedTransactions.map((transaction) => {
+            const transactionViolations = allReportViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] || [];
+            return {
+                ...transaction,
+                violations: transactionViolations,
+            };
+        });
+    }, [reportTransactions, reportActions, allReportViolations]);
 
     const visibleTransactions = transactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
