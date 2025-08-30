@@ -10,6 +10,7 @@ import {Info} from '@components/Icon/Expensicons';
 import Popover from '@components/Popover';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -42,7 +43,8 @@ type WorkspaceCardsListLabelProps = {
 
 function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelProps) {
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>>();
-    const policy = usePolicy(route.params.policyID);
+    const policyID = route.params.policyID;
+    const policy = usePolicy(policyID);
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -55,8 +57,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
 
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    // Currently Expensify Cards only support USD, once support for more currencies is implemented, we will need to update this
-    const settlementCurrency = CONST.CURRENCY.USD;
+    const settlementCurrency = useCurrencyForExpensifyCard({policyID});
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {canBeMissing: true});
     const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`, {canBeMissing: true});
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;

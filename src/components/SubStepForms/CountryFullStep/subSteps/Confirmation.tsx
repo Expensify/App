@@ -7,6 +7,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PushRowWithModal from '@components/PushRowWithModal';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
@@ -14,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import getAvailableEuCountries from '@pages/ReimbursementAccount/utils/getAvailableEuCountries';
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
 import {setIsComingFromGlobalReimbursementsFlow} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -28,7 +30,7 @@ type ConfirmationStepProps = {
     policyID: string | undefined;
 } & SubStepProps;
 
-function Confirmation({onNext, policyID}: ConfirmationStepProps) {
+function Confirmation({onNext, policyID, isComingFromExpensifyCard}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
@@ -37,7 +39,10 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
     const currency = policy?.outputCurrency ?? '';
 
     const shouldAllowChange = currency === CONST.CURRENCY.EUR;
+    const defaultCountries = shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES;
     const currencyMappedToCountry = mapCurrencyToCountry(currency);
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID) && isComingFromExpensifyCard;
+    const countriesSupportedForExpensifyCard = getAvailableEuCountries();
 
     const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
     const [selectedCountry, setSelectedCountry] = useState<string>(countryDefaultValue);
@@ -105,7 +110,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
             </View>
             <InputWrapper
                 InputComponent={PushRowWithModal}
-                optionsList={shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES}
+                optionsList={isUkEuCurrencySupported ? countriesSupportedForExpensifyCard : defaultCountries}
                 onValueChange={(value) => setSelectedCountry(value as string)}
                 description={translate('common.country')}
                 modalHeaderTitle={translate('countryStep.selectCountry')}

@@ -237,11 +237,31 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
     }
 }
 
+function maskPin(pin = ''): string {
+    if (!pin) {
+        return '••••';
+    }
+    return pin;
+}
+
 function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountList>) {
     if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
         return [];
     }
     return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit);
+}
+
+function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAccountList>, outputCurrency?: string) {
+    if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
+        return [];
+    }
+    return Object.values(bankAccountsList).filter(
+        (bankAccount) =>
+            bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+            bankAccount?.accountData?.allowDebit &&
+            bankAccount?.bankCurrency === outputCurrency &&
+            (CONST.EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES as unknown as string).includes(bankAccount?.bankCountry),
+    );
 }
 
 function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, policyMembersAccountIDs: number[]): Card[] {
@@ -663,6 +683,14 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
 }
 
+const isCurrencySupportedForECards = (currency?: string) => {
+    if (!currency) {
+        return false;
+    }
+    const supportedCurrencies: string[] = [CONST.CURRENCY.GBP, CONST.CURRENCY.EUR];
+    return supportedCurrencies.includes(currency);
+};
+
 function getFundIdFromSettingsKey(key: string) {
     const prefix = ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS;
     if (!key?.startsWith(prefix)) {
@@ -686,8 +714,10 @@ export {
     getCardDescription,
     getMCardNumberString,
     getTranslationKeyForLimitType,
+    maskPin,
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
+    isCurrencySupportedForECards,
     getCardFeedIcon,
     getBankName,
     isSelectedFeedExpired,
@@ -724,4 +754,5 @@ export {
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
     getCorrectStepForPlaidSelectedBank,
+    getEligibleBankAccountsForUkEuCard,
 };
