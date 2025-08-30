@@ -2634,12 +2634,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/sage-intacct/advanced/payment-account',
-        getRoute: (policyID: string | undefined) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT route');
-            }
-            return `workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const;
-        },
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const,
     },
     ADD_UNREPORTED_EXPENSE: {
         route: 'search/r/:reportID/add-unreported-expense/:backToReport?',
