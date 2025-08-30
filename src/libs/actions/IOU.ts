@@ -184,7 +184,7 @@ import {
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
 } from '@libs/ReportUtils';
-import {buildSearchQueryJSON, getCurrentSearchQueryJSON, getTodoSearchQuery} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, getCurrentSearchQueryJSON, getTodoSearchQuery, getUnapprovedCashSearchQuery} from '@libs/SearchQueryUtils';
 import {getSession} from '@libs/SessionUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -246,6 +246,7 @@ type OneOnOneIOUReport = OnyxTypes.Report | undefined | null;
 
 type BaseTransactionParams = {
     amount: number;
+    modifiedAmount?: number;
     currency: string;
     created: string;
     merchant: string;
@@ -3359,6 +3360,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         attendees,
         amount,
         distance,
+        modifiedAmount,
         comment = '',
         currency,
         source = '',
@@ -3454,6 +3456,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         transactionParams: {
             amount: isExpenseReport(iouReport) ? -amount : amount,
             distance,
+            ...(modifiedAmount !== undefined && {modifiedAmount: isExpenseReport(iouReport) ? -modifiedAmount : modifiedAmount}),
             currency,
             reportID: iouReport.reportID,
             comment,
@@ -11906,7 +11909,12 @@ const expenseReportStatusFilterMapping = {
 };
 
 //  Determines whether the current search results should be optimistically updated
-function shouldOptimisticallyUpdateSearch(currentSearchQueryJSON: SearchQueryJSON, iouReport: OnyxEntry<OnyxTypes.Report>, isInvoice: boolean | undefined) {
+function shouldOptimisticallyUpdateSearch(
+    currentSearchQueryJSON: SearchQueryJSON,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    isInvoice: boolean | undefined,
+    transaction?: OnyxEntry<OnyxTypes.Transaction>,
+) {
     if (currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.INVOICE && currentSearchQueryJSON.type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
         return false;
     }
@@ -11933,13 +11941,17 @@ function shouldOptimisticallyUpdateSearch(currentSearchQueryJSON: SearchQueryJSO
     const approveQueryString = getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.APPROVE, userAccountID);
     const approveQueryJSON = buildSearchQueryJSON(approveQueryString);
 
+    const unapprovedCashQueryJSON = buildSearchQueryJSON(getUnapprovedCashSearchQuery());
+
     const validSearchTypes =
         (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) || (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE);
 
     return (
         shouldOptimisticallyUpdateByStatus &&
         validSearchTypes &&
-        (currentSearchQueryJSON.flatFilters.length === 0 || [submitQueryJSON?.hash, approveQueryJSON?.hash].includes(currentSearchQueryJSON.hash))
+        (currentSearchQueryJSON.flatFilters.length === 0 ||
+            [submitQueryJSON?.hash, approveQueryJSON?.hash].includes(currentSearchQueryJSON.hash) ||
+            (unapprovedCashQueryJSON?.hash === currentSearchQueryJSON.hash && isExpenseReport(iouReport) && transaction?.reimbursable))
     );
 }
 
@@ -11957,7 +11969,7 @@ function getSearchOnyxUpdate({
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     if (currentSearchQueryJSON && toAccountID != null && fromAccountID != null) {
-        if (shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, isInvoice)) {
+        if (shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, isInvoice, transaction)) {
             const isOptimisticToAccountData = isOptimisticPersonalDetail(toAccountID);
             const successData = [];
             if (isOptimisticToAccountData) {
@@ -12300,7 +12312,8 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                 policyTags,
             },
             transactionParams: {
-                amount: splitExpense.amount ?? 0,
+                amount: Math.abs(originalTransaction?.amount ?? 0),
+                modifiedAmount: splitExpense.amount ?? 0,
                 currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
                 created: splitExpense.created,
                 merchant: draftTransaction?.merchant ?? '',

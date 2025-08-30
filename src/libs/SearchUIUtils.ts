@@ -90,7 +90,14 @@ import {
     isOpenReport,
     isSettled,
 } from './ReportUtils';
-import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getCurrentSearchQueryJSON, getTodoSearchQuery} from './SearchQueryUtils';
+import {
+    buildCannedSearchQuery,
+    buildQueryStringFromFilterFormValues,
+    buildSearchQueryJSON,
+    getCurrentSearchQueryJSON,
+    getTodoSearchQuery,
+    getUnapprovedCashSearchQuery,
+} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
@@ -415,11 +422,7 @@ function getSuggestedSearches(defaultFeedID: string | undefined, accountID: numb
             translationPath: 'search.unapprovedCash',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.MoneyHourglass,
-            searchQuery: buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
-                reimbursable: CONST.SEARCH.BOOLEAN.YES,
-            }),
+            searchQuery: getUnapprovedCashSearchQuery(),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
             },
