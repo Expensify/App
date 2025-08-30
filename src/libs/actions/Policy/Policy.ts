@@ -5902,6 +5902,26 @@ function clearPolicyTitleFieldError(policyID: string) {
     });
 }
 
+function removePendingApproverMemberErrorMessage(policyID: string, errors: Errors) {
+    if (!policyID) {
+        return;
+    }
+
+    const filteredErrors = Object.entries(errors).filter(([, error]) => typeof error === 'string' && !error.includes(CONST.POLICY_ERROR_MESSAGES.PENDING_REPORTS));
+    const workspaceMemberError: Errors = {};
+    filteredErrors.forEach(([key, error]) => {
+        workspaceMemberError[key] = error;
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        employeeList: {
+            [sessionEmail]: {
+                errors: workspaceMemberError.length ? workspaceMemberError : null,
+            },
+        },
+    });
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -6018,5 +6038,6 @@ export {
     getCashExpenseReimbursableMode,
     updateInterestedFeatures,
     clearPolicyTitleFieldError,
+    removePendingApproverMemberErrorMessage,
     inviteWorkspaceEmployeesToUber,
 };
