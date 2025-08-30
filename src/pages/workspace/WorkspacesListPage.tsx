@@ -445,10 +445,7 @@ function WorkspacesListPage() {
                         <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                     </View>
                 ) : (
-                    <ScrollView
-                        contentContainerStyle={[styles.pt2, styles.flexGrow1, styles.flexShrink0]}
-                        addBottomSafeAreaPadding
-                    >
+                    <ScrollView contentContainerStyle={[styles.pt2, styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
                             SkeletonComponent={WorkspaceRowSkeleton}
                             headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
