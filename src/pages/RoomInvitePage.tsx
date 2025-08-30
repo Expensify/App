@@ -44,7 +44,7 @@ type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionE
 
 type MembersSection = SectionListData<OptionData, Section<OptionData>>;
 
-const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'InviteReportParticipantsPage.getValidOptions'});
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'RoomInvitePage.getValidOptions'});
 
 const defaultListOptions = {
     userToInvite: null,
