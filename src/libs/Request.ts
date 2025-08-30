@@ -4,23 +4,28 @@ import HttpUtils from './HttpUtils';
 import Log from './Log';
 import type Middleware from './Middleware/types';
 import enhanceParameters from './Network/enhanceParameters';
-import {hasReadRequiredDataFromStorage, isSupportAuthToken, isSupportRequest} from './Network/NetworkStore';
+import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
 
 let middlewares: Middleware[] = [];
 
 function makeXHR(request: Request): Promise<Response | void> {
     const finalParameters = enhanceParameters(request.command, request?.data ?? {});
     return hasReadRequiredDataFromStorage().then((): Promise<Response | void> => {
-        // If we're using the Supportal token and this is not a Supportal request
-        // let's just return a promise that will resolve itself.
-        if (isSupportAuthToken() && !isSupportRequest(request.command)) {
-            Log.info(`[API] The ${request.command} API call is skipped because user is using support token.`);
-            return new Promise<void>((resolve) => {
-                resolve();
-            });
-        }
+        return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline).then((response) => {
+            const insufficientPermissions =
+                Number(response?.jsonCode) === 666 &&
+                (typeof response?.message === 'string' && response.message.includes('You do not have the permission to do the requested action.'));
 
-        return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline);
+            if (insufficientPermissions) {
+                // Prevent retries for this request
+                if (request?.data) {
+                    request.data.shouldRetry = false;
+                }
+                Log.info('411 insufficient permissions; suppressing retry', false, {command: request.command});
+            }
+
+            return response;
+        });
     });
 }
 
