@@ -1137,7 +1137,7 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addAttachment(REPORT_ID, file, 'Attachment with comment');
+        Report.addAttachment(REPORT_ID, file, CONST.DEFAULT_TIME_ZONE, 'Attachment with comment');
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
