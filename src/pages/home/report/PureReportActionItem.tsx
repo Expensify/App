@@ -58,6 +58,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, getPersonalPolicy, isPolicyAdmin, isPolicyOwner} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
+    getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
     getChangedApproverActionMessage,
@@ -1265,6 +1266,19 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedAuditRateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
             children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
+        } else if (isActionableMentionWhisper(action)) {
+            children = (
+                <ReportActionItemBasicMessage>
+                    <RenderHTML html={getActionableMentionWhisperMessage(action)} />
+                    {actionableItemButtons.length > 0 && (
+                        <ActionableItemButtons
+                            items={actionableItemButtons}
+                            shouldUseLocalization
+                            layout="horizontal"
+                        />
+                    )}
+                </ReportActionItemBasicMessage>
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
             children = (
                 <ReportActionItemBasicMessage>
