@@ -3,6 +3,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getDestinationListSections} from '@libs/PerDiemRequestUtils';
 import type {Destination} from '@libs/PerDiemRequestUtils';
@@ -23,6 +24,9 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
     const policy = usePolicy(policyID);
     const customUnit = getPerDiemCustomUnit(policy);
     const [policyRecentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`, {canBeMissing: true});
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to focus input only on small devices
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -82,6 +86,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
             shouldHideKeyboardOnScroll={false}
+            textInputAutoFocus={!isSmallScreenWidth}
         />
     );
 }
