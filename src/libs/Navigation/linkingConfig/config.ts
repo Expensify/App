@@ -1236,6 +1236,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: ROUTES.WORKSPACE_CONFIRMATION.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.WORKSPACE_DUPLICATE]: {
+                    screens: {
+                        [SCREENS.WORKSPACE_DUPLICATE.ROOT]: ROUTES.WORKSPACE_DUPLICATE.route,
+                        [SCREENS.WORKSPACE_DUPLICATE.SELECT_FEATURES]: ROUTES.WORKSPACE_DUPLICATE_SELECT_FEATURES.route,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.NEW_TASK]: {
                     screens: {
                         [SCREENS.NEW_TASK.ROOT]: ROUTES.NEW_TASK.route,
