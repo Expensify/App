@@ -376,7 +376,7 @@ const translations = {
         signInWithGoogle: 'Inloggen met Google',
         signInWithApple: 'Inloggen met Apple',
         signInWith: 'Inloggen met',
-        continue: "I'm sorry, but I need a specific string or text to translate. Could you please provide the text you would like translated to Nederlands?",
+        continue: 'Doorgaan',
         firstName: 'Voornaam',
         lastName: 'Achternaam',
         scanning: 'Scannen',
@@ -5430,7 +5430,7 @@ const translations = {
             subscriptionText: ({usersCount, finalCount}: ChangeOwnerSubscriptionParams) =>
                 `Het overnemen van deze werkruimte zal het jaarlijkse abonnement samenvoegen met uw huidige abonnement. Dit zal uw abonnementsomvang vergroten met ${usersCount} leden, waardoor uw nieuwe abonnementsomvang ${finalCount} wordt. Wilt u doorgaan?`,
             duplicateSubscriptionTitle: 'Waarschuwing voor dubbele abonnementen',
-            duplicateSubscriptionButtonText: "I'm sorry, but I need a specific string or text to translate. Could you please provide the text you would like translated to Nederlands?",
+            duplicateSubscriptionButtonText: 'Doorgaan',
             duplicateSubscriptionText: ({email, workspaceName}: ChangeOwnerDuplicateSubscriptionParams) =>
                 `Het lijkt erop dat je de facturering voor de werkruimtes van ${email} probeert over te nemen, maar om dat te doen, moet je eerst beheerder zijn van al hun werkruimtes.\n\nKlik op "Doorgaan" als je alleen de facturering voor de werkruimte ${workspaceName} wilt overnemen.\n\nAls je de facturering voor hun hele abonnement wilt overnemen, laat hen je dan eerst als beheerder toevoegen aan al hun werkruimtes voordat je de facturering overneemt.`,
             hasFailedSettlementsTitle: 'Kan eigendom niet overdragen',
