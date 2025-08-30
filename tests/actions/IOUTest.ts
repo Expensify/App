@@ -1668,6 +1668,77 @@ describe('actions/IOU', () => {
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
+
+        it('should sanitize waypoints to only include allowed fields (name, address, lat, lng)', () => {
+            // Given: Waypoints with extra fields that should be stripped out
+            const waypointsWithExtraFields = {
+                waypoint0: {
+                    name: 'Start Location',
+                    address: '123 Main St',
+                    lat: 40.7128,
+                    lng: -74.006,
+                    city: 'New York',
+                    state: 'NY',
+                    zipCode: '10001',
+                    country: 'US',
+                    street: '123 Main St',
+                    street2: 'Apt 4B',
+                    keyForList: 'unique-key-1',
+                    pendingAction: 'add',
+                    extraField: 'should be removed',
+                },
+                waypoint1: {
+                    address: '456 Oak Ave',
+                    lat: 40.7589,
+                    lng: -73.9851,
+                    city: 'New York',
+                    state: 'NY',
+                    zipCode: '10002',
+                    keyForList: 'unique-key-2',
+                    anotherExtraField: 'should also be removed',
+                },
+            };
+
+            // Mock API.write to capture the parameters
+            const mockAPIWrite = jest.fn();
+            API.write = mockAPIWrite;
+
+            // When: Creating a distance request with waypoints containing extra fields
+            createDistanceRequest({
+                report: {reportID: '123'},
+                participants: [{}],
+                transactionParams: {
+                    amount: 1000,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '2023-01-01',
+                    merchant: 'Distance',
+                    comment: 'Test distance request',
+                    validWaypoints: waypointsWithExtraFields,
+                },
+            });
+
+            // Then: The API should be called with sanitized waypoints containing only allowed fields
+            expect(mockAPIWrite).toHaveBeenCalled();
+            const apiCall = mockAPIWrite.mock.calls[0];
+            const parameters = apiCall[1];
+            const sanitizedWaypoints = JSON.parse(parameters.waypoints);
+
+            // Verify waypoint0 only has allowed fields
+            expect(sanitizedWaypoints.waypoint0).toEqual({
+                name: 'Start Location',
+                address: '123 Main St',
+                lat: 40.7128,
+                lng: -74.006,
+            });
+
+            // Verify waypoint1 only has allowed fields (no name field since it wasn't provided)
+            expect(sanitizedWaypoints.waypoint1).toEqual({
+                address: '456 Oak Ave',
+                lat: 40.7589,
+                lng: -73.9851,
+            });
+        });
     });
 
     describe('split expense', () => {
