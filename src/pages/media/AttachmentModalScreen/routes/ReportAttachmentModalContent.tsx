@@ -20,6 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ModalType from '@src/types/utils/ModalType';
+import useOriginalReportID from '@hooks/useOriginalReportID';
 
 function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps) {
     const {
@@ -38,13 +39,17 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         onConfirm,
         onShow,
     } = route.params;
-
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
+    // Extract the reportActionID from the attachmentID (format: reportActionID_index)
+    const reportActionID = useMemo(() => attachmentID?.split('_')?.[0], [attachmentID]);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
         canBeMissing: true,
     });
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
+    const originalReportID = useOriginalReportID(reportID, reportActionID ? (reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID] ?? {reportActionID}) : undefined);
+    const reportActionReportID = originalReportID ?? reportID;
+
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionReportID}`, {canBeMissing: false});
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportActionReportID}`, {
         canBeMissing: false,
     });
 
@@ -56,35 +61,33 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths | null>(null);
     const submitRef = useRef<View | HTMLElement>(null);
 
-    // Extract the reportActionID from the attachmentID (format: reportActionID_index)
-    const reportActionID = useMemo(() => attachmentID?.split('_')?.[0], [attachmentID]);
 
     const shouldFetchReport = useMemo(() => {
         return isEmptyObject(reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID]);
     }, [reportActions, reportActionID]);
 
     const isLoading = useMemo(() => {
-        if (isOffline || isReportNotFound(report) || !reportID) {
+        if (isOffline || isReportNotFound(report) || !reportActionReportID) {
             return false;
         }
         const isEmptyReport = isEmptyObject(report);
         return !!isLoadingApp || isEmptyReport || (reportMetadata?.isLoadingInitialReportActions !== false && shouldFetchReport);
-    }, [isOffline, reportID, isLoadingApp, report, reportMetadata, shouldFetchReport]);
+    }, [isOffline, reportActionReportID, isLoadingApp, report, reportMetadata, shouldFetchReport]);
 
     const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [source, setSource] = useState(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined));
 
     const fetchReport = useCallback(() => {
-        openReport(reportID, reportActionID);
-    }, [reportID, reportActionID]);
+        openReport(reportActionReportID, reportActionID);
+    }, [reportActionReportID, reportActionID]);
 
     useEffect(() => {
-        if (!reportID || !shouldFetchReport) {
+        if (!reportActionReportID || !shouldFetchReport) {
             return;
         }
 
         fetchReport();
-    }, [reportID, fetchReport, shouldFetchReport]);
+    }, [reportActionReportID, fetchReport, shouldFetchReport]);
 
     const onCarouselAttachmentChange = useCallback(
         (attachment: Attachment) => {
