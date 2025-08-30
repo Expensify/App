@@ -1,14 +1,14 @@
-import React, {forwardRef, lazy, Suspense, useEffect, useMemo, useState} from 'react';
+import React, {lazy, Suspense, useEffect, useMemo, useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {MapViewHandle, MapViewProps} from './MapViewTypes';
+import type {MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 
-const MapView = forwardRef<MapViewHandle, MapViewProps>((props, ref) => {
+function MapView({ref, ...props}: MapViewProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -58,6 +58,6 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>((props, ref) => {
             </Suspense>
         </ErrorBoundary>
     );
-});
+}
 
 export default MapView;
