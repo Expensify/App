@@ -134,7 +134,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
             validate={customValidate ?? validate}
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow1]}
-            forwardedRef={formRef}
+            ref={formRef}
             enabledWhenOffline
         >
             <View>
