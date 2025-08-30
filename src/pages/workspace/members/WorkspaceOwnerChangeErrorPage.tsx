@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,6 +9,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
@@ -18,6 +19,7 @@ import {clearWorkspaceOwnerChangeFlow} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import useShouldShowChangeOwnerPage from './useShouldShowChangeOwnerPage';
 
 type WorkspaceOwnerChangeSuccessPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.OWNER_CHANGE_ERROR>;
 
@@ -29,15 +31,21 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
     const policyID = route.params.policyID;
 
     const closePage = useCallback(() => {
-        clearWorkspaceOwnerChangeFlow(policyID);
         Navigation.goBack();
         Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+        InteractionManager.runAfterInteractions(() => {
+            clearWorkspaceOwnerChangeFlow(policyID);
+        });
     }, [accountID, policyID]);
+
+    const policy = usePolicy(policyID);
+    const shouldShow = useShouldShowChangeOwnerPage(policy, accountID);
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
+            shouldBeBlocked={!shouldShow}
         >
             <ScreenWrapper
                 testID={WorkspaceOwnerChangeErrorPage.displayName}
