@@ -183,6 +183,7 @@ type SearchParams = {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
     offset: number;
+    prevReportsLength?: number;
     shouldCalculateTotals: boolean;
 };
 
