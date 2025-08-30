@@ -80,7 +80,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const requestorStepRef = useRef<View>(null);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
-    const policyCurrency = policy?.outputCurrency ?? '';
+    const policyCurrency = policy ? policy?.outputCurrency : CONST.CURRENCY.USD;
     const hasUnsupportedCurrency = !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ?? false);
     const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
@@ -325,6 +325,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
                 }
                 setUSDBankAccountStep(null);
                 setBankAccountSubStep(null);
+                if (!policyIDParam) {
+                    clearReimbursementAccountDraft();
+                }
                 break;
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
                 setPlaidEvent(null);
@@ -400,7 +403,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
 
-    if ((!isLoading && (isEmptyObject(policy) || !isPolicyAdmin(policy))) || isPendingDeletePolicy(policy)) {
+    if (!!policyIDParam && ((!isLoading && (isEmptyObject(policy) || !isPolicyAdmin(policy))) || isPendingDeletePolicy(policy))) {
         return (
             <ScreenWrapper testID={ReimbursementAccountPage.displayName}>
                 <FullPageNotFoundView
@@ -486,7 +489,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             policyName={policyName}
             isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
             toggleValidateCodeActionModal={setIsValidateCodeActionModalVisible}
-            onBackButtonPress={Navigation.goBack}
+            onBackButtonPress={() => Navigation.goBack(backTo)}
             shouldShowContinueSetupButton={shouldShowContinueSetupButton}
             isNonUSDWorkspace={isNonUSDWorkspace}
             setNonUSDBankAccountStep={setNonUSDBankAccountStep}

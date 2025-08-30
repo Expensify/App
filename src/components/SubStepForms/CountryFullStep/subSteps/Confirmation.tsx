@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
@@ -31,16 +32,23 @@ type ConfirmationStepProps = {
 function Confirmation({onNext, policyID}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
+    const [selectedCountry, setSelectedCountry] = useState<string>('');
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const isConnectedToPolicy = !!policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const currency = policy?.outputCurrency ?? '';
+
+    const isGlobalReimbursementsFeatureEnabled = isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND);
+    // TODO: change this after introducing Global Reimbursements
+    const currency = !isConnectedToPolicy && !isGlobalReimbursementsFeatureEnabled ? CONST.CURRENCY.USD : (reimbursementAccountDraft?.currency ?? policy?.outputCurrency ?? '');
 
     const shouldAllowChange = currency === CONST.CURRENCY.EUR;
     const currencyMappedToCountry = mapCurrencyToCountry(currency);
 
-    const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
-    const [selectedCountry, setSelectedCountry] = useState<string>(countryDefaultValue);
+    // TODO: change this after introducing Global Reimbursements
+    const countryDefaultValue =
+        !isConnectedToPolicy && !isGlobalReimbursementsFeatureEnabled ? CONST.COUNTRY.US : (reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '');
 
     const disableSubmit = !(currency in CONST.CURRENCY);
 
@@ -91,18 +99,20 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
                 title={currency}
                 interactive={false}
             />
-            <View style={styles.ph5}>
-                <Text style={[styles.mb3, styles.mutedTextLabel]}>
-                    {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
-                    <TextLink
-                        style={[styles.label]}
-                        onPress={handleSettingsPress}
-                    >
-                        {translate('common.settings').toLowerCase()}
-                    </TextLink>
-                    .
-                </Text>
-            </View>
+            {!!policyID && (
+                <View style={styles.ph5}>
+                    <Text style={[styles.mb3, styles.mutedTextLabel]}>
+                        {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
+                        <TextLink
+                            style={[styles.label]}
+                            onPress={handleSettingsPress}
+                        >
+                            {translate('common.settings').toLowerCase()}
+                        </TextLink>
+                        .
+                    </Text>
+                </View>
+            )}
             <InputWrapper
                 InputComponent={PushRowWithModal}
                 optionsList={shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES}
@@ -111,7 +121,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
                 modalHeaderTitle={translate('countryStep.selectCountry')}
                 searchInputTitle={translate('countryStep.findCountry')}
                 shouldAllowChange={shouldAllowChange}
-                value={selectedCountry}
+                value={selectedCountry || countryDefaultValue}
                 inputID={COUNTRY}
                 shouldSaveDraft={false}
             />
