@@ -164,8 +164,10 @@ function IOURequestStepConfirmation({
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt>>({});
-    const requestType = getRequestType(transaction);
-    const isDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+    const requestType = getRequestType(transaction, isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE));
+    const isDistanceRequest =
+        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE || requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP || requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+    const isManualDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
 
@@ -305,7 +307,7 @@ function IOURequestStepConfirmation({
 
     useEffect(() => {
         transactions.forEach((item) => {
-            if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !!item?.category) {
+            if (!isDistanceRequest || !!item?.category) {
                 return;
             }
             setMoneyRequestCategory(item.transactionID, defaultCategory, policy?.id);
@@ -593,6 +595,7 @@ function IOURequestStepConfirmation({
                     },
                     transactionParams: {
                         amount: item.amount,
+                        distance: isManualDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined,
                         currency: item.currency,
                         created: item.created,
                         merchant: item.merchant,
@@ -633,6 +636,7 @@ function IOURequestStepConfirmation({
             action,
             customUnitRateID,
             isDraftPolicy,
+            isManualDistanceRequest,
         ],
     );
 
@@ -656,6 +660,7 @@ function IOURequestStepConfirmation({
                 transactionParams: {
                     amount: transaction.amount,
                     comment: trimmedComment,
+                    distance: isManualDistanceRequest ? (transaction.comment?.customUnit?.quantity ?? undefined) : undefined,
                     created: transaction.created,
                     currency: transaction.currency,
                     merchant: transaction.merchant,
@@ -679,6 +684,7 @@ function IOURequestStepConfirmation({
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             iouType,
+            isManualDistanceRequest,
             policy,
             policyCategories,
             policyTags,
@@ -1046,7 +1052,7 @@ function IOURequestStepConfirmation({
         showPreviousTransaction();
     };
 
-    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
+    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest, isManualDistanceRequest);
 
     const shouldShowSmartScanFields =
         !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
@@ -1132,6 +1138,7 @@ function IOURequestStepConfirmation({
                         iouMerchant={transaction?.merchant}
                         iouCreated={transaction?.created}
                         isDistanceRequest={isDistanceRequest}
+                        isManualDistanceRequest={isManualDistanceRequest}
                         isPerDiemRequest={isPerDiemRequest}
                         shouldShowSmartScanFields={shouldShowSmartScanFields}
                         action={action}
