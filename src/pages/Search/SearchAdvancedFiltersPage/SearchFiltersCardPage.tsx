@@ -119,7 +119,7 @@ function SearchFiltersCardPage() {
             feed: feeds,
         });
 
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [userCardList, selectedCards, cardFeedsSectionData.selected, workspaceCardFeeds]);
 
     const updateNewCards = useCallback(
@@ -169,7 +169,7 @@ function SearchFiltersCardPage() {
                     <HeaderWithBackButton
                         title={translate('common.card')}
                         onBackButtonPress={() => {
-                            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                         }}
                     />
                     <View style={[styles.flex1]}>
