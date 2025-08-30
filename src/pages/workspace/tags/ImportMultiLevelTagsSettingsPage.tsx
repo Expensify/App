@@ -2,14 +2,12 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportSpreadsheet from '@components/ImportSpreadsheet';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -46,7 +44,6 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isImportingTags, setIsImportingTags] = useState(false);
-    const {setIsClosing} = useCloseImportPage();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
 
     useEffect(() => {
@@ -62,12 +59,6 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
     }
-
-    const closeImportPageAndModal = () => {
-        setIsClosing(true);
-        setIsImportingTags(false);
-        Navigation.goBack(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-    };
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
@@ -143,16 +134,6 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                             large
                         />
                     </FixedFooter>
-                    <ConfirmModal
-                        isVisible={spreadsheet?.shouldFinalModalBeOpened ?? false}
-                        title={spreadsheet?.importFinalModal?.title ?? ''}
-                        prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                        onConfirm={closeImportPageAndModal}
-                        onCancel={closeImportPageAndModal}
-                        confirmText={translate('common.buttonConfirm')}
-                        shouldShowCancelButton={false}
-                        shouldHandleNavigationBack
-                    />
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
