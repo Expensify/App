@@ -804,7 +804,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             if (!isTransactionDeleted.current) {
                 return;
             }
-
+            isTransactionDeleted.current = false;
             deleteTransaction();
         };
     }, [deleteTransaction]);
