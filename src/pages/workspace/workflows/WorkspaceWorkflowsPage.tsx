@@ -41,12 +41,13 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getCorrectedAutoReportingFrequency, getDefaultApprover, isControlPolicy, isPaidGroupPolicy as isPaidGroupPolicyUtil, isPolicyAdmin as isPolicyAdminUtil} from '@libs/PolicyUtils';
-import {convertPolicyEmployeesToApprovalWorkflows, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, getEligibleExistingBusinessBankAccounts, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,6 +72,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds] = useCardFeeds(policy?.id);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
     const [isUpdateWorkspaceCurrencyModalOpen, setIsUpdateWorkspaceCurrencyModalOpen] = useState(false);
@@ -87,6 +89,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     );
     const {isBetaEnabled} = usePermissions();
 
+    const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency).length > 0;
+
     const isAdvanceApproval = approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1;
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
     const displayNameForAuthorizedPayer = useMemo(
@@ -98,6 +102,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const fetchData = useCallback(() => {
         openPolicyWorkflowsPage(route.params.policyID);
+        getPaymentMethods();
     }, [route.params.policyID]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
@@ -112,9 +117,14 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
         } else {
             updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
-            navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+            const hasValidExistingUSDAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, CONST.CURRENCY.USD).length > 0;
+            if (hasValidExistingUSDAccounts) {
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(route.params.policyID));
+            } else {
+                navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+            }
         }
-    }, [isBetaEnabled, policy, route.params.policyID]);
+    }, [bankAccountList, isBetaEnabled, policy, route.params.policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isPolicyAdmin = isPolicyAdminUtil(policy);
@@ -152,7 +162,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, [policy, route.params.policyID, availableMembers, usedApproverEmails]);
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
-        const {addressName, bankName, bankAccountID} = policy?.achAccount ?? {};
+        const {bankAccountID} = policy?.achAccount ?? {};
+        const bankAccount = bankAccountList?.[bankAccountID ?? CONST.DEFAULT_NUMBER_ID];
+        const bankName = policy?.achAccount?.bankName ?? bankAccount?.accountData?.additionalData?.bankName ?? '';
+        const addressName = policy?.achAccount?.addressName ?? bankAccount?.accountData?.addressName ?? '';
+        const accountData = bankAccount?.accountData ?? policy?.achAccount ?? {};
         const shouldShowBankAccount = !!bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
         const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
 
@@ -244,7 +258,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     }
 
                     const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
-                    setWorkspaceReimbursement(route.params.policyID, newReimbursementChoice, newReimburserEmail ?? '');
+                    setWorkspaceReimbursement({
+                        policyID: route.params.policyID,
+                        reimbursementChoice: newReimbursementChoice,
+                        reimburserEmail: newReimburserEmail ?? '',
+                    });
                 },
                 subMenuItems:
                     !isOffline && policy?.isLoadingWorkspaceReimbursement === true ? (
@@ -263,7 +281,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             <MenuItem
                                 title={shouldShowBankAccount ? addressName : translate('bankAccount.addBankAccount')}
                                 titleStyle={shouldShowBankAccount ? undefined : styles.textStrong}
-                                description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, policy?.achAccount ?? {})}
+                                description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData)}
                                 onPress={() => {
                                     if (isAccountLocked) {
                                         showLockedAccountModal();
@@ -278,6 +296,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         setIsUpdateWorkspaceCurrencyModalOpen(true);
                                         return;
                                     }
+
+                                    if (!shouldShowBankAccount && hasValidExistingAccounts) {
+                                        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(route.params.policyID));
+                                        return;
+                                    }
+
                                     navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
                                 }}
                                 icon={shouldShowBankAccount ? bankIcon.icon : Plus}
@@ -321,6 +345,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         ];
     }, [
         policy,
+        bankAccountList,
         styles,
         translate,
         onPressAutoReportingFrequency,
@@ -333,8 +358,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         displayNameForAuthorizedPayer,
         route.params.policyID,
         updateApprovalMode,
-        isBetaEnabled,
         isAccountLocked,
+        isBetaEnabled,
+        hasValidExistingAccounts,
         showLockedAccountModal,
     ]);
 

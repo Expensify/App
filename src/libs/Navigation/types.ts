@@ -1943,6 +1943,9 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.INVOICES]: {
         policyID: string;
     };
