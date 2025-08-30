@@ -62,7 +62,6 @@ function cacheAttachment(attachmentID: string, uri: string, type?: string) {
 }
 
 function getCachedAttachment(attachmentID: string, attachment: OnyxEntry<Attachment>, currentSource: string) {
-    console.log('getCachedAttachment', attachmentID, attachment, currentSource);
     if (!attachment || (attachment?.remoteSource && attachment.remoteSource !== currentSource)) {
         cacheAttachment(attachmentID, currentSource);
         return Promise.resolve(currentSource);
