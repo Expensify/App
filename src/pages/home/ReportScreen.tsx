@@ -1,5 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
@@ -331,6 +331,19 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
 
+    const reportIdRef = useRef<string | undefined>(null);
+
+    useFocusEffect(() => {
+        if (!reportIdRef.current && reportOnyx?.reportID) {
+            reportIdRef.current = reportOnyx?.reportID;
+        } else {
+            if (reportOnyx?.reportID) {
+                return;
+            }
+            Navigation.goBack();
+        }
+    });
+
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
             return;
@@ -465,7 +478,15 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
 
             // eslint-disable-next-line react-compiler/react-compiler
-            if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+            if (
+                !wasReportAccessibleRef?.current &&
+                !firstRenderRef?.current &&
+                !reportID &&
+                !reportIdRef?.current &&
+                !isOptimisticDelete &&
+                !reportMetadata?.isLoadingInitialReportActions &&
+                !userLeavingStatus
+            ) {
                 // eslint-disable-next-line react-compiler/react-compiler
                 return true;
             }
@@ -473,7 +494,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [firstRender, shouldShowNotFoundLinkedAction, reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, currentReportIDFormRoute],
+        [
+            firstRender,
+            shouldShowNotFoundLinkedAction,
+            reportID,
+            isOptimisticDelete,
+            reportMetadata?.isLoadingInitialReportActions,
+            userLeavingStatus,
+            currentReportIDFormRoute,
+            reportIdRef.current,
+        ],
     );
 
     const createOneTransactionThreadReport = useCallback(() => {
