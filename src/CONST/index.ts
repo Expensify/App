@@ -3022,6 +3022,9 @@ const CONST = {
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
             },
+            UNSUPPORTED_NAMES: {
+                FINANCIALFORCE: 'financialForce',
+            },
             ROUTE: {
                 QBO: 'quickbooks-online',
                 XERO: 'xero',
