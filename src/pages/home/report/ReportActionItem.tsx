@@ -26,7 +26,7 @@ import {
 } from '@userActions/Report';
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {clearError} from '@userActions/Transaction';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -95,6 +95,9 @@ function ReportActionItem({
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`];
+    const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(action, CONST.REPORT.MOVE_TYPE.FROM)}`];
+    const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(action, CONST.REPORT.MOVE_TYPE.TO)}`];
+    const movedFromOrToReportMessage = useMemo(() => ModifiedExpenseMessage.getMovedFromOrToReportMessage(movedFromReport, movedToReport), [movedFromReport, movedToReport]);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -143,7 +146,11 @@ function ReportActionItem({
                 action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
                 report,
             )}
-            modifiedExpenseMessage={ModifiedExpenseMessage.getForReportAction({reportOrID: reportID, reportAction: action})}
+            modifiedExpenseMessage={ModifiedExpenseMessage.getForReportAction({
+                reportAction: action,
+                policyID: report?.policyID,
+                movedFromOrToReportMessage,
+            })}
             getTransactionsWithReceipts={getTransactionsWithReceipts}
             clearError={clearError}
             clearAllRelatedReportActionErrors={clearAllRelatedReportActionErrors}

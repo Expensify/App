@@ -546,7 +546,13 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  */
-function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>, isReportArchived = false): string {
+function getLastMessageTextForReport(
+    report: OnyxEntry<Report>,
+    lastActorDetails: Partial<PersonalDetails> | null,
+    movedFromOrToReportMessage?: string,
+    policy?: OnyxEntry<Policy>,
+    isReportArchived = false,
+): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
     const lastVisibleMessage = getLastVisibleMessage(report?.reportID);
@@ -611,7 +617,11 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${translateLocal('common.attachment')}]`;
     } else if (isModifiedExpenseAction(lastReportAction)) {
-        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: lastReportAction});
+        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({
+            reportAction: lastReportAction,
+            policyID: report?.policyID,
+            movedFromOrToReportMessage,
+        });
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
         const movedTransactionOriginalMessage = getOriginalMessage(lastReportAction) ?? {};

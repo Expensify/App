@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidDraftComment} from '@libs/DraftCommentUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
@@ -211,7 +212,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                       }
                     : null;
             }
-            const lastMessageTextFromReport = getLastMessageTextForReport(item, lastActorDetails, itemPolicy, !!itemReportNameValuePairs?.private_isArchived);
+            const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
+            const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${ModifiedExpenseMessage.getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
+            const movedFromOrToReportMessage = ModifiedExpenseMessage.getMovedFromOrToReportMessage(movedFromReport, movedToReport);
+            const lastMessageTextFromReport = getLastMessageTextForReport(item, lastActorDetails, movedFromOrToReportMessage, itemPolicy, !!itemReportNameValuePairs?.private_isArchived);
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
