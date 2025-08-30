@@ -2,12 +2,13 @@ import React, {useMemo} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
-import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 
-function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenProps) {
+function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.WORKSPACE_AVATAR>) {
     const {policyID} = route.params;
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
@@ -15,17 +16,16 @@ function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenP
 
     const avatarURL = policy?.avatarURL ?? getDefaultWorkspaceAvatar(policy?.name ?? '');
 
-    const contentProps = useMemo(
-        () =>
-            ({
-                source: getFullSizeAvatar(avatarURL, 0),
-                headerTitle: policy?.name,
-                isWorkspaceAvatar: true,
-                originalFileName: policy?.originalFileName ?? policy?.id,
-                shouldShowNotFoundPage: !Object.keys(policy ?? {}).length && !isLoadingApp,
-                isLoading: !Object.keys(policy ?? {}).length && !!isLoadingApp,
-                maybeIcon: true,
-            }) satisfies Partial<AttachmentModalBaseContentProps>,
+    const contentProps = useMemo<AttachmentModalBaseContentProps>(
+        () => ({
+            source: getFullSizeAvatar(avatarURL, 0),
+            headerTitle: policy?.name,
+            isWorkspaceAvatar: true,
+            originalFileName: policy?.originalFileName ?? policy?.id,
+            shouldShowNotFoundPage: !Object.keys(policy ?? {}).length && !isLoadingApp,
+            isLoading: !Object.keys(policy ?? {}).length && !!isLoadingApp,
+            maybeIcon: true,
+        }),
         [avatarURL, isLoadingApp, policy],
     );
 
