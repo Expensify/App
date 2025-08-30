@@ -112,7 +112,7 @@ function createOption(
     if (report) {
         result.private_isArchived = isReportArchived;
         result.allReportErrors = reportAttributesDerived?.reportErrors ?? {};
-        result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        result.brickRoadIndicator = reportAttributesDerived?.brickRoadStatus ?? '';
         // result.pendingAction = report.pendingFields ? report.pendingFields.createChat : undefined;
         result.reportID = report.reportID;
 
