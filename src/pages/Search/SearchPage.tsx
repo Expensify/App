@@ -666,6 +666,16 @@ function SearchPage({route}: SearchPageProps) {
         }
     }, []);
 
+    const footerData = useMemo(() => {
+        const shouldUseClientTotal = selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected;
+
+        const currency = metadata?.currency;
+        const count = shouldUseClientTotal ? selectedTransactionsKeys.length : metadata?.count;
+        const total = shouldUseClientTotal ? Object.values(selectedTransactions).reduce((acc, transaction) => acc - transaction.convertedAmount, 0) : metadata?.total;
+
+        return {count, total, currency};
+    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);
+
     if (shouldUseNarrowLayout) {
         return (
             <>
@@ -676,6 +686,7 @@ function SearchPage({route}: SearchPageProps) {
                         headerButtonsOptions={headerButtonsOptions}
                         searchResults={searchResults}
                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                        footerData={footerData}
                     />
                     <DragAndDropConsumer onDrop={initScanRequest}>
                         <DropZoneUI
@@ -778,7 +789,13 @@ function SearchPage({route}: SearchPageProps) {
                                     handleSearch={handleSearchAction}
                                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                 />
-                                {shouldShowFooter && <SearchPageFooter metadata={metadata} />}
+                                {shouldShowFooter && (
+                                    <SearchPageFooter
+                                        count={footerData.count}
+                                        total={footerData.total}
+                                        currency={footerData.currency}
+                                    />
+                                )}
                                 <DragAndDropConsumer onDrop={initScanRequest}>
                                     <DropZoneUI
                                         icon={Expensicons.SmartScan}

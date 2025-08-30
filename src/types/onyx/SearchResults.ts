@@ -429,10 +429,10 @@ type SearchTransaction = {
     cardName?: string;
 
     /** The converted amount of the transaction, if a currency conversion is used */
-    convertedAmount?: number;
+    convertedAmount: number;
 
     /** The currency that the converted amount is in */
-    convertedCurrency?: string;
+    convertedCurrency: string;
 };
 
 /** Model of tasks search result */

@@ -969,6 +969,8 @@ function getTransactionsSections(
                 hasViolation: transactionItem.hasViolation,
                 cardID: transactionItem.cardID,
                 cardName: transactionItem.cardName,
+                convertedAmount: transactionItem.convertedAmount,
+                convertedCurrency: transactionItem.convertedCurrency,
             };
 
             transactionsSections.push(transactionSection);

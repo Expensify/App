@@ -35,6 +35,12 @@ type SelectedTransactionInfo = {
 
     /** The transaction amount */
     amount: number;
+
+    /** The converted transaction amount into either group currency, or the active policy currency */
+    convertedAmount: number;
+
+    /** The currency that the converted amount is in */
+    convertedCurrency: string;
 };
 
 /** Model of selected transactions */
