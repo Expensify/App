@@ -3,7 +3,6 @@ title: Global Reimbursement - U.S.
 description: Learn how to enable international reimbursements if your business bank account is in the U.S.
 keywords: [Expensify Classic, global reimbursement, U.S., USD, international payments, direct deposit, DocuSign, compliance]
 ---
-<div id="expensify-classic" markdown="1">
 
 If your business bank account is based in the U.S., you can enable global reimbursements to pay team members in nearly any country. This guide walks you through setting that up in Expensify.
 
@@ -82,4 +81,3 @@ This is the person who manages reimbursements and bank setup in Expensify.
 ## Why can't my employee add a non-USD deposit account?
 Make sure your employee's default workspace is set to the one linked to the bank you're using for global payments. They can confirm their default workspace by following [these steps](https://help.expensify.com/articles/expensify-classic/workspaces/Navigate-multiple-workspaces).
 
-</div>

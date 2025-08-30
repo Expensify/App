@@ -93,9 +93,6 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
-    /** The ID of the transaction thread report if there is a single transaction */
-    transactionThreadReportID?: string;
-
     /** Report transactions */
     reportTransactions?: OnyxEntry<OnyxTypes.Transaction[]>;
 
@@ -132,7 +129,6 @@ function ReportActionCompose({
     onComposerBlur,
     didHideComposerInput,
     reportTransactions,
-    transactionThreadReportID,
 }: ReportActionComposeProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
@@ -325,12 +321,11 @@ function ReportActionCompose({
                 if (Array.isArray(attachmentFileRef.current)) {
                     // Handle multiple files
                     attachmentFileRef.current.forEach((file) => {
-                        addAttachmentReportActions(transactionThreadReportID ?? reportID, reportID, file, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, newCommentTrimmed, true);
+                        addAttachmentReportActions(reportID, file, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, newCommentTrimmed, true);
                     });
                 } else {
                     // Handle single file
                     addAttachmentReportActions(
-                        transactionThreadReportID ?? reportID,
                         reportID,
                         attachmentFileRef.current,
                         personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
@@ -345,7 +340,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [onSubmit, reportID, personalDetail.timezone, transactionThreadReportID],
+        [onSubmit, reportID, personalDetail.timezone],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {

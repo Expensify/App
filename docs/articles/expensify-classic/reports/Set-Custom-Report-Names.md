@@ -3,7 +3,6 @@ title: Set Custom Report Names
 description: Automatically apply and enforce report titles across your workspace.
 keywords: [Expensify Classic, default report title, report naming, enforce report title, report template, automatic report name, customize report name]
 ---
-<div id="expensify-classic" markdown="1">
 
 Automatically generate standardized report titles across your workspace using formulas. Admins can pull in dynamic data like report type or member name, and even lock naming rules to prevent edits.
 
@@ -11,7 +10,7 @@ Automatically generate standardized report titles across your workspace using fo
 
 # Customize Report Titles Using Formulas
 
-**Navigation:**
+**To set a custom report title on your workspace:**
 1. Head to **Settings > Workspace > [Workspace Name] > Rules**.
 2. Scroll to **Custom Report Names**.
 3. Configure the title formula using your preferred formulas (see below).
@@ -98,4 +97,3 @@ Add `|` functions to format results:
 | `substr:x:y` | `{report:policyname|substr:20|frontpart}` → Sales | Chains multiple functions |
 | `domain` | `{report:submit:from:email|domain}` → email.com | Returns email domain |
 
-</div>
