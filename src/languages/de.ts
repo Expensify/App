@@ -6301,7 +6301,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `hat begonnen, diesen Bericht nach ${label} zu exportieren...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `Fehler beim Exportieren dieses Berichts nach ${label} ("${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
+                    `Fehler beim Exportieren dieses Berichts nach ${label} ("${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}")`,
                 managerAttachReceipt: `hat eine Quittung hinzugefügt`,
                 managerDetachReceipt: `einen Beleg entfernt`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `${currency}${amount} anderswo bezahlt`,
