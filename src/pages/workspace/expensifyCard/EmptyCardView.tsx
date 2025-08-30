@@ -53,7 +53,9 @@ function EmptyCardView({isBankAccountVerified}: EmptyCardViewProps) {
                     minModalHeight={isBankAccountVerified ? 500 : 400}
                 />
             </View>
-            <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
+            <View style={[styles.workspaceSection]}>
+                <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
+            </View>
         </ScrollView>
     );
 }
