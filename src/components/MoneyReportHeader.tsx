@@ -241,7 +241,7 @@ function MoneyReportHeader({
 
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
 
-    const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, stopAnimation, startApprovedAnimation} = usePaymentAnimations();
+    const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, stopAnimation} = usePaymentAnimations();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -430,7 +430,6 @@ function MoneyReportHeader({
         } else if (isAnyTransactionOnHold) {
             setIsHoldMenuVisible(true);
         } else {
-            startApprovedAnimation();
             approveMoneyRequest(moneyRequestReport, true);
             if (currentSearchQueryJSON) {
                 search({
@@ -1256,10 +1255,9 @@ function MoneyReportHeader({
                     moneyRequestReport={moneyRequestReport}
                     startAnimation={() => {
                         if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-                            startApprovedAnimation();
-                        } else {
-                            startAnimation();
+                            return;
                         }
+                        startAnimation();
                     }}
                     transactionCount={transactionIDs?.length ?? 0}
                 />

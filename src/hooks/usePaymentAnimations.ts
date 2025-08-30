@@ -15,17 +15,11 @@ function usePaymentAnimations() {
         HapticFeedback.longPress();
     }, []);
 
-    const startApprovedAnimation = useCallback(() => {
-        setIsApprovedAnimationRunning(true);
-        HapticFeedback.longPress();
-    }, []);
-
     return {
         isPaidAnimationRunning,
         isApprovedAnimationRunning,
         stopAnimation,
         startAnimation,
-        startApprovedAnimation,
     };
 }
 
