@@ -11,6 +11,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setMoneyRequestDistanceRate} from '@libs/actions/IOU';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getOptimisticRateName, validateRateValue} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
@@ -27,10 +28,13 @@ import type {Rate} from '@src/types/onyx/Policy';
 
 type CreateDistanceRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
 
-function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
+function CreateDistanceRatePage({
+    route: {
+        params: {policyID, transactionID},
+    },
+}: CreateDistanceRatePageProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const customUnit = getDistanceRateCustomUnit(policy);
@@ -60,6 +64,9 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
         };
 
         createPolicyDistanceRate(policyID, customUnitID, newRate);
+        if (transactionID) {
+            setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy, true);
+        }
         Navigation.goBack();
     };
 
