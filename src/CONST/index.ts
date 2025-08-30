@@ -2184,6 +2184,7 @@ const CONST = {
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         ENTITY: 'entity',
         DIMENSION_PREFIX: 'dimension_',
+        ACCOUNTING_METHOD: 'accountingMethod',
     },
 
     SAGE_INTACCT: {
