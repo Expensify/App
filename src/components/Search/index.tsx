@@ -249,6 +249,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         }
 
         const eligibleSearchKeys: Partial<SearchKey[]> = [
+            CONST.SEARCH.SEARCH_KEYS.SUBMIT,
+            CONST.SEARCH.SEARCH_KEYS.APPROVE,
+            CONST.SEARCH.SEARCH_KEYS.PAY,
+            CONST.SEARCH.SEARCH_KEYS.EXPORT,
             CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
             CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
             CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
@@ -572,6 +576,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             }
 
             if (isTransactionWithdrawalIDGroupListItemType(item)) {
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.entryID}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQuery}));
                 return;
             }
 

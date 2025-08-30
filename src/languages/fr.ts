@@ -962,6 +962,7 @@ const translations = {
         distance: 'Distance',
         manual: 'Manuel',
         scan: 'Scanner',
+        map: 'Carte',
     },
     spreadsheet: {
         upload: 'Télécharger une feuille de calcul',
@@ -1260,6 +1261,7 @@ const translations = {
             invalidCategoryLength: 'Le nom de la catégorie dépasse 255 caractères. Veuillez le raccourcir ou choisir une autre catégorie.',
             invalidTagLength: "Le nom de l'étiquette dépasse 255 caractères. Veuillez le raccourcir ou choisir une autre étiquette.",
             invalidAmount: 'Veuillez entrer un montant valide avant de continuer',
+            invalidDistance: 'Veuillez entrer une distance valide avant de continuer',
             invalidIntegerAmount: 'Veuillez entrer un montant en dollars entiers avant de continuer.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Le montant maximal de la taxe est ${amount}`,
             invalidSplit: 'La somme des répartitions doit être égale au montant total',

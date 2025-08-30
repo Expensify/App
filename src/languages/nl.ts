@@ -958,6 +958,7 @@ const translations = {
         distance: 'Afstand',
         manual: 'Handleiding',
         scan: 'Scannen',
+        map: 'Kaart',
     },
     spreadsheet: {
         upload: 'Upload een spreadsheet',
@@ -1255,6 +1256,7 @@ const translations = {
             invalidCategoryLength: 'De categorienaam overschrijdt 255 tekens. Verkort deze of kies een andere categorie.',
             invalidTagLength: 'De tagnaam overschrijdt 255 tekens. Verkort het of kies een andere tag.',
             invalidAmount: 'Voer een geldig bedrag in voordat u doorgaat.',
+            invalidDistance: 'Voer een geldige afstand in voordat u doorgaat.',
             invalidIntegerAmount: 'Voer een heel dollarbedrag in voordat u doorgaat.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Maximale belastingbedrag is ${amount}`,
             invalidSplit: 'De som van de splitsingen moet gelijk zijn aan het totale bedrag',

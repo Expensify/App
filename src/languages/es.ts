@@ -941,6 +941,7 @@ const translations = {
         distance: 'Distancia',
         manual: 'Manual',
         scan: 'Escanear',
+        map: 'Map',
     },
     spreadsheet: {
         upload: 'Importar',
@@ -1239,6 +1240,7 @@ const translations = {
             invalidCategoryLength: 'La longitud de la categoría escogida excede el máximo permitido (255). Por favor, escoge otra categoría o acorta la categoría primero.',
             invalidTagLength: 'La longitud de la etiqueta escogida excede el máximo permitido (255). Por favor, escoge otra etiqueta o acorta la etiqueta primero.',
             invalidAmount: 'Por favor, ingresa un importe válido antes de continuar',
+            invalidDistance: 'Por favor, ingresa una distancia válida antes de continuar',
             invalidIntegerAmount: 'Por favor, introduce una cantidad entera en dólares antes de continuar',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `El importe máximo del impuesto es ${amount}`,
             invalidSplit: 'La suma de las partes debe ser igual al importe total',

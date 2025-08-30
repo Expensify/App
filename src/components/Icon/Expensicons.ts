@@ -154,6 +154,7 @@ import MagnifyingGlassSpyMouthClosed from '@assets/images/magnifying-glass-spy-m
 import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
 import Mail from '@assets/images/mail.svg';
 import MakeAdmin from '@assets/images/make-admin.svg';
+import Map from '@assets/images/map.svg';
 import Megaphone from '@assets/images/megaphone.svg';
 import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
@@ -364,6 +365,7 @@ export {
     MagnifyingGlass,
     Mail,
     MakeAdmin,
+    Map,
     Menu,
     Meter,
     Megaphone,
