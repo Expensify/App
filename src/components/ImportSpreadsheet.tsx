@@ -2,7 +2,6 @@ import React, {useRef, useState} from 'react';
 import {PanResponder, PixelRatio, Platform, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import type {TupleToUnion} from 'type-fest';
-import * as XLSX from 'xlsx';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -91,36 +90,45 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
         }
         const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
         const shouldReadAsText = CONST.TEXT_SPREADSHEET_EXTENSIONS.includes(fileExtension as TupleToUnion<typeof CONST.TEXT_SPREADSHEET_EXTENSIONS>);
-        const readWorkbook = () => {
-            if (shouldReadAsText) {
-                return fetch(fileURI)
-                    .then((data) => {
-                        setIsReadingFile(true);
-                        return data.text();
+
+        setIsReadingFile(true);
+
+        import('xlsx')
+            .then((XLSX) => {
+                const readWorkbook = () => {
+                    if (shouldReadAsText) {
+                        return fetch(fileURI)
+                            .then((data) => {
+                                return data.text();
+                            })
+                            .then((text) => XLSX.read(text, {type: 'string'}));
+                    }
+                    return fetch(fileURI)
+                        .then((data) => {
+                            return data.arrayBuffer();
+                        })
+                        .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer'}));
+                };
+                readWorkbook()
+                    .then((workbook) => {
+                        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
+                        const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
+                        setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false)
+                            .then(() => {
+                                Navigation.navigate(goTo);
+                            })
+                            .catch(() => {
+                                setUploadFileError(true, 'spreadsheet.importFailedTitle', 'spreadsheet.invalidFileMessage');
+                            });
                     })
-                    .then((text) => XLSX.read(text, {type: 'string'}));
-            }
-            return fetch(fileURI)
-                .then((data) => {
-                    setIsReadingFile(true);
-                    return data.arrayBuffer();
-                })
-                .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer'}));
-        };
-        readWorkbook()
-            .then((workbook) => {
-                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
-                const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
-                setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false)
-                    .then(() => {
-                        Navigation.navigate(goTo);
-                    })
-                    .catch(() => {
-                        setUploadFileError(true, 'spreadsheet.importFailedTitle', 'spreadsheet.invalidFileMessage');
+                    .finally(() => {
+                        setIsReadingFile(false);
                     });
             })
-            .finally(() => {
+            .catch((error) => {
+                console.error('Failed to load XLSX library:', error);
+                setUploadFileError(true, 'spreadsheet.importFailedTitle', 'spreadsheet.importSpreadsheetLibraryError');
                 setIsReadingFile(false);
             });
     };
