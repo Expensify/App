@@ -86,7 +86,7 @@ RCT_EXPORT_METHOD(processFiles:(RCTResponseSenderBlock)callback) {
         } else if ([mimeType hasPrefix:@"image/"]) {
             aspectRatio = [self imageAspectRatio:fileURL];
         }
-        fileContent = [@"file://" stringByAppendingString:filePath];
+        fileContent = [fileURL absoluteString];
     }
     
     NSString *identifier = [self uniqueIdentifierForFilePath:filePath];
