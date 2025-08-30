@@ -86,6 +86,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
+    const hasPendingDeletionTransaction = Object.values(reportTransactions ?? {}).some((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions), [reportTransactions, reportActions]);
 
     const visibleTransactions = transactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -193,6 +194,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             report={report}
                             policy={policy}
                             transactions={visibleTransactions}
+                            hasPendingDeletionTransaction={hasPendingDeletionTransaction}
                             newTransactions={newTransactions}
                             reportActions={reportActions}
                             hasOlderActions={hasOlderActions}
