@@ -2078,36 +2078,6 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
 }
 
 /**
- * Build the options for the Workspace Member Invite view
- */
-function getMemberInviteOptions(
-    personalDetails: Array<SearchOption<PersonalDetails>>,
-    betas: Beta[] = [],
-    excludeLogins: Record<string, boolean> = {},
-    includeSelectedOptions = false,
-    reports: Array<SearchOption<Report>> = [],
-    includeRecentReports = false,
-): Options {
-    const options = getValidOptions(
-        {reports, personalDetails},
-        {
-            betas,
-            includeP2P: true,
-            excludeLogins,
-            includeSelectedOptions,
-            includeRecentReports,
-        },
-    );
-
-    const orderedOptions = orderOptions(options);
-    return {
-        ...options,
-        personalDetails: orderedOptions.personalDetails,
-        recentReports: orderedOptions.recentReports,
-    };
-}
-
-/**
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
 function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, hasMatchedParticipant = false): string {
@@ -2575,7 +2545,6 @@ export {
     getLastActorDisplayName,
     getLastMessageTextForReport,
     getManagerMcTestParticipant,
-    getMemberInviteOptions,
     getParticipantsOption,
     getPersonalDetailSearchTerms,
     getPersonalDetailsForAccountIDs,

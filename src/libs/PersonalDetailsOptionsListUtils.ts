@@ -222,14 +222,6 @@ function getPersonalDetailSearchTerms(item: Partial<OptionData>) {
 }
 
 /**
- * Remove the personal details for the DMs that are already in the recent reports so that we don't show duplicates.
- */
-function filteredPersonalDetailsOfRecentReports(recentReports: OptionData[], personalDetails: OptionData[]) {
-    const excludedLogins = new Set(recentReports.map((report) => report.login));
-    return personalDetails.filter((personalDetail) => !excludedLogins.has(personalDetail.login));
-}
-
-/**
  * Process a search string into normalized search terms
  * @param searchString - The raw search string to process
  * @returns Array of normalized search terms
@@ -535,18 +527,11 @@ function getHeaderMessage(translate: LocaleContextProps['translate'], searchValu
 }
 
 export {
-    createOption,
     getUserToInviteOption,
-    personalDetailsComparator,
-    recentReportComparator,
-    optionsOrderBy,
     getPersonalDetailSearchTerms,
-    filteredPersonalDetailsOfRecentReports,
-    processSearchString,
     canCreateOptimisticPersonalDetailOption,
     filterCurrentUserOption,
     getValidOptions,
-    filterUserToInvite,
     createOptionList,
     shallowOptionsListCompare,
     getHeaderMessage,
