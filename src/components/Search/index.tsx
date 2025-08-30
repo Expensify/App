@@ -6,7 +6,7 @@ import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming}
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionList/SearchTableHeader';
-import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useLocalize from '@hooks/useLocalize';
@@ -270,7 +270,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         [reportActions],
     );
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const searchListRef = useRef<SelectionListHandle | null>(null);
 
     const clearTransactionsAndSetHashAndKey = useCallback(() => {
         clearSelectedTransactions(hash);
@@ -759,8 +758,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         );
     }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions, outstandingReportsByPolicyID]);
 
-    const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
-
     const areAllOptionalColumnsHidden = useMemo(() => {
         const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
         return canBeMissingColumns.every((column) => !columnsToShow.includes(column));
@@ -827,7 +824,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         <SearchScopeProvider isOnSearch>
             <Animated.View style={[styles.flex1, animatedStyle]}>
                 <SearchList
-                    ref={searchListRef}
+                    ref={handleSelectionListScroll(sortedSelectedData)}
                     data={sortedSelectedData}
                     ListItem={ListItem}
                     onSelectRow={openReport}
@@ -871,7 +868,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     queryJSON={queryJSON}
                     columns={columnsToShow}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                    onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                 />
