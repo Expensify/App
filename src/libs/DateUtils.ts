@@ -54,17 +54,51 @@ const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
 let networkTimeSkew = 0;
 let isOffline: boolean | undefined;
 
+let currentUserAccountID: number | undefined;
+// These values are only used to help the update networkLastOffline value
+// Since they aren't connected to a UI anywhere, it's OK to use connectWithoutView()
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        // When signed out, val is undefined
+        if (!val) {
+            return;
+        }
+
+        currentUserAccountID = val.accountID;
+    },
+});
+
+// These values are only used to help the update networkLastOffline value
+// Since they aren't connected to a UI anywhere, it's OK to use connectWithoutView()
+let currentUsertimezone: Required<Timezone> = CONST.DEFAULT_TIME_ZONE;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (value) => {
+        if (!currentUserAccountID) {
+            return;
+        }
+
+        const personalDetailsTimezone = value?.[currentUserAccountID]?.timezone;
+
+        currentUsertimezone = {
+            selected: personalDetailsTimezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
+            automatic: personalDetailsTimezone?.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
+        };
+    },
+});
+
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => {
         networkTimeSkew = val?.timeSkew ?? 0;
         if (!val?.lastOfflineAt) {
-            setNetworkLastOffline(getLocalDateFromDatetime(IntlStore.getCurrentLocale()));
+            setNetworkLastOffline(getLocalDateFromDatetime(IntlStore.getCurrentLocale(), currentUsertimezone.selected));
         }
 
         const newIsOffline = val?.isOffline ?? val?.shouldForceOffline;
         if (newIsOffline && isOffline === false) {
-            setNetworkLastOffline(getLocalDateFromDatetime(IntlStore.getCurrentLocale()));
+            setNetworkLastOffline(getLocalDateFromDatetime(IntlStore.getCurrentLocale(), currentUsertimezone.selected));
         }
         isOffline = newIsOffline;
     },
@@ -95,7 +129,7 @@ function getWeekEndsOn(): WeekDay {
  * Date object for the given ISO-formatted datetime string
  */
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-function getLocalDateFromDatetime(locale: Locale | undefined, datetime?: string, currentSelectedTimezone: string | SelectedTimezone = CONST.DEFAULT_TIME_ZONE.selected): Date {
+function getLocalDateFromDatetime(locale: Locale | undefined, currentSelectedTimezone: string | SelectedTimezone, datetime?: string): Date {
     if (!datetime) {
         const res = toZonedTime(new Date(), currentSelectedTimezone);
         if (Number.isNaN(res.getTime())) {
@@ -185,14 +219,8 @@ const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): S
  * Jan 20 at 5:30 PM          within the past year
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
-function datetimeToCalendarTime(
-    locale: Locale | undefined,
-    datetime: string,
-    includeTimeZone = false,
-    currentSelectedTimezone: SelectedTimezone = CONST.DEFAULT_TIME_ZONE.selected,
-    isLowercase = false,
-): string {
-    const date = getLocalDateFromDatetime(locale, datetime, fallbackToSupportedTimezone(currentSelectedTimezone));
+function datetimeToCalendarTime(locale: Locale | undefined, datetime: string, currentSelectedTimezone: SelectedTimezone, includeTimeZone = false, isLowercase = false): string {
+    const date = getLocalDateFromDatetime(locale, fallbackToSupportedTimezone(currentSelectedTimezone), datetime);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = translate(locale, 'common.todayAt');
     let tomorrowAt = translate(locale, 'common.tomorrowAt');
@@ -237,9 +265,9 @@ function datetimeToCalendarTime(
  * Jan 20               within the past year
  * Jan 20, 2019         anything over 1 year
  */
-function datetimeToRelative(locale: Locale | undefined, datetime: string): string {
-    const date = getLocalDateFromDatetime(locale, datetime);
-    const now = getLocalDateFromDatetime(locale);
+function datetimeToRelative(locale: Locale | undefined, datetime: string, currentSelectedTimezone: SelectedTimezone): string {
+    const date = getLocalDateFromDatetime(locale, currentSelectedTimezone, datetime);
+    const now = getLocalDateFromDatetime(locale, currentSelectedTimezone);
     return formatDistance(date, now, {addSuffix: true});
 }
 

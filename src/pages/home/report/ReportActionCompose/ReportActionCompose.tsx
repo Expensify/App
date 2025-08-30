@@ -325,13 +325,7 @@ function ReportActionCompose({
                     });
                 } else {
                     // Handle single file
-                    addAttachmentReportActions(
-                        reportID,
-                        attachmentFileRef.current,
-                        personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
-                        newCommentTrimmed,
-                        true,
-                    );
+                    addAttachmentReportActions(reportID, attachmentFileRef.current, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, newCommentTrimmed, true);
                 }
                 attachmentFileRef.current = null;
             } else {
