@@ -15,14 +15,16 @@ import ROUTES from '@src/ROUTES';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn} from './Session';
 
 let isNetworkOffline = false;
-Onyx.connect({
+// Use connectWithoutView since this is to open an external link and doesn't affect any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (value) => (isNetworkOffline = value?.isOffline ?? false),
 });
 
 let currentUserEmail = '';
 let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
-Onyx.connect({
+// Use connectWithoutView since this is to open an external link and doesn't affect any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
@@ -219,4 +221,22 @@ function openExternalLinkWithToken(url: string, shouldSkipCustomSafariLogic = fa
     );
 }
 
-export {buildOldDotURL, openOldDotLink, openExternalLink, openLink, getInternalNewExpensifyPath, getInternalExpensifyPath, openTravelDotLink, buildTravelDotURL, openExternalLinkWithToken};
+function getTravelDotLink(policyID: OnyxEntry<string>) {
+    if (policyID === null || policyID === undefined) {
+        return Promise.reject(new Error('Policy ID is required'));
+    }
+
+    const parameters: GenerateSpotnanaTokenParams = {
+        policyID,
+    };
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN, parameters, {}).then((response) => {
+        if (!response?.spotnanaToken) {
+            throw new Error('Failed to generate spotnana token.');
+        }
+        return response;
+    });
+}
+
+export {openOldDotLink, openExternalLink, openLink, getInternalNewExpensifyPath, getInternalExpensifyPath, openTravelDotLink, buildTravelDotURL, openExternalLinkWithToken, getTravelDotLink};

@@ -24,8 +24,8 @@ type PronounsPageProps = WithCurrentUserPersonalDetailsProps;
 
 function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const {translate, localeCompare} = useLocalize();
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const currentPronouns = currentUserPersonalDetails?.pronouns ?? '';
     const currentPronounsKey = currentPronouns.substring(CONST.PRONOUNS.PREFIX.length);
     const [searchValue, setSearchValue] = useState('');
@@ -54,7 +54,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
                 keyForList: value,
                 isSelected: isCurrentPronouns,
             };
-        }).sort((a, b) => a.text.toLowerCase().localeCompare(b.text.toLowerCase()));
+        }).sort((a, b) => localeCompare(a.text.toLowerCase(), b.text.toLowerCase()));
 
         const trimmedSearch = searchValue.trim();
 
@@ -62,7 +62,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
             return [];
         }
         return pronouns.filter((pronoun) => pronoun.text.toLowerCase().indexOf(trimmedSearch.toLowerCase()) >= 0);
-    }, [searchValue, currentPronouns, translate]);
+    }, [searchValue, currentPronouns, translate, localeCompare]);
 
     const headerMessage = searchValue.trim() && filteredPronounsList?.length === 0 ? translate('common.noResultsFound') : '';
 

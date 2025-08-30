@@ -28,3 +28,26 @@ index 9885b25..ae4fe46 100644
                preloaded: isPreloaded
              })
            }, route.key);
+diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js
+index c2240e8..63b95e9 100644
+--- a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js
++++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js
+@@ -3,7 +3,7 @@
+ import { getHeaderTitle, HeaderBackContext, HeaderHeightContext, HeaderShownContext } from '@react-navigation/elements';
+ import { useLinkBuilder, useLocale, useTheme } from '@react-navigation/native';
+ import * as React from 'react';
+-import { StyleSheet, View } from 'react-native';
++import { Platform, StyleSheet, View } from 'react-native';
+ import { ModalPresentationContext } from "../../utils/ModalPresentationContext.js";
+ import { useKeyboardManager } from "../../utils/useKeyboardManager.js";
+ import { Card } from "./Card.js";
+@@ -229,7 +229,8 @@ function CardContainerInner({
+       display:
+       // Hide unfocused screens when animation isn't enabled
+       // This is also necessary for a11y on web
+-      animation === 'none' && isNextScreenTransparent === false && detachCurrentScreen !== false && !focused ? 'none' : 'flex'
++      animation === 'none' && isNextScreenTransparent === false && detachCurrentScreen !== false && !focused ? 'none' : 'flex',
++      zIndex: Platform.OS === 'web' ? 'auto' : undefined,
+     }, StyleSheet.absoluteFill],
+     children: /*#__PURE__*/_jsx(View, {
+       style: styles.container,

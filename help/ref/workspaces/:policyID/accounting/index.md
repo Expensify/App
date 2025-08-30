@@ -5,44 +5,45 @@ title: Accounting Integrations
 
 # Accounting Integrations
 
-Connect your workspace to accounting software to sync expenses and streamline financial management.
+Link your workspace directly to your accounting system to make expense tracking smarter and smoother. We’ll automatically sync your chart of accounts so your team can code expenses accurately — and approved reports flow right back into your books. Less manual work, more peace of mind.
+
+**Once connected, you can fine-tune your setup with:**
+- Import settings to control what data comes from your accounting system.
+- Export settings to choose how expense reports are sent back.
+- Advanced options for automation, such as auto-sync and employee settings.
+
+---
 
 ## Supported Integrations
 
-**QuickBooks Online**
-- Real-time expense sync
+**QuickBooks Online**  
+- Real-time expense sync  
 - Category and vendor mapping  
-- Tax rate synchronization
+- Tax rate sync  
 
-**QuickBooks Desktop**
-- File-based import/export
-- Chart of accounts import
-- Custom field mapping
+**QuickBooks Desktop**  
+- File-based import/export  
+- Chart of accounts sync  
+- Custom field mapping  
 
-**Xero**
-- Automatic report sync
-- Tracking category import
-- Tax rate management
+**Xero**  
+- Auto-sync approved reports  
+- Import tracking categories  
+- Manage tax rates seamlessly  
 
-**NetSuite**
-- Advanced multi-entity support
-- Custom dimension mapping
-- Automated bill payments
+**NetSuite**  
+- Built for complex orgs with multi-entity support  
+- Custom dimension mapping  
+- Automated bill payments  
 
-**Sage Intacct**
-- Department/class tracking
-- Multi-currency support
+**Sage Intacct**  
+- Track departments, classes, and more  
+- Multi-currency support  
 - Advanced approval workflows
 
-## Getting Started
+---
 
-1. Go to **Workspaces > [Workspace] > More Features**
-2. Enable **Accounting**
-3. Click **Accounting** in the left menu
-4. Choose your integration and click **Set up**
-5. Follow the connection prompts
-
-## What Gets Synced
+## What Syncs Automatically
 
 **From your accounting system:**
 - Chart of accounts (as categories)
@@ -54,10 +55,12 @@ Connect your workspace to accounting software to sync expenses and streamline fi
 - Approved expense reports
 - Company card transactions  
 - Vendor bills and journal entries
-- Payment records and reconciliation data
+- Payment records and reconciliation data 
 
-## Related Links
+---
 
-- [Connect to QuickBooks Online](https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online)
-- [Connect to Xero](https://help.expensify.com/articles/new-expensify/connections/xero/Connect-to-Xero)
-- [Connect to NetSuite](https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-To-NetSuite) 
+## Learn More
+
+- [Connect to QuickBooks Online](https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online)  
+- [Connect to Xero](https://help.expensify.com/articles/new-expensify/connections/xero/Connect-to-Xero)  
+- [Connect to NetSuite](https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-To-NetSuite)

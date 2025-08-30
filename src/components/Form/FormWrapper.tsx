@@ -84,6 +84,7 @@ function FormWrapper({
     scrollContextEnabled = false,
     shouldHideFixErrorsAlert = false,
     disablePressOnEnter = false,
+    enterKeyEventListenerPriority = 1,
     isSubmitDisabled = false,
     shouldRenderFooterAboveSubmit = false,
     isLoading = false,
@@ -179,7 +180,7 @@ function FormWrapper({
                     enabledWhenOffline={enabledWhenOffline}
                     isSubmitActionDangerous={isSubmitActionDangerous}
                     disablePressOnEnter={disablePressOnEnter}
-                    enterKeyEventListenerPriority={1}
+                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                     shouldBlendOpacity={shouldSubmitButtonBlendOpacity}
                     shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPressSubmit}
@@ -187,6 +188,7 @@ function FormWrapper({
             ),
         [
             disablePressOnEnter,
+            enterKeyEventListenerPriority,
             enabledWhenOffline,
             errorMessage,
             errors,

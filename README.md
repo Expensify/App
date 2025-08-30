@@ -24,8 +24,9 @@
 * [canBeMissing onyx param](#canbemissing-onyx-param)
 
 #### Additional Reading
+* [Application Philosophy](contributingGuides/philosophies/INDEX.md)
 * [API Details](contributingGuides/API.md)
-* [Offline First](contributingGuides/OFFLINE_UX.md)
+* [Offline First](contributingGuides/philosophies/OFFLINE.md)
 * [Contributing to Expensify](contributingGuides/CONTRIBUTING.md)
 * [Expensify Code of Conduct](CODE_OF_CONDUCT.md)
 * [Contributor License Agreement](CLA.md)
@@ -125,15 +126,27 @@ After completing these steps, you should be able to build Android apps with preb
 ## Running the MacOS desktop app 🖥
 * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
 
-## Receiving Notifications
-To receive notifications on development build of the app while hitting the Staging or Production API, you need to use the production airship config.
+## Receiving Mobile Push Notifications
+To receive mobile push notifications in the development build while hitting the Staging or Production API, you need to use the production airship config.
 ### Android
-1. Copy the [production config](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/android/app/src/main/assets/airshipconfig.properties#L1-L7) to the [development config](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/android/app/src/development/assets/airshipconfig.properties#L1-L8).
-2. Rebuild the app.
+
+#### HybridApp
+
+Add `inProduction = true` to [Mobile-Expensify/Android/assets/airshipconfig.properties](https://github.com/Expensify/Mobile-Expensify/blob/main/Android/assets/airshipconfig.properties)
+
+#### Standalone
+
+Copy the [production config](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/android/app/src/main/assets/airshipconfig.properties#L1-L7) to the [development config](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/android/app/src/development/assets/airshipconfig.properties#L1-L8).
 
 ### iOS
-1. Replace the [development key and secret](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/ios/AirshipConfig.plist#L7-L10) with the [production values](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/ios/AirshipConfig.plist#L11-L14).
-2. Rebuild the app.
+
+#### HybridApp
+
+Set `inProduction` to `true` in [Mobile-Expensify/iOS/AirshipConfig/Debug/AirshipConfig.plist](https://github.com/Expensify/Mobile-Expensify/blob/ab67becf5e8610c8df9b4da3132501153c7291a1/iOS/AirshipConfig/Debug/AirshipConfig.plist#L8)
+
+#### Standalone
+
+Replace the [development key and secret](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/ios/AirshipConfig.plist#L7-L10) with the [production values](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/ios/AirshipConfig.plist#L11-L14).
 
 ## Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
@@ -168,6 +181,8 @@ variables referenced here get updated since your local `.env` file is ignored.
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
 - `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing.
    This happens usually automatically, read [this](tests/e2e/README.md) for more information
+
+> If your changes to .env aren't having an effect, try `rm -rf .rnef`, then re-run `npm run ios` or `npm run android`
 
 ----
 
@@ -428,15 +443,7 @@ Files should be named after the component/function/constants they export, respec
 - All React components should be PascalCase (a.k.a. UpperCamelCase 🐫).
 
 ## Platform-Specific File Extensions
-In most cases, the code written for this repo should be platform-independent. In such cases, each module should have a single file, `index.js`, which defines the module's exports. There are, however, some cases in which a feature is intrinsically tied to the underlying platform. In such cases, the following file extensions can be used to export platform-specific code from a module:
-- Mobile => `index.native.js`
-- iOS Native App/Android Native App => `index.ios.js`/`index.android.js`
-- Web => `index.website.js`
-- Desktop => `index.desktop.js`
-
-**Note:** `index.js` should be the default and only platform-specific implementations should be done in their respective files. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`.
-
-`index.ios.js` and `index.android.js` are used when the app is running natively on respective platforms. These files are not used when users access the app through mobile browsers, but `index.website.js` is used instead. `index.native.js` are for both iOS and Android native apps. `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`.
+This section has moved [here](contributingGuides/philosophies/CROSS-PLATFORM.md).
 
 ## API building
 When adding new API commands (and preferably when starting using a new one that was not yet used in this codebase) always
@@ -513,7 +520,7 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
 4. Run `git config --global submodule.recurse true` in order to have the submodule updated when you pull App.
 
 
-> [!Note]  
+> [!Note]
 > #### For external agencies and C+ contributors only
 >
 > If you'd like to modify the `Mobile-Expensify` source code, it is best that you create your own fork. Then, you can swap origin of the remote repository by executing this command:
@@ -548,15 +555,15 @@ If for some reason, you need to target the standalone NewDot application, you ca
 
 ### Working with HybridApp vs Standalone NewDot
 
-Day-to-day work with **HybridApp** shouldn't differ much from working on the standalone **NewDot** repository.  
-The primary difference is that the native code, which runs React Native, is located in the following directories:  
+Day-to-day work with **HybridApp** shouldn't differ much from working on the standalone **NewDot** repository.
+The primary difference is that the native code, which runs React Native, is located in the following directories:
 
 - `./Mobile-Expensify/Android`
 - `./Mobile-Expensify/iOS`
 
 ### Important Notes:
 1. **Root Folders Do Not Affect HybridApp Builds:**
-   - Changes made to the `./android` and `./ios` folders at the root of the repository **won't affect the HybridApp build**.  
+   - Changes made to the `./android` and `./ios` folders at the root of the repository **won't affect the HybridApp build**.
 
 2. **Modifying iOS Code for HybridApp:**
    - If you need to remove `Pods`, you must do it in the **`./Mobile-Expensify/iOS`** directory.
@@ -571,15 +578,15 @@ The primary difference is that the native code, which runs React Native, is loca
 
 ### Updating the `Mobile-Expensify` Submodule
 
-The `Mobile-Expensify` directory is a **Git submodule**. This means it points to a specific commit on the `Mobile-Expensify` repository.  
+The `Mobile-Expensify` directory is a **Git submodule**. This means it points to a specific commit on the `Mobile-Expensify` repository.
 
-If you'd like to fetch the submodule while executing the `git pull` command in `Expensify/App` instead of updating it manually you can run this command in the root of the project: 
+If you'd like to fetch the submodule while executing the `git pull` command in `Expensify/App` instead of updating it manually you can run this command in the root of the project:
 
 ```
 git config submodule.recurse true
 ```
 
-> [!WARNING]  
+> [!WARNING]
 > Please, remember that the submodule will get updated automatically only after executing the `git pull` command - if you switch between branches it is still recommended to execute `git submodule update` to make sure you're working on a compatible submodule version!
 
 If you'd like to download the most recent changes from the `main` branch, please use the following command:
@@ -587,7 +594,7 @@ If you'd like to download the most recent changes from the `main` branch, please
 git submodule update --remote
 ```
 
-It's important to emphasize that a git submodule is just a **regular git repository** after all. It means that you can switch branches, pull the newest changes, and execute all regular git commands within the `Mobile-Expensify` directory. 
+It's important to emphasize that a git submodule is just a **regular git repository** after all. It means that you can switch branches, pull the newest changes, and execute all regular git commands within the `Mobile-Expensify` directory.
 
 ### Adding HybridApp-related patches
 
@@ -615,7 +622,7 @@ This application is built with the following principles.
     6. Go to 1
     ![New Expensify Data Flow Chart](/contributingGuides/data_flow.png)
 1. **Offline first**
-    - Be sure to read [OFFLINE_UX.md](contributingGuides/OFFLINE_UX.md)!
+    - Be sure to read [OFFLINE.md](contributingGuides/philosophies/OFFLINE.md)!
     - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
     - All data that is displayed, comes from persistent storage.
 1. **UI Binds to data on disk**
@@ -644,10 +651,7 @@ This application is built with the following principles.
         5. UI updates with data from the server
 
 1. **Cross Platform 99.9999%**
-    1. A feature isn't done until it works on all platforms.  Accordingly, don't even bother writing a platform-specific code block because you're just going to need to undo it.
-    1. If the reason you can't write cross-platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
-    1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
-    1. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
+See details [here](contributingGuides/philosophies/CROSS-PLATFORM.md).
 
 ----
 
@@ -793,7 +797,7 @@ Some pointers:
 - When working with translations that involve plural forms, it's important to handle different cases correctly.
 
   For example:
-  - zero: Used when there are no items **(optional)**. 
+  - zero: Used when there are no items **(optional)**.
   - one: Used when there's exactly one item.
   - two: Used when there's two items. **(optional)**
   - few: Used for a small number of items **(optional)**.

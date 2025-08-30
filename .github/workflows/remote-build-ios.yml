@@ -3,7 +3,7 @@ name: Remote Build iOS
 on:
   workflow_dispatch:
   push:
-    branches-ignore: [staging, production]
+    branches-ignore: [staging, production, cherry-pick-*]
     paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**']
 
 concurrency:
@@ -13,6 +13,8 @@ concurrency:
 jobs:
   build:
     runs-on: ${{ github.repository_owner == 'Expensify' && 'macos-15-xlarge' || 'macos-15' }}
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.4.0.app/Contents/Developer
     strategy:
       fail-fast: false
       matrix:
@@ -38,12 +40,13 @@ jobs:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
       - name: RNEF Remote Build - iOS
-        uses: callstackincubator/ios@78ed46313dac4ed09cb5cc73b9b1b9193d59d863
+        # rnef v2
+        uses: callstackincubator/ios@7847e0676242cefa801cba8ede6736140b7bae91 
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
         with:
           destination: simulator
           scheme: ${{ matrix.scheme }}
           configuration: ${{ matrix.configuration }}
-          github-token: ${{ github.token }}
           comment-bot: false

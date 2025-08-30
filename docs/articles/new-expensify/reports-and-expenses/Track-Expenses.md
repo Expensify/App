@@ -4,7 +4,6 @@ description: Learn how to create and manage expenses in Expensify without submit
 keywords: track expenses, create expense, scan receipt, enter mileage, expense chat, just track it
 ---
 
-<div id="new-expensify" markdown="1">
 
 Tracking expenses in Expensify allows you to save receipts and costs for your own records, without sending them for approval or reimbursement. This is useful if you're:
 - Monitoring personal spending
@@ -27,7 +26,7 @@ Use this guide to create expenses that stay in your account for later reference.
    - **Enter manually**
 4. Fill in the required details based on your selection.
 5. Click **Next**.
-6. Select **Just track it (don’t submit it)**.
+6. Choose yourself under Personal.
 7. Update or edit fields based on your Workspace configuration.
 8. Click **Create expense**.
 
@@ -60,4 +59,3 @@ Yes! Open the expense from your expense chat or **Reports > Expenses**, then cli
 
 Make sure you’re filtering by the correct date or amount. You can easily find unsubmitted expenses in an **Expense Chat** in your Inbox in the left-hand menu.
 
-</div>

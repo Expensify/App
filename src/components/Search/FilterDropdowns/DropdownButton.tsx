@@ -56,18 +56,8 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
 
     const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => modal?.willAlertModalBecomeVisible, canBeMissing: true});
 
-    const onTriggerLayout = () => {
-        triggerRef.current?.measureInWindow((x, y, _, height) => {
-            setPopoverTriggerPosition({
-                horizontal: x,
-                vertical: y + height + PADDING_MODAL,
-            });
-        });
-    };
-
     /**
-     * Toggle the overlay between open & closed, and re-calculate the
-     * position of the trigger
+     * Toggle the overlay between open & closed
      */
     const toggleOverlay = useCallback(() => {
         setIsOverlayVisible((previousValue) => {
@@ -78,6 +68,19 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
             return !previousValue;
         });
     }, [willAlertModalBecomeVisible]);
+
+    /**
+     * Calculate popover position and toggle overlay
+     */
+    const calculatePopoverPositionAndToggleOverlay = useCallback(() => {
+        triggerRef.current?.measureInWindow((x, y, _, height) => {
+            setPopoverTriggerPosition({
+                horizontal: x,
+                vertical: y + height + PADDING_MODAL,
+            });
+            toggleOverlay();
+        });
+    }, [toggleOverlay]);
 
     /**
      * When no items are selected, render the label, otherwise, render the
@@ -115,8 +118,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                 small
                 ref={triggerRef}
                 innerStyles={[isOverlayVisible && styles.buttonHoveredBG, {maxWidth: 256}]}
-                onPress={toggleOverlay}
-                onLayout={onTriggerLayout}
+                onPress={calculatePopoverPositionAndToggleOverlay}
             >
                 <CaretWrapper style={[styles.flex1, styles.mw100]}>
                     <Text

@@ -86,7 +86,6 @@ function CalendarPicker({
     );
 
     const onYearSelected = (year: number) => {
-        setIsYearPickerVisible(false);
         setCurrentDateView((prev) => {
             const newCurrentDateView = setYear(new Date(prev), year);
             setYears((prevYears) =>
@@ -97,6 +96,7 @@ function CalendarPicker({
             );
             return newCurrentDateView;
         });
+        requestAnimationFrame(() => setIsYearPickerVisible(false));
     };
 
     /**

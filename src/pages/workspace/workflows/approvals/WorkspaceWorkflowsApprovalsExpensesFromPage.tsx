@@ -56,7 +56,7 @@ type WorkspaceWorkflowsApprovalsExpensesFromPageProps = WithPolicyAndFullscreenL
 
 function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsExpensesFromPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
@@ -68,7 +68,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
     const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && approvalWorkflow && approvalWorkflow.availableMembers.length === 0;
-    const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
+    const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
 
     const personalDetailLogins = useDeepCompareRef(Object.fromEntries(Object.entries(personalDetails ?? {}).map(([id, details]) => [id, details?.login])));
 
@@ -142,11 +142,21 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         return [
             {
                 title: undefined,
-                data: sortAlphabetically(filteredMembers, 'text'),
+                data: sortAlphabetically(filteredMembers, 'text', localeCompare),
                 shouldShow: true,
             },
         ];
-    }, [approvalWorkflow?.availableMembers, debouncedSearchTerm, policy?.preventSelfApproval, policy?.employeeList, policy?.owner, selectedMembers, approversEmail, personalDetailLogins]);
+    }, [
+        approvalWorkflow?.availableMembers,
+        debouncedSearchTerm,
+        policy?.preventSelfApproval,
+        policy?.employeeList,
+        policy?.owner,
+        selectedMembers,
+        approversEmail,
+        personalDetailLogins,
+        localeCompare,
+    ]);
 
     const goBack = useCallback(() => {
         let backTo;

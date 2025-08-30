@@ -3,7 +3,6 @@ title: Create Expense Tags
 description: Add tags to use for coding expenses.
 keywords: [New Expensify, expense tags, class tracking, cost center, import tags, coding expenses, tag GL code]
 ---
-<div id="new-expensify" markdown="1">
 
 In Expensify, **tags** represent attributes like classes, projects, cost centers, locations, customers, or jobs. They help code expenses for accounting and reporting.
 
@@ -61,6 +60,7 @@ You can use one of the following template files to build your tags list:
 - [Independent tags without GL codes](https://help.expensify.com/assets/Files/Independent+without+GL+codes+format.csv)
 
 **Notes:**
+- We currently only support uploading CSV and TSV files for multi-level tag files.
 - We currently only support up to 50,000 tags in a single file.
 - Each time you upload a list of tags, it will override your previous list. To avoid losing tags, update the original spreadsheet and re-import it into Expensify.
 
@@ -150,4 +150,3 @@ It will be removed from the workspace’s tag list. However, it will still appea
 
 If you are connected to an accounting integration, you will not see this feature. You will need to add those tags in your accounting system first, then sync the connection.
 
-</div>

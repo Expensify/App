@@ -5,14 +5,17 @@ import DateUtils from '@libs/DateUtils';
 import {
     getActivePolicies,
     getManagerAccountID,
+    getPolicyEmployeeAccountIDs,
     getPolicyNameByID,
     getRateDisplayValue,
     getSubmitToAccountID,
     getTagList,
     getTagListByOrderWeight,
     getUnitRateValue,
-    isUserInvitedToWorkspace,
+    isCurrentUserMemberOfAnyPolicy,
+    isPolicyMemberWithoutPendingDelete,
     shouldShowPolicy,
+    sortWorkspacesBySelected,
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -761,7 +764,7 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('isUserInvitedToWorkspace', () => {
+    describe('isCurrentUserMemberOfAnyPolicy', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
         });
@@ -777,33 +780,33 @@ describe('PolicyUtils', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, {});
 
-            const result = isUserInvitedToWorkspace();
+            const result = isCurrentUserMemberOfAnyPolicy();
 
             expect(result).toBeFalsy();
         });
 
-        it('should return false if user owns a workspace', async () => {
+        it('should return true if user owns a workspace', async () => {
             const currentUserLogin = approverEmail;
             const currentUserAccountID = approverAccountID;
-            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `John's Workspace`), ownerAccountID: approverAccountID};
+            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), ownerAccountID: approverAccountID, isPolicyExpenseChatEnabled: true};
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
 
-            const result = isUserInvitedToWorkspace();
+            const result = isCurrentUserMemberOfAnyPolicy();
 
-            expect(result).toBeFalsy();
+            expect(result).toBeTruthy();
         });
 
         it('should return false if expense chat is not enabled', async () => {
             const currentUserLogin = approverEmail;
             const currentUserAccountID = approverAccountID;
-            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `John's Workspace`), isPolicyExpenseChatEnabled: false};
+            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), isPolicyExpenseChatEnabled: false};
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
 
-            const result = isUserInvitedToWorkspace();
+            const result = isCurrentUserMemberOfAnyPolicy();
 
             expect(result).toBeFalsy();
         });
@@ -811,12 +814,12 @@ describe('PolicyUtils', () => {
         it('should return false if its a fake policy id', async () => {
             const currentUserLogin = approverEmail;
             const currentUserAccountID = approverAccountID;
-            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `John's Workspace`), id: CONST.POLICY.ID_FAKE};
+            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), id: CONST.POLICY.ID_FAKE};
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
 
-            const result = isUserInvitedToWorkspace();
+            const result = isCurrentUserMemberOfAnyPolicy();
 
             expect(result).toBeFalsy();
         });
@@ -824,12 +827,12 @@ describe('PolicyUtils', () => {
         it('should return true if user is invited to a workspace', async () => {
             const currentUserLogin = approverEmail;
             const currentUserAccountID = approverAccountID;
-            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `John's Workspace`), ownerAccountID, isPolicyExpenseChatEnabled: true};
+            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), ownerAccountID, isPolicyExpenseChatEnabled: true};
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
 
-            const result = isUserInvitedToWorkspace();
+            const result = isCurrentUserMemberOfAnyPolicy();
 
             expect(result).toBeTruthy();
         });
@@ -852,6 +855,114 @@ describe('PolicyUtils', () => {
         ])('%s', (_description, orderWeight, expected) => {
             const tagList = getTagListByOrderWeight(policyTags, orderWeight);
             expect(tagList.name).toEqual(expected);
+        });
+    });
+    describe('sortWorkspacesBySelected', () => {
+        it('should order workspaces with selected workspace first', () => {
+            const workspace1 = {policyID: '1', name: 'Workspace 1'};
+            const workspace2 = {policyID: '2', name: 'Workspace 2'};
+            const selectedWorkspace1 = {policyID: '3', name: 'Workspace 3'};
+            const selectedWorkspace2 = {policyID: '4', name: 'Workspace 4'};
+            expect(sortWorkspacesBySelected(workspace1, workspace2, ['3', '4'], TestHelper.localeCompare)).toBe(-1);
+            expect(sortWorkspacesBySelected(workspace1, selectedWorkspace1, ['3', '4'], TestHelper.localeCompare)).toBe(1);
+            expect(sortWorkspacesBySelected(selectedWorkspace1, selectedWorkspace2, ['3', '4'], TestHelper.localeCompare)).toBe(-1);
+        });
+
+        it('should order workspaces using name if no workspace is selected', () => {
+            const workspace1 = {policyID: '1', name: 'Workspace 1'};
+            const workspace2 = {policyID: '2', name: 'Workspace 2'};
+            const workspace3 = {policyID: '3', name: 'Workspace 3'};
+            const workspace4 = {policyID: '4', name: 'Workspace 4'};
+            expect(sortWorkspacesBySelected(workspace1, workspace2, undefined, TestHelper.localeCompare)).toBe(-1);
+            expect(sortWorkspacesBySelected(workspace1, workspace3, undefined, TestHelper.localeCompare)).toBe(-1);
+            expect(sortWorkspacesBySelected(workspace3, workspace4, undefined, TestHelper.localeCompare)).toBe(-1);
+        });
+
+        it('should sort workspaces when using this method correctly', () => {
+            const unsortedWorkspaces = [
+                {policyID: '2', name: 'Workspace 2'},
+                {policyID: '1', name: 'Workspace 1'},
+                {policyID: '4', name: 'Workspace 4'},
+                {policyID: '3', name: 'Workspace 3'},
+            ];
+            const selectedWorkspaceIDs = ['3', '4'];
+            const sortedWorkspaces = unsortedWorkspaces.sort((a, b) => sortWorkspacesBySelected(a, b, selectedWorkspaceIDs, TestHelper.localeCompare));
+            expect(sortedWorkspaces).toEqual([
+                {policyID: '3', name: 'Workspace 3'},
+                {policyID: '4', name: 'Workspace 4'},
+                {policyID: '1', name: 'Workspace 1'},
+                {policyID: '2', name: 'Workspace 2'},
+            ]);
+        });
+    });
+
+    describe('getPolicyEmployeeAccountIDs', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should return an array of employee accountIDs for the given policy (including current user accountID) if no current user is passed', () => {
+            const policy = {
+                employeeList,
+            };
+            const result = getPolicyEmployeeAccountIDs(policy);
+            expect(result).toEqual([7, 1, 2, 3, 4, 5, 6]);
+        });
+
+        it('should return an array of employee accountIDs for the given policy (excluding current user accountID) if current user is passed', () => {
+            const policy = {
+                employeeList,
+            };
+            const result = getPolicyEmployeeAccountIDs(policy, 5);
+            expect(result).toEqual([7, 1, 2, 3, 4, 6]);
+        });
+
+        it('should return an empty array if no employees are found', () => {
+            const policy = {
+                employeeList: {},
+            };
+            const result = getPolicyEmployeeAccountIDs(policy);
+            expect(result).toEqual([]);
+        });
+    });
+
+    describe('isPolicyMemberWithoutPendingDelete', () => {
+        it('should return true if the policy member is not pending delete', () => {
+            const policy = {
+                id: '1',
+                employeeList: {
+                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+            const result = isPolicyMemberWithoutPendingDelete(employeeEmail, policy as unknown as Policy);
+            expect(result).toBe(true);
+        });
+
+        it('should return false if the policy member is pending delete', () => {
+            const policy = {
+                id: '1',
+                employeeList: {
+                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                },
+            };
+            const result = isPolicyMemberWithoutPendingDelete(employeeEmail, policy as unknown as Policy);
+            expect(result).toBe(false);
+        });
+
+        it('should return false if the policy member is not found', () => {
+            const policy = {
+                id: '1',
+                employeeList: {
+                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+            const result = isPolicyMemberWithoutPendingDelete('fakeEmail', policy as unknown as Policy);
+            expect(result).toBe(false);
         });
     });
 });

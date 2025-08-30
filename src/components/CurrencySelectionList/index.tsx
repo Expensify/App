@@ -15,6 +15,7 @@ function CurrencySelectionList({
     searchInputLabel,
     initiallySelectedCurrencyCode,
     onSelect,
+    didScreenTransitionEnd = true,
     selectedCurrencies = [],
     canSelectMultiple = false,
     recentlyUsedCurrencies,
@@ -109,6 +110,7 @@ function CurrencySelectionList({
             initiallyFocusedOptionKey={initiallySelectedCurrencyCode}
             showScrollIndicator
             canSelectMultiple={canSelectMultiple}
+            showLoadingPlaceholder={!didScreenTransitionEnd}
         />
     );
 }

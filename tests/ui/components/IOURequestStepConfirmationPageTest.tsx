@@ -2,7 +2,7 @@ import {render} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import IOURequestStepConfirmationWithWritableReportOrNotFound from '@pages/iou/request/step/IOURequestStepConfirmation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as IOU from '../../../src/libs/actions/IOU';
@@ -25,7 +25,6 @@ jest.mock('@libs/actions/IOU', () => {
         startMoneyRequest: jest.fn(),
     };
 });
-jest.mock('@libs/Fullstory');
 jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: () => [false],
 }));
@@ -63,7 +62,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
         });
 
         render(
-            <OnyxProvider>
+            <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <IOURequestStepConfirmationWithWritableReportOrNotFound
                         route={{
@@ -80,7 +79,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                         navigation={undefined}
                     />
                 </LocaleContextProvider>
-            </OnyxProvider>,
+            </OnyxListItemProvider>,
         );
 
         await waitForBatchedUpdates();

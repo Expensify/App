@@ -20,6 +20,7 @@ type WindowDimensions = {
     windowWidth: number;
     windowHeight: number;
     isSmallScreenWidth: boolean;
+    shouldUseNarrowLayout?: boolean;
 };
 
 type GetModalStyles = {
@@ -43,7 +44,10 @@ type GetModalStylesStyleUtil = {
         innerContainerStyle?: ViewStyle,
         outerStyle?: ViewStyle,
         shouldUseModalPaddingStyle?: boolean,
-        modalOverlapsWithTopSafeArea?: boolean,
+        safeAreaOptions?: {
+            shouldDisableBottomSafeAreaPadding?: boolean;
+            modalOverlapsWithTopSafeArea?: boolean;
+        },
     ) => GetModalStyles;
 };
 
@@ -55,7 +59,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         innerContainerStyle = {},
         outerStyle = {},
         shouldUseModalPaddingStyle = true,
-        modalOverlapsWithTopSafeArea = false,
+        safeAreaOptions = {modalOverlapsWithTopSafeArea: false, shouldDisableBottomSafeAreaPadding: false},
     ): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
@@ -87,9 +91,9 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 // and can be dismissed by clicking outside of the modal.
                 modalStyle = {
                     ...modalStyle,
-                    ...{
-                        alignItems: 'center',
-                    },
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '100%',
                 };
                 modalContainerStyle = {
                     boxShadow: theme.shadow,
@@ -111,9 +115,8 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 // viewed on a smaller device (e.g. mobile or mobile web).
                 modalStyle = {
                     ...modalStyle,
-                    ...{
-                        alignItems: 'center',
-                    },
+                    alignItems: 'center',
+                    height: '100%',
                 };
                 modalContainerStyle = {
                     boxShadow: theme.shadow,
@@ -141,9 +144,8 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 // viewed on a smaller device (e.g. mobile or mobile web).
                 modalStyle = {
                     ...modalStyle,
-                    ...{
-                        alignItems: 'center',
-                    },
+                    alignItems: 'center',
+                    height: '100%',
                 };
                 modalContainerStyle = {
                     boxShadow: theme.shadow,
@@ -168,10 +170,9 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 // A centered modal that cannot be dismissed with a swipe.
                 modalStyle = {
                     ...modalStyle,
-                    ...{
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    },
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100%',
                 };
                 modalContainerStyle = {
                     boxShadow: theme.shadow,
@@ -194,14 +195,15 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 // A centered modal that takes up the minimum possible screen space on all devices
                 modalStyle = {
                     ...modalStyle,
-                    ...{
-                        alignItems: 'center',
-                    },
+                    alignItems: 'center',
+                    height: '100%',
                 };
                 modalContainerStyle = {
                     boxShadow: theme.shadow,
                     borderRadius: variables.componentBorderRadiusLarge,
                     borderWidth: 0,
+                    marginTop: 'auto',
+                    marginBottom: 'auto',
                 };
 
                 // Allow this modal to be dismissed with a swipe down or swipe right
@@ -216,10 +218,9 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
             case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
                 modalStyle = {
                     ...modalStyle,
-                    ...{
-                        alignItems: 'center',
-                        justifyContent: 'flex-end',
-                    },
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
+                    height: '100%',
                 };
                 modalContainerStyle = {
                     width: '100%',
@@ -239,8 +240,8 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     modalContainerStyle.paddingBottom = variables.componentBorderRadiusLarge;
                 }
 
-                shouldAddBottomSafeAreaPadding = innerContainerStyle.paddingBottom !== 0;
-                shouldAddTopSafeAreaMargin = modalOverlapsWithTopSafeArea;
+                shouldAddBottomSafeAreaPadding = !safeAreaOptions?.shouldDisableBottomSafeAreaPadding;
+                shouldAddTopSafeAreaMargin = !!safeAreaOptions?.modalOverlapsWithTopSafeArea;
                 swipeDirection = undefined;
                 animationIn = 'slideInUp';
                 animationOut = 'slideOutDown';
@@ -249,11 +250,9 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 modalStyle = {
                     ...modalStyle,
                     ...popoverAnchorPosition,
-                    ...{
-                        position: 'absolute',
-                        alignItems: 'center',
-                        justifyContent: 'flex-end',
-                    },
+                    position: 'absolute',
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
                 };
                 modalContainerStyle = {
                     borderRadius: variables.componentBorderRadiusLarge,
@@ -272,12 +271,11 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
             case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED:
                 modalStyle = {
                     ...modalStyle,
-                    ...{
-                        marginLeft: isSmallScreenWidth ? 0 : windowWidth - variables.sideBarWidth,
-                        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-                        flexDirection: 'row',
-                        justifyContent: 'flex-end',
-                    },
+                    marginLeft: isSmallScreenWidth ? 0 : windowWidth - variables.sideBarWidth,
+                    width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                    flexDirection: 'row',
+                    justifyContent: 'flex-end',
+                    height: '100%',
                 };
                 modalContainerStyle = {
                     width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
@@ -285,29 +283,15 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     overflow: 'hidden',
                 };
 
-                animationIn = {
-                    from: {
-                        translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
-                    },
-                    to: {
-                        translateX: 0,
-                    },
-                };
-                animationOut = {
-                    from: {
-                        translateX: 0,
-                    },
-                    to: {
-                        translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
-                    },
-                };
-                hideBackdrop = true;
+                animationIn = 'slideInRight';
+                animationOut = 'slideOutRight';
+
                 swipeDirection = undefined;
                 shouldAddBottomSafeAreaPadding = true;
                 shouldAddTopSafeAreaPadding = true;
                 break;
             default:
-                modalStyle = {};
+                modalStyle = {height: '100%'};
                 modalContainerStyle = {};
                 swipeDirection = 'down';
                 animationIn = 'slideInUp';

@@ -9,16 +9,17 @@ import MentionHereRenderer from './MentionHereRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
 
 function ShortMentionRenderer(props: CustomRendererProps<TText | TPhrasing>) {
-    const {mentionsList, currentUserMentions} = useShortMentionsList();
+    const {availableLoginsList, currentUserMentions} = useShortMentionsList();
 
     const mentionValue = 'data' in props.tnode ? props.tnode.data.replace(CONST.UNICODE.LTR, '') : '';
+    const mentionLogin = mentionValue.substring(1);
 
-    if (currentUserMentions?.includes(mentionValue)) {
+    if (currentUserMentions?.includes(mentionLogin)) {
         // eslint-disable-next-line react/jsx-props-no-spreading
         return <MentionHereRenderer {...props} />;
     }
 
-    if (mentionsList.includes(mentionValue)) {
+    if (availableLoginsList.includes(mentionLogin)) {
         // eslint-disable-next-line react/jsx-props-no-spreading
         return <MentionUserRenderer {...props} />;
     }

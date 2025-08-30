@@ -11,7 +11,6 @@ import type {ListItem, Section} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -41,7 +40,7 @@ type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
 function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingReportData = true}: WorkspaceWorkflowsPayerPageProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const policyName = policy?.name ?? '';
     const {isOffline} = useNetwork();
 
@@ -105,7 +104,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             }
         });
         return [policyAdminDetails, authorizedPayerDetails];
-    }, [personalDetails, policy?.employeeList, translate, policy?.achAccount?.reimburser, isDeletedPolicyEmployee, policy?.owner, policy?.pendingFields?.reimburser]);
+    }, [personalDetails, policy?.employeeList, translate, policy?.achAccount?.reimburser, isDeletedPolicyEmployee, policy?.owner, policy?.pendingFields?.reimburser, formatPhoneNumber]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];
@@ -161,6 +160,17 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         [policy, isLoadingReportData],
     );
 
+    const totalNumberOfEmployeesEitherOwnerOrAdmin = useMemo(() => {
+        return Object.entries(policy?.employeeList ?? {}).filter(([email, policyEmployee]) => {
+            const isOwner = policy?.owner === email;
+            const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
+            return !isDeletedPolicyEmployee(policyEmployee) && (isOwner || isAdmin);
+        });
+    }, [isDeletedPolicyEmployee, policy?.employeeList, policy?.owner]);
+
+    const shouldShowSearchInput = totalNumberOfEmployeesEitherOwnerOrAdmin.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const textInputLabel = shouldShowSearchInput ? translate('selectionList.findMember') : undefined;
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -183,7 +193,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                     />
                     <SelectionList
                         sections={sections}
-                        textInputLabel={translate('selectionList.findMember')}
+                        textInputLabel={textInputLabel}
                         textInputValue={searchTerm}
                         onChangeText={setSearchTerm}
                         headerMessage={headerMessage}

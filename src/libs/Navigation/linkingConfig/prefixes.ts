@@ -8,6 +8,7 @@ const prefixes: LinkingOptions<RootNavigatorParamList>['prefixes'] = [
     'https://www.expensify.cash',
     'https://staging.expensify.cash',
     'https://dev.new.expensify.com',
+    'https://new.expensify.com',
     CONST.NEW_EXPENSIFY_URL,
     CONST.STAGING_NEW_EXPENSIFY_URL,
     CONST.PR_TESTING_NEW_EXPENSIFY_URL,

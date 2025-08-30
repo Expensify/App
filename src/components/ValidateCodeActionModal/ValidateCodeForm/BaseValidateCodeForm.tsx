@@ -23,8 +23,9 @@ import {clearValidateCodeActionError} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Account} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ValidateCodeFormHandle = {
     focus: () => void;
@@ -112,7 +113,7 @@ function BaseValidateCodeForm({
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
-    const [account = {}] = useOnyx(ONYXKEYS.ACCOUNT, {
+    const [account = getEmptyObject<Account>()] = useOnyx(ONYXKEYS.ACCOUNT, {
         canBeMissing: true,
     });
 
@@ -332,7 +333,7 @@ function BaseValidateCodeForm({
                         isDisabled={isOffline}
                         text={submitButtonText ?? translate('common.verify')}
                         onPress={validateAndSubmitForm}
-                        style={[styles.mt4]}
+                        style={[shouldShowSkipButton ? styles.mt3 : styles.mt4]}
                         success
                         large
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

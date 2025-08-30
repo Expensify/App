@@ -9,6 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
 import variables from '@styles/variables';
@@ -17,13 +18,15 @@ import type {Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
 const isReportUnread = ({lastReadTime = '', lastVisibleActionCreated = '', lastMentionedTime = ''}: Report): boolean =>
-    lastReadTime < lastVisibleActionCreated || lastReadTime < (lastMentionedTime ?? '');
+    lastReadTime <= lastVisibleActionCreated || lastReadTime < (lastMentionedTime ?? '');
 
 function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionReport}: {transaction: Transaction; containerStyles?: ViewStyle[]; isInSingleTransactionReport?: boolean}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [iouReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`, {
+    const nonEmptyStringTransactionReportID = getNonEmptyStringOnyxID(transaction.reportID);
+
+    const [iouReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringTransactionReportID}`, {
         selector: (reportActions) => getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID),
         canBeMissing: true,
     });
@@ -32,7 +35,7 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
         canBeMissing: true,
     });
 
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`, {
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nonEmptyStringTransactionReportID}`, {
         canBeMissing: false,
     });
 

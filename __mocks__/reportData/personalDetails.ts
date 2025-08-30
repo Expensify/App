@@ -2,7 +2,7 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 
 const usersIDs = [15593135, 51760358, 26502375] as const;
 
-const personalDetails: PersonalDetailsList = {
+const personalDetails = {
     [usersIDs[0]]: {
         accountID: usersIDs[0],
         avatar: '@assets/images/avatars/user/default-avatar_1.svg',
@@ -63,6 +63,6 @@ const personalDetails: PersonalDetailsList = {
         phoneNumber: '33333333',
         validated: true,
     },
-};
+} satisfies PersonalDetailsList;
 
 export default personalDetails;

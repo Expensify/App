@@ -55,6 +55,7 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
                                 >
                                     {translate('common.learnMore')}
                                 </TextLink>
+                                .
                             </>
                         </Text>
                     }

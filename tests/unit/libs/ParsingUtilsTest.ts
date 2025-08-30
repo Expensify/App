@@ -1,5 +1,7 @@
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
-import {decorateRangesWithShortMentions} from '@libs/ParsingUtils';
+import {decorateRangesWithShortMentions, getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
+
+const TEST_COMPANY_DOMAIN = 'myCompany.com';
 
 describe('decorateRangesWithShortMentions', () => {
     test('returns empty list for empty text', () => {
@@ -41,7 +43,7 @@ describe('decorateRangesWithShortMentions', () => {
                 length: 8,
             },
         ];
-        const result = decorateRangesWithShortMentions(ranges, text, [], ['@myUser']);
+        const result = decorateRangesWithShortMentions(ranges, text, [], ['myUser']);
         expect(result).toEqual([
             {
                 type: 'mention-here',
@@ -60,7 +62,7 @@ describe('decorateRangesWithShortMentions', () => {
                 length: 17,
             },
         ];
-        const result = decorateRangesWithShortMentions(ranges, text, [], ['@myUser.email.com']);
+        const result = decorateRangesWithShortMentions(ranges, text, [], ['myUser.email.com']);
         expect(result).toEqual([
             {
                 type: 'mention-here',
@@ -79,7 +81,7 @@ describe('decorateRangesWithShortMentions', () => {
                 length: 12,
             },
         ];
-        const availableMentions = ['@johnDoe', '@steven.mock'];
+        const availableMentions = ['johnDoe', 'steven.mock'];
 
         const result = decorateRangesWithShortMentions(ranges, text, availableMentions, []);
         expect(result).toEqual([
@@ -105,7 +107,7 @@ describe('decorateRangesWithShortMentions', () => {
                 length: 12,
             },
         ];
-        const availableMentions = ['@other.person'];
+        const availableMentions = ['other.person'];
 
         const result = decorateRangesWithShortMentions(ranges, text, availableMentions, []);
         expect(result).toEqual([
@@ -136,8 +138,8 @@ describe('decorateRangesWithShortMentions', () => {
                 length: 13,
             },
         ];
-        const availableMentions = ['@johnDoe', '@steven.mock', '@John.current'];
-        const currentUsers = ['@John.current'];
+        const availableMentions = ['johnDoe', 'steven.mock', 'John.current'];
+        const currentUsers = ['John.current'];
 
         const result = decorateRangesWithShortMentions(ranges, text, availableMentions, currentUsers);
         expect(result).toEqual([
@@ -157,5 +159,66 @@ describe('decorateRangesWithShortMentions', () => {
                 length: 13,
             },
         ]);
+    });
+});
+
+describe('getParsedMessageWithShortMentions', () => {
+    const availableMentionLogins = ['person@myCompany.com', 'john.doe@myCompany.com', 'steven@someother.org'];
+
+    test('returns text without any mentions unchanged', () => {
+        const result = getParsedMessageWithShortMentions({
+            text: 'Be the change that you wish to see in the world',
+            availableMentionLogins,
+            userEmailDomain: TEST_COMPANY_DOMAIN,
+            parserOptions: {},
+        });
+        expect(result).toEqual('Be the change that you wish to see in the world');
+    });
+
+    test('returns text with full user mentions handled', () => {
+        const result = getParsedMessageWithShortMentions({
+            text: '@here @john.doe@org.com is a generic mention @person@mail.com',
+            availableMentionLogins,
+            userEmailDomain: TEST_COMPANY_DOMAIN,
+            parserOptions: {},
+        });
+        expect(result).toEqual('<mention-here>@here</mention-here> <mention-user>@john.doe@org.com</mention-user> is a generic mention <mention-user>@person@mail.com</mention-user>');
+    });
+
+    test('returns text with simple short mention transformed into full mention with domain', () => {
+        const result = getParsedMessageWithShortMentions({
+            text: '@john.doe is a correct short mention',
+            availableMentionLogins,
+            userEmailDomain: TEST_COMPANY_DOMAIN,
+            parserOptions: {},
+        });
+        expect(result).toEqual('<mention-user>@john.doe@myCompany.com</mention-user> is a correct short mention');
+    });
+
+    test('returns text with simple short mention unchanged, when full mention was not in the available logins', () => {
+        const result = getParsedMessageWithShortMentions({
+            text: '@john.doe2 is not a correct short mention',
+            availableMentionLogins,
+            userEmailDomain: TEST_COMPANY_DOMAIN,
+            parserOptions: {},
+        });
+        expect(result).toEqual('@john.doe2 is not a correct short mention');
+    });
+
+    test('returns text with multiple short mentions transformed into mentions with domain', () => {
+        const result = getParsedMessageWithShortMentions({
+            text: '@john.doe and @john.doe@othermail.com and another @person',
+            availableMentionLogins,
+            userEmailDomain: TEST_COMPANY_DOMAIN,
+            parserOptions: {},
+        });
+        expect(result).toEqual(
+            '<mention-user>@john.doe@myCompany.com</mention-user> and <mention-user>@john.doe@othermail.com</mention-user> and another <mention-user>@person@myCompany.com</mention-user>',
+        );
+    });
+
+    test("returns text with short mention that is followed by special ' char", () => {
+        const result = getParsedMessageWithShortMentions({text: `this is @john.doe's mention`, availableMentionLogins, userEmailDomain: TEST_COMPANY_DOMAIN, parserOptions: {}});
+        expect(result).toEqual(`this is <mention-user>@john.doe@myCompany.com</mention-user>&#x27;s mention`);
     });
 });

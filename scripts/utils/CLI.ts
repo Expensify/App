@@ -21,10 +21,13 @@ type BooleanArg = CLIArg;
  * Any other argument is provided raw in process.argv as a string.
  * It can remain a string, or can be transformed into another type by a custom `parse` function.
  * It can be optional (by providing a default) or required (no default value).
+ * It can also supersede other named arguments when provided.
  */
 type StringArg<T = unknown> = CLIArg & {
     default?: T;
     parse?: (val: string) => T;
+    supersedes?: string[];
+    required?: boolean;
 };
 
 /**
@@ -162,6 +165,8 @@ class CLI<TConfig extends CLIConfig> {
 
             const parsedNamedArgs: Partial<Writable<typeof this.namedArgs>> = {};
             const parsedPositionalArgs: Partial<Writable<typeof this.positionalArgs>> = {};
+            const providedNamedArgs = new Set<string>();
+
             let positionalIndex = 0;
             for (let i = 0; i < rawArgs.length; i++) {
                 const rawArg = rawArgs.at(i);
@@ -177,6 +182,8 @@ class CLI<TConfig extends CLIConfig> {
                         this.flags[rawArgName as keyof typeof this.flags] = true;
                     } else if (config.namedArgs && rawArgName in config.namedArgs) {
                         // Arg is a named arg
+                        providedNamedArgs.add(rawArgName);
+
                         // Grab the value from the split token, otherwise go for the next token
                         let argValueBeforeParse = '';
                         if (rawArgValue) {
@@ -205,19 +212,42 @@ class CLI<TConfig extends CLIConfig> {
                 }
             }
 
-            // Validate that all required args are present, assign defaults where values are not parsed
+            // Handle supersession logic
+            const supersededArgs = new Set<string>();
             for (const [name, spec] of Object.entries(config.namedArgs ?? {})) {
-                if (!(name in parsedNamedArgs)) {
-                    if (spec.default) {
-                        parsedNamedArgs[name as keyof typeof parsedNamedArgs] = spec.default as ValueOf<typeof parsedNamedArgs>;
-                    } else {
-                        throw new Error(`Missing required named argument --${name}`);
+                if (providedNamedArgs.has(name) && spec.supersedes) {
+                    for (const supersededArg of spec.supersedes) {
+                        supersededArgs.add(supersededArg);
+                        if (providedNamedArgs.has(supersededArg)) {
+                            console.warn(`⚠️  Warning: --${supersededArg} is superseded by --${name} and will be ignored.`);
+                        }
                     }
                 }
             }
+
+            // Validate that all required args are present, assign defaults where values are not parsed
+            for (const [name, spec] of Object.entries(config.namedArgs ?? {})) {
+                if (name in parsedNamedArgs) {
+                    if (supersededArgs.has(name)) {
+                        parsedNamedArgs[name as keyof typeof parsedNamedArgs] = undefined as ValueOf<typeof parsedNamedArgs>;
+                    }
+                } else if (supersededArgs.has(name)) {
+                    // This arg was superseded, so don't require it and don't assign a default
+                    continue;
+                } else if (spec.default !== undefined) {
+                    parsedNamedArgs[name as keyof typeof parsedNamedArgs] = spec.default as ValueOf<typeof parsedNamedArgs>;
+                } else if (spec.required === false) {
+                    // Explicitly marked as optional, leave undefined
+                    continue;
+                } else {
+                    // Arguments without defaults are required by default (unless explicitly marked as optional)
+                    throw new Error(`Missing required named argument --${name}`);
+                }
+            }
+
             for (const spec of config.positionalArgs ?? []) {
                 if (!(spec.name in parsedPositionalArgs)) {
-                    if (spec.default) {
+                    if (spec.default !== undefined) {
                         parsedPositionalArgs[spec.name as keyof typeof parsedPositionalArgs] = spec.default as ValueOf<typeof parsedPositionalArgs>;
                     } else {
                         throw new Error(`Missing required positional argument --${spec.name}`);
@@ -263,7 +293,8 @@ class CLI<TConfig extends CLIConfig> {
             console.log('Named Arguments:');
             for (const [name, spec] of Object.entries(namedArgs)) {
                 const defaultLabel = spec.default !== undefined ? ` (default: ${String(spec.default)})` : '';
-                console.log(`  --${name.padEnd(20)} ${spec.description}${defaultLabel}`);
+                const supersededLabel = spec.supersedes && spec.supersedes.length > 0 ? ` (supersedes: ${spec.supersedes.join(', ')})` : '';
+                console.log(`  --${name.padEnd(20)} ${spec.description}${defaultLabel}${supersededLabel}`);
             }
             console.log('');
         }
