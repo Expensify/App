@@ -72,6 +72,9 @@ type MoneyRequestConfirmationListFooterProps = {
     /** The distance of the transaction */
     distance: number;
 
+    /** The raw numeric amount of the transaction */
+    iouAmount: number;
+
     /** The formatted amount of the transaction */
     formattedAmount: string;
 
@@ -240,6 +243,7 @@ function MoneyRequestConfirmationListFooter({
     onToggleBillable,
     policy,
     policyTags,
+    iouAmount,
     policyTagLists,
     rate,
     receiptFilename,
@@ -309,7 +313,7 @@ function MoneyRequestConfirmationListFooter({
     }
 
     if (!reportName) {
-        const optimisticReport = buildOptimisticExpenseReport(reportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
+        const optimisticReport = buildOptimisticExpenseReport(reportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), iouAmount, currency);
         reportName = populateOptimisticReportFormula(policy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, policy);
     }
 
@@ -971,6 +975,7 @@ export default memo(
         prevProps.currency === nextProps.currency &&
         prevProps.didConfirm === nextProps.didConfirm &&
         prevProps.distance === nextProps.distance &&
+        prevProps.iouAmount === nextProps.iouAmount &&
         prevProps.formattedAmount === nextProps.formattedAmount &&
         prevProps.formError === nextProps.formError &&
         prevProps.hasRoute === nextProps.hasRoute &&

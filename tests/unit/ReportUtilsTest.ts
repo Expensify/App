@@ -8,6 +8,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
+import getBase62ReportID from '@libs/getBase62ReportID';
 import {translateLocal} from '@libs/Localize';
 import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
@@ -66,6 +67,7 @@ import {
     isReportOutstanding,
     isRootGroupChat,
     parseReportRouteParams,
+    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
     shouldDisableRename,
@@ -2078,7 +2080,7 @@ describe('ReportUtils', () => {
         it('should return canUnholdRequest as true for a held duplicate transaction', async () => {
             const chatReport: Report = {reportID: '1'};
             const reportPreviewReportActionID = '8';
-            const expenseReport = buildOptimisticExpenseReport(chatReport.reportID, '123', currentUserAccountID, 122, 'USD', undefined, reportPreviewReportActionID);
+            const expenseReport = buildOptimisticExpenseReport(chatReport.reportID, '123', currentUserAccountID, 122, 122, 'USD', undefined, reportPreviewReportActionID);
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -2417,7 +2419,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return true when the report has outstanding violations', async () => {
-            const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+            const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 100, 122, 'USD');
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -2712,7 +2714,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return false when the report is the single transaction thread', async () => {
-            const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+            const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 100, 122, 'USD');
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -5560,6 +5562,113 @@ describe('ReportUtils', () => {
 
             expect(reportPreviewAction.childOwnerAccountID).toBe(iouReport.ownerAccountID);
             expect(reportPreviewAction.childManagerAccountID).toBe(iouReport.managerID);
+        });
+    });
+
+    describe('populateOptimisticReportFormula', () => {
+        const mockPolicy: Policy = {
+            id: 'test-policy-id',
+            name: 'Test Policy',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: 'test@example.com',
+            outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
+            harvesting: {
+                enabled: true,
+            },
+            defaultBillable: false,
+            disabledFields: {},
+            fieldList: {},
+            customUnits: {},
+            areCategoriesEnabled: true,
+            areTagsEnabled: true,
+            areDistanceRatesEnabled: true,
+            areWorkflowsEnabled: true,
+            areReportFieldsEnabled: true,
+            areConnectionsEnabled: true,
+            pendingAction: undefined,
+            errors: {},
+            isLoading: false,
+            errorFields: {},
+        };
+
+        const mockReport = {
+            reportID: '123456789',
+            reportName: 'Test Report',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: 1,
+            currency: CONST.CURRENCY.USD,
+            total: -5000,
+            lastVisibleActionCreated: '2024-01-15 10:30:00',
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            chatReportID: 'chat-123',
+            policyID: 'test-policy-id',
+            participants: {},
+            parentReportID: 'chat-123',
+        };
+
+        it('should handle NaN total gracefully', () => {
+            const reportWithNaNTotal = {
+                ...mockReport,
+                total: NaN,
+            };
+
+            const result = populateOptimisticReportFormula('{report:total}', reportWithNaNTotal, mockPolicy);
+            expect(result).toBe('{report:total}');
+        });
+
+        it('should replace {report:total} with formatted amount', () => {
+            const result = populateOptimisticReportFormula('{report:total}', mockReport, mockPolicy);
+            expect(result).toBe('$50.00');
+        });
+
+        it('should replace {report:id} with base62 report ID', () => {
+            const result = populateOptimisticReportFormula('{report:id}', mockReport, mockPolicy);
+            expect(result).toBe(getBase62ReportID(Number(mockReport.reportID)));
+        });
+
+        it('should replace multiple placeholders correctly', () => {
+            const formula = 'Report {report:id} has total {report:total}';
+            const result = populateOptimisticReportFormula(formula, mockReport, mockPolicy);
+            const expectedId = getBase62ReportID(Number(mockReport.reportID));
+            expect(result).toBe(`Report ${expectedId} has total $50.00`);
+        });
+
+        it('should handle undefined total gracefully', () => {
+            const reportWithUndefinedTotal = {
+                ...mockReport,
+                total: undefined,
+            };
+
+            const result = populateOptimisticReportFormula('{report:total}', reportWithUndefinedTotal, mockPolicy);
+            expect(result).toBe('{report:total}');
+        });
+
+        it('should return original formula when result is empty after replacements', () => {
+            const formula = '{report:total}';
+            const reportWithNaNTotal = {
+                ...mockReport,
+                total: NaN,
+            };
+
+            const result = populateOptimisticReportFormula(formula, reportWithNaNTotal, mockPolicy);
+            expect(result).toBe('{report:total}');
+        });
+
+        it('should handle complex formula with multiple placeholders and some invalid values', () => {
+            const formula = 'ID: {report:id}, Total: {report:total}, Type: {report:type}';
+            const reportWithNaNTotal = {
+                ...mockReport,
+                total: NaN,
+            };
+
+            const result = populateOptimisticReportFormula(formula, reportWithNaNTotal, mockPolicy);
+            const expectedId = getBase62ReportID(Number(mockReport.reportID));
+            expect(result).toBe(`ID: ${expectedId}, Total: , Type: Expense Report`);
         });
     });
     describe('canSeeDefaultRoom', () => {
