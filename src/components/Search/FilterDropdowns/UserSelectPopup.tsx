@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import memoize from '@libs/memoize';
-import {filterCurrentUserOption, getValidOptions} from '@libs/PersonalDetailsOptionsListUtils';
+import {filterOption, getValidOptions} from '@libs/PersonalDetailsOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailsOptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -91,7 +91,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     }, [transformedOptions, login, cleanSearchTerm]);
 
     const filteredCurrentUserOption = useMemo(() => {
-        const newOption = filterCurrentUserOption(currentOption, cleanSearchTerm);
+        const newOption = filterOption(currentOption, cleanSearchTerm);
         if (newOption) {
             return {
                 ...newOption,

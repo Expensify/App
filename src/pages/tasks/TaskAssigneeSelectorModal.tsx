@@ -25,7 +25,7 @@ import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OptionData} from '@libs/PersonalDetailsOptionsListUtils';
-import {filterCurrentUserOption, getHeaderMessage, getValidOptions} from '@libs/PersonalDetailsOptionsListUtils';
+import {filterOption, getHeaderMessage, getValidOptions} from '@libs/PersonalDetailsOptionsListUtils';
 import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 import type {TaskDetailsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -69,7 +69,7 @@ function TaskAssigneeSelectorModal() {
     }, [areOptionsInitialized, options, currentUserPersonalDetails.login, debouncedSearchValue]);
 
     const filteredCurrentUserOption = useMemo(() => {
-        return filterCurrentUserOption(currentOption, debouncedSearchValue);
+        return filterOption(currentOption, debouncedSearchValue);
     }, [currentOption, debouncedSearchValue]);
 
     /**

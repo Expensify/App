@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
-import {filterCurrentUserOption, getValidOptions} from '@libs/PersonalDetailsOptionsListUtils';
+import {filterOption, getValidOptions} from '@libs/PersonalDetailsOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailsOptionsListUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
@@ -76,7 +76,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     }, [areOptionsInitialized, login, cleanSearchTerm, transformedOptions]);
 
     const filteredCurrentUserOption = useMemo(() => {
-        const newOption = filterCurrentUserOption(currentOption, cleanSearchTerm);
+        const newOption = filterOption(currentOption, cleanSearchTerm);
         if (newOption) {
             return {
                 ...newOption,

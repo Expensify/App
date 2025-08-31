@@ -51,7 +51,7 @@ type GetOptionsConfig = {
     includeCurrentUser?: boolean;
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
-    recentAttendees?: number[];
+    recentAttendees?: string[];
     searchString?: string;
     maxElements?: number;
     recentMaxElements?: number;
@@ -277,13 +277,13 @@ function filterUserToInvite(options: Omit<Options, 'userToInvite' | 'selectedOpt
     });
 }
 
-function filterCurrentUserOption(option: OptionData | undefined, searchValue: string) {
+function filterOption(option: OptionData | undefined, searchValue: string | undefined) {
     if (!option) {
         return null;
     }
 
     const searchTerms = processSearchString(searchValue);
-    const searchText = deburr(`${option.text ?? ''} ${option.login ?? ''}`.toLocaleLowerCase());
+    const searchText = deburr(`${option.text} ${option.login ?? ''}`.toLocaleLowerCase());
 
     const isMatchingSearch = searchTerms.every((term) => searchText.includes(term));
 
@@ -345,7 +345,7 @@ function getValidOptions(
         if (loginsToExclude[personalDetail.login]) {
             return false;
         }
-        const searchText = deburr(`${personalDetail.text ?? ''} ${personalDetail.login ?? ''}`.toLocaleLowerCase());
+        const searchText = deburr(`${personalDetail.text} ${personalDetail.login ?? ''}`.toLocaleLowerCase());
 
         return searchTerms.every((term) => searchText.includes(term));
     };
@@ -367,33 +367,41 @@ function getValidOptions(
     let recentOptions: OptionData[] = [];
 
     if (recentAttendees && recentAttendees?.length > 0) {
-        const recentAttendeesSet = new Set(recentAttendees);
-        recentOptions = options.filter((option) => {
-            if (option.login && loginsToExclude[option.login]) {
-                return false;
+        const recentAttendeesSet = new Set(recentAttendees.filter((login) => !loginsToExclude[login]));
+        const potentialRecentOptions: Record<string, OptionData> = {};
+        for (const option of options) {
+            if (!option.login) {
+                continue;
             }
-            return recentAttendeesSet.has(option.accountID);
-        });
-        if (recentMaxElements && recentOptions.length > recentMaxElements) {
-            recentOptions = recentOptions.slice(0, recentMaxElements);
+            let searchText = `${option.text} ${option.login ?? ''}`;
+
+            searchText = deburr(searchText.toLocaleLowerCase());
+            const searchTermsFound = searchTerms.every((term) => searchText.includes(term));
+            if (searchTermsFound && recentAttendeesSet.has(option.login ?? '')) {
+                potentialRecentOptions[option.login] = option;
+            }
         }
-    }
+        for (const login of recentAttendees) {
+            if (potentialRecentOptions[login]) {
+                recentOptions.push(potentialRecentOptions[login]);
+            } else {
+                // If we don't have the personal detail for the recent attendee, we create an optimistic option
+                const newOption = filterOption(getUserToInviteOption({searchValue: login, loginsToExclude, shouldAcceptName: true}) ?? undefined, searchString);
 
-    if (includeRecentReports && (!recentMaxElements || recentOptions.length < recentMaxElements)) {
+                if (newOption) {
+                    recentOptions.push(newOption);
+                }
+            }
+        }
+    } else if (includeRecentReports) {
         // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
-        const recentAttendeesSet = new Set(recentAttendees);
-
         const filteringFunction = (option: OptionData) => {
-            let searchText = `${option.text ?? ''}${option.login ?? ''}`;
+            let searchText = `${option.text} ${option.login ?? ''}`;
 
             searchText = deburr(searchText.toLocaleLowerCase());
             const searchTermsFound = searchTerms.every((term) => searchText.includes(term));
 
             if (!searchTermsFound || !option.reportID) {
-                return false;
-            }
-
-            if (recentAttendeesSet.has(option.accountID)) {
                 return false;
             }
 
@@ -404,7 +412,7 @@ function getValidOptions(
             return true;
         };
 
-        recentOptions = optionsOrderBy(options, recentReportComparator, recentMaxElements ? recentMaxElements - recentOptions.length : recentMaxElements, filteringFunction);
+        recentOptions = optionsOrderBy(options, recentReportComparator, recentMaxElements, filteringFunction);
     }
 
     // Get valid personal details and check if we can find the current user:
@@ -428,7 +436,7 @@ function getValidOptions(
         if (loginsToExclude[personalDetail.login]) {
             return false;
         }
-        const searchText = deburr(`${personalDetail.text ?? ''} ${personalDetail.login ?? ''}`.toLocaleLowerCase());
+        const searchText = deburr(`${personalDetail.text} ${personalDetail.login ?? ''}`.toLocaleLowerCase());
 
         return searchTerms.every((term) => searchText.includes(term));
     };
@@ -530,7 +538,7 @@ export {
     getUserToInviteOption,
     getPersonalDetailSearchTerms,
     canCreateOptimisticPersonalDetailOption,
-    filterCurrentUserOption,
+    filterOption,
     getValidOptions,
     createOptionList,
     shallowOptionsListCompare,
