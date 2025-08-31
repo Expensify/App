@@ -60,6 +60,7 @@ type GetOptionsConfig = {
     /** Note - This is a temporary optimization measure */
     removeRecentsDuplicates?: boolean;
     extraOptions?: OptionData[];
+    shouldAcceptName?: boolean;
 };
 
 type GetUserToInviteConfig = {
@@ -235,22 +236,24 @@ function processSearchString(searchString: string | undefined): string[] {
 
 function canCreateOptimisticPersonalDetailOption({
     recentOptions,
+    selectedOptions,
     personalDetailsOptions,
     currentUserLogin,
     searchValue,
 }: {
     recentOptions: OptionData[];
+    selectedOptions: OptionData[];
     personalDetailsOptions: OptionData[];
     currentUserLogin: string;
     searchValue: string;
 }) {
-    if (recentOptions.length + personalDetailsOptions.length > 0) {
+    if (recentOptions.length + selectedOptions.length + personalDetailsOptions.length > 0) {
         return false;
     }
     return currentUserLogin !== addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() && currentUserLogin !== searchValue?.toLowerCase();
 }
 
-function filterUserToInvite(options: Omit<Options, 'userToInvite' | 'selectedOptions'>, currentUserLogin: string, config: GetUserToInviteConfig): OptionData | null {
+function filterUserToInvite(options: Omit<Options, 'userToInvite'>, currentUserLogin: string, config: GetUserToInviteConfig): OptionData | null {
     const {searchValue, canInviteUser = true, loginsToExclude = {}} = config ?? {};
     if (!canInviteUser) {
         return null;
@@ -258,6 +261,7 @@ function filterUserToInvite(options: Omit<Options, 'userToInvite' | 'selectedOpt
 
     const canCreateOptimisticDetail = canCreateOptimisticPersonalDetailOption({
         recentOptions: options.recentOptions,
+        selectedOptions: options.selectedOptions,
         personalDetailsOptions: options.personalDetails,
         currentUserLogin,
         searchValue,
@@ -313,6 +317,7 @@ function getValidOptions(
         includeDomainEmail = false,
         removeRecentsDuplicates = true,
         extraOptions = [],
+        shouldAcceptName = false,
     }: GetOptionsConfig = {},
 ) {
     // Gather shared configs:
@@ -445,7 +450,11 @@ function getValidOptions(
 
     let userToInvite: OptionData | null = null;
     if (includeUserToInvite) {
-        userToInvite = filterUserToInvite({recentOptions, personalDetails: personalDetailsOptions}, currentUserLogin, {searchValue: searchString ?? '', loginsToExclude});
+        userToInvite = filterUserToInvite({recentOptions, selectedOptions, personalDetails: personalDetailsOptions}, currentUserLogin, {
+            searchValue: searchString ?? '',
+            loginsToExclude,
+            shouldAcceptName,
+        });
     }
 
     return {

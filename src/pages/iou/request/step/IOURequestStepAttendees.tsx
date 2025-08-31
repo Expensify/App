@@ -77,7 +77,6 @@ function IOURequestStepAttendees({
                 onAttendeesAdded={(v) => setAttendees(v)}
                 attendees={attendees}
                 iouType={iouType}
-                action={action}
             />
         </StepScreenWrapper>
     );
