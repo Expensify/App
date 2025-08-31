@@ -6099,14 +6099,14 @@ function buildOptimisticExpenseReport(
     chatReportID: string | undefined,
     policyID: string | undefined,
     payeeAccountID: number,
-    iouAmount: number,
+    total: number,
     currency: string,
     nonReimbursableTotal = 0,
     parentReportActionID?: string,
     optimisticIOUReportID?: string,
 ): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
-    const storedTotal = iouAmount * -1;
+    const storedTotal = total * -1;
     const storedNonReimbursableTotal = nonReimbursableTotal * -1;
     const report = chatReportID ? getReport(chatReportID, allReports) : undefined;
     const policyName = getPolicyName({report});
