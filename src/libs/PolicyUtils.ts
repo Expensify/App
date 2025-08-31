@@ -1402,7 +1402,7 @@ function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
  */
 function shouldRedirectToExpensifyClassic(policies: OnyxCollection<Policy> | null, tryNewDot: OnyxEntry<TryNewDot>): boolean {
     // Check if all group policies have expense chat disabled
-    const hasDisabledPolicies = areAllGroupPoliciesExpenseChatDisabled((policies as OnyxCollection<Policy>) ?? {});
+    const hasDisabledPolicies = areAllGroupPoliciesExpenseChatDisabled(policies ?? {});
 
     // Check if user is in OD/ND transition and should be redirected
     // When classicRedirect.dismissed is true, user should see "Coming Soon" modal

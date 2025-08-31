@@ -159,7 +159,7 @@ function EmptySearchViewContent({
     const [tryNewDotRaw] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
 
     const shouldRedirectToExpensifyClassic = useMemo(() => {
-        return shouldRedirectToExpensifyClassicUtil(allPolicies as OnyxCollection<Policy>, tryNewDotRaw);
+        return shouldRedirectToExpensifyClassicUtil(allPolicies, tryNewDotRaw);
     }, [allPolicies, tryNewDotRaw]);
 
     const typeMenuItems = useMemo(() => {
