@@ -4468,6 +4468,25 @@ function getUpdateMoneyRequestParams(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: currentTransactionViolations,
         });
+
+        if (duplicateViolation && hasModifiedAmount) {
+            const duplicateTransactionIDs = duplicateViolation.data?.duplicates;
+            duplicateTransactionIDs?.push(transaction?.transactionID);
+            const currentTransactionViolationsData = duplicateTransactionIDs?.map((id) => ({transactionID: id, violations: allTransactionViolations?.[id] ?? []}));
+            const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolationsData?.map((transactionViolations) => ({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
+                value: transactionViolations.violations?.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+            }));
+            optimisticData.push(...optimisticDataTransactionViolations);
+            const failureDataTransactionViolations: OnyxUpdate = currentTransactionViolationsData?.map((transactionViolations) => ({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
+                value: allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [],
+            }));
+            failureData.push(failureDataTransactionViolations);
+        }
+
         if (hash) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
