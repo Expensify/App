@@ -6105,6 +6105,7 @@ function buildOptimisticExpenseReport(
     parentReportActionID?: string,
     optimisticIOUReportID?: string,
 ): OptimisticExpenseReport {
+    // The amount for Expense reports are stored as negative value in the database
     const storedTotal = iouAmount * -1;
     const storedNonReimbursableTotal = nonReimbursableTotal * -1;
     const report = chatReportID ? getReport(chatReportID, allReports) : undefined;
