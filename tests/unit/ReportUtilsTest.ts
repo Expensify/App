@@ -4,9 +4,11 @@ import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePolicyData from '@hooks/usePolicyData';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
+import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
@@ -325,7 +327,6 @@ const policy: Policy = {
 describe('ReportUtils', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
-
         const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
         Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
@@ -4690,6 +4691,9 @@ describe('ReportUtils', () => {
     });
 
     describe('pushTransactionViolationsOnyxData', () => {
+        beforeAll(() => {
+            initOnyxDerivedValues();
+        });
         it('should push category violation to the Onyx data when category and tag is pending deletion', async () => {
             // Given policy categories, the first is pending deletion
             const fakePolicyCategories = createRandomPolicyCategories(3);
@@ -4741,27 +4745,32 @@ describe('ReportUtils', () => {
             // Populating Onyx with required data
             await Onyx.multiSet({
                 ...fakePolicyReports,
-                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}`]: fakePolicyTagsLists,
-                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`]: fakePolicyCategories,
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicyID}`]: fakePolicyTagsLists,
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicyID}`]: fakePolicyCategories,
                 [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`]: {
                     [mockIOUAction.reportActionID]: mockIOUAction,
                 },
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`]: {
                     ...mockTransaction,
+                    reportID: mockIOUReport.reportID,
                     policyID: fakePolicyID,
                     category: fakePolicyCategoryNameToDelete,
                     tag: fakePolicyTagsToDelete.at(0)?.[0] ?? '',
                 },
             });
 
-            const {result: policyData} = renderHook(() => usePolicyData(fakePolicyID));
+            await waitForBatchedUpdates();
+
+            const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
+
+            await waitForBatchedUpdates();
 
             const onyxData = {optimisticData: [], failureData: []};
 
-            pushTransactionViolationsOnyxData(onyxData, policyData.current, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate);
+            pushTransactionViolationsOnyxData(onyxData, result.current, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate);
 
-            expect(onyxData).toMatchObject({
+            const expectedOnyxData = {
                 // Expecting the optimistic data to contain the OUT_OF_POLICY violations for the deleted category and tag
                 optimisticData: [
                     {
@@ -4789,7 +4798,9 @@ describe('ReportUtils', () => {
                         value: null,
                     },
                 ],
-            });
+            };
+
+            expect(onyxData).toMatchObject(expectedOnyxData);
         });
     });
 
