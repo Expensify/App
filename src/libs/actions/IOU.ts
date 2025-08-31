@@ -4856,7 +4856,8 @@ function updateMoneyRequestTaxRate({transactionID, optimisticReportActionID, tax
 type UpdateMoneyRequestDistanceParams = {
     transactionID: string | undefined;
     transactionThreadReportID: string | undefined;
-    waypoints: WaypointCollection;
+    waypoints?: WaypointCollection;
+    distance?: number;
     routes?: Routes;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -4869,15 +4870,18 @@ function updateMoneyRequestDistance({
     transactionID,
     transactionThreadReportID,
     waypoints,
+    distance,
     routes = undefined,
     policy = {} as OnyxTypes.Policy,
     policyTagList = {},
     policyCategories = {},
     transactionBackup,
 }: UpdateMoneyRequestDistanceParams) {
+
     const transactionChanges: TransactionChanges = {
-        waypoints: sanitizeRecentWaypoints(waypoints),
+        ...waypoints && {waypoints: sanitizeRecentWaypoints(waypoints)},
         routes,
+        ...distance && {distance},
     };
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
@@ -4889,12 +4893,14 @@ function updateMoneyRequestDistance({
     }
     const {params, onyxData} = data;
 
-    const recentServerValidatedWaypoints = getRecentWaypoints().filter((item) => !item.pendingAction);
-    onyxData?.failureData?.push({
-        onyxMethod: Onyx.METHOD.SET,
-        key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
-        value: recentServerValidatedWaypoints,
-    });
+    if (!distance) {
+        const recentServerValidatedWaypoints = getRecentWaypoints().filter((item) => !item.pendingAction);
+        onyxData?.failureData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
+            value: recentServerValidatedWaypoints,
+        });
+    }
 
     if (transactionBackup) {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];

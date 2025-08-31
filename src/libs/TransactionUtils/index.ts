@@ -589,6 +589,28 @@ function getUpdatedTransaction({
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
 
+    if (Object.hasOwn(transactionChanges, 'distance') && typeof transactionChanges.distance === 'number') {
+        const distance = roundToTwoDecimalPlaces((transactionChanges.distance ?? 0));
+
+        lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
+        shouldStopSmartscan = true;
+
+
+        const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
+        const {unit, rate} = mileageRate;
+        const distanceInMeters = getDistanceInMeters(updatedTransaction, mileageRate?.unit);
+        const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+        const updatedCurrency = mileageRate.currency ?? CONST.CURRENCY.USD;
+        const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, translateLocal, (digit) =>
+            toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+        );
+
+        updatedTransaction.amount = amount;
+        updatedTransaction.modifiedAmount = amount;
+        updatedTransaction.modifiedMerchant = updatedMerchant;
+        updatedTransaction.modifiedCurrency = updatedCurrency;
+    }
+
     updatedTransaction.pendingFields = {
         ...(updatedTransaction?.pendingFields ?? {}),
         ...(Object.hasOwn(transactionChanges, 'comment') && {comment: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),

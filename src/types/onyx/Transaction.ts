@@ -583,6 +583,9 @@ type AdditionalTransactionChanges = {
 
     /** Previous currency before changes */
     oldCurrency?: string;
+
+    /** Previous distance before changes */
+    distance?: number;
 };
 
 /** Model of transaction changes  */
