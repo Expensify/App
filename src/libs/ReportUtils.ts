@@ -6099,16 +6099,13 @@ function buildOptimisticExpenseReport(
     chatReportID: string | undefined,
     policyID: string | undefined,
     payeeAccountID: number,
-    total: number,
     iouAmount: number,
     currency: string,
     nonReimbursableTotal = 0,
     parentReportActionID?: string,
     optimisticIOUReportID?: string,
 ): OptimisticExpenseReport {
-    // The amount for Expense reports are stored as negative value in the database
-    const storedTotal = total * -1;
-    const storedIouAmount = iouAmount * -1;
+    const storedTotal = iouAmount * -1;
     const storedNonReimbursableTotal = nonReimbursableTotal * -1;
     const report = chatReportID ? getReport(chatReportID, allReports) : undefined;
     const policyName = getPolicyName({report});
@@ -6130,8 +6127,8 @@ function buildOptimisticExpenseReport(
         reportName: `${policyName} owes ${formattedTotal}`,
         stateNum,
         statusNum,
-        total: storedIouAmount,
-        unheldTotal: storedIouAmount,
+        total: storedTotal,
+        unheldTotal: storedTotal,
         nonReimbursableTotal: storedNonReimbursableTotal,
         unheldNonReimbursableTotal: storedNonReimbursableTotal,
         participants: {
