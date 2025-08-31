@@ -12379,7 +12379,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
         value: {
-            [optimisticRejectReportAction.reportActionID]: null, // Remove optimistic rejected action
+            [optimisticRejectReportAction.reportActionID]: optimisticRejectReportAction, // Remove optimistic rejected action
             [optimisticRejectReportActionComment.reportActionID]: {
                 ...optimisticRejectReportActionComment,
                 pendingAction: null,
@@ -12530,7 +12530,7 @@ function markRejectViolationAsResolved(transactionID: string, reportID?: string)
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [optimisticMarkedAsResolvedReportAction.reportActionID]: null,
+                [optimisticMarkedAsResolvedReportAction.reportActionID]: optimisticMarkedAsResolvedReportAction,
             },
         },
     ];
