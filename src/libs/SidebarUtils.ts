@@ -349,11 +349,11 @@ function categorizeReportsForLHN(
 
         const isPinned = !!report.isPinned;
         const requiresAttention = !!reportAttributes?.[reportID]?.requiresAttention;
-        const hasErrors = !!report.hasErrorsOtherThanFailedReceipt;
         const hasDraft = reportID ? hasValidDraftComment(reportID) : false;
         const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
         const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
         const isArchived = isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived);
+        const hasErrors = !!report.hasErrorsOtherThanFailedReceipt && !isArchived;
 
         precomputedReports.push({
             miniReport,
