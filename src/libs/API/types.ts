@@ -146,6 +146,7 @@ const WRITE_COMMANDS = {
     UPDATE_WORKSPACE_DESCRIPTION: 'UpdateWorkspaceDescription',
     UPDATE_WORKSPACE_MEMBERS_ROLE: 'UpdateWorkspaceMembersRole',
     CREATE_WORKSPACE: 'CreateWorkspace',
+    DUPLICATE_POLICY: 'DuplicatePolicy',
     CREATE_WORKSPACE_FROM_IOU_PAYMENT: 'CreateWorkspaceFromIOUPayment',
     UPDATE_POLICY_MEMBERS_CUSTOM_FIELDS: 'UpdatePolicyMembersCustomFields',
     SET_WORKSPACE_CATEGORIES_ENABLED: 'SetWorkspaceCategoriesEnabled',
@@ -489,6 +490,8 @@ const WRITE_COMMANDS = {
     DELETE_APP_REPORT: 'DeleteAppReport',
     ADD_WORK_EMAIL: 'AddWorkEmail',
     SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION: 'SaveCorpayOnboardingDirectorInformation',
+    ASK_FOR_CORPAY_SIGNER_INFORMATION: 'AskForCorpaySignerInformation',
+    SEND_REMINDER_FOR_CORPAY_SINGER_INFORMATION: 'SendReminderForCorpaySignerInformation',
     CHANGE_REPORT_POLICY: 'ChangeReportPolicy',
     CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER: 'ChangeReportPolicyAndInviteSubmitter',
     CHANGE_TRANSACTIONS_REPORT: 'ChangeTransactionsReport',
@@ -843,6 +846,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SEND_INVOICE]: Parameters.SendInvoiceParams;
     [WRITE_COMMANDS.PAY_INVOICE]: Parameters.PayInvoiceParams;
     [WRITE_COMMANDS.MARK_AS_CASH]: Parameters.MarkAsCashParams;
+    [WRITE_COMMANDS.DUPLICATE_POLICY]: Parameters.DuplicateWorkspaceParams;
     [WRITE_COMMANDS.MERGE_DUPLICATES]: Parameters.MergeDuplicatesParams;
     [WRITE_COMMANDS.RESOLVE_DUPLICATES]: Parameters.ResolveDuplicatesParams;
     [WRITE_COMMANDS.MERGE_TRANSACTION]: Parameters.MergeTransactionParams;
@@ -855,6 +859,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS]: Parameters.GetCorpayBankAccountFieldsParams;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER]: Parameters.SaveCorpayOnboardingBeneficialOwnerParams;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION]: Parameters.SaveCorpayOnboardingDirectorInformationParams;
+    [WRITE_COMMANDS.ASK_FOR_CORPAY_SIGNER_INFORMATION]: Parameters.AskForCorpaySignerInformationParams;
+    [WRITE_COMMANDS.SEND_REMINDER_FOR_CORPAY_SINGER_INFORMATION]: Parameters.SendReminderForCorpaySignerInformationParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT]: Parameters.UpdateWorkspaceCustomUnitParams;
     [WRITE_COMMANDS.RESET_SMS_DELIVERY_FAILURE_STATUS]: Parameters.ResetSMSDeliveryFailureStatusParams;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS]: Parameters.SaveCorpayOnboardingCompanyDetailsParams;

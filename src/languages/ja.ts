@@ -52,6 +52,7 @@ import type {
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
     BusinessBankAccountParams,
+    BusinessRegistrationNumberParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -203,6 +204,7 @@ import type {
     SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
+    SignerInfoMessageParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
@@ -321,6 +323,7 @@ const translations = {
         count: 'カウント',
         cancel: 'キャンセル',
         dismiss: '却下する',
+        proceed: 'Proceed',
         yes: 'はい',
         no: 'いいえ',
         ok: 'OK',
@@ -957,6 +960,7 @@ const translations = {
         distance: '距離',
         manual: 'マニュアル',
         scan: 'スキャン',
+        map: '地図',
     },
     spreadsheet: {
         upload: 'スプレッドシートをアップロード',
@@ -1252,6 +1256,7 @@ const translations = {
             invalidCategoryLength: 'カテゴリ名が255文字を超えています。短くするか、別のカテゴリを選んでください。',
             invalidTagLength: 'タグ名が255文字を超えています。短くするか、別のタグを選んでください。',
             invalidAmount: '続行する前に有効な金額を入力してください',
+            invalidDistance: '続行する前に有効な距離を入力してください',
             invalidIntegerAmount: '続行する前にドルの金額を入力してください',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `最大税額は${amount}です。`,
             invalidSplit: '分割の合計は総額と等しくなければなりません。',
@@ -3020,7 +3025,14 @@ const translations = {
         whatsTheBusinessName: 'ビジネス名は何ですか？',
         whatsTheBusinessAddress: '会社の住所は何ですか？',
         whatsTheBusinessContactInformation: 'ビジネス連絡先情報は何ですか？',
-        whatsTheBusinessRegistrationNumber: '事業登録番号は何ですか?',
+        whatsTheBusinessRegistrationNumber: ({country}: BusinessRegistrationNumberParams) => {
+            switch (country) {
+                case CONST.COUNTRY.GB:
+                    return '会社登録番号（CRN）は何ですか?';
+                default:
+                    return '事業登録番号は何ですか?';
+            }
+        },
         whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:
@@ -3251,6 +3263,10 @@ const translations = {
         PDSandFSGDescription:
             '私たちのCorpayとの提携は、API接続を利用して、彼らの広範な国際銀行パートナーのネットワークを活用し、Expensifyでのグローバル払い戻しを実現します。オーストラリアの規制に従い、Corpayの金融サービスガイド（FSG）と製品開示声明（PDS）を提供しています。\n\nFSGとPDSの文書には、Corpayが提供する製品とサービスに関する詳細情報と重要な情報が含まれているため、注意深くお読みください。これらの文書は、将来の参考のために保管してください。',
         pleaseUpload: '事業体の取締役または上級役員としての身元を確認するために、追加の書類を以下にアップロードしてください。',
+        enterSignerInfo: '署名者情報を入力してください',
+        thisStep: 'このステップは完了しました',
+        isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+            `${currency}のビジネス銀行口座（下4桁：${bankAccountLastFour}）をExpensifyに接続して、従業員に${currency}で支払います。次のステップでは、取締役または上級役員の署名者情報が必要です。`,
     },
     agreementsStep: {
         agreements: '契約書',
@@ -3461,12 +3477,14 @@ const translations = {
             customField1: 'カスタムフィールド1',
             customField2: 'カスタムフィールド2',
             customFieldHint: 'このメンバーのすべての支出に適用されるカスタムコーディングを追加します。',
+            reports: 'レポート',
             reportFields: 'レポートフィールド',
             reportTitle: 'レポートタイトル',
             reportField: 'レポートフィールド',
             taxes: '税金',
             bills: '請求書',
             invoices: '請求書',
+            perDiem: 'Per diem',
             travel: '旅行',
             members: 'メンバー',
             accounting: '会計',
@@ -3479,6 +3497,7 @@ const translations = {
             testTransactions: 'トランザクションをテストする',
             issueAndManageCards: 'カードの発行と管理',
             reconcileCards: 'カードを照合する',
+            selectAll: 'すべて選択',
             selected: () => ({
                 one: '1 件選択済み',
                 other: (count: number) => `${count} 件選択済み`,
@@ -3492,6 +3511,8 @@ const translations = {
             memberNotFound: 'メンバーが見つかりません。新しいメンバーをワークスペースに招待するには、上の招待ボタンを使用してください。',
             notAuthorized: `このページにアクセスする権限がありません。このワークスペースに参加しようとしている場合は、ワークスペースのオーナーにメンバーとして追加してもらってください。他に何かお困りですか？${CONST.EMAIL.CONCIERGE}にお問い合わせください。`,
             goToWorkspace: 'ワークスペースに移動',
+            duplicateWorkspace: 'ワークスペースの複製',
+            duplicateWorkspacePrefix: '重複',
             goToWorkspaces: 'ワークスペースに移動',
             clearFilter: 'フィルターをクリア',
             workspaceName: 'ワークスペース名',
@@ -4905,6 +4926,18 @@ const translations = {
             importedFromAccountingSoftware: '以下の税金はあなたのからインポートされています',
             taxCode: '税コード',
             updateTaxCodeFailureMessage: '税コードの更新中にエラーが発生しました。もう一度お試しください。',
+        },
+        duplicateWorkspace: {
+            title: '新しいワークスペースに名前を付けてください',
+            selectFeatures: 'コピーする機能を選択してください',
+            whichFeatures: '新しいワークスペースにコピーする機能はどれですか？',
+            confirmDuplicate: '\n\n続行しますか?',
+            categories: 'カテゴリと自動分類ルール',
+            reimbursementAccount: '払い戻し口座',
+            delayedSubmission: '遅延送信',
+            welcomeNote: '新しいワークスペースの使用を開始してください',
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `${newWorkspaceName ?? ''} を作成し、元のワークスペースの ${totalMembers ?? 0} 人のメンバーと共有しようとしています。`,
         },
         emptyWorkspace: {
             title: 'ワークスペースがありません',

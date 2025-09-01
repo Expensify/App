@@ -62,7 +62,7 @@ function SearchBooleanFilterBasePage({booleanKey, titleKey}: SearchBooleanFilter
 
     const applyChanges = useCallback(() => {
         updateAdvancedFilters({[booleanKey]: selectedItem});
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [booleanKey, selectedItem]);
 
     return (
@@ -76,7 +76,7 @@ function SearchBooleanFilterBasePage({booleanKey, titleKey}: SearchBooleanFilter
             <HeaderWithBackButton
                 title={translate(titleKey)}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>
