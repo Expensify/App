@@ -173,6 +173,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
         [selectedOptions.length, inviteUsers, translate, styles],
     );
 
+    console.log('morwa sections', sections);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -199,6 +200,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
                 showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                 footerContent={footerContent}
                 onEndReached={onListEndReached}
+                shouldSkipShowMoreButton
             />
         </ScreenWrapper>
     );
