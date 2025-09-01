@@ -1,11 +1,11 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
-import type {ContentStyle} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
+import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionList/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
@@ -24,10 +24,11 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, generateReportID, selectArchivedReportsIdSet, selectFilteredReportActions} from '@libs/ReportUtils';
+import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
+import {canEditFieldOfMoneyRequest, generateReportID, isArchivedReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
+    getColumnsToShow,
     getListItem,
     getSections,
     getSortedSections,
@@ -45,7 +46,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
+import type {ArchivedReportsIDSet, SearchKey} from '@libs/SearchUIUtils';
 import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -58,6 +59,7 @@ import SCREENS from '@src/SCREENS';
 import type {OutstandingReportsByPolicyIDDerivedValue, ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import arraysEqual from '@src/utils/arraysEqual';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
 import SearchScopeProvider from './SearchScopeProvider';
@@ -66,11 +68,13 @@ import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactio
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    contentContainerStyle?: ContentStyle;
+    contentContainerStyle?: StyleProp<ViewStyle>;
     searchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
     isMobileSelectionModeEnabled: boolean;
 };
+
+const expenseHeaders = getExpenseHeaders();
 
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
@@ -177,6 +181,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const isFocused = useIsFocused();
     const {
         setCurrentSearchHashAndKey,
+        setCurrentSearchQueryJSON,
         setSelectedTransactions,
         selectedTransactions,
         clearSelectedTransactions,
@@ -198,14 +203,35 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
-        selector: selectArchivedReportsIdSet,
+        selector: (all): ArchivedReportsIDSet => {
+            const ids = new Set<string>();
+            if (!all) {
+                return ids;
+            }
+
+            const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
+            for (const [key, value] of Object.entries(all)) {
+                if (isArchivedReport(value)) {
+                    const reportID = key.slice(prefixLength);
+                    ids.add(reportID);
+                }
+            }
+            return ids;
+        },
     });
 
     // Create a selector for only the reportActions needed to determine if a report has been exported or not, grouped by report
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
         canBeMissing: true,
-        selector: selectFilteredReportActions,
+        selector: (allReportActions) => {
+            return Object.fromEntries(
+                Object.entries(allReportActions ?? {}).map(([reportID, reportActionsGroup]) => {
+                    const filteredReportActions = Object.values(reportActionsGroup ?? {}).filter((action) => isExportIntegrationAction(action) || isIntegrationMessageAction(action));
+                    return [reportID, filteredReportActions];
+                }),
+            );
+        },
     });
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
@@ -222,7 +248,16 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return false;
         }
 
-        const eligibleSearchKeys: Partial<SearchKey[]> = [CONST.SEARCH.SEARCH_KEYS.STATEMENTS, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD];
+        const eligibleSearchKeys: Partial<SearchKey[]> = [
+            CONST.SEARCH.SEARCH_KEYS.SUBMIT,
+            CONST.SEARCH.SEARCH_KEYS.APPROVE,
+            CONST.SEARCH.SEARCH_KEYS.PAY,
+            CONST.SEARCH.SEARCH_KEYS.EXPORT,
+            CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
+            CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
+            CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
+            CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
+        ];
         return eligibleSearchKeys.includes(searchKey);
     }, [offset, searchKey]);
 
@@ -240,7 +275,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const clearTransactionsAndSetHashAndKey = useCallback(() => {
         clearSelectedTransactions(hash);
         setCurrentSearchHashAndKey(hash, searchKey);
-    }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey]);
+        setCurrentSearchQueryJSON(queryJSON);
+    }, [hash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey, setCurrentSearchQueryJSON, queryJSON]);
 
     useFocusEffect(clearTransactionsAndSetHashAndKey);
 
@@ -295,10 +331,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return;
         }
 
-        const results = searchResults
-            ? getSections(type, searchResults.data, searchResults.search, accountID, formatPhoneNumber, groupBy).map((element) => element?.reportID ?? CONST.REPORT.DEFAULT_REPORT_ID)
-            : [];
-        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReports: results});
+        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals});
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -340,8 +373,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return [];
         }
 
-        const results = getSections(type, searchResults.data, searchResults.search, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet);
-        return results;
+        return getSections(type, searchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet);
     }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID]);
 
     useEffect(() => {
@@ -544,6 +576,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             }
 
             if (isTransactionWithdrawalIDGroupListItemType(item)) {
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.entryID}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQuery}));
                 return;
             }
 
@@ -562,6 +599,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             Performance.markStart(CONST.TIMING.OPEN_REPORT_SEARCH);
             Timing.start(CONST.TIMING.OPEN_REPORT_SEARCH);
 
+            const backTo = Navigation.getActiveRoute();
+
             if (isTransactionGroupListItemType(item)) {
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}));
                 return;
@@ -574,6 +613,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 Navigation.navigate(
                     ROUTES.SEARCH_REPORT.getRoute({
                         reportID: generatedReportID,
+                        backTo,
                         moneyRequestReportActionID: item.moneyRequestReportActionID,
                         transactionID: item.transactionID,
                     }),
@@ -583,35 +623,47 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             if (isReportActionListItemType(item)) {
                 const reportActionID = item.reportActionID;
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID}));
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
                 return;
             }
 
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID}));
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         },
         [hash, isMobileSelectionModeEnabled, toggleTransaction, queryJSON],
     );
 
-    const onViewableItemsChanged = useCallback(
-        ({viewableItems}: {viewableItems: ViewToken[]}) => {
-            if (!isFocused) {
-                return;
-            }
+    const currentColumns = useMemo(() => {
+        if (!searchResults?.data) {
+            return [];
+        }
+        const columns = getColumnsToShow(accountID, searchResults?.data, false, searchResults?.search.type === CONST.SEARCH.DATA_TYPES.TASK);
 
-            const isFirstItemVisible = viewableItems.at(0)?.index === 1;
-            // If the user is still loading the search results, or if they are scrolling down, don't refresh the search results
-            if (shouldShowLoadingState || !isFirstItemVisible) {
-                return;
-            }
+        return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
+    }, [accountID, searchResults?.data, searchResults?.search.type]);
 
-            // This line makes sure the app refreshes the search results when the user scrolls to the top.
-            // The backend sends items in parts based on the offset, with a limit on the number of items sent (pagination).
-            // As a result, it skips some items, for example, if the offset is 100, it sends the next items without the first ones.
-            // Therefore, when the user scrolls to the top, we need to refresh the search results.
-            setOffset(0);
-        },
-        [shouldShowLoadingState, isFocused],
-    );
+    const opacity = useSharedValue(1);
+    const animatedStyle = useAnimatedStyle(() => ({
+        opacity: opacity.get(),
+    }));
+
+    const previousColumns = usePrevious(currentColumns);
+    const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>([]);
+
+    // If columns have changed, trigger an animation before settings columnsToShow to prevent
+    // new columns appearing before the fade out animation happens
+    useEffect(() => {
+        if ((previousColumns && currentColumns && arraysEqual(previousColumns, currentColumns)) || offset === 0 || isSmallScreenWidth) {
+            setColumnsToShow(currentColumns);
+            return;
+        }
+
+        opacity.set(
+            withTiming(0, {duration: CONST.SEARCH.ANIMATION.FADE_DURATION}, () => {
+                setColumnsToShow(currentColumns);
+                opacity.set(withTiming(1, {duration: CONST.SEARCH.ANIMATION.FADE_DURATION}));
+            }),
+        );
+    }, [previousColumns, currentColumns, setColumnsToShow, opacity, offset, isSmallScreenWidth]);
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
@@ -665,11 +717,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [hasErrors, queryJSON, searchResults, shouldResetSearchQuery, setShouldResetSearchQuery]);
 
     const fetchMoreResults = useCallback(() => {
-        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems || offset > data.length - CONST.SEARCH.RESULTS_PAGE_SIZE) {
             return;
         }
-        setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
-    }, [isFocused, offset, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState]);
+
+        setOffset((prev) => prev + CONST.SEARCH.RESULTS_PAGE_SIZE);
+    }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState, offset, data.length]);
 
     const toggleAllTransactions = useCallback(() => {
         const areItemsGrouped = !!groupBy;
@@ -707,12 +761,23 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
 
+    const areAllOptionalColumnsHidden = useMemo(() => {
+        const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
+        return canBeMissingColumns.every((column) => !columnsToShow.includes(column));
+    }, [columnsToShow]);
+
     if (shouldShowLoadingState) {
         return (
-            <SearchRowSkeleton
-                shouldAnimate
-                containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
-            />
+            <Animated.View
+                entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                style={[styles.flex1]}
+            >
+                <SearchRowSkeleton
+                    shouldAnimate
+                    containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
+                />
+            </Animated.View>
         );
     }
 
@@ -739,7 +804,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
-                    hash={hash}
+                    similarSearchHash={similarSearchHash}
                     type={type}
                     groupBy={groupBy}
                     hasResults={searchResults.search.hasResults}
@@ -757,55 +822,60 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowSorting = !groupBy;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
+
     return (
         <SearchScopeProvider isOnSearch>
-            <SearchList
-                ref={searchListRef}
-                data={sortedSelectedData}
-                ListItem={ListItem}
-                onSelectRow={openReport}
-                onCheckboxPress={toggleTransaction}
-                onAllCheckboxPress={toggleAllTransactions}
-                canSelectMultiple={canSelectMultiple}
-                shouldPreventLongPressRow={isChat || isTask}
-                isFocused={isFocused}
-                SearchTableHeader={
-                    !shouldShowTableHeader ? undefined : (
-                        <SearchTableHeader
-                            canSelectMultiple={canSelectMultiple}
-                            data={searchResults?.data}
-                            metadata={searchResults?.search}
-                            onSortPress={onSortPress}
-                            sortOrder={sortOrder}
-                            sortBy={sortBy}
-                            shouldShowYear={shouldShowYear}
-                            isAmountColumnWide={shouldShowAmountInWideColumn}
-                            isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                            shouldShowSorting={shouldShowSorting}
-                            groupBy={groupBy}
-                        />
-                    )
-                }
-                contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
-                containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
-                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                onScroll={onSearchListScroll}
-                onEndReachedThreshold={0.75}
-                onEndReached={fetchMoreResults}
-                ListFooterComponent={
-                    shouldShowLoadingMoreItems ? (
-                        <SearchRowSkeleton
-                            shouldAnimate
-                            fixedNumItems={5}
-                        />
-                    ) : undefined
-                }
-                queryJSON={queryJSON}
-                onViewableItemsChanged={onViewableItemsChanged}
-                onLayout={onLayout}
-                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
-            />
+            <Animated.View style={[styles.flex1, animatedStyle]}>
+                <SearchList
+                    ref={searchListRef}
+                    data={sortedSelectedData}
+                    ListItem={ListItem}
+                    onSelectRow={openReport}
+                    onCheckboxPress={toggleTransaction}
+                    onAllCheckboxPress={toggleAllTransactions}
+                    canSelectMultiple={canSelectMultiple}
+                    shouldPreventLongPressRow={isChat || isTask}
+                    isFocused={isFocused}
+                    SearchTableHeader={
+                        !shouldShowTableHeader ? undefined : (
+                            <SearchTableHeader
+                                canSelectMultiple={canSelectMultiple}
+                                columns={columnsToShow}
+                                metadata={searchResults?.search}
+                                onSortPress={onSortPress}
+                                sortOrder={sortOrder}
+                                sortBy={sortBy}
+                                shouldShowYear={shouldShowYear}
+                                isAmountColumnWide={shouldShowAmountInWideColumn}
+                                isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
+                                shouldShowSorting={shouldShowSorting}
+                                groupBy={groupBy}
+                                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                            />
+                        )
+                    }
+                    contentContainerStyle={[styles.pb3, contentContainerStyle]}
+                    containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
+                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    onScroll={onSearchListScroll}
+                    onEndReachedThreshold={0.75}
+                    onEndReached={fetchMoreResults}
+                    ListFooterComponent={
+                        shouldShowLoadingMoreItems ? (
+                            <SearchRowSkeleton
+                                shouldAnimate
+                                fixedNumItems={5}
+                            />
+                        ) : undefined
+                    }
+                    queryJSON={queryJSON}
+                    columns={columnsToShow}
+                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                    onLayout={onLayout}
+                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                    shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
+                />
+            </Animated.View>
         </SearchScopeProvider>
     );
 }
