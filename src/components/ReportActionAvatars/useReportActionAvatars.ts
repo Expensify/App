@@ -1,6 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -19,7 +20,7 @@ import {
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxInputOrEntry, Report, ReportAction} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import useReportPreviewSenderID from './useReportPreviewSenderID';
 
@@ -31,6 +32,7 @@ function useReportActionAvatars({
     accountIDs = [],
     policyID: passedPolicyID,
     fallbackDisplayName = '',
+    invitedEmailsToAccountIDs,
 }: {
     report: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
@@ -39,11 +41,16 @@ function useReportActionAvatars({
     accountIDs?: number[];
     policyID?: string;
     fallbackDisplayName?: string;
+    invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
 }) {
     /* Get avatar type */
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+    const allPersonalDetails = usePersonalDetails();
+    const [personalDetailsFromSnapshot] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
     });
+    // When the search hash changes, personalDetails from the snapshot will be undefined if it hasn't been fetched yet.
+    // Therefore, we will fall back to allPersonalDetails while the data is being fetched.
+    const personalDetails = personalDetailsFromSnapshot ?? allPersonalDetails;
 
     const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
 
@@ -100,12 +107,15 @@ function useReportActionAvatars({
     const shouldUseActorAccountID = isAInvoiceReport && !isAReportPreviewAction;
     const accountIDsToMap = shouldUseActorAccountID && actorAccountID ? [actorAccountID] : accountIDs;
 
-    const avatarsForAccountIDs: IconType[] = accountIDsToMap.map((id) => ({
-        id,
-        type: CONST.ICON_TYPE_AVATAR,
-        source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
-        name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? '',
-    }));
+    const avatarsForAccountIDs: IconType[] = accountIDsToMap.map((id) => {
+        const invitedEmail = invitedEmailsToAccountIDs ? Object.keys(invitedEmailsToAccountIDs).find((email) => invitedEmailsToAccountIDs[email] === id) : undefined;
+        return {
+            id,
+            type: CONST.ICON_TYPE_AVATAR,
+            source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
+            name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? invitedEmail ?? '',
+        };
+    });
 
     const fallbackWorkspaceAvatar: IconType = {
         id: policyID,

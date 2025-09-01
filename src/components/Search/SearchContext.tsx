@@ -5,11 +5,12 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {SearchContext, SearchContextData, SelectedTransactions} from './types';
+import type {SearchContext, SearchContextData, SearchQueryJSON, SelectedTransactions} from './types';
 
 const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
     currentSearchKey: undefined,
+    currentSearchQueryJSON: undefined,
     selectedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
@@ -26,6 +27,7 @@ const defaultSearchContext: SearchContext = {
     shouldShowFiltersBarLoading: false,
     setLastSearchType: () => {},
     setCurrentSearchHashAndKey: () => {},
+    setCurrentSearchQueryJSON: () => {},
     setSelectedTransactions: () => {},
     removeTransaction: () => {},
     clearSelectedTransactions: () => {},
@@ -55,6 +57,19 @@ function SearchContextProvider({children}: ChildrenProps) {
                 ...prevState,
                 currentSearchHash: searchHash,
                 currentSearchKey: searchKey,
+            };
+        });
+    }, []);
+
+    const setCurrentSearchQueryJSON = useCallback((searchQueryJSON: SearchQueryJSON | undefined) => {
+        setSearchContextData((prevState) => {
+            if (searchQueryJSON === prevState.currentSearchQueryJSON) {
+                return prevState;
+            }
+
+            return {
+                ...prevState,
+                currentSearchQueryJSON: searchQueryJSON,
             };
         });
     }, []);
@@ -183,6 +198,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             ...searchContextData,
             removeTransaction,
             setCurrentSearchHashAndKey,
+            setCurrentSearchQueryJSON,
             setSelectedTransactions,
             clearSelectedTransactions,
             shouldShowFiltersBarLoading,
@@ -199,6 +215,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             searchContextData,
             removeTransaction,
             setCurrentSearchHashAndKey,
+            setCurrentSearchQueryJSON,
             setSelectedTransactions,
             clearSelectedTransactions,
             shouldShowFiltersBarLoading,
