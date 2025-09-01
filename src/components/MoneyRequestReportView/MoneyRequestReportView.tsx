@@ -16,19 +16,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getTransactionIDFromReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/home/report/ReportActionsView';
 import ReportFooter from '@pages/home/report/ReportFooter';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {ThemeStyles} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -46,26 +43,15 @@ type MoneyRequestReportViewProps = {
 
     /** Whether Report footer (that includes Composer) should be displayed */
     shouldDisplayReportFooter: boolean;
-
-    /** The `backTo` route that should be used when clicking back button */
-    backToRoute: Route | undefined;
 };
 
 function goBackFromSearchMoneyRequest() {
-    const rootState = navigationRef.getRootState();
-    const lastRoute = rootState.routes.at(-1);
-
-    if (lastRoute?.name !== NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
-        Log.hmmm('[goBackFromSearchMoneyRequest()] goBackFromSearchMoneyRequest was called from a different navigator than SearchFullscreenNavigator.');
-        return;
-    }
-
-    if (rootState.routes.length > 1) {
+    if (navigationRef.canGoBack()) {
         Navigation.goBack();
         return;
     }
 
-    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({groupBy: 'reports'})}));
 }
 
 function InitialLoadingSkeleton({styles}: {styles: ThemeStyles}) {
@@ -86,7 +72,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -99,7 +85,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
-    const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportID);
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
     const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions), [reportTransactions, reportActions]);
 
     const visibleTransactions = transactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -133,47 +119,28 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const isEmptyTransactionReport = visibleTransactions && visibleTransactions.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
-    const reportHeaderView = useMemo(() => {
-        if (isTransactionThreadView) {
-            // Extract transaction ID from parent report action to get specific violations
-            const transactionID = getTransactionIDFromReportAction(parentReportAction);
-            const transactionViolations = transactionID && reportViolations ? reportViolations[transactionID] : undefined;
-
-            return (
+    const reportHeaderView = useMemo(
+        () =>
+            isTransactionThreadView ? (
                 <MoneyRequestHeader
                     report={report}
                     policy={policy}
                     parentReportAction={parentReportAction}
-                    transactionViolations={transactionViolations}
-                    onBackButtonPress={() => {
-                        if (!backToRoute) {
-                            goBackFromSearchMoneyRequest();
-                            return;
-                        }
-                        Navigation.goBack(backToRoute);
-                    }}
+                    onBackButtonPress={goBackFromSearchMoneyRequest}
                 />
-            );
-        }
-
-        return (
-            <MoneyReportHeader
-                report={report}
-                policy={policy}
-                reportActions={reportActions}
-                transactionThreadReportID={transactionThreadReportID}
-                isLoadingInitialReportActions={isLoadingInitialReportActions}
-                shouldDisplayBackButton
-                onBackButtonPress={() => {
-                    if (!backToRoute) {
-                        goBackFromSearchMoneyRequest();
-                        return;
-                    }
-                    Navigation.goBack(backToRoute);
-                }}
-            />
-        );
-    }, [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, reportViolations, transactionThreadReportID]);
+            ) : (
+                <MoneyReportHeader
+                    report={report}
+                    policy={policy}
+                    reportActions={reportActions}
+                    transactionThreadReportID={transactionThreadReportID}
+                    isLoadingInitialReportActions={isLoadingInitialReportActions}
+                    shouldDisplayBackButton
+                    onBackButtonPress={goBackFromSearchMoneyRequest}
+                />
+            ),
+        [isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
+    );
 
     if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions) {
         return <InitialLoadingSkeleton styles={styles} />;

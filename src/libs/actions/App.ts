@@ -58,14 +58,6 @@ Onyx.connect({
     },
 });
 
-let preservedUserSession: OnyxTypes.Session | undefined;
-Onyx.connect({
-    key: ONYXKEYS.PRESERVED_USER_SESSION,
-    callback: (value) => {
-        preservedUserSession = value;
-    },
-});
-
 let preservedShouldUseStagingServer: boolean | undefined;
 Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
@@ -97,6 +89,16 @@ Onyx.connect({
     },
 });
 
+let preservedUserSession: OnyxTypes.Session | undefined;
+
+// We called `connectWithoutView` here because it is not connected to any UI
+Onyx.connectWithoutView({
+    key: ONYXKEYS.PRESERVED_USER_SESSION,
+    callback: (value) => {
+        preservedUserSession = value;
+    },
+});
+
 const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
     ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
@@ -111,6 +113,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.NVP_PREFERRED_LOCALE,
     ONYXKEYS.CREDENTIALS,
     ONYXKEYS.PRESERVED_USER_SESSION,
+    ONYXKEYS.HYBRID_APP,
 ];
 
 Onyx.connect({
@@ -603,6 +606,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     const sequentialQueue = getAll();
 
     rollbackOngoingRequest();
+    Navigation.clearPreloadedRoutes();
     Onyx.clear(KEYS_TO_PRESERVE)
         .then(() => {
             // Network key is preserved, so when using imported state, we should stop forcing offline mode so that the app can re-fetch the network
