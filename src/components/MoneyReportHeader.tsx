@@ -525,7 +525,7 @@ function MoneyReportHeader({
 
     const primaryAction = useMemo(() => {
         // It's necessary to allow payment animation to finish before button is changed
-        if (isPaidAnimationRunning) {
+        if (isPaidAnimationRunning || isApprovedAnimationRunning) {
             return CONST.REPORT.PRIMARY_ACTIONS.PAY;
         }
         if (!moneyRequestReport) {
@@ -542,7 +542,19 @@ function MoneyReportHeader({
             isChatReportArchived,
             invoiceReceiverPolicy,
         });
-    }, [isPaidAnimationRunning, moneyRequestReport, reportNameValuePairs, policy, transactions, violations, reportActions, isChatReportArchived, chatReport, invoiceReceiverPolicy]);
+    }, [
+        isPaidAnimationRunning,
+        isApprovedAnimationRunning,
+        moneyRequestReport,
+        reportNameValuePairs,
+        policy,
+        transactions,
+        violations,
+        reportActions,
+        isChatReportArchived,
+        chatReport,
+        invoiceReceiverPolicy,
+    ]);
 
     const confirmExport = useCallback(() => {
         setExportModalStatus(null);
