@@ -224,6 +224,9 @@ type ListItem<K extends string | number = string> = {
 
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
+
+    /** Used to initiate payment from search page */
+    hash?: number;
 };
 
 type TransactionListItemType = ListItem &
@@ -793,6 +796,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * within half the visible length of the list.
      */
     onEndReachedThreshold?: number;
+
+    /** Whether to skip the Show More button pagination logic */
+    shouldSkipShowMoreButton?: boolean;
 
     /**
      * While maxToRenderPerBatch tells the amount of items rendered per batch, setting updateCellsBatchingPeriod tells your VirtualizedList the delay in milliseconds between batch renders (how frequently your component will be rendering the windowed items).

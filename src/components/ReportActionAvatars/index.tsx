@@ -149,6 +149,7 @@ function ReportActionAvatars({
                 subscriptCardFeed={subscriptCardFeed}
                 useProfileNavigationWrapper={useProfileNavigationWrapper}
                 fallbackDisplayName={fallbackDisplayName}
+                reportID={reportID}
             />
         );
     }
@@ -164,6 +165,7 @@ function ReportActionAvatars({
                 shouldShowTooltip={shouldShowTooltip}
                 useProfileNavigationWrapper={useProfileNavigationWrapper}
                 fallbackDisplayName={fallbackDisplayName}
+                reportID={reportID}
             />
         );
     }
@@ -180,6 +182,7 @@ function ReportActionAvatars({
                 isHovered={isHovered}
                 fallbackDisplayName={fallbackDisplayName}
                 useProfileNavigationWrapper={useProfileNavigationWrapper}
+                reportID={reportID}
             />
         );
     }
@@ -195,6 +198,7 @@ function ReportActionAvatars({
             fallbackIcon={primaryAvatar.fallbackIcon}
             fallbackDisplayName={fallbackDisplayName}
             useProfileNavigationWrapper={useProfileNavigationWrapper}
+            reportID={reportID}
         />
     );
 }
