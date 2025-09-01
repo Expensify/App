@@ -998,6 +998,7 @@ const translations = {
         sizeNotMet: 'O tamanho do arquivo deve ser maior que 0 bytes',
         invalidFileMessage:
             'O arquivo que você enviou está vazio ou contém dados inválidos. Por favor, certifique-se de que o arquivo está formatado corretamente e contém as informações necessárias antes de enviá-lo novamente.',
+        importSpreadsheetLibraryError: 'Falha ao carregar o módulo de planilhas. Verifique sua conexão com a internet e tente novamente.',
         importSpreadsheet: 'Importar planilha',
         downloadCSV: 'Baixar CSV',
         importMemberConfirmation: () => ({

@@ -996,6 +996,7 @@ const translations = {
         sizeNotMet: 'La dimensione del file deve essere maggiore di 0 byte',
         invalidFileMessage:
             'Il file che hai caricato è vuoto o contiene dati non validi. Assicurati che il file sia formattato correttamente e contenga le informazioni necessarie prima di caricarlo di nuovo.',
+        importSpreadsheetLibraryError: 'Impossibile caricare il modulo di fogli di calcolo. Controlla la tua connessione internet e riprova.',
         importSpreadsheet: 'Importa foglio di calcolo',
         downloadCSV: 'Scarica CSV',
         importMemberConfirmation: () => ({
