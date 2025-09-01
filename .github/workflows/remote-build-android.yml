@@ -47,6 +47,7 @@ jobs:
           git fetch origin pull/${{ github.event.inputs.mobile_expensify_pr }}/head:pr-${{ github.event.inputs.mobile_expensify_pr }}
           git checkout pr-${{ github.event.inputs.mobile_expensify_pr }}
           echo "Checked out Mobile-Expensify PR #${{ github.event.inputs.mobile_expensify_pr }}"
+          
       - name: Rock Remote Build - Android
         # rock v3
         uses: callstackincubator/android@1a7d52dfe3ca195ccbe5ad2f06c15f2fc3835115
