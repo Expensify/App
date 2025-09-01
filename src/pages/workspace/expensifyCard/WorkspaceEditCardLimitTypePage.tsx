@@ -6,7 +6,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -24,6 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 
 type WorkspaceEditCardLimitTypePageProps = PlatformStackScreenProps<
     SettingsNavigatorParamList,
@@ -168,7 +168,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                 />
                 <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                     <SelectionList
-                        ListItem={RadioListItem}
+                        ListItem={SingleSelectListItem}
                         onSelectRow={({value}) => setTypeSelected(value)}
                         sections={[{data}]}
                         shouldUpdateFocusedIndex

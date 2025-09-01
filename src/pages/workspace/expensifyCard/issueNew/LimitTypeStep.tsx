@@ -13,6 +13,7 @@ import {getApprovalWorkflow} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 
 type LimitTypeStepProps = {
     // The policy that the card will be issued under
@@ -101,7 +102,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.chooseLimitType')}</Text>
             <SelectionList
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => setTypeSelected(value)}
                 sections={[{data}]}
                 shouldSingleExecuteRowSelect
