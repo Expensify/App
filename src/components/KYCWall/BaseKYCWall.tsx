@@ -11,7 +11,6 @@ import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@l
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import {isPolicyMember} from '@libs/PolicyUtils';
-import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
@@ -59,6 +58,7 @@ function KYCWall({
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const {formatPhoneNumber} = useLocalize();
 
@@ -126,15 +126,19 @@ function KYCWall({
                 if (iouReport && isIOUReport(iouReport)) {
                     if (policy) {
                         const submitterAccountID = iouReport.ownerAccountID;
-                        const submitterEmail = getLoginByAccountID(submitterAccountID ?? CONST.DEFAULT_NUMBER_ID) ?? '';
+                        const submitterPersonalDetails = personalDetails?.[submitterAccountID ?? -1];
+                        const submitterEmail = submitterPersonalDetails?.login ?? '';
                         const submitterLogin = addSMSDomainIfPhoneNumber(submitterEmail);
                         const isMember = !!submitterAccountID && !!submitterEmail && isPolicyMember(policy, submitterLogin);
                         if (!isMember) {
-                            const {policyExpenseChatReportID: newPolicyExpenseChatReportID} = moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy.id, formatPhoneNumber) ?? {};
-                            savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[policy.id]);
-                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newPolicyExpenseChatReportID));
+                            if (submitterPersonalDetails) {
+                                const {policyExpenseChatReportID: newPolicyExpenseChatReportID} =
+                                    moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, submitterPersonalDetails, formatPhoneNumber) ?? {};
+                                savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[policy.id]);
+                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newPolicyExpenseChatReportID));
+                            }
                         } else {
-                            const {policyExpenseChatReportID} = moveIOUReportToPolicy(iouReport.reportID, policy.id, true) ?? {};
+                            const {policyExpenseChatReportID} = moveIOUReportToPolicy(iouReport, policy, true) ?? {};
                             savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[policy.id]);
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(policyExpenseChatReportID));
                         }
@@ -164,7 +168,7 @@ function KYCWall({
                 Navigation.navigate(bankAccountRoute);
             }
         },
-        [addBankAccountRoute, addDebitCardRoute, chatReport, iouReport, onSelectPaymentMethod, formatPhoneNumber, lastPaymentMethod, allReports],
+        [addBankAccountRoute, addDebitCardRoute, chatReport, iouReport, onSelectPaymentMethod, formatPhoneNumber, lastPaymentMethod, allReports, personalDetails],
     );
 
     /**

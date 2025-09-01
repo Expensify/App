@@ -37,6 +37,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
     const selectPolicy = useCallback(
@@ -49,10 +50,11 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             Navigation.goBack(backTo);
             // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
             // eslint-disable-next-line deprecation/deprecation
-            if (isIOUReport(reportID) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
-                moveIOUReportToPolicyAndInviteSubmitter(reportID, policyID, formatPhoneNumber);
+            const ownerPersonalDetails = personalDetails?.[report.ownerAccountID ?? -1];
+            if (isIOUReport(reportID) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, ownerPersonalDetails?.login)) {
+                moveIOUReportToPolicyAndInviteSubmitter(report, policy, ownerPersonalDetails, formatPhoneNumber);
             } else if (isIOUReport(reportID) && isPolicyMember(policy, session?.email)) {
-                moveIOUReportToPolicy(reportID, policyID);
+                moveIOUReportToPolicy(report, policy);
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 // eslint-disable-next-line deprecation/deprecation
             } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
@@ -62,7 +64,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                 changeReportPolicy(report, policy, reportNextStep);
             }
         },
-        [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber],
+        [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, personalDetails],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({

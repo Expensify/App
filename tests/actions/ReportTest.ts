@@ -1947,4 +1947,93 @@ describe('actions/Report', () => {
             expect(upperCaseRequest?.data?.searchInput).toBe(lowerCaseRequest?.data?.searchInput);
         });
     });
+
+    describe('moveIOUReportToPolicy', () => {
+        const policy = {
+            ...createRandomPolicy(1),
+            isPolicyExpenseChatEnabled: true,
+        };
+        const iouReport = {
+            ...createRandomReport(1),
+            reportID: '1',
+            ownerAccountID: 1,
+            managerID: 2,
+            chatReportID: '2',
+            policyID: '0',
+            type: CONST.REPORT.TYPE.IOU,
+            total: 1000,
+            parentReportID: '2',
+            parentReportActionID: '1',
+        };
+        const policyExpenseChat = {
+            ...createRandomReport(2),
+            reportID: '2',
+            ownerAccountID: 1,
+            policyID: policy.id,
+            type: CONST.REPORT.TYPE.CHAT,
+        };
+        const parentReportAction = {
+            ...createRandomReportAction(1),
+            reportActionID: '1',
+        };
+        const ownerPersonalDetails = {
+            accountID: 1,
+            login: 'owner@test.com',
+        };
+
+        it('should move an IOU report to a policy', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            await TestHelper.signInWithTestUser(1, 'owner@test.com');
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`, {[parentReportAction.reportActionID]: parentReportAction});
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {[ownerPersonalDetails.accountID]: ownerPersonalDetails});
+
+            Report.moveIOUReportToPolicy(iouReport, policy);
+            await waitForBatchedUpdates();
+
+            const report = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            expect(report?.type).toBe(CONST.REPORT.TYPE.EXPENSE);
+            expect(report?.policyID).toBe(policy.id);
+            expect(report?.total).toBe(-1000);
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_EXISTING_POLICY, 1);
+        });
+
+        it('should move an IOU report to a policy and invite the submitter', async () => {
+            global.fetch = TestHelper.getGlobalFetchMock();
+            await TestHelper.signInWithTestUser(2, 'manager@test.com');
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`, {[parentReportAction.reportActionID]: parentReportAction});
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {[ownerPersonalDetails.accountID]: ownerPersonalDetails});
+
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, ownerPersonalDetails, () => {});
+            await waitForBatchedUpdates();
+
+            const updatedPolicy = await new Promise<OnyxEntry<OnyxTypes.Policy>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            expect(updatedPolicy?.employeeList?.[ownerPersonalDetails.login]).toBeDefined();
+            expect(updatedPolicy?.employeeList?.[ownerPersonalDetails.login]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_POLICY_AND_INVITE_SUBMITTER, 1);
+        });
+    });
 });
