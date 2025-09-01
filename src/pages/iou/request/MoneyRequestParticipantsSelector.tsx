@@ -280,7 +280,7 @@ function MoneyRequestParticipantsSelector(
             shouldShow: (chatOptions.workspaceChats ?? []).length > 0,
         });
 
-        if (!isWorkspacesOnly) {
+        if (!isWorkspacesOnly && chatOptions.userToInvite) {
             newSections.push({
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
