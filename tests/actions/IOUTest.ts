@@ -4704,6 +4704,7 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
                 .then(waitForBatchedUpdates)
+                .then(waitForBatchedUpdates)
                 .then(() => {
                     bulkHold(comment, iouReport, transactionCollection, {}, transactionsIOUActions);
 
