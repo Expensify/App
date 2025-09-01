@@ -590,11 +590,10 @@ function getUpdatedTransaction({
     }
 
     if (Object.hasOwn(transactionChanges, 'distance') && typeof transactionChanges.distance === 'number') {
-        const distance = roundToTwoDecimalPlaces((transactionChanges.distance ?? 0));
+        const distance = roundToTwoDecimalPlaces(transactionChanges.distance ?? 0);
 
         lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
         shouldStopSmartscan = true;
-
 
         const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
         const {unit, rate} = mileageRate;

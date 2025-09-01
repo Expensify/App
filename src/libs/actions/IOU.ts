@@ -4877,11 +4877,10 @@ function updateMoneyRequestDistance({
     policyCategories = {},
     transactionBackup,
 }: UpdateMoneyRequestDistanceParams) {
-
     const transactionChanges: TransactionChanges = {
-        ...waypoints && {waypoints: sanitizeRecentWaypoints(waypoints)},
+        ...(waypoints && {waypoints: sanitizeRecentWaypoints(waypoints)}),
         routes,
-        ...distance && {distance},
+        ...(distance && {distance}),
     };
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;

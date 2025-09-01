@@ -1390,6 +1390,15 @@ type MoneyRequestNavigatorParamList = {
         backToReport?: string;
         reportActionID?: string;
     };
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+        backToReport?: string;
+        reportActionID?: string;
+    };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: {
         action: IOUAction;
         iouType: IOUType;

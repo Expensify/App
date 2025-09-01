@@ -4014,7 +4014,7 @@ function getTransactionDetails(
         originalAmount: getOriginalAmount(transaction),
         originalCurrency: getOriginalCurrency(transaction),
         postedDate: getFormattedPostedDate(transaction),
-        ...isManualDistanceRequest && {distance: transaction.comment?.customUnit?.quantity ?? undefined},
+        ...(isManualDistanceRequest && {distance: transaction.comment?.customUnit?.quantity ?? undefined}),
     };
 }
 

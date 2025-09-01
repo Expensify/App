@@ -51,7 +51,7 @@ import {
     hasReceipt,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
-    isScanRequest
+    isScanRequest,
 } from '@libs/TransactionUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {GpsPoint} from '@userActions/IOU';
