@@ -28,7 +28,7 @@ function SearchFiltersCurrencyPage() {
                 return;
             }
 
-            if (selectedCurrenciesCodes?.includes(currencyCode) && !selectedCurrencies.some((currencyItem) => currencyItem.value === currencyCode)) {
+            if (searchAdvancedFiltersForm?.currency?.includes(currencyCode) && !selectedCurrencies.some((currencyItem) => currencyItem.value === currencyCode)) {
                 selectedCurrencies.push({name: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
             }
 
@@ -38,7 +38,7 @@ function SearchFiltersCurrencyPage() {
         });
 
         return {selectedCurrenciesItems: selectedCurrencies, currencyItems: currencies};
-    }, [currencyList, selectedCurrenciesCodes]);
+    }, [currencyList, searchAdvancedFiltersForm?.currency]);
     const handleOnSubmit = (values: string[]) => {
         updateAdvancedFilters({currency: values});
     };

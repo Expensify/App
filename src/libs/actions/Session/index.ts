@@ -270,7 +270,7 @@ type SignOutAndRedirectToSignInParams = {
 };
 
 function signOutAndRedirectToSignIn(
-    {shouldResetToHome, shouldStashSession, shouldKillHybridApp = true, shouldForceUseStashedSession, isOffline, shouldForceOffline}: SignOutAndRedirectToSignInParams = {
+    {shouldResetToHome, shouldStashSession, shouldSignOutFromOldDot, shouldKillHybridApp = true, shouldForceUseStashedSession, isOffline, shouldForceOffline}: SignOutAndRedirectToSignInParams = {
         isOffline: undefined,
         shouldForceOffline: undefined,
     },

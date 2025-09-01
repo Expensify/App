@@ -463,7 +463,7 @@ describe('Session', () => {
         const ERROR_MESSAGE = 'Authentication failed';
 
         // Should complete without throwing when called with only error message
-        await expect(redirectToSignIn({errorMessage: ERROR_MESSAGE})).resolves.toBeUndefined();
+        await expect(redirectToSignIn({errorMessage: ERROR_MESSAGE, isOffline: undefined, shouldForceOffline: undefined})).resolves.toBeUndefined();
         await waitForBatchedUpdates();
 
         // Verify error was processed
