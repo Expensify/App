@@ -162,6 +162,7 @@ import type {
     GetUserToInviteConfig,
     GetValidReportsConfig,
     GetValidReportsReturnTypeCombined,
+    IsValidReportsConfig,
     MemberForList,
     Option,
     OptionList,
