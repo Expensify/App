@@ -882,7 +882,7 @@ const translations = {
         sayHello: 'Dites bonjour !',
         yourSpace: 'Votre espace',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bienvenue dans ${roomName} !`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Utilisez le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} pour ${additionalText} une dépense.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Utilisez le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} pour ${additionalText} une dépense.`,
         askConcierge: 'Posez des questions et obtenez une assistance en temps réel 24h/24 et 7j/7.',
         conciergeSupport: 'Support 24h/24 et 7j/7',
         create: 'créer',

@@ -878,7 +878,7 @@ const translations = {
         sayHello: 'Ciao!',
         yourSpace: 'Il tuo spazio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Benvenuto in ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Usa il pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} per ${additionalText} una spesa.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Usa il pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} per ${additionalText} una spesa.`,
         askConcierge: 'Fai domande e ricevi supporto in tempo reale 24/7.',
         conciergeSupport: 'Supporto 24/7',
         create: 'creare',
