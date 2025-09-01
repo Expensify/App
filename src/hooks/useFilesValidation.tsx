@@ -197,16 +197,31 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                 if (otherFiles.some((file) => isHeicOrHeifImage(file))) {
                     setIsLoaderVisible(true);
 
-                    return Promise.all(otherFiles.map((file) => convertHeicImageToJpegPromise(file))).then((convertedImages) => {
-                        convertedImages.forEach((convertedFile, index) => {
-                            updateFileOrderMapping(otherFiles.at(index), convertedFile);
+                    return Promise.all(
+                        otherFiles.map((file) =>
+                            isHeicOrHeifImage(file)
+                                ? convertHeicImageToJpegPromise(file).catch(() => {
+                                    // Don't add an error here since the converter now has a fallback
+                                    // The original HEIC file will be used instead
+                                    return file;
+                                })
+                                : Promise.resolve(file)
+                        )
+                    ).then((convertedImages) => {
+                        const validConvertedImages = convertedImages.filter((file): file is FileObject => file !== null);
+
+                        validConvertedImages.forEach((convertedFile, index) => {
+                            const originalFile = otherFiles.at(index);
+                            if (originalFile) {
+                                updateFileOrderMapping(originalFile, convertedFile);
+                            }
                         });
 
                         // Check if we need to resize images
-                        if (convertedImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
-                            return Promise.all(convertedImages.map((file) => resizeImageIfNeeded(file))).then((processedFiles) => {
+                        if (validConvertedImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
+                            return Promise.all(validConvertedImages.map((file) => resizeImageIfNeeded(file))).then((processedFiles) => {
                                 processedFiles.forEach((resizedFile, index) => {
-                                    updateFileOrderMapping(convertedImages.at(index), resizedFile);
+                                    updateFileOrderMapping(validConvertedImages.at(index), resizedFile);
                                 });
                                 setIsLoaderVisible(false);
                                 return Promise.resolve({processedFiles, pdfsToLoad});
@@ -215,7 +230,12 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
 
                         // No resizing needed, just return the converted images
                         setIsLoaderVisible(false);
-                        return Promise.resolve({processedFiles: convertedImages, pdfsToLoad});
+                        return Promise.resolve({processedFiles: validConvertedImages, pdfsToLoad});
+                    }).catch(() => {
+                        setIsLoaderVisible(false);
+                        // Return the original files if something goes wrong with conversion
+                        // This allows users to continue with their original files
+                        return Promise.resolve({processedFiles: otherFiles, pdfsToLoad});
                     });
                 }
 
