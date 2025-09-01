@@ -67,14 +67,14 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             },
         );
     }, [areOptionsInitialized, options.personalDetails, options.reports]);
-    const selectedAccountIDsSet = new Set(selectedOptions.map(({accountID}) => accountID));
+    const selectedAccountIDsSet = useMemo(() => new Set(selectedOptions.map(({accountID}) => accountID)), [selectedOptions]);
     const defaultOptionsModified = useMemo(() => {
         return {
             ...defaultOptions,
             recentReports: defaultOptions.recentReports.map((item) => (selectedAccountIDsSet.has(item.accountID) ? {...item, isSelected: true} : item)),
             personalDetails: defaultOptions.personalDetails.map((item) => (selectedAccountIDsSet.has(item.accountID) ? {...item, isSelected: true} : item)),
         };
-    }, [defaultOptions, selectedOptions]);
+    }, [defaultOptions, selectedAccountIDsSet]);
 
     const chatOptions = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(defaultOptionsModified, cleanSearchTerm, {
@@ -161,10 +161,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         (option: Option) => {
             const foundOptionIndex = selectedOptions.findIndex((selectedOption: Option) => {
                 if (selectedOption.accountID && selectedOption.accountID === option?.accountID) {
-                    return true;
-                }
-
-                if (selectedOption.reportID && selectedOption.reportID === option?.reportID) {
                     return true;
                 }
 
