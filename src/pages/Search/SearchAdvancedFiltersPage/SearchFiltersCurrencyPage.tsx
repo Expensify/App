@@ -18,6 +18,7 @@ function SearchFiltersCurrencyPage() {
     const {translate} = useLocalize();
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const selectedCurrenciesCodes = useMemo(() => searchAdvancedFiltersForm?.currency ?? [], [searchAdvancedFiltersForm?.currency]);
 
     const {selectedCurrenciesItems, currencyItems} = useMemo(() => {
         const selectedCurrencies: SearchMultipleSelectionPickerItem[] = [];
@@ -28,7 +29,7 @@ function SearchFiltersCurrencyPage() {
                 return;
             }
 
-            if (selectedCurrenciesCodes?.includes(currencyCode) && !selectedCurrencies.some((currencyItem) => currencyItem.value === currencyCode)) {
+            if (selectedCurrenciesCodes.includes(currencyCode) && !selectedCurrencies.some((currencyItem) => currencyItem.value === currencyCode)) {
                 selectedCurrencies.push({name: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
             }
 
