@@ -862,10 +862,6 @@ type Thread = {
     parentReportActionID: string;
 } & Report;
 
-type GetChatRoomSubtitleConfig = {
-    isCreateExpenseFlow?: boolean;
-};
-
 type SelfDMParameters = {
     reportID?: string;
     createdReportActionID?: string;
@@ -1300,7 +1296,9 @@ function getPolicyType(report: OnyxInputOrEntry<Report>, policies: OnyxCollectio
  */
 function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies, reports}: GetPolicyNameParams): string {
     const noPolicyFound = returnEmptyIfNotFound ? '' : unavailableTranslation;
-    if (isEmptyObject(report) || (isEmptyObject(policies) && isEmptyObject(allPolicies) && !report?.policyName)) {
+    const parentReport = report ? getRootParentReport({report, reports}) : undefined;
+
+    if (isEmptyObject(report) || (isEmptyObject(policies) && isEmptyObject(allPolicies) && !report?.policyName && !parentReport?.policyName)) {
         return noPolicyFound;
     }
     const finalPolicy = (() => {
@@ -1313,12 +1311,10 @@ function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies,
         return policy ?? policies?.find((p) => p.id === report.policyID);
     })();
 
-    const parentReport = getRootParentReport({report, reports});
-
     // Rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || parentReport?.oldPolicyName || noPolicyFound;
+    const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || parentReport?.policyName || parentReport?.oldPolicyName || noPolicyFound;
 
     return policyName;
 }
@@ -3782,21 +3778,9 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
 }
 
 /**
- * Get the title for a policy expense chat which depends on the role of the policy member seeing this report
+ * Get the title for a policy expense chat
  */
-function getPolicyExpenseChatName({
-    report,
-    policy,
-    personalDetailsList = allPersonalDetails,
-    policies,
-    reports,
-}: {
-    report: OnyxEntry<Report>;
-    policy?: OnyxEntry<Policy> | SearchPolicy;
-    personalDetailsList?: Partial<PersonalDetailsList>;
-    policies?: SearchPolicy[];
-    reports?: SearchReport[];
-}): string | undefined {
+function getPolicyExpenseChatName({report, personalDetailsList}: {report: OnyxEntry<Report>; personalDetailsList?: Partial<PersonalDetailsList>}): string | undefined {
     const ownerAccountID = report?.ownerAccountID;
     const personalDetails = ownerAccountID ? personalDetailsList?.[ownerAccountID] : undefined;
     const login = personalDetails ? personalDetails.login : null;
@@ -3807,24 +3791,6 @@ function getPolicyExpenseChatName({
         return translateLocal('workspace.common.policyExpenseChatName', {displayName: reportOwnerDisplayName});
     }
 
-    let policyExpenseChatRole = 'user';
-
-    const policyItem = policies ? policies.find((p) => p.id === report?.policyID) : allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-    if (policyItem) {
-        policyExpenseChatRole = policyItem.role || 'user';
-    }
-
-    // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old expense chat
-    // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    if (isArchivedNonExpenseReport(report, !!getReportNameValuePairs(report?.reportID)?.private_isArchived)) {
-        const lastAction = getLastVisibleActionReportActionsUtils(report?.reportID);
-        const archiveReason = isClosedAction(lastAction) ? getOriginalMessage(lastAction)?.reason : CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-        if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED && policyExpenseChatRole !== CONST.POLICY.ROLE.ADMIN) {
-            return getPolicyName({report, policy, policies, reports});
-        }
-    }
     return report?.reportName;
 }
 
@@ -4309,7 +4275,7 @@ function canEditFieldOfMoneyRequest(
             !isInvoiceReport(moneyRequestReport) &&
             !isReceiptBeingScanned(transaction) &&
             !isPerDiemRequest(transaction) &&
-            isManualDistanceRequest(transaction) &&
+            (!isDistanceRequest(transaction) || isManualDistanceRequest(transaction)) &&
             (isAdmin || isManager || isRequestor) &&
             (isDeleteAction ? isRequestor : true)
         );
@@ -5194,10 +5160,8 @@ function getReportNameInternal({
         parentReportAction = isThread(report) ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] : undefined;
     }
     const parentReportActionMessage = getReportActionMessageReportUtils(parentReportAction);
-    const isArchivedNonExpense = isArchivedNonExpenseReport(
-        report,
-        !!reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)}`]?.private_isArchived,
-    );
+    const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)}`]);
+    const isArchivedNonExpense = isArchivedNonExpenseReport(report, isReportArchived);
 
     if (
         isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
@@ -5427,7 +5391,7 @@ function getReportNameInternal({
     }
 
     if (isPolicyExpenseChat(report)) {
-        formattedName = getPolicyExpenseChatName({report, policy, personalDetailsList: personalDetails, reports});
+        formattedName = getPolicyExpenseChatName({report, personalDetailsList: personalDetails});
     }
 
     if (isMoneyRequestReport(report)) {
@@ -5500,7 +5464,7 @@ function getReportSubtitlePrefix(report: OnyxEntry<Report>): string {
 /**
  * Get either the policyName or domainName the chat is tied to
  */
-function getChatRoomSubtitle(report: OnyxEntry<Report>, config: GetChatRoomSubtitleConfig = {isCreateExpenseFlow: false}): string | undefined {
+function getChatRoomSubtitle(report: OnyxEntry<Report>, isPolicyNamePreferred = false, isReportArchived = false): string | undefined {
     if (isChatThread(report)) {
         return '';
     }
@@ -5526,16 +5490,14 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>, config: GetChatRoomSubti
         const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
         const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
-        if (!subtitle || !config.isCreateExpenseFlow) {
+        if (!subtitle || !isPolicyNamePreferred) {
             return getPolicyName({report});
         }
 
         return `${getReportSubtitlePrefix(report)}${translateLocal('iou.submitsTo', {name: subtitle ?? ''})}`;
     }
 
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    if (isArchivedReport(getReportNameValuePairs(report?.reportID))) {
+    if (isReportArchived) {
         return report?.oldPolicyName ?? '';
     }
     return getPolicyName({report});
@@ -5552,7 +5514,7 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 /**
  * Gets the parent navigation subtitle for the report
  */
-function getParentNavigationSubtitle(report: OnyxEntry<Report>, isReportArchived = false): ParentNavigationSummaryParams {
+function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportArchived = false): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
     if (isEmptyObject(parentReport)) {
         const ownerAccountID = report?.ownerAccountID;
@@ -5576,7 +5538,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isReportArchived
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
         let reportName = `${getPolicyName({report: parentReport})} & ${getInvoicePayerName(parentReport)}`;
 
-        if (isArchivedNonExpenseReport(parentReport, isReportArchived)) {
+        if (isArchivedNonExpenseReport(parentReport, isParentReportArchived)) {
             reportName += ` (${translateLocal('common.archived')})`;
         }
 
