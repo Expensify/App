@@ -74,7 +74,7 @@ type Fullstory = {
  *
  * TS allows the `fsClass` prop to be used in any components, but the prop is only effective when passed directly to
  * core React Native components like `View`, `Text`, `Pressable`, etc.
- * 
+ *
  * To solve this we have an ESLint rule that forbids the use of `fsClass` prop in all components expect those listed here,
  * and instructs the developer to use this type instead.
  *
