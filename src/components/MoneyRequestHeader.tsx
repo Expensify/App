@@ -128,7 +128,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (isOnHold) {
             return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.expenseOnHold')};
         }
-        if (isMarkAsResolvedAction(parentReport, transactionViolations, policy)) {
+        if (isMarkAsResolvedAction(parentReport, transactionViolations)) {
             return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.reject.rejectedStatus')};
         }
 
