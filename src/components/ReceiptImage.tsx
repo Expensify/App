@@ -110,7 +110,7 @@ type ReceiptImageProps = (
     shouldUseFullHeight?: boolean;
 
     /** Callback to be called when the image loads */
-    onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
+    onLoad?: (event?: {nativeEvent: {width: number; height: number}}) => void;
 };
 
 function ReceiptImage({
@@ -148,6 +148,7 @@ function ReceiptImage({
                 onPress={onPress}
                 disabled={!onPress}
                 shouldUseFullHeight={shouldUseFullHeight}
+                onLoad={onLoad}
             />
         );
     }
@@ -157,6 +158,7 @@ function ReceiptImage({
             <PDFThumbnail
                 previewSourceURL={source ?? ''}
                 style={[styles.w100, styles.h100]}
+                onLoadSuccess={onLoad}
             />
         );
     }
@@ -166,6 +168,7 @@ function ReceiptImage({
             <EReceiptWithSizeCalculation
                 transactionID={transactionID}
                 transactionItem={transactionItem}
+                onLoad={onLoad}
             />
         );
     }

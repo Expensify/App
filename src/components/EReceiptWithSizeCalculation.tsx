@@ -11,6 +11,9 @@ type EReceiptWithSizeCalculationProps = {
     transactionID: string | undefined;
 
     transactionItem?: TransactionListItemType | Transaction;
+
+    /** Callback to be called when the image loads */
+    onLoad?: () => void;
 };
 
 const eReceiptAspectRatio = variables.eReceiptBGHWidth / variables.eReceiptBGHeight;
