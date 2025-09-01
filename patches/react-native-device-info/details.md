@@ -1,0 +1,13 @@
+# `react-native-device-info` patches
+
+### [react-native-device-info+10.3.1+001+turbomodule.patch](react-native-device-info+10.3.1+001+turbomodule.patch)
+
+- Reason:
+  
+    ```
+    This patch adds new arch support.
+    ```
+  
+- Upstream PR/issue: https://github.com/react-native-device-info/react-native-device-info/pull/1509
+- E/App issue: https://github.com/Expensify/App/issues/8503
+- PR introducing patch: https://github.com/Expensify/App/pull/13767
