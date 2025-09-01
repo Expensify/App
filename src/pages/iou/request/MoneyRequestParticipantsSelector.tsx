@@ -289,64 +289,36 @@ function MoneyRequestParticipantsSelector(
                 }),
                 shouldShow: true,
             });
+        }
 
+        // Always show Recents and Contacts lists (filtered appropriately)
+        newSections.push({
+            title: translate('common.recents'),
+            data: isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports,
+            shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
+        });
+
+        newSections.push({
+            title: translate('common.contacts'),
+            data: chatOptions.personalDetails,
+            shouldShow: chatOptions.personalDetails.length > 0 && !isPerDiemRequest,
+        });
+
+        if (
+            !isWorkspacesOnly &&
+            chatOptions.userToInvite &&
+            !isCurrentUser({
+                ...chatOptions.userToInvite,
+                accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                status: chatOptions.userToInvite?.status ?? undefined,
+            }) &&
+            !isPerDiemRequest
+        ) {
             newSections.push({
-                title: translate('common.recents'),
-                data: isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports,
-                shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
+                title: translate('workspace.invoices.paymentMethods.personal'),
+                data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
+                shouldShow: !!chatOptions.selfDMChat,
             });
-
-            newSections.push({
-                title: translate('common.contacts'),
-                data: chatOptions.personalDetails,
-                shouldShow: chatOptions.personalDetails.length > 0 && !isPerDiemRequest,
-            });
-
-            if (
-                chatOptions.userToInvite &&
-                !isCurrentUser({
-                    ...chatOptions.userToInvite,
-                    accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    status: chatOptions.userToInvite?.status ?? undefined,
-                }) &&
-                !isPerDiemRequest
-            ) {
-                newSections.push({
-                    title: translate('workspace.invoices.paymentMethods.personal'),
-                    data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
-                    shouldShow: !!chatOptions.selfDMChat,
-                });
-
-                newSections.push({
-                    title: translate('common.recents'),
-                    data: chatOptions.recentReports,
-                    shouldShow: chatOptions.recentReports.length > 0,
-                });
-
-                newSections.push({
-                    title: translate('common.contacts'),
-                    data: chatOptions.personalDetails,
-                    shouldShow: chatOptions.personalDetails.length > 0,
-                });
-
-                if (
-                    chatOptions.userToInvite &&
-                    !isCurrentUser({
-                        ...chatOptions.userToInvite,
-                        accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                        status: chatOptions.userToInvite?.status ?? undefined,
-                    })
-                ) {
-                    newSections.push({
-                        title: undefined,
-                        data: [chatOptions.userToInvite].map((participant) => {
-                            const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                            return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
-                        }),
-                        shouldShow: true,
-                    });
-                }
-            }
         }
 
         let headerMessage = '';

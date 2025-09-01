@@ -193,7 +193,14 @@ function NumberWithSymbolForm({
             // Remove spaces from the newNumber number because Safari on iOS adds spaces when pasting a copied number
             // More info: https://github.com/Expensify/App/issues/16974
             const newNumberWithoutSpaces = stripSpacesFromAmount(newNumber);
-            const finalNumber = newNumberWithoutSpaces.includes('.') ? stripCommaFromAmount(newNumberWithoutSpaces) : replaceCommasWithPeriod(newNumberWithoutSpaces);
+            const rawFinalNumber = newNumberWithoutSpaces.includes('.') ? stripCommaFromAmount(newNumberWithoutSpaces) : replaceCommasWithPeriod(newNumberWithoutSpaces);
+
+            let finalNumber = rawFinalNumber;
+            if (allowFlippingAmount && finalNumber.startsWith('-')) {
+                toggleNegative?.();
+                finalNumber = finalNumber.slice(1);
+            }
+
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
             if (!validateAmount(finalNumber, decimals, maxLength)) {
@@ -216,7 +223,7 @@ function NumberWithSymbolForm({
                 return strippedNumber;
             });
         },
-        [decimals, maxLength, onInputChange],
+        [decimals, maxLength, onInputChange, allowFlippingAmount, toggleNegative],
     );
 
     /**
@@ -227,7 +234,13 @@ function NumberWithSymbolForm({
         // Remove spaces from the new number because Safari on iOS adds spaces when pasting a copied number
         // More info: https://github.com/Expensify/App/issues/16974
         const newNumberWithoutSpaces = stripSpacesFromAmount(text);
-        const replacedCommasNumber = replaceCommasWithPeriod(newNumberWithoutSpaces);
+        let replacedCommasNumber = replaceCommasWithPeriod(newNumberWithoutSpaces);
+
+        if (allowFlippingAmount && replacedCommasNumber.startsWith('-')) {
+            toggleNegative?.();
+            replacedCommasNumber = replacedCommasNumber.slice(1);
+        }
+
         const withLeadingZero = addLeadingZero(replacedCommasNumber);
 
         if (!validateAmount(withLeadingZero, decimals, maxLength)) {
