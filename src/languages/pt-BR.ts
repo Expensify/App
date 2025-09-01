@@ -1951,6 +1951,7 @@ const translations = {
         reportFraud: 'Relatar fraude de cartão virtual',
         reportTravelFraud: 'Reportar fraude no cartão de viagem',
         reviewTransaction: 'Revisar transação',
+        physicalCardPin: 'PIN',
         suspiciousBannerTitle: 'Transação suspeita',
         suspiciousBannerDescription: 'Notamos transações suspeitas no seu cartão. Toque abaixo para revisar.',
         cardLocked: 'Seu cartão está temporariamente bloqueado enquanto nossa equipe revisa a conta da sua empresa.',
@@ -4495,6 +4496,8 @@ const translations = {
             disclaimer:
                 'O Expensify Visa® Commercial Card é emitido pelo The Bancorp Bank, N.A., Membro FDIC, de acordo com uma licença da Visa U.S.A. Inc. e pode não ser aceito em todos os comerciantes que aceitam cartões Visa. Apple® e o logotipo da Apple® são marcas registradas da Apple Inc., registradas nos EUA e em outros países. App Store é uma marca de serviço da Apple Inc. Google Play e o logotipo do Google Play são marcas registradas da Google LLC.',
             issueCard: 'Emitir cartão',
+            euUkDisclaimer:
+                'Os cartões fornecidos a residentes do EEE são emitidos pela Transact Payments Malta Limited, enquanto os cartões fornecidos a residentes do Reino Unido são emitidos pela Transact Payments Limited, de acordo com a licença da Visa Europe Limited. A Transact Payments Malta Limited é devidamente autorizada e regulamentada pela Autoridade de Serviços Financeiros de Malta como uma instituição financeira, de acordo com a Lei de Instituições Financeiras de 1994. Número de registro C 91879. A Transact Payments Limited é autorizada e regulamentada pela Comissão de Serviços Financeiros de Gibraltar.',
             findCard: 'Encontrar cartão',
             newCard: 'Novo cartão',
             name: 'Nome',
