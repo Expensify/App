@@ -91,6 +91,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         selector: filterInactiveCards,
         canBeMissing: true,
     });
+    const integrations = policy?.receiptPartners;
+    const isUberConnected = !!integrations?.uber?.organizationID;
     const [cardFeeds] = useCardFeeds(policyID);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
     const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState(false);
@@ -333,7 +335,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             isActive: policy?.areReceiptPartnersEnabled ?? false,
             pendingAction: policy?.pendingFields?.areReceiptPartnersEnabled,
             disabledAction: () => {
-                // TODO: When Uber integration is added, check if any integration exists if(!hasReceiptPartnersIntegration) return;
+                if (!isUberConnected) {
+                    return;
+                }
                 setIsReceiptPartnersWarningModalOpen(true);
             },
             action: (isEnabled: boolean) => {
@@ -342,7 +346,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 }
                 enablePolicyReceiptPartners(policyID, isEnabled);
             },
-            disabled: false, // TODO: When Uber integration is added, set to hasReceiptPartnersIntegration
+            disabled: isUberConnected,
             errors: getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED),
             onCloseError: () => {
                 if (!policyID) {
