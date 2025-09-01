@@ -96,6 +96,7 @@ import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {removeTitleFieldFromReport, updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import type {OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
@@ -2322,6 +2323,7 @@ function updateReportName(reportID: string, value: string, previousValue: string
                 },
             },
         },
+        ...removeTitleFieldFromReport(reportID),
     ];
     const failureData: OnyxUpdate[] = [
         {
@@ -2760,6 +2762,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
             value: optimisticNextStep,
         },
+        ...updateTitleFieldToMatchPolicy(reportID, policy),
     ];
 
     const failureData: OnyxUpdate[] = [

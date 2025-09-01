@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
-import {getTitleReportField, isChat} from './ReportUtils';
+import {getTitleReportField, isChatReport} from './ReportUtils';
 
 /**
  * Update title field in report's rNVP to match the policy's title field configuration
@@ -72,7 +72,7 @@ function shouldUpdateTitleField(report: Report, policy?: Policy): boolean {
     }
 
     // Skip chat reports
-    if (isChat(report)) {
+    if (isChatReport(report)) {
         return false;
     }
 
@@ -87,4 +87,4 @@ function shouldUpdateTitleField(report: Report, policy?: Policy): boolean {
     return true;
 }
 
-export {updateTitleFieldToMatchPolicy, removeTitleFieldFromReport, shouldUpdateTitleField};
+export {removeTitleFieldFromReport, shouldUpdateTitleField, updateTitleFieldToMatchPolicy};
