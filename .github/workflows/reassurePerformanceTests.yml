@@ -58,7 +58,7 @@ jobs:
           git checkout "$(git rev-parse HEAD)"
           cd ..
           git add Mobile-Expensify
-          npm install --force || (rm -rf node_modules && npm install --force) 
+          npm install --force || (rm -rf node_modules && npm install --force)
           NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
           git switch --force --detach -
           cd Mobile-Expensify
@@ -67,7 +67,7 @@ jobs:
           git add Mobile-Expensify
           git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours
           git checkout --ours .
-          
+
           # Restore all new files from original PR commit
           if [ -n "$NEW_FILES" ]; then
             echo "Restoring new files from original PR commit..."
@@ -75,7 +75,7 @@ jobs:
               git checkout "${{ github.sha }}" -- "$file" || echo "Could not restore $file"
             done
           fi
-          
+
           npm install --force || (rm -rf node_modules && npm install --force)
           NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
 
