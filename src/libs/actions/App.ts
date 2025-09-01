@@ -608,6 +608,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     const sequentialQueue = getAll();
 
     rollbackOngoingRequest();
+    Navigation.clearPreloadedRoutes();
     Onyx.clear(KEYS_TO_PRESERVE)
         .then(() => {
             // Network key is preserved, so when using imported state, we should stop forcing offline mode so that the app can re-fetch the network
