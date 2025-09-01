@@ -182,7 +182,7 @@
     "react-native-nitro-sqlite": "9.1.10",
     "react-native-onyx": "2.0.133",
     "react-native-pager-view": "6.5.3",
-    "react-native-pdf": "6.7.3",
+    "react-native-pdf": "6.7.7",
     "react-native-performance": "^5.1.4",
     "react-native-permissions": "^5.4.0",
     "react-native-picker-select": "git+https://github.com/Expensify/react-native-picker-select.git#07d60d78d4772d47afd7a744940fc6b6d1881806",
