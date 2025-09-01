@@ -85,7 +85,33 @@ type Fullstory = {
  * };
  *
  * function CustomComponent({title, contentFSClass}: CustomComponentProps) {
- *     return <View fsClass={contentFSClass}><Text>{title}</Text></View>;
+ *     return (
+ *         <View fsClass={contentFSClass}>
+ *             <Text>{title}</Text>
+ *         </View>
+ *     );
+ * }
+ * ```
+ *
+ * You can also specify multiple fsClass-like props if you need more granularity in the component.
+ *
+ * @example
+ * ```tsx
+ * type CustomComponentProps = DescriptiveFSClassProps<'headerFSClass' | 'contentFSClass'> & {
+ *     title: string;
+ * };
+ *
+ * function CustomComponent({title, headerFSClass, contentFSClass}: CustomComponentProps) {
+ *     return (
+ *         <View>
+ *             <View fsClass={headerFSClass}>
+ *                 <Text>Header</Text>
+ *             </View>
+ *             <View fsClass={contentFSClass}>
+ *                 <Text>{title}</Text>
+ *             </View>
+ *         </View>
+ *     );
  * }
  * ```
  */
