@@ -1,10 +1,10 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import Checkbox from '@components/Checkbox';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import SelectCircle from '@components/SelectCircle';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
@@ -33,6 +33,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     canShowProductTrainingTooltip = true,
+    shouldUseDefaultRightHandSideCheckmark = false,
 }: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -54,6 +55,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
     const shouldShowCheckBox = canSelectMultiple && !item.isDisabled;
+    const shouldShowRadio = !canSelectMultiple && !item.isDisabled;
 
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
@@ -93,6 +95,7 @@ function InviteMemberListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             shouldDisplayRBR={!shouldShowCheckBox}
             testID={item.text}
+            shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
         >
             {(hovered?: boolean) => (
                 <EducationalTooltip
@@ -150,13 +153,32 @@ function InviteMemberListItem<TItem extends ListItem>({
                                 disabled={isDisabled}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={item.text ?? ''}
-                                style={[styles.ml2, styles.optionSelectCircle]}
+                                style={[styles.ml2]}
                             >
-                                <SelectCircle
+                                <Checkbox
                                     isChecked={item.isSelected ?? false}
-                                    selectCircleStyles={styles.ml0}
+                                    onPress={handleCheckboxPress}
+                                    accessibilityLabel={CONST.ROLE.CHECKBOX}
                                 />
                             </PressableWithFeedback>
+                        )}
+                        {!!shouldShowRadio && (
+                            <PressableWithFeedback
+                                onPress={handleCheckboxPress}
+                                disabled={isDisabled}
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={item.text ?? ''}
+                                style={[styles.ml2]}
+                            >
+                            <Checkbox
+                                shouldSelectOnPressEnter
+                                containerBorderRadius={999}
+                                accessibilityLabel="SelectMember"
+                                isChecked={item.isSelected}
+                                onPress={() => onSelectRow(item)}
+                            />
+                            </PressableWithFeedback>
+
                         )}
                     </View>
                 </EducationalTooltip>
