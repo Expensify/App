@@ -71,7 +71,7 @@ function SearchFiltersStatusPage() {
         updateAdvancedFilters({
             status: newStatus,
         });
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [selectedItems]);
 
     if (searchAdvancedFiltersFormResult.status === 'loading') {
@@ -88,7 +88,7 @@ function SearchFiltersStatusPage() {
             <HeaderWithBackButton
                 title={translate('common.status')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>

@@ -31,17 +31,18 @@ function DebugTagPicker({policyID, tagName = '', onSubmit}: DebugTagPickerProps)
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
+    const [hasMultipleTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true, selector: (policy) => policy?.hasMultipleTagLists});
     const updateTagName = useCallback(
         (index: number) =>
             ({text}: ListItem) => {
                 const newTag = text === selectedTags.at(index) ? undefined : text;
-                const updatedTagName = insertTagIntoTransactionTagsString(newTagName, newTag ?? '', index);
+                const updatedTagName = insertTagIntoTransactionTagsString(newTagName, newTag ?? '', index, hasMultipleTagLists ?? false);
                 if (policyTagLists.length === 1) {
                     return onSubmit({text: updatedTagName});
                 }
                 setNewTagName(updatedTagName);
             },
-        [newTagName, onSubmit, policyTagLists.length, selectedTags],
+        [newTagName, onSubmit, policyTagLists.length, selectedTags, hasMultipleTagLists],
     );
 
     const submitTag = useCallback(() => {

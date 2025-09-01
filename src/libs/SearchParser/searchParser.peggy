@@ -115,6 +115,7 @@ key "key"
   = @(
       date
       / amount
+      / total
       / merchant
       / description
       / reportID
@@ -132,6 +133,7 @@ key "key"
       / exporter
       / expenseType
       / withdrawalType
+      / withdrawalID
       / submitted
       / approved
       / paid
