@@ -89,7 +89,9 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
         if (currentIndex === -1 || allReports.length === 0 || !lastSearchQuery?.queryJSON) {
             return;
         }
-        if (currentIndex > allReports.length * 0.75 && lastSearchQuery?.hasMoreResults) {
+        const threshold = Math.min(allReports.length * 0.75, allReports.length - 2);
+
+        if (currentIndex + 1 >= threshold && lastSearchQuery?.hasMoreResults) {
             const newOffset = (lastSearchQuery.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE;
             search({
                 queryJSON: lastSearchQuery.queryJSON,
