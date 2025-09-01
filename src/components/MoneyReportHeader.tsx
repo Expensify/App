@@ -372,7 +372,14 @@ function MoneyReportHeader({
     const hasDuplicates = hasDuplicateTransactions(moneyRequestReport?.reportID);
     const shouldShowMarkAsResolved = isMarkAsResolvedAction(moneyRequestReport, transactionViolations);
     const shouldShowStatusBar =
-        hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions || hasDuplicates || shouldShowMarkAsResolved;
+        hasAllPendingRTERViolations ||
+        shouldShowBrokenConnectionViolation ||
+        hasOnlyHeldExpenses ||
+        hasScanningReceipt ||
+        isPayAtEndExpense ||
+        hasOnlyPendingTransactions ||
+        hasDuplicates ||
+        shouldShowMarkAsResolved;
 
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
