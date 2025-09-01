@@ -53,9 +53,8 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
         return res;
     }, [report]);
 
-    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, toggleOption, areOptionsInitialized} = useSearchSelector({
+    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, toggleOption, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        maxResults: 50,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
         includeUserToInvite: true,
         excludeLogins: excludedUsers,
@@ -199,6 +198,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                 footerContent={footerContent}
+                onEndReached={onListEndReached}
             />
         </ScreenWrapper>
     );

@@ -21,7 +21,7 @@ type UseSearchSelectorConfig = {
     /** Selection mode - single or multiple selection */
     selectionMode: SearchSelectorSelectionMode;
     /** Maximum number of results to return (for heap optimization) */
-    maxResults?: number;
+    maxResultsPerPage?: number;
     /** What is the context that we are using this hook for */
     searchContext?: SearchSelectorContext;
     /** Whether to include user to invite option */
@@ -78,6 +78,8 @@ type UseSearchSelectorReturn = {
     areOptionsInitialized: boolean;
     /** Contact-related state and functions (when enablePhoneContacts is true) */
     contactState?: ContactState;
+    /** Callback to handle list end reached */
+    onListEndReached: () => void;
 };
 
 /**
@@ -89,7 +91,7 @@ type UseSearchSelectorReturn = {
  */
 function useSearchSelector({
     selectionMode,
-    maxResults = 20,
+    maxResultsPerPage = CONST.MAX_SELECTION_LIST_PAGE_LENGTH,
     searchContext = 'search',
     includeUserToInvite = true,
     excludeLogins = CONST.EMPTY_OBJECT,
@@ -107,6 +109,7 @@ function useSearchSelector({
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
+    const [maxResults, setMaxResults] = useState(maxResultsPerPage);
 
     // Phone contacts logic
     const {contacts, contactPermissionState, importAndSaveContacts, setContactPermissionState} = useContactImport();
@@ -120,6 +123,10 @@ function useSearchSelector({
         setContactPermissionState(RESULTS.GRANTED);
         InteractionManager.runAfterInteractions(importAndSaveContacts);
     }, [importAndSaveContacts, setContactPermissionState]);
+
+    const onListEndReached = useCallback(() => {
+        setMaxResults((previous) => previous + maxResultsPerPage);
+    }, [maxResultsPerPage]);
 
     // Get optimized options with heap filtering and mark selection state
     const searchOptions = useMemo(() => {
@@ -280,6 +287,7 @@ function useSearchSelector({
         toggleOption,
         areOptionsInitialized,
         contactState,
+        onListEndReached,
     };
 }
 
