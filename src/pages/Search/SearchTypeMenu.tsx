@@ -40,7 +40,7 @@ type SearchTypeMenuProps = {
 };
 
 function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
-    const {hash} = queryJSON ?? {};
+    const {hash, similarSearchHash} = queryJSON ?? {};
 
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -208,8 +208,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         }
 
         const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-        return flattenedMenuItems.findIndex((item) => item.hash === hash);
-    }, [hash, isSavedSearchActive, typeMenuSections]);
+        return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
+    }, [similarSearchHash, isSavedSearchActive, typeMenuSections]);
 
     return (
         <ScrollView

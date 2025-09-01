@@ -41,6 +41,7 @@ const FILTER_KEYS = {
     WITHDRAWN_AFTER: 'withdrawnAfter',
     WITHDRAWN_BEFORE: 'withdrawnBefore',
     CURRENCY: 'currency',
+    GROUP_CURRENCY: 'groupCurrency',
     CATEGORY: 'category',
     POLICY_ID: 'policyID',
     CARD_ID: 'cardID',
@@ -48,8 +49,10 @@ const FILTER_KEYS = {
     MERCHANT: 'merchant',
     DESCRIPTION: 'description',
     REPORT_ID: 'reportID',
-    LESS_THAN: 'lessThan',
-    GREATER_THAN: 'greaterThan',
+    AMOUNT_LESS_THAN: 'amountLessThan',
+    AMOUNT_GREATER_THAN: 'amountGreaterThan',
+    TOTAL_LESS_THAN: 'totalLessThan',
+    TOTAL_GREATER_THAN: 'totalGreaterThan',
     TAX_RATE: 'taxRate',
     EXPENSE_TYPE: 'expenseType',
     TAG: 'tag',
@@ -64,6 +67,7 @@ const FILTER_KEYS = {
     REIMBURSABLE: 'reimbursable',
     BILLABLE: 'billable',
     ACTION: 'action',
+    WITHDRAWAL_ID: 'withdrawalID',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -79,9 +83,12 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.DATE_ON,
         FILTER_KEYS.DATE_AFTER,
         FILTER_KEYS.DATE_BEFORE,
-        FILTER_KEYS.GREATER_THAN,
-        FILTER_KEYS.LESS_THAN,
+        FILTER_KEYS.AMOUNT_GREATER_THAN,
+        FILTER_KEYS.AMOUNT_LESS_THAN,
+        FILTER_KEYS.TOTAL_GREATER_THAN,
+        FILTER_KEYS.TOTAL_LESS_THAN,
         FILTER_KEYS.CURRENCY,
+        FILTER_KEYS.GROUP_CURRENCY,
         FILTER_KEYS.CATEGORY,
         FILTER_KEYS.TAG,
         FILTER_KEYS.PAYER,
@@ -115,6 +122,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.GROUP_BY,
         FILTER_KEYS.FEED,
         FILTER_KEYS.ACTION,
+        FILTER_KEYS.WITHDRAWAL_ID,
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
         FILTER_KEYS.TYPE,
@@ -127,8 +135,10 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.DATE_ON,
         FILTER_KEYS.DATE_AFTER,
         FILTER_KEYS.DATE_BEFORE,
-        FILTER_KEYS.GREATER_THAN,
-        FILTER_KEYS.LESS_THAN,
+        FILTER_KEYS.AMOUNT_GREATER_THAN,
+        FILTER_KEYS.AMOUNT_LESS_THAN,
+        FILTER_KEYS.TOTAL_GREATER_THAN,
+        FILTER_KEYS.TOTAL_LESS_THAN,
         FILTER_KEYS.CURRENCY,
         FILTER_KEYS.CATEGORY,
         FILTER_KEYS.TAG,
@@ -159,6 +169,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_ON,
         FILTER_KEYS.EXPORTER,
         FILTER_KEYS.ACTION,
+        FILTER_KEYS.WITHDRAWAL_ID,
     ],
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
         FILTER_KEYS.TYPE,
@@ -171,9 +182,12 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.DATE_ON,
         FILTER_KEYS.DATE_AFTER,
         FILTER_KEYS.DATE_BEFORE,
-        FILTER_KEYS.GREATER_THAN,
-        FILTER_KEYS.LESS_THAN,
+        FILTER_KEYS.AMOUNT_GREATER_THAN,
+        FILTER_KEYS.AMOUNT_LESS_THAN,
+        FILTER_KEYS.TOTAL_GREATER_THAN,
+        FILTER_KEYS.TOTAL_LESS_THAN,
         FILTER_KEYS.CURRENCY,
+        FILTER_KEYS.GROUP_CURRENCY,
         FILTER_KEYS.CATEGORY,
         FILTER_KEYS.TAG,
         FILTER_KEYS.PAYER,
@@ -259,6 +273,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.WITHDRAWN_AFTER]: string;
         [FILTER_KEYS.WITHDRAWN_BEFORE]: string;
         [FILTER_KEYS.CURRENCY]: string[];
+        [FILTER_KEYS.GROUP_CURRENCY]: string;
         [FILTER_KEYS.CATEGORY]: string[];
         [FILTER_KEYS.POLICY_ID]: string[];
         [FILTER_KEYS.CARD_ID]: string[];
@@ -266,8 +281,10 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.MERCHANT]: string;
         [FILTER_KEYS.DESCRIPTION]: string;
         [FILTER_KEYS.REPORT_ID]: string;
-        [FILTER_KEYS.LESS_THAN]: string;
-        [FILTER_KEYS.GREATER_THAN]: string;
+        [FILTER_KEYS.AMOUNT_LESS_THAN]: string;
+        [FILTER_KEYS.AMOUNT_GREATER_THAN]: string;
+        [FILTER_KEYS.TOTAL_LESS_THAN]: string;
+        [FILTER_KEYS.TOTAL_GREATER_THAN]: string;
         [FILTER_KEYS.KEYWORD]: string;
         [FILTER_KEYS.TAX_RATE]: string[];
         [FILTER_KEYS.EXPENSE_TYPE]: string[];
@@ -282,6 +299,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.REIMBURSABLE]: string;
         [FILTER_KEYS.BILLABLE]: string;
         [FILTER_KEYS.ACTION]: string;
+        [FILTER_KEYS.WITHDRAWAL_ID]: string;
     }
 >;
 

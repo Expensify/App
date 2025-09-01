@@ -199,6 +199,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                                 displayInRows: true,
                             }}
                             secondaryAvatarContainerStyle={styles.secondAvatarInline}
+                            invitedEmailsToAccountIDs={invitedEmailsToAccountIDsDraft}
                         />
                     </View>
                     <View style={[styles.mb5]}>
@@ -230,7 +231,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                             onChangeText={(text: string) => {
                                 setWelcomeNote(text);
                             }}
-                            ref={(element: AnimatedTextInputRef) => {
+                            ref={(element: AnimatedTextInputRef | null) => {
                                 if (!element) {
                                     return;
                                 }

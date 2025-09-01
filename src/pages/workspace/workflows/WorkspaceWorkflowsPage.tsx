@@ -11,9 +11,9 @@ import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -362,10 +362,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     );
 
     const updateWorkspaceCurrencyPrompt = (
-        <Text>
-            {translate('workspace.bankAccount.yourWorkspace')}{' '}
-            <TextLink href={CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}>{translate('workspace.bankAccount.listOfSupportedCurrencies')}</TextLink>.
-        </Text>
+        <View style={[styles.renderHTML, styles.flexRow]}>
+            <RenderHTML html={translate('workspace.bankAccount.yourWorkspace')} />
+        </View>
     );
 
     const isPaidGroupPolicy = isPaidGroupPolicyUtil(policy);
