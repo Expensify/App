@@ -104,7 +104,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     reportMetadata={reportMetadata}
                                     policy={policy}
                                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
-                                    backToRoute={route.params.backTo}
                                 />
                             </DragAndDropProvider>
                         </FullPageNotFoundView>
@@ -139,7 +138,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                         reportMetadata={reportMetadata}
                                         policy={policy}
                                         shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
-                                        backToRoute={route.params.backTo}
                                     />
                                 </View>
                                 <PortalHost name="suggestions" />
