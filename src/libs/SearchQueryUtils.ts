@@ -750,12 +750,6 @@ function getFilterDisplayValue(
         return getCardDescription(cardList?.[cardID]) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        console.log('filterValue', filterValue);
-        console.log('filterName', filterName);
-        console.log('report', reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]);
-        console.log('report nmae', getReportName({report: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]}));
-        console.log('--------------------------------');
-        console.log('return value', getReportName({report: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]}) || filterValue);
         return getReportName({report: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]}) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
