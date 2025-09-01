@@ -3,11 +3,11 @@ import type {ForwardedRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {MaskedTextInputOwnProps} from 'react-native-advanced-input-mask/lib/typescript/src/types';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import type {FSClass} from '@libs/Fullstory/types';
+import type {DescriptiveFSClassProps} from '@libs/Fullstory/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type InputType = 'markdown' | 'mask' | 'default';
-type CustomBaseTextInputProps = {
+type CustomBaseTextInputProps = DescriptiveFSClassProps<'inputFSClass'> & {
     /** Input label */
     label?: string;
 
@@ -194,8 +194,6 @@ type CustomBaseTextInputProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
-
-    fsClass?: FSClass;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;

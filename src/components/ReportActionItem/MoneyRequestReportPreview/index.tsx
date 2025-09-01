@@ -132,7 +132,7 @@ function MoneyRequestReportPreview({
         />
     );
 
-    const fsClass = FS.getChatFSClass(personalDetailsList, iouReport);
+    const wrapperFSClass = FS.getChatFSClass(personalDetailsList, iouReport);
 
     return (
         <MoneyRequestReportPreviewContent
@@ -163,7 +163,7 @@ function MoneyRequestReportPreview({
             isInvoice={isInvoice}
             onPress={openReportFromPreview}
             shouldShowBorder={shouldShowBorder}
-            fsClass={fsClass}
+            wrapperFSClass={wrapperFSClass}
         />
     );
 }

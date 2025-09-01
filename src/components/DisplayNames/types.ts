@@ -1,5 +1,5 @@
 import type {StyleProp, TextStyle} from 'react-native';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import type {DescriptiveFSClassProps} from '@libs/Fullstory/types';
 import type {AvatarSource} from '@libs/UserUtils';
 
 type DisplayNameWithTooltip = {
@@ -16,7 +16,7 @@ type DisplayNameWithTooltip = {
     avatar?: AvatarSource;
 };
 
-type DisplayNamesProps = ForwardedFSClassProps & {
+type DisplayNamesProps = DescriptiveFSClassProps<'titleFSClass'> & {
     /** The full title of the DisplayNames component (not split up) */
     fullTitle: string;
 

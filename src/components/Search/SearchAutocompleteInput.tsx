@@ -231,7 +231,7 @@ function SearchAutocompleteInput(
                         shouldShowClearButton={!!value && !isSearchingForReports}
                         shouldHideClearButton={false}
                         onClearInput={clearFilters}
-                        fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                        inputFSClass={CONST.FULLSTORY.CLASS.UNMASK}
                     />
                 </View>
             </Animated.View>

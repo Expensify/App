@@ -255,7 +255,7 @@ function MoneyRequestReportTransactionList({
 
     const listHorizontalPadding = styles.ph5;
 
-    const fsClass = FS.getChatFSClass(personalDetailsList, report);
+    const transactionItemFSClass = FS.getChatFSClass(personalDetailsList, report);
 
     if (isEmptyTransactions) {
         return (
@@ -330,7 +330,7 @@ function MoneyRequestReportTransactionList({
                             taxAmountColumnSize={taxAmountColumnSize}
                             // if we add few new transactions, then we need to scroll to the first one
                             scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
-                            fsClass={fsClass}
+                            itemFSClass={transactionItemFSClass}
                         />
                     );
                 })}

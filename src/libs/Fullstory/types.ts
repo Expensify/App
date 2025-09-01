@@ -68,11 +68,32 @@ type Fullstory = {
     anonymize: () => void;
 };
 
-type ForwardedFSClassProps = {
+/**
+ * Use this type when you want your component to be able to be supplied a `fsClass`-like prop that it's going
+ * to be used in its inner components.
+ *
+ * TS allows the `fsClass` prop to be used in any components, but the prop is only effective when passed directly to
+ * core React Native components like `View`, `Text`, `Pressable`, etc.
+ * 
+ * To solve this we have an ESLint rule that forbids the use of `fsClass` prop in all components expect those listed here,
+ * and instructs the developer to use this type instead.
+ *
+ * @example
+ * ```tsx
+ * type CustomComponentProps = DescriptiveFSClassProps<'contentFSClass'> & {
+ *     title: string;
+ * };
+ *
+ * function CustomComponent({title, contentFSClass}: CustomComponentProps) {
+ *     return <View fsClass={contentFSClass}><Text>{title}</Text></View>;
+ * }
+ * ```
+ */
+type DescriptiveFSClassProps<T extends `${string}FSClass`> = {
     /**
-     * Used to pass down `fsClass` prop to inner components that might need it for Fulstory masking.
+     * Used to pass down `fsClass` prop to inner components that will need it for Fullstory masking.
      */
-    forwardedFSClass?: FSClass;
+    [key in T]?: FSClass;
 };
 
-export type {FSPageLike, FSPageLikeConstructor, Fullstory, GetChatFSClass, PropertiesWithoutPageName, ForwardedFSClassProps, FSClass};
+export type {FSPageLike, FSPageLikeConstructor, Fullstory, GetChatFSClass, PropertiesWithoutPageName, DescriptiveFSClassProps};

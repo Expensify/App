@@ -7,10 +7,10 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
-import CONST from '@src/CONST';
 
 const defaultPrivatePersonalDetails: PrivatePersonalDetails = {
     addresses: [

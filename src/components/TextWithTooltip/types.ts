@@ -1,7 +1,7 @@
 import type {StyleProp, TextStyle} from 'react-native';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import type {DescriptiveFSClassProps} from '@libs/Fullstory/types';
 
-type TextWithTooltipProps = ForwardedFSClassProps & {
+type TextWithTooltipProps = DescriptiveFSClassProps<'contentFSClass'> & {
     /** The text to display */
     text: string;
 

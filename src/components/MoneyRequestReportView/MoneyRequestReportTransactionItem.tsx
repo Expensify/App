@@ -13,14 +13,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
-import type {FSClass} from '@libs/Fullstory/types';
+import type {DescriptiveFSClassProps} from '@libs/Fullstory/types';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
-type MoneyRequestReportTransactionItemProps = {
+type MoneyRequestReportTransactionItemProps = DescriptiveFSClassProps<'itemFSClass'> & {
     /** The transaction that is being displayed */
     transaction: TransactionWithOptionalHighlight;
 
@@ -56,8 +56,6 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Callback function that scrolls to this transaction in case it is newly added */
     scrollToNewTransaction?: (offset: number) => void;
-
-    fsClass?: FSClass;
 };
 
 const expenseHeaders = getExpenseHeaders();
@@ -75,7 +73,7 @@ function MoneyRequestReportTransactionItem({
     amountColumnSize,
     taxAmountColumnSize,
     scrollToNewTransaction,
-    fsClass,
+    itemFSClass,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -131,7 +129,7 @@ function MoneyRequestReportTransactionItem({
                 disabled={isTransactionPendingDelete(transaction)}
                 ref={viewRef}
                 wrapperStyle={[animatedHighlightStyle, styles.userSelectNone]}
-                fsClass={fsClass}
+                childrenFSClass={itemFSClass}
             >
                 <TransactionItemRow
                     transactionItem={transaction}

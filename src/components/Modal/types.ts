@@ -2,7 +2,7 @@ import type {FocusTrapProps} from 'focus-trap-react';
 import type {GestureResponderEvent, PanResponderGestureState, ViewStyle} from 'react-native';
 import type {Direction, ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import type {DescriptiveFSClassProps} from '@libs/Fullstory/types';
 import type CONST from '@src/CONST';
 import type ReanimatedModalProps from './ReanimatedModal/types';
 
@@ -21,7 +21,7 @@ type WindowState = {
 
 type BaseModalProps = Partial<ReactNativeModalProps> &
     Partial<ReanimatedModalProps> &
-    ForwardedFSClassProps & {
+    DescriptiveFSClassProps<'contentFSClass'> & {
         /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
         fullscreen?: boolean;
 

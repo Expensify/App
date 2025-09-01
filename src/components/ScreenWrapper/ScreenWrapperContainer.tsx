@@ -13,12 +13,12 @@ import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import type {DescriptiveFSClassProps} from '@libs/Fullstory/types';
 import addViewportResizeListener from '@libs/VisualViewport';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 
-type ScreenWrapperContainerProps = ForwardedFSClassProps &
+type ScreenWrapperContainerProps = DescriptiveFSClassProps<'contentFSClass'> &
     React.PropsWithChildren<{
         /** A unique ID to find the screen wrapper in tests */
         testID: string;
@@ -109,7 +109,7 @@ function ScreenWrapperContainer({
     includeSafeAreaPaddingBottom = false,
     isFocused = true,
     ref,
-    forwardedFSClass,
+    contentFSClass,
 }: ScreenWrapperContainerProps) {
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {initialHeight} = useInitialDimensions();
@@ -207,7 +207,7 @@ function ScreenWrapperContainer({
             // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
             {...panResponder.panHandlers}
             testID={testID}
-            fsClass={forwardedFSClass}
+            fsClass={contentFSClass}
         >
             <View
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access

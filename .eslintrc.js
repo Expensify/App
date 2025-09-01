@@ -244,6 +244,19 @@ module.exports = {
         'react/prop-types': 'off',
         'react/jsx-key': 'error',
         'react/jsx-no-constructed-context-values': 'error',
+        'react/forbid-component-props': [
+            'error',
+            {
+                forbid: [
+                    {
+                        propName: 'fsClass',
+                        allowedFor: ['View', 'Animated.View', 'Text', 'Pressable'],
+                        message:
+                            "The 'fsClass' prop doesn't work for custom components, only RN's View, Text and Pressable.\nPlease use the 'DescriptiveFSClassProps' type to pass down the desired 'fsClass' value to the allowed components.",
+                    },
+                ],
+            },
+        ],
         'react-native-a11y/has-valid-accessibility-descriptors': [
             'error',
             {

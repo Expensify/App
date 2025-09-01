@@ -13,13 +13,13 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {requestResetBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
+import CONST from '@src/CONST';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ConnectedVerifiedBankAccountProps = ForwardedFSClassProps & {
+type ConnectedVerifiedBankAccountProps = {
     /** Bank account currently in setup */
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
@@ -46,7 +46,6 @@ function ConnectedVerifiedBankAccount({
     setUSDBankAccountStep,
     setNonUSDBankAccountStep,
     isNonUSDWorkspace,
-    forwardedFSClass,
 }: ConnectedVerifiedBankAccountProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -69,7 +68,7 @@ function ConnectedVerifiedBankAccount({
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             style={[styles.flex1, styles.justifyContentBetween, styles.mh2]}
-            forwardedFSClass={forwardedFSClass}
+            contentFSClass={CONST.FULLSTORY.CLASS.MASK}
         >
             <HeaderWithBackButton
                 title={translate('bankAccount.addBankAccount')}

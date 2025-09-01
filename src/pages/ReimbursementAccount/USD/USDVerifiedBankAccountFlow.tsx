@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BankInfo from './BankInfo/BankInfo';
@@ -10,7 +11,6 @@ import CompleteVerification from './CompleteVerification/CompleteVerification';
 import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
 import Country from './Country';
 import RequestorStep from './Requestor/RequestorStep';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 type USDVerifiedBankAccountFlowProps = {
     USDBankAccountStep: string;
@@ -88,7 +88,14 @@ function USDVerifiedBankAccountFlow({
     }
 
     if (CurrentStep) {
-        return <View style={styles.flex1} fsClass={CONST.FULLSTORY.CLASS.MASK}>{CurrentStep}</View>;
+        return (
+            <View
+                style={styles.flex1}
+                fsClass={CONST.FULLSTORY.CLASS.MASK}
+            >
+                {CurrentStep}
+            </View>
+        );
     }
 
     return null;
