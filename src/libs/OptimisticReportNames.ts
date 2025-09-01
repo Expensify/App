@@ -111,6 +111,14 @@ function getReportsByPolicyID(policyID: string, allReports: Record<string, Repor
 }
 
 /**
+ * Get the title field from report name value pairs
+ */
+function getTitleFieldFromRNVP(reportID: string, context: UpdateContext) {
+    const reportNameValuePairs = context.allReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+    return reportNameValuePairs?.[CONST.REPORT_FIELD_TITLE_FIELD_ID];
+}
+
+/**
  * Get the report associated with a transaction ID
  */
 function getReportByTransactionID(transactionID: string, context: UpdateContext): Report | undefined {
@@ -138,7 +146,7 @@ function getReportKey(reportID: string): OnyxKey {
 /**
  * Check if a report should have its name automatically computed
  */
-function shouldComputeReportName(report: Report, policy: Policy | undefined): boolean {
+function shouldComputeReportName(report: Report, policy: Policy | undefined, context: UpdateContext): boolean {
     // Only compute names for expense reports with policies that have title fields
     if (!report || !policy) {
         return false;
@@ -149,8 +157,9 @@ function shouldComputeReportName(report: Report, policy: Policy | undefined): bo
         return false;
     }
 
-    // Check if the policy has a title field with a formula
-    const titleField = getTitleReportField(policy.fieldList ?? {});
+    // Check if the report has text_title in rNVP - its presence indicates auto-generated names are allowed
+    // If text_title is missing, it means the report was manually renamed and should preserve its custom name
+    const titleField = getTitleFieldFromRNVP(report.reportID, context);
     if (!titleField?.defaultValue) {
         return false;
     }
@@ -190,18 +199,13 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
 
     const policy = getPolicyByID(targetReport.policyID, allPolicies);
 
-    if (!shouldComputeReportName(targetReport, policy)) {
+    if (!shouldComputeReportName(targetReport, policy, context)) {
         Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME);
         Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME);
         return null;
     }
 
-    const titleField = getTitleReportField(policy?.fieldList ?? {});
-    if (!titleField?.defaultValue) {
-        Performance.markEnd(CONST.TIMING.COMPUTE_REPORT_NAME);
-        Timing.end(CONST.TIMING.COMPUTE_REPORT_NAME);
-        return null;
-    }
+    const titleField = getTitleFieldFromRNVP(targetReport.reportID, context);
 
     // Quick check: see if the update might affect the report name
     const updateType = determineObjectTypeByKey(incomingUpdate.key);
