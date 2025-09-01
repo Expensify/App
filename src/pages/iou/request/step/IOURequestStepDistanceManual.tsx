@@ -144,13 +144,15 @@ function IOURequestStepDistanceManual({
             setMoneyRequestDistance(transactionID, distanceAsFloat, isTransactionDraft);
 
             if (action === CONST.IOU.ACTION.EDIT) {
-                updateMoneyRequestDistance({
-                    transactionID: transaction?.transactionID,
-                    transactionThreadReportID: transaction?.reportID,
-                    distance: distanceAsFloat,
-                    transactionBackup: undefined,
-                    policy,
-                });
+                if (distance !== distanceAsFloat) {
+                    updateMoneyRequestDistance({
+                        transactionID: transaction?.transactionID,
+                        transactionThreadReportID: transaction?.reportID,
+                        distance: distanceAsFloat,
+                        transactionBackup: undefined,
+                        policy,
+                    });
+                }
                 Navigation.goBack(backTo);
                 return;
             }
@@ -275,6 +277,7 @@ function IOURequestStepDistanceManual({
             translate,
             navigateToConfirmationPage,
             action,
+            distance,
         ],
     );
 
