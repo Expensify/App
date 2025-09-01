@@ -5723,6 +5723,7 @@ const translations = {
                 title: 'Benutzerdefinierte Regeln',
                 subtitle: 'Beschreibung',
                 description: 'Benutzerdefinierte Regeln für Spesenabrechnungen eingeben',
+                cardSubtitle: 'Hier befindet sich die Ausgabenrichtlinie deines Teams, damit alle genau wissen, was abgedeckt ist.',
             },
         },
         planTypePage: {

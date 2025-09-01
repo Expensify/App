@@ -5719,6 +5719,7 @@ const translations = {
                 title: 'Niestandardowe zasady',
                 subtitle: 'Opis',
                 description: 'Wprowadź niestandardowe zasady dla raportów wydatków',
+                cardSubtitle: 'Tutaj znajduje się polityka wydatków Twojego zespołu, aby każdy wiedział, co jest objęte.',
             },
         },
         planTypePage: {

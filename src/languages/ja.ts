@@ -5702,6 +5702,7 @@ const translations = {
                 title: 'カスタムルール',
                 subtitle: '説明',
                 description: '経費報告書のカスタムルールを入力',
+                cardSubtitle: 'ここにチームの経費ポリシーがあり、何が対象になるのか全員が同じ理解を持てます。',
             },
         },
         planTypePage: {

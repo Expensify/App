@@ -451,8 +451,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     {isBetaEnabled(CONST.BETAS.CUSTOM_RULES) ? (
                         <Section
                             isCentralPane
-                            title="Expense policy"
-                            subtitle="Here's where your team's expense policy lives, so everyone's on the same page about what's covered."
+                            title={translate('workspace.editor.policy')}
+                            titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
+                            subtitle={translate('workspace.rules.customRules.cardSubtitle')}
+                            subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5, styles.mt1]}
                         >
                             <MenuItemWithTopDescription
                                 title={policy?.customRules ?? ''}

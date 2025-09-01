@@ -5735,6 +5735,7 @@ const translations = {
                 title: 'Regole personalizzate',
                 subtitle: 'Descrizione',
                 description: 'Inserisci regole personalizzate per i report di spesa',
+                cardSubtitle: 'Qui si trova la politica sulle spese del tuo team, così tutti sanno cosa è incluso.',
             },
         },
         planTypePage: {
