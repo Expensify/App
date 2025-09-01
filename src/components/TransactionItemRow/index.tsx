@@ -77,6 +77,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** Precomputed violations */
     violations?: TransactionViolation[];
+
+    /** Used to initiate payment from search page */
+    hash?: number;
 };
 
 type TransactionItemRowProps = {
@@ -265,6 +268,10 @@ function TransactionItemRow({
                             parentAction={transactionItem.parentTransactionID}
                             goToItem={onButtonPress}
                             isLoading={isActionLoading}
+                            reportID={transactionItem.reportID}
+                            policyID={report?.policyID}
+                            hash={transactionItem?.hash}
+                            amount={report?.total}
                         />
                     )}
                 </View>
@@ -293,7 +300,7 @@ function TransactionItemRow({
                             merchantOrDescription={description}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
-                            shouldRenderAsHTML
+                            isDescription
                         />
                     )}
                 </View>
@@ -377,6 +384,8 @@ function TransactionItemRow({
             shouldShowTooltip,
             shouldUseNarrowLayout,
             transactionItem,
+            report?.policyID,
+            report?.total,
             areAllOptionalColumnsHidden,
         ],
     );
@@ -434,6 +443,7 @@ function TransactionItemRow({
                                     merchantOrDescription={merchantOrDescription}
                                     shouldShowTooltip={shouldShowTooltip}
                                     shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    isDescription={!merchant}
                                 />
                                 <TotalCell
                                     transactionItem={transactionItem}
