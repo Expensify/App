@@ -10,6 +10,7 @@ import {
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasIntegrationAutoSync,
+    isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPreferredExporter,
 } from './PolicyUtils';
 import {getAllReportActions, getOneTransactionThreadReportID, isMoneyRequestAction} from './ReportActionsUtils';
@@ -317,20 +318,22 @@ function isMarkAsResolvedReportAction(
     }
 
     const isReportSubmitter = isCurrentUserSubmitter(report);
-    if (!isReportSubmitter) {
+    const isAdmin = isPolicyAdminPolicyUtils(policy);
+    if (!isReportSubmitter && !isAdmin) {
         return false;
     }
 
     return getTransactionViolations(transaction, violations)?.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
 }
 
-function isMarkAsResolvedAction(report?: Report, violations?: TransactionViolation[]) {
+function isMarkAsResolvedAction(report?: Report, violations?: TransactionViolation[], policy?: Policy) {
     if (!report || !violations) {
         return false;
     }
 
     const isReportSubmitter = isCurrentUserSubmitter(report);
-    if (!isReportSubmitter) {
+    const isAdmin = isPolicyAdminPolicyUtils(policy);
+    if (!isReportSubmitter && !isAdmin) {
         return false;
     }
 
