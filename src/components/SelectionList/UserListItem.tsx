@@ -34,7 +34,6 @@ function UserListItem<TItem extends ListItem>({
     wrapperStyle,
     pressableStyle,
     shouldUseDefaultRightHandSideCheckmark,
-    shouldDisplayRBR,
     forwardedFSClass,
 }: UserListItemProps<TItem>) {
     const styles = useThemeStyles();
@@ -93,7 +92,6 @@ function UserListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            shouldDisplayRBR={shouldDisplayRBR}
         >
             {(hovered?: boolean) => (
                 <>
