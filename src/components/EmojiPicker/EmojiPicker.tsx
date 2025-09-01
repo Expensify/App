@@ -18,6 +18,7 @@ import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import DomUtils from '@libs/DomUtils';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
+import KeyboardUtils from '@src/utils/keyboard';
 import EmojiPickerMenu from './EmojiPickerMenu';
 
 const DEFAULT_ANCHOR_ORIGIN = {
@@ -96,22 +97,24 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
 
         // It's possible that the anchor is inside an active modal (e.g., add emoji reaction in report context menu).
         // So, we need to get the anchor position first before closing the active modal which will also destroy the anchor.
-        calculateAnchorPosition(emojiPopoverAnchor?.current, anchorOriginValue).then((value) => {
-            close(() => {
-                onWillShow?.();
-                setIsEmojiPickerVisible(true);
-                setEmojiPopoverAnchorPosition({
-                    horizontal: value.horizontal,
-                    vertical: value.vertical,
+        KeyboardUtils.dismiss().then(() =>
+            calculateAnchorPosition(emojiPopoverAnchor?.current, anchorOriginValue).then((value) => {
+                close(() => {
+                    onWillShow?.();
+                    setIsEmojiPickerVisible(true);
+                    setEmojiPopoverAnchorPosition({
+                        horizontal: value.horizontal,
+                        vertical: value.vertical,
+                    });
+                    emojiAnchorDimension.current = {
+                        width: value.width,
+                        height: value.height,
+                    };
+                    setEmojiPopoverAnchorOrigin(anchorOriginValue);
+                    setActiveID(id);
                 });
-                emojiAnchorDimension.current = {
-                    width: value.width,
-                    height: value.height,
-                };
-                setEmojiPopoverAnchorOrigin(anchorOriginValue);
-                setActiveID(id);
-            });
-        });
+            }),
+        );
     };
 
     /**

@@ -23,7 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
-import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -54,7 +54,7 @@ type ApproverSection = SectionListData<SelectionListApprover, Section<SelectionL
 
 function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApproverPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
@@ -66,7 +66,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
     const approverIndex = Number(route.params.approverIndex) ?? 0;
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
-    const defaultApprover = policy?.approver ?? policy?.owner;
+    const defaultApprover = getDefaultApprover(policy);
     const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
     const rhpRoutes = useNavigationState((state) => state.routes);
 
@@ -99,7 +99,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                         return null;
                     }
 
-                    if (policy?.preventSelfApproval && membersEmail?.includes(email)) {
+                    if (!isDefault && policy?.preventSelfApproval && membersEmail?.includes(email)) {
                         return null;
                     }
 
@@ -144,7 +144,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         const filteredApprovers =
             debouncedSearchTerm !== '' ? tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? '']) : approvers;
 
-        const data = sortAlphabetically(filteredApprovers, 'text');
+        const data = sortAlphabetically(filteredApprovers, 'text', localeCompare);
         return [
             {
                 title: undefined,
@@ -165,6 +165,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         membersEmail,
         policy?.preventSelfApproval,
         policy?.owner,
+        localeCompare,
     ]);
 
     const shouldShowListEmptyContent = !debouncedSearchTerm && !!approvalWorkflow && !sections.at(0)?.data.length && !isApprovalWorkflowLoading;

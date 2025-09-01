@@ -32,7 +32,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import {getDefaultApprover, isControlPolicy} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
@@ -73,13 +73,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const styles = useThemeStyles();
-    const {formatPhoneNumber, translate} = useLocalize();
+    const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
@@ -104,15 +105,15 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const phoneNumber = getPhoneNumber(details);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
-    const policyApproverEmail = policy?.approver;
     const {approvalWorkflows} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
                 employees: policy?.employeeList ?? {},
-                defaultApprover: policyApproverEmail ?? policy?.owner ?? '',
+                defaultApprover: getDefaultApprover(policy),
                 personalDetails: personalDetails ?? {},
+                localeCompare,
             }),
-        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
+        [personalDetails, policy, localeCompare],
     );
 
     useEffect(() => {
@@ -251,6 +252,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                 assigneeEmail: memberLogin,
             },
             isEditing: false,
+            isChangeAssigneeDisabled: true,
             policyID,
         });
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
@@ -320,7 +322,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 </Text>
                             )}
                             {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
-                                shouldRenderTransferOwnerButton() && (
+                                shouldRenderTransferOwnerButton(fundList) && (
                                     <ButtonDisabledWhenOffline
                                         text={translate('workspace.people.transferOwner')}
                                         onPress={startChangeOwnershipFlow}
@@ -354,6 +356,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
                                 description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                 interactive={false}
+                                copyable
                             />
                             <MenuItemWithTopDescription
                                 disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}

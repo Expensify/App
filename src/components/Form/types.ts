@@ -1,4 +1,4 @@
-import type {ComponentType, FocusEvent, Key, MutableRefObject, ReactNode, Ref} from 'react';
+import type {ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
 import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type AddPlaidBankAccount from '@components/AddPlaidBankAccount';
@@ -12,6 +12,7 @@ import type CountrySelector from '@components/CountrySelector';
 import type CurrencySelector from '@components/CurrencySelector';
 import type DatePicker from '@components/DatePicker';
 import type EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
+import type NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type PercentageForm from '@components/PercentageForm';
 import type Picker from '@components/Picker';
 import type PushRowWithModal from '@components/PushRowWithModal';
@@ -52,6 +53,7 @@ type ValidInputs =
     | typeof CountrySelector
     | typeof CurrencySelector
     | typeof AmountForm
+    | typeof NumberWithSymbolForm
     | typeof PercentageForm
     | typeof BusinessTypePicker
     | typeof DimensionTypeSelector
@@ -166,6 +168,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     /** Disable press on enter for submit button */
     disablePressOnEnter?: boolean;
 
+    /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
+    enterKeyEventListenerPriority?: number;
+
     /** Render extra button above submit button */
     shouldRenderFooterAboveSubmit?: boolean;
     /**
@@ -182,7 +187,7 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     submit: () => void;
 };
 
-type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;
+type InputRefs = Record<string, RefObject<InputComponentBaseProps>>;
 
 type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, string | undefined>>;
 

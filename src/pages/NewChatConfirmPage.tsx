@@ -36,11 +36,11 @@ function navigateToEditChatName() {
 function NewChatConfirmPage() {
     const optimisticReportID = useRef<string>(generateReportID());
     const [avatarFile, setAvatarFile] = useState<File | CustomRNImageManipulatorResult | undefined>();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
-    const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
 
     const selectedOptions = useMemo((): Participant[] => {
         if (!newGroupDraft?.participants) {
@@ -72,8 +72,8 @@ function NewChatConfirmPage() {
                     };
                     return section;
                 })
-                .sort((a, b) => a.text?.toLowerCase().localeCompare(b.text?.toLowerCase() ?? '') ?? -1),
-        [selectedOptions, personalData.accountID, translate],
+                .sort((a, b) => localeCompare(a.text?.toLowerCase() ?? '', b.text?.toLowerCase() ?? '')),
+        [selectedOptions, personalData.accountID, translate, localeCompare],
     );
 
     /**

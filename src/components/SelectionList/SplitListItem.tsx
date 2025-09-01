@@ -9,7 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
-import {getCleanedTagName} from '@libs/PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import BaseListItem from './BaseListItem';
 import type {ListItem, SplitListItemProps, SplitListItemType} from './types';
@@ -114,7 +114,7 @@ function SplitListItem<TItem extends ListItem>({
                                         numberOfLines={1}
                                         style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                     >
-                                        {getCleanedTagName(splitItem.tags?.at(0) ?? '')}
+                                        {getCommaSeparatedTagNameWithSanitizedColons(splitItem.tags?.at(0) ?? '')}
                                     </Text>
                                 </View>
                             )}
@@ -143,6 +143,8 @@ function SplitListItem<TItem extends ListItem>({
                             maxLength={formattedOriginalAmount.length + 1}
                             contentWidth={(formattedOriginalAmount.length + 1) * 8}
                             shouldApplyPaddingToContainer
+                            shouldUseDefaultLineHeightForPrefix={false}
+                            shouldWrapInputInContainer={false}
                         />
                     </View>
                     <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>

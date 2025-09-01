@@ -6,6 +6,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import RenderHTML from '@components/RenderHTML';
 import Section, {CARD_LAYOUT} from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -132,16 +133,9 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                                 {translate('workspace.changeOwner.addPaymentCardRedundant')}
                             </Text>
                         </View>
-                        <Text style={[styles.mt3, styles.textSupportingNormal]}>
-                            {translate('workspace.changeOwner.addPaymentCardLearnMore')}{' '}
-                            <TextLink
-                                style={[styles.textSupportingNormal, styles.link]}
-                                href={CONST.PERSONAL_DATA_PROTECTION_INFO_URL}
-                            >
-                                {translate('workspace.changeOwner.addPaymentCardSecurity')}
-                            </TextLink>
-                            .
-                        </Text>
+                        <View style={[styles.renderHTML, styles.mt3]}>
+                            <RenderHTML html={translate('workspace.changeOwner.addPaymentCardLearnMore')} />
+                        </View>
                     </Section>
                 </>
             }

@@ -22,12 +22,12 @@ const updateWorkspaceFilter = (policyID: string[] | null) => {
     updateAdvancedFilters({
         policyID,
     });
-    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
 };
 
 function SearchFiltersWorkspacePage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
@@ -45,6 +45,7 @@ function SearchFiltersWorkspacePage() {
         shouldShowPendingDeletePolicy: false,
         selectedPolicyIDs: selectedOptions,
         searchTerm: debouncedSearchTerm,
+        localeCompare,
     });
 
     const selectWorkspace = useCallback(
@@ -86,7 +87,7 @@ function SearchFiltersWorkspacePage() {
                     <HeaderWithBackButton
                         title={translate('workspace.common.workspace')}
                         onBackButtonPress={() => {
-                            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                         }}
                     />
                     {shouldShowLoadingIndicator ? (

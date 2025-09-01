@@ -4,7 +4,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -52,7 +52,7 @@ describe('IOURequestStartPage', () => {
 
         // When the page is mounted with MANUAL tab
         render(
-            <OnyxProvider>
+            <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <NavigationContainer>
                         <IOURequestStartPage
@@ -69,7 +69,7 @@ describe('IOURequestStartPage', () => {
                         />
                     </NavigationContainer>
                 </LocaleContextProvider>
-            </OnyxProvider>,
+            </OnyxListItemProvider>,
         );
 
         await waitForBatchedUpdates();

@@ -9,21 +9,24 @@ import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineIndicator from '@components/OfflineIndicator';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SwipeableView from '@components/SwipeableView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShortMentionsList from '@hooks/useShortMentionsList';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addComment} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
 import Log from '@libs/Log';
+import {isEmailPublicDomain} from '@libs/LoginUtils';
+import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
+import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {
-    addDomainToShortMention,
     canUserPerformWriteAction,
     canWriteInReport as canWriteInReportUtil,
     isAdminsOnlyPostingRoom as isAdminsOnlyPostingRoomUtil,
@@ -59,9 +62,6 @@ type ReportFooterProps = {
     /** The pending action when we are adding a chat */
     pendingAction?: PendingAction;
 
-    /** Whether the report is ready for display */
-    isReportReadyForDisplay?: boolean;
-
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
 
@@ -78,7 +78,6 @@ function ReportFooter({
     report = {reportID: '-1'},
     reportMetadata,
     policy,
-    isReportReadyForDisplay = true,
     isComposerFullSize = false,
     onComposerBlur,
     onComposerFocus,
@@ -91,6 +90,7 @@ function ReportFooter({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS, canBeMissing: false});
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
         selector: (dateString) => {
@@ -116,7 +116,7 @@ function ReportFooter({
 
     // If a user just signed in and is viewing a public report, optimistically show the composer while loading the report, since they will have write access when the response comes back.
     const shouldShowComposerOptimistically = !isAnonymousUser && isPublicRoom(report) && !!reportMetadata?.isLoadingInitialReportActions;
-    const canPerformWriteAction = canUserPerformWriteAction(report) ?? shouldShowComposerOptimistically;
+    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived) ?? shouldShowComposerOptimistically;
     const shouldHideComposer = !canPerformWriteAction || isBlockedFromChat;
     const canWriteInReport = canWriteInReportUtil(report);
     const isSystemChat = isSystemChatUtil(report);
@@ -124,6 +124,8 @@ function ReportFooter({
     const isUserPolicyAdmin = isPolicyAdmin(policy);
 
     const allPersonalDetails = usePersonalDetails();
+    const {availableLoginsList} = useShortMentionsList();
+    const currentUserEmail = getCurrentUserEmail();
 
     const handleCreateTask = useCallback(
         (text: string): boolean => {
@@ -137,7 +139,8 @@ function ReportFooter({
             }
 
             const mention = match[1] ? match[1].trim() : '';
-            const mentionWithDomain = addDomainToShortMention(mention) ?? mention;
+            const currentUserPrivateDomain = isEmailPublicDomain(currentUserEmail ?? '') ? '' : Str.extractEmailDomain(currentUserEmail ?? '');
+            const mentionWithDomain = addDomainToShortMention(mention, availableLoginsList, currentUserPrivateDomain) ?? mention;
             const isValidMention = Str.isValidEmail(mentionWithDomain);
 
             let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
@@ -157,10 +160,10 @@ function ReportFooter({
                     title = `@${mentionWithDomain} ${title}`;
                 }
             }
-            createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID, true);
+            createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID, true, quickAction);
             return true;
         },
-        [allPersonalDetails, report.policyID, report.reportID],
+        [allPersonalDetails, availableLoginsList, currentUserEmail, quickAction, report.policyID, report.reportID],
     );
 
     const onSubmitComment = useCallback(
@@ -228,7 +231,6 @@ function ReportFooter({
                             lastReportAction={lastReportAction}
                             pendingAction={pendingAction}
                             isComposerFullSize={isComposerFullSize}
-                            isReportReadyForDisplay={isReportReadyForDisplay}
                             didHideComposerInput={didHideComposerInput}
                             reportTransactions={reportTransactions}
                         />
@@ -248,7 +250,6 @@ export default memo(
         prevProps.pendingAction === nextProps.pendingAction &&
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
-        prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
         deepEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
         deepEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
         deepEqual(prevProps.policy?.role, nextProps.policy?.role) &&

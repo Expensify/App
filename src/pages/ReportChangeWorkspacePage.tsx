@@ -16,7 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getPolicy, isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
+import {isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
 import {isExpenseReport, isIOUReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -31,7 +31,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
@@ -41,27 +41,28 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
 
     const selectPolicy = useCallback(
         (policyID?: string) => {
-            if (!policyID) {
+            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+            if (!policyID || !policy) {
                 return;
             }
             const {backTo} = route.params;
             Navigation.goBack(backTo);
             // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
             // eslint-disable-next-line deprecation/deprecation
-            if (isIOUReport(reportID) && isPolicyAdmin(getPolicy(policyID)) && report.ownerAccountID && !isPolicyMember(getLoginByAccountID(report.ownerAccountID), policyID)) {
-                moveIOUReportToPolicyAndInviteSubmitter(reportID, policyID);
-            } else if (isIOUReport(reportID) && isPolicyMember(session?.email, policyID)) {
+            if (isIOUReport(reportID) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
+                moveIOUReportToPolicyAndInviteSubmitter(reportID, policyID, formatPhoneNumber);
+            } else if (isIOUReport(reportID) && isPolicyMember(policy, session?.email)) {
                 moveIOUReportToPolicy(reportID, policyID);
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 // eslint-disable-next-line deprecation/deprecation
-            } else if (isExpenseReport(report) && isPolicyAdmin(getPolicy(policyID)) && report.ownerAccountID && !isPolicyMember(getLoginByAccountID(report.ownerAccountID), policyID)) {
-                const employeeList = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList;
-                changeReportPolicyAndInviteSubmitter(report, policyID, employeeList);
+            } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
+                const employeeList = policy?.employeeList;
+                changeReportPolicyAndInviteSubmitter(report, policy, employeeList, formatPhoneNumber);
             } else {
-                changeReportPolicy(report, policyID, reportNextStep);
+                changeReportPolicy(report, policy, reportNextStep);
             }
         },
-        [session?.email, route.params, report, reportID, reportNextStep, policies],
+        [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
@@ -70,6 +71,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         shouldShowPendingDeletePolicy: false,
         selectedPolicyIDs: report.policyID ? [report.policyID] : undefined,
         searchTerm: debouncedSearchTerm,
+        localeCompare,
         additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policies),
     });
 

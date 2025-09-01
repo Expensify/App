@@ -201,7 +201,7 @@ describe('WorkflowUtils', () => {
             const employees: PolicyEmployeeList = {};
             const defaultApprover = '1@example.com';
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, localeCompare: TestHelper.localeCompare});
 
             expect(approvalWorkflows).toEqual([]);
         });
@@ -216,7 +216,7 @@ describe('WorkflowUtils', () => {
             };
             const defaultApprover = '1@example.com';
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, localeCompare: TestHelper.localeCompare});
 
             expect(approvalWorkflows).toEqual([]);
         });
@@ -236,7 +236,7 @@ describe('WorkflowUtils', () => {
             };
             const defaultApprover = '1@example.com';
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, localeCompare: TestHelper.localeCompare});
 
             expect(approvalWorkflows).toEqual([buildWorkflow([1, 2], [1], {isDefault: true})]);
         });
@@ -266,7 +266,7 @@ describe('WorkflowUtils', () => {
             };
             const defaultApprover = '1@example.com';
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, localeCompare: TestHelper.localeCompare});
 
             expect(approvalWorkflows).toEqual([buildWorkflow([2, 3], [1], {isDefault: true}), buildWorkflow([1, 4], [4])]);
         });
@@ -301,7 +301,7 @@ describe('WorkflowUtils', () => {
             };
             const defaultApprover = '1@example.com';
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, localeCompare: TestHelper.localeCompare});
 
             expect(approvalWorkflows).toEqual([buildWorkflow([3, 2], [1], {isDefault: true}), buildWorkflow([5], [3]), buildWorkflow([4, 1], [4])]);
         });
@@ -331,7 +331,7 @@ describe('WorkflowUtils', () => {
             };
             const defaultApprover = '1@example.com';
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, localeCompare: TestHelper.localeCompare});
 
             const defaultWorkflow = buildWorkflow([2, 3, 4], [1, 3, 4], {isDefault: true});
             let firstApprover = defaultWorkflow.approvers.at(0);
@@ -386,7 +386,7 @@ describe('WorkflowUtils', () => {
             };
             const defaultApprover = '1@example.com';
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails});
+            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, localeCompare: TestHelper.localeCompare});
 
             const defaultWorkflow = buildWorkflow([1, 4, 5, 6], [1], {isDefault: true});
             const secondWorkflow = buildWorkflow([2, 3], [4, 5, 6]);

@@ -9,6 +9,7 @@ import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequ
 import ScreenWrapper from '@components/ScreenWrapper';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -46,8 +47,9 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
-    const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute);
+    const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
     const flatListRef = useRef<FlatList>(null);
@@ -56,7 +58,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const reportID = report?.reportID;
 
     useEffect(() => {
-        openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined, true);
+        openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined);
     }, [reportIDFromRoute]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -102,7 +104,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     reportMetadata={reportMetadata}
                                     policy={policy}
                                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
-                                    backToRoute={route.params.backTo}
                                 />
                             </DragAndDropProvider>
                         </FullPageNotFoundView>
@@ -137,7 +138,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                         reportMetadata={reportMetadata}
                                         policy={policy}
                                         shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
-                                        backToRoute={route.params.backTo}
                                     />
                                 </View>
                                 <PortalHost name="suggestions" />

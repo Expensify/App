@@ -45,7 +45,6 @@ export default createOnyxDerivedValueConfig({
             }
 
             if (!reportID) {
-                // eslint-disable-next-line no-continue
                 continue;
             }
 

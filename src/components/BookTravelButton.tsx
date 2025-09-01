@@ -17,6 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
@@ -48,17 +49,18 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
+    const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isUserValidated = account?.validated ?? false;
     const primaryLogin = account?.primaryLogin ?? '';
+    const isLoading = isLoadingOnyxValue(activePolicyIDMetadata);
 
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
-    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: false});
+    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
-    const {isBlockedFromSpotnanaTravel, isBetaEnabled} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
     const [isVerificationModalVisible, setVerificationModalVisibility] = useState(false);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -79,7 +81,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
     const bookATrip = useCallback(() => {
         setErrorMessage('');
 
-        if (isBlockedFromSpotnanaTravel) {
+        if (isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)) {
             setPreventionModalVisibility(true);
             return;
         }
@@ -144,7 +146,6 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
             Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(Navigation.getActiveRoute()));
         }
     }, [
-        isBlockedFromSpotnanaTravel,
         primaryContactMethod,
         policy,
         groupPaidPolicies.length,
@@ -172,6 +173,8 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
                 onPress={bookATrip}
                 accessibilityLabel={translate('travel.bookTravel')}
                 style={styles.w100}
+                isLoading={isLoading}
+                isDisabled={!isLoading && !activePolicyID}
                 success
                 large
             />

@@ -1,7 +1,7 @@
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {findNodeHandle, InteractionManager, View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData, TextInputScrollEventData} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import {useSharedValue} from 'react-native-reanimated';
@@ -45,6 +45,8 @@ import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeIn
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+// eslint-disable-next-line no-restricted-imports
+import findNodeHandle from '@src/utils/findNodeHandle';
 import KeyboardUtils from '@src/utils/keyboard';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import getCursorPosition from './ReportActionCompose/getCursorPosition';
@@ -81,6 +83,11 @@ const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 // video source -> video attributes
 const draftMessageVideoAttributeCache = new Map<string, string>();
 
+const DEFAULT_MODAL_VALUE = {
+    willAlertModalBecomeVisible: false,
+    isVisible: false,
+};
+
 function ReportActionItemMessageEdit(
     {action, draftMessage, reportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
@@ -111,12 +118,7 @@ function ReportActionItemMessageEdit(
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const debouncedValidateCommentMaxLength = useMemo(() => lodashDebounce(validateCommentMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME), [validateCommentMaxLength]);
 
-    const [
-        modal = {
-            willAlertModalBecomeVisible: false,
-            isVisible: false,
-        },
-    ] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
+    const [modal = DEFAULT_MODAL_VALUE] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
 
     const textInputRef = useRef<(HTMLTextAreaElement & TextInput) | null>(null);

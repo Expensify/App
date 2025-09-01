@@ -1,29 +1,26 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ColorValue} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionReportGroupListItemType} from '@components/SelectionList/types';
-import TextWithTooltip from '@components/TextWithTooltip';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {handleActionButtonPress} from '@userActions/Search';
 import CONST from '@src/CONST';
-import type * as OnyxTypes from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
+import TotalCell from './TotalCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 type ReportListItemHeaderProps<TItem extends ListItem> = {
     /** The report currently being looked at */
     report: TransactionReportGroupListItemType;
-
-    /** The policy tied to the expense report */
-    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Callback to fire when the item is pressed */
     onSelectRow: (item: TItem) => void;
@@ -33,9 +30,6 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
-
-    /** Whether the item is hovered */
-    isHovered?: boolean;
 
     /** Whether the item is focused */
     isFocused?: boolean;
@@ -47,9 +41,6 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
     /** The report currently being looked at */
     report: TransactionReportGroupListItemType;
-
-    /** The policy tied to the expense report */
-    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
@@ -70,36 +61,7 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
     avatarBorderColor?: ColorValue;
 };
 
-type ReportCellProps = {
-    showTooltip: boolean;
-    isLargeScreenWidth: boolean;
-    reportItem: TransactionReportGroupListItemType;
-};
-
-function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProps) {
-    const styles = useThemeStyles();
-
-    let total = reportItem?.total ?? 0;
-
-    if (total) {
-        if (reportItem?.type === CONST.REPORT.TYPE.IOU) {
-            total = Math.abs(total ?? 0);
-        } else {
-            total *= reportItem?.type === CONST.REPORT.TYPE.EXPENSE || reportItem?.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
-        }
-    }
-
-    return (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={convertToDisplayString(total, reportItem?.currency)}
-            style={[styles.optionDisplayName, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? styles.textNormal : [styles.textBold, styles.textAlignRight]]}
-        />
-    );
-}
-
 function HeaderFirstRow<TItem extends ListItem>({
-    policy,
     report: reportItem,
     onCheckboxPress,
     isDisabled,
@@ -110,6 +72,22 @@ function HeaderFirstRow<TItem extends ListItem>({
 }: FirstRowReportHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+
+    const {total, currency} = useMemo(() => {
+        let reportTotal = reportItem.total ?? 0;
+
+        if (reportTotal) {
+            if (reportItem.type === CONST.REPORT.TYPE.IOU) {
+                reportTotal = Math.abs(reportTotal ?? 0);
+            } else {
+                reportTotal *= reportItem.type === CONST.REPORT.TYPE.EXPENSE || reportItem.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
+            }
+        }
+
+        const reportCurrency = reportItem.currency ?? CONST.CURRENCY.USD;
+
+        return {total: reportTotal, currency: reportCurrency};
+    }, [reportItem.type, reportItem.total, reportItem.currency]);
 
     return (
         <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pr3, styles.pl3]}>
@@ -128,7 +106,6 @@ function HeaderFirstRow<TItem extends ListItem>({
                 <View style={[{flexShrink: 1, flexGrow: 1, minWidth: 0}, styles.mr2]}>
                     <ReportSearchHeader
                         report={reportItem}
-                        policy={policy}
                         style={[{maxWidth: 700}]}
                         transactions={reportItem.transactions}
                         avatarBorderColor={avatarBorderColor}
@@ -137,9 +114,8 @@ function HeaderFirstRow<TItem extends ListItem>({
             </View>
             <View style={[styles.flexShrink0, shouldShowAction && styles.mr3]}>
                 <TotalCell
-                    showTooltip
-                    isLargeScreenWidth={false}
-                    reportItem={reportItem}
+                    total={total}
+                    currency={currency}
                 />
             </View>
             {shouldShowAction && (
@@ -149,6 +125,10 @@ function HeaderFirstRow<TItem extends ListItem>({
                         goToItem={handleOnButtonPress}
                         isSelected={reportItem.isSelected}
                         isLoading={reportItem.isActionLoading}
+                        policyID={reportItem.policyID}
+                        reportID={reportItem.reportID}
+                        hash={reportItem.hash}
+                        amount={reportItem.total}
                     />
                 </View>
             )}
@@ -156,36 +136,41 @@ function HeaderFirstRow<TItem extends ListItem>({
     );
 }
 
-function ReportListItemHeader<TItem extends ListItem>({
-    policy,
-    report: reportItem,
-    onSelectRow,
-    onCheckboxPress,
-    isDisabled,
-    isHovered,
-    isFocused,
-    canSelectMultiple,
-}: ReportListItemHeaderProps<TItem>) {
+function ReportListItemHeader<TItem extends ListItem>({report: reportItem, onSelectRow, onCheckboxPress, isDisabled, isFocused, canSelectMultiple}: ReportListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const {currentSearchHash} = useSearchContext();
+    const {currentSearchHash, currentSearchKey} = useSearchContext();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
-
+    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
+    const snapshotReport = useMemo(() => {
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as SearchReport;
+    }, [snapshot, reportItem.reportID]);
+    const snapshotPolicy = useMemo(() => {
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as SearchPolicy;
+    }, [snapshot, reportItem.policyID]);
     const avatarBorderColor =
-        StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
-        theme.highlightBG;
+        StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
     const handleOnButtonPress = () => {
-        handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(reportItem as unknown as TItem), shouldUseNarrowLayout && !!canSelectMultiple);
+        handleActionButtonPress(
+            currentSearchHash,
+            reportItem,
+            () => onSelectRow(reportItem as unknown as TItem),
+            shouldUseNarrowLayout && !!canSelectMultiple,
+            snapshotReport,
+            snapshotPolicy,
+            lastPaymentMethod,
+            currentSearchKey,
+        );
     };
     return !isLargeScreenWidth ? (
         <View>
             <HeaderFirstRow
                 report={reportItem}
-                policy={policy}
                 onCheckboxPress={onCheckboxPress}
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
@@ -201,7 +186,6 @@ function ReportListItemHeader<TItem extends ListItem>({
         <View>
             <HeaderFirstRow
                 report={reportItem}
-                policy={policy}
                 onCheckboxPress={onCheckboxPress}
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}

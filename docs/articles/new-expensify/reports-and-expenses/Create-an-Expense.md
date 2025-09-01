@@ -4,7 +4,6 @@ description: Learn how to create and submit expenses in Expensify using SmartSca
 keywords: [New Expensify, create expense, SmartScan, manual expense, distance expense, submit expense, expense report, New Expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Expensify makes it easy to create expenses through SmartScanning a receipt, uploading manually, forwarding by email, or tracking distance. You can submit an expense to either an individual or a workspace, depending on how you're using Expensify.
 
@@ -70,13 +69,21 @@ This feature helps prevent policy violations and ensures accurate expense tracki
 
 ---
 
-## Option 4: Bulk Upload Receipts (Desktop Only)
+## Option 4: Scan Multiple Receipts (Mobile)
+
+1. On the mobile app, tap the green **+** button and select **Create expense**.
+2. Tap the multi-receipt icon in the bottom-right corner.
+3. Tap the green capture button to take a photo of each receipt.
+5. Once you’ve scanned all your receipts, tap the green arrow to confirm.
+6. Enter expense details for each receipt or just tap Create expenses for automatic scanning.
+
+---
+
+## Option 5: Bulk Upload Receipts (Desktop)
 
 1. Drag up to 30 PDF or image files (under 10MB each) into Expensify.
 2. Select **Scan Receipts** or **Add Attachments**.
 3. Follow the prompts to assign workspaces, recipients, and coding.
-
----
 
 # Next Steps for Individual Expenses
 
@@ -151,4 +158,3 @@ If you're submitting to someone for the first time, their contact information wi
 **Safari:**
 - Tap **aA > Website Settings > Camera > Allow**, then tap **Done** and refresh the page.
 
-</div>

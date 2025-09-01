@@ -14,6 +14,7 @@ const restrictedImportPaths = [
             'Text',
             'ScrollView',
             'Animated',
+            'findNodeHandle',
         ],
         message: [
             '',
@@ -104,6 +105,10 @@ const restrictedImportPaths = [
         name: 'react-native-onyx',
         importNames: ['useOnyx'],
         message: "Please use '@hooks/useOnyx' instead.",
+    },
+    {
+        name: '@src/utils/findNodeHandle',
+        message: "Do not use 'findNodeHandle' as it is no longer supported on web.",
     },
 ];
 
@@ -219,6 +224,7 @@ module.exports = {
         'es/no-optional-chaining': 'off',
         'deprecation/deprecation': 'off',
         'arrow-body-style': 'off',
+        'no-continue': 'off',
 
         // Import specific rules
         'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
@@ -236,6 +242,7 @@ module.exports = {
         'react-native-a11y/has-accessibility-hint': ['off'],
         'react/require-default-props': 'off',
         'react/prop-types': 'off',
+        'react/jsx-key': 'error',
         'react/jsx-no-constructed-context-values': 'error',
         'react-native-a11y/has-valid-accessibility-descriptors': [
             'error',

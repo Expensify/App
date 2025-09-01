@@ -7,6 +7,7 @@ import type {Configuration} from 'webpack';
 import {DefinePlugin} from 'webpack';
 import type {Configuration as DevServerConfiguration} from 'webpack-dev-server';
 import {merge} from 'webpack-merge';
+import ForceGarbageCollectionPlugin from './ForceGarbageCollectionPlugin';
 import type Environment from './types';
 import getCommonConfiguration from './webpack.common';
 
@@ -65,6 +66,7 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                     'process.env.NODE_ENV': JSON.stringify('development'),
                 }),
                 new ReactRefreshWebpackPlugin({overlay: {sockProtocol: 'wss'}}),
+                new ForceGarbageCollectionPlugin(),
             ],
             // This prevents import error coming from react-native-tab-view/lib/module/TabView.js
             // where Pager is imported without extension due to having platform-specific implementations

@@ -128,7 +128,7 @@ function WorkspacePageWithSections({
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
-    useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
+    const {isOffline} = useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
@@ -139,7 +139,7 @@ function WorkspacePageWithSections({
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
-    const achState = reimbursementAccount?.achData?.state;
+    const achState = policy?.achAccount?.state ?? reimbursementAccount?.achData?.state;
     const isUsingECard = account?.isUsingExpensifyCard ?? false;
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
@@ -218,7 +218,7 @@ function WorkspacePageWithSections({
                 >
                     {headerContent}
                 </HeaderWithBackButton>
-                {(isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
+                {!isOffline && (isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (
                     <>

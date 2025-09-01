@@ -1,7 +1,12 @@
 import Onyx from 'react-native-onyx';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
-import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths, getUniqueActionErrors, getViolationTranslatePath} from '@libs/TransactionPreviewUtils';
+import {
+    createTransactionPreviewConditionals,
+    getTransactionPreviewTextAndTranslationPaths,
+    getUniqueActionErrorsForTransaction,
+    getViolationTranslatePath,
+} from '@libs/TransactionPreviewUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -401,9 +406,9 @@ describe('TransactionPreviewUtils', () => {
         });
     });
 
-    describe('getUniqueActionErrors', () => {
+    describe('getUniqueActionErrorsForTransaction', () => {
         test('returns an empty array if there are no actions', () => {
-            expect(getUniqueActionErrors({})).toEqual([]);
+            expect(getUniqueActionErrorsForTransaction({}, undefined)).toEqual([]);
         });
 
         test('returns unique error messages from report actions', () => {
@@ -416,7 +421,7 @@ describe('TransactionPreviewUtils', () => {
             } as unknown as ReportActions;
 
             const expectedErrors = ['Error B', 'Error C', 'Error D'];
-            expect(getUniqueActionErrors(actions).sort()).toEqual(expectedErrors.sort());
+            expect(getUniqueActionErrorsForTransaction(actions, undefined).sort()).toEqual(expectedErrors.sort());
         });
 
         test('returns the latest error message if multiple errors exist under a single action', () => {
@@ -426,7 +431,7 @@ describe('TransactionPreviewUtils', () => {
                 /* eslint-enable @typescript-eslint/naming-convention */
             } as unknown as ReportActions;
 
-            expect(getUniqueActionErrors(actions)).toEqual(['Error Z2']);
+            expect(getUniqueActionErrorsForTransaction(actions, undefined)).toEqual(['Error Z2']);
         });
 
         test('filters out non-string error messages', () => {
@@ -437,7 +442,7 @@ describe('TransactionPreviewUtils', () => {
                 /* eslint-enable @typescript-eslint/naming-convention */
             } as unknown as ReportActions;
 
-            expect(getUniqueActionErrors(actions)).toEqual(['Error B', 'Error D']);
+            expect(getUniqueActionErrorsForTransaction(actions, undefined)).toEqual(['Error B', 'Error D']);
         });
     });
 });
