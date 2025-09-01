@@ -448,12 +448,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             </OfflineWithFeedback>
                         )}
                     </Section>
-                    <Section
-                        isCentralPane
-                        title="Expense policy"
-                        subtitle="Here's where your team's expense policy lives, so everyone's on the same page about what's covered."
-                    >
-                        {isBetaEnabled(CONST.BETAS.CUSTOM_RULES) ? (
+                    {isBetaEnabled(CONST.BETAS.CUSTOM_RULES) ? (
+                        <Section
+                            isCentralPane
+                            title="Expense policy"
+                            subtitle="Here's where your team's expense policy lives, so everyone's on the same page about what's covered."
+                        >
                             <MenuItemWithTopDescription
                                 title={policy?.customRules ?? ''}
                                 description={translate('workspace.editor.policy')}
@@ -463,8 +463,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID))}
                                 shouldRenderAsHTML
                             />
-                        ) : null}
-                    </Section>
+                        </Section>
+                    ) : null}
                     <ConfirmModal
                         title={translate('workspace.common.delete')}
                         isVisible={isDeleteModalOpen}
