@@ -263,7 +263,6 @@ type SignOutAndRedirectToSignInParams = {
     shouldResetToHome?: boolean;
     shouldStashSession?: boolean;
     shouldSignOutFromOldDot?: boolean;
-    shouldKillHybridApp?: boolean;
     shouldForceUseStashedSession?: boolean;
     isOffline: boolean | undefined;
     shouldForceOffline: boolean | undefined;
@@ -274,7 +273,6 @@ function signOutAndRedirectToSignIn(
         shouldResetToHome,
         shouldStashSession,
         shouldSignOutFromOldDot,
-        shouldKillHybridApp = true,
         shouldForceUseStashedSession,
         isOffline,
         shouldForceOffline,
