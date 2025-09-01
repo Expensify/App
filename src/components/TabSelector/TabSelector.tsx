@@ -30,16 +30,25 @@ type TabSelectorProps = MaterialTopTabBarProps & {
 
     /** Function to render the content of the product training tooltip. */
     renderProductTrainingTooltip?: () => React.JSX.Element;
+
+    /** Whether tabs should have equal width */
+    equalWidth?: boolean;
 };
 
 type IconTitleAndTestID = {
-    icon: IconAsset;
+    icon?: IconAsset;
     title: string;
     testID?: string;
 };
 
 function getIconTitleAndTestID(route: string, translate: LocaleContextProps['translate']): IconTitleAndTestID {
     switch (route) {
+        case CONST.TAB.RECEIPT_PARTNERS.ALL:
+            return {title: translate('workspace.receiptPartners.uber.all'), testID: 'all'};
+        case CONST.TAB.RECEIPT_PARTNERS.LINKED:
+            return {title: translate('workspace.receiptPartners.uber.linked'), testID: 'linked'};
+        case CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING:
+            return {title: translate('workspace.receiptPartners.uber.outstanding'), testID: 'outstanding'};
         case CONST.TAB_REQUEST.MANUAL:
             return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'manual'};
         case CONST.TAB_REQUEST.SCAN:
@@ -56,6 +65,10 @@ function getIconTitleAndTestID(route: string, translate: LocaleContextProps['tra
             return {icon: Expensicons.Receipt, title: translate('common.submit'), testID: 'submit'};
         case CONST.TAB_REQUEST.PER_DIEM:
             return {icon: Expensicons.CalendarSolid, title: translate('common.perDiem'), testID: 'perDiem'};
+        case CONST.TAB_REQUEST.DISTANCE_MAP:
+            return {icon: Expensicons.Map, title: translate('tabSelector.map'), testID: 'distanceMap'};
+        case CONST.TAB_REQUEST.DISTANCE_MANUAL:
+            return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'distanceManual'};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
@@ -70,6 +83,7 @@ function TabSelector({
     shouldShowLabelWhenInactive = true,
     shouldShowProductTrainingTooltip = false,
     renderProductTrainingTooltip,
+    equalWidth = false,
 }: TabSelectorProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -160,6 +174,7 @@ function TabSelector({
                             renderProductTrainingTooltip={renderProductTrainingTooltip}
                             parentWidth={selectorWidth}
                             parentX={selectorX}
+                            equalWidth={equalWidth}
                         />
                     );
                 })}
