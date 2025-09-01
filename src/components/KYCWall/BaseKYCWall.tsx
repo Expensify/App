@@ -10,10 +10,10 @@ import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actio
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
-import {isPolicyMember} from '@libs/PolicyUtils';
-import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {isPolicyMember} from '@libs/PolicyUtils';
 import {getBankAccountRoute, getPolicyExpenseChat, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
 import {kycWallRef} from '@userActions/PaymentMethods';
 import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
@@ -130,13 +130,10 @@ function KYCWall({
                         const submitterEmail = submitterPersonalDetails?.login ?? '';
                         const submitterLogin = addSMSDomainIfPhoneNumber(submitterEmail);
                         const isMember = !!submitterAccountID && !!submitterEmail && isPolicyMember(policy, submitterLogin);
-                        if (!isMember) {
-                            if (submitterPersonalDetails) {
-                                const {policyExpenseChatReportID: newPolicyExpenseChatReportID} =
-                                    moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, submitterPersonalDetails, formatPhoneNumber) ?? {};
-                                savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[policy.id]);
-                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newPolicyExpenseChatReportID));
-                            }
+                        if (!isMember && submitterPersonalDetails) {
+                            const {policyExpenseChatReportID: newPolicyExpenseChatReportID} = moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, submitterPersonalDetails, formatPhoneNumber) ?? {};
+                            savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[policy.id]);
+                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newPolicyExpenseChatReportID));
                         } else {
                             const {policyExpenseChatReportID} = moveIOUReportToPolicy(iouReport, policy, true) ?? {};
                             savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[policy.id]);

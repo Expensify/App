@@ -5076,11 +5076,7 @@ function deleteAppReport(reportID: string | undefined) {
  * @param policyID - The ID of the policy to move the report to
  * @param isFromSettlementButton - Whether the action is from report preview
  */
-function moveIOUReportToPolicy(
-    iouReport: Report,
-    policy: Policy,
-    isFromSettlementButton?: boolean,
-): {policyExpenseChatReportID?: string} | undefined {
+function moveIOUReportToPolicy(iouReport: Report, policy: Policy, isFromSettlementButton?: boolean): {policyExpenseChatReportID?: string} | undefined {
     const reportID = iouReport.reportID;
     const policyID = policy.id;
 
@@ -5108,7 +5104,6 @@ function moveIOUReportToPolicy(
 
     // If we generated an optimistic policy expense chat ID, create minimal optimistic placeholders
     if (!expenseChatReportID) {
-        
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticExpenseChatReportID}`,
