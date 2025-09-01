@@ -4703,6 +4703,7 @@ describe('actions/IOU', () => {
 
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
+                .then(waitForBatchedUpdates)
                 .then(() => {
                     bulkHold(comment, iouReport, transactionCollection, {}, transactionsIOUActions);
 
@@ -4745,10 +4746,12 @@ describe('actions/IOU', () => {
                                 Onyx.disconnect(reportsConnection);
                                 resolve();
 
-                                const {unheldTotal, unheldNonReimbursableTotal} = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`] ?? {};
-                                expect(unheldTotal).toEqual(200);
-                                expect(unheldNonReimbursableTotal).toEqual(0);
                                 expect(Object.keys(allReports)).toHaveLength(3);
+
+                                const {unheldTotal, unheldNonReimbursableTotal} = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`] ?? {};
+                                expect(unheldNonReimbursableTotal).toEqual(0);
+                                expect(unheldTotal).toEqual(200);
+                                
                             },
                         });
                     });
@@ -4798,8 +4801,20 @@ describe('actions/IOU', () => {
                 iouReportID: iouReport.reportID,
                 transactionID: transaction2.transactionID,
             });
+
             const transaction1Thread = buildTransactionThread(iouAction1, iouReport);
             const transaction2Thread = buildTransactionThread(iouAction2, iouReport);
+
+            const transactionsIOUActions: Record<string, ReportAction> = {
+                [transaction1.transactionID]: {
+                    ...iouAction1,
+                    childReportID: transaction1Thread.reportID,
+                },
+                [transaction2.transactionID]: {
+                    ...iouAction2,
+                    childReportID: transaction2Thread.reportID,
+                },
+            };
 
             const reportCollection: OnyxCollection<Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${transaction1Thread.reportID}`]: transaction1Thread,
@@ -4807,35 +4822,31 @@ describe('actions/IOU', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
             };
 
-            const actions: OnyxInputValue<ReportActions> = {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction1.reportActionID}`]: {
-                    ...iouAction1,
-                    childReportID: transaction1Thread.reportID,
-                },
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction2.reportActionID}`]: {
-                    ...iouAction2,
-                    childReportID: transaction2Thread.reportID,
-                },
-            };
-
             const actionCollection: ReportActionsCollectionDataSet = {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {
+                    [iouAction1.reportActionID]: {
+                        ...iouAction1,
+                        childReportID: transaction1Thread.reportID,
+                    },
+                    [iouAction2.reportActionID]: {
+                        ...iouAction2,
+                        childReportID: transaction2Thread.reportID,
+                    },
+                },
             };
             const comment = 'Bulk Hold';
 
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
+                .then(waitForBatchedUpdates)
                 .then(() => {
                     const {result} = renderHook(() => useAncestorReportActions(iouReport.reportID));
                     bulkHold(
                         comment,
-                        iouReport.reportID,
-                        reportCollection,
-                        Object.values(actions),
-                        [transaction1.transactionID, transaction2.transactionID],
-                        transactionCollection,
+                        iouReport,
+                        transactionCollection, 
                         {},
-                        result.current,
+                        transactionsIOUActions,
                     );
                     return waitForBatchedUpdates();
                 })
