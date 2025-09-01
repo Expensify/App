@@ -173,7 +173,7 @@ function getForReportAction({
     }
 
     if (reportActionOriginalMessage?.movedFromReport) {
-        const reportName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportActionOriginalMessage?.movedFromReport}`]);
+        const reportName = getReportName({report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportActionOriginalMessage?.movedFromReport}`], policyTags});
         return translateLocal('iou.movedFromReport', {reportName: reportName ?? ''});
     }
 

@@ -147,7 +147,7 @@ describe('ReportUtils', () => {
         const policy = createRandomPolicy(1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getReportName(report, policy));
+        await measureFunction(() => getReportName({report, policy}));
     });
 
     test('[ReportUtils] canShowReportRecipientLocalTime on 1k participants', async () => {

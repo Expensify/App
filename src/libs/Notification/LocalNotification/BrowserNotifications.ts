@@ -114,7 +114,7 @@ export default {
         }
 
         if (isRoomOrGroupChat) {
-            const roomName = ReportUtils.getReportName(report);
+            const roomName = ReportUtils.getReportName({report});
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {

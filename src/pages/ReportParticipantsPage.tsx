@@ -376,6 +376,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         },
         [report, isCurrentUserAdmin, isGroupChat, backTo],
     );
+
     const headerTitle = useMemo(() => {
         if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report) || isMoneyRequestReport(report) || isGroupChat) {
             return translate('common.members');
@@ -412,7 +413,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                         }
                     }}
-                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, undefined, undefined, undefined, undefined, reportAttributes))}
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportName({report, reportAttributes}))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 <ConfirmModal

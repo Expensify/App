@@ -197,7 +197,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     }, [isValidReport, quickActionAvatars, personalDetails, quickAction?.action]);
 
     const quickActionSubtitle = useMemo(() => {
-        return !hideQABSubtitle ? (getReportName(quickActionReport) ?? translate('quickAction.updateDestination')) : '';
+        return !hideQABSubtitle ? (getReportName({report: quickActionReport}) ?? translate('quickAction.updateDestination')) : '';
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hideQABSubtitle, personalDetails, quickAction?.action, quickActionPolicy?.name, quickActionReport, translate]);
@@ -373,7 +373,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     ...baseQuickAction,
                     icon: Expensicons.ReceiptScan,
                     text: translate('quickAction.scanReceipt'),
-                    description: getReportName(policyChatForActivePolicy),
+                    description: getReportName({report: policyChatForActivePolicy}),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected,
                     rightIconReportID: policyChatForActivePolicy?.reportID,
@@ -386,20 +386,20 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         translate,
         styles.pt3,
         styles.pb2,
-        quickActionAvatars,
         quickAction,
         policyChatForActivePolicy,
-        quickActionTitle,
-        quickActionSubtitle,
-        quickActionPolicy,
         quickActionReport,
-        isValidReport,
-        selectOption,
+        quickActionPolicy,
+        isReportArchived,
+        quickActionTitle,
+        quickActionAvatars,
+        quickActionSubtitle,
         shouldUseNarrowLayout,
         isDelegateAccessRestricted,
-        showDelegateNoAccessModal,
-        isReportArchived,
+        isValidReport,
+        selectOption,
         isManualDistanceTrackingEnabled,
+        showDelegateNoAccessModal,
     ]);
 
     const isTravelEnabled = useMemo(() => {
