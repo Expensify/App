@@ -5520,7 +5520,7 @@ const translations = {
             },
             categories: {
                 title: 'Catégories',
-                description: `Les catégories vous aident à mieux organiser vos dépenses pour suivre où vous dépensez votre argent. Utilisez notre liste de catégories suggérées ou créez les vôtres.`,
+                description: "Les catégories vous permettent de suivre et d'organiser les dépenses. Utilisez nos catégories par défaut ou ajoutez les vôtres.",
                 onlyAvailableOnPlan: 'Les catégories sont disponibles sur le plan Collect, à partir de',
             },
             glCodes: {
@@ -5586,6 +5586,7 @@ const translations = {
                 categorizeMessage: `Vous avez réussi à passer à un espace de travail sur le plan Collect. Vous pouvez maintenant catégoriser vos dépenses !`,
                 travelMessage: `Vous avez réussi à passer à un espace de travail sur le plan Collect. Vous pouvez maintenant commencer à réserver et gérer vos voyages !`,
                 gotIt: 'Compris, merci',
+                createdWorkspace: 'Vous avez créé un espace de travail !',
             },
             commonFeatures: {
                 title: 'Passez au plan Control',

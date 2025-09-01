@@ -5516,7 +5516,7 @@ const translations = {
             },
             categories: {
                 title: 'Categorieën',
-                description: `Categorieën helpen je om uitgaven beter te organiseren en bij te houden waar je je geld aan uitgeeft. Gebruik onze voorgestelde categorielijst of maak je eigen lijst.`,
+                description: 'Categorieën stellen je in staat om uitgaven bij te houden en te organiseren. Gebruik onze standaardcategorieën of voeg je eigen toe.',
                 onlyAvailableOnPlan: 'Categorieën zijn beschikbaar op het Collect-abonnement, beginnend bij',
             },
             glCodes: {
@@ -5580,6 +5580,7 @@ const translations = {
                 categorizeMessage: `Je bent succesvol geüpgraded naar een werkruimte op het Collect-plan. Nu kun je je uitgaven categoriseren!`,
                 travelMessage: `Je bent succesvol geüpgraded naar een werkruimte op het Collect-plan. Nu kun je beginnen met het boeken en beheren van reizen!`,
                 gotIt: 'Begrepen, bedankt.',
+                createdWorkspace: 'Je hebt een werkruimte aangemaakt!',
             },
             commonFeatures: {
                 title: 'Upgrade naar het Control-plan',

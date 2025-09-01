@@ -5505,7 +5505,7 @@ const translations = {
             },
             categories: {
                 title: 'Kategorien',
-                description: `Kategorien helfen Ihnen, Ausgaben besser zu organisieren, um den Überblick darüber zu behalten, wo Sie Ihr Geld ausgeben. Verwenden Sie unsere vorgeschlagene Kategorienliste oder erstellen Sie Ihre eigene.`,
+                description: 'Kategorien ermöglichen es dir, Ausgaben zu verfolgen und zu organisieren. Verwende unsere Standardkategorien oder füge deine eigenen hinzu.',
                 onlyAvailableOnPlan: 'Kategorien sind im Collect-Plan verfügbar, beginnend bei',
             },
             glCodes: {
@@ -5571,6 +5571,7 @@ const translations = {
                 categorizeMessage: `Sie haben erfolgreich auf einen Workspace im Collect-Plan upgegradet. Jetzt können Sie Ihre Ausgaben kategorisieren!`,
                 travelMessage: `Sie haben erfolgreich auf einen Workspace im Collect-Plan aufgerüstet. Jetzt können Sie mit der Buchung und Verwaltung von Reisen beginnen!`,
                 gotIt: 'Verstanden, danke',
+                createdWorkspace: 'Sie haben einen Arbeitsbereich erstellt!',
             },
             commonFeatures: {
                 title: 'Zum Control-Plan upgraden',

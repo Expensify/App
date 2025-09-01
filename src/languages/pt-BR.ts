@@ -5515,7 +5515,7 @@ const translations = {
             },
             categories: {
                 title: 'Categorias',
-                description: `As categorias ajudam você a organizar melhor as despesas para acompanhar onde está gastando seu dinheiro. Use nossa lista de categorias sugeridas ou crie as suas próprias.`,
+                description: 'As categorias permitem rastrear e organizar gastos. Use nossas categorias padrão ou adicione as suas próprias.',
                 onlyAvailableOnPlan: 'As categorias estão disponíveis no plano Collect, a partir de',
             },
             glCodes: {
@@ -5580,6 +5580,7 @@ const translations = {
                 categorizeMessage: `Você atualizou com sucesso para um workspace no plano Collect. Agora você pode categorizar suas despesas!`,
                 travelMessage: `Você atualizou com sucesso para um espaço de trabalho no plano Collect. Agora você pode começar a reservar e gerenciar viagens!`,
                 gotIt: 'Entendi, obrigado',
+                createdWorkspace: 'Você criou um espaço de trabalho!',
             },
             commonFeatures: {
                 title: 'Faça upgrade para o plano Control',

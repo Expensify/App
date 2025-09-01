@@ -5483,7 +5483,7 @@ const translations = {
             },
             categories: {
                 title: 'Categories',
-                description: `Categories help you better organize expenses to keep track of where you're spending your money. Use our suggested categories list or create your own.`,
+                description: 'Categories allow you to track and organize spend. Use our default categories or add your own.',
                 onlyAvailableOnPlan: 'Categories are available on the Collect plan, starting at ',
             },
             glCodes: {
@@ -5547,6 +5547,7 @@ const translations = {
                 categorizeMessage: `You've successfully upgraded to a workspace on the Collect plan. Now you can categorize your expenses!`,
                 travelMessage: `You've successfully upgraded to a workspace on the Collect plan. Now you can start booking and managing travel!`,
                 gotIt: 'Got it, thanks',
+                createdWorkspace: `You've created a workspace!`,
             },
             commonFeatures: {
                 title: 'Upgrade to the Control plan',

@@ -5488,7 +5488,7 @@ const translations = {
             },
             categories: {
                 title: 'カテゴリ',
-                description: `カテゴリは、支出をより良く整理し、お金をどこに使っているかを把握するのに役立ちます。提案されたカテゴリリストを使用するか、自分で作成してください。`,
+                description: 'カテゴリを使用すると、支出を追跡し整理できます。デフォルトのカテゴリを使用するか、独自のカテゴリを追加してください。',
                 onlyAvailableOnPlan: 'カテゴリは、Collectプランで利用可能です。料金は',
             },
             glCodes: {
@@ -5552,6 +5552,7 @@ const translations = {
                 categorizeMessage: `Collectプランのワークスペースに正常にアップグレードされました。これで経費を分類できます！`,
                 travelMessage: `Collectプランのワークスペースに正常にアップグレードされました。これで、旅行の予約と管理を開始できます！`,
                 gotIt: '了解しました、ありがとうございます。',
+                createdWorkspace: 'ワークスペースを作成しました！',
             },
             commonFeatures: {
                 title: 'Controlプランにアップグレード',
