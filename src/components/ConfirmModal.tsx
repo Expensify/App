@@ -174,7 +174,6 @@ function ConfirmModal({
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             restoreFocusType={restoreFocusType}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
-            shouldUseReanimatedModal
         >
             <ConfirmContent
                 title={title}
