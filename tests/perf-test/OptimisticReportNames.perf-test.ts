@@ -20,7 +20,10 @@ jest.mock('@libs/ReportUtils', () => ({
     isExpenseReport: jest.fn(),
     getTitleReportField: jest.fn(),
 }));
-jest.mock('@libs/Performance', () => ({}));
+jest.mock('@libs/Performance', () => ({
+    markStart: jest.fn(),
+    markEnd: jest.fn(),
+}));
 jest.mock('@libs/actions/Timing', () => ({
     start: jest.fn(),
     end: jest.fn(),
