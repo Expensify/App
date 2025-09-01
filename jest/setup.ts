@@ -6,10 +6,25 @@ import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
 import 'setimmediate';
-// eslint-disable-next-line @dword-design/import-alias/prefer-alias
-import '../src/polyfills/PromiseWithResolvers';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
+
+// Polyfill for Promise.withResolvers which is not available in Jest test environment
+if (typeof (Promise as typeof Promise & {withResolvers?: unknown}).withResolvers !== 'function') {
+    Object.defineProperty(Promise, 'withResolvers', {
+        value<T>() {
+            let resolve!: (value: T | PromiseLike<T>) => void;
+            let reject!: (reason?: unknown) => void;
+            const promise = new Promise<T>((res, rej) => {
+                resolve = res;
+                reject = rej;
+            });
+            return {promise, resolve, reject};
+        },
+        configurable: true,
+        writable: true,
+    });
+}
 
 // Needed for tests to have the necessary environment variables set
 if (!('GITHUB_REPOSITORY' in process.env)) {
