@@ -600,13 +600,14 @@ function getUpdatedTransaction({
         const {unit, rate} = mileageRate;
         const distanceInMeters = getDistanceInMeters(updatedTransaction, mileageRate?.unit);
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+        const updatedAmount = isFromExpenseReport || isUnReportedExpense ? amount : -amount;
         const updatedCurrency = mileageRate.currency ?? CONST.CURRENCY.USD;
         const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, translateLocal, (digit) =>
             toLocaleDigit(IntlStore.getCurrentLocale(), digit),
         );
 
-        updatedTransaction.amount = amount;
-        updatedTransaction.modifiedAmount = amount;
+        updatedTransaction.amount = updatedAmount;
+        updatedTransaction.modifiedAmount = updatedAmount;
         updatedTransaction.modifiedMerchant = updatedMerchant;
         updatedTransaction.modifiedCurrency = updatedCurrency;
     }
