@@ -23,18 +23,77 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
     const {translate} = useLocalize();
     const {backTo = '', reportID} = route.params;
     const context = useSearchContext();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const ancestorReportActions = useAncestorReportActions(reportID);
-    const [reports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`, {canBeMissing: false});
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: false});
-    const [transactions] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}`, {canBeMissing: false});
-    const [transactionsViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true});
-    const [transactionsIOUActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, {canBeMissing: false});
+    const [transactions] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}`, {
+        canBeMissing: false,
+        selector: (allTransactions) => {
+            const selectedTransactions: OnyxCollection<Transaction> = {};
+            if (!allTransactions) {
+                return selectedTransactions;
+            }
+
+            context.selectedTransactionIDs.forEach((transactionID) => {
+                const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+                selectedTransactions[key] = allTransactions?.[key];
+            });
+
+            return selectedTransactions;
+        },
+    });
+
+    const [transactionsViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {
+        canBeMissing: true,
+        selector: (allTransactionsViolations) => {
+            const selectedTransactionsViolations: OnyxCollection<TransactionViolations> = {};
+            if (!allTransactionsViolations) {
+                return selectedTransactionsViolations;
+            }
+
+            context.selectedTransactionIDs.forEach((transactionID) => {
+                const key = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
+                selectedTransactionsViolations[key] = allTransactionsViolations?.[key];
+            });
+
+            return selectedTransactionsViolations;
+        },
+    });
+
+    const [transactionsIOUActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}`, {
+        canBeMissing: false,
+        selector: (allReportActions) => {
+            const selectedTransactionsIOUActions: Record<string, ReportAction> = {};
+            if (!allReportActions || !transactions) {
+                return selectedTransactionsIOUActions;
+            }
+
+            Object.entries(transactions).forEach(([transactionID, transaction]) => {
+                if (!transaction) {
+                    return;
+                }
+                const reportActions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`];
+                if (!reportActions) {
+                    return;
+                }
+
+                const iouAction = getIOUActionForTransactionID(Object.values(reportActions) as ReportAction[], transactionID);
+                if (!iouAction) {
+                    return;
+                }
+                selectedTransactionsIOUActions[transactionID] = iouAction;
+            });
+
+            return selectedTransactionsIOUActions;
+        },
+    });
 
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
             if (transactions !== undefined && transactionsIOUActions !== undefined) {
                 if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                    bulkHold(comment, report, transactions, transactionsViolations, transactionsIOUActions);
+                    if (!report) {
+                        bulkHold(comment, report, ancestorReportActions.map((v) => v.reportAction), transactions, transactionsViolations, transactionsIOUActions);
+                    }
                     context.clearSelectedTransactions(true);
                 } else {
                     holdMoneyRequestOnSearch(context.currentSearchHash, Object.keys(context.selectedTransactions), comment, transactions, transactionsIOUActions);

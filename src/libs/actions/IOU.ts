@@ -88,10 +88,6 @@ import {
 import {
     getAllReportActions,
     getIOUActionForReportID,
-<<<<<<< HEAD
-=======
-    getIOUActionForTransactionID,
->>>>>>> 3ac7ad5d427 (tests)
     getIOUReportIDFromReportActionPreview,
     getLastVisibleAction,
     getLastVisibleMessage,
@@ -186,6 +182,7 @@ import {
     isTrackExpenseReport,
     prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
+    updateOptimisticParentReportAction,
     updateReportPreview,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, getCurrentSearchQueryJSON, getTodoSearchQuery} from '@libs/SearchQueryUtils';
@@ -11303,23 +11300,14 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
 function bulkHold(
     comment: string,
     report: OnyxEntry<OnyxTypes.Report>,
+    ancestorReportActions: Array<OnyxTypes.ReportAction>,
     transactions: OnyxCollection<OnyxTypes.Transaction>,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
     transactionsIOUActions: Record<string, ReportAction>,
 ) {
-<<<<<<< HEAD
     if (!report) {
         return;
     }
-=======
-    const optimisticData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
-    const holdData: HoldData = {};
-
-    const iouReport = reports?.[`${reportID}`];
-    const iouReportCurrency = iouReport?.currency;
->>>>>>> 3ac7ad5d427 (tests)
 
     let optimisticUnheldNonReimbursableTotal: number | undefined = undefined;
     let optimisticUnheldTotal: number | undefined = undefined;
@@ -11328,35 +11316,22 @@ function bulkHold(
     const coefficient = isExpenseReport ? -1 : 1;
     const reportID = report.reportID;
 
-<<<<<<< HEAD
+    const ancestorReportActionsOptimisticData: Record<string, PartialDeep<OnyxTypes.ReportActions>> = {};
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
     const holdData: HoldData = {};
+    
 
     Object.entries(transactionsIOUActions).forEach(([transactionID, iouAction]) => {
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         const transactionThreadReport = buildTransactionThread(iouAction, report, reportID, iouAction?.childReportID);
 
         const createdTime = DateUtils.getDBTime();
-        const createdReportAction = buildOptimisticHoldReportAction(DateUtils.addMillisecondsFromDateTime(createdTime, 1));
-        const createdReportActionComment = buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(createdTime, 2));
-=======
-    selectedTransactionIDs.forEach((transactionID) => {
-        const iouAction = getIOUActionForTransactionID(reportActions, transactionID);
-
-        if (!iouAction) {
-            return;
-        }
-
-        const createdTime = DateUtils.getDBTime();
         const holdReportActionCreatedTime = DateUtils.addMillisecondsFromDateTime(createdTime, 1)
         
         const holdReportAction = buildOptimisticHoldReportAction(holdReportActionCreatedTime)
         const holdReportActionComment = buildOptimisticHoldReportActionComment(comment, holdReportActionCreatedTime);
-
-        const transactionThreadReport = buildTransactionThread(iouAction, iouReport, iouAction?.childReportID);
->>>>>>> 3ac7ad5d427 (tests)
 
         holdData[transactionID] = {
             holdReportActionID: holdReportAction.reportActionID,
@@ -11372,12 +11347,7 @@ function bulkHold(
         }
 
         if (!iouAction?.childReportID) {
-<<<<<<< HEAD
             const createdTransactionThreadReportAction = buildOptimisticCreatedReportAction(currentUserEmail, createdTime);
-=======
-            // Create transaction thread created action if it was not created
-            const createdActionForTransactionThread = buildOptimisticCreatedReportAction(currentUserEmail, createdTime);
->>>>>>> 3ac7ad5d427 (tests)
 
             // If the transactionThread is optimistic, we need the transactionThreadReportID and transactionThreadCreatedReportActionID.
             holdData[transactionID].transactionThreadReportID = transactionThreadReport.reportID;
@@ -11431,28 +11401,22 @@ function bulkHold(
                     value: {[iouAction.reportActionID]: {childReportID: null}},
                 },
             );
-<<<<<<< HEAD
-=======
-        }else{
-            /*
-            ancestorReportActions[iouAction.childReportID].forEach(([parentReportID, parentReportAction]) => {
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-                    value: {
-                        [parentReportAction.reportActionID]: updateOptimisticParentReportAction(iouAction, holdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
-                    },
-                });
-            });
-            */
-            
->>>>>>> 3ac7ad5d427 (tests)
         }
 
+        for (const ancestorReportAction of ancestorReportActions){
+            if (!ancestorReportAction.reportID) {
+                return null;
+            }
+            const ancestorReportActionOptimisticData = updateOptimisticParentReportAction(ancestorReportAction, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            if (!ancestorReportActionsOptimisticData[ancestorReportAction.reportID]) {
+                ancestorReportActionsOptimisticData[ancestorReportAction.reportID] = {};
+            }
+            ancestorReportActionsOptimisticData[ancestorReportAction.reportID][ancestorReportAction.reportActionID] = {
+                ...ancestorReportActionOptimisticData,
+            };
+        };
+
         optimisticData.push(
-            ...getOptimisticDataForParentReportAction(transactionThreadReport, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD).filter(
-                (parentActionData): parentActionData is OnyxUpdate => parentActionData !== null,
-            ),
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
@@ -11535,18 +11499,28 @@ function bulkHold(
                 pendingAction: null,
             },
         });
-<<<<<<< HEAD
-=======
-
-        const transaction = transactions?.[`${transactionID}`];
-
-        if (transaction?.reimbursable && transaction.currency && transaction.currency === iouReportCurrency) {
-            const transactionAmount = getAmount(transaction, isExpenseReport) * coefficient;
-            optimisticUnheldTotal = (optimisticUnheldTotal ?? 0) - transactionAmount;
-            optimisticUnheldNonReimbursableTotal = (optimisticUnheldNonReimbursableTotal ?? 0) - transactionAmount;
-        }
->>>>>>> 3ac7ad5d427 (tests)
     });
+
+    for (const ancestorReportAction of ancestorReportActions) {
+        const ancestorReportActionReportID = ancestorReportAction.reportID;
+        if (!ancestorReportActionReportID) {
+            continue;
+        }
+
+        const ancestorReportActionOptimisticData = ancestorReportActionsOptimisticData[ancestorReportActionReportID];
+
+        if (ancestorReportActionOptimisticData){
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReportActionReportID}`,
+                value: {
+                    [ancestorReportAction.reportActionID]: {
+                        ...ancestorReportActionOptimisticData,
+                    },
+                },
+            });
+        }
+    }
 
     if (optimisticUnheldTotal !== report?.unheldTotal || optimisticUnheldNonReimbursableTotal !== report?.unheldNonReimbursableTotal) {
         optimisticData.push({

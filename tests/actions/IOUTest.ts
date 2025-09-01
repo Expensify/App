@@ -4638,7 +4638,7 @@ describe('actions/IOU', () => {
     });
 
     describe('bulkHold', () => {
-        test('Bulk hold transactions with optimistic transaction threads', () => {
+        test('Bulk hold transactions with optimistic transaction threads', async () => {
             const iouReport = buildOptimisticIOUReport(1, 2, 200, '1', 'USD');
             const transaction1 = buildOptimisticTransaction({
                 transactionParams: {
@@ -4700,66 +4700,70 @@ describe('actions/IOU', () => {
             };
 
             const comment = 'Bulk Hold';
+            await Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection});
+            await waitForBatchedUpdates();
 
-            return waitForBatchedUpdates()
-                .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
-                .then(waitForBatchedUpdates)
-                .then(waitForBatchedUpdates)
-                .then(() => {
-                    bulkHold(comment, iouReport, transactionCollection, {}, transactionsIOUActions);
+            const {result} = renderHook(() => useAncestorReportActions(iouReport.reportID));
+            await waitForBatchedUpdates();
+            
+            bulkHold(
+                comment,
+                iouReport,
+                result.current.map((v) => v.reportAction),
+                transactionCollection,
+                {},
+                transactionsIOUActions,
+            );
+    
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const violationsConnection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+                    waitForCollectionCallback: true,
+                    callback: (allTransactionsViolations) => {
+                        Onyx.disconnect(violationsConnection);
+                        resolve();
+                        expect(Object.keys(allTransactionsViolations)).toHaveLength(2);
 
-                    return waitForBatchedUpdates();
-                })
-                .then(() => {
-                    return new Promise<void>((resolve) => {
-                        const violationsConnection = Onyx.connect({
-                            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-                            waitForCollectionCallback: true,
-                            callback: (allTransactionsViolations) => {
-                                Onyx.disconnect(violationsConnection);
-                                resolve();
-                                expect(Object.keys(allTransactionsViolations)).toHaveLength(2);
-
-                                const transaction1Violation = allTransactionsViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction1.transactionID}`];
-                                expect(transaction1Violation).toMatchObject([
-                                    {
-                                        name: CONST.VIOLATIONS.HOLD,
-                                        type: CONST.VIOLATION_TYPES.VIOLATION,
-                                        showInReview: true,
-                                    },
-                                ]);
-
-                                const transaction2Violation = allTransactionsViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction2.transactionID}`];
-                                expect(transaction2Violation).toMatchObject([
-                                    {
-                                        name: CONST.VIOLATIONS.HOLD,
-                                        type: CONST.VIOLATION_TYPES.VIOLATION,
-                                        showInReview: true,
-                                    },
-                                ]);
+                        const transaction1Violation = allTransactionsViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction1.transactionID}`];
+                        expect(transaction1Violation).toMatchObject([
+                            {
+                                name: CONST.VIOLATIONS.HOLD,
+                                type: CONST.VIOLATION_TYPES.VIOLATION,
+                                showInReview: true,
                             },
-                        });
+                        ]);
 
-                        const reportsConnection = Onyx.connect({
-                            key: ONYXKEYS.COLLECTION.REPORT,
-                            waitForCollectionCallback: true,
-                            callback: (allReports) => {
-                                Onyx.disconnect(reportsConnection);
-                                resolve();
-
-                                expect(Object.keys(allReports)).toHaveLength(3);
-
-                                const {unheldTotal, unheldNonReimbursableTotal} = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`] ?? {};
-                                expect(unheldNonReimbursableTotal).toEqual(0);
-                                expect(unheldTotal).toEqual(200);
-                                
+                        const transaction2Violation = allTransactionsViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction2.transactionID}`];
+                        expect(transaction2Violation).toMatchObject([
+                            {
+                                name: CONST.VIOLATIONS.HOLD,
+                                type: CONST.VIOLATION_TYPES.VIOLATION,
+                                showInReview: true,
                             },
-                        });
-                    });
+                        ]);
+                    },
                 });
+
+                const reportsConnection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (allReports) => {
+                        Onyx.disconnect(reportsConnection);
+                        resolve();
+
+                        expect(Object.keys(allReports)).toHaveLength(3);
+
+                        const {unheldTotal, unheldNonReimbursableTotal} = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`] ?? {};
+                        expect(unheldNonReimbursableTotal).toEqual(0);
+                        expect(unheldTotal).toEqual(200);
+                        
+                    },
+                });
+            });
         });
 
-        test('Bulk hold transactions with realistic transaction threads', () => {
+        test('Bulk hold transactions with realistic transaction threads', async () => {
             const iouReport = buildOptimisticIOUReport(1, 2, 200, '1', 'USD');
             const transaction1 = buildOptimisticTransaction({
                 transactionParams: {
@@ -4835,90 +4839,110 @@ describe('actions/IOU', () => {
                     },
                 },
             };
+
             const comment = 'Bulk Hold';
+            await waitForBatchedUpdates();
 
-            return waitForBatchedUpdates()
-                .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
-                .then(waitForBatchedUpdates)
-                .then(() => {
-                    const {result} = renderHook(() => useAncestorReportActions(iouReport.reportID));
-                    bulkHold(
-                        comment,
-                        iouReport,
-                        transactionCollection, 
-                        {},
-                        transactionsIOUActions,
-                    );
-                    return waitForBatchedUpdates();
-                })
-                .then(() => {
-                    return new Promise<void>((resolve) => {
-                        const violationsConnection = Onyx.connect({
-                            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-                            waitForCollectionCallback: true,
-                            callback: (allTransactionsViolations) => {
-                                Onyx.disconnect(violationsConnection);
-                                resolve();
-                                expect(Object.keys(allTransactionsViolations)).toHaveLength(2);
+            await Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection});
+            await waitForBatchedUpdates();
 
-                                const expectedViolations = [
-                                    {
-                                        name: CONST.VIOLATIONS.HOLD,
-                                        type: CONST.VIOLATION_TYPES.VIOLATION,
-                                        showInReview: true,
-                                    },
-                                ];
-                                const transaction1Violations = allTransactionsViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction1.transactionID}`];
-                                const transaction2Violations = allTransactionsViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction2.transactionID}`];
-                                expect(transaction1Violations).toMatchObject(expectedViolations);
-                                expect(transaction2Violations).toMatchObject(expectedViolations);
+            const {result} = renderHook(() => useAncestorReportActions(iouReport.reportID));
+            bulkHold(
+                comment,
+                iouReport,
+                result.current.map((v) => v.reportAction),
+                transactionCollection,
+                {},
+                transactionsIOUActions,
+            );
+            await waitForBatchedUpdates();
+
+            await new Promise<void>((resolve) => {
+                const violationsConnection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+                    waitForCollectionCallback: true,
+                    callback: (allTransactionsViolations) => {
+                        Onyx.disconnect(violationsConnection);
+                        resolve();
+                        expect(Object.keys(allTransactionsViolations)).toHaveLength(2);
+
+                        const expectedViolations = [
+                            {
+                                name: CONST.VIOLATIONS.HOLD,
+                                type: CONST.VIOLATION_TYPES.VIOLATION,
+                                showInReview: true,
                             },
-                        });
-
-                        const reportsConnection = Onyx.connect({
-                            key: ONYXKEYS.COLLECTION.REPORT,
-                            waitForCollectionCallback: true,
-                            callback: (allReports) => {
-                                Onyx.disconnect(reportsConnection);
-                                resolve();
-                                expect(Object.keys(allReports)).toHaveLength(3);
-
-                                const {unheldTotal, unheldNonReimbursableTotal} = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`] ?? {};
-                                expect(unheldTotal).toEqual(200);
-                                expect(unheldNonReimbursableTotal).toEqual(0);
-
-                                // First transaction thread
-                                const thread1LastVisibleActionCreated = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction1Thread.reportID}`]?.lastVisibleActionCreated;
-                                const connection1 = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction1Thread.reportID}`,
-                                    callback: (reportActions) => {
-                                        Onyx.disconnect(connection1);
-                                        resolve();
-                                        const lastAction = getSortedReportActions(Object.values(reportActions ?? {}), true).at(0);
-                                        const message = getReportActionMessage(lastAction);
-                                        // Then the transaction thread report lastVisibleActionCreated should equal the hold comment action created timestamp.
-                                        expect(message?.text).toBe(comment);
-                                        expect(thread1LastVisibleActionCreated).toBe(lastAction?.created);
-                                    },
-                                });
-
-                                // Second transaction thread
-                                const thread2LastVisibleActionCreated = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction2Thread.reportID}`]?.lastVisibleActionCreated;
-                                const connection2 = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction2Thread.reportID}`,
-                                    callback: (reportActions) => {
-                                        Onyx.disconnect(connection2);
-                                        resolve();
-                                        const lastAction = getSortedReportActions(Object.values(reportActions ?? {}), true).at(0);
-                                        const message = getReportActionMessage(lastAction);
-                                        expect(message?.text).toBe(comment);
-                                        expect(thread2LastVisibleActionCreated).toBe(lastAction?.created);
-                                    },
-                                });
-                            },
-                        });
-                    });
+                        ];
+                        const transaction1Violations = allTransactionsViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction1.transactionID}`];
+                        const transaction2Violations = allTransactionsViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction2.transactionID}`];
+                        expect(transaction1Violations).toMatchObject(expectedViolations);
+                        expect(transaction2Violations).toMatchObject(expectedViolations);
+                    },
                 });
+
+                const reportsConnection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (allReports) => {
+                        Onyx.disconnect(reportsConnection);
+                        resolve();
+                        expect(Object.keys(allReports)).toHaveLength(3);
+
+                        // IOU Report
+                        const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`];
+                        expect(report).toBeDefined();
+                        expect(report?.unheldTotal).toEqual(200);
+                        expect(report?.unheldNonReimbursableTotal).toEqual(0);
+
+                        // First transaction thread
+                        const thread1LastVisibleActionCreated = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction1Thread.reportID}`]?.lastVisibleActionCreated;
+                        expect(thread1LastVisibleActionCreated).toBeDefined();
+                        
+                        // Second transaction thread
+                        const thread2LastVisibleActionCreated = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction2Thread.reportID}`]?.lastVisibleActionCreated;
+                        expect(thread2LastVisibleActionCreated).toBeDefined();
+
+                        const connection = Onyx.connect({
+                            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                            callback: (allReportActions) => {
+                                Onyx.disconnect(connection);
+                                resolve();
+
+                                expect(allReportActions).toBeDefined();
+
+                                const iouReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`];
+                                expect(iouReportActions).toBeDefined();
+                                expect(iouReportActions).toHaveLength(2);
+
+                                // updateOptimisticParentReportAction
+                                const iouReportAction = getSortedReportActions(Object.values(iouReportActions ?? {}).filter((action): action is ReportAction => action !== null), true).at(0);
+                                expect(iouReportAction?.childVisibleActionCount).toBe(2);
+                                expect(iouReportAction?.childLastVisibleActionCreated).toBe(thread2LastVisibleActionCreated);
+
+                                const thread1ReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction1Thread.reportID}`];
+                                expect(thread1ReportActions).toBeDefined();
+                                expect(thread1ReportActions).toHaveLength(2);
+
+                                const thread1LastAction = getSortedReportActions(Object.values(thread1ReportActions ?? {}).filter((action): action is ReportAction => action !== null), true).at(0);
+                                const thread1LastActionMessage = getReportActionMessage(thread1LastAction);
+                                // Then the transaction thread report lastVisibleActionCreated should equal the hold comment action created timestamp.
+                                expect(thread1LastActionMessage?.text).toBe(comment);
+                                expect(thread1LastAction?.created).toBe(thread1LastVisibleActionCreated);
+                                
+
+                                const thread2ReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction2Thread.reportID}`];
+                                expect(thread2ReportActions).toBeDefined();
+                                expect(thread2ReportActions).toHaveLength(2);
+
+                                const thread2LastAction = getSortedReportActions(Object.values(thread2ReportActions ?? {}).filter((action): action is ReportAction => action !== null), true).at(0);
+                                const thread2LastActionMessage = getReportActionMessage(thread2LastAction);
+                                expect(thread2LastActionMessage?.text).toBe(comment);
+                                expect(thread2LastVisibleActionCreated).toBe(thread2LastAction?.childLastVisibleActionCreated);
+                            },
+                        });
+                    },
+                });
+            });
         });
     });
 
