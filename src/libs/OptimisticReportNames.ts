@@ -13,7 +13,7 @@ import Log from './Log';
 import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import Performance from './Performance';
 import Permissions from './Permissions';
-import {getTitleReportField, isArchivedReport} from './ReportUtils';
+import {isArchivedReport} from './ReportUtils';
 
 /**
  * Get the object type from an Onyx key

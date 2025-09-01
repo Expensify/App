@@ -4,7 +4,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
-import {getTitleReportField, isChatReport} from './ReportUtils';
+import {getReportNameValuePairs, getTitleReportField, isChatReport} from './ReportUtils';
+
+/**
+ * Get the title field from report name value pairs
+ */
+function getTitleFieldFromRNVP(reportID: string) {
+    const reportNameValuePairs = getReportNameValuePairs(reportID);
+    return reportNameValuePairs?.[CONST.REPORT_FIELD_TITLE_FIELD_ID];
+}
 
 /**
  * Update title field in report's rNVP to match the policy's title field configuration
@@ -66,11 +74,10 @@ function removeTitleFieldFromReport(reportID: string): OnyxUpdate[] {
  * Check if a report should have its title field updated based on conditions
  * Based on the backend logic: skip if it's a chat, statement card, or if policy field is deleteable and report field is null
  */
-function shouldUpdateTitleField(report: Report, policy?: Policy): boolean {
-    if (!report || !policy) {
+function shouldUpdateTitleField(report: Report): boolean {
+    if (!report) {
         return false;
     }
-
     // Skip chat reports
     if (isChatReport(report)) {
         return false;
@@ -79,7 +86,7 @@ function shouldUpdateTitleField(report: Report, policy?: Policy): boolean {
     // Skip if report has statement card ID (backend check: !getValue(db, reportID, NVP_STATEMENT_CARD_ID).empty())
     // This would need to be implemented based on how statement card IDs are stored in the frontend
 
-    const policyTitleField = getTitleReportField(policy.fieldList ?? {});
+    const policyTitleField = getTitleFieldFromRNVP(report.reportID);
     if (!policyTitleField) {
         return false;
     }
@@ -87,4 +94,4 @@ function shouldUpdateTitleField(report: Report, policy?: Policy): boolean {
     return true;
 }
 
-export {removeTitleFieldFromReport, shouldUpdateTitleField, updateTitleFieldToMatchPolicy};
+export {removeTitleFieldFromReport, shouldUpdateTitleField, updateTitleFieldToMatchPolicy, getTitleFieldFromRNVP};
