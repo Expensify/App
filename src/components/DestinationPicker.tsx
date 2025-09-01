@@ -10,8 +10,8 @@ import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/RadioListItem';
 import type {ListItem} from './SelectionList/types';
+import SingleSelectListItem from './SelectionList/SingleSelectListItem';
 
 type DestinationPickerProps = {
     policyID: string;
@@ -78,7 +78,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
             shouldHideKeyboardOnScroll={false}
