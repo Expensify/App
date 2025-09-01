@@ -131,7 +131,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         const selectedAccountIDs = selectedOptions.map((option) => (option.accountID ? option.accountID.toString() : undefined)).filter(Boolean) as string[];
         onFiltersUpdate(selectedAccountIDs);
 
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [onFiltersUpdate, selectedOptions]);
 
     // This effect handles setting initial selectedOptions based on accountIDs saved in onyx form
