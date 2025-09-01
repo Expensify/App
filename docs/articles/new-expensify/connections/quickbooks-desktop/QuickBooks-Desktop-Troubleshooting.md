@@ -5,7 +5,6 @@ keywords: [New Expensify, QuickBooks Desktop, Web Connector, export error, sync 
 order: 3
 ---
 
-<div id="expensify-classic" markdown="1">
 
 This guide provides step-by-step solutions for the most common issues, including Web Connector errors, authentication problems, and data import/export failures.
 
@@ -115,5 +114,3 @@ This usually means QuickBooks or the Web Connector was closed during the export 
 3. Check the associated Expense Chat in Expensify to verify if the export was successful.
 
 Still not exporting? Share the Report ID and a screenshot of your Web Connector with Concierge.
-
-</div>

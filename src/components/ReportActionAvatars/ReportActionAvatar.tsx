@@ -65,9 +65,9 @@ type AvatarSizeToStyles = typeof CONST.AVATAR_SIZE.SMALL | typeof CONST.AVATAR_S
 
 type AvatarSizeToStylesMap = Record<AvatarSizeToStyles, AvatarStyles>;
 
-function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigationWrapper?: boolean}) {
+function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigationWrapper?: boolean; reportID?: string}) {
     const {translate} = useLocalize();
-    const {avatarID, useProfileNavigationWrapper, type, name} = props;
+    const {avatarID, useProfileNavigationWrapper, type, name, reportID} = props;
 
     if (!useProfileNavigationWrapper) {
         return (
@@ -81,6 +81,10 @@ function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigati
 
     const onPress = () => {
         if (isWorkspace) {
+            if (reportID) {
+                Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(reportID, String(avatarID)));
+                return;
+            }
             return Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(String(avatarID), firstLetter));
         }
         return Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(Number(avatarID), Navigation.getActiveRoute()));
@@ -109,6 +113,7 @@ function ReportActionAvatarSingle({
     isInReportAction,
     useProfileNavigationWrapper,
     fallbackDisplayName,
+    reportID,
 }: {
     avatar: IconType | undefined;
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -120,6 +125,7 @@ function ReportActionAvatarSingle({
     isInReportAction?: boolean;
     useProfileNavigationWrapper?: boolean;
     fallbackDisplayName?: string;
+    reportID?: string;
 }) {
     const StyleUtils = useStyleUtils();
     const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
@@ -147,6 +153,7 @@ function ReportActionAvatarSingle({
                     fill={avatar?.fill}
                     fallbackIcon={fallbackIcon}
                     testID="ReportActionAvatars-SingleAvatar"
+                    reportID={reportID}
                 />
             </View>
         </UserDetailsTooltip>
@@ -163,6 +170,7 @@ function ReportActionAvatarSubscript({
     subscriptCardFeed,
     fallbackDisplayName,
     useProfileNavigationWrapper,
+    reportID,
 }: {
     primaryAvatar: IconType;
     secondaryAvatar: IconType;
@@ -173,6 +181,7 @@ function ReportActionAvatarSubscript({
     subscriptCardFeed?: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
     fallbackDisplayName?: string;
     useProfileNavigationWrapper?: boolean;
+    reportID?: string;
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -225,6 +234,7 @@ function ReportActionAvatarSubscript({
                         type={primaryAvatar.type}
                         fallbackIcon={primaryAvatar.fallbackIcon}
                         testID="ReportActionAvatars-Subscript-MainAvatar"
+                        reportID={reportID}
                     />
                 </View>
             </UserDetailsTooltip>
@@ -254,6 +264,7 @@ function ReportActionAvatarSubscript({
                             type={secondaryAvatar.type}
                             fallbackIcon={secondaryAvatar.fallbackIcon}
                             testID="ReportActionAvatars-Subscript-SecondaryAvatar"
+                            reportID={reportID}
                         />
                     </View>
                 </UserDetailsTooltip>
@@ -301,6 +312,7 @@ function ReportActionAvatarMultipleHorizontal({
     sort: sortAvatars,
     useProfileNavigationWrapper,
     fallbackDisplayName,
+    reportID,
 }: HorizontalStacking & {
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
     shouldShowTooltip: boolean;
@@ -308,6 +320,7 @@ function ReportActionAvatarMultipleHorizontal({
     isInReportAction: boolean;
     fallbackDisplayName?: string;
     useProfileNavigationWrapper?: boolean;
+    reportID?: string;
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -394,6 +407,7 @@ function ReportActionAvatarMultipleHorizontal({
                             type={icon.type}
                             fallbackIcon={icon.fallbackIcon}
                             testID="ReportActionAvatars-MultipleAvatars-StackedHorizontally-Avatar"
+                            reportID={reportID}
                         />
                     </View>
                 </UserDetailsTooltip>
@@ -446,6 +460,7 @@ function ReportActionAvatarMultipleDiagonal({
     isHovered = false,
     useProfileNavigationWrapper,
     fallbackDisplayName,
+    reportID,
 }: {
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
     shouldShowTooltip: boolean;
@@ -456,6 +471,7 @@ function ReportActionAvatarMultipleDiagonal({
     isHovered?: boolean;
     useProfileNavigationWrapper?: boolean;
     fallbackDisplayName?: string;
+    reportID?: string;
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -533,6 +549,7 @@ function ReportActionAvatarMultipleDiagonal({
                             avatarID={icons.at(0)?.id}
                             fallbackIcon={icons.at(0)?.fallbackIcon}
                             testID="ReportActionAvatars-MultipleAvatars-MainAvatar"
+                            reportID={reportID}
                         />
                     </View>
                 </UserDetailsTooltip>
@@ -564,6 +581,7 @@ function ReportActionAvatarMultipleDiagonal({
                                     type={icons.at(1)?.type ?? CONST.ICON_TYPE_AVATAR}
                                     fallbackIcon={icons.at(1)?.fallbackIcon}
                                     testID="ReportActionAvatars-MultipleAvatars-SecondaryAvatar"
+                                    reportID={reportID}
                                 />
                             </View>
                         </UserDetailsTooltip>

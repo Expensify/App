@@ -1147,7 +1147,7 @@ button {
     fill: var(--color-success);
 }
 
-#edit-link {
+.edit-article-link {
     margin: 20px 0;
     display: inline-flex;
     align-items: center;
@@ -1155,8 +1155,8 @@ button {
     font-size: 13px;
 }
 
-#edit-icon {
+.edit-article-link__icon {
     fill: var(--color-text-supporting);
-    height: 13px;
-    width: 13px;
+    height: 12px;
+    width: 12px;
 }
