@@ -99,7 +99,7 @@ function NonUSDVerifiedBankAccountFlow({
         }
     };
 
-    let CurrentStep: JSX.Element | null;
+    let CurrentStep: React.JSX.Element | null;
     switch (nonUSDBankAccountStep) {
         case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
             CurrentStep = (

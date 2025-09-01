@@ -69,7 +69,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         );
     }
 
-    let CurrentStep: JSX.Element;
+    let CurrentStep: React.JSX.Element;
     switch (currentStep) {
         case CONST.COMPANY_CARDS.STEP.SELECT_BANK:
             CurrentStep = <SelectBankStep />;

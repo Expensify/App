@@ -34,7 +34,7 @@ function USDVerifiedBankAccountFlow({
     const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
 
-    let CurrentStep: JSX.Element | null;
+    let CurrentStep: React.JSX.Element | null;
     switch (USDBankAccountStep) {
         case CONST.BANK_ACCOUNT.STEP.COUNTRY:
             CurrentStep = (
