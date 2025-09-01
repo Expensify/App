@@ -69,3 +69,10 @@
 - E/App issue: [#48150](https://github.com/Expensify/App/issues/48150)
 - PR Introducing Patch: [#48151](https://github.com/Expensify/App/pull/48151)
 - PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155)
+
+### [@react-navigation+core+7.10.0+003+fix-clearing-preloaded-routes-after-logout.patch](@react-navigation+core+7.10.0+003+fix-clearing-preloaded-routes-after-logout.patch)
+- Reason: Clear preloaded routes from state that are not available after logging out.
+- Upstream PR/issue: N/A
+- E/App issue: [#65709](https://github.com/Expensify/App/issues/65211)
+- PR Introducing Patch: [#65836](https://github.com/Expensify/App/pull/66890)
+- PR Updating Patch: N/A
