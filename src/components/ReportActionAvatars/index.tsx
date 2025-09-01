@@ -61,8 +61,8 @@ type ReportActionAvatarsProps = {
     /** Invited emails to account IDs */
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
 
-    /** Whether to use fallback icon */
-    shouldUseFallbackDefaultAvatar?: boolean;
+    /** Whether to use custom fallback avatar */
+    shouldUseCustomFallbackAvatar?: boolean;
 };
 
 /**
@@ -92,7 +92,7 @@ function ReportActionAvatars({
     useProfileNavigationWrapper,
     fallbackDisplayName,
     invitedEmailsToAccountIDs,
-    shouldUseFallbackDefaultAvatar = false,
+    shouldUseCustomFallbackAvatar = false,
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
 
@@ -122,7 +122,7 @@ function ReportActionAvatars({
         policyID,
         fallbackDisplayName,
         invitedEmailsToAccountIDs,
-        shouldUseFallbackDefaultAvatar,
+        shouldUseCustomFallbackAvatar,
     });
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = notPreciseAvatarType;

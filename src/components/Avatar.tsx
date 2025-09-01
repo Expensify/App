@@ -100,7 +100,7 @@ function Avatar({
     let iconColors;
     if (isWorkspace) {
         iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(avatarID?.toString() ?? '');
-        // Assign the icon fill color only for the default avatar and not when the fallback icon is available
+        // Assign the icon fill color only for the default fallback avatar
     } else if (useFallBackAvatar && fallbackIcon === Expensicons.FallbackAvatar) {
         iconColors = StyleUtils.getBackgroundColorAndFill(theme.buttonHoveredBG, theme.icon);
     } else {
