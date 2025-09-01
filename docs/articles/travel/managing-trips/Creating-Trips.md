@@ -4,7 +4,6 @@ description: Learn how to create trips in Expensify before or during booking, an
 keywords: [create trip, trip ID, travel booking, roundtrip, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Create a trip in Expensify to bundle all your flights, hotels, and car rentals into a single itinerary with one trip fee.
 
@@ -77,4 +76,3 @@ No. There is a single $15 fee per trip, no matter how many bookings are added to
 ## Can I change the traveler for a trip?
 When you create a booking, the trip is tied to the person you're booking for. Once a trip is created, its traveler cannot be changed.
 
-</div>

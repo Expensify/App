@@ -4,7 +4,6 @@ description: Learn how to add personal and company cards credit cards to your Ex
 keywords: [travel payment card, credit card, travel booking payment, personal card, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Add a personal or company credit card to your travel profile so you can quickly select it during checkout and automatically merge expenses with receipts.
 
@@ -68,4 +67,3 @@ Yes. The card you select during checkout will be charged as part of the travel b
 ## What happens if my card is also connected to my Expensify account?
 If the same card is importing expenses into your account, the credit card expense and the booking receipt will automatically merge.
 
-</div>

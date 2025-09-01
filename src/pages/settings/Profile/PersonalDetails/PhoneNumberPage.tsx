@@ -111,6 +111,7 @@ function PhoneNumberPage() {
                                 role={CONST.ROLE.PRESENTATION}
                                 defaultValue={phoneNumber}
                                 spellCheck={false}
+                                inputMode={CONST.INPUT_MODE.TEL}
                             />
                         </OfflineWithFeedback>
                     </FormProvider>
