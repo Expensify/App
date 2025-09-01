@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -26,13 +26,17 @@ type ReceiptEmptyStateProps = {
     shouldUseFullHeight?: boolean;
 
     style?: StyleProp<ViewStyle>;
+
+    /** Callback to be called when the image loads */
+    onLoad?: () => void;
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
-function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false, shouldUseFullHeight = false, style}: ReceiptEmptyStateProps) {
+function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false, shouldUseFullHeight = false, style, onLoad}: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const isLoadedRef = useRef(false);
 
     const Wrapper = onPress ? PressableWithoutFeedback : View;
     const containerStyle = [
@@ -46,6 +50,13 @@ function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isIn
 
     return (
         <Wrapper
+            onLayout={() => {
+                if (isLoadedRef.current) {
+                    return;
+                }
+                isLoadedRef.current = true;
+                onLoad?.();
+            }}
             accessibilityRole="imagebutton"
             accessibilityLabel={translate('receipt.upload')}
             onPress={onPress}

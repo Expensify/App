@@ -77,7 +77,7 @@ type ReportActionItemImageProps = {
     shouldUseThumbnailImage?: boolean;
 
     /** Callback to be called when the image loads */
-    onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
+    onLoad?: (event?: {nativeEvent: {width: number; height: number}}) => void;
 };
 
 /**
