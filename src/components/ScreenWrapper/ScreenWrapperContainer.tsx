@@ -211,7 +211,6 @@ function ScreenWrapperContainer({
         >
             <View
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
                 style={[style, paddingTopStyle]}
                 // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
                 {...keyboardDismissPanResponder.panHandlers}

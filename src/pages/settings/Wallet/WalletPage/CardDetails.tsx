@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -9,6 +10,7 @@ import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
+import CONST from '@src/CONST';
 
 const defaultPrivatePersonalDetails: PrivatePersonalDetails = {
     addresses: [
@@ -42,7 +44,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
 
     return (
-        <>
+        <View fsClass={CONST.FULLSTORY.CLASS.MASK}>
             {pan?.length > 0 && (
                 <MenuItemWithTopDescription
                     description={translate('cardPage.cardDetails.cardNumber')}
@@ -85,7 +87,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                     </TextLink>
                 </>
             )}
-        </>
+        </View>
     );
 }
 

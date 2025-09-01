@@ -26,6 +26,7 @@ import type TextPicker from '@components/TextPicker';
 import type TimeModalPicker from '@components/TimeModalPicker';
 import type UploadFile from '@components/UploadFile';
 import type ValuePicker from '@components/ValuePicker';
+import type {FSClass} from '@libs/Fullstory/types';
 import type ConstantSelector from '@pages/Debug/ConstantSelector';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type OnboardingCurrencyPicker from '@pages/OnboardingWorkspaceConfirmation/OnboardingCurrencyPicker';
@@ -178,6 +179,8 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
      * If `true`, the form will smoothly scroll to the bottom after interactions have completed.
      */
     shouldScrollToEnd?: boolean;
+
+    fsClass?: FSClass;
 };
 
 type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
