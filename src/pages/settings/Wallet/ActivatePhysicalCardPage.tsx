@@ -66,13 +66,6 @@ function ActivatePhysicalCardPage({
             return;
         }
         clearCardListErrors(inactiveCard?.cardID);
-
-        return () => {
-            if (!inactiveCard?.cardID) {
-                return;
-            }
-            clearCardListErrors(inactiveCard?.cardID);
-        };
     }, [inactiveCard?.cardID]);
 
     /**
