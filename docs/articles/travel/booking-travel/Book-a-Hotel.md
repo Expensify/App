@@ -4,7 +4,6 @@ description: Learn how to book a hotel using the integrated travel tool in Class
 keywords: [book a hotel, travel booking, hotel reservations, expensify travel, classic, new expensify]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Book hotels in Expensify using the built-in travel tool, available in both Classic and New Expensify.
 
@@ -43,7 +42,7 @@ Book hotels in Expensify using the built-in travel tool, available in both Class
 
 - Your booking may require approval depending on your company’s travel policy.
 - You’ll receive a confirmation email once your reservation is complete.
-- The booking receipt will be automatically added to your Expensify account for easier expense tracking.
+- You’ll need to upload your final hotel receipts on Expensify. Hotel expenses in particular are post-paid and your card is only charged after you complete your stay.
 - If the payment card used is importing into your Expensify account, the receipt will automatically merge with the imported expense.
 
 ---
@@ -67,4 +66,3 @@ It will be SmartScanned and added to your next report automatically.
 ## Can I add a loyalty number or special request?
 Yes! Most hotels let you enter loyalty numbers or special requests during checkout. You can also store loyalty numbers under **My Profile** > **Loyalty** for air, hotel, car, and rail programs, so it auto-populates during checkout. 
 
-</div>
