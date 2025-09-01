@@ -73,6 +73,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
 
     const mockContext: UpdateContext = {
         betas: ['authAutoReportTitle'],
+        betaConfiguration: {},
         allReports: mockReports,
         allPolicies: mockPolicies,
         allReportNameValuePairs: {},
@@ -260,6 +261,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
         test('[OptimisticReportNames] missing policies and reports', async () => {
             const contextWithMissingData: UpdateContext = {
                 betas: ['authAutoReportTitle'],
+                betaConfiguration: {},
                 allReports: {},
                 allPolicies: {},
                 allReportNameValuePairs: {},

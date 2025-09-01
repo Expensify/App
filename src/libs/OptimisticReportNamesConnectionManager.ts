@@ -1,14 +1,12 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
-import type Beta from '@src/types/onyx/Beta';
-import type Policy from '@src/types/onyx/Policy';
-import type Report from '@src/types/onyx/Report';
+import type {Beta, BetaConfiguration, Policy, Report, Transaction} from '@src/types/onyx';
 import type ReportNameValuePairs from '@src/types/onyx/ReportNameValuePairs';
 
 type UpdateContext = {
     betas: OnyxEntry<Beta[]>;
+    betaConfiguration: OnyxEntry<BetaConfiguration>;
     allReports: Record<string, Report>;
     allPolicies: Record<string, Policy>;
     allReportNameValuePairs: Record<string, ReportNameValuePairs>;
@@ -16,13 +14,14 @@ type UpdateContext = {
 };
 
 let betas: OnyxEntry<Beta[]>;
+let betaConfiguration: OnyxEntry<BetaConfiguration>;
 let allReports: Record<string, Report>;
 let allPolicies: Record<string, Policy>;
 let allReportNameValuePairs: Record<string, ReportNameValuePairs>;
 let allTransactions: Record<string, Transaction>;
 let isInitialized = false;
 let connectionsInitializedCount = 0;
-const totalConnections = 5;
+const totalConnections = 6;
 let initializationPromise: Promise<void> | null = null;
 
 /**
@@ -59,6 +58,15 @@ function initialize(): Promise<void> {
             key: ONYXKEYS.BETAS,
             callback: (val) => {
                 betas = val;
+                checkAndMarkInitialized();
+            },
+        });
+
+        // Connect to BETA_CONFIGURATION
+        Onyx.connectWithoutView({
+            key: ONYXKEYS.BETA_CONFIGURATION,
+            callback: (val) => {
+                betaConfiguration = val;
                 checkAndMarkInitialized();
             },
         });
@@ -118,6 +126,7 @@ function getUpdateContext(): UpdateContext {
 
     return {
         betas,
+        betaConfiguration,
         allReports: allReports ?? {},
         allPolicies: allPolicies ?? {},
         allReportNameValuePairs: allReportNameValuePairs ?? {},

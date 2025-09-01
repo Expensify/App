@@ -279,10 +279,10 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     Performance.markStart(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
     Timing.start(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
 
-    const {betas, allReports} = context;
+    const {betas, allReports, betaConfiguration} = context;
 
     // Check if the feature is enabled
-    if (!Permissions.isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas)) {
+    if (!Permissions.isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas, betaConfiguration)) {
         Performance.markEnd(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
         Timing.end(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
         return updates;
