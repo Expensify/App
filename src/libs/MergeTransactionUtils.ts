@@ -221,6 +221,13 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
             return;
         }
 
+        // Use the reimbursable flag coming from card transactions automatically
+        // See https://github.com/Expensify/App/issues/69598
+        if (field === 'reimbursable' && isCardTransaction(targetTransaction)) {
+            mergeableData[field] = targetValue;
+            return;
+        }
+
         if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
             mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
         } else {
