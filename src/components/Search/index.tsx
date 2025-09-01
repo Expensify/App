@@ -249,6 +249,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         }
 
         const eligibleSearchKeys: Partial<SearchKey[]> = [
+            CONST.SEARCH.SEARCH_KEYS.SUBMIT,
+            CONST.SEARCH.SEARCH_KEYS.APPROVE,
+            CONST.SEARCH.SEARCH_KEYS.PAY,
+            CONST.SEARCH.SEARCH_KEYS.EXPORT,
             CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
             CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
             CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
