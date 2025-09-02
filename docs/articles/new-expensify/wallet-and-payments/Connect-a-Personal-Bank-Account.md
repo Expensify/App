@@ -3,7 +3,6 @@ title: Connect a Personal Bank Account
 description: Learn how to connect your personal bank account to receive reimbursements in Expensify, including support for both US and international accounts.
 keywords: [New Expensify, bank account, personal bank account, reimbursements, wallet, US bank account, global reimbursements]
 ---
-<div id="new-expensify" markdown="1">
 
 You can add a personal bank account to receive reimbursements in over **190 countries**. All personal accounts are managed under **Account > Wallet > Bank Accounts**. The steps differ depending on whether you're connecting a **US** or **non-US** account.
 
@@ -53,4 +52,3 @@ Yes. Expensify supports personal bank accounts from 190+ countries, but there’
 
 You can. HSBC typically includes the **branch code** which is the final three digits of the Swift Code (HSBCSGS2XXX) in their "Account Number". If you see figures like "146172002492", please drop first 3 digit (146) which is the Branch Code.
 
-</div>
