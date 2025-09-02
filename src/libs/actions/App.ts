@@ -66,13 +66,18 @@ Onyx.connect({
     },
 });
 
+// hasLoadedAppPromise is used in the "reconnectApp" function and is not directly associated with the View,
+// so retrieving it using Onyx.connectWithoutView is correct.
 let resolveHasLoadedAppPromise: () => void;
 const hasLoadedAppPromise = new Promise<void>((resolve) => {
     resolveHasLoadedAppPromise = resolve;
 });
 
+// hasLoadedApp is used in the "reconnectApp" function and is not directly associated with the View,
+// so retrieving it using Onyx.connectWithoutView is correct.
+// If this variable is ever needed for use in React components, it should be retrieved using useOnyx.
 let hasLoadedApp: boolean | undefined;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.HAS_LOADED_APP,
     callback: (value) => {
         hasLoadedApp = value;
