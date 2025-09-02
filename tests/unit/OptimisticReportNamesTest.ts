@@ -43,6 +43,7 @@ describe('OptimisticReportNames', () => {
 
     const mockContext: UpdateContext = {
         betas: ['authAutoReportTitle'],
+        betaConfiguration: {},
         allReports: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             report_123: mockReport,

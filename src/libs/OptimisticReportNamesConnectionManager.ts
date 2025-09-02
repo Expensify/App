@@ -1,14 +1,12 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
-import type Beta from '@src/types/onyx/Beta';
-import type Policy from '@src/types/onyx/Policy';
-import type Report from '@src/types/onyx/Report';
+import type {Beta, BetaConfiguration, Policy, Report, Transaction} from '@src/types/onyx';
 import type ReportNameValuePairs from '@src/types/onyx/ReportNameValuePairs';
 
 type UpdateContext = {
     betas: OnyxEntry<Beta[]>;
+    betaConfiguration: OnyxEntry<BetaConfiguration>;
     allReports: Record<string, Report>;
     allPolicies: Record<string, Policy>;
     allReportNameValuePairs: Record<string, ReportNameValuePairs>;
@@ -16,35 +14,46 @@ type UpdateContext = {
 };
 
 let betas: OnyxEntry<Beta[]>;
+let betaConfiguration: OnyxEntry<BetaConfiguration>;
 let allReports: Record<string, Report>;
 let allPolicies: Record<string, Policy>;
 let allReportNameValuePairs: Record<string, ReportNameValuePairs>;
 let allTransactions: Record<string, Transaction>;
 let isInitialized = false;
 let connectionsInitializedCount = 0;
-const totalConnections = 5;
+const totalConnections = 6;
 let initializationPromise: Promise<void> | null = null;
 
 /**
- * Initialize the context data
- * We use connectWithoutView to prevent the connection manager from affecting React rendering performance
- * This is a one-time setup that happens when the module is first loaded
+ * Initialize persistent connections to Onyx data needed for OptimisticReportNames
+ * This is called lazily when OptimisticReportNames functionality is first used
+ * Returns a Promise that resolves when all connections have received their initial data
+ *
+ * We use Onyx.connectWithoutView because we do not use this in React components and this logic is not tied to the UI.
+ * This is a centralized system that needs access to all objects of several types, so that when any updates affect
+ * the computed report names, we can compute the new names according to the formula and add the necessary updates.
+ * It wouldn't be possible to do this without connecting to all the data.
+ *
  */
 function initialize(): Promise<void> {
+    if (isInitialized) {
+        return Promise.resolve();
+    }
+
     if (initializationPromise) {
         return initializationPromise;
     }
 
-    initializationPromise = new Promise((resolve) => {
-        function checkAndMarkInitialized() {
+    initializationPromise = new Promise<void>((resolve) => {
+        const checkAndMarkInitialized = () => {
             connectionsInitializedCount++;
-            if (connectionsInitializedCount === totalConnections && !isInitialized) {
+            if (connectionsInitializedCount === totalConnections) {
                 isInitialized = true;
                 resolve();
             }
-        }
+        };
 
-        // Connect to user session betas
+        // Connect to BETAS
         Onyx.connectWithoutView({
             key: ONYXKEYS.BETAS,
             callback: (val) => {
@@ -53,7 +62,16 @@ function initialize(): Promise<void> {
             },
         });
 
-        // Connect to all reports
+        // Connect to BETA_CONFIGURATION
+        Onyx.connectWithoutView({
+            key: ONYXKEYS.BETA_CONFIGURATION,
+            callback: (val) => {
+                betaConfiguration = val;
+                checkAndMarkInitialized();
+            },
+        });
+
+        // Connect to all REPORTS
         Onyx.connectWithoutView({
             key: ONYXKEYS.COLLECTION.REPORT,
             waitForCollectionCallback: true,
@@ -63,7 +81,7 @@ function initialize(): Promise<void> {
             },
         });
 
-        // Connect to all policies
+        // Connect to all POLICIES
         Onyx.connectWithoutView({
             key: ONYXKEYS.COLLECTION.POLICY,
             waitForCollectionCallback: true,
@@ -99,17 +117,21 @@ function initialize(): Promise<void> {
 
 /**
  * Get the current update context synchronously
- * Should only be called after initialization is complete
+ * Must be called after initialize() has completed
  */
 function getUpdateContext(): UpdateContext {
+    if (!isInitialized) {
+        throw new Error('OptimisticReportNamesConnectionManager not initialized. Call initialize() first.');
+    }
+
     return {
-        betas: betas ?? [],
+        betas,
+        betaConfiguration,
         allReports: allReports ?? {},
         allPolicies: allPolicies ?? {},
         allReportNameValuePairs: allReportNameValuePairs ?? {},
         allTransactions: allTransactions ?? {},
     };
 }
-
-export type {UpdateContext};
 export {initialize, getUpdateContext};
+export type {UpdateContext};

@@ -4,7 +4,6 @@ description: A list of common QuickBooks Online errors and how to resolve them
 keywords: [New Expensify, QuickBooks Online errors, QBO export error, accounting sync, export failed]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Sometimes reports may fail to export or sync with QuickBooks Online. This guide outlines common errors and how to resolve them.
 
@@ -203,4 +202,3 @@ Check the exporter's role in **Workspaces > [Workspace Name] > Accounting > Quic
 
 Yes — QuickBooks Online accepts negative expenses across all export types.
 
-</div>
