@@ -4875,8 +4875,8 @@ const translations = {
                 prompt6: ' sobre los niveles de etiquetas.',
             },
             overrideMultiTagWarning: {
-                title: '',
-                prompt1: '',
+                title: 'Importar niveles de etiquetas',
+                prompt1: 'Importar una nueva hoja de cálculo sobrescribirá tus etiquetas actuales.',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Hemos encontrado *${columnCounts} columnas* en su hoja de cálculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las etiquetas. También puede seleccionar *Habilitado* junto a la columna que establece el estado de la etiqueta.`,
