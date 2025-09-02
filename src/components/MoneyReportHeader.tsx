@@ -318,7 +318,10 @@ function MoneyReportHeader({
 
     const handleGoBackAfterDeleteExpenses = useCallback(() => {
         if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
-            if (navigationRef.canGoBack()) {
+            const lastRoute = navigationRef.getRootState().routes.at(-1);
+            const hasPreviousSearchRoute = (lastRoute?.state?.routes ?? []).length > 1;
+
+            if (navigationRef.canGoBack() && hasPreviousSearchRoute) {
                 Navigation.goBack();
             } else {
                 Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({groupBy: 'reports'})}));

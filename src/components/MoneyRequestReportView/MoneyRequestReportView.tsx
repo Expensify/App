@@ -46,7 +46,10 @@ type MoneyRequestReportViewProps = {
 };
 
 function goBackFromSearchMoneyRequest() {
-    if (navigationRef.canGoBack()) {
+    const lastRoute = navigationRef.getRootState().routes.at(-1);
+    const hasPreviousSearchRoute = (lastRoute?.state?.routes ?? []).length > 1;
+
+    if (navigationRef.canGoBack() && hasPreviousSearchRoute) {
         Navigation.goBack();
         return;
     }
