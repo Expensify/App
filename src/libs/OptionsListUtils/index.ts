@@ -744,7 +744,9 @@ function createOption(
     // Initialize only the properties that are actually used in SearchOption context
     const result: SearchOptionData = {
         // Core identification - used in SearchOption context
-        reportID: report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+        // We use empty string as a default for reportID as in many places the application uses conditional checks that test for reportID existence with truthiness operators
+        // eslint-disable-next-line rulesdir/no-default-id-values
+        reportID: report?.reportID ?? '',
         accountID: 0, // Set conditionally below
         login: undefined, // Set conditionally below
         policyID: report?.policyID,
