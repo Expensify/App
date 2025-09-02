@@ -42,19 +42,22 @@ const tryCanvasFallback = async (blob: Blob, fileName: string): Promise<File> =>
 
         // Convert canvas to JPEG blob
         return await new Promise((resolve, reject) => {
-            canvas.toBlob((convertedBlob) => {
-                if (!convertedBlob) {
-                    reject(new Error('Canvas conversion failed'));
-                    return;
-                }
+            canvas.toBlob(
+                (convertedBlob) => {
+                    if (!convertedBlob) {
+                        reject(new Error('Canvas conversion failed'));
+                        return;
+                    }
 
-                const jpegFileName = fileName.replace(/\.(heic|heif)$/i, '.jpg');
-                const jpegFile = new File([convertedBlob], jpegFileName, {type: 'image/jpeg'});
-                jpegFile.uri = URL.createObjectURL(jpegFile);
-                resolve(jpegFile);
-            }, 'image/jpeg', 0.85);
+                    const jpegFileName = fileName.replace(/\.(heic|heif)$/i, '.jpg');
+                    const jpegFile = new File([convertedBlob], jpegFileName, {type: 'image/jpeg'});
+                    jpegFile.uri = URL.createObjectURL(jpegFile);
+                    resolve(jpegFile);
+                },
+                'image/jpeg',
+                0.85,
+            );
         });
-
     } catch (canvasError) {
         throw canvasError;
     }
@@ -91,7 +94,9 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
 
     const fetchBlobPromise = fetch(file.uri)
         .then((response) => response.blob())
-        .then((blob) => { return blob });
+        .then((blob) => {
+            return blob;
+        });
 
     Promise.all([libraryPromise, fetchBlobPromise])
         .then(async ([heicConverter, blob]) => {
@@ -111,7 +116,6 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
                     jpegFile.uri = URL.createObjectURL(jpegFile);
                     onSuccess(jpegFile);
                     return;
-
                 } catch (heicToError) {
                     // Continue to fallback strategies
                 }
