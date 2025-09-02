@@ -21,21 +21,12 @@ import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
-import {
-    filterAndOrderOptions,
-    formatMemberForList,
-    getEmptyOptions,
-    getHeaderMessage,
-    getMemberInviteOptions,
-    getSearchValueForPhoneOrEmail,
-    isPersonalDetailsReady,
-} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, formatMemberForList, getEmptyOptions, getHeaderMessage, getMemberInviteOptions, isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getGroupChatName, getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import tokenizedSearch from '@libs/tokenizedSearch';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -105,7 +96,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
 
         setSelectedOptions(newSelectedOptions);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [personalDetails, betas, debouncedSearchTerm, excludedUsers, options]);
+    }, [personalDetails, betas, excludedUsers, options]);
 
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];
@@ -114,30 +105,11 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
             return [];
         }
 
-        // Filter all options that is a part of the search term or in the personal details
-        let filterSelectedOptions = selectedOptions;
-        if (debouncedSearchTerm !== '') {
-            const processedSearchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
-            filterSelectedOptions = tokenizedSearch(selectedOptions, processedSearchValue, (option) => [option.text ?? '', option.login ?? '']).filter((option) => {
-                const accountID = option?.accountID;
-                const isOptionInPersonalDetails = inviteOptions.personalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID);
-                const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(processedSearchValue) || !!option.login?.toLowerCase().includes(processedSearchValue);
-                return isPartOfSearchTerm || isOptionInPersonalDetails;
-            });
-        }
-        const filterSelectedOptionsFormatted = filterSelectedOptions.map((selectedOption) => formatMemberForList(selectedOption));
-
-        sectionsArr.push({
-            title: undefined,
-            data: filterSelectedOptionsFormatted,
-        });
-
-        // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
-        const recentReportsWithoutSelected = inviteOptions.recentReports.filter(({login}) => !selectedLogins.includes(login));
-        const recentReportsFormatted = recentReportsWithoutSelected.map((reportOption) => formatMemberForList(reportOption));
-        const personalDetailsWithoutSelected = inviteOptions.personalDetails.filter(({login}) => !selectedLogins.includes(login));
-        const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => formatMemberForList(personalDetail));
+        const recentReportsModified = inviteOptions.recentReports.map((item) => (selectedLogins.includes(item.login) ? {...item, isSelected: true} : item));
+        const recentReportsFormatted = recentReportsModified.map((reportOption) => formatMemberForList(reportOption));
+        const personalDetailsModified = inviteOptions.personalDetails.map((item) => (selectedLogins.includes(item.login) ? {...item, isSelected: true} : item));
+        const personalDetailsFormatted = personalDetailsModified.map((personalDetail) => formatMemberForList(personalDetail));
         const hasUnselectedUserToInvite = inviteOptions.userToInvite && !selectedLogins.includes(inviteOptions.userToInvite.login);
 
         sectionsArr.push({
@@ -158,7 +130,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         }
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, inviteOptions.recentReports, inviteOptions.personalDetails, inviteOptions.userToInvite, translate]);
+    }, [areOptionsInitialized, selectedOptions, inviteOptions.recentReports, inviteOptions.personalDetails, inviteOptions.userToInvite, translate]);
 
     const toggleOption = useCallback(
         (option: MemberForList) => {

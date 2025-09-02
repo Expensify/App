@@ -166,6 +166,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const {isKeyboardShown} = useKeyboardState();
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const shouldPreventScrollAnimationRef = useRef<boolean>(false);
     const isItemSelected = useCallback(
         (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
         [isSelected, selectedItems, canSelectMultiple],
@@ -403,7 +404,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
         if (targetItem && indexToScroll < CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
             pendingScrollIndexRef.current = null;
-            scrollToIndex(indexToScroll, true);
+            scrollToIndex(indexToScroll, false);
         }
     }, [currentPage, scrollToIndex, flattenedSections.allOptions]);
 
@@ -431,7 +432,8 @@ function BaseSelectionList<TItem extends ListItem>({
                 onArrowFocus(focusedItem);
             }
             if (shouldScrollToFocusedIndex) {
-                (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, true);
+                (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, !shouldPreventScrollAnimationRef.current && true);
+                shouldPreventScrollAnimationRef.current = false;
             }
         },
         ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
@@ -453,6 +455,7 @@ function BaseSelectionList<TItem extends ListItem>({
         if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex || textInputValue) {
             return;
         }
+        shouldPreventScrollAnimationRef.current = true;
         setFocusedIndex(selectedItemIndex);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectedItemIndex]);
@@ -478,11 +481,6 @@ function BaseSelectionList<TItem extends ListItem>({
             }
             // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
             if (canSelectMultiple) {
-                if (sections.length > 1 && !isItemSelected(item)) {
-                    // If we're selecting an item, scroll to its position at the top, so we can see it
-                    scrollToIndex(0, true);
-                }
-
                 if (shouldShowTextInput) {
                     clearInputAfterSelect();
                 } else if (isSmallScreenWidth) {
@@ -511,10 +509,7 @@ function BaseSelectionList<TItem extends ListItem>({
             onSelectRow,
             shouldShowTextInput,
             shouldPreventDefaultFocusOnSelectRow,
-            sections.length,
-            isItemSelected,
             isSmallScreenWidth,
-            scrollToIndex,
             clearInputAfterSelect,
             onCheckboxPress,
             setFocusedIndex,
@@ -842,6 +837,10 @@ function BaseSelectionList<TItem extends ListItem>({
             }
         }
 
+        // Avoid clearing focus on initial render
+        if (isInitialSectionListRender) {
+            return;
+        }
         // Remove the focus if the search input is empty and prev search input not empty or selected options length is changed (and allOptions length remains the same)
         // else focus on the first non disabled item
         const newSelectedIndex =
@@ -864,6 +863,7 @@ function BaseSelectionList<TItem extends ListItem>({
         flattenedSections.allOptions,
         isItemSelected,
         slicedSections.length,
+        isInitialSectionListRender,
     ]);
 
     useEffect(

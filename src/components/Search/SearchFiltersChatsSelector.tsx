@@ -9,10 +9,11 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
+import {createOptionFromReport, filterAndOrderOptions, getAlternateText, getFirstSelectedItem, getSearchOptions} from '@libs/OptionsListUtils';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,61 +68,44 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         return getSearchOptions(options, undefined, false);
     }, [areOptionsInitialized, isScreenTransitionEnd, options]);
 
+    const defaultOptionsModified = useMemo(() => {
+        return {
+            ...defaultOptions,
+            recentReports: defaultOptions.recentReports.map((item) => (selectedReportIDs.includes(item.reportID) ? {...item, isSelected: true} : item)),
+        };
+    }, [defaultOptions, selectedReportIDs]);
+
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
+        return filterAndOrderOptions(defaultOptionsModified, cleanSearchTerm, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         });
-    }, [defaultOptions, cleanSearchTerm, selectedOptions]);
+    }, [cleanSearchTerm, selectedOptions, defaultOptionsModified]);
 
-    const {sections, headerMessage} = useMemo(() => {
+    const {sections, headerMessage, firstKeyForList} = useMemo(() => {
         const newSections: Section[] = [];
+        let firstKey = '';
         if (!areOptionsInitialized) {
-            return {sections: [], headerMessage: undefined};
+            return {sections: [], headerMessage: undefined, firstKeyForList: firstKey};
         }
-
-        const formattedResults = formatSectionsFromSearchTerm(
-            cleanSearchTerm,
-            selectedOptions,
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
-            personalDetails,
-            false,
-            undefined,
-            reportAttributesDerived,
-        );
-
-        newSections.push(formattedResults.section);
-
-        const visibleReportsWhenSearchTermNonEmpty = chatOptions.recentReports.map((report) => (selectedReportIDs.includes(report.reportID) ? getSelectedOptionData(report) : report));
-        const visibleReportsWhenSearchTermEmpty = chatOptions.recentReports.filter((report) => !selectedReportIDs.includes(report.reportID));
-        const reportsFiltered = cleanSearchTerm === '' ? visibleReportsWhenSearchTermEmpty : visibleReportsWhenSearchTermNonEmpty;
 
         newSections.push({
             title: undefined,
-            data: reportsFiltered,
+            data: chatOptions.recentReports,
             shouldShow: chatOptions.recentReports.length > 0,
         });
-
-        const areResultsFound = didScreenTransitionEnd && formattedResults.section.data.length === 0 && reportsFiltered.length === 0;
+        if (!firstKey) {
+            firstKey = getFirstSelectedItem(chatOptions.recentReports);
+        }
+        const areResultsFound = didScreenTransitionEnd && chatOptions.recentReports.length === 0;
         const message = areResultsFound ? translate('common.noResultsFound') : undefined;
 
         return {
             sections: newSections,
             headerMessage: message,
+            firstKeyForList: firstKey,
         };
-    }, [
-        areOptionsInitialized,
-        chatOptions.personalDetails,
-        chatOptions.recentReports,
-        cleanSearchTerm,
-        didScreenTransitionEnd,
-        personalDetails,
-        reportAttributesDerived,
-        selectedOptions,
-        selectedReportIDs,
-        translate,
-    ]);
+    }, [areOptionsInitialized, chatOptions.recentReports, didScreenTransitionEnd, translate]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -180,6 +164,8 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             onSelectRow={handleParticipantSelection}
             isLoadingNewOptions={isLoadingNewOptions}
             showLoadingPlaceholder={showLoadingPlaceholder}
+            initiallyFocusedOptionKey={firstKeyForList}
+            getItemHeight={() => variables.optionRowHeight}
         />
     );
 }

@@ -24,6 +24,7 @@ import {
     formatSectionsFromSearchTerm,
     getAttendeeOptions,
     getEmptyOptions,
+    getFirstSelectedItem,
     getHeaderMessage,
     getParticipantsOption,
     getPersonalDetailSearchTerms,
@@ -33,6 +34,7 @@ import {
 } from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy as isPaidGroupPolicyFn} from '@libs/PolicyUtils';
+import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -98,6 +100,23 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         return optionList;
     }, [areOptionsInitialized, didScreenTransitionEnd, options.reports, options.personalDetails, betas, attendees, recentAttendees, iouType, action, isPaidGroupPolicy, searchTerm]);
 
+    // Selected members list is maintained separately as 'attendees', so update selection info here
+    const defaultOptionsModified = useMemo(() => {
+        return {
+            ...defaultOptions,
+            recentReports: defaultOptions.recentReports.map((item) =>
+                attendees.some((attendee) => (attendee?.email && attendee.email === item.login) || (attendee?.accountID && attendee.accountID === item.accountID))
+                    ? {...item, isSelected: true}
+                    : item,
+            ),
+            personalDetails: defaultOptions.personalDetails.map((item) =>
+                attendees.some((attendee) => (attendee?.email && attendee.email === item.login) || (attendee?.accountID && attendee.accountID === item.accountID))
+                    ? {...item, isSelected: true}
+                    : item,
+            ),
+        };
+    }, [defaultOptions, attendees]);
+
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return {
@@ -108,7 +127,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 headerMessage: '',
             };
         }
-        const newOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
+        const newOptions = filterAndOrderOptions(defaultOptionsModified, cleanSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             shouldAcceptName: true,
@@ -120,25 +139,42 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 ...getPersonalDetailByEmail(attendee.email),
             })),
         });
+
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, cleanSearchTerm, isPaidGroupPolicy, attendees]);
+    }, [areOptionsInitialized, defaultOptionsModified, cleanSearchTerm, isPaidGroupPolicy, attendees]);
 
     /**
      * Returns the sections needed for the OptionsSelector
      */
-    const [sections, header] = useMemo(() => {
+    const {sections, header, firstKeyForList} = useMemo(() => {
         const newSections: Array<SectionListDataType<Option>> = [];
+        let firstKey = '';
+
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
-            return [newSections, ''];
+            return {sections: newSections, header: '', firstKeyForList: firstKey};
         }
 
         const fiveRecents = [...chatOptions.recentReports].slice(0, 5);
         const restOfRecents = [...chatOptions.recentReports].slice(5);
         const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
 
+        // Attendees whose data does not exist in chatOptions
+        const filteredAttendees = attendees
+            .filter(
+                (attendee) =>
+                    !fiveRecents.some((item) => attendee?.email === item.login || attendee?.accountID === item.accountID) &&
+                    !contactsWithRestOfRecents.some((item) => attendee?.email === item.login || attendee?.accountID === item.accountID),
+            )
+            .map((attendee) => ({
+                ...attendee,
+                reportID: CONST.DEFAULT_NUMBER_ID.toString(),
+                selected: true,
+                login: attendee.email,
+                ...getPersonalDetailByEmail(attendee.email),
+            }));
         const formatResults = formatSectionsFromSearchTerm(
             cleanSearchTerm,
-            attendees.map((attendee) => ({
+            filteredAttendees.map((attendee) => ({
                 ...attendee,
                 reportID: CONST.DEFAULT_NUMBER_ID.toString(),
                 selected: true,
@@ -153,31 +189,45 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             reportAttributesDerived,
         );
         newSections.push(formatResults.section);
+        if (!firstKey) {
+            firstKey = getFirstSelectedItem(formatResults.section?.data);
+        }
 
         newSections.push({
             title: translate('common.recents'),
             data: fiveRecents,
             shouldShow: fiveRecents.length > 0,
         });
+        if (!firstKey) {
+            firstKey = getFirstSelectedItem(fiveRecents);
+        }
 
         newSections.push({
             title: translate('common.contacts'),
             data: contactsWithRestOfRecents,
             shouldShow: contactsWithRestOfRecents.length > 0,
         });
+        if (!firstKey) {
+            firstKey = getFirstSelectedItem(contactsWithRestOfRecents);
+        }
 
         if (
             chatOptions.userToInvite &&
             !isCurrentUser({...chatOptions.userToInvite, accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID, status: chatOptions.userToInvite?.status ?? undefined})
         ) {
+            const modifiedUserToInvite = [chatOptions.userToInvite].map((participant) => {
+                const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
+                return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+            });
+
             newSections.push({
                 title: undefined,
-                data: [chatOptions.userToInvite].map((participant) => {
-                    const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
-                }),
+                data: modifiedUserToInvite,
                 shouldShow: true,
             });
+            if (!firstKey) {
+                firstKey = getFirstSelectedItem(modifiedUserToInvite);
+            }
         }
 
         const headerMessage = getHeaderMessage(
@@ -187,7 +237,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             attendees.some((attendee) => getPersonalDetailSearchTerms(attendee).join(' ').toLowerCase().includes(cleanSearchTerm)),
         );
 
-        return [newSections, headerMessage];
+        return {sections: newSections, header: headerMessage, firstKeyForList: firstKey};
     }, [
         areOptionsInitialized,
         didScreenTransitionEnd,
@@ -313,6 +363,8 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             canSelectMultiple
             isLoadingNewOptions={!!isSearchingForReports}
             shouldShowListEmptyContent={shouldShowListEmptyContent}
+            initiallyFocusedOptionKey={firstKeyForList}
+            getItemHeight={() => variables.optionRowHeight}
         />
     );
 }
