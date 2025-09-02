@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.2.0-2",
+  "version": "9.2.0-4",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -118,7 +118,7 @@
     "@react-navigation/native-stack": "7.3.14",
     "@react-navigation/stack": "7.3.3",
     "@react-ng/bounds-observer": "^0.2.1",
-    "@rnmapbox/maps": "10.1.33",
+    "@rnmapbox/maps": "10.1.41",
     "@shopify/flash-list": "2.0.3",
     "@ua/react-native-airship": "~24.4.0",
     "awesome-phonenumber": "^5.4.0",
@@ -180,7 +180,7 @@
     "react-native-modal": "^13.0.0",
     "react-native-nitro-modules": "0.26.2",
     "react-native-nitro-sqlite": "9.1.10",
-    "react-native-onyx": "2.0.133",
+    "react-native-onyx": "2.0.137",
     "react-native-pager-view": "6.5.3",
     "react-native-pdf": "6.7.3",
     "react-native-performance": "^5.1.4",
@@ -204,7 +204,8 @@
     "react-native-webview": "13.13.1",
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",
-    "react-webcam": "^7.1.1"
+    "react-webcam": "^7.1.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@actions/core": "1.10.0",
@@ -363,8 +364,7 @@
     "webpack-bundle-analyzer": "^4.5.0",
     "webpack-cli": "^5.0.4",
     "webpack-dev-server": "^5.2.1",
-    "webpack-merge": "^5.8.0",
-    "xlsx": "file:vendor/xlsx-0.20.3.tgz"
+    "webpack-merge": "^5.8.0"
   },
   "overrides": {
     "braces": "3.0.3",
