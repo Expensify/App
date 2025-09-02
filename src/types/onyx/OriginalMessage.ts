@@ -489,10 +489,10 @@ type OriginalMessagePolicyChangeLog = {
     updateType?: string;
 
     /** New role of user or new value of the category/tag field */
-    newValue?: boolean | string | PolicyBudgetFrequency;
+    newValue?: boolean | string | number | PolicyBudgetFrequency;
 
     /** Old role of user or old value of the category/tag field */
-    oldValue?: boolean | string | PolicyBudgetFrequency;
+    oldValue?: boolean | string | number | PolicyBudgetFrequency;
 
     /** category/tag field */
     entityType?: string;

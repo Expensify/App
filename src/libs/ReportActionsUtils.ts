@@ -13,7 +13,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Card, Locale, OnyxInputOrEntry, OriginalMessageIOU, Policy, PrivatePersonalDetails} from '@src/types/onyx';
-import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration, PolicyBudgetFrequency, PolicyBudgetFrequencyValues} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration, PolicyBudgetFrequency} from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -2383,7 +2383,7 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
                 if (value === CONST.DISABLED_MAX_EXPENSE_VALUE) {
                     return translateLocal('workspace.rules.categoryRules.requireReceiptsOverList.never');
                 }
-                if (value === 0) {
+                if (!value) {
                     return translateLocal('workspace.rules.categoryRules.requireReceiptsOverList.always');
                 }
 
@@ -2392,8 +2392,8 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEn
 
             return translateLocal('workspaceActions.updateCategoryMaxAmountNoReceipt', {
                 categoryName,
-                oldValue: getTranslation(oldValue),
-                newValue: getTranslation(newValue),
+                oldValue: getTranslation(oldValue as number),
+                newValue: getTranslation(newValue as number),
             });
         }
     }
@@ -2562,8 +2562,8 @@ function getWorkspaceCustomUnitRateUpdatedMessage(action: ReportAction): string 
     if (customUnitRateName && updatedField === 'taxClaimablePercentage' && typeof newValue === 'number' && customUnitRateName) {
         return translateLocal('workspaceActions.updatedCustomUnitTaxClaimablePercentage', {
             customUnitRateName,
-            newValue: parseFloat(parseFloat(newValue ?? 0).toFixed(2)),
-            oldValue: typeof oldValue === 'number' ? parseFloat(parseFloat(oldValue ?? 0).toFixed(2)) : undefined,
+            newValue: parseFloat(parseFloat(newValue?.toString() ?? '0').toFixed(2)),
+            oldValue: typeof oldValue === 'number' ? parseFloat(parseFloat(oldValue?.toString() ?? '0').toFixed(2)) : undefined,
         });
     }
 
@@ -2897,7 +2897,7 @@ function getUpdatedManualApprovalThresholdMessage(reportAction: OnyxEntry<Report
     return translateLocal('workspaceActions.updatedManualApprovalThreshold', {oldLimit: convertToDisplayString(oldLimit, currency), newLimit: convertToDisplayString(newLimit, currency)});
 }
 
-function getAddedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: Policy) {
+function getAddedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>) {
     const {newValue, categoryName, entityType} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET>) ?? {};
     const value = newValue as PolicyBudgetFrequency;
 
