@@ -11,7 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {isDistanceRequest} from '@libs/TransactionUtils';
+import {isDistanceRequest, isManualDistanceRequest} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import Image from '@src/components/Image';
 import CONST from '@src/CONST';
@@ -32,7 +32,7 @@ type ReceiptPreviewProps = {
 };
 
 function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: ReceiptPreviewProps) {
-    const isDistanceEReceipt = isDistanceRequest(transactionItem);
+    const isDistanceEReceipt = isDistanceRequest(transactionItem) && !isManualDistanceRequest(transactionItem);
     const styles = useThemeStyles();
     const theme = useTheme();
     const [eReceiptScaleFactor, setEReceiptScaleFactor] = useState(0);
@@ -156,6 +156,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                         <EReceiptWithSizeCalculation
                             transactionID={transactionItem.transactionID}
                             transactionItem={transactionItem}
+                            shouldUseAspectRatio
                         />
                     )}
                 </View>
@@ -165,4 +166,5 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
     );
 }
 
+ReceiptPreview.displayName = 'HoverReceiptPreview';
 export default ReceiptPreview;
