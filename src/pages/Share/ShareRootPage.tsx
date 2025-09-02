@@ -125,7 +125,7 @@ function ShareRootPage() {
                 addTempShareFile(tempFile);
             }
         });
-    }, [errorTitle, shareFileMimeTypes, translate, receiptFileFormats, validateFileIfNecessary]);
+    }, [errorTitle, shareFileMimeTypes, translate, receiptFileFormats]);
 
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {

@@ -56,7 +56,6 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const prevPersonalDetails = usePrevious(personalDetails);
     const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}`, {canBeMissing: true});
 
     const loadOptions = useCallback(() => {
         const optionLists = createOptionList(personalDetails, reports, reportAttributes?.reports);
@@ -120,8 +119,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             changedReportKeys.forEach((reportKey) => {
                 const report = changedReportsEntries[reportKey];
                 const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
-                const reportPolicyTags = policyTags?.[reportID];
-                const {reportOption} = processReport(report, personalDetails, reportAttributes?.reports, undefined, reportPolicyTags);
+                const {reportOption} = processReport(report, personalDetails, reportAttributes?.reports, undefined);
 
                 if (reportOption) {
                     updatedReportsMap.set(reportID, reportOption);
@@ -135,7 +133,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportsEntries, personalDetails, policyTags, reportAttributes?.reports, transactions]);
+    }, [changedReportsEntries, personalDetails, reportAttributes?.reports, transactions]);
 
     useEffect(() => {
         if (!changedReportActions || !areOptionsInitialized.current) {
@@ -155,8 +153,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 }
 
                 const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-                const reportPolicyTags = policyTags?.[reportID];
-                const {reportOption} = processReport(updatedReportsMap.get(reportID)?.item, personalDetails, reportAttributes?.reports, undefined, reportPolicyTags);
+                const {reportOption} = processReport(updatedReportsMap.get(reportID)?.item, personalDetails, reportAttributes?.reports);
 
                 if (reportOption) {
                     updatedReportsMap.set(reportID, reportOption);
@@ -168,7 +165,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportActions, personalDetails, policyTags, reportAttributes?.reports]);
+    }, [changedReportActions, personalDetails, reportAttributes?.reports]);
 
     /**
      * This effect is used to update the options list when personal details change.
@@ -214,8 +211,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                     if (!report) {
                         return;
                     }
-                    const reportPolicyTags = policyTags?.[report.reportID];
-                    const newReportOption = createOptionFromReport(report, personalDetails, reportAttributes?.reports, reportPolicyTags);
+                    const newReportOption = createOptionFromReport(report, personalDetails, reportAttributes?.reports);
                     const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
                     newReportOptions.push({
                         newReportOption,
