@@ -6688,7 +6688,7 @@ const translations = {
         isTransactionBillable: 'Escolha se a transação é faturável',
         keepThisOne: 'Keep this one',
         confirmDetails: `Confirme os detalhes que você está mantendo`,
-        confirmDuplicatesInfo: `As solicitações duplicadas que você não mantiver serão mantidas para o membro excluir.`,
+        confirmDuplicatesInfo: `Os duplicados que você não mantiver serão retidos para que o remetente os exclua.`,
         hold: 'Esta despesa foi colocada em espera',
         resolvedDuplicates: 'resolvido o duplicado',
     },

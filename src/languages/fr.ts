@@ -6695,7 +6695,7 @@ const translations = {
         isTransactionBillable: 'Choisissez si la transaction est facturable',
         keepThisOne: 'Keep this one',
         confirmDetails: `Confirmez les détails que vous conservez`,
-        confirmDuplicatesInfo: `Les demandes en double que vous ne conservez pas seront conservées pour que le membre les supprime.`,
+        confirmDuplicatesInfo: `Les doublons que vous ne conservez pas seront conservés afin que l’expéditeur puisse les supprimer.`,
         hold: 'Cette dépense a été mise en attente',
         resolvedDuplicates: 'résolu le doublon',
     },
