@@ -1,6 +1,6 @@
 import React from 'react';
+import { View } from 'react-native';
 import ConfirmModal from './ConfirmModal';
-import ScreenWrapper from './ScreenWrapper';
 
 
 type AuthenticationSuccessfullNotificationProps = {
@@ -13,9 +13,7 @@ type AuthenticationSuccessfullNotificationProps = {
 
 function AuthenticationSuccessfullNotification({isVisible, onConfirm = () => {}}: AuthenticationSuccessfullNotificationProps) {
     return (
-        <ScreenWrapper
-            testID={AuthenticationSuccessfullNotification.displayName}
-        >
+        <View>
             <ConfirmModal
                 title="Authentication successful"
                 isVisible={isVisible}
@@ -26,7 +24,7 @@ function AuthenticationSuccessfullNotification({isVisible, onConfirm = () => {}}
                 confirmText="Got it"
                 shouldShowCancelButton={false}
             />
-        </ScreenWrapper>
+        </View>
     );
 }
 
