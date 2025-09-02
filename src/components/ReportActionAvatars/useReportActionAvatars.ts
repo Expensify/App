@@ -1,10 +1,11 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getDelegateAccountIDFromReportAction, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
@@ -19,7 +20,7 @@ import {
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxInputOrEntry, Report, ReportAction} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import useReportPreviewSenderID from './useReportPreviewSenderID';
 
@@ -31,6 +32,7 @@ function useReportActionAvatars({
     accountIDs = [],
     policyID: passedPolicyID,
     fallbackDisplayName = '',
+    invitedEmailsToAccountIDs,
 }: {
     report: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
@@ -39,11 +41,16 @@ function useReportActionAvatars({
     accountIDs?: number[];
     policyID?: string;
     fallbackDisplayName?: string;
+    invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
 }) {
     /* Get avatar type */
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+    const allPersonalDetails = usePersonalDetails();
+    const [personalDetailsFromSnapshot] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
     });
+    // When the search hash changes, personalDetails from the snapshot will be undefined if it hasn't been fetched yet.
+    // Therefore, we will fall back to allPersonalDetails while the data is being fetched.
+    const personalDetails = personalDetailsFromSnapshot ?? allPersonalDetails;
 
     const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
 
@@ -77,7 +84,7 @@ function useReportActionAvatars({
     const reportPolicyID = iouReport?.policyID ?? chatReport?.policyID;
     const chatReportPolicyIDExists = chatReport?.policyID === CONST.POLICY.ID_FAKE || !chatReport?.policyID;
     const changedPolicyID = actionChildReport?.policyID ?? iouReport?.policyID;
-    const shouldUseChangedPolicyID = !!changedPolicyID && changedPolicyID !== chatReport?.policyID;
+    const shouldUseChangedPolicyID = !!changedPolicyID && changedPolicyID !== (chatReport?.policyID ?? iouReport?.policyID);
     const retrievedPolicyID = chatReportPolicyIDExists ? reportPolicyID : chatReport?.policyID;
 
     const policyID = shouldUseChangedPolicyID ? changedPolicyID : (passedPolicyID ?? retrievedPolicyID);
@@ -91,7 +98,8 @@ function useReportActionAvatars({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportIDAnnounce || chatReportIDAdmins}`, {canBeMissing: true});
 
-    const delegatePersonalDetails = action?.delegateAccountID ? personalDetails?.[action?.delegateAccountID] : undefined;
+    const delegateAccountID = getDelegateAccountIDFromReportAction(action);
+    const delegatePersonalDetails = delegateAccountID ? personalDetails?.[delegateAccountID] : undefined;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails);
 
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);
@@ -99,12 +107,15 @@ function useReportActionAvatars({
     const shouldUseActorAccountID = isAInvoiceReport && !isAReportPreviewAction;
     const accountIDsToMap = shouldUseActorAccountID && actorAccountID ? [actorAccountID] : accountIDs;
 
-    const avatarsForAccountIDs: IconType[] = accountIDsToMap.map((id) => ({
-        id,
-        type: CONST.ICON_TYPE_AVATAR,
-        source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
-        name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? '',
-    }));
+    const avatarsForAccountIDs: IconType[] = accountIDsToMap.map((id) => {
+        const invitedEmail = invitedEmailsToAccountIDs ? Object.keys(invitedEmailsToAccountIDs).find((email) => invitedEmailsToAccountIDs[email] === id) : undefined;
+        return {
+            id,
+            type: CONST.ICON_TYPE_AVATAR,
+            source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
+            name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? invitedEmail ?? '',
+        };
+    });
 
     const fallbackWorkspaceAvatar: IconType = {
         id: policyID,
@@ -315,7 +326,7 @@ function useReportActionAvatars({
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : login || defaultDisplayName || fallbackDisplayName).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
             accountID,
-            delegateAccountID: !isWorkspaceActor && delegatePersonalDetails ? actorAccountID : undefined,
+            delegateAccountID: !isWorkspaceActor && !!delegateAccountID ? actorAccountID : undefined,
         },
         source: {
             iouReport,
