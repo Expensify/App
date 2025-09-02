@@ -26,7 +26,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
+import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import CardListItemHeader from './CardListItemHeader';
@@ -83,11 +83,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
         const backTo = Navigation.getActiveRoute();
 
         const reportID = getReportIDForTransaction(transactionItem);
-        const siblingTransactionThreadIDs = groupItem.transactions.map(getReportIDForTransaction);
+        const siblingTransactionIDs = groupItem.transactions.map((transaction) => transaction.transactionID);
 
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
-        setActiveTransactionThreadIDs(siblingTransactionThreadIDs).then(() => {
+        setActiveTransactionIDs(siblingTransactionIDs).then(() => {
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         });
     };
