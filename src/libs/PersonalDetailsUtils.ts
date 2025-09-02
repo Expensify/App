@@ -37,8 +37,9 @@ Onyx.connect({
 
 let hiddenTranslation = '';
 let youTranslation = '';
-
-Onyx.connect({
+// We use this value solely to verify whether the translation is loaded
+// Since they aren't connected to a UI anywhere, it's OK to use connectWithoutView()
+Onyx.connectWithoutView({
     key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
     initWithStoredValues: false,
     callback: (value) => {
