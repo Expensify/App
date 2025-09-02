@@ -18,6 +18,7 @@ import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
 import type {AvatarSource} from '@libs/UserUtils';
+import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -2127,7 +2128,7 @@ type PublicScreensParamList = SharedScreensParamList & {
 };
 
 type AttachmentModalScreensParamList = {
-    [SCREENS.ATTACHMENTS]: {
+    [SCREENS.ATTACHMENTS]: AttachmentModalContainerModalProps & {
         source?: AvatarSource;
         reportID?: string;
         accountID?: number;
@@ -2143,32 +2144,20 @@ type AttachmentModalScreensParamList = {
         file?: FileObject;
         shouldDisableSendButton?: boolean;
         onConfirm?: (file: FileObject) => void;
-        onShow?: () => void;
-        onClose?: () => void;
     };
-    [SCREENS.PROFILE_AVATAR]: {
+    [SCREENS.PROFILE_AVATAR]: AttachmentModalContainerModalProps & {
         accountID: number;
         backTo?: Routes;
-        onShow?: () => void;
-        onClose?: () => void;
     };
-    [SCREENS.WORKSPACE_AVATAR]: {
+    [SCREENS.WORKSPACE_AVATAR]: AttachmentModalContainerModalProps & {
         policyID: string;
         letter?: UpperCaseCharacters;
-        onShow?: () => void;
-        onClose?: () => void;
     };
-    [SCREENS.WORKSPACE_JOIN_USER]: {
-        policyID: string;
-        email: string;
-    };
-    [SCREENS.REPORT_AVATAR]: {
+    [SCREENS.REPORT_AVATAR]: AttachmentModalContainerModalProps & {
         reportID: string;
         policyID?: string;
-        onShow?: () => void;
-        onClose?: () => void;
     };
-    [SCREENS.TRANSACTION_RECEIPT]: {
+    [SCREENS.TRANSACTION_RECEIPT]: AttachmentModalContainerModalProps & {
         reportID: string;
         transactionID: string;
         readonly?: string;
@@ -2176,17 +2165,13 @@ type AttachmentModalScreensParamList = {
         action?: IOUAction;
         iouType?: IOUType;
         mergeTransactionID?: string;
-        onShow?: () => void;
-        onClose?: () => void;
     };
-    [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: {
+    [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: AttachmentModalContainerModalProps & {
         reportID: string;
         transactionID: string;
         action: IOUAction;
         iouType: IOUType;
         readonly: string;
-        onShow?: () => void;
-        onClose?: () => void;
     };
 };
 
@@ -2197,6 +2182,10 @@ type AuthScreensParamList = SharedScreensParamList &
         [SCREENS.SUBMIT_EXPENSE]: undefined;
         [SCREENS.WORKSPACES_LIST]: {
             backTo?: Routes;
+        };
+        [SCREENS.WORKSPACE_JOIN_USER]: {
+            policyID: string;
+            email: string;
         };
         [SCREENS.NOT_FOUND]: undefined;
         [SCREENS.REQUIRE_TWO_FACTOR_AUTH]: undefined;

@@ -21,7 +21,7 @@ type ImagePickerResponse = {
 
 type FileObject = Partial<File | ImagePickerResponse>;
 
-type AttachmentModalModalProps = {
+type AttachmentModalContainerModalProps = {
     modalType?: ModalType;
     onShow?: () => void;
     onClose?: () => void;
@@ -38,8 +38,8 @@ const ATTACHMENT_MODAL_SCREENS = [
 ];
 type AttachmentModalScreenType = TupleToUnion<typeof ATTACHMENT_MODAL_SCREENS>;
 
-type AttachmentModalScreenBaseParams = AttachmentModalBaseContentProps & AttachmentModalModalProps;
+type AttachmentModalScreenBaseParams = AttachmentModalBaseContentProps & AttachmentModalContainerModalProps;
 
 type AttachmentModalScreenProps<Screen extends AttachmentModalScreenType> = PlatformStackScreenProps<RootNavigatorParamList, Screen>;
 
-export type {AttachmentModalScreenType, AttachmentModalScreenBaseParams, AttachmentModalModalProps, AttachmentModalScreenProps, FileObject, ImagePickerResponse};
+export type {AttachmentModalScreenType, AttachmentModalScreenBaseParams, AttachmentModalContainerModalProps, AttachmentModalScreenProps, FileObject, ImagePickerResponse};
