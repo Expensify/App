@@ -1,0 +1,32 @@
+name: Build Debug APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  buildDebug:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Build debug APK
+        run: |
+          cd android
+          ./gradlew assembleDebug
+
+      - name: Upload debug APK artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
