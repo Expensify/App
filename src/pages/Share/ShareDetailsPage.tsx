@@ -54,7 +54,11 @@ function ShareDetailsPage({
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
-    const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
+    const displayReport = useMemo(
+        () => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived, policyTags),
+        [report, unknownUserDetails, reportAttributesDerived, policyTags],
+    );
 
     useEffect(() => {
         if (!currentAttachment?.content || errorTitle) {

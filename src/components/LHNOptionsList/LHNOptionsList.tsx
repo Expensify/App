@@ -215,7 +215,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                       }
                     : null;
             }
-            const lastMessageTextFromReport = getLastMessageTextForReport(item, lastActorDetails, itemPolicy, !!itemReportNameValuePairs?.private_isArchived, itemPolicyTags);
+            const lastMessageTextFromReport = getLastMessageTextForReport(item, lastActorDetails, itemPolicyTags, itemPolicy, !!itemReportNameValuePairs?.private_isArchived);
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
@@ -251,6 +251,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     isScreenFocused={isScreenFocused}
                     localeCompare={localeCompare}
                     isReportArchived={isReportArchived}
+                    policyTags={itemPolicyTags}
                 />
             );
         },

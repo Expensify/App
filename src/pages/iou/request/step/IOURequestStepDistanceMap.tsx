@@ -79,6 +79,7 @@ function IOURequestStepDistanceMap({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
@@ -309,7 +310,7 @@ function IOURequestStepDistanceMap({
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived, policyTags);
             });
             setDistanceRequestData(participants);
             if (shouldSkipConfirmation) {
@@ -412,16 +413,17 @@ function IOURequestStepDistanceMap({
         transactionID,
         personalDetails,
         reportAttributesDerived,
+        policyTags,
         translate,
         currentUserPersonalDetails.login,
         currentUserPersonalDetails.accountID,
         policy,
         waypoints,
+        lastSelectedDistanceRates,
         backToReport,
         customUnitRateID,
         navigateToConfirmationPage,
         reportID,
-        lastSelectedDistanceRates,
     ]);
 
     const getError = () => {

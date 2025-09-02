@@ -72,6 +72,7 @@ describe('SidebarUtils', () => {
         const policy = createRandomPolicy(1);
         const parentReportAction = createRandomReportAction(1);
         const reportNameValuePairs = {};
+        const policyTags = {};
 
         await waitForBatchedUpdates();
 
@@ -87,6 +88,7 @@ describe('SidebarUtils', () => {
                 card: undefined,
                 lastAction: undefined,
                 localeCompare,
+                policyTags,
             }),
         );
     });

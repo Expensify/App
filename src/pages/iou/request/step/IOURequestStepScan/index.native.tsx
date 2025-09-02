@@ -107,6 +107,7 @@ function IOURequestStepScan({
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
@@ -394,7 +395,7 @@ function IOURequestStepScan({
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived, policyTags);
                 });
 
                 if (shouldSkipConfirmation) {
@@ -500,6 +501,7 @@ function IOURequestStepScan({
             shouldSkipConfirmation,
             personalDetails,
             reportAttributesDerived,
+            policyTags,
             createTransaction,
             currentUserPersonalDetails?.login,
             currentUserPersonalDetails.accountID,

@@ -84,7 +84,7 @@ function SubmitDetailsPage({
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report);
     const participants = selectedParticipants.map((participant) =>
-        participant?.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived),
+        participant?.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived, policyTags),
     );
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;

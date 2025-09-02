@@ -120,6 +120,7 @@ function IOURequestStepScan({
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const canUseMultiScan = !isEditing && iouType !== CONST.IOU.TYPE.SPLIT && !backTo && !backToReport;
     const isReplacingReceipt = (isEditing && hasReceipt(initialTransaction)) || (!!initialTransaction?.receipt && !!backTo);
@@ -451,7 +452,7 @@ function IOURequestStepScan({
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived, policyTags);
                 });
 
                 if (shouldSkipConfirmation) {
@@ -556,6 +557,7 @@ function IOURequestStepScan({
             shouldSkipConfirmation,
             personalDetails,
             reportAttributesDerived,
+            policyTags,
             createTransaction,
             currentUserPersonalDetails?.login,
             currentUserPersonalDetails.accountID,

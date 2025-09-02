@@ -704,9 +704,9 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
 function getLastMessageTextForReport(
     report: OnyxEntry<Report>,
     lastActorDetails: Partial<PersonalDetails> | null,
+    policyTags: OnyxEntry<PolicyTagLists>,
     policy?: OnyxEntry<Policy>,
     isReportArchived = false,
-    policyTags?: OnyxEntry<PolicyTagLists>,
 ): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
@@ -899,6 +899,7 @@ function createOption(
     config?: PreviewConfig,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     transactions?: SearchTransaction[],
+    policyTags?: PolicyTagLists,
 ): OptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
     const result: OptionData = {
@@ -992,7 +993,7 @@ function createOption(
         const lastActorAccountID = lastAction?.actorAccountID || report.lastActorAccountID;
         const lastActorDetails = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
         const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
-        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, undefined, !!result.private_isArchived);
+        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, policyTags, undefined, !!result.private_isArchived);
         let lastMessageText = lastMessageTextFromReport;
 
         const shouldDisplayLastActorName =
@@ -1040,7 +1041,7 @@ function createOption(
 /**
  * Get the option for a given report.
  */
-function getReportOption(participant: Participant, reportAttributesDerived?: ReportAttributesDerivedValue['reports']): OptionData {
+function getReportOption(participant: Participant, reportAttributesDerived?: ReportAttributesDerivedValue['reports'], policyTags?: PolicyTagLists): OptionData {
     const report = getReportOrDraftReport(participant.reportID);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
@@ -1053,6 +1054,8 @@ function getReportOption(participant: Participant, reportAttributesDerived?: Rep
             forcePolicyNamePreview: false,
         },
         reportAttributesDerived,
+        undefined,
+        policyTags,
     );
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1086,7 +1089,12 @@ function getReportOption(participant: Participant, reportAttributesDerived?: Rep
 /**
  * Get the display option for a given report.
  */
-function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: OnyxEntry<Participant>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']): OptionData {
+function getReportDisplayOption(
+    report: OnyxEntry<Report>,
+    unknownUserDetails: OnyxEntry<Participant>,
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    policyTags?: PolicyTagLists,
+): OptionData {
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
     const option = createOption(
@@ -1098,6 +1106,8 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
             forcePolicyNamePreview: false,
         },
         reportAttributesDerived,
+        undefined,
+        policyTags,
     );
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1139,6 +1149,7 @@ function getPolicyExpenseReportOption(participant: Participant | OptionData, rep
             forcePolicyNamePreview: false,
         },
         reportAttributesDerived,
+        undefined,
     );
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -1247,6 +1258,7 @@ function processReport(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     transactions?: SearchTransaction[],
+    policyTags?: PolicyTagLists,
 ): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
     reportOption: SearchOption<Report> | null; // The report option to add to allReportOptions if applicable
@@ -1270,18 +1282,23 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived, transactions),
+            ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived, transactions, policyTags),
         },
     };
 }
 
-function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, reports?: OnyxCollection<Report>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']) {
+function createOptionList(
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    reports?: OnyxCollection<Report>,
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    policyTags?: PolicyTagLists,
+) {
     const reportMapForAccountIDs: Record<number, Report> = {};
     const allReportOptions: Array<SearchOption<Report>> = [];
 
     if (reports) {
         Object.values(reports).forEach((report) => {
-            const {reportMapEntry, reportOption} = processReport(report, personalDetails, reportAttributesDerived);
+            const {reportMapEntry, reportOption} = processReport(report, personalDetails, reportAttributesDerived, undefined, policyTags);
 
             if (reportMapEntry) {
                 const [accountID, reportValue] = reportMapEntry;
@@ -1304,6 +1321,8 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
                 showPersonalDetails: true,
             },
             reportAttributesDerived,
+            undefined,
+            policyTags,
         ),
     }));
 
@@ -1313,12 +1332,17 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
     };
 }
 
-function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']) {
+function createOptionFromReport(
+    report: Report,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    policyTags?: PolicyTagLists,
+) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived),
+        ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived, undefined, policyTags),
     };
 }
 

@@ -46,6 +46,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     });
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}`, {canBeMissing: true});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const [selectedReportIDs, setSelectedReportIDs] = useState<string[]>(initialReportIDs);
@@ -54,11 +55,14 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
 
     const selectedOptions = useMemo<OptionData[]>(() => {
         return selectedReportIDs.map((id) => {
-            const report = getSelectedOptionData(createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportAttributesDerived));
+            const reportPolicyTags = policyTags?.[id];
+            const report = getSelectedOptionData(
+                createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportAttributesDerived, reportPolicyTags),
+            );
             const alternateText = getAlternateText(report, {});
             return {...report, alternateText};
         });
-    }, [personalDetails, reportAttributesDerived, reports, selectedReportIDs]);
+    }, [personalDetails, reportAttributesDerived, reports, selectedReportIDs, policyTags]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {

@@ -36,6 +36,7 @@ function OptionRowLHNData({
     lastMessageTextFromReport,
     localeCompare,
     isReportArchived = false,
+    policyTags,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
@@ -76,6 +77,7 @@ function OptionRowLHNData({
             lastAction,
             localeCompare,
             isReportArchived,
+            policyTags,
         });
         // eslint-disable-next-line react-compiler/react-compiler
         if (deepEqual(item, optionItemRef.current)) {
