@@ -269,12 +269,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         showLockedAccountModal();
                                         return;
                                     }
-                                    if (
-                                        !isCurrencySupportedForGlobalReimbursement(
-                                            (policy?.outputCurrency ?? '') as CurrencyType,
-                                            isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ?? false,
-                                        )
-                                    ) {
+                                    if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND))) {
                                         setIsUpdateWorkspaceCurrencyModalOpen(true);
                                         return;
                                     }
