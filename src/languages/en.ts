@@ -315,6 +315,7 @@ const translations = {
         count: 'Count',
         cancel: 'Cancel',
         dismiss: 'Dismiss',
+        proceed: 'Proceed',
         yes: 'Yes',
         no: 'No',
         ok: 'OK',
@@ -989,6 +990,7 @@ const translations = {
         sizeNotMet: 'File size must be greater than 0 bytes',
         invalidFileMessage:
             'The file you uploaded is either empty or contains invalid data. Please ensure that the file is correctly formatted and contains the necessary information before uploading it again.',
+        importSpreadsheetLibraryError: 'Failed to load spreadsheet module. Please check your internet connection and try again.',
         importSpreadsheet: 'Import spreadsheet',
         downloadCSV: 'Download CSV',
         importMemberConfirmation: () => ({
@@ -1915,6 +1917,7 @@ const translations = {
         virtualCardNumber: 'Virtual card number',
         travelCardCvv: 'Travel card CVV',
         physicalCardNumber: 'Physical card number',
+        physicalCardPin: 'PIN',
         getPhysicalCard: 'Get physical card',
         reportFraud: 'Report virtual card fraud',
         reportTravelFraud: 'Report travel card fraud',
@@ -2337,7 +2340,7 @@ const translations = {
                     `1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.\n` +
                     '2. Choose *Create expense*.\n' +
                     '3. Enter an amount or scan a receipt.\n' +
-                    '4. Confirm details..\n' +
+                    '4. Confirm details.\n' +
                     '5. Click *Create*.\n' +
                     '\n' +
                     `And you're done!`,
@@ -3460,12 +3463,14 @@ const translations = {
             customField1: 'Custom field 1',
             customField2: 'Custom field 2',
             customFieldHint: 'Add custom coding that applies to all spend from this member.',
+            reports: 'Reports',
             reportFields: 'Report fields',
             reportTitle: 'Report title',
             reportField: 'Report field',
             taxes: 'Taxes',
             bills: 'Bills',
             invoices: 'Invoices',
+            perDiem: 'Per diem',
             travel: 'Travel',
             members: 'Members',
             accounting: 'Accounting',
@@ -3478,6 +3483,7 @@ const translations = {
             testTransactions: 'Test transactions',
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
+            selectAll: 'Select all',
             selected: () => ({
                 one: '1 selected',
                 other: (count: number) => `${count} selected`,
@@ -3491,6 +3497,8 @@ const translations = {
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the invite button above.',
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: 'Go to workspace',
+            duplicateWorkspace: 'Duplicate Workspace',
+            duplicateWorkspacePrefix: 'Duplicate',
             goToWorkspaces: 'Go to workspaces',
             clearFilter: 'Clear filter',
             workspaceName: 'Workspace name',
@@ -4444,6 +4452,8 @@ const translations = {
             verifyingTheDetails: "We're verifying a few details. Concierge will let you know when Expensify Cards are ready to issue.",
             disclaimer:
                 'The Expensify Visa® Commercial Card is issued by The Bancorp Bank, N.A., Member FDIC, pursuant to a license from Visa U.S.A. Inc. and may not be used at all merchants that accept Visa cards. Apple® and the Apple logo® are trademarks of Apple Inc., registered in the U.S. and other countries. App Store is a service mark of Apple Inc. Google Play and the Google Play logo are trademarks of Google LLC.',
+            euUkDisclaimer:
+                'Cards provided to EEA residents are issued by Transact Payments Malta Limited and cards provided to UK residents are issued by Transact Payments Limited pursuant to license by Visa Europe Limited. Transact Payments Malta Limited is duly authorized and regulated by the Malta Financial Services Authority as a Financial Institution under the Financial Institution Act 1994. Registration number C 91879. Transact Payments Limited is authorized and regulated by the Gibraltar Financial Service Commission.',
             issueCard: 'Issue card',
             findCard: 'Find card',
             newCard: 'New card',
@@ -4909,6 +4919,18 @@ const translations = {
             importedFromAccountingSoftware: 'The taxes below are imported from your',
             taxCode: 'Tax code',
             updateTaxCodeFailureMessage: 'An error occurred while updating the tax code, please try again',
+        },
+        duplicateWorkspace: {
+            title: 'Name your new workspace',
+            selectFeatures: 'Select features to copy',
+            whichFeatures: 'Which features do you want to copy over to your new workspace?',
+            confirmDuplicate: '\n\nDo you want to continue?',
+            categories: 'categories and your auto-categorization rules',
+            reimbursementAccount: 'reimbursement account',
+            welcomeNote: 'Please start using my new workspace',
+            delayedSubmission: 'delayed submission',
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `You’re about to create and share ${newWorkspaceName ?? ''} with ${totalMembers ?? 0} members from the original workspace.`,
         },
         emptyWorkspace: {
             title: 'You have no workspaces',
