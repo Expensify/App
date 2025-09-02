@@ -745,6 +745,7 @@ function createOption(
     const result: SearchOptionData = {
         // Core identification - used in SearchOption context
         // We use empty string as a default for reportID as in many places the application uses conditional checks that test for reportID existence with truthiness operators
+        // eslint-disable-next-line rulesdir/no-default-id-values
         reportID: report?.reportID ?? '',
         accountID: 0, // Set conditionally below
         login: undefined, // Set conditionally below
