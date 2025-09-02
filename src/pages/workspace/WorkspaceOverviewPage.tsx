@@ -460,7 +460,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             title={translate('workspace.editor.policy')}
                             titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                             subtitle={translate('workspace.rules.customRules.cardSubtitle')}
+                            subtitleStyles={[styles.mb6]}
                             subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5, styles.mt1]}
+                            containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                         >
                             <MenuItemWithTopDescription
                                 title={policy?.customRules ?? ''}
