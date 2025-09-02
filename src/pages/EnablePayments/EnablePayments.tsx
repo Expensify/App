@@ -72,7 +72,7 @@ function EnablePaymentsPage() {
 
     const enablePaymentsStep = isEmptyObject(bankAccountList) ? CONST.WALLET.STEP.ADD_BANK_ACCOUNT : userWallet?.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
 
-    let CurrentStep: JSX.Element | null;
+    let CurrentStep: React.JSX.Element | null;
     switch (enablePaymentsStep) {
         case CONST.WALLET.STEP.ADD_BANK_ACCOUNT:
             CurrentStep = <AddBankAccount />;
