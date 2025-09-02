@@ -34,6 +34,10 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     }),
 }));
 
+jest.mock('@src/libs/SearchUIUtils', () => ({
+    getSuggestedSearches: jest.fn().mockReturnValue({}),
+}));
+
 const App = AppImport as AppActionsMock;
 const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
 const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
