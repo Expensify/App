@@ -56,7 +56,6 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
-    isCardTransaction as isCardTransactionUtils,
     isDemoTransaction,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
@@ -462,7 +461,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
 
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
     if (isUnreported) {
-            return isOwner && isCardTransactionCanBeDeleted;
+        return isOwner && isCardTransactionCanBeDeleted;
     }
 
     if (isInvoiceReport) {
