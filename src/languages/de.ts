@@ -323,6 +323,7 @@ const translations = {
         count: 'Zählen',
         cancel: 'Abbrechen',
         dismiss: 'Verwerfen',
+        proceed: 'Fortfahren',
         yes: 'Ja',
         no: 'No',
         ok: 'OK',
@@ -998,6 +999,7 @@ const translations = {
         sizeNotMet: 'Die Dateigröße muss größer als 0 Byte sein',
         invalidFileMessage:
             'Die Datei, die Sie hochgeladen haben, ist entweder leer oder enthält ungültige Daten. Bitte stellen Sie sicher, dass die Datei korrekt formatiert ist und die notwendigen Informationen enthält, bevor Sie sie erneut hochladen.',
+        importSpreadsheetLibraryError: 'Fehler beim Laden des Tabellenkalkulations-Moduls. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.',
         importSpreadsheet: 'Tabellenkalkulation importieren',
         downloadCSV: 'CSV herunterladen',
         importMemberConfirmation: () => ({
@@ -1934,6 +1936,7 @@ const translations = {
         virtualCardNumber: 'Virtuelle Kartennummer',
         travelCardCvv: 'Travel-Karten-CVV',
         physicalCardNumber: 'Physische Kartennummer',
+        physicalCardPin: 'PIN',
         getPhysicalCard: 'Physische Karte erhalten',
         reportFraud: 'Virtuelle Kartenbetrug melden',
         reportTravelFraud: 'Reisebetrug mit der Karte melden',
@@ -3463,12 +3466,14 @@ const translations = {
             customField1: 'Benutzerdefiniertes Feld 1',
             customField2: 'Benutzerdefiniertes Feld 2',
             customFieldHint: 'Fügen Sie benutzerdefinierten Code hinzu, der für alle Ausgaben dieses Mitglieds gilt.',
+            reports: 'Berichte',
             reportFields: 'Berichtsfelder',
             reportTitle: 'Berichtstitel',
             reportField: 'Berichtsfeld',
             taxes: 'Steuern',
             bills: 'Rechnungen',
             invoices: 'Rechnungen',
+            perDiem: 'Per diem',
             travel: 'Reisen',
             members: 'Mitglieder',
             accounting: 'Buchhaltung',
@@ -3481,6 +3486,7 @@ const translations = {
             testTransactions: 'Transaktionen testen',
             issueAndManageCards: 'Karten ausstellen und verwalten',
             reconcileCards: 'Karten abstimmen',
+            selectAll: 'Alle auswählen',
             selected: () => ({
                 one: '1 ausgewählt',
                 other: (count: number) => `${count} ausgewählt`,
@@ -3494,6 +3500,8 @@ const translations = {
             memberNotFound: 'Mitglied nicht gefunden. Um ein neues Mitglied zum Arbeitsbereich einzuladen, verwenden Sie bitte die Einladungsschaltfläche oben.',
             notAuthorized: `Sie haben keinen Zugriff auf diese Seite. Wenn Sie versuchen, diesem Arbeitsbereich beizutreten, bitten Sie einfach den Besitzer des Arbeitsbereichs, Sie als Mitglied hinzuzufügen. Etwas anderes? Kontaktieren Sie ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: 'Zum Arbeitsbereich gehen',
+            duplicateWorkspace: 'Arbeitsbereich duplizieren',
+            duplicateWorkspacePrefix: 'Duplizieren',
             goToWorkspaces: 'Zu Arbeitsbereichen gehen',
             clearFilter: 'Filter löschen',
             workspaceName: 'Arbeitsbereichsname',
@@ -4456,6 +4464,8 @@ const translations = {
             verifyingTheDetails: 'Wir überprüfen ein paar Details. Concierge wird Sie informieren, wenn Expensify-Karten zur Ausgabe bereit sind.',
             disclaimer:
                 'The Expensify Visa® Commercial Card wird von der The Bancorp Bank, N.A., Mitglied FDIC, gemäß einer Lizenz von Visa U.S.A. Inc. ausgestellt und kann nicht bei allen Händlern verwendet werden, die Visa-Karten akzeptieren. Apple® und das Apple-Logo® sind Marken von Apple Inc., registriert in den USA und anderen Ländern. App Store ist eine Dienstleistungsmarke von Apple Inc. Google Play und das Google Play-Logo sind Marken von Google LLC.',
+            euUkDisclaimer:
+                'Karten für Einwohner des EWR werden von Transact Payments Malta Limited ausgestellt. Karten für Einwohner des Vereinigten Königreichs werden von Transact Payments Limited gemäß einer Lizenz von Visa Europe Limited ausgestellt. Transact Payments Malta Limited ist von der maltesischen Finanzaufsichtsbehörde als Finanzinstitut gemäß dem Financial Institution Act 1994 ordnungsgemäß zugelassen und reguliert. Registrierungsnummer: C 91879. Transact Payments Limited ist von der Gibraltar Financial Service Commission zugelassen und reguliert.',
             issueCard: 'Karte ausstellen',
             findCard: 'Karte finden',
             newCard: 'Neue Karte',
@@ -4927,6 +4937,18 @@ const translations = {
             importedFromAccountingSoftware: 'Die unten aufgeführten Steuern werden von Ihrem importiert',
             taxCode: 'Steuercode',
             updateTaxCodeFailureMessage: 'Beim Aktualisieren des Steuercodes ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
+        },
+        duplicateWorkspace: {
+            title: 'Benennen Sie Ihren neuen Arbeitsbereich',
+            selectFeatures: 'Auswählen der zu kopierenden Features',
+            whichFeatures: 'Welche Funktionen möchten Sie in Ihren neuen Arbeitsbereich kopieren?',
+            confirmDuplicate: '\n\nMöchten Sie fortfahren?',
+            categories: 'Kategorien und Ihre Auto-Kategorisierungsregeln',
+            reimbursementAccount: 'Erstattungskonto',
+            delayedSubmission: 'verspätete Einreichung',
+            welcomeNote: 'Bitte beginnen Sie mit der Nutzung meines neuen Arbeitsbereichs',
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `Sie sind dabei, ${newWorkspaceName ?? ''} zu erstellen und mit ${totalMembers ?? 0} Mitgliedern aus dem ursprünglichen Arbeitsbereich zu teilen.`,
         },
         emptyWorkspace: {
             title: 'Sie haben keine Arbeitsbereiche',
