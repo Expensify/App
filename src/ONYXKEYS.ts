@@ -164,6 +164,9 @@ const ONYXKEYS = {
     /** This NVP contains the referral banners the user dismissed */
     NVP_DISMISSED_REFERRAL_BANNERS: 'nvp_dismissedReferralBanners',
 
+    /** This NVP contains the uber banners the user dismissed */
+    NVP_DISMISSED_UBER_BANNERS: 'nvp_dismissedUber4BusinessBanner',
+
     /**
      * This NVP contains if user has ever seen the ASAP submit explanation modal and user intent to not show the ASAP submit explanation modal again
      * undefined : user has never seen the modal
@@ -619,7 +622,6 @@ const ONYXKEYS = {
         MERGE_TRANSACTION: 'mergeTransaction_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
         NEXT_STEP: 'reportNextStep_',
-
         // Manual expense tab selector
         SELECTED_TAB: 'selectedTab_',
 
@@ -787,6 +789,8 @@ const ONYXKEYS = {
         REPORT_FIELDS_EDIT_FORM_DRAFT: 'reportFieldsEditFormDraft',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         REIMBURSEMENT_ACCOUNT_FORM_DRAFT: 'reimbursementAccountDraft',
+        ENTER_SINGER_INFO_FORM: 'enterSignerInfoForm',
+        ENTER_SINGER_INFO_FORM_DRAFT: 'enterSignerInfoFormDraft',
         PERSONAL_BANK_ACCOUNT_FORM: 'personalBankAccount',
         PERSONAL_BANK_ACCOUNT_FORM_DRAFT: 'personalBankAccountDraft',
         DISABLE_AUTO_RENEW_SURVEY_FORM: 'disableAutoRenewSurveyForm',
@@ -871,6 +875,8 @@ const ONYXKEYS = {
         MERGE_ACCOUNT_DETAILS_FORM_DRAFT: 'mergeAccountDetailsFormDraft',
         WORKSPACE_PER_DIEM_FORM: 'workspacePerDiemForm',
         WORKSPACE_PER_DIEM_FORM_DRAFT: 'workspacePerDiemFormDraft',
+        ENABLE_GLOBAL_REIMBURSEMENTS: 'enableGlobalReimbursementsForm',
+        ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT: 'enableGlobalReimbursementsFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -937,6 +943,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM]: FormTypes.ReportPhysicalCardForm;
     [ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM]: FormTypes.ReportFieldsEditForm;
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: FormTypes.ReimbursementAccountForm;
+    [ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM]: FormTypes.EnterSignerInfoForm;
     [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM]: FormTypes.PersonalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM]: FormTypes.WorkspaceDescriptionForm;
     [ONYXKEYS.FORMS.WORKSPACE_MEMBER_CUSTOM_FIELD_FORM]: FormTypes.WorkspaceMemberCustomFieldsForm;
@@ -982,6 +989,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM]: FormTypes.MergeAccountDetailsForm;
     [ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM]: FormTypes.InternationalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM]: FormTypes.WorkspacePerDiemForm;
+    [ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS]: FormTypes.EnableGlobalReimbursementsForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -1119,6 +1127,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ARE_TRANSLATIONS_LOADING]: boolean;
     [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: string;
     [ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS]: OnyxTypes.DismissedReferralBanners;
+    [ONYXKEYS.NVP_DISMISSED_UBER_BANNERS]: Record<string, boolean>;
     [ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING]: boolean;
     [ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION]: OnyxTypes.PrivateSubscription;
     [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: OnyxTypes.StripeCustomerID;
