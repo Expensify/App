@@ -218,12 +218,12 @@ const baseFilterConfig = {
     purchaseAmount: {
         getTitle: getFilterDisplayTitle,
         description: 'common.purchaseAmount' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_PURCHASE_AMOUNT,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.PURCHASE_AMOUNT),
     },
     purchaseCurrency: {
         getTitle: getFilterDisplayTitle,
         description: 'search.filters.purchaseCurrency' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_PURCHASE_CURRENCY,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.PURCHASE_CURRENCY),
     },
 };
 
