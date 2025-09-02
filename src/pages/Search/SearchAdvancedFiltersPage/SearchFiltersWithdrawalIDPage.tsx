@@ -27,7 +27,7 @@ function SearchFiltersWithdrawalIDPage() {
 
     const updateWithdrawalIDFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         updateAdvancedFilters(values);
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     };
 
     return (
@@ -41,7 +41,7 @@ function SearchFiltersWithdrawalIDPage() {
             <HeaderWithBackButton
                 title={translate('common.withdrawalID')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <FormProvider
