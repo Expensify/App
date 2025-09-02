@@ -4,6 +4,9 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import { View } from 'react-native';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import ConfirmModal from './ConfirmModal';
 import * as Illustrations from './Icon/Illustrations';
 import AuthenticationSuccessfullNotification from './AuthenticationSuccessfullNotification';
@@ -21,6 +24,8 @@ type EnableBiometrcicsVerificationProps = {
 
 
 function EnableBiometrcicsModal({isVisible, onCancel = () => {}, registerBiometrics = () => {}}: EnableBiometrcicsVerificationProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const [shouldNotifyAboutSuccess, setSuccess] = useState(false);
     const [isNotificationVisible, setNotificationVisibility] = useState(false);
     const {singleExecution} = useSingleExecution();
@@ -38,7 +43,8 @@ function EnableBiometrcicsModal({isVisible, onCancel = () => {}, registerBiometr
     return (
         <View>
             <ConfirmModal
-                title="Use your face or fingerprint to verify transactions."
+                title={translate('initialSettingsPage.troubleshoot.biometrics.softPromptTitle')}
+                titleStyles={styles.textHeadlineLineHeightXXL}
                 isVisible={isVisible}
                 onConfirm={() => {
                     if (wasRegistrationSuccessful) {
@@ -55,11 +61,16 @@ function EnableBiometrcicsModal({isVisible, onCancel = () => {}, registerBiometr
                     if (!shouldNotifyAboutSuccess) {return;}
                     setNotificationVisibility(true);
                 }}
-                prompt="Enable biometric security to use your face or fingerprint to verify transactions quickly and easily. No passwords or special codes needed."
-                confirmText="Continue"
-                cancelText="Not now"
+                prompt={translate('initialSettingsPage.troubleshoot.biometrics.softPromptContent')}
+                promptStyles={styles.textSupporting}
+                confirmText={translate('common.continue')}
+                cancelText={translate('common.notNow')}
                 shouldReverseStackedButtons
-                image={Illustrations.SimpleSmartscan}
+                iconSource={Illustrations.SimpleSmartscan}
+                iconWidth={variables.softPromptSmartscanSize}
+                iconHeight={variables.softPromptSmartscanSize}
+                iconFill={false}
+                shouldCenterIcon
             />
             <AuthenticationSuccessfullNotification isVisible={isNotificationVisible} onConfirm={() => handleClose()}/>
         </View>

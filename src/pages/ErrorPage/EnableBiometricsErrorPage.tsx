@@ -8,10 +8,10 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Button from '@components/Button';
 import variables from '@styles/variables';
-// import useLocalize from '@hooks/useLocalize';
+import useLocalize from '@hooks/useLocalize';
 
 function EnableBiometricsErrorPage() {
-    // const translate = useLocalize()
+    const {translate} = useLocalize()
     const styles = useThemeStyles();
     
     return (
@@ -19,30 +19,28 @@ function EnableBiometricsErrorPage() {
             testID={EnableBiometricsErrorPage.displayName}
         >
             <HeaderWithBackButton
-                // title={}
+                title={translate('initialSettingsPage.troubleshoot.biometrics.biometricsTest')}
                 onBackButtonPress={() => Navigation.goBack()}
                 shouldShowBackButton
             />
-            <View style={[styles.m5, styles.flex1]}>
-                <View style={[styles.flex1]}>
-                    <BlockingView
-                        icon={Illustrations.JustHumptyDumpty}
-                        iconWidth={variables.errorPageBiometricsImageWidth}
-                        iconHeight={variables.errorPageBiometricsImageHeight}
-                        contentFitImage='fill'
-                        title='Oops, something went wrong'
-                        subtitle='Your device could not be registered'
-                        testID={EnableBiometricsErrorPage.displayName}
-                    />
-                </View>
-                <View style={[styles.flexRow]}>
-                    <Button
-                        success
-                        style={[styles.flex1]}
-                        onPress={() => Navigation.goBack()}
-                        text="Got it"
-                    />
-                </View>
+            <View style={[styles.flex1]}>
+                <BlockingView
+                    icon={Illustrations.JustHumptyDumpty}
+                    iconWidth={variables.errorPageBiometricsImageWidth}
+                    iconHeight={variables.errorPageBiometricsImageHeight}
+                    contentFitImage='fill'
+                    title={translate('initialSettingsPage.troubleshoot.biometrics.errorPageTitle')}
+                    subtitle={translate('initialSettingsPage.troubleshoot.biometrics.errorPageContent')}
+                    testID={EnableBiometricsErrorPage.displayName}
+                />
+            </View>
+            <View style={[styles.flexRow, styles.m5]}>
+                <Button
+                    success
+                    style={[styles.flex1]}
+                    onPress={() => Navigation.goBack()}
+                    text={translate('common.buttonConfirm')}
+                />
             </View>
         </ScreenWrapper>
     );

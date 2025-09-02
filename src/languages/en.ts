@@ -1620,9 +1620,18 @@ const translations = {
             recordTroubleshootData: 'Record Troubleshoot Data',
             softKillTheApp: 'Soft kill the app',
             kill: 'Kill',
-            biometricsRegistered: 'Biometrics (Registered)',
-            biometricsNotRegistered: 'Biometrics (Not registered)',
-            test: 'Test',
+            biometrics: {
+                biometricsRegistered: 'Biometrics (Registered)',
+                biometricsNotRegistered: 'Biometrics (Not registered)',
+                test: 'Test',
+                softPromptTitle: 'Verify transactions with your face or fingerprint',
+                softPromptContent: 'Enable quick, secure verification using your face or fingerprint—no passwords or codes required.',
+                notificationTitle: 'Authentication successful',
+                notificationContent: 'You’ve successfully authenticated using Face ID.',
+                biometricsTest: 'Biometrics test',
+                errorPageTitle: 'Oops, something went wrong',
+                errorPageContent: 'Your device could not be registered.',
+            }
         },
         debugConsole: {
             saveLog: 'Save log',

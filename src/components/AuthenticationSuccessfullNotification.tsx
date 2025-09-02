@@ -1,27 +1,30 @@
 import React from 'react';
 import { View } from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import ConfirmModal from './ConfirmModal';
 
 
 type AuthenticationSuccessfullNotificationProps = {
-    /** Modal visibility */
+    /** Notification visibility */
     isVisible: boolean;
 
-    /** A callback to call when the form has been closed */
+    /** A callback to call when the notification has been closed */
     onConfirm?: () => void;
 };
 
 function AuthenticationSuccessfullNotification({isVisible, onConfirm = () => {}}: AuthenticationSuccessfullNotificationProps) {
+    const {translate} = useLocalize()
+    
     return (
         <View>
             <ConfirmModal
-                title="Authentication successful"
+                title={translate('initialSettingsPage.troubleshoot.biometrics.notificationTitle')}
                 isVisible={isVisible}
                 onConfirm={() => {
                     onConfirm();
                 }}
-                prompt="You’ve successfully authenticated using Face ID. "
-                confirmText="Got it"
+                prompt={translate('initialSettingsPage.troubleshoot.biometrics.notificationContent')}
+                confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
             />
         </View>

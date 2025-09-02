@@ -53,9 +53,9 @@ function TestToolMenu() {
 
     const biometricsTitle = useCallback(() => {
         if (isRegistered) {
-            return 'initialSettingsPage.troubleshoot.biometricsRegistered'
+            return 'initialSettingsPage.troubleshoot.biometrics.biometricsRegistered'
         }
-        return 'initialSettingsPage.troubleshoot.biometricsNotRegistered'
+        return 'initialSettingsPage.troubleshoot.biometrics.biometricsNotRegistered'
     }, [isRegistered])
 
     return (
@@ -121,7 +121,7 @@ function TestToolMenu() {
                             <View style={[styles.flexRow, styles.gap2]}>
                                 <Button
                                     small
-                                    text={translate('initialSettingsPage.troubleshoot.test')}
+                                    text={translate('initialSettingsPage.troubleshoot.biometrics.test')}
                                     onPress={() => setShowBiometricsModal(true)}
                                 />
                             </View>
