@@ -1,5 +1,5 @@
-import Log from "@libs/Log";
-import {FP, AndroidCapability} from "group-ib-fp";
+import {AndroidCapability, FP} from 'group-ib-fp';
+import Log from '@libs/Log';
 
 function enableCapabilities(fp: FP) {
     fp.enableAndroidCapability(AndroidCapability.CellsCollection, (e: any, isRun: boolean) => {

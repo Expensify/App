@@ -1,9 +1,9 @@
 import {FP, FPAttributeFormat} from 'group-ib-fp';
 import {getEnvironment, getOldDotEnvironmentURL} from '@libs/Environment/Environment';
+import Log from '@libs/Log';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import enableCapabilities from './enableCapabilities/index';
-import CONFIG from '@src/CONFIG';
-import Log from '@libs/Log';
 
 const cidIOSMap: Record<string, string> = {
     [CONST.ENVIRONMENT.PRODUCTION]: 'gib-i-expensify',
@@ -28,18 +28,18 @@ function init(): Promise<void> {
     return Promise.all([getEnvironment(), getOldDotEnvironmentURL()]).then(([env, oldDotURL]) => {
         const iOSCustomerID = cidIOSMap[env] ?? cidIOSMap[CONST.ENVIRONMENT.DEV];
         const androidCustomerID = cidAndroidMap[env] ?? cidAndroidMap[CONST.ENVIRONMENT.DEV];
-        
+
         const fp = FP.getInstance();
-        
+
         if (env === CONST.ENVIRONMENT.DEV) {
             oldDotURL = CONFIG.EXPENSIFY.DEFAULT_API_ROOT;
             fp.enableDebugLogs();
         }
-        
+
         fp.setCustomerId(iOSCustomerID, androidCustomerID, (error: string) => {
             Log.warn(`[Fraud Protection] setCustomerId error: ${error}`);
         });
-        
+
         oldDotURL = oldDotURL.endsWith('/') ? oldDotURL.slice(0, -1) : oldDotURL;
         fp.setTargetURL(`${oldDotURL}/api/fl`, (error: string) => {
             Log.warn(`[Fraud Protection] setTargetURL error: ${error}`);
@@ -47,20 +47,20 @@ function init(): Promise<void> {
         fp.setGlobalIdURL(`${oldDotURL}/api/fl/id.html`, (error: string) => {
             Log.warn(`[Fraud Protection] setGlobalIdURL error: ${error}`);
         });
-        
+
         enableCapabilities(fp);
-        
+
         fp.run((error: string) => {
             Log.warn(`[Fraud Protection] run error: ${error}`);
         });
-        
+
         resolveFpInstancePromise(fp);
     });
 }
 
 function setAuthenticationData(identity: string, sessionID: string): void {
     fpInstancePromise.then((fp) => {
-        fp.setAttributeTitle('user_id', identity, FPAttributeFormat.ClearText, (e: any) => { 
+        fp.setAttributeTitle('user_id', identity, FPAttributeFormat.ClearText, (e: any) => {
             Log.warn(`[Fraud Protection] setAttributeTitle error: ${e}`);
         });
         fp.setSessionId(sessionID, (e: any) => {
