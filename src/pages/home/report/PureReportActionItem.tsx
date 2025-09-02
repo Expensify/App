@@ -58,6 +58,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, getPersonalPolicy, isPolicyAdmin, isPolicyOwner} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
+    getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
     getChangedApproverActionMessage,
@@ -726,7 +727,6 @@ function PureReportActionItem({
             ];
         }
 
-        const reportActionReportID = originalReportID ?? reportID;
         if (isConciergeCategoryOptions(action)) {
             const options = getOriginalMessage(action)?.options;
             if (!options) {
@@ -737,7 +737,7 @@ function PureReportActionItem({
                 return [];
             }
 
-            if (!reportActionReportID) {
+            if (!reportID) {
                 return [];
             }
 
@@ -745,7 +745,7 @@ function PureReportActionItem({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
-                    resolveConciergeCategoryOptions(reportActionReportID, reportID, action.reportActionID, option);
+                    resolveConciergeCategoryOptions(reportID, originalReportID, action.reportActionID, option);
                 },
             }));
         }
@@ -761,7 +761,7 @@ function PureReportActionItem({
                     text: 'actionableMentionTrackExpense.submit',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
                     onPress: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
+                        createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
                     },
                 },
             ];
@@ -772,14 +772,14 @@ function PureReportActionItem({
                         text: 'actionableMentionTrackExpense.categorize',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
+                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
                         },
                     },
                     {
                         text: 'actionableMentionTrackExpense.share',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
+                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
                         },
                     },
                 );
@@ -788,7 +788,7 @@ function PureReportActionItem({
                 text: 'actionableMentionTrackExpense.nothing',
                 key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
                 onPress: () => {
-                    dismissTrackExpenseActionableWhisper(reportActionReportID, action);
+                    dismissTrackExpenseActionableWhisper(reportID, action);
                 },
             });
             return options;
@@ -799,13 +799,13 @@ function PureReportActionItem({
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.accept',
                     key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
-                    onPress: () => acceptJoinRequest(reportActionReportID, action),
+                    onPress: () => acceptJoinRequest(reportID, action),
                     isPrimary: true,
                 },
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.decline',
                     key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
-                    onPress: () => declineJoinRequest(reportActionReportID, action),
+                    onPress: () => declineJoinRequest(reportID, action),
                 },
             ];
         }
@@ -815,13 +815,13 @@ function PureReportActionItem({
                 {
                     text: 'common.yes',
                     key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE}`,
-                    onPress: () => resolveActionableReportMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE),
+                    onPress: () => resolveActionableReportMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE),
                     isPrimary: true,
                 },
                 {
                     text: 'common.no',
                     key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-                    onPress: () => resolveActionableReportMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING),
+                    onPress: () => resolveActionableReportMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING),
                 },
             ];
         }
@@ -831,13 +831,7 @@ function PureReportActionItem({
                 {
                     text: 'common.buttonConfirm',
                     key: `${action.reportActionID}-actionableReportMentionConfirmWhisper-${CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE}`,
-                    onPress: () =>
-                        resolveActionableMentionConfirmWhisper(
-                            reportActionReportID,
-                            action,
-                            CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE,
-                            formatPhoneNumber,
-                        ),
+                    onPress: () => resolveActionableMentionConfirmWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE, formatPhoneNumber),
                     isPrimary: true,
                 },
             ];
@@ -850,8 +844,7 @@ function PureReportActionItem({
             actionableMentionWhisperOptions.push({
                 text: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
-                onPress: () =>
-                    resolveActionableMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE, formatPhoneNumber, policy),
+                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE, formatPhoneNumber, policy),
                 isMediumSized: true,
             });
         }
@@ -860,13 +853,13 @@ function PureReportActionItem({
             {
                 text: 'actionableMentionWhisperOptions.inviteToChat',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-                onPress: () => resolveActionableMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, formatPhoneNumber, policy),
+                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, formatPhoneNumber, policy),
                 isMediumSized: true,
             },
             {
                 text: 'actionableMentionWhisperOptions.nothing',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-                onPress: () => resolveActionableMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, formatPhoneNumber, policy),
+                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, formatPhoneNumber, policy),
                 isMediumSized: true,
             },
         );
@@ -1280,6 +1273,19 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedAuditRateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
             children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
+        } else if (isActionableMentionWhisper(action)) {
+            children = (
+                <ReportActionItemBasicMessage>
+                    <RenderHTML html={getActionableMentionWhisperMessage(action)} />
+                    {actionableItemButtons.length > 0 && (
+                        <ActionableItemButtons
+                            items={actionableItemButtons}
+                            shouldUseLocalization
+                            layout="horizontal"
+                        />
+                    )}
+                </ReportActionItemBasicMessage>
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
             children = (
                 <ReportActionItemBasicMessage>
@@ -1333,7 +1339,6 @@ function PureReportActionItem({
                                     action={action}
                                     draftMessage={draftMessage}
                                     reportID={reportID}
-                                    originalReportID={originalReportID}
                                     policyID={report?.policyID}
                                     index={index}
                                     ref={composerTextInputRef}

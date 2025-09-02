@@ -4,7 +4,6 @@ description: Pay with your Expensify Card by adding it to your Apple Pay or Goog
 keywords: [New Expensify, Expensify Card, Apple Pay, Google Pay, mobile wallet, contactless payments, virtual card]
 ---
 
-<div id="new-expensify" markdown="1">
 
 You can use your Expensify Card for contactless in-person payments by adding it to your Apple Pay (iOS) or Google Pay (Android) wallet.
 
@@ -28,4 +27,3 @@ You can use your Expensify Card for contactless in-person payments by adding it 
 4. Tap **Add a new debit or credit card**.
 5. Enter your virtual Expensify Card details to complete the setup.
 
-</div>

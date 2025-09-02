@@ -171,9 +171,10 @@ function AvatarWithDisplayName({
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
     const parentReportActionParam = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const title = getReportName({report, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes, policyTags: reportPolicyTags});
-    const subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
+    const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isReportArchived);
+    const subtitle = getChatRoomSubtitle(report, true, isReportArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false, localeCompare);

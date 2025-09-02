@@ -1006,6 +1006,7 @@ describe('SidebarUtils', () => {
                     lastAction: undefined,
                     localeCompare,
                     policyTags: {},
+                    isReportArchived: true,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
