@@ -45,6 +45,20 @@ function updateTitleFieldToMatchPolicy(reportID: string, policy?: Policy): OnyxU
     return optimisticData;
 }
 
+function updateTitleFieldWithExactValue(reportID: string, policyTitleField: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
+                [CONST.REPORT_FIELD_TITLE_FIELD_ID]: policyTitleField,
+            },
+        },
+    ];
+
+    return optimisticData;
+}
+
 /**
  * Remove title field from report's rNVP when report is manually renamed
  * This indicates the report should preserve its custom name
@@ -72,6 +86,7 @@ function removeTitleFieldFromReport(reportID: string): OnyxUpdate[] {
  * Based on the backend logic: skip if it's a chat, statement card, or if policy field is deleteable and report field is null
  */
 function shouldUpdateTitleField(report: Report): boolean {
+    // todo: this should be more sophisticated function. check for iou etc
     if (!report) {
         return false;
     }
@@ -91,4 +106,4 @@ function shouldUpdateTitleField(report: Report): boolean {
     return true;
 }
 
-export {removeTitleFieldFromReport, shouldUpdateTitleField, updateTitleFieldToMatchPolicy, getTitleFieldFromRNVP};
+export {removeTitleFieldFromReport, shouldUpdateTitleField, updateTitleFieldToMatchPolicy, getTitleFieldFromRNVP, updateTitleFieldWithExactValue};
