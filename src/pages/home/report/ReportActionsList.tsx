@@ -1,10 +1,10 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
+import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import FlatList from '@components/FlatList';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
@@ -812,6 +812,15 @@ function ReportActionsList({
         return baseStyles;
     }, [parentReportAction, styles.chatContentScrollView, styles.pb0, styles.pt4]);
 
+    const renderScrollComponent = useMemo(() => {
+        if (renderActionSheetAwareScrollView === undefined) {
+            return undefined;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return ({...props}: ScrollViewProps) => renderActionSheetAwareScrollView!({...props, containerStyle: contentContainerStyle});
+    }, [contentContainerStyle]);
+
     return (
         <>
             <FloatingMessageCounter
@@ -831,7 +840,6 @@ function ReportActionsList({
                     data={visibleReportActions}
                     renderItem={renderItem}
                     renderScrollComponent={renderScrollComponent}
-                    contentContainerStyle={contentContainerStyle}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}
