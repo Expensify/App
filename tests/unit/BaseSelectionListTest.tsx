@@ -263,7 +263,6 @@ describe('BaseSelectionList', () => {
                 layoutMeasurement: {height: 800},
             },
         });
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeTruthy();
 
         // Rerender with changed `searchText` to trigger `setCurrentPage(1)`
         rerender(
@@ -274,6 +273,8 @@ describe('BaseSelectionList', () => {
                 initialNumToRender={110}
             />,
         );
+
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeTruthy();
 
         // Should not show the items from second page
         expect(screen.queryByText(`${CONST.BASE_LIST_ITEM_TEST_ID}52`)).toBeFalsy();
