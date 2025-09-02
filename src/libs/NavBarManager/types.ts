@@ -1,9 +1,4 @@
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
-
-type NavBarButtonStyle = 'light' | 'dark';
-
-type NavigationBarType = ValueOf<typeof CONST.NAVIGATION_BAR_TYPE>;
+import type {NavBarButtonStyle, NavigationBarType} from '@expensify/nitro-utils';
 
 type NavBarManager = {
     setButtonStyle: (style: NavBarButtonStyle) => void;
@@ -11,4 +6,3 @@ type NavBarManager = {
 };
 
 export default NavBarManager;
-export type {NavBarButtonStyle, NavigationBarType};
