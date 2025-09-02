@@ -37,10 +37,7 @@ function updateTitleFieldToMatchPolicy(reportID: string, policy?: Policy): OnyxU
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
             value: {
-                [CONST.REPORT_FIELD_TITLE_FIELD_ID]: {
-                    defaultValue: policyTitleField.defaultValue,
-                    deleteable: policyTitleField.deleteable,
-                },
+                [CONST.REPORT_FIELD_TITLE_FIELD_ID]: policyTitleField,
             },
         },
     ];

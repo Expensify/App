@@ -5173,12 +5173,14 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
         total: -(iouReport?.total ?? 0),
     };
 
-    if (shouldUpdateTitleField(expenseReport)) {
-        const titleReportField = getTitleFieldFromRNVP(reportID);
-        if (titleReportField) {
-            optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
-        }
+    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
+    if (!!titleReportField && isPaidGroupPolicy(policy)) {
+        // TODO OptimisticReportNames.compute() should be used here but most probably this should be handled in prepareRequest.
+        expenseReport.reportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
     }
+
+    // TODO: wrap in beta flag
+    optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
