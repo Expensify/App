@@ -132,7 +132,6 @@ describe('BaseSelectionList', () => {
         expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}50`)).toBeFalsy();
         expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeFalsy();
 
-        expect(screen.getByText('common.showMore')).toBeTruthy();
         expect(screen.getByText('50')).toBeTruthy();
         expect(screen.getByText('100')).toBeTruthy();
     });
@@ -151,7 +150,7 @@ describe('BaseSelectionList', () => {
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}9`)).toBeTruthy();
     });
 
-    it('should load more items when Show More button is clicked', () => {
+    it('should load more items when scrolled to end', () => {
         render(
             <BaseListItemRenderer
                 sections={[{data: largeMockSections}]}
@@ -160,15 +159,18 @@ describe('BaseSelectionList', () => {
             />,
         );
 
-        // Click Show More button
-        fireEvent.press(screen.getByText('common.showMore'));
+        // Simulate scrolling to end to trigger onEndReached
+        fireEvent.scroll(screen.getByTestId('selection-list'), {
+            nativeEvent: {
+                contentOffset: {y: 1000},
+                contentSize: {height: 2000},
+                layoutMeasurement: {height: 800},
+            },
+        });
 
         // Should now show items from second page
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}50`)).toBeTruthy();
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeTruthy();
-
-        // Should not show, Show more button as we rendered whole list
-        expect(screen.queryByText('common.showMore')).toBeFalsy();
     });
 
     it('should search for first item then scroll back to preselected item when search is cleared', () => {
@@ -222,8 +224,14 @@ describe('BaseSelectionList', () => {
             />,
         );
 
-        // Click Show More button
-        fireEvent.press(screen.getByText('common.showMore'));
+        // Simulate scrolling to end to load more items
+        fireEvent.scroll(screen.getByTestId('selection-list'), {
+            nativeEvent: {
+                contentOffset: {y: 1000},
+                contentSize: {height: 2000},
+                layoutMeasurement: {height: 800},
+            },
+        });
 
         rerender(
             <BaseListItemRenderer
@@ -236,9 +244,6 @@ describe('BaseSelectionList', () => {
         // Should now show items from second page
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}51`)).toBeTruthy();
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}62`)).toBeTruthy();
-
-        // Should not show, "Show more" button as we rendered whole list and search text was not changed
-        expect(screen.queryByText('common.showMore')).toBeFalsy();
     });
 
     it('should reset current page when text input changes', () => {
@@ -250,8 +255,14 @@ describe('BaseSelectionList', () => {
             />,
         );
 
-        // Click Show More button
-        fireEvent.press(screen.getByText('common.showMore'));
+        // Simulate scrolling to end to load more items
+        fireEvent.scroll(screen.getByTestId('selection-list'), {
+            nativeEvent: {
+                contentOffset: {y: 1000},
+                contentSize: {height: 2000},
+                layoutMeasurement: {height: 800},
+            },
+        });
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeTruthy();
 
         // Rerender with changed `searchText` to trigger `setCurrentPage(1)`
@@ -266,8 +277,5 @@ describe('BaseSelectionList', () => {
 
         // Should not show the items from second page
         expect(screen.queryByText(`${CONST.BASE_LIST_ITEM_TEST_ID}52`)).toBeFalsy();
-
-        // Should show, "Show more" button as current page is reset
-        expect(screen.getByText('common.showMore')).toBeOnTheScreen();
     });
 });
