@@ -94,7 +94,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
 
     const applyChanges = useCallback(() => {
         onSaveSelection(selectedItems.map((item) => item.value).flat());
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [onSaveSelection, selectedItems]);
 
     const footerContent = useMemo(
