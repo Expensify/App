@@ -166,6 +166,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const {isKeyboardShown} = useKeyboardState();
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const shouldPreventScrollAnimationRef = useRef<boolean>(false);
     const isItemSelected = useCallback(
         (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
         [isSelected, selectedItems, canSelectMultiple],
@@ -431,7 +432,8 @@ function BaseSelectionList<TItem extends ListItem>({
                 onArrowFocus(focusedItem);
             }
             if (shouldScrollToFocusedIndex) {
-                (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, true);
+                (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, !shouldPreventScrollAnimationRef.current && true);
+                shouldPreventScrollAnimationRef.current = false;
             }
         },
         ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
@@ -453,6 +455,7 @@ function BaseSelectionList<TItem extends ListItem>({
         if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex || textInputValue) {
             return;
         }
+        shouldPreventScrollAnimationRef.current = true;
         setFocusedIndex(selectedItemIndex);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectedItemIndex]);
