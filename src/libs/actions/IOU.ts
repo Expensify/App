@@ -3368,7 +3368,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const {
         attendees,
         amount,
-        distance,
         comment = '',
         currency,
         source = '',
@@ -11314,6 +11313,7 @@ function bulkHold(
 
     const isExpenseReport = isExpenseReportUtils(report);
     const coefficient = isExpenseReport ? -1 : 1;
+    const createdTime = DateUtils.getDBTime();
     const reportID = report.reportID;
 
     const ancestorReportActionsOptimisticData: Record<string, PartialDeep<OnyxTypes.ReportActions>> = {};
@@ -11326,11 +11326,25 @@ function bulkHold(
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         const transactionThreadReport = buildTransactionThread(iouAction, report, reportID, iouAction?.childReportID);
 
-        const createdTime = DateUtils.getDBTime();
-        const holdReportActionCreatedTime = DateUtils.addMillisecondsFromDateTime(createdTime, 1)
-        
-        const holdReportAction = buildOptimisticHoldReportAction(holdReportActionCreatedTime)
-        const holdReportActionComment = buildOptimisticHoldReportActionComment(comment, holdReportActionCreatedTime);
+        const holdReportActionCreatedTime = DateUtils.addMillisecondsFromDateTime(createdTime, 1);
+        const holdReportActionCommentCreatedTime = DateUtils.addMillisecondsFromDateTime(createdTime, 2);
+
+        const holdReportAction = buildOptimisticHoldReportAction(holdReportActionCreatedTime);
+        const holdReportActionComment = buildOptimisticHoldReportActionComment(comment, holdReportActionCommentCreatedTime);
+
+        // Still need to work correct ancestorReportActions
+        for (const ancestorReportAction of ancestorReportActions) {
+            if (!ancestorReportAction.reportID) {
+                return null;
+            }
+            if (!ancestorReportActionsOptimisticData[ancestorReportAction.reportID]) {
+                ancestorReportActionsOptimisticData[ancestorReportAction.reportID] = {
+                    [ancestorReportAction.reportActionID] : updateOptimisticParentReportAction(ancestorReportAction, holdReportActionCommentCreatedTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
+                };
+                continue;
+            }
+            ancestorReportActionsOptimisticData[ancestorReportAction.reportID][ancestorReportAction.reportActionID] = updateOptimisticParentReportAction(ancestorReportAction, holdReportActionCommentCreatedTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
+        }
 
         holdData[transactionID] = {
             holdReportActionID: holdReportAction.reportActionID,
@@ -11400,19 +11414,6 @@ function bulkHold(
                     value: {[iouAction.reportActionID]: {childReportID: null}},
                 },
             );
-        }
-
-        for (const ancestorReportAction of ancestorReportActions) {
-            if (!ancestorReportAction.reportID) {
-                return null;
-            }
-            const ancestorReportActionOptimisticData = updateOptimisticParentReportAction(ancestorReportAction, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-            if (!ancestorReportActionsOptimisticData[ancestorReportAction.reportID]) {
-                ancestorReportActionsOptimisticData[ancestorReportAction.reportID] = {};
-            }
-            ancestorReportActionsOptimisticData[ancestorReportAction.reportID][ancestorReportAction.reportActionID] = {
-                ...ancestorReportActionOptimisticData,
-            };
         }
 
         optimisticData.push(
