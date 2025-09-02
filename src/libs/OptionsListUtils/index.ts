@@ -697,7 +697,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         !isReportArchived &&
         (report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED || (lastOriginalReportAction?.reportActionID && isDeletedAction(lastOriginalReportAction)))
     ) {
-        return lastMessageTextFromReport || (getReportLastMessage(reportID).lastMessageText ?? '');
+        return lastMessageTextFromReport || (getReportLastMessage(reportID, undefined, isReportArchived).lastMessageText ?? '');
     }
 
     // When the last report action has unknown mentions (@Hidden), we want to consistently show @Hidden in LHN and report screen
