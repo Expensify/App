@@ -1833,6 +1833,9 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.DOMAIN_SELECTOR]: {
         backTo?: Routes;
     };
+    [SCREENS.TRAVEL.VERIFY_ACCOUNT]: {
+        domain: string;
+    };
 };
 
 type ReportsSplitNavigatorParamList = {
