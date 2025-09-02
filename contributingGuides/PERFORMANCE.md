@@ -355,3 +355,10 @@ The solution is better control of invisible elements, making sure they are not i
 Another issue worth mentioning is unnecessary code execution, especially for elements that are never shown on a specific platform. In theory, we separate the logic between platforms by using index.tsx/index.native.tsx files, but sometimes platform-specific logic may slip in, causing unnecessary execution. For example, this may happen when logic specific to a wide layout (applicable only for desktop/web) is included.
 
 The last common issue is related to the use of `return null`. Sometimes we already know in the parent component that a specific child should not be rendered. In such cases, we unnecessarily execute the child's internal logic (calling hooks, sending requests) only to find out that the whole process was redundant.
+
+Examples:
+- [Add shouldRender check in EducationalTooltip to avoid unnecessary calls](https://github.com/Expensify/App/pull/66052) - avoids rendering invisible components
+- [Remove shouldAdjustScrollView to avoid heavy rerender](https://github.com/Expensify/App/pull/66849) - removes hooks that were called only for Safari logic slowing down the `ReportScreen.tsx`
+- [PopoverWithMeasuredContent optimization for mobile](https://github.com/Expensify/App/pull/68223) - returns early to avoid unnecessary calculations
+- [Reduce confirm modal initial render count](https://github.com/Expensify/App/pull/67518) - returns early to reduce first load cost
+- [Do not render PopoverMenu until it gets opened](https://github.com/Expensify/App/pull/67877) - adds a wrapper to control if `PopoverMenu` should be rendered
