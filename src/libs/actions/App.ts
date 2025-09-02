@@ -58,8 +58,11 @@ Onyx.connect({
     },
 });
 
+// preservedShouldUseStagingServer is used in the "clearOnyxAndResetApp" functions and is not directly associated with the View,
+// so retrieving it using Onyx.connectWithoutView is correct.
+// If this variable is ever needed for use in React components, it should be retrieved using useOnyx.
 let preservedShouldUseStagingServer: boolean | undefined;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         preservedShouldUseStagingServer = value?.shouldUseStagingServer;
