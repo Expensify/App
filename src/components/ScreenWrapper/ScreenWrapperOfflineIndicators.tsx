@@ -52,8 +52,8 @@ function ScreenWrapperOfflineIndicators({
     const {isOffline} = useNetwork();
 
     const {insets} = useSafeAreaPaddings(true);
-    const navigationBarType = useMemo(() => StyleUtils.getNavigationBarType(insets), [StyleUtils, insets]);
-    const isSoftKeyNavigation = navigationBarType === CONST.NAVIGATION_BAR_TYPE.SOFT_KEYS;
+    // const navigationBarType = useMemo(() => StyleUtils.getNavigationBarType(insets), [StyleUtils, insets]);
+    const isSoftKeyNavigation = true;
 
     /**
      * This style applies the background color of the small screen offline indicator.

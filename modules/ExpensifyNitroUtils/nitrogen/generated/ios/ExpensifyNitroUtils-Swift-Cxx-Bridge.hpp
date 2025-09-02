@@ -14,17 +14,22 @@ namespace margelo::nitro::utils { enum class ContactFields; }
 namespace margelo::nitro::utils { struct Contact; }
 // Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
+// Forward declaration of `HybridNavBarManagerModuleSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridNavBarManagerModuleSpec; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
 
 // Forward declarations of Swift defined types
 // Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
+// Forward declaration of `HybridNavBarManagerModuleSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridNavBarManagerModuleSpec_cxx; }
 
 // Include C++ defined types
 #include "Contact.hpp"
 #include "ContactFields.hpp"
 #include "HybridContactsModuleSpec.hpp"
+#include "HybridNavBarManagerModuleSpec.hpp"
 #include "StringHolder.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/PromiseHolder.hpp>
@@ -168,6 +173,36 @@ namespace margelo::nitro::utils::bridge::swift {
   }
   inline Result_std__shared_ptr_Promise_std__vector_Contact____ create_Result_std__shared_ptr_Promise_std__vector_Contact____(const std::exception_ptr& error) {
     return Result<std::shared_ptr<Promise<std::vector<Contact>>>>::withError(error);
+  }
+  
+  // pragma MARK: std::shared_ptr<margelo::nitro::utils::HybridNavBarManagerModuleSpec>
+  /**
+   * Specialized version of `std::shared_ptr<margelo::nitro::utils::HybridNavBarManagerModuleSpec>`.
+   */
+  using std__shared_ptr_margelo__nitro__utils__HybridNavBarManagerModuleSpec_ = std::shared_ptr<margelo::nitro::utils::HybridNavBarManagerModuleSpec>;
+  std::shared_ptr<margelo::nitro::utils::HybridNavBarManagerModuleSpec> create_std__shared_ptr_margelo__nitro__utils__HybridNavBarManagerModuleSpec_(void* _Nonnull swiftUnsafePointer);
+  void* _Nonnull get_std__shared_ptr_margelo__nitro__utils__HybridNavBarManagerModuleSpec_(std__shared_ptr_margelo__nitro__utils__HybridNavBarManagerModuleSpec_ cppType);
+  
+  // pragma MARK: std::weak_ptr<margelo::nitro::utils::HybridNavBarManagerModuleSpec>
+  using std__weak_ptr_margelo__nitro__utils__HybridNavBarManagerModuleSpec_ = std::weak_ptr<margelo::nitro::utils::HybridNavBarManagerModuleSpec>;
+  inline std__weak_ptr_margelo__nitro__utils__HybridNavBarManagerModuleSpec_ weakify_std__shared_ptr_margelo__nitro__utils__HybridNavBarManagerModuleSpec_(const std::shared_ptr<margelo::nitro::utils::HybridNavBarManagerModuleSpec>& strong) { return strong; }
+  
+  // pragma MARK: Result<void>
+  using Result_void_ = Result<void>;
+  inline Result_void_ create_Result_void_() {
+    return Result<void>::withValue();
+  }
+  inline Result_void_ create_Result_void_(const std::exception_ptr& error) {
+    return Result<void>::withError(error);
+  }
+  
+  // pragma MARK: Result<std::string>
+  using Result_std__string_ = Result<std::string>;
+  inline Result_std__string_ create_Result_std__string_(const std::string& value) {
+    return Result<std::string>::withValue(value);
+  }
+  inline Result_std__string_ create_Result_std__string_(const std::exception_ptr& error) {
+    return Result<std::string>::withError(error);
   }
 
 } // namespace margelo::nitro::utils::bridge::swift

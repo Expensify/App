@@ -1,13 +1,12 @@
-import {NativeModules} from 'react-native';
-import CONST from '@src/CONST';
+import {NavBarManagerNitroModule, NAVIGATION_BAR_TYPE} from '@expensify/nitro-utils';
 import type NavBarManager from './types';
 
 const navBarManager: NavBarManager = {
     setButtonStyle: (style) => {
-        NativeModules.RNNavBarManager.setButtonStyle(style);
+        NavBarManagerNitroModule.setButtonStyle(style);
     },
     getType: () => {
-        return CONST.NAVIGATION_BAR_TYPE.GESTURE_BAR;
+        return NAVIGATION_BAR_TYPE.GESTURE_BAR;
     },
 };
 

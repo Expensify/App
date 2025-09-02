@@ -10,6 +10,7 @@
 // Include C++ implementation defined types
 #include "ExpensifyNitroUtils-Swift-Cxx-Umbrella.hpp"
 #include "HybridContactsModuleSpecSwift.hpp"
+#include "HybridNavBarManagerModuleSpecSwift.hpp"
 
 namespace margelo::nitro::utils::bridge::swift {
 
@@ -42,6 +43,22 @@ namespace margelo::nitro::utils::bridge::swift {
     }
   #endif
     ExpensifyNitroUtils::HybridContactsModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
+    return swiftPart.toUnsafe();
+  }
+  
+  // pragma MARK: std::shared_ptr<margelo::nitro::utils::HybridNavBarManagerModuleSpec>
+  std::shared_ptr<margelo::nitro::utils::HybridNavBarManagerModuleSpec> create_std__shared_ptr_margelo__nitro__utils__HybridNavBarManagerModuleSpec_(void* _Nonnull swiftUnsafePointer) {
+    ExpensifyNitroUtils::HybridNavBarManagerModuleSpec_cxx swiftPart = ExpensifyNitroUtils::HybridNavBarManagerModuleSpec_cxx::fromUnsafe(swiftUnsafePointer);
+    return std::make_shared<margelo::nitro::utils::HybridNavBarManagerModuleSpecSwift>(swiftPart);
+  }
+  void* _Nonnull get_std__shared_ptr_margelo__nitro__utils__HybridNavBarManagerModuleSpec_(std__shared_ptr_margelo__nitro__utils__HybridNavBarManagerModuleSpec_ cppType) {
+    std::shared_ptr<margelo::nitro::utils::HybridNavBarManagerModuleSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::utils::HybridNavBarManagerModuleSpecSwift>(cppType);
+  #ifdef NITRO_DEBUG
+    if (swiftWrapper == nullptr) [[unlikely]] {
+      throw std::runtime_error("Class \"HybridNavBarManagerModuleSpec\" is not implemented in Swift!");
+    }
+  #endif
+    ExpensifyNitroUtils::HybridNavBarManagerModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
     return swiftPart.toUnsafe();
   }
 

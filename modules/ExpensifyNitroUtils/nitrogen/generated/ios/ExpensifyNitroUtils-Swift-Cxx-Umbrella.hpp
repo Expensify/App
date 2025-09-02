@@ -14,6 +14,10 @@ namespace margelo::nitro::utils { enum class ContactFields; }
 namespace margelo::nitro::utils { struct Contact; }
 // Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
+// Forward declaration of `HybridNavBarManagerModuleSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridNavBarManagerModuleSpec; }
+// Forward declaration of `NavBarButtonStyle` to properly resolve imports.
+namespace margelo::nitro::utils { enum class NavBarButtonStyle; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
 
@@ -21,6 +25,8 @@ namespace margelo::nitro::utils { struct StringHolder; }
 #include "Contact.hpp"
 #include "ContactFields.hpp"
 #include "HybridContactsModuleSpec.hpp"
+#include "HybridNavBarManagerModuleSpec.hpp"
+#include "NavBarButtonStyle.hpp"
 #include "StringHolder.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/Result.hpp>
@@ -41,6 +47,8 @@ namespace margelo::nitro::utils { struct StringHolder; }
 // Forward declarations of Swift defined types
 // Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
+// Forward declaration of `HybridNavBarManagerModuleSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridNavBarManagerModuleSpec_cxx; }
 
 // Include Swift defined types
 #if __has_include("ExpensifyNitroUtils-Swift.h")
