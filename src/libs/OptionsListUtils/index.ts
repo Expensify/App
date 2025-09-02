@@ -744,7 +744,7 @@ function createOption(
     // Initialize only the properties that are actually used in SearchOption context
     const result: SearchOptionData = {
         // Core identification - used in SearchOption context
-        reportID: report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+        reportID: report?.reportID,
         accountID: 0, // Set conditionally below
         login: undefined, // Set conditionally below
         policyID: report?.policyID,
