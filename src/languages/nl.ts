@@ -52,6 +52,7 @@ import type {
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
     BusinessBankAccountParams,
+    BusinessRegistrationNumberParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -203,6 +204,7 @@ import type {
     SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
+    SignerInfoMessageParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
@@ -321,6 +323,7 @@ const translations = {
         count: 'Aantal',
         cancel: 'Annuleren',
         dismiss: 'Verwijderen',
+        proceed: 'Proceed',
         yes: 'Ja',
         no: 'No',
         ok: 'OK',
@@ -955,6 +958,7 @@ const translations = {
         distance: 'Afstand',
         manual: 'Handleiding',
         scan: 'Scannen',
+        map: 'Kaart',
     },
     spreadsheet: {
         upload: 'Upload een spreadsheet',
@@ -1252,6 +1256,7 @@ const translations = {
             invalidCategoryLength: 'De categorienaam overschrijdt 255 tekens. Verkort deze of kies een andere categorie.',
             invalidTagLength: 'De tagnaam overschrijdt 255 tekens. Verkort het of kies een andere tag.',
             invalidAmount: 'Voer een geldig bedrag in voordat u doorgaat.',
+            invalidDistance: 'Voer een geldige afstand in voordat u doorgaat.',
             invalidIntegerAmount: 'Voer een heel dollarbedrag in voordat u doorgaat.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Maximale belastingbedrag is ${amount}`,
             invalidSplit: 'De som van de splitsingen moet gelijk zijn aan het totale bedrag',
@@ -1924,6 +1929,7 @@ const translations = {
         virtualCardNumber: 'Virtueel kaartnummer',
         travelCardCvv: 'Reiskaart CVV',
         physicalCardNumber: 'Fysiek kaartnummer',
+        physicalCardPin: 'PIN',
         getPhysicalCard: 'Fysieke kaart aanvragen',
         reportFraud: 'Meld fraude met virtuele kaart aan',
         reportTravelFraud: 'Reiskaartfraude melden',
@@ -3021,7 +3027,14 @@ const translations = {
         whatsTheBusinessName: 'Wat is de bedrijfsnaam?',
         whatsTheBusinessAddress: 'Wat is het zakelijke adres?',
         whatsTheBusinessContactInformation: 'Wat zijn de zakelijke contactgegevens?',
-        whatsTheBusinessRegistrationNumber: 'Wat is het bedrijfsregistratienummer?',
+        whatsTheBusinessRegistrationNumber: ({country}: BusinessRegistrationNumberParams) => {
+            switch (country) {
+                case CONST.COUNTRY.GB:
+                    return 'Wat is het bedrijfsregistratienummer (CRN)?';
+                default:
+                    return 'Wat is het bedrijfsregistratienummer?';
+            }
+        },
         whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:
@@ -3254,6 +3267,10 @@ const translations = {
         PDSandFSGDescription:
             'Onze samenwerking met Corpay maakt gebruik van een API-verbinding om te profiteren van hun uitgebreide netwerk van internationale bankpartners om wereldwijde terugbetalingen in Expensify mogelijk te maken. Conform de Australische regelgeving verstrekken wij u de Financial Services Guide (FSG) en Product Disclosure Statement (PDS) van Corpay.\n\nLees de FSG- en PDS-documenten zorgvuldig door, aangezien ze volledige details en belangrijke informatie bevatten over de producten en diensten die Corpay aanbiedt. Bewaar deze documenten voor toekomstige referentie.',
         pleaseUpload: 'Gelieve hieronder aanvullende documentatie te uploaden om ons te helpen uw identiteit als directeur of senior functionaris van de zakelijke entiteit te verifiëren.',
+        enterSignerInfo: 'Voer ondertekenaargegevens in',
+        thisStep: 'Deze stap is voltooid',
+        isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+            `verbindt een zakelijke bankrekening in ${currency} eindigend op ${bankAccountLastFour} met Expensify om werknemers in ${currency} te betalen. De volgende stap vereist ondertekenaarinformatie van een directeur of senior functionaris.`,
     },
     agreementsStep: {
         agreements: 'Overeenkomsten',
@@ -3468,12 +3485,14 @@ const translations = {
             customField1: 'Aangepast veld 1',
             customField2: 'Aangepast veld 2',
             customFieldHint: 'Voeg aangepaste codering toe die van toepassing is op alle uitgaven van dit lid.',
+            reports: 'Rapporten',
             reportFields: 'Rapportvelden',
             reportTitle: 'Rapporttitel',
             reportField: 'Rapportveld',
             taxes: 'Belastingen',
             bills: 'Rekeningen',
             invoices: 'Facturen',
+            perDiem: 'Per diem',
             travel: 'Reis',
             members: 'Leden',
             accounting: 'Boekhouding',
@@ -3486,6 +3505,7 @@ const translations = {
             testTransactions: 'Testtransacties',
             issueAndManageCards: 'Kaarten uitgeven en beheren',
             reconcileCards: 'Reconcileer kaarten',
+            selectAll: 'Alles selecteren',
             selected: () => ({
                 one: '1 geselecteerd',
                 other: (count: number) => `${count} geselecteerd`,
@@ -3499,6 +3519,8 @@ const translations = {
             memberNotFound: 'Lid niet gevonden. Om een nieuw lid aan de werkruimte toe te voegen, gebruik de uitnodigingsknop hierboven.',
             notAuthorized: `Je hebt geen toegang tot deze pagina. Als je probeert lid te worden van deze werkruimte, vraag dan de eigenaar van de werkruimte om je als lid toe te voegen. Iets anders? Neem contact op met ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: 'Ga naar werkruimte',
+            duplicateWorkspace: 'Dubbele werkruimte',
+            duplicateWorkspacePrefix: 'Duplicaat',
             goToWorkspaces: 'Ga naar werkruimtes',
             clearFilter: 'Filter wissen',
             workspaceName: 'Werkruimte naam',
@@ -3570,11 +3592,33 @@ const translations = {
             connect: 'Maak nu verbinding',
             uber: {
                 subtitle: 'Automatiseer reis- en maaltijdbezorgkosten binnen uw organisatie.',
+                sendInvites: 'Leden uitnodigen',
+                sendInvitesDescription: 'Deze workspace-leden hebben nog geen Uber for Business-account. Deselecteer alle leden die u op dit moment niet wilt uitnodigen.',
+                confirmInvite: 'Uitnodiging bevestigen',
+                manageInvites: 'Beheer uitnodigingen',
+                confirm: 'Bevestigen',
+                allSet: 'Alles klaar',
+                readyToRoll: 'Je bent klaar om te beginnen',
+                takeBusinessRideMessage: 'Neem een zakelijke rit en je Uber-bonnetjes worden geïmporteerd in Expensify. Laten we gaan!',
+                all: 'Alle',
+                linked: 'Gekoppeld',
+                outstanding: 'Openstaand',
+                status: {
+                    resend: 'Opnieuw verzenden',
+                    invite: 'Uitnodigen',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED]: 'Gekoppeld',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'In behandeling',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Opgeschort',
+                },
+                invitationFailure: 'Kon leden niet uitnodigen voor Uber for Business',
                 autoRemove: 'Nodig nieuwe werkruimteleden uit voor Uber for Business',
                 autoInvite: 'Deactiveer verwijderde werkruimteleden van Uber for Business',
-                manageInvites: 'Beheer uitnodigingen',
                 bannerTitle: 'Expensify + Uber voor bedrijven',
                 bannerDescription: 'Sluit Uber for Business aan om de kosten voor reizen en maaltijdbezorging binnen uw organisatie te automatiseren.',
+                emptyContent: {
+                    title: 'Geen leden om weer te geven',
+                    subtitle: 'We hebben overal gezocht en niets gevonden.',
+                },
             },
         },
         perDiem: {
@@ -4438,6 +4482,8 @@ const translations = {
             verifyingTheDetails: 'We controleren een paar details. Concierge laat je weten wanneer Expensify Cards klaar zijn om uit te geven.',
             disclaimer:
                 'De Expensify Visa® Commercial Card wordt uitgegeven door The Bancorp Bank, N.A., lid FDIC, krachtens een licentie van Visa U.S.A. Inc. en kan niet worden gebruikt bij alle handelaren die Visa-kaarten accepteren. Apple® en het Apple-logo® zijn handelsmerken van Apple Inc., geregistreerd in de VS en andere landen. App Store is een servicemerk van Apple Inc. Google Play en het Google Play-logo zijn handelsmerken van Google LLC.',
+            euUkDisclaimer:
+                'Kaarten die aan inwoners van de EER worden verstrekt, worden uitgegeven door Transact Payments Malta Limited en kaarten die aan inwoners van het VK worden verstrekt, worden uitgegeven door Transact Payments Limited op basis van een vergunning van Visa Europe Limited. Transact Payments Malta Limited is naar behoren geautoriseerd en gereguleerd door de Malta Financial Services Authority als financiële instelling onder de Financial Institution Act van 1994. Registratienummer C 91879. Transact Payments Limited is geautoriseerd en gereguleerd door de Gibraltar Financial Service Commission.',
             issueCard: 'Kaart uitgeven',
             findCard: 'Kaart vinden',
             newCard: 'Nieuwe kaart',
@@ -4906,6 +4952,18 @@ const translations = {
             importedFromAccountingSoftware: 'De onderstaande belastingen zijn geïmporteerd van uw',
             taxCode: 'Belastingcode',
             updateTaxCodeFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de belastingcode, probeer het opnieuw.',
+        },
+        duplicateWorkspace: {
+            title: 'Geef je nieuwe werkruimte een naam',
+            selectFeatures: 'Selecteer te kopiëren functies',
+            whichFeatures: 'Welke functies wil je kopiëren naar je nieuwe werkruimte?',
+            confirmDuplicate: '\n\nWil je doorgaan?',
+            categories: 'categorieën en je regels voor automatische categorisatie',
+            reimbursementAccount: 'vergoedingsrekening',
+            delayedSubmission: 'vertraagde indiening',
+            welcomeNote: 'Ga aan de slag met mijn nieuwe werkruimte',
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `Je staat op het punt om ${newWorkspaceName ?? ''} te maken en te delen met ${totalMembers ?? 0} leden uit de oorspronkelijke werkruimte.`,
         },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
