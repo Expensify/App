@@ -34,6 +34,7 @@ const SigningOutPage: SigningOutPageType = () => {
             <ScreenWrapper
                 shouldEnableMaxHeight
                 testID={SigningOutPage.displayName}
+                shouldShowOfflineIndicator={false}
             >
                 {null}
             </ScreenWrapper>
