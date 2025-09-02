@@ -4705,7 +4705,7 @@ describe('actions/IOU', () => {
 
             const {result} = renderHook(() => useAncestorReportActions(iouReport.reportID));
             await waitForBatchedUpdates();
-            
+
             bulkHold(
                 comment,
                 iouReport,
@@ -4714,7 +4714,7 @@ describe('actions/IOU', () => {
                 {},
                 transactionsIOUActions,
             );
-    
+
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const violationsConnection = Onyx.connect({
@@ -4757,7 +4757,6 @@ describe('actions/IOU', () => {
                         const {unheldTotal, unheldNonReimbursableTotal} = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`] ?? {};
                         expect(unheldNonReimbursableTotal).toEqual(0);
                         expect(unheldTotal).toEqual(200);
-                        
                     },
                 });
             });
@@ -4897,7 +4896,7 @@ describe('actions/IOU', () => {
                         // First transaction thread
                         const thread1LastVisibleActionCreated = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction1Thread.reportID}`]?.lastVisibleActionCreated;
                         expect(thread1LastVisibleActionCreated).toBeDefined();
-                        
+
                         // Second transaction thread
                         const thread2LastVisibleActionCreated = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction2Thread.reportID}`]?.lastVisibleActionCreated;
                         expect(thread2LastVisibleActionCreated).toBeDefined();
@@ -4915,7 +4914,10 @@ describe('actions/IOU', () => {
                                 expect(iouReportActions).toHaveLength(2);
 
                                 // updateOptimisticParentReportAction
-                                const iouReportAction = getSortedReportActions(Object.values(iouReportActions ?? {}).filter((action): action is ReportAction => action !== null), true).at(0);
+                                const iouReportAction = getSortedReportActions(
+                                    Object.values(iouReportActions ?? {}).filter((action): action is ReportAction => action !== null),
+                                    true,
+                                ).at(0);
                                 expect(iouReportAction?.childVisibleActionCount).toBe(2);
                                 expect(iouReportAction?.childLastVisibleActionCreated).toBe(thread2LastVisibleActionCreated);
 
@@ -4923,18 +4925,23 @@ describe('actions/IOU', () => {
                                 expect(thread1ReportActions).toBeDefined();
                                 expect(thread1ReportActions).toHaveLength(2);
 
-                                const thread1LastAction = getSortedReportActions(Object.values(thread1ReportActions ?? {}).filter((action): action is ReportAction => action !== null), true).at(0);
+                                const thread1LastAction = getSortedReportActions(
+                                    Object.values(thread1ReportActions ?? {}).filter((action): action is ReportAction => action !== null),
+                                    true,
+                                ).at(0);
                                 const thread1LastActionMessage = getReportActionMessage(thread1LastAction);
                                 // Then the transaction thread report lastVisibleActionCreated should equal the hold comment action created timestamp.
                                 expect(thread1LastActionMessage?.text).toBe(comment);
                                 expect(thread1LastAction?.created).toBe(thread1LastVisibleActionCreated);
-                                
 
                                 const thread2ReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction2Thread.reportID}`];
                                 expect(thread2ReportActions).toBeDefined();
                                 expect(thread2ReportActions).toHaveLength(2);
 
-                                const thread2LastAction = getSortedReportActions(Object.values(thread2ReportActions ?? {}).filter((action): action is ReportAction => action !== null), true).at(0);
+                                const thread2LastAction = getSortedReportActions(
+                                    Object.values(thread2ReportActions ?? {}).filter((action): action is ReportAction => action !== null),
+                                    true,
+                                ).at(0);
                                 const thread2LastActionMessage = getReportActionMessage(thread2LastAction);
                                 expect(thread2LastActionMessage?.text).toBe(comment);
                                 expect(thread2LastVisibleActionCreated).toBe(thread2LastAction?.childLastVisibleActionCreated);

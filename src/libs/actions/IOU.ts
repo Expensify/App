@@ -11300,7 +11300,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
 function bulkHold(
     comment: string,
     report: OnyxEntry<OnyxTypes.Report>,
-    ancestorReportActions: Array<OnyxTypes.ReportAction>,
+    ancestorReportActions: OnyxTypes.ReportAction[],
     transactions: OnyxCollection<OnyxTypes.Transaction>,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
     transactionsIOUActions: Record<string, ReportAction>,
@@ -11309,9 +11309,9 @@ function bulkHold(
         return;
     }
 
-    let optimisticUnheldNonReimbursableTotal: number | undefined = undefined;
-    let optimisticUnheldTotal: number | undefined = undefined;
-    
+    let optimisticUnheldNonReimbursableTotal: number | undefined;
+    let optimisticUnheldTotal: number | undefined;
+
     const isExpenseReport = isExpenseReportUtils(report);
     const coefficient = isExpenseReport ? -1 : 1;
     const reportID = report.reportID;
@@ -11321,7 +11321,6 @@ function bulkHold(
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
     const holdData: HoldData = {};
-    
 
     Object.entries(transactionsIOUActions).forEach(([transactionID, iouAction]) => {
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -11403,7 +11402,7 @@ function bulkHold(
             );
         }
 
-        for (const ancestorReportAction of ancestorReportActions){
+        for (const ancestorReportAction of ancestorReportActions) {
             if (!ancestorReportAction.reportID) {
                 return null;
             }
@@ -11414,7 +11413,7 @@ function bulkHold(
             ancestorReportActionsOptimisticData[ancestorReportAction.reportID][ancestorReportAction.reportActionID] = {
                 ...ancestorReportActionOptimisticData,
             };
-        };
+        }
 
         optimisticData.push(
             {
@@ -11509,7 +11508,7 @@ function bulkHold(
 
         const ancestorReportActionOptimisticData = ancestorReportActionsOptimisticData[ancestorReportActionReportID];
 
-        if (ancestorReportActionOptimisticData){
+        if (ancestorReportActionOptimisticData) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReportActionReportID}`,

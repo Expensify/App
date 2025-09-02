@@ -92,7 +92,14 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
             if (transactions !== undefined && transactionsIOUActions !== undefined) {
                 if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
                     if (!report) {
-                        bulkHold(comment, report, ancestorReportActions.map((v) => v.reportAction), transactions, transactionsViolations, transactionsIOUActions);
+                        bulkHold(
+                            comment,
+                            report,
+                            ancestorReportActions.map((v) => v.reportAction),
+                            transactions,
+                            transactionsViolations,
+                            transactionsIOUActions,
+                        );
                     }
                     context.clearSelectedTransactions(true);
                 } else {
@@ -102,7 +109,7 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
             }
             Navigation.goBack();
         },
-        [route.name, reportID, reports, reportActions, context, transactions, transactionsViolations, ancestorReportActions],
+        [ancestorReportActions, route.name, report, context, transactions, transactionsViolations, transactionsIOUActions],
     );
 
     const validate = useCallback(
