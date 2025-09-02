@@ -37,6 +37,7 @@ function HeaderWithBackButton({
     report,
     policyAvatar,
     shouldShowReportAvatarWithDisplay = false,
+    shouldDisplayStatus,
     shouldShowBackButton = true,
     shouldShowBorderBottom = false,
     shouldShowCloseButton = false,
@@ -101,6 +102,7 @@ function HeaderWithBackButton({
             return (
                 <AvatarWithDisplayName
                     report={report}
+                    shouldDisplayStatus={shouldDisplayStatus}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     openParentReportInCurrentTab={openParentReportInCurrentTab}
                 />
@@ -135,6 +137,7 @@ function HeaderWithBackButton({
         titleColor,
         translate,
         openParentReportInCurrentTab,
+        shouldDisplayStatus,
     ]);
     const ThreeDotMenuButton = useMemo(() => {
         if (shouldShowThreeDotsButton) {
