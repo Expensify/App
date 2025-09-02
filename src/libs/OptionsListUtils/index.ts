@@ -797,6 +797,28 @@ function createOption(
 
         // Set properties that are used in SearchOption context
         result.private_isArchived = reportNameValuePairs?.private_isArchived;
+<<<<<<< Updated upstream:src/libs/OptionsListUtils/index.ts
+=======
+        result.isExpenseReport = isExpenseReport(report);
+        result.isInvoiceRoom = isInvoiceRoom(report);
+        result.isMoneyRequestReport = reportUtilsIsMoneyRequestReport(report);
+        result.isThread = isChatThread(report);
+        result.isTaskReport = reportUtilsIsTaskReport(report);
+        result.shouldShowSubscript = shouldReportShowSubscript(report, !!result.private_isArchived);
+        result.isPolicyExpenseChat = reportUtilsIsPolicyExpenseChat(report);
+        result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat ?? false;
+        result.allReportErrors = reportAttributesDerived?.[report.reportID]?.reportErrors ?? {};
+        result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        result.pendingAction = report.pendingFields ? (report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat) : undefined;
+        result.ownerAccountID = report.ownerAccountID;
+        result.reportID = report.reportID;
+        const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
+        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
+        const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
+        result.isUnread = isUnread(report, oneTransactionThreadReport);
+        result.isPinned = report.isPinned;
+        result.iouReportID = report.iouReportID;
+>>>>>>> Stashed changes:src/libs/OptionsListUtils.ts
         result.keyForList = String(report.reportID);
 
         // Set lastMessageText - use archived message if report is archived, otherwise use report's lastMessageText
