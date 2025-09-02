@@ -34,7 +34,6 @@ const SigningOutPage: SigningOutPageType = () => {
             <ScreenWrapper
                 shouldEnableMaxHeight
                 testID={SigningOutPage.displayName}
-                shouldShowOfflineIndicator={false}
             >
                 {null}
             </ScreenWrapper>
@@ -45,6 +44,7 @@ const SigningOutPage: SigningOutPageType = () => {
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={SigningOutPage.displayName}
+            shouldShowOfflineIndicator={false}
         >
             <BlockingView
                 icon={Illustrations.FishingRod}
