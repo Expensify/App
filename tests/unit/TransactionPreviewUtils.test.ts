@@ -382,27 +382,27 @@ describe('TransactionPreviewUtils', () => {
             ].slice(0, count);
 
         test('returns translationPath when there is at least one violation and transaction is on hold', () => {
-            expect(getViolationTranslatePath(mockViolations(1), false, message, true)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(1), false, message, true, false)).toEqual(reviewRequired);
         });
 
         test('returns translationPath if violation message is too long', () => {
-            expect(getViolationTranslatePath(mockViolations(1), false, longMessage, false)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(1), false, longMessage, false, false)).toEqual(reviewRequired);
         });
 
         test('returns translationPath when there are multiple violations', () => {
-            expect(getViolationTranslatePath(mockViolations(2), false, message, false)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(2), false, message, false, false)).toEqual(reviewRequired);
         });
 
         test('returns translationPath when there is at least one violation and there are field errors', () => {
-            expect(getViolationTranslatePath(mockViolations(1), true, message, false)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(1), true, message, false, false)).toEqual(reviewRequired);
         });
 
         test('returns text when there are no violations, no hold, no field errors, and message is short', () => {
-            expect(getViolationTranslatePath(mockViolations(0), false, message, false)).toEqual({text: message});
+            expect(getViolationTranslatePath(mockViolations(0), false, message, false, false)).toEqual({text: message});
         });
 
         test('returns translationPath when there are no violations but message is too long', () => {
-            expect(getViolationTranslatePath(mockViolations(0), false, longMessage, false)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(0), false, longMessage, false, false)).toEqual(reviewRequired);
         });
     });
 
