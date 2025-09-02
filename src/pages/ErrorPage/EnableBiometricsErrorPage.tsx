@@ -7,6 +7,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Button from '@components/Button';
+import variables from '@styles/variables';
 // import useLocalize from '@hooks/useLocalize';
 
 function EnableBiometricsErrorPage() {
@@ -22,12 +23,12 @@ function EnableBiometricsErrorPage() {
                 onBackButtonPress={() => Navigation.goBack()}
                 shouldShowBackButton
             />
-            <View style={[styles.m5]}>
+            <View style={[styles.m5, styles.flex1]}>
                 <View style={[styles.flex1]}>
                     <BlockingView
                         icon={Illustrations.JustHumptyDumpty}
-                        iconWidth={254}
-                        iconHeight={165}
+                        iconWidth={variables.errorPageBiometricsImageWidth}
+                        iconHeight={variables.errorPageBiometricsImageHeight}
                         contentFitImage='fill'
                         title='Oops, something went wrong'
                         subtitle='Your device could not be registered'

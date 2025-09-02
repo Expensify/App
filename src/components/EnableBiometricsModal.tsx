@@ -23,15 +23,18 @@ type EnableBiometrcicsVerificationProps = {
 function EnableBiometrcicsModal({isVisible, onCancel = () => {}, registerBiometrics = () => {}}: EnableBiometrcicsVerificationProps) {
     const [isSoftPromptVisisble, setSoftPromptVisibility] = useState(true);
     const [isSuccessfullyNotificationVisible, setSuccess] = useState(false);
-    const {singleExecution} = useSingleExecution(); // isExecuting
+    const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
+
     const action = singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.ENABLE_BIOMETRICS_ERROR_PAGE)));
 
     const handleClose = () => {
-        setSoftPromptVisibility(true);
-        setSuccess(false);
         onCancel();
+        setSuccess(false);
+        setSoftPromptVisibility(true);
     };
+
+    const wasRegistrationSuccessful = true; // CHANGE TO FALSE IF YOU WANT TO TEST ERROR PAGE -> this should be replaced by the actual logic checking if the registration was successfull
 
     return (
         <ScreenWrapper
@@ -42,9 +45,14 @@ function EnableBiometrcicsModal({isVisible, onCancel = () => {}, registerBiometr
                 title="Use your face or fingerprint to verify transactions."
                 isVisible={isVisible}
                 onConfirm={() => {
-                    // setSuccess(true);
-                    setSoftPromptVisibility(false);
-                    action();
+                    if (wasRegistrationSuccessful) {
+                        registerBiometrics();
+                        setSoftPromptVisibility(false);
+                        setSuccess(true);
+                    } else {
+                        handleClose();
+                        action();
+                    }
                 }}
                 onCancel={onCancel}
                 prompt="Enable biometric security to use your face or fingerprint to verify transactions quickly and easily. No passwords or special codes needed."
@@ -55,7 +63,7 @@ function EnableBiometrcicsModal({isVisible, onCancel = () => {}, registerBiometr
             />
             )}
             {isSuccessfullyNotificationVisible && (
-                <AuthenticationSuccessfullNotification isVisible onCancel={() => handleClose()} onConfirm={() => registerBiometrics()} />
+                <AuthenticationSuccessfullNotification isVisible onConfirm={() => handleClose()}/>
             )}
         </ScreenWrapper>
     );

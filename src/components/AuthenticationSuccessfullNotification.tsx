@@ -8,13 +8,10 @@ type AuthenticationSuccessfullNotificationProps = {
     isVisible: boolean;
 
     /** A callback to call when the form has been closed */
-    onCancel?: () => void;
-
-    /** A callback to set biometrics as enabled (registered) */
     onConfirm?: () => void;
 };
 
-function AuthenticationSuccessfullNotification({isVisible, onCancel = () => {}, onConfirm = () => {}}: AuthenticationSuccessfullNotificationProps) {
+function AuthenticationSuccessfullNotification({isVisible, onConfirm = () => {}}: AuthenticationSuccessfullNotificationProps) {
     return (
         <ScreenWrapper
             testID={AuthenticationSuccessfullNotification.displayName}
@@ -23,7 +20,6 @@ function AuthenticationSuccessfullNotification({isVisible, onCancel = () => {}, 
                 title="Authentication successful"
                 isVisible={isVisible}
                 onConfirm={() => {
-                    onCancel();
                     onConfirm();
                 }}
                 prompt="You’ve successfully authenticated using Face ID. "
