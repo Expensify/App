@@ -152,7 +152,6 @@ function App() {
                                     PickerStateProvider,
                                     EnvironmentProvider,
                                     CustomStatusBarAndBackgroundContextProvider,
-                                    WideRHPContextProvider,
                                     ActiveElementRoleProvider,
                                     ActionSheetAwareScrollViewProvider,
                                     PlaybackContextProvider,

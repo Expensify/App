@@ -5756,6 +5756,7 @@ const styles = (theme: ThemeColors) =>
             ...sizing.w100,
             ...sizing.h100,
             backgroundColor: colors.green800,
+        },
 
         wideRHPMoneyRequestReceiptViewScrollView: {
             paddingTop: 12,
