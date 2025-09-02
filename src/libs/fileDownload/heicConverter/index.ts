@@ -25,39 +25,38 @@ const tryCanvasFallback = (blob: Blob, fileName: string): Promise<File> => {
     }
 
     // Try to create ImageBitmap directly from blob
-    return createImageBitmap(blob)
-        .then((imageBitmap) => {
-            // Create canvas and draw the image
-            const canvas = document.createElement('canvas');
-            canvas.width = imageBitmap.width;
-            canvas.height = imageBitmap.height;
+    return createImageBitmap(blob).then((imageBitmap) => {
+        // Create canvas and draw the image
+        const canvas = document.createElement('canvas');
+        canvas.width = imageBitmap.width;
+        canvas.height = imageBitmap.height;
 
-            const ctx = canvas.getContext('2d');
-            if (!ctx) {
-                throw new Error('Could not get canvas context');
-            }
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            throw new Error('Could not get canvas context');
+        }
 
-            ctx.drawImage(imageBitmap, 0, 0);
+        ctx.drawImage(imageBitmap, 0, 0);
 
-            // Convert canvas to JPEG blob
-            return new Promise<File>((resolve, reject) => {
-                canvas.toBlob(
-                    (convertedBlob) => {
-                        if (!convertedBlob) {
-                            reject(new Error('Canvas conversion failed'));
-                            return;
-                        }
+        // Convert canvas to JPEG blob
+        return new Promise<File>((resolve, reject) => {
+            canvas.toBlob(
+                (convertedBlob) => {
+                    if (!convertedBlob) {
+                        reject(new Error('Canvas conversion failed'));
+                        return;
+                    }
 
-                        const jpegFileName = fileName.replace(/\.(heic|heif)$/i, '.jpg');
-                        const jpegFile = new File([convertedBlob], jpegFileName, {type: 'image/jpeg'});
-                        jpegFile.uri = URL.createObjectURL(jpegFile);
-                        resolve(jpegFile);
-                    },
-                    'image/jpeg',
-                    0.85,
-                );
-            });
+                    const jpegFileName = fileName.replace(/\.(heic|heif)$/i, '.jpg');
+                    const jpegFile = new File([convertedBlob], jpegFileName, {type: 'image/jpeg'});
+                    jpegFile.uri = URL.createObjectURL(jpegFile);
+                    resolve(jpegFile);
+                },
+                'image/jpeg',
+                0.85,
+            );
         });
+    });
 };
 
 /**
@@ -101,26 +100,27 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
 
             // Strategy 1: Try heic-to library (primary method)
             if (heicConverter) {
-                return heicConverter.heicTo({
-                    blob,
-                    type: 'image/jpeg',
-                })
-                .then((convertedBlob) => {
-                    const jpegFileName = fileName.replace(/\.(heic|heif)$/i, '.jpg');
-                    const jpegFile = new File([convertedBlob], jpegFileName, {type: 'image/jpeg'});
-                    jpegFile.uri = URL.createObjectURL(jpegFile);
-                    onSuccess(jpegFile);
-                })
-                .catch(() => {
-                    // Strategy 2: Try Canvas API with ImageBitmap
-                    return tryCanvasFallback(blob, fileName)
-                        .then((canvasResult) => {
-                            onSuccess(canvasResult);
-                        })
-                        .catch((canvasError) => {
-                            onError(canvasError, file);
-                        });
-                });
+                return heicConverter
+                    .heicTo({
+                        blob,
+                        type: 'image/jpeg',
+                    })
+                    .then((convertedBlob) => {
+                        const jpegFileName = fileName.replace(/\.(heic|heif)$/i, '.jpg');
+                        const jpegFile = new File([convertedBlob], jpegFileName, {type: 'image/jpeg'});
+                        jpegFile.uri = URL.createObjectURL(jpegFile);
+                        onSuccess(jpegFile);
+                    })
+                    .catch(() => {
+                        // Strategy 2: Try Canvas API with ImageBitmap
+                        return tryCanvasFallback(blob, fileName)
+                            .then((canvasResult) => {
+                                onSuccess(canvasResult);
+                            })
+                            .catch((canvasError) => {
+                                onError(canvasError, file);
+                            });
+                    });
             }
 
             // Strategy 2: Try Canvas API with ImageBitmap (when no heic converter)
