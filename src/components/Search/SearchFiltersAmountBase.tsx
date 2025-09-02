@@ -40,7 +40,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
             [`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: greaterThanBackendAmount?.toString(),
             [`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`]: lessThanBackendAmount?.toString(),
         });
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     };
 
     return (
@@ -54,7 +54,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
             <HeaderWithBackButton
                 title={translate(title)}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <FormProvider

@@ -6,6 +6,7 @@ import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
+import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -41,6 +42,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
     const {isOffline} = useNetwork();
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
+    const currency = useCurrencyForExpensifyCard({policyID});
 
     const isEditing = issueNewCard?.isEditing;
 
@@ -49,6 +51,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
     const submit = (assignee: ListItem) => {
         const data: Partial<IssueNewCardData> = {
             assigneeEmail: assignee?.login ?? '',
+            currency,
         };
 
         if (isEditing && issueNewCard?.data?.cardTitle === getCardDefaultName(getUserNameByEmail(issueNewCard?.data?.assigneeEmail, 'firstName'))) {
