@@ -114,6 +114,7 @@ function BaseSelectionList<TItem extends ListItem>({
     listHeaderContent,
     onEndReached = () => {},
     onEndReachedThreshold,
+    shouldSkipShowMoreButton = false,
     windowSize = 5,
     updateCellsBatchingPeriod = 50,
     removeClippedSubviews = true,
@@ -297,6 +298,12 @@ function BaseSelectionList<TItem extends ListItem>({
     }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, itemHeights, getItemHeight]);
 
     const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
+        if (shouldSkipShowMoreButton) {
+            // When skipping the Show More button, return all sections without any slicing
+            const processedSections = getSectionsWithIndexOffset(sections as Array<SectionListDataType<TItem>>);
+            return [processedSections, null];
+        }
+
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
         const processedSections = getSectionsWithIndexOffset(
             sections.map((section) => {
@@ -323,7 +330,7 @@ function BaseSelectionList<TItem extends ListItem>({
         // we don't need to add styles here as they change
         // we don't need to add flattenedSections here as they will change along with sections
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [sections, currentPage]);
+    }, [sections, currentPage, shouldSkipShowMoreButton]);
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
     const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
