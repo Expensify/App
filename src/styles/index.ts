@@ -2920,6 +2920,8 @@ const styles = (theme: ThemeColors) =>
         rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
             ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize, flex: 1}) satisfies ViewStyle,
 
+        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
+
         avatarInnerTextChat: {
             color: theme.text,
             fontSize: variables.fontSizeXLarge,
@@ -5735,21 +5737,18 @@ const styles = (theme: ThemeColors) =>
             zIndex: 15,
         },
 
-        fullHeight: {
-            height: '100%',
-        },
-
-        heightAuto: {
-            height: 'auto',
-        },
-
-        wideRHPMoneyRequestReceiptViewContainer: {
-            backgroundColor: theme.appBG,
-            // width: variables.receiptPaneRHPMaxWidth,
-            width: receiptPaneRHPWidth,
-            height: '100%',
-            borderRightWidth: 1,
+        receiptPreview: {
+            position: 'absolute',
+            left: 60,
+            top: 60,
+            width: 380,
+            maxHeight: 'calc(100vh - 120px)',
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
             borderColor: theme.border,
+            overflow: 'hidden',
+            boxShadow: theme.shadow,
+            backgroundColor: theme.appBG,
         },
 
         receiptPreviewEReceiptsContainer: {
@@ -5758,20 +5757,11 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: colors.green800,
         },
 
-        wideRHPMoneyRequestReceiptViewScrollView: {
-            paddingTop: 12,
-            minHeight: '100%',
-        },
-
         wideRHPExtendedCardInterpolatorStyles: {
             position: 'fixed',
             height: '100%',
             right: 0,
             width: Animated.add(variables.sideBarWidth, receiptPaneRHPWidth),
-        },
-
-        smallMoreButton: {
-            marginRight: 12,
         },
 
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
@@ -5807,4 +5797,4 @@ const defaultStyles = styles(defaultTheme);
 
 export default styles;
 export {defaultStyles};
-export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions, OverlayStylesParams};
+export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions};
