@@ -1,4 +1,4 @@
-import {NavBarManagerNitroModule, NAVIGATION_BAR_TYPE} from '@expensify/nitro-utils';
+import {NavBarManagerNitroModule} from '@expensify/nitro-utils';
 import type NavBarManager from './types';
 
 const navBarManager: NavBarManager = {
@@ -6,7 +6,7 @@ const navBarManager: NavBarManager = {
         NavBarManagerNitroModule.setButtonStyle(style);
     },
     getType: () => {
-        return NAVIGATION_BAR_TYPE.GESTURE_BAR;
+        return NavBarManagerNitroModule.getType();
     },
 };
 
