@@ -155,7 +155,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             pressOnEnter
             onPress={() => {
                 onFiltersUpdate(selectedReportIDs);
-                Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
             }}
             large
         />

@@ -109,7 +109,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 
         const recentReportsList = filteredOptions.recentReports.map((report) => ({
             ...report,
-            isSelected: selectedOptions.some((opt) => opt.reportID === report.reportID),
+            isSelected: selectedAccountIDs.has(report.accountID),
         }));
 
         const combined = [...personalDetailList, ...recentReportsList];
@@ -134,7 +134,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         });
 
         return combined;
-    }, [filteredOptions, selectedOptions, accountID, selectedAccountIDs]);
+    }, [filteredOptions, accountID, selectedAccountIDs]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [
