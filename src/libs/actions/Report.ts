@@ -96,6 +96,7 @@ import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getTitleFieldFromRNVP, removeTitleFieldFromReport, shouldUpdateTitleField, updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import type {OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
@@ -2322,6 +2323,7 @@ function updateReportName(reportID: string, value: string, previousValue: string
                 },
             },
         },
+        ...removeTitleFieldFromReport(reportID),
     ];
     const failureData: OnyxUpdate[] = [
         {
@@ -2760,6 +2762,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
             value: optimisticNextStep,
         },
+        ...updateTitleFieldToMatchPolicy(reportID, policy),
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -5174,8 +5177,12 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
 
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
     if (!!titleReportField && isPaidGroupPolicy(policy)) {
+        // TODO OptimisticReportNames.compute() should be used here but most probably this should be handled in prepareRequest.
         expenseReport.reportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
     }
+
+    // TODO: wrap in beta flag
+    optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -5704,6 +5711,10 @@ function buildOptimisticChangePolicyData(report: Report, policy: Policy, reportN
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
             value: reportNextStep,
         });
+    }
+
+    if (shouldUpdateTitleField(report)) {
+        optimisticData.push(...updateTitleFieldToMatchPolicy(report.reportID, policy));
     }
 
     // 2. If this is a thread, we have to mark the parent report preview action as deleted to properly update the UI

@@ -84,6 +84,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getMemberAccountIDsForWorkspace, goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage, navigateToReceiptPartnersPage} from '@libs/PolicyUtils';
+import {shouldUpdateTitleField, updateTitleFieldToMatchPolicy, updateTitleFieldWithExactValue} from '@libs/ReportTitleUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
@@ -5321,6 +5322,19 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
             },
         },
     ];
+
+    // TODO: beta flag
+    const reports = ReportUtils.getAllPolicyReports(policyID);
+    for (const report of reports) {
+        if (!report) {
+            continue;
+        }
+        if (!shouldUpdateTitleField(report)) {
+            continue;
+        }
+
+        optimisticData.push(...updateTitleFieldWithExactValue(report.reportID, customName));
+    }
 
     const successData: OnyxUpdate[] = [
         {
