@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
-import type {Ref} from 'react';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
@@ -39,8 +39,9 @@ import UnlinkLoginForm from './UnlinkLoginForm';
 import ValidateCodeForm from './ValidateCodeForm';
 import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeForm';
 
-type SignInPageProps = {
-    ref?: Ref<SignInPageRef>;
+type SignInPageInnerProps = {
+    shouldEnableMaxHeight?: boolean;
+    ref?: ForwardedRef<SignInPageRef>;
 };
 
 type SignInPageRef = {
@@ -143,9 +144,12 @@ function getRenderOptions({
     };
 }
 
-function SignInPage({ref}: SignInPageProps) {
+function SignInPage({shouldEnableMaxHeight = true, ref}: SignInPageInnerProps) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+    const safeAreaInsets = useSafeAreaInsets();
     const signInPageLayoutRef = useRef<SignInPageLayoutRef>(null);
     const loginFormRef = useRef<InputHandle>(null);
     const validateCodeFormRef = useRef<BaseValidateCodeFormRef>(null);
@@ -295,86 +299,77 @@ function SignInPage({ref}: SignInPageProps) {
     useHandleBackButton(navigateBack);
 
     return (
-        <ColorSchemeWrapper>
-            <CustomStatusBarAndBackground isNested />
-            <LoginProvider>
-                <SignInPageLayout
-                    welcomeHeader={welcomeHeader}
-                    welcomeText={welcomeText}
-                    shouldShowWelcomeHeader={shouldShowWelcomeHeader || !shouldUseNarrowLayout}
-                    shouldShowWelcomeText={shouldShowWelcomeText}
-                    ref={signInPageLayoutRef}
-                    navigateFocus={navigateFocus}
-                >
-                    {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
-                        so that password managers can access the values. Conditionally rendering this component will break this feature. */}
-                    <LoginForm
-                        ref={loginFormRef}
-                        isVisible={shouldShowLoginForm}
-                        blurOnSubmit={isAccountValidated === false}
-                        // eslint-disable-next-line react-compiler/react-compiler
-                        scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
-                    />
-                    {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}
-                    {shouldShowValidateCodeForm && (
-                        <ValidateCodeForm
-                            isVisible={!shouldShowAnotherLoginPageOpenedMessage}
-                            isUsingRecoveryCode={isUsingRecoveryCode}
-                            setIsUsingRecoveryCode={setIsUsingRecoveryCode}
-                            ref={validateCodeFormRef}
-                        />
-                    )}
-                    {!shouldShowAnotherLoginPageOpenedMessage && (
-                        <>
-                            {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
-                            {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
-                            {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
-                            {shouldShowSMSDeliveryFailurePage && <SMSDeliveryFailurePage />}
-                        </>
-                    )}
-                </SignInPageLayout>
-            </LoginProvider>
-        </ColorSchemeWrapper>
-    );
-}
-
-function SignInPageWrapper({ref}: SignInPageProps) {
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const safeAreaInsets = useSafeAreaInsets();
-    const {isInNarrowPaneModal} = useResponsiveLayout();
-
-    return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
         // The SVG should flow under the Home Indicator on iOS.
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
-            shouldEnableMaxHeight
+            shouldEnableMaxHeight={shouldEnableMaxHeight}
             style={[styles.signInPage, StyleUtils.getPlatformSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
             testID={SignInPageWrapper.displayName}
         >
-            <SignInPage ref={ref} />
+            <SignInPageLayout
+                welcomeHeader={welcomeHeader}
+                welcomeText={welcomeText}
+                shouldShowWelcomeHeader={shouldShowWelcomeHeader || !shouldUseNarrowLayout}
+                shouldShowWelcomeText={shouldShowWelcomeText}
+                ref={signInPageLayoutRef}
+                navigateFocus={navigateFocus}
+            >
+                {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
+             so that password managers can access the values. Conditionally rendering this component will break this feature. */}
+                <LoginForm
+                    ref={loginFormRef}
+                    isVisible={shouldShowLoginForm}
+                    blurOnSubmit={isAccountValidated === false}
+                    // eslint-disable-next-line react-compiler/react-compiler
+                    scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
+                />
+                {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}
+                {shouldShowValidateCodeForm && (
+                    <ValidateCodeForm
+                        isVisible={!shouldShowAnotherLoginPageOpenedMessage}
+                        isUsingRecoveryCode={isUsingRecoveryCode}
+                        setIsUsingRecoveryCode={setIsUsingRecoveryCode}
+                        ref={validateCodeFormRef}
+                    />
+                )}
+                {!shouldShowAnotherLoginPageOpenedMessage && (
+                    <>
+                        {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
+                        {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
+                        {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
+                        {shouldShowSMSDeliveryFailurePage && <SMSDeliveryFailurePage />}
+                    </>
+                )}
+            </SignInPageLayout>
         </ScreenWrapper>
     );
 }
 
-SignInPageWrapper.displayName = 'SignInPageWrapper';
+type SignInPageProps = SignInPageInnerProps;
+const SignInPageWithRef = SignInPage;
 
-// WithTheme is a HOC that provides theme-related contexts (e.g. to the SignInPageWrapper component since these contexts are required for variable declarations).
-function WithTheme(Component: React.ComponentType<SignInPageProps>) {
-    return ({ref}: SignInPageProps) => (
+function SignInPageWrapper({ref, ...props}: SignInPageProps) {
+    return (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
-                <Component ref={ref} />
+                <ColorSchemeWrapper>
+                    <CustomStatusBarAndBackground isNested />
+                    <LoginProvider>
+                        <SignInPageWithRef
+                            ref={ref}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...props}
+                        />
+                    </LoginProvider>
+                </ColorSchemeWrapper>
             </ThemeStylesProvider>
         </ThemeProvider>
     );
 }
 
-const SignInPageThemed = WithTheme(SignInPage);
+SignInPageWrapper.displayName = 'SignInPage';
 
-export {SignInPageThemed as SignInPage};
-
-export default WithTheme(SignInPageWrapper);
+export default SignInPageWrapper;
 
 export type {SignInPageRef};

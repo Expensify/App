@@ -1,16 +1,15 @@
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import {openApp} from '@libs/actions/App';
-import {isMobileSafari} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
-import SignInPageWrapped, {SignInPage} from './SignInPage';
+import SignInPage from './SignInPage';
 import type {SignInPageRef} from './SignInPage';
 
 function SignInModal() {
@@ -18,10 +17,6 @@ function SignInModal() {
     const StyleUtils = useStyleUtils();
     const signinPageRef = useRef<SignInPageRef | null>(null);
     const session = useSession();
-    // Use of SignInPageWrapped (with shouldEnableMaxHeight prop in SignInPageWrapper) is a workaround for Safari not supporting interactive-widget=resizes-content.
-    // This allows better scrolling experience after keyboard shows for modals with input, that are larger than remaining screen height.
-    // More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
-    const SignInPageBase = useMemo(() => (isMobileSafari() ? SignInPageWrapped : SignInPage), []);
 
     useEffect(() => {
         const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
@@ -44,6 +39,7 @@ function SignInModal() {
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.RIGHT_MODAL.SIGN_IN].backgroundColor)]}
             includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
             shouldShowOfflineIndicator={false}
             testID={SignInModal.displayName}
         >
@@ -56,7 +52,10 @@ function SignInModal() {
                     signinPageRef.current?.navigateBack();
                 }}
             />
-            <SignInPageBase ref={signinPageRef} />
+            <SignInPage
+                shouldEnableMaxHeight={false}
+                ref={signinPageRef}
+            />
         </ScreenWrapper>
     );
 }
