@@ -124,14 +124,6 @@ function TestToolMenu() {
                                     text={translate('initialSettingsPage.troubleshoot.test')}
                                     onPress={() => setShowBiometricsModal(true)}
                                 />
-                                {isRegistered && (
-                                    <Button
-                                        small
-                                        danger
-                                        text={translate('initialSettingsPage.troubleshoot.remove')}
-                                        onPress={() => setRegistered(false)}
-                                    />
-                                )}
                             </View>
                         </TestToolRow>
                 )}

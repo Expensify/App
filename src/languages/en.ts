@@ -1623,7 +1623,6 @@ const translations = {
             biometricsRegistered: 'Biometrics (Registered)',
             biometricsNotRegistered: 'Biometrics (Not registered)',
             test: 'Test',
-            remove: 'Remove',
         },
         debugConsole: {
             saveLog: 'Save log',
