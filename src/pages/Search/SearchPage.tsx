@@ -671,7 +671,7 @@ function SearchPage({route}: SearchPageProps) {
 
         const currency = metadata?.currency;
         const count = shouldUseClientTotal ? selectedTransactionsKeys.length : metadata?.count;
-        const total = shouldUseClientTotal ? Object.values(selectedTransactions).reduce((acc, transaction) => acc - transaction.convertedAmount, 0) : metadata?.total;
+        const total = shouldUseClientTotal ? Object.values(selectedTransactions).reduce((acc, transaction) => acc - (transaction.convertedAmount ?? 0), 0) : metadata?.total;
 
         return {count, total, currency};
     }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);
