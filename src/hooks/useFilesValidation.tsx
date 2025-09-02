@@ -132,11 +132,12 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
     };
 
     const convertHeicImageToJpegPromise = (file: FileObject): Promise<FileObject> => {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             convertHeicImage(file, {
                 onSuccess: (convertedFile) => resolve(convertedFile),
-                onError: (nonConvertedFile) => {
-                    reject(nonConvertedFile);
+                onError: () => {
+                    // Don't reject, just resolve with the original file
+                    resolve(file);
                 },
             });
         });
@@ -201,8 +202,8 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                         otherFiles.map((file) =>
                             isHeicOrHeifImage(file)
                                 ? convertHeicImageToJpegPromise(file).catch(() => {
-                                    // Don't add an error here since the converter now has a fallback
-                                    // The original HEIC file will be used instead
+                                    // Always return the original file when conversion fails
+                                    // The backend should handle HEIC files appropriately
                                     return file;
                                 })
                                 : Promise.resolve(file)

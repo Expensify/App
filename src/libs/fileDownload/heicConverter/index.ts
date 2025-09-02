@@ -13,7 +13,55 @@ const getHeicConverter = () => {
 };
 
 /**
- * Web implementation for converting HEIC/HEIF images to JPEG
+ * Attempts Canvas API fallback conversion for HEIC files
+ * @param blob - The HEIC blob to convert
+ * @param fileName - Original filename
+ * @returns Promise<File> - Converted JPEG file or throws error
+ */
+const tryCanvasFallback = async (blob: Blob, fileName: string): Promise<File> => {
+    // Check if browser supports ImageBitmap and createImageBitmap
+    if (typeof createImageBitmap === 'undefined') {
+        throw new Error('Canvas API fallback not supported in this browser');
+    }
+
+    try {
+        // Try to create ImageBitmap directly from blob
+        const imageBitmap = await createImageBitmap(blob);
+
+        // Create canvas and draw the image
+        const canvas = document.createElement('canvas');
+        canvas.width = imageBitmap.width;
+        canvas.height = imageBitmap.height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            throw new Error('Could not get canvas context');
+        }
+
+        ctx.drawImage(imageBitmap, 0, 0);
+
+        // Convert canvas to JPEG blob
+        return await new Promise((resolve, reject) => {
+            canvas.toBlob((convertedBlob) => {
+                if (!convertedBlob) {
+                    reject(new Error('Canvas conversion failed'));
+                    return;
+                }
+
+                const jpegFileName = fileName.replace(/\.(heic|heif)$/i, '.jpg');
+                const jpegFile = new File([convertedBlob], jpegFileName, {type: 'image/jpeg'});
+                jpegFile.uri = URL.createObjectURL(jpegFile);
+                resolve(jpegFile);
+            }, 'image/jpeg', 0.85);
+        });
+
+    } catch (canvasError) {
+        throw canvasError;
+    }
+};
+
+/**
+ * Web implementation for converting HEIC/HEIF images to JPEG with multiple fallback strategies
  * @param file - The file to check and potentially convert
  * @param callbacks - Object containing callback functions for different stages of conversion
  */
@@ -37,40 +85,68 @@ const convertHeicImage: HeicConverterFunction = (file, {onSuccess = () => {}, on
     // Start loading the conversion library in parallel with fetching the file
     const libraryPromise = getHeicConverter().catch((importError) => {
         console.error('Error loading heic-to library:', importError);
-        // Re-throw a normalized error so the outer catch can handle it uniformly
-        throw new Error('HEIC conversion library unavailable');
+        // Don't throw here, we'll try fallbacks
+        return null;
     });
 
-    const fetchBlobPromise = fetch(file.uri).then((response) => response.blob());
+    const fetchBlobPromise = fetch(file.uri)
+        .then((response) => response.blob())
+        .then((blob) => { return blob });
 
     Promise.all([libraryPromise, fetchBlobPromise])
-        .then(([{heicTo, isHeic}, blob]) => {
-            const fileFromBlob = new File([blob], file.name ?? 'temp-file', {type: blob.type});
+        .then(async ([heicConverter, blob]) => {
+            const fileName = file.name ?? 'temp-file.heic';
 
-            return isHeic(fileFromBlob).then((isHEIC) => {
-                if (isHEIC || needsConversion) {
-                    return heicTo({
+            // Strategy 1: Try heic-to library (primary method)
+            if (heicConverter) {
+                try {
+                    // Skip strict validation for problematic files - try conversion directly
+                    const convertedBlob = await heicConverter.heicTo({
                         blob,
                         type: 'image/jpeg',
-                    })
-                        .then((convertedBlob) => {
-                            const fileName = file.name ? file.name.replace(/\.(heic|heif)$/i, '.jpg') : 'converted-image.jpg';
-                            const jpegFile = new File([convertedBlob], fileName, {type: 'image/jpeg'});
-                            jpegFile.uri = URL.createObjectURL(jpegFile);
-                            onSuccess(jpegFile);
-                        })
-                        .catch((err) => {
-                            console.error('Error converting image format to JPEG:', err);
-                            onError(err, file);
-                        });
-                }
+                    });
 
-                onSuccess(file);
-            });
+                    const jpegFileName = fileName.replace(/\.(heic|heif)$/i, '.jpg');
+                    const jpegFile = new File([convertedBlob], jpegFileName, {type: 'image/jpeg'});
+                    jpegFile.uri = URL.createObjectURL(jpegFile);
+                    onSuccess(jpegFile);
+                    return;
+
+                } catch (heicToError) {
+                    // Continue to fallback strategies
+                }
+            }
+
+            // Strategy 2: Try Canvas API with ImageBitmap
+            try {
+                const canvasResult = await tryCanvasFallback(blob, fileName);
+                onSuccess(canvasResult);
+                return;
+            } catch (canvasError) {
+                onError(canvasError, file);
+            }
+
+            // Create a clean File object from the blob without URI property
+            const heicFile = new File([blob], fileName, {type: file.type ?? 'image/heic'});
+
+            onSuccess(heicFile);
         })
-        .catch((err) => {
-            console.error('Error processing the file:', err);
-            onError(err, file);
+        .catch(() => {
+            // Even if we can't process/convert the HEIC file, still allow upload
+            const fileName = file.name ? file.name : 'converted-image.heic';
+
+            // Re-fetch the blob to ensure we have a clean File object
+            fetch(file.uri ?? '')
+                .then((response) => response.blob())
+                .then((blob) => {
+                    const heicFile = new File([blob], fileName, {type: file.type ?? 'image/heic'});
+                    onSuccess(heicFile);
+                })
+                .catch(() => {
+                    // If we can't fetch, create a minimal file object
+                    const heicFile = new File([], fileName, {type: file.type ?? 'image/heic'});
+                    onError(new Error('Failed to process HEIC file'), heicFile);
+                });
         })
         .finally(() => {
             onFinish();
