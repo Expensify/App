@@ -64,6 +64,9 @@ type MoneyRequestReceiptViewProps = {
 
     /** Merge transaction ID to show in merge transaction flow */
     mergeTransactionID?: string;
+
+    /** Whether the iou report is settled */
+    isSettled: boolean;
 };
 
 const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
@@ -77,7 +80,7 @@ const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
 
 const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
 
-function MoneyRequestReceiptView({allReports, report, readonly = false, updatedTransaction, isFromReviewDuplicates = false, mergeTransactionID}: MoneyRequestReceiptViewProps) {
+function MoneyRequestReceiptView({allReports, report, readonly = false, updatedTransaction, isFromReviewDuplicates = false, mergeTransactionID, isSettled}: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -142,8 +145,12 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
     const isReceiptAllowed = !isPaidReport && !isInvoice;
     const shouldShowReceiptEmptyState = isReceiptAllowed && !hasReceipt;
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
-        const imageViolations = [];
-        const allViolations = [];
+        const imageViolations: string[] = [];
+        const allViolations: string[] = [];
+
+        if (isSettled) {
+            return [imageViolations, allViolations];
+        }
 
         for (const violation of transactionViolations ?? []) {
             const isReceiptFieldViolation = receiptFieldViolationNames.includes(violation.name);
@@ -157,7 +164,7 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
             }
         }
         return [imageViolations, allViolations];
-    }, [transactionViolations, translate, canEdit]);
+    }, [transactionViolations, translate, canEdit, isSettled]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
     const customRulesViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_RULES);
