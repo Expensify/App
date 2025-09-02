@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -18,8 +19,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isCurrencySupportedForECards} from '@libs/CardUtils';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -60,7 +61,7 @@ import VerifiedBankAccountFlowEntryPoint from './VerifiedBankAccountFlowEntryPoi
 type ReimbursementAccountPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
-function ReimbursementAccountPage({route, policy, isLoadingPolicy}: ReimbursementAccountPageProps) {
+function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: ReimbursementAccountPageProps) {
     const {environmentURL} = useEnvironment();
     const session = useSession();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
@@ -74,6 +75,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const policyName = policy?.name ?? '';
     const policyIDParam = route.params?.policyID;
     const backTo = route.params.backTo;
+    const isComingFromExpensifyCard = (backTo as string)?.includes(CONST.EXPENSIFY_CARD.ROUTE as string);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -81,16 +83,20 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const policyCurrency = policy?.outputCurrency ?? '';
-    const hasUnsupportedCurrency = !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ?? false);
+    const hasUnsupportedCurrency =
+        isComingFromExpensifyCard && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK)
+            ? !isCurrencySupportedForECards(policyCurrency)
+            : !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND));
     const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
-    // shouldUseNarrowLayout cannot be used here because this page is displayed in a RHP
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    let workspaceRoute = '';
+    const isFocused = useIsFocused();
 
-    const workspaceRoute = isSmallScreenWidth
-        ? `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())}`
-        : `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute())}`;
+    // Navigation.getActiveRoute() can return the route of previous page while this page is blurred
+    // So add isFocused check to get the correct workspaceRoute
+    if (isFocused) {
+        workspaceRoute = `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())}`;
+    }
 
     const contactMethodRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`;
     const achData = reimbursementAccount?.achData;
@@ -159,7 +165,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     function fetchData() {
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
-        const stepToOpen = getStepToOpenFromRouteParams(route);
+        const stepToOpen = getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency);
         const subStep = isPreviousPolicy ? (achData?.subStep ?? '') : '';
         const localCurrentStep = isPreviousPolicy ? (achData?.currentStep ?? '') : '';
 
@@ -181,7 +187,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         clearReimbursementAccountDraft();
 
         // If the step to open is empty, we want to clear the sub step, so the connect option view is shown to the user
-        const isStepToOpenEmpty = getStepToOpenFromRouteParams(route) === '';
+        const isStepToOpenEmpty = getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency) === '';
         if (isStepToOpenEmpty) {
             setBankAccountSubStep(null);
             setPlaidEvent(null);
@@ -225,7 +231,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 return;
             }
 
-            const currentStepRouteParam = getStepToOpenFromRouteParams(route);
+            const currentStepRouteParam = getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency);
             if (currentStepRouteParam === currentStep) {
                 // If the user is connecting online with plaid, reset any bank account errors so we don't persist old data from a potential previous connection
                 if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && achData?.subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
@@ -249,7 +255,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 hideBankAccountErrors();
             }
 
-            Navigation.setParams({stepToOpen: getRouteForCurrentStep(currentStep)});
+            // Use the current page navigation object to set the param to the correct route in the stack
+            navigation.setParams({stepToOpen: getRouteForCurrentStep(currentStep)});
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [isOffline, reimbursementAccount, hasACHDataBeenLoaded, shouldShowContinueSetupButton, currentStep],
@@ -456,6 +463,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 setNonUSDBankAccountStep={setNonUSDBankAccountStep}
                 setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
                 policyID={policyIDParam}
+                isComingFromExpensifyCard={isComingFromExpensifyCard}
                 shouldShowContinueSetupButtonValue={shouldShowContinueSetupButtonValue}
                 policyCurrency={policyCurrency}
             />

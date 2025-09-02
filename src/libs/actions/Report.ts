@@ -3276,8 +3276,6 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
         emojiCode: emoji.name,
         reportActionID,
         createdAt,
-        // This will be removed as part of https://github.com/Expensify/App/issues/19535
-        useEmojiReactions: true,
     };
 
     API.write(WRITE_COMMANDS.ADD_EMOJI_REACTION, parameters, {optimisticData, successData, failureData});
@@ -3306,8 +3304,6 @@ function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Em
         reportID,
         reportActionID,
         emojiCode: emoji.name,
-        // This will be removed as part of https://github.com/Expensify/App/issues/19535
-        useEmojiReactions: true,
     };
 
     API.write(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, parameters, {optimisticData});
@@ -3362,6 +3358,7 @@ function openReportFromDeepLink(
     currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>,
     currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>,
     onboardingInitialPath: OnyxEntry<string>,
+    reports: OnyxCollection<Report>,
 ) {
     const reportID = getReportIDFromLink(url);
     const isAuthenticated = hasAuthToken();
@@ -3443,7 +3440,7 @@ function openReportFromDeepLink(
 
                             const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
                                 // Check if the report exists in the collection
-                                const report = reportParam ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                                const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                                 // If the report does not exist, navigate to the last accessed report or Concierge chat
                                 if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
                                     const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
@@ -3460,7 +3457,11 @@ function openReportFromDeepLink(
                             };
                             // If we log with deeplink with reportID and data for this report is not available yet,
                             // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
-                            if (reportID && !isAuthenticated && !allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) {
+                            if (
+                                reportID &&
+                                !isAuthenticated &&
+                                (!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID)
+                            ) {
                                 const reportConnection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                                     // eslint-disable-next-line rulesdir/prefer-early-return
@@ -5302,6 +5303,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
         policyID,
         changePolicyReportActionID: changePolicyReportAction.reportActionID,
         dmMovedReportActionID: movedReportAction.reportActionID,
+        optimisticReportID: expenseChatReportId,
     };
 
     API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_EXISTING_POLICY, parameters, {optimisticData, successData, failureData});
@@ -5643,7 +5645,10 @@ function navigateToTrainingModal(dismissedProductTrainingNVP: OnyxEntry<Dismisse
     if (dismissedProductTrainingNVP?.[CONST.CHANGE_POLICY_TRAINING_MODAL]) {
         return;
     }
-    Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID)));
+
+    InteractionManager.runAfterInteractions(() => {
+        Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID)));
+    });
 }
 
 function buildOptimisticChangePolicyData(report: Report, policy: Policy, reportNextStep?: ReportNextStep, optimisticPolicyExpenseChatReport?: Report) {

@@ -1,6 +1,6 @@
-/*
+/**
  * This is a polyfill for Promise.withResolvers https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/withResolvers.
- * It is not supported in Hermes as of 2025-08-27: https://github.com/facebook/hermes/pull/1452
+ * It is not supported in Hermes as of 2025-08-26: https://github.com/facebook/hermes/pull/1452
  * It is widely supported in all major browsers.
  */
 declare global {
