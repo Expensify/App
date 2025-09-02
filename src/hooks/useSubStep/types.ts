@@ -18,6 +18,9 @@ type SubStepProps = {
 
     /** resets screen index to passed value */
     resetScreenIndex?: (index?: number) => void;
+
+    /** Whether the user is coming from the expensify card */
+    isComingFromExpensifyCard?: boolean;
 };
 
 type UseSubStep<TProps extends SubStepProps> = {
