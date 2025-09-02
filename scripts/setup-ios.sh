@@ -154,11 +154,6 @@ if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
-# Create backup of project file
-echo -e "\n"
-info "Creating backup of project file..."
-cp "$PROJECT_FILE" "$PROJECT_FILE.backup.$(date +%Y%m%d_%H%M%S)"
-
 # Step 1: Enable automatic signing for development configurations
 echo -e "\n"
 info "Enabling automatic signing for development targets..."
