@@ -458,7 +458,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         onRouterClose();
     });
-    console.log('test');
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
 
