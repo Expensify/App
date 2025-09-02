@@ -69,7 +69,7 @@ function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: Sear
             <HeaderWithBackButton
                 title={translate(title)}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>
