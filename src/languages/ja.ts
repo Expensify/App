@@ -4876,6 +4876,10 @@ const translations = {
                 prompt5: '詳細を確認',
                 prompt6: 'タグレベルについて。',
             },
+            overrideMultiTagWarning: {
+                title: '',
+                prompt1: '',
+            },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `スプレッドシートで*${columnCounts}列*が見つかりました。タグ名を含む列の横に*名前*を選択してください。また、タグのステータスを設定する列の横に*有効*を選択することもできます。`,
             cannotDeleteOrDisableAllTags: {

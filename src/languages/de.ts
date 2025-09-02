@@ -4882,6 +4882,10 @@ const translations = {
                 prompt5: 'Erfahren Sie mehr',
                 prompt6: 'about tag levels.',
             },
+            overrideMultiTagWarning: {
+                title: '',
+                prompt1: '',
+            },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Wir haben *${columnCounts} Spalten* in Ihrer Tabelle gefunden. Wählen Sie *Name* neben der Spalte, die die Tag-Namen enthält. Sie können auch *Aktiviert* neben der Spalte auswählen, die den Tag-Status festlegt.`,
             cannotDeleteOrDisableAllTags: {

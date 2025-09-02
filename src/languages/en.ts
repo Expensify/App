@@ -4865,6 +4865,10 @@ const translations = {
                 prompt5: ' Learn more',
                 prompt6: ' about tag levels.',
             },
+            overrideMultiTagWarning: {
+                title: 'Import Tag Levels',
+                prompt1: 'Importing a new spreadsheet will overwrite your current tags.',
+            },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `We found *${columnCounts} columns* in your spreadsheet. Select *Name* next to the column that contains tags names. You can also select *Enabled* next to the column that sets tags status.`,
             cannotDeleteOrDisableAllTags: {

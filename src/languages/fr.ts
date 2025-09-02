@@ -4899,6 +4899,10 @@ const translations = {
                 prompt5: 'En savoir plus',
                 prompt6: 'à propos des niveaux de balises.',
             },
+            overrideMultiTagWarning: {
+                title: '',
+                prompt1: '',
+            },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Nous avons trouvé *${columnCounts} colonnes* dans votre feuille de calcul. Sélectionnez *Nom* à côté de la colonne contenant les noms des balises. Vous pouvez également sélectionner *Activé* à côté de la colonne qui définit le statut des balises.`,
             cannotDeleteOrDisableAllTags: {

@@ -4810,6 +4810,10 @@ const translations = {
                 prompt5: '了解更多',
                 prompt6: '关于标签级别。',
             },
+            overrideMultiTagWarning: {
+                title: '',
+                prompt1: '',
+            },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `我们在您的电子表格中找到了*${columnCounts} 列*。在包含标签名称的列旁边选择*名称*。您还可以在设置标签状态的列旁边选择*启用*。`,
             cannotDeleteOrDisableAllTags: {

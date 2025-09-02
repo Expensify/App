@@ -52,6 +52,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const styles = useThemeStyles();
     const [isSwitchSingleToMultipleLevelTagWarningModalVisible, setIsSwitchSingleToMultipleLevelTagWarningModalVisible] = useState(false);
 
+    const [isOverridingMultiTag, setIsOverridingMultiTag] = useState(false);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [shouldRunPostUpgradeFlow, setShouldRunPostUpgradeFlow] = useState(false);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
@@ -72,7 +73,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const startMultiLevelTagImportFlow = useCallback(() => {
         setImportedSpreadsheetIsImportingMultiLevelTags(true);
         if (hasVisibleTags) {
-            setIsSwitchSingleToMultipleLevelTagWarningModalVisible(true);
+            setIsOverridingMultiTag(true);
         } else {
             Navigation.navigate(
                 isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
@@ -157,20 +158,24 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                 onClose={() => setIsDownloadFailureModalVisible(false)}
             />
             <ConfirmModal
-                isVisible={isSwitchSingleToMultipleLevelTagWarningModalVisible}
+                isVisible={isSwitchSingleToMultipleLevelTagWarningModalVisible || isOverridingMultiTag}
                 onConfirm={() => {
-                    cleanPolicyTags(policyID);
-                    setIsSwitchSingleToMultipleLevelTagWarningModalVisible(false);
+                    if (isOverridingMultiTag) {
+                        setIsOverridingMultiTag(false);
+                    } else {
+                        cleanPolicyTags(policyID);
+                        setIsSwitchSingleToMultipleLevelTagWarningModalVisible(false);
+                    }
                     Navigation.navigate(
                         isQuickSettingsFlow
                             ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
                             : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
                     );
                 }}
-                title={translate('workspace.tags.switchSingleToMultiLevelTagWarning.title')}
+                title={isOverridingMultiTag ? translate('workspace.tags.overrideMultiTagWarning.title') : translate('workspace.tags.switchSingleToMultiLevelTagWarning.title')}
                 prompt={
                     <Text>
-                        {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt1')}
+                        {isOverridingMultiTag ? translate('workspace.tags.overrideMultiTagWarning.prompt1') : translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt1')}
                         {!hasDependentTags && (
                             <>
                                 {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt2')}
@@ -196,12 +201,16 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                         )}
                     </Text>
                 }
-                confirmText={translate('workspace.tags.switchSingleToMultiLevelTagWarning.title')}
+                confirmText={isOverridingMultiTag ? translate('workspace.tags.overrideMultiTagWarning.title') : translate('workspace.tags.switchSingleToMultiLevelTagWarning.title')}
                 danger
                 cancelText={translate('common.cancel')}
                 onCancel={() => {
+                    if (isOverridingMultiTag) {
+                        setIsOverridingMultiTag(false);
+                    } else {
+                        setIsSwitchSingleToMultipleLevelTagWarningModalVisible(false);
+                    }
                     setImportedSpreadsheetIsImportingMultiLevelTags(false);
-                    setIsSwitchSingleToMultipleLevelTagWarningModalVisible(false);
                 }}
             />
         </AccessOrNotFoundWrapper>
