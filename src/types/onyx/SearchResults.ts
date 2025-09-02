@@ -428,7 +428,7 @@ type SearchTransaction = {
     /** The display name of the purchaser card, if any */
     cardName?: string;
 
-    /** The converted amount of the transaction, if a currency conversion is used */
+    /** The converted amount of the transaction, defaults to the active policies currency, or the converted currency if a currency conversion is used */
     convertedAmount: number;
 
     /** The currency that the converted amount is in */
