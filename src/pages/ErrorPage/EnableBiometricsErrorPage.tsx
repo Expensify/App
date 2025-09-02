@@ -13,35 +13,35 @@ function EnableBiometricsErrorPage() {
     // const translate = useLocalize()
     const styles = useThemeStyles();
     
-    const handleNavigationBack = Navigation.goBack()
-
     return (
         <ScreenWrapper
             testID={EnableBiometricsErrorPage.displayName}
         >
             <HeaderWithBackButton
                 // title={}
-                onBackButtonPress={() => handleNavigationBack}
+                onBackButtonPress={() => Navigation.goBack()}
                 shouldShowBackButton
             />
-            <View style={[styles.flex1]}>
-                <BlockingView
-                    icon={Illustrations.JustHumptyDumpty}
-                    iconWidth={254}
-                    iconHeight={165}
-                    contentFitImage='fill'
-                    title='Oops, something went wrong'
-                    subtitle='Your device could not be registered'
-                    testID={EnableBiometricsErrorPage.displayName}
-                />
-            </View>
-            <View style={[styles.flexRow, styles.gap4]}>
-                <Button
-                    success
-                    style={[styles.flex1]}
-                    onPress={() => handleNavigationBack}
-                    text="Got it"
-                />
+            <View style={[styles.m5]}>
+                <View style={[styles.flex1]}>
+                    <BlockingView
+                        icon={Illustrations.JustHumptyDumpty}
+                        iconWidth={254}
+                        iconHeight={165}
+                        contentFitImage='fill'
+                        title='Oops, something went wrong'
+                        subtitle='Your device could not be registered'
+                        testID={EnableBiometricsErrorPage.displayName}
+                    />
+                </View>
+                <View style={[styles.flexRow]}>
+                    <Button
+                        success
+                        style={[styles.flex1]}
+                        onPress={() => Navigation.goBack()}
+                        text="Got it"
+                    />
+                </View>
             </View>
         </ScreenWrapper>
     );
