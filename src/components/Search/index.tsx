@@ -24,7 +24,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {getIOUActionForTransactionID, getOriginalMessage, isExportIntegrationAction, isIntegrationMessageAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isArchivedReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
@@ -200,7 +200,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
 
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
@@ -607,9 +606,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 const iouReportAction = getIOUActionForTransactionID(reportActionsArray, item.transactionID);
-                const iouReportID = isMoneyRequestAction(iouReportAction) ? getOriginalMessage(iouReportAction)?.IOUReportID : undefined;
-                const iouReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
-                const transactionThreadReport = createTransactionThreadReport(iouReport, iouReportAction);
+                const transactionThreadReport = createTransactionThreadReport(item.report, iouReportAction);
                 if (transactionThreadReport?.reportID) {
                     updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
                 }
@@ -625,7 +622,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         },
-        [hash, isMobileSelectionModeEnabled, toggleTransaction, queryJSON, reports, reportActionsArray],
+        [hash, isMobileSelectionModeEnabled, toggleTransaction, queryJSON, reportActionsArray],
     );
 
     const currentColumns = useMemo(() => {
