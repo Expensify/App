@@ -643,8 +643,24 @@ const ROUTES = {
     },
     MONEY_REQUEST_UPGRADE: {
         route: ':action/:iouType/upgrade/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}`, backTo),
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', isCategorizing = false, isReporting = false, shouldSubmitExpense = false) => {
+            const baseURL = `${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}` as const;
+            const params = new URLSearchParams();
+            if (isCategorizing) {
+                params.set('isCategorizing', 'true');
+            }
+            if (isReporting) {
+                params.set('isReporting', 'true');
+            }
+            if (shouldSubmitExpense) {
+                params.set('shouldSubmitExpense', 'true');
+            }
+            const queryString = params.toString();
+            if (queryString) {
+                return getUrlWithBackToParam(`${baseURL}?${queryString}` as const, backTo);
+            }
+            return getUrlWithBackToParam(baseURL, backTo);
+        },
     },
     MONEY_REQUEST_STEP_DESTINATION: {
         route: ':action/:iouType/destination/:transactionID/:reportID',

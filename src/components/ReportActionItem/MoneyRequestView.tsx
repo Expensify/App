@@ -682,9 +682,15 @@ function MoneyRequestView({
                                 if (!transaction?.transactionID || !report?.reportID) {
                                     return;
                                 }
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
-                                );
+                                if (!policy) {
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute(), true),
+                                    );
+                                } else {
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
+                                    );
+                                }
                             }}
                             brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('category')}

@@ -29,11 +29,12 @@ type Props = {
     feature?: ValueOf<Omit<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING, typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id>>;
     onUpgrade: () => void;
     isCategorizing?: boolean;
+    isReporting?: boolean;
     policyID?: string;
     backTo?: Route;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, policyID, backTo}: Props) {
+function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isReporting, policyID, backTo}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
