@@ -2581,8 +2581,12 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
         }
 
         if (isActionOwner) {
+
             if (!isEmptyObject(report) && (isMoneyRequestReport(report) || isInvoiceReport(report))) {
                 return canDeleteTransaction(report) && isCardTransactionCanBeDeleted;
+            }
+            if(isTrackExpenseAction(reportAction)){
+                return isCardTransactionCanBeDeleted
             }
             return true;
         }
