@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
@@ -33,6 +34,7 @@ type ConfirmationStepProps = {
 function Confirmation({onNext, policyID, isComingFromExpensifyCard}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
@@ -55,7 +57,7 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
         }
 
         setIsComingFromGlobalReimbursementsFlow(true);
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID), {forceReplace: true});
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID), {forceReplace: !isSmallScreenWidth});
     };
 
     const handleSubmit = () => {
