@@ -1,5 +1,3 @@
-import type {FP} from 'group-ib-fp';
-
-function enableCapabilities(fp: FP): void {}
+function enableCapabilities(): void {}
 
 export default enableCapabilities;

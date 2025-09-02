@@ -6,6 +6,14 @@ class FP {
         return new FP();
     }
 
+    enableDebugLogs() {}
+    
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    enableCapability(..._a: unknown[]) {}
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    enableAndroidCapability(..._a: unknown[]) {}
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setCustomerId(..._a: unknown[]) {}
 
