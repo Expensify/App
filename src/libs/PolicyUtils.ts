@@ -610,7 +610,7 @@ function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): bool
  * Whether the policy has active accounting integration connections
  */
 function hasAccountingConnections(policy: OnyxEntry<Policy>) {
-    return !isEmptyObject(policy?.connections) && !hasUnsupportedIntegration(policy);
+    return !isEmptyObject(policy?.connections) && (!!getCurrentConnectionName(policy) || hasSupportedOnlyOnOldDotIntegration(policy));
 }
 
 function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pick<Policy, 'employeeList'>>, currentPolicyID?: string, currentUserAccountID?: number) {
