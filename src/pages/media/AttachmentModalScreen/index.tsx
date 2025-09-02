@@ -17,19 +17,19 @@ type NavigationType<Screen extends AttachmentModalScreenType> = AttachmentModalS
  */
 function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route, navigation}: AttachmentModalScreenProps<Screen>) {
     const attachmentsContext = useContext(AttachmentModalContext);
-    const paramsWithContext = useMemo(() => {
+    const routeWithContext = useMemo(() => {
         const currentAttachment = attachmentsContext.getCurrentAttachment<Screen>();
 
         if (currentAttachment) {
-            return {...route.params, ...currentAttachment};
+            return {...route, params: {...route.params, ...currentAttachment}};
         }
-        return route.params;
-    }, [attachmentsContext, route.params]);
+        return route;
+    }, [attachmentsContext, route]);
 
     if (route.name === SCREENS.ATTACHMENTS) {
         return (
             <ReportAttachmentModalContent
-                route={{...route, params: paramsWithContext} as RouteType<typeof SCREENS.ATTACHMENTS>}
+                route={routeWithContext as RouteType<typeof SCREENS.ATTACHMENTS>}
                 navigation={navigation as NavigationType<typeof SCREENS.ATTACHMENTS>}
             />
         );
@@ -38,7 +38,7 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
     if (route.name === SCREENS.TRANSACTION_RECEIPT || route.name === SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW) {
         return (
             <TransactionReceiptModalContent
-                route={{...route, params: paramsWithContext} as RouteType<typeof SCREENS.TRANSACTION_RECEIPT>}
+                route={routeWithContext as RouteType<typeof SCREENS.TRANSACTION_RECEIPT>}
                 navigation={navigation as NavigationType<typeof SCREENS.TRANSACTION_RECEIPT>}
             />
         );
@@ -47,7 +47,7 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
     if (route.name === SCREENS.PROFILE_AVATAR) {
         return (
             <ProfileAvatarModalContent
-                route={{...route, params: paramsWithContext} as RouteType<typeof SCREENS.PROFILE_AVATAR>}
+                route={routeWithContext as RouteType<typeof SCREENS.PROFILE_AVATAR>}
                 navigation={navigation as NavigationType<typeof SCREENS.PROFILE_AVATAR>}
             />
         );
@@ -56,7 +56,7 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
     if (route.name === SCREENS.WORKSPACE_AVATAR) {
         return (
             <WorkspaceAvatarModalContent
-                route={{...route, params: paramsWithContext} as RouteType<typeof SCREENS.WORKSPACE_AVATAR>}
+                route={routeWithContext as RouteType<typeof SCREENS.WORKSPACE_AVATAR>}
                 navigation={navigation as NavigationType<typeof SCREENS.WORKSPACE_AVATAR>}
             />
         );
@@ -65,7 +65,7 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
     if (route.name === SCREENS.REPORT_AVATAR) {
         return (
             <ReportAvatarModalContent
-                route={{...route, params: paramsWithContext} as RouteType<typeof SCREENS.REPORT_AVATAR>}
+                route={routeWithContext as RouteType<typeof SCREENS.REPORT_AVATAR>}
                 navigation={navigation as NavigationType<typeof SCREENS.REPORT_AVATAR>}
             />
         );
