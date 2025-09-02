@@ -4,7 +4,6 @@ description: Learn how role-based search simplifies submitting, approving, or pa
 keywords: [New Expensify, search, Submit, Approve, Pay, To-do, LHN, batch processing, filters, expense report actions]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Using the search function on the reports page helps you quickly take action on reports you need to submit, approve, or pay, all tailored to your role in a workspace.
 
@@ -87,4 +86,3 @@ Not yet. The **Workspace filter** is currently single-select. Multi-workspace su
 - **Explore** = General browsing (e.g., Expenses, Chats)
 - **To-do** = Personalized actions based on your role (e.g., Submit, Approve, Pay, Export)
 
-</div>

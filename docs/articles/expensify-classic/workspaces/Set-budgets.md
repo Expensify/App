@@ -3,7 +3,6 @@ title: Set Budgets
 description: Track employee spending across categories and tags
 keywords: [Expensify Classic, budgets, track budgets]
 ---
-<div id="expensify-classic" markdown="1">
 
 Expensify allows Workspace Admins to create budgets to:
 - Set monthly and yearly budget caps
@@ -47,4 +46,3 @@ Once you create your tags, you can enable a budget for each tag using the follow
    - **Notification threshold**: You'll be notified when 100% of the budget is used by default. To receive additional notifications at a certain percentage, enter the percentage.
 5. Click **Save**.
 
-</div>
