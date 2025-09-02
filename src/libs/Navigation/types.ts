@@ -160,6 +160,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
         policyID: string;
     };
+    [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: undefined;
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: undefined;
@@ -915,6 +916,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
+    [SCREENS.SETTINGS.DELEGATE.VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: undefined;
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE]: {
         login: string;
