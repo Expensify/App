@@ -5303,6 +5303,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
         policyID,
         changePolicyReportActionID: changePolicyReportAction.reportActionID,
         dmMovedReportActionID: movedReportAction.reportActionID,
+        optimisticReportID: expenseChatReportId,
     };
 
     API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_EXISTING_POLICY, parameters, {optimisticData, successData, failureData});
