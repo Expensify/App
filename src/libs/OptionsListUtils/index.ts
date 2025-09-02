@@ -318,7 +318,10 @@ Onyx.connect({
  * Returns the personal details for an array of accountIDs
  * @returns keys of the object are emails, values are PersonalDetails objects.
  */
-function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): SetNonNullable<PersonalDetailsList> {
+function getPersonalDetailsForAccountIDs(
+    accountIDs: number[] | undefined,
+    personalDetails: OnyxInputOrEntry<PersonalDetailsList> | OnyxCollection<PersonalDetails>,
+): SetNonNullable<PersonalDetailsList> {
     const personalDetailsForAccountIDs: SetNonNullable<PersonalDetailsList> = {};
     if (!personalDetails) {
         return personalDetailsForAccountIDs;
