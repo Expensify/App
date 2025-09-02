@@ -9,7 +9,6 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import useIsUberConnected from '@hooks/useIsUberConnected';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -92,7 +91,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         selector: filterInactiveCards,
         canBeMissing: true,
     });
-    const isUberConnected = useIsUberConnected({policyID});
+    const isUberConnected = !!policy?.receiptPartners?.uber?.organizationID;
     const [cardFeeds] = useCardFeeds(policyID);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
     const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState(false);

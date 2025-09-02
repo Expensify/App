@@ -2801,7 +2801,7 @@ function removePolicyReceiptPartnersConnection(policyID: string, partnerName: st
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 receiptPartners: {
-                    [partnerName]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    [partnerName]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, organizationID: null},
                 },
             },
         },
@@ -2813,7 +2813,8 @@ function removePolicyReceiptPartnersConnection(policyID: string, partnerName: st
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 receiptPartners: {
-                    [partnerName]: {pendingAction: null},
+                    organizationID: null,
+                    [partnerName]: {pendingAction: null, organizationID: null},
                 },
             },
         },

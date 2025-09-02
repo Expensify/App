@@ -11,7 +11,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
-import useIsUberConnected from '@hooks/useIsUberConnected';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
@@ -53,7 +52,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const integrations = policy?.receiptPartners;
     const isAutoRemove = !!integrations?.uber?.autoRemove;
     const isAutoInvite = !!integrations?.uber?.autoInvite;
-    const isUberConnected = useIsUberConnected({policyID});
+    const isUberConnected = !!policy?.receiptPartners?.uber?.organizationID;
 
     const startIntegrationFlow = useCallback(
         ({name}: {name: string}) => {
