@@ -166,7 +166,6 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             showLoadingPlaceholder={showLoadingPlaceholder}
             initiallyFocusedOptionKey={firstKeyForList}
             getItemHeight={() => variables.optionRowHeight}
-            initialNumToRender={firstKeyForList ? CONST.MAX_SELECTION_LIST_PAGE_LENGTH : undefined}
         />
     );
 }

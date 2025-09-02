@@ -209,7 +209,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             showLoadingPlaceholder={showLoadingPlaceholder}
             initiallyFocusedOptionKey={firstKeyForList}
             getItemHeight={() => variables.optionRowHeightCompact}
-            initialNumToRender={firstKeyForList ? CONST.MAX_SELECTION_LIST_PAGE_LENGTH : undefined}
         />
     );
 }
