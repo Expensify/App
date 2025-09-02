@@ -1,10 +1,12 @@
 import React, {useCallback, useState} from 'react';
+import {View} from 'react-native';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
+import getPlatform from '@libs/getPlatform';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
 import {setIsDebugModeEnabled, setShouldBlockTransactionThreadReportCreation, setShouldUseStagingServer} from '@userActions/User';
@@ -12,16 +14,14 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account as AccountOnyx} from '@src/types/onyx';
-import getPlatform from '@libs/getPlatform';
-import { View } from 'react-native';
 import Button from './Button';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import EnableBiometricsModal from './EnableBiometricsModal';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
 import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import EnableBiometricsModal from './EnableBiometricsModal';
 
 const ACCOUNT_DEFAULT: AccountOnyx = {
     shouldUseStagingServer: undefined,
@@ -53,10 +53,10 @@ function TestToolMenu() {
 
     const biometricsTitle = useCallback(() => {
         if (isRegistered) {
-            return 'initialSettingsPage.troubleshoot.biometrics.biometricsRegistered'
+            return 'initialSettingsPage.troubleshoot.biometrics.biometricsRegistered';
         }
-        return 'initialSettingsPage.troubleshoot.biometrics.biometricsNotRegistered'
-    }, [isRegistered])
+        return 'initialSettingsPage.troubleshoot.biometrics.biometricsNotRegistered';
+    }, [isRegistered]);
 
     return (
         <>
@@ -126,8 +126,12 @@ function TestToolMenu() {
                                 />
                             </View>
                         </TestToolRow>
-                )}
-                    <EnableBiometricsModal isVisible={showBiometricsModal} onCancel={() => setShowBiometricsModal(false)} registerBiometrics={() => setRegistered(true)} />
+                    )}
+                    <EnableBiometricsModal
+                        isVisible={showBiometricsModal}
+                        onCancel={() => setShowBiometricsModal(false)}
+                        registerBiometrics={() => setRegistered(true)}
+                    />
                 </>
             )}
 

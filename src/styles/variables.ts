@@ -374,5 +374,5 @@ export default {
     // Biometrics related  variables
     errorPageBiometricsImageHeight: 165,
     errorPageBiometricsImageWidth: 254,
-    softPromptSmartscanSize: 204
+    softPromptSmartscanSize: 204,
 } as const;

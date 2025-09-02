@@ -1631,7 +1631,7 @@ const translations = {
                 biometricsTest: 'Biometrics test',
                 errorPageTitle: 'Oops, something went wrong',
                 errorPageContent: 'Your device could not be registered.',
-            }
+            },
         },
         debugConsole: {
             saveLog: 'Save log',

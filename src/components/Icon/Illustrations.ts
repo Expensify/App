@@ -28,6 +28,7 @@ import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_l
 import VisaCompanyCards from '@assets/images/companyCards/visa.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
+import JustHumptyDumpty from '@assets/images/just-humpty-dumpty.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
 import BankArrowPink from '@assets/images/product-illustrations/bank-arrow--pink.svg';
@@ -71,6 +72,7 @@ import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cl
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
+import SimpleSmartscan from '@assets/images/simple-illustration__smartscan.svg';
 import BigVault from '@assets/images/simple-illustrations/emptystate__big-vault.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
@@ -164,8 +166,6 @@ import Workflows from '@assets/images/simple-illustrations/simple-illustration__
 import ExpensifyApprovedLogoLight from '@assets/images/subscription-details__approvedlogo--light.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
-import SimpleSmartscan from '@assets/images/simple-illustration__smartscan.svg'
-import JustHumptyDumpty from '@assets/images/just-humpty-dumpty.svg';
 
 export {
     Abracadabra,

@@ -1,23 +1,21 @@
 import React from 'react';
 import {View} from 'react-native';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
-import Button from '@components/Button';
 import variables from '@styles/variables';
-import useLocalize from '@hooks/useLocalize';
 
 function EnableBiometricsErrorPage() {
-    const {translate} = useLocalize()
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
-    
+
     return (
-        <ScreenWrapper
-            testID={EnableBiometricsErrorPage.displayName}
-        >
+        <ScreenWrapper testID={EnableBiometricsErrorPage.displayName}>
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.troubleshoot.biometrics.biometricsTest')}
                 onBackButtonPress={() => Navigation.goBack()}
@@ -28,7 +26,7 @@ function EnableBiometricsErrorPage() {
                     icon={Illustrations.JustHumptyDumpty}
                     iconWidth={variables.errorPageBiometricsImageWidth}
                     iconHeight={variables.errorPageBiometricsImageHeight}
-                    contentFitImage='fill'
+                    contentFitImage="fill"
                     title={translate('initialSettingsPage.troubleshoot.biometrics.errorPageTitle')}
                     subtitle={translate('initialSettingsPage.troubleshoot.biometrics.errorPageContent')}
                     testID={EnableBiometricsErrorPage.displayName}

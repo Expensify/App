@@ -1,15 +1,15 @@
 import React, {useState} from 'react';
-import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import useSingleExecution from '@hooks/useSingleExecution';
-import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import ROUTES from '@src/ROUTES';
+import AuthenticationSuccessfullNotification from './AuthenticationSuccessfullNotification';
 import ConfirmModal from './ConfirmModal';
 import * as Illustrations from './Icon/Illustrations';
-import AuthenticationSuccessfullNotification from './AuthenticationSuccessfullNotification';
 
 type EnableBiometrcicsVerificationProps = {
     /** Soft prompt visibility */
@@ -21,7 +21,6 @@ type EnableBiometrcicsVerificationProps = {
     /** A callback to set biometrics as enabled (registered) */
     registerBiometrics?: () => void;
 };
-
 
 function EnableBiometrcicsModal({isVisible, onCancel = () => {}, registerBiometrics = () => {}}: EnableBiometrcicsVerificationProps) {
     const {translate} = useLocalize();
@@ -58,7 +57,9 @@ function EnableBiometrcicsModal({isVisible, onCancel = () => {}, registerBiometr
                 }}
                 onCancel={() => onCancel()}
                 onModalHide={() => {
-                    if (!shouldNotifyAboutSuccess) {return;}
+                    if (!shouldNotifyAboutSuccess) {
+                        return;
+                    }
                     setNotificationVisibility(true);
                 }}
                 prompt={translate('initialSettingsPage.troubleshoot.biometrics.softPromptContent')}
@@ -72,7 +73,10 @@ function EnableBiometrcicsModal({isVisible, onCancel = () => {}, registerBiometr
                 iconFill={false}
                 shouldCenterIcon
             />
-            <AuthenticationSuccessfullNotification isVisible={isNotificationVisible} onConfirm={() => handleClose()}/>
+            <AuthenticationSuccessfullNotification
+                isVisible={isNotificationVisible}
+                onConfirm={() => handleClose()}
+            />
         </View>
     );
 }

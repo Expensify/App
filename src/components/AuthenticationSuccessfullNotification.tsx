@@ -1,8 +1,7 @@
 import React from 'react';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import ConfirmModal from './ConfirmModal';
-
 
 type AuthenticationSuccessfullNotificationProps = {
     /** Notification visibility */
@@ -13,8 +12,8 @@ type AuthenticationSuccessfullNotificationProps = {
 };
 
 function AuthenticationSuccessfullNotification({isVisible, onConfirm = () => {}}: AuthenticationSuccessfullNotificationProps) {
-    const {translate} = useLocalize()
-    
+    const {translate} = useLocalize();
+
     return (
         <View>
             <ConfirmModal
