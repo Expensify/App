@@ -4831,7 +4831,11 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.billable = transactionChanges?.billable ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
     }
 
-    if (('customUnitRateID' in transactionChanges && updatedTransaction?.comment?.customUnit?.customUnitRateID) || ('distance' in transactionChanges && updatedTransaction?.comment?.customUnit?.quantity)) {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (
+        ('customUnitRateID' in transactionChanges && updatedTransaction?.comment?.customUnit?.customUnitRateID) ||
+        ('distance' in transactionChanges && updatedTransaction?.comment?.customUnit?.quantity)
+    ) {
         originalMessage.oldAmount = getTransactionAmount(oldTransaction, isFromExpenseReport);
         originalMessage.oldCurrency = getCurrency(oldTransaction);
         originalMessage.oldMerchant = getMerchant(oldTransaction);
