@@ -20,7 +20,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
-import CONST from '@src/CONST';
+import CONST, {TASK_TO_FEATURE} from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -10265,13 +10265,6 @@ function prepareOnboardingOnyxData(
     companySize?: OnboardingCompanySize,
     selectedInterestedFeatures: string[] = [],
 ) {
-    const taskToFeature: Record<string, string> = {
-        [CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES]: 'categories',
-        [CONST.ONBOARDING_TASK_TYPE.ADD_ACCOUNTING_INTEGRATION]: 'accounting',
-        [CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD]: 'company-cards',
-        [CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS]: 'tags',
-    };
-
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
         onboardingMessage = getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];
@@ -10359,7 +10352,7 @@ function prepareOnboardingOnyxData(
     const tasksData = onboardingMessage.tasks
         .filter((task) => {
             if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-                if (selectedInterestedFeatures?.length && taskToFeature[task.type] && !selectedInterestedFeatures.includes(taskToFeature[task.type])) {
+                if (selectedInterestedFeatures?.length && TASK_TO_FEATURE[task.type] && !selectedInterestedFeatures.includes(TASK_TO_FEATURE[task.type])) {
                     return false;
                 }
             }

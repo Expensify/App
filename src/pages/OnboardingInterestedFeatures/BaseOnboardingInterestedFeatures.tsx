@@ -33,7 +33,7 @@ import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
+import CONST, {FEATURE_IDS} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BaseOnboardingInterestedFeaturesProps, Feature, SectionObject} from './types';
@@ -67,66 +67,66 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const features: Feature[] = useMemo(() => {
         return [
             {
-                id: 'categories',
+                id: FEATURE_IDS.CATEGORIES,
                 title: translate('workspace.moreFeatures.categories.title'),
                 icon: Illustrations.FolderOpen,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
             },
             {
-                id: 'accounting',
+                id: FEATURE_IDS.ACCOUNTING,
                 title: translate('workspace.moreFeatures.connections.title'),
                 icon: Illustrations.Accounting,
                 enabledByDefault: !!userReportedIntegration,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
             },
             {
-                id: 'company-cards',
+                id: FEATURE_IDS.COMPANY_CARDS,
                 title: translate('workspace.moreFeatures.companyCards.title'),
                 icon: Illustrations.CompanyCard,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
             },
             {
-                id: 'workflows',
+                id: FEATURE_IDS.WORKFLOWS,
                 title: translate('workspace.moreFeatures.workflows.title'),
                 icon: Illustrations.Workflows,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
             },
             {
-                id: 'invoices',
+                id: FEATURE_IDS.INVOICES,
                 title: translate('workspace.moreFeatures.invoices.title'),
                 icon: Illustrations.InvoiceBlue,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
             },
             {
-                id: 'rules',
+                id: FEATURE_IDS.RULES,
                 title: translate('workspace.moreFeatures.rules.title'),
                 icon: Illustrations.Rules,
                 apiEndpoint: WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
                 requiresUpdate: true,
             },
             {
-                id: 'distance-rates',
+                id: FEATURE_IDS.DISTANCE_RATES,
                 title: translate('workspace.moreFeatures.distanceRates.title'),
                 icon: Illustrations.Car,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES,
             },
             {
-                id: 'expensify-card',
+                id: FEATURE_IDS.EXPENSIFY_CARD,
                 title: translate('workspace.moreFeatures.expensifyCard.title'),
                 icon: Illustrations.HandCard,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
             },
             {
-                id: 'tags',
+                id: FEATURE_IDS.TAGS,
                 title: translate('workspace.moreFeatures.tags.title'),
                 icon: Illustrations.Tag,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_TAGS,
             },
             {
-                id: 'per-diem',
+                id: FEATURE_IDS.PER_DIEM,
                 title: translate('workspace.moreFeatures.perDiem.title'),
                 icon: Illustrations.PerDiem,
                 apiEndpoint: WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM,
