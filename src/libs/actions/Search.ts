@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {LastPaymentMethod, LastPaymentMethodType, Policy, ReportActions, Transaction} from '@src/types/onyx';
+import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -537,6 +537,50 @@ function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, r
 
     API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, finalParameters);
 }
+
+/**
+ * Collate a list of export templates available to the user from their account, policy, and custom integrations templates
+ * @param integrationsExportTemplates
+ * @param csvExportLayouts
+ * @param policy
+ * @returns
+ */
+function getExportTemplates(integrationsExportTemplates: ExportTemplate[], csvExportLayouts: Record<string, ExportTemplate>, policy?: Policy): ExportTemplate[] {
+    // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
+    const accountInAppTemplates = Object.entries(csvExportLayouts ?? {})
+        .filter(([, layout]) => layout.name !== CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV)
+        .map(([templateName, layout]) => ({
+            ...layout,
+            templateName,
+            description: '',
+            policyID: undefined,
+            type: CONST.EXPORT_TEMPLATE_TYPES.IN_APP,
+        }));
+
+    // If we have a policy, collate a list of the policy-level in-app export templates
+    let policyInAppTemplates: ExportTemplate[] = [];
+    if (policy) {
+        policyInAppTemplates = Object.entries(policy?.exportLayouts ?? {}).map(([templateName, layout]) => ({
+            ...layout,
+            templateName,
+            description: policy?.name,
+            policyID: policy?.id,
+            type: CONST.EXPORT_TEMPLATE_TYPES.IN_APP,
+        }));
+    }
+
+    // Update the integrations export templates to include the name, description, policyID, and type
+    const integrationsTemplates = integrationsExportTemplates.map((template) => ({
+        ...template,
+        templateName: template.name,
+        description: '',
+        policyID: undefined,
+        type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+    }));
+
+    return [...integrationsTemplates, ...accountInAppTemplates, ...policyInAppTemplates];
+}
+
 /**
  * Updates the form values for the advanced filters search form.
  */
@@ -598,4 +642,5 @@ export {
     getLastPolicyPaymentMethod,
     getLastPolicyBankAccountID,
     exportToIntegrationOnSearch,
+    getExportTemplates,
 };
