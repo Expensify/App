@@ -85,7 +85,9 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {Participant} from '@src/types/onyx/Report';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/reports';
 import * as NumberUtils from '../../src/libs/NumberUtils';
@@ -567,6 +569,7 @@ describe('ReportUtils', () => {
         beforeAll(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReportID}`, archivedReportNameValuePairs);
             await Onyx.set(`${ONYXKEYS.CONCIERGE_REPORT_ID}`, conciergeReportID);
+            await waitForBatchedUpdates();
         });
 
         afterAll(async () => {
@@ -574,158 +577,155 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.CONCIERGE_REPORT_ID}`, null);
         });
 
-        describe('IOU Reports', () => {
-            test('should handle IOU report with multiple transactions', () => {
-                const iouReport: Report = {
-                    reportID: '',
-                    type: CONST.REPORT.TYPE.IOU,
-                    ownerAccountID: 1,
-                    managerID: currentUserAccountID,
-                    total: 5000,
-                    currency: 'USD',
-                };
+        describe('1:1 Chat', () => {
+            const baseChatReport: Report = {
+                reportID: '',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
 
-                const result = getReportNameInternal({report: iouReport});
-                expect(result).toContain('$50.00');
-            });
-
-            test('should handle multiple currencies in display', () => {
-                const iouReport: Report = {
-                    reportID: '',
-                    type: CONST.REPORT.TYPE.IOU,
-                    ownerAccountID: 1,
-                    managerID: currentUserAccountID,
-                    total: 250000, // 2500 EUR
-                    currency: 'EUR',
-                };
-
-                const result = getReportNameInternal({report: iouReport});
-                expect(result).toContain('€2,500.00');
-            });
-        });
-
-        describe('Expense Reports', () => {
-            test('should handle forwarded action with automatic flag', () => {
-                const expenseReport: Report = {
-                    reportID: '',
-                    parentReportID: '2',
-                    parentReportActionID: '3',
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                };
-
-                const forwardedAction: ReportAction = {
-                    reportActionID: '3',
-                    created: testDate,
-                    actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
-                    originalMessage: {
-                        amount: 1000,
-                        currency: 'USD',
-                        automaticAction: true,
-                    },
-                };
-
-                const result = getReportNameInternal({
-                    report: expenseReport,
-                    parentReportActionParam: forwardedAction,
-                });
-
-                expect(result).toBe('approved via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules">workspace rules</a>');
-            });
-
-            test('should return submitted action name for submitted parent report action', () => {
-                const expenseReport: Report = {
-                    reportID: '',
-                    parentReportID: '2',
-                    parentReportActionID: '3',
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                };
-
-                const submittedAction: ReportAction = {
-                    reportActionID: '3',
-                    created: testDate,
-                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    originalMessage: {
-                        amount: 1000,
-                        currency: 'USD',
-                    },
-                };
-
-                const result = getReportNameInternal({
-                    report: expenseReport,
-                    parentReportActionParam: submittedAction,
-                });
-
-                expect(result).toBe('submitted');
-            });
-
-            test('should return approved action name for approved parent report action', () => {
-                const expenseReport: Report = {
-                    reportID: '',
-                    parentReportID: '2',
-                    parentReportActionID: '3',
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                };
-
-                const approvedAction: ReportAction = {
-                    reportActionID: '3',
-                    created: testDate,
-                    actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                    originalMessage: {
-                        amount: 1000,
-                        currency: 'USD',
-                    },
-                };
-
-                const result = getReportNameInternal({
-                    report: expenseReport,
-                    parentReportActionParam: approvedAction,
-                });
-
-                expect(result).toBe('approved');
-            });
-        });
-
-        describe('Task Reports', () => {
-            test('should handle completed task report', () => {
-                const taskReport: Report = {
-                    reportID: '',
-                    type: CONST.REPORT.TYPE.TASK,
-                    reportName: 'Complete project setup',
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                };
-
-                const result = getReportNameInternal({report: taskReport});
-                expect(result).toBe('Complete project setup');
-            });
-
-            test('should handle canceled task report', () => {
-                const taskReport: Report = {
-                    reportID: '',
-                    type: CONST.REPORT.TYPE.TASK,
-                    reportName: 'Canceled Task',
-                    isDeletedParentAction: true,
-                };
-
-                const result = getReportNameInternal({report: taskReport});
-                expect(result).toBe('Deleted task');
-            });
-        });
-
-        describe('Chat Reports', () => {
-            test('should handle 1:1 report with displayName', () => {
-                const report: Report = {
-                    reportID: '',
-                    type: CONST.REPORT.TYPE.CHAT,
+            test('should return the displayName', () => {
+                const chatReport: Report = {
+                    ...baseChatReport,
                     participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
                 };
 
-                const result = getReportNameInternal({report});
-                expect(result).toBe('Ragnar Lothbrok');
+                const params = {
+                    report: chatReport,
+                    personalDetails: participantsPersonalDetails,
+                };
+
+                const reportName = getReportNameInternal(params);
+                expect(reportName).toBe('Ragnar Lothbrok');
+            });
+
+            test('should return the email', () => {
+                const chatReport: Report = {
+                    ...baseChatReport,
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, 2]),
+                };
+
+                const reportName = getReportNameInternal({report: chatReport});
+                expect(reportName).toBe('floki@vikings.net');
+            });
+
+            test('should return phone number', () => {
+                const chatReport: Report = {
+                    ...baseChatReport,
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, 4]),
+                };
+
+                const reportName = getReportNameInternal({report: chatReport});
+                expect(reportName).toBe('(833) 240-3627');
+            });
+
+            describe('Threads', () => {
+                const baseThreadReport: Report = {
+                    reportID: '',
+                    parentReportID: '1',
+                    parentReportActionID: '3',
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+
+                const baseParentReportAction: ReportAction = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: testDate,
+                    reportActionID: '3',
+                };
+
+                test('should handle hidden message', () => {
+                    const hiddenAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        message: [
+                            {
+                                type: 'COMMENT',
+                                html: '',
+                                text: '',
+                                moderationDecision: {
+                                    decision: CONST.MODERATION.MODERATOR_DECISION_HIDDEN,
+                                },
+                            },
+                        ],
+                    };
+
+                    const reportName = getReportNameInternal({
+                        report: baseThreadReport,
+                        parentReportActionParam: hiddenAction,
+                        personalDetails: participantsPersonalDetails,
+                    });
+
+                    expect(reportName).toBe('Hidden message');
+                });
+
+                test('should return attachment label for attachment', () => {
+                    const attachmentAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        message: [
+                            {
+                                type: 'COMMENT',
+                                html: '<img src="test.jpg" />',
+                                text: '[Attachment]',
+                            },
+                        ],
+                    };
+
+                    const reportName = getReportNameInternal({
+                        report: baseThreadReport,
+                        parentReportActionParam: attachmentAction,
+                        personalDetails: participantsPersonalDetails,
+                    });
+
+                    expect(reportName).toBe('[Attachment]');
+                });
+
+                test('should handle thread report with missing parent action', () => {
+                    const threadReport: Report = {
+                        ...baseThreadReport,
+                        parentReportActionID: '999', // Non-existent action
+                    };
+
+                    const reportName = getReportNameInternal({
+                        report: threadReport,
+                        personalDetails: participantsPersonalDetails,
+                    });
+                    expect(reportName).toBe('');
+                });
+            });
+        });
+
+        describe('Self DM', () => {
+            const selfDMReport: Report = {
+                reportID: '',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID]),
+            };
+            test('should return self DM name for self DM', () => {
+                const reportName = getReportNameInternal({
+                    report: selfDMReport,
+                    personalDetails: participantsPersonalDetails,
+                });
+
+                expect(reportName).toBe('Lagertha Lothbrok (you)');
+            });
+        });
+
+        describe('Group Chat', () => {
+            test('should return group chat name for group chat', () => {
+                const groupChatReport: Report = {
+                    reportID: '',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    participants: buildParticipantsFromAccountIDs([1, 2, 3]),
+                };
+
+                const reportName = getReportNameInternal({
+                    report: groupChatReport,
+                    personalDetails: participantsPersonalDetails,
+                });
+
+                expect(reportName).toContain('Ragnar');
             });
 
             test('should handle group chat with mixed participant types', () => {
@@ -740,140 +740,309 @@ describe('ReportUtils', () => {
                     },
                 };
 
-                const result = getReportNameInternal({report: groupChat});
-                expect(result).toBe('Ragnar, floki@vikings.net');
-            });
-
-            test('should handle concierge chat report', () => {
-                const conciergeReport: Report = {
-                    reportID: conciergeReportID,
-                    participants: {},
-                };
-
-                const result = getReportNameInternal({report: conciergeReport});
-                expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
-            });
-
-            test('should use custom personal details when provided', () => {
-                const customUser = {
-                    accountID: 1,
-                    displayName: 'Custom Name',
-                    firstName: 'Custom',
-                    login: 'custom@test.com',
-                };
-                const customPersonalDetails = {
-                    [customUser.accountID]: customUser,
-                };
-
-                const chatReport: Report = {
-                    reportID: '',
-                    type: CONST.REPORT.TYPE.CHAT,
-                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, customUser.accountID]),
-                };
-
-                const result = getReportNameInternal({report: chatReport, personalDetails: customPersonalDetails});
-                expect(result).toBe('Custom Name');
-            });
-
-            test('should handle report with empty participants object', () => {
-                const report: Report = {
-                    reportID: '',
-                    participants: {},
-                    type: CONST.REPORT.TYPE.CHAT,
-                };
-
-                const result = getReportNameInternal({report});
-                expect(result).toBe('');
-            });
-
-            test('should handle thread report with missing parent action', () => {
-                const threadReport: Report = {
-                    reportID: '',
-                    parentReportID: '2',
-                    parentReportActionID: '999', // Non-existent action
-                    type: CONST.REPORT.TYPE.CHAT,
-                };
-
-                const result = getReportNameInternal({report: threadReport});
-                expect(result).toBe('');
+                const reportName = getReportNameInternal({report: groupChat});
+                expect(reportName).toBe('Ragnar, floki@vikings.net');
             });
         });
 
-        describe('Policy Reports', () => {
-            describe('Default Rooms', () => {
-                test.each([
-                    [CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, '#admins'],
-                    [CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, '#announce'],
-                ])('should return %s room as %s', (chatType, reportName) => {
-                    const defaultPolicyRoom: Report = {
-                        reportID: '',
-                        chatType,
-                        reportName,
-                        policyID: policy.id,
-                    };
+        describe('Concierge Chat', () => {
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                participants: {},
+            };
+            test('should handle concierge chat report', () => {
+                const reportName = getReportNameInternal({report: conciergeReport});
+                expect(reportName).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+            });
+        });
 
-                    const {result: isReportArchived} = renderHook(() => useReportIsArchived(defaultPolicyRoom.reportID));
+        describe('Money Request', () => {
+            const baseIOUReport: Report = {
+                reportID: '',
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                isOwnPolicyExpenseChat: false,
+                currency: 'USD',
+                total: 5000,
+            };
+            test('should handle IOU report', () => {
+                const params = {
+                    report: baseIOUReport,
+                    personalDetails: participantsPersonalDetails,
+                };
 
-                    const result = getReportNameInternal({report: defaultPolicyRoom, policy, isReportArchived: isReportArchived.current});
-                    expect(result).toBe(reportName);
+                const reportName = getReportNameInternal(params);
+                expect(reportName).toBe('Lagertha Lothbrok paid $50.00');
+            });
+        });
+
+        describe('Task', () => {
+            const baseTaskReport = {
+                reportID: '',
+                managerID: 1,
+                reportName: 'Test Task',
+                type: CONST.REPORT.TYPE.TASK,
+            };
+
+            test('should handle completed task report', () => {
+                const taskReport: Report = {
+                    ...baseTaskReport,
+                };
+
+                const reportName = getReportNameInternal({report: taskReport});
+                expect(reportName).toBe('Test Task');
+            });
+
+            test('should handle canceled task report', () => {
+                const taskReport: Report = {
+                    ...baseTaskReport,
+                    isDeletedParentAction: true,
+                };
+
+                const reportName = getReportNameInternal({report: taskReport});
+                expect(reportName).toBe('Deleted task');
+            });
+
+            test('should return thread name for task report with cancelled task', () => {
+                const taskReport: Report = {
+                    ...baseTaskReport,
+                    isDeletedParentAction: true,
+                };
+
+                const parentReportAction: ReportAction = {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED,
+                    parentReportID: taskReport.reportID,
+                    actorAccountID: 1,
+                };
+
+                const reportName = getReportNameInternal({
+                    report: taskReport,
+                    parentReportActionParam: parentReportAction,
+                    personalDetails: participantsPersonalDetails,
                 });
 
-                test.each([
-                    [CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, '#admins'],
-                    [CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, '#announce'],
-                ])('should return %s (archived) room as %s', (chatType, reportName) => {
-                    const defaultArchivedPolicyRoom: Report = {
-                        reportID: archivedReportID,
-                        chatType,
-                        reportName,
+                expect(reportName).toBe('Deleted task');
+            });
+
+            test('should handle task report with proper name formatting', () => {
+                const taskReport: Report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.TASK,
+                    reportName: '<b>HTML Task Name</b>',
+                };
+
+                const reportName = getReportNameInternal({
+                    report: taskReport,
+                    personalDetails: participantsPersonalDetails,
+                });
+
+                expect(reportName).toBe('HTML Task Name');
+            });
+        });
+
+        describe('Policy-related Reports', () => {
+            describe('Rooms', () => {
+                describe('Default', () => {
+                    test.each([
+                        [CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, '#admins'],
+                        [CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, '#announce'],
+                    ])('should return %s room as %s', (chatType, reportName) => {
+                        const defaultPolicyRoom: Report = {
+                            reportID: '',
+                            chatType,
+                            reportName,
+                            policyID: policy.id,
+                        };
+
+                        const {result: isReportArchived} = renderHook(() => useReportIsArchived(defaultPolicyRoom.reportID));
+
+                        const result = getReportNameInternal({report: defaultPolicyRoom, policy, isReportArchived: isReportArchived.current});
+                        expect(result).toBe(reportName);
+                    });
+
+                    test.each([
+                        [CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, '#admins'],
+                        [CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, '#announce'],
+                    ])('should return %s (archived) room as %s', (chatType, reportName) => {
+                        const defaultArchivedPolicyRoom: Report = {
+                            reportID: archivedReportID,
+                            chatType,
+                            reportName,
+                            policyID: policy.id,
+                        };
+
+                        const {
+                            result: {current: isReportArchived},
+                        } = renderHook(() => useReportIsArchived(defaultArchivedPolicyRoom.reportID));
+
+                        const result = getReportNameInternal({policy, report: defaultArchivedPolicyRoom, isReportArchived});
+                        expect(result).toBe(`${reportName} (archived)`);
+                    });
+
+                    describe('Change log scenarios', () => {
+                        const report: Report = {
+                            reportID: '',
+                            type: CONST.REPORT.TYPE.CHAT,
+                            policyID: policy.id,
+                        };
+
+                        const baseParentReportAction = createRandomReportAction(0);
+
+                        test('should handle corporate upgrade action', () => {
+                            const upgradeAction: ReportAction = {
+                                ...baseParentReportAction,
+                                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
+                            };
+
+                            const reportName = getReportNameInternal({
+                                report,
+                                parentReportActionParam: upgradeAction,
+                                personalDetails: participantsPersonalDetails,
+                            });
+
+                            expect(reportName).toBe('upgraded this workspace to the Control plan');
+                        });
+
+                        test('should handle corporate downgrade action', () => {
+                            const downgradeAction: ReportAction = {
+                                ...baseParentReportAction,
+                                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE,
+                            };
+
+                            const reportName = getReportNameInternal({
+                                report,
+                                parentReportActionParam: downgradeAction,
+                                personalDetails: participantsPersonalDetails,
+                            });
+
+                            expect(reportName).toBe('downgraded this workspace to the Collect plan');
+                        });
+
+                        test('should handle workspace name update action', () => {
+                            const nameUpdateAction: ReportAction = {
+                                ...baseParentReportAction,
+                                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME,
+                                originalMessage: {
+                                    oldName: 'Old Workspace',
+                                    newName: 'New Workspace',
+                                },
+                            };
+
+                            const reportName = getReportNameInternal({
+                                report,
+                                parentReportActionParam: nameUpdateAction,
+                                personalDetails: participantsPersonalDetails,
+                            });
+
+                            expect(reportName).toBe('updated the name of this workspace to "New Workspace" (previously "Old Workspace")');
+                        });
+                    });
+                });
+
+                describe('User-created', () => {
+                    const chatRoom: Report = {
+                        reportID: '',
+                        type: CONST.REPORT.TYPE.CHAT,
+                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                        reportName: '#test-room',
+                    };
+                    test('Active', () => {
+                        const {
+                            result: {current: isReportArchived},
+                        } = renderHook(() => useReportIsArchived(chatRoom.reportID));
+
+                        const reportName = getReportNameInternal({
+                            report: chatRoom,
+                            personalDetails: participantsPersonalDetails,
+                            isReportArchived,
+                        });
+
+                        expect(reportName).toBe('#test-room');
+                    });
+                    test('Archived', () => {
+                        const archivedRoom: Report = {
+                            ...chatRoom,
+                            reportID: archivedReportID,
+                        };
+
+                        const {
+                            result: {current: isReportArchived},
+                        } = renderHook(() => useReportIsArchived(archivedRoom.reportID));
+
+                        const reportName = getReportNameInternal({
+                            report: archivedRoom,
+                            personalDetails: participantsPersonalDetails,
+                            isReportArchived,
+                        });
+
+                        expect(reportName).toBe('#test-room (archived)');
+                    });
+                });
+
+                describe('Threads', () => {
+                    const threadReport: Report = {
+                        ...createWorkspaceThread(1),
+                        reportID: '1',
+                        parentReportID: '2',
+                        parentReportActionID: '3',
+                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                        type: CONST.REPORT.TYPE.CHAT,
                         policyID: policy.id,
                     };
+                    test('should handle the last text message', () => {
+                        const parentReportAction: ReportAction = {
+                            reportActionID: '2',
+                            created: testDate,
+                            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                            message: [
+                                {
+                                    type: 'COMMENT',
+                                    html: 'Test message',
+                                    text: 'Test message',
+                                },
+                            ],
+                        };
 
-                    const {result: isReportArchived} = renderHook(() => useReportIsArchived(defaultArchivedPolicyRoom.reportID));
+                        const {
+                            result: {current: isReportArchived},
+                        } = renderHook(() => useReportIsArchived(threadReport.reportID));
 
-                    const result = getReportNameInternal({policy, report: defaultArchivedPolicyRoom, isReportArchived: isReportArchived.current});
-                    expect(result).toBe(`${reportName} (archived)`);
+                        const params = {
+                            policy,
+                            isReportArchived,
+                            report: threadReport,
+                            parentReportActionParam: parentReportAction,
+                        };
+                        const reportName = getReportNameInternal(params);
+
+                        // Workspace threads should not have archived suffix even when archived
+                        expect(reportName).toBe('Test message');
+                    });
+
+                    test('should handle policy change action', () => {
+                        const policyChangeAction: ReportAction = {
+                            reportActionID: '3',
+                            created: testDate,
+                            actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
+                        };
+
+                        const params = {
+                            report: threadReport,
+                            policy,
+                            parentReportActionParam: policyChangeAction,
+                        };
+
+                        const reportName = getReportNameInternal(params);
+
+                        expect(reportName).toBe('changed the workspace');
+                    });
                 });
             });
 
             describe('Expenses', () => {
-                test('should handle expense report with approval status', () => {
-                    const expenseReport: Report = {
-                        reportID: '',
-                        type: CONST.REPORT.TYPE.EXPENSE,
-                        ownerAccountID: 1,
-                        managerID: currentUserAccountID,
-                        total: 10000,
-                        currency: 'USD',
-                        stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                        statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                        policyID: policy.id,
-                    };
-
-                    const result = getReportNameInternal({report: expenseReport, policy});
-                    expect(result).toContain('$100.00');
-                });
-
-                test('should handle closed expense report with no expenses', () => {
-                    const expenseReport: Report = {
-                        reportID: '',
-                        type: CONST.REPORT.TYPE.EXPENSE,
-                        statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                        policyID: policy.id,
-                    };
-
-                    const result = getReportNameInternal({
-                        report: expenseReport,
-                        policy,
-                        transactions: [], // No transactions
-                    });
-
-                    expect(result).toBe('Deleted report');
-                });
-            });
-
-            describe('Expense Chats', () => {
-                const policyExpenseChat: Report = {
+                const baseChatReport: Report = {
                     reportID: '',
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     isOwnPolicyExpenseChat: true,
@@ -881,80 +1050,432 @@ describe('ReportUtils', () => {
                     policyID: policy.id,
                 };
 
-                test('Active', () => {
-                    const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyExpenseChat.reportID));
+                const baseExpenseReport: Report = {
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    isOwnPolicyExpenseChat: false,
+                    reportID: '',
+                    policyID: policy.id,
+                    currency: 'USD',
+                    total: -1000,
+                };
+                const baseParentReportAction: ReportAction = {
+                    reportActionID: '3',
+                    created: testDate,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                    parentReportID: baseExpenseReport.reportID,
+                };
 
-                    const result = getReportNameInternal({policy, report: policyExpenseChat, isReportArchived: isReportArchived.current});
-                    expect(result).toBe("Ragnar Lothbrok's expenses");
+                test('Active', () => {
+                    const {
+                        result: {current: isReportArchived},
+                    } = renderHook(() => useReportIsArchived(baseChatReport.reportID));
+
+                    const params = {
+                        report: baseChatReport,
+                        policy,
+                        isReportArchived,
+                    };
+
+                    const reportName = getReportNameInternal(params);
+                    expect(reportName).toBe("Ragnar Lothbrok's expenses");
                 });
 
                 test('Archived', () => {
-                    const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedReportID));
+                    const {
+                        result: {current: isReportArchived},
+                    } = renderHook(() => useReportIsArchived(archivedReportID));
 
-                    const result = getReportNameInternal({report: policyExpenseChat, policy, isReportArchived: isReportArchived.current});
-                    expect(result).toBe("Ragnar Lothbrok's expenses (archived)");
+                    const params = {
+                        report: baseChatReport,
+                        policy,
+                        isReportArchived,
+                    };
+
+                    const reportName = getReportNameInternal(params);
+                    expect(reportName).toBe("Ragnar Lothbrok's expenses (archived)");
+                });
+
+                test('should return formatted transaction thread name', () => {
+                    const iouAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        originalMessage: {
+                            IOUTransactionID: 'txn1',
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            amount: 1000,
+                            currency: 'USD',
+                        },
+                    };
+
+                    const transaction: SearchTransaction = {
+                        transactionID: 'txn1',
+                        reportID: '2',
+                        amount: 1000,
+                        currency: 'USD',
+                        merchant: 'Test Merchant',
+                        transactionType: 'cash',
+                        action: 'submit',
+                        created: testDate,
+                        modifiedMerchant: 'Test Merchant',
+                    } as SearchTransaction;
+
+                    const reportName = getReportNameInternal({
+                        report: baseExpenseReport,
+                        policy,
+                        parentReportActionParam: iouAction,
+                        personalDetails: participantsPersonalDetails,
+                        transactions: [transaction],
+                    });
+
+                    expect(reportName).toBe('Vikings Policy paid $10.00');
+                });
+
+                test('should handle expense report with approval status', () => {
+                    const expenseReport: Report = {
+                        ...baseExpenseReport,
+                        stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                        statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    };
+
+                    const reportName = getReportNameInternal({report: expenseReport, policy});
+                    expect(reportName).toBe('Vikings Policy approved $10.00');
+                });
+
+                test('should handle closed expense report with no expenses', () => {
+                    const expenseReport: Report = {
+                        ...baseExpenseReport,
+                        statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    };
+
+                    const params = {
+                        report: expenseReport,
+                        policy,
+                        transactions: [], // No transactions
+                    };
+                    const reportName = getReportNameInternal(params);
+
+                    expect(reportName).toBe('Deleted report');
+                });
+
+                test('should handle paid elsewhere money request', () => {
+                    const payAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        originalMessage: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                            paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                        },
+                    };
+
+                    const params = {
+                        policy,
+                        report: baseExpenseReport,
+                        parentReportActionParam: payAction,
+                        personalDetails: participantsPersonalDetails,
+                    };
+
+                    const reportName = getReportNameInternal(params);
+                    expect(reportName).toBe('marked as paid');
+                });
+
+                test('should handle VBBA payment with automatic action', () => {
+                    const achAccount: ACHAccount = {
+                        accountNumber: '1234567890',
+                        bankAccountID: 0,
+                        routingNumber: '',
+                        addressName: '',
+                        bankName: '',
+                        reimburser: '',
+                    };
+
+                    const vbbaPayAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        originalMessage: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                            paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                            automaticAction: true,
+                        },
+                    };
+
+                    const params = {
+                        report: baseExpenseReport,
+                        parentReportActionParam: vbbaPayAction,
+                        personalDetails: participantsPersonalDetails,
+                        policy: {
+                            ...policy,
+                            achAccount,
+                        },
+                    };
+
+                    const reportName = getReportNameInternal(params);
+                    expect(reportName).toBe(
+                        'paid with bank account  via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules">workspace rules</a>',
+                    );
+                });
+
+                test('should return forwarded action name', () => {
+                    const forwardedAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                        originalMessage: {},
+                    };
+                    const reportName = getReportNameInternal({
+                        report: baseExpenseReport,
+                        parentReportActionParam: forwardedAction,
+                        personalDetails: participantsPersonalDetails,
+                    });
+
+                    expect(reportName).toBe('approved');
+                });
+
+                test('should return automatically approved message for automatic approval', () => {
+                    const autoApprovedAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                        originalMessage: {
+                            amount: 169,
+                            automaticAction: true,
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        },
+                    };
+
+                    const params = {
+                        report: baseExpenseReport,
+                        parentReportActionParam: autoApprovedAction,
+                        personalDetails: participantsPersonalDetails,
+                    };
+
+                    const reportName = getReportNameInternal(params);
+
+                    expect(reportName).toBe(
+                        'approved via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules">workspace rules</a>',
+                    );
+                });
+
+                test('should return submitted action name', () => {
+                    const expenseReport: Report = {
+                        ...baseExpenseReport,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                        statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    };
+
+                    const submittedAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                        originalMessage: {
+                            amount: 1000,
+                            currency: 'USD',
+                        },
+                    };
+
+                    const reportName = getReportNameInternal({
+                        report: expenseReport,
+                        parentReportActionParam: submittedAction,
+                    });
+
+                    expect(reportName).toBe('submitted');
+                });
+
+                test('should return approved action name', () => {
+                    const expenseReport: Report = {
+                        ...baseExpenseReport,
+                        stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                        statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    };
+
+                    const approvedAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                        originalMessage: {
+                            amount: 1000,
+                            currency: 'USD',
+                        },
+                    };
+
+                    const reportName = getReportNameInternal({
+                        report: expenseReport,
+                        parentReportActionParam: approvedAction,
+                    });
+
+                    expect(reportName).toBe('approved');
+                });
+
+                test('should return rejected action name', () => {
+                    const rejectedAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED,
+                    };
+
+                    const reportName = getReportNameInternal({
+                        report: baseExpenseReport,
+                        parentReportActionParam: rejectedAction,
+                        personalDetails: participantsPersonalDetails,
+                    });
+
+                    expect(reportName).toBe('rejected this report');
+                });
+
+                test('should handle integration sync failed action', () => {
+                    const integrationFailedAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
+                        originalMessage: {
+                            label: 'QuickBooks',
+                            errorMessage: 'Sync failed',
+                            source: 'quickbooks',
+                        },
+                    };
+
+                    const props = {
+                        report: baseExpenseReport,
+                        parentReportActionParam: integrationFailedAction,
+                        personalDetails: participantsPersonalDetails,
+                    };
+
+                    const reportName = getReportNameInternal(props);
+
+                    expect(reportName).toBe(
+                        `there was a problem syncing with QuickBooks ("Sync failed"). Please fix the issue in <a href="https://dev.new.expensify.com:8082/workspaces/1/accounting">workspace settings</a>.`,
+                    );
                 });
             });
 
-            describe('Thread', () => {
-                test('should handle the last text message', () => {
-                    const threadReport: Report = {
+            describe('Invoices', () => {
+                const corporatePolicy = {
+                    ...policy,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    ownerAccountID: 1,
+                    managerID: 1,
+                };
+
+                const invoiceReceiverPolicy = {
+                    ...policy,
+                    id: 'policy2',
+                    name: 'Receiver Policy',
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                };
+
+                test('should handle invoice report', () => {
+                    const invoiceReport: Report = {
                         reportID: '',
-                        parentReportID: '2',
-                        parentReportActionID: '3',
-                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                        type: CONST.REPORT.TYPE.CHAT,
-                        policyID: policy.id,
+                        policyID: corporatePolicy.id,
+                        type: CONST.REPORT.TYPE.INVOICE,
+                        ownerAccountID: 1,
+                        managerID: 1,
+                        chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
                     };
 
-                    const parentReportAction: ReportAction = {
-                        reportActionID: '3',
-                        created: testDate,
-                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                        message: [
-                            {
-                                type: 'COMMENT',
-                                html: 'Test message',
-                                text: 'Test message',
-                            },
-                        ],
+                    const params = {
+                        report: invoiceReport,
+                        policy: corporatePolicy,
+                        personalDetails: participantsPersonalDetails,
+                        invoiceReceiverPolicy,
                     };
 
-                    const {result: isReportArchived} = renderHook(() => useReportIsArchived(threadReport.reportID));
+                    const reportName = getReportNameInternal(params);
 
-                    const result = getReportNameInternal({
-                        policy,
-                        report: threadReport,
-                        isReportArchived: isReportArchived.current,
-                        parentReportActionParam: parentReportAction,
-                    });
-
-                    // Workspace threads should not have archived suffix even when archived
-                    expect(result).toBe('Test message');
+                    expect(reportName).toBe('Receiver Policy');
                 });
 
-                test('should handle policy change action', () => {
-                    const threadReport: Report = {
+                test('should handle invoice room', () => {
+                    const invoiceRoom: Report = {
                         reportID: '',
-                        parentReportID: '2',
-                        parentReportActionID: '3',
+                        policyID: corporatePolicy.id,
                         type: CONST.REPORT.TYPE.CHAT,
-                        policyID: policy.id,
+                        chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                        invoiceReceiver: {
+                            type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                            accountID: 2,
+                        },
                     };
 
-                    const policyChangeAction: ReportAction = {
-                        reportActionID: '3',
-                        created: testDate,
-                        actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
+                    const params = {
+                        report: invoiceRoom,
+                        policy: corporatePolicy,
+                        personalDetails: participantsPersonalDetails,
+                        invoiceReceiverPolicy,
                     };
 
-                    const result = getReportNameInternal({
-                        report: threadReport,
-                        parentReportActionParam: policyChangeAction,
-                    });
+                    const reportName = getReportNameInternal(params);
 
-                    expect(result).toContain('changed the workspace');
+                    expect(reportName).toBe('floki@vikings.net');
                 });
+            });
+        });
+
+        describe('Fallback scenarios', () => {
+            test('should return participant-based name when no specific type matches', () => {
+                const genericReport: Report = {
+                    reportID: '',
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+                };
+
+                const reportName = getReportNameInternal({
+                    report: genericReport,
+                    personalDetails: participantsPersonalDetails,
+                });
+
+                expect(reportName).toBe('Ragnar Lothbrok');
+            });
+
+            test('should return report.reportName as fallback when no participants available', () => {
+                const reportWithName: Report = {
+                    reportID: '',
+                    reportName: 'Fallback Report Name',
+                    participants: {},
+                };
+
+                const reportName = getReportNameInternal({
+                    report: reportWithName,
+                    personalDetails: participantsPersonalDetails,
+                });
+
+                expect(reportName).toBe('Fallback Report Name');
+            });
+
+            test('should return empty string when no name can be determined', () => {
+                const emptyReport: Report = {
+                    reportID: '',
+                    reportName: '',
+                    participants: {},
+                };
+
+                const reportName = getReportNameInternal({
+                    report: emptyReport,
+                    personalDetails: participantsPersonalDetails,
+                });
+
+                expect(reportName).toBe('');
+            });
+        });
+
+        describe('Edges cases', () => {
+            test('should handle undefined report gracefully', () => {
+                const params = {
+                    report: undefined,
+                };
+
+                const reportName = getReportNameInternal(params);
+
+                expect(reportName).toBe('');
+            });
+
+            test('should handle empty personalDetails', () => {
+                const report: Report = {
+                    reportID: '',
+                    participants: buildParticipantsFromAccountIDs([1]),
+                };
+
+                const params = {
+                    report,
+                    personalDetails: {},
+                };
+
+                const reportName = getReportNameInternal(params);
+
+                expect(reportName).toBe('');
             });
         });
     });
@@ -1323,6 +1844,7 @@ describe('ReportUtils', () => {
                     amount: 169,
                     currency: 'USD',
                     automaticAction: true,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
             } as ReportAction;
 
