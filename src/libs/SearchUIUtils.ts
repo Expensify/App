@@ -2020,8 +2020,8 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
     const {status} = queryJSON ?? {};
 
     const sortedSearchResultStatus = !Array.isArray(searchResults?.search?.status)
-        ? searchResults?.search?.status.split(',').sort().join(',')
-        : searchResults?.search?.status.sort().join(',');
+        ? searchResults?.search?.status?.split(',').sort().join(',')
+        : searchResults?.search?.status?.sort().join(',');
     const sortedQueryJSONStatus = Array.isArray(status) ? status.sort().join(',') : status;
     const isDataLoaded = searchResults?.data !== undefined && searchResults?.search?.type === queryJSON?.type && sortedSearchResultStatus === sortedQueryJSONStatus;
 
