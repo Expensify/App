@@ -4007,6 +4007,18 @@ const translations = {
             syncReimbursedReports: 'Sincronizar relatórios reembolsados',
             syncReimbursedReportsDescription: 'Sempre que um relatório for pago usando Expensify ACH, o pagamento correspondente da fatura será criado na conta Sage Intacct abaixo.',
             paymentAccount: 'Conta de pagamento Sage Intacct',
+            accountingMethods: {
+                label: 'Quando Exportar',
+                description: 'Escolha quando exportar as despesas:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Acumulação',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Dinheiro',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Despesas do próprio bolso serão exportadas quando aprovadas em definitivo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Despesas do próprio bolso serão exportadas quando pagas',
+                },
+            },
         },
         netsuite: {
             subsidiary: 'Subsidiária',
@@ -6688,7 +6700,7 @@ const translations = {
         isTransactionBillable: 'Escolha se a transação é faturável',
         keepThisOne: 'Keep this one',
         confirmDetails: `Confirme os detalhes que você está mantendo`,
-        confirmDuplicatesInfo: `As solicitações duplicadas que você não mantiver serão mantidas para o membro excluir.`,
+        confirmDuplicatesInfo: `Os duplicados que você não mantiver serão retidos para que o remetente os exclua.`,
         hold: 'Esta despesa foi colocada em espera',
         resolvedDuplicates: 'resolvido o duplicado',
     },
