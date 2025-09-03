@@ -55,6 +55,14 @@ type MembersSection = SectionListData<SelectionListMember, Section<SelectionList
 type WorkspaceWorkflowsApprovalsExpensesFromPageProps = WithPolicyAndFullscreenLoadingProps &
     PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM>;
 
+function compareMembers(a: Member[], b: Member[]) {
+    return (
+        a.length === b.length &&
+        a.every((member) => b.some((otherMember) => otherMember.email === member.email)) &&
+        b.every((member) => a.some((otherMember) => otherMember.email === member.email))
+    );
+}
+
 function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsExpensesFromPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -177,7 +185,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const nextStep = useCallback(() => {
         const members: Member[] = selectedMembers.map((member) => ({displayName: member.text, avatar: member.icons?.[0]?.source, email: member.login}));
 
-        if (members.length === approvalWorkflow?.availableMembers.length) {
+        if (compareMembers(members, approvalWorkflow?.members ?? [])) {
             setError('workflowsExpensesFromPage.notAllowedError');
             return;
         }
