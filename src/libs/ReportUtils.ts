@@ -2417,7 +2417,7 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
     const isManager = iouReport?.managerID === session?.accountID;
     const reimbursementChoice = policy?.reimbursementChoice;
 
-    if (isPaidGroupPolicy(iouReport) && reimbursementChoice) {
+    if (isPaidGroupPolicy(iouReport)) {
         if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
             if (!policy?.achAccount?.reimburser) {
                 return isAdmin;
