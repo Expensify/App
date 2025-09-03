@@ -160,7 +160,7 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.translationPath).toEqual('iou.receiptStatusTitle');
         });
 
-        it('handles currency and amount display correctly for scan split bill manually completed', async () => {
+        it('handles currency and amount display correctly for scan split bill manually completed', () => {
             const modifiedAmount = 300;
             const currency = 'EUR';
             const originalTransactionID = '2';
