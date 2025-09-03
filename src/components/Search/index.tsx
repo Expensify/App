@@ -26,7 +26,7 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import Performance from '@libs/Performance';
 import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isArchivedReport} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildSearchQueryString, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     getColumnsToShow,
     getListItem,
@@ -650,11 +650,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         },
-<<<<<<< HEAD
-        [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, hash],
-=======
-        [hash, isMobileSelectionModeEnabled, toggleTransaction, queryJSON, reportActionsArray],
->>>>>>> main
+        [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, reportActionsArray, hash],
     );
 
     const currentColumns = useMemo(() => {
