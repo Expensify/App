@@ -8,4 +8,12 @@ type ReportScrollManagerData = {
     scrollToOffset: (offset: number) => void;
 };
 
+type ScrollToBottomHandlerParams = {
+    flatListRef: FlatListRefType;
+    isKeyboardActive: boolean;
+    keyboardHeight: number;
+    setScrollPosition: (position: {offset: number}) => void;
+};
+
+export type {ScrollToBottomHandlerParams};
 export default ReportScrollManagerData;

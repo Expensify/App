@@ -4,6 +4,7 @@ import {Platform} from 'react-native';
 import type {ScrollView} from 'react-native';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {ActionListContext} from '@pages/home/ReportScreenContext';
+import scrollToBottomHandler from './scrollToBottomHandler';
 import type ReportScrollManagerData from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
@@ -28,21 +29,10 @@ function useReportScrollManager(): ReportScrollManagerData {
      * Scroll to the bottom of the inverted FlatList.
      * When FlatList is inverted it's "bottom" is really it's top
      */
-    const scrollToBottom = useCallback(() => {
-        if (!flatListRef?.current) {
-            return;
-        }
-
-        if (Platform.OS === 'ios' && isKeyboardActive) {
-            setScrollPosition({offset: -keyboardHeight});
-            flatListRef.current?.scrollToOffset({animated: false, offset: -keyboardHeight});
-            return;
-        }
-
-        setScrollPosition({offset: 0});
-
-        flatListRef.current?.scrollToOffset({animated: false, offset: 0});
-    }, [flatListRef, setScrollPosition, isKeyboardActive, keyboardHeight]);
+    const scrollToBottom = useCallback(
+        () => scrollToBottomHandler({flatListRef, isKeyboardActive, keyboardHeight, setScrollPosition}),
+        [flatListRef, setScrollPosition, isKeyboardActive, keyboardHeight],
+    );
 
     /**
      * Scroll to the end of the FlatList.
