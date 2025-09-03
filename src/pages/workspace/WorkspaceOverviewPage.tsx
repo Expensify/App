@@ -74,8 +74,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const defaultFundID = useDefaultFundID(policy?.id);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
-    const isBankAccountVerified = !!paymentBankAccountID;
+    const isBankAccountVerified = !!cardSettings?.paymentBankAccountID;
 
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const outputCurrency = policy?.outputCurrency ?? '';
