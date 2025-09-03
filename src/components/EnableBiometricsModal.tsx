@@ -7,7 +7,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
-import AuthenticationSuccessfullNotification from './AuthenticationSuccessfullNotification';
+import AuthenticationSuccessfullNotification from './AuthenticationSuccessfulNotification';
 import ConfirmModal from './ConfirmModal';
 import * as Illustrations from './Icon/Illustrations';
 
@@ -22,7 +22,7 @@ type EnableBiometrcicsVerificationProps = {
     registerBiometrics?: () => void;
 };
 
-function EnableBiometrcicsModal({isVisible, onCancel = () => {}, registerBiometrics = () => {}}: EnableBiometrcicsVerificationProps) {
+function EnableBiometricsModal({isVisible, onCancel = () => {}, registerBiometrics = () => {}}: EnableBiometrcicsVerificationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [shouldNotifyAboutSuccess, setSuccess] = useState(false);
@@ -38,7 +38,7 @@ function EnableBiometrcicsModal({isVisible, onCancel = () => {}, registerBiometr
     };
 
     /**
-     * Change to false if you want to test error page. This should be replaced by the actual logic checking if the registration was successfull.
+     * Change to false if you want to test error page. This should be replaced by the actual logic checking if the registration was successful.
      */
     const wasRegistrationSuccessful = false;
 
@@ -90,6 +90,6 @@ function EnableBiometrcicsModal({isVisible, onCancel = () => {}, registerBiometr
     );
 }
 
-EnableBiometrcicsModal.displayName = 'EnableBiometricsModal';
+EnableBiometricsModal.displayName = 'EnableBiometricsModal';
 
-export default EnableBiometrcicsModal;
+export default EnableBiometricsModal;

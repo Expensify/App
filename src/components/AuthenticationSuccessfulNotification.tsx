@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import ConfirmModal from './ConfirmModal';
 
-type AuthenticationSuccessfullNotificationProps = {
+type AuthenticationSuccessfulNotificationProps = {
     /** Notification visibility */
     isVisible: boolean;
 
@@ -11,7 +11,7 @@ type AuthenticationSuccessfullNotificationProps = {
     onConfirm?: () => void;
 };
 
-function AuthenticationSuccessfullNotification({isVisible, onConfirm = () => {}}: AuthenticationSuccessfullNotificationProps) {
+function AuthenticationSuccessfulNotification({isVisible, onConfirm = () => {}}: AuthenticationSuccessfulNotificationProps) {
     const {translate} = useLocalize();
 
     return (
@@ -30,6 +30,6 @@ function AuthenticationSuccessfullNotification({isVisible, onConfirm = () => {}}
     );
 }
 
-AuthenticationSuccessfullNotification.displayName = 'AuthenticationSuccessfullNotification';
+AuthenticationSuccessfulNotification.displayName = 'AuthenticationSuccessfulNotification';
 
-export default AuthenticationSuccessfullNotification;
+export default AuthenticationSuccessfulNotification;
