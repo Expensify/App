@@ -42,7 +42,6 @@ function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle
             onClose={onClose}
             onModalHide={onClose}
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={styles.pb0}

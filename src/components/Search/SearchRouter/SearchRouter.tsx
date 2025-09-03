@@ -1,4 +1,4 @@
-import {findFocusedRoute, useFocusEffect, useNavigationState} from '@react-navigation/native';
+import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
@@ -12,6 +12,7 @@ import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
+import {useSearchContext} from '@components/Search/SearchContext';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
 import type {SearchFilterKey, SearchQueryString} from '@components/Search/types';
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
@@ -84,6 +85,7 @@ type SearchRouterProps = {
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed}: SearchRouterProps, ref: React.Ref<View>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {setShouldResetSearchQuery} = useSearchContext();
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const {areOptionsInitialized} = useOptionsList();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
@@ -264,6 +266,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 return;
             }
 
+            // Reset the search query flag when performing a new search
+            setShouldResetSearchQuery(false);
+
             backHistory(() => {
                 onRouterClose();
                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
@@ -272,7 +277,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, onRouterClose, setTextInputValue],
+        [autocompleteSubstitutions, onRouterClose, setTextInputValue, setShouldResetSearchQuery],
     );
 
     const setTextAndUpdateSelection = useCallback(
@@ -456,21 +461,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
 
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    /** We added a delay to focus on text input to allow navigation/modal animations to get completed, see issue https://github.com/Expensify/App/issues/65855 for more details */
-    useFocusEffect(
-        useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => {
-                if (!textInputRef.current) {
-                    return;
-                }
-                textInputRef?.current?.focus();
-            }, CONST.ANIMATED_TRANSITION);
-
-            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
-        }, []),
-    );
-
     return (
         <View
             style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
@@ -506,11 +496,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
                 outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
                 wrapperFocusedStyle={styles.borderColorFocus}
-                isSearchingForReports={isSearchingForReports}
+                isSearchingForReports={!!isSearchingForReports}
                 selection={selection}
                 substitutionMap={autocompleteSubstitutions}
                 ref={textInputRef}
-                autoFocus={false}
             />
             {shouldShowList && (
                 <SearchAutocompleteList

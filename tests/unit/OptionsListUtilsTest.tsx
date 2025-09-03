@@ -19,6 +19,7 @@ import {
     getLastActorDisplayName,
     getMemberInviteOptions,
     getSearchOptions,
+    getSearchValueForPhoneOrEmail,
     getShareDestinationOptions,
     getShareLogOptions,
     getValidOptions,
@@ -445,6 +446,12 @@ describe('OptionsListUtils', () => {
             login: 'brucebanner@expensify.com',
             reportID: '',
         },
+        '11': {
+            accountID: 11,
+            displayName: 'Timothée',
+            login: 'chalamet@expensify.com',
+            reportID: '',
+        },
     };
 
     const PERSONAL_DETAILS_WITH_CONCIERGE: PersonalDetailsList = {
@@ -611,10 +618,38 @@ describe('OptionsListUtils', () => {
             const results = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
 
             // Then all personal details (including those that have reports) should be returned
-            expect(results.personalDetails.length).toBe(9);
+            expect(results.personalDetails.length).toBe(10);
 
             // Then all of the reports should be shown including the archived rooms, except for the thread report with notificationPreferences hidden.
             expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 1);
+        });
+
+        it('should include current user when includeCurrentUser is true for type:chat from suggestions', () => {
+            // Given a set of options where the current user is Iron Man (accountID: 2)
+            // When we call getSearchOptions with includeCurrentUser set to true
+            const results = getSearchOptions(OPTIONS, [CONST.BETAS.ALL], true, true, '', undefined, false, true, true);
+
+            // Then the current user should be included in personalDetails
+            const currentUserOption = results.personalDetails.find((option) => option.login === 'tonystark@expensify.com');
+            expect(currentUserOption).toBeDefined();
+            expect(currentUserOption?.text).toBe('Iron Man');
+            expect(currentUserOption?.accountID).toBe(2);
+
+            // Then all personal details including the current user should be returned
+            expect(results.personalDetails.length).toBe(11);
+        });
+
+        it('should exclude current user when includeCurrentUser is false', () => {
+            // Given a set of options where the current user is Iron Man (accountID: 2)
+            // When we call getSearchOptions with includeCurrentUser set to false (default behavior)
+            const results = getSearchOptions(OPTIONS, [CONST.BETAS.ALL], true, true, '', undefined, false, true, false);
+
+            // Then the current user should not be included in personalDetails
+            const currentUserOption = results.personalDetails.find((option) => option.login === 'tonystark@expensify.com');
+            expect(currentUserOption).toBeUndefined();
+
+            // Then all personal details except the current user should be returned
+            expect(results.personalDetails.length).toBe(10);
         });
     });
 
@@ -632,7 +667,18 @@ describe('OptionsListUtils', () => {
             // Then all personalDetails except the currently logged in user should be returned
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 1);
 
-            const expected = ['Black Panther', 'Black Widow', 'Captain America', 'Invisible Woman', 'Mister Fantastic', 'Mr Sinister', 'Spider-Man', 'The Incredible Hulk', 'Thor'];
+            const expected = [
+                'Black Panther',
+                'Black Widow',
+                'Captain America',
+                'Invisible Woman',
+                'Mister Fantastic',
+                'Mr Sinister',
+                'Spider-Man',
+                'The Incredible Hulk',
+                'Thor',
+                'Timothée',
+            ];
             const actual = results.personalDetails?.map((item) => item.text);
 
             // Then the results should be sorted alphabetically
@@ -649,7 +695,18 @@ describe('OptionsListUtils', () => {
             // When we call orderOptions()
             results = orderOptions(results);
 
-            const expected = ['Black Panther', 'Black Widow', 'Captain America', 'Invisible Woman', 'Mister Fantastic', 'Mr Sinister', 'Spider-Man', 'The Incredible Hulk', 'Thor'];
+            const expected = [
+                'Black Panther',
+                'Black Widow',
+                'Captain America',
+                'Invisible Woman',
+                'Mister Fantastic',
+                'Mr Sinister',
+                'Spider-Man',
+                'The Incredible Hulk',
+                'Thor',
+                'Timothée',
+            ];
             const actual = results.personalDetails?.map((item) => item.text);
 
             // Then the results should be sorted alphabetically
@@ -1135,7 +1192,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = filterAndOrderOptions(options, '');
 
             // Then all options should be returned
-            expect(filteredOptions.recentReports.length + filteredOptions.personalDetails.length).toBe(13);
+            expect(filteredOptions.recentReports.length + filteredOptions.personalDetails.length).toBe(14);
         });
 
         it('should return filtered options in correct order', () => {
@@ -1455,6 +1512,16 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.userToInvite).not.toBe(null);
         });
 
+        it('should return user which has displayName with accent mark when search value without accent mark', () => {
+            // Given a set of options
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
+            // When we call filterAndOrderOptions with a search value without accent mark
+            const filteredOptions = filterAndOrderOptions(options, 'Timothee');
+
+            // Then one personalDetails with accent mark should be returned
+            expect(filteredOptions.personalDetails.length).toBe(1);
+        });
+
         it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number', () => {
             // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
@@ -1544,7 +1611,7 @@ describe('OptionsListUtils', () => {
             const filteredOptions = filterAndOrderOptions(options, '.com', {maxRecentReportsToShow: 5});
 
             // Then there should be 4 matching personal details
-            expect(filteredOptions.personalDetails.length).toBe(4);
+            expect(filteredOptions.personalDetails.length).toBe(5);
             // Then the first personal detail should match the search text
             expect(filteredOptions.personalDetails.at(0)?.login).toBe('natasharomanoff@expensify.com');
             // Then there should be 5 matching recent reports
@@ -1609,7 +1676,7 @@ describe('OptionsListUtils', () => {
             const matchingEntries = filteredOptions.personalDetails.filter((detail) => detail.login === login);
 
             // Then there should be 2 unique login entries
-            expect(filteredOptions.personalDetails.length).toBe(2);
+            expect(filteredOptions.personalDetails.length).toBe(3);
             // Then there should be 1 matching entry
             expect(matchingEntries.length).toBe(1);
         });
@@ -1983,6 +2050,32 @@ describe('OptionsListUtils', () => {
             const sortedOptions = sortAlphabetically(options, 'text', localeCompare);
             expect(sortedOptions.length).toBe(1);
             expect(sortedOptions.at(0)?.text).toBe('Single');
+        });
+    });
+    describe('getSearchValueForPhoneOrEmail', () => {
+        it('should return E164 format for valid phone number', () => {
+            const result = getSearchValueForPhoneOrEmail('+1 (234) 567-8901', 1);
+            expect(result).toBe('+12345678901');
+        });
+
+        it('should return E164 format for valid international phone number', () => {
+            const result = getSearchValueForPhoneOrEmail('+44 20 8759 9036', 44);
+            expect(result).toBe('+442087599036');
+        });
+
+        it('should return lowercase for email address', () => {
+            const result = getSearchValueForPhoneOrEmail('Test@Example.COM', 1);
+            expect(result).toBe('test@example.com');
+        });
+
+        it('should handle SMS domain removal for valid phone number', () => {
+            const result = getSearchValueForPhoneOrEmail('+12345678901@expensify.sms', 1);
+            expect(result).toBe('+12345678901');
+        });
+
+        it('should return empty string for empty input', () => {
+            const result = getSearchValueForPhoneOrEmail('', 1);
+            expect(result).toBe('');
         });
     });
 });

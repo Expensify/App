@@ -80,9 +80,13 @@ autocompleteKey "key"
       / billable
       / policyID
       / action
-      / posted
-      / withdrawn
+      / date
+      / submitted
+      / approved
+      / paid
       / exported
+      / withdrawn
+      / posted
     )
 
 filterKey
