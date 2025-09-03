@@ -31,6 +31,11 @@ namespace margelo::nitro::utils {
     return method(_javaPart);
   }
 
+  void JHybridNavBarManagerModuleSpec::dispose() noexcept {
+    static const auto method = javaClassStatic()->getMethod<void()>("dispose");
+    method(_javaPart);
+  }
+
   // Properties
   
 

@@ -37,24 +37,22 @@ namespace margelo::nitro::utils {
 
 namespace margelo::nitro {
 
-  using namespace margelo::nitro::utils;
-
   // C++ NavBarButtonStyle <> JS NavBarButtonStyle (union)
   template <>
-  struct JSIConverter<NavBarButtonStyle> final {
-    static inline NavBarButtonStyle fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
+  struct JSIConverter<margelo::nitro::utils::NavBarButtonStyle> final {
+    static inline margelo::nitro::utils::NavBarButtonStyle fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
       std::string unionValue = JSIConverter<std::string>::fromJSI(runtime, arg);
       switch (hashString(unionValue.c_str(), unionValue.size())) {
-        case hashString("light"): return NavBarButtonStyle::LIGHT;
-        case hashString("dark"): return NavBarButtonStyle::DARK;
+        case hashString("light"): return margelo::nitro::utils::NavBarButtonStyle::LIGHT;
+        case hashString("dark"): return margelo::nitro::utils::NavBarButtonStyle::DARK;
         default: [[unlikely]]
           throw std::invalid_argument("Cannot convert \"" + unionValue + "\" to enum NavBarButtonStyle - invalid value!");
       }
     }
-    static inline jsi::Value toJSI(jsi::Runtime& runtime, NavBarButtonStyle arg) {
+    static inline jsi::Value toJSI(jsi::Runtime& runtime, margelo::nitro::utils::NavBarButtonStyle arg) {
       switch (arg) {
-        case NavBarButtonStyle::LIGHT: return JSIConverter<std::string>::toJSI(runtime, "light");
-        case NavBarButtonStyle::DARK: return JSIConverter<std::string>::toJSI(runtime, "dark");
+        case margelo::nitro::utils::NavBarButtonStyle::LIGHT: return JSIConverter<std::string>::toJSI(runtime, "light");
+        case margelo::nitro::utils::NavBarButtonStyle::DARK: return JSIConverter<std::string>::toJSI(runtime, "dark");
         default: [[unlikely]]
           throw std::invalid_argument("Cannot convert NavBarButtonStyle to JS - invalid value: "
                                     + std::to_string(static_cast<int>(arg)) + "!");

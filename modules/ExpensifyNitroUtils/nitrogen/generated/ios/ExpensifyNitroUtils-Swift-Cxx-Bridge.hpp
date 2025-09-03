@@ -52,8 +52,14 @@ namespace margelo::nitro::utils::bridge::swift {
    * Specialized version of `std::optional<std::string>`.
    */
   using std__optional_std__string_ = std::optional<std::string>;
-  inline std::optional<std::string> create_std__optional_std__string_(const std::string& value) {
+  inline std::optional<std::string> create_std__optional_std__string_(const std::string& value) noexcept {
     return std::optional<std::string>(value);
+  }
+  inline bool has_value_std__optional_std__string_(const std::optional<std::string>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline std::string get_std__optional_std__string_(const std::optional<std::string>& optional) noexcept {
+    return *optional;
   }
   
   // pragma MARK: std::vector<StringHolder>
@@ -61,7 +67,7 @@ namespace margelo::nitro::utils::bridge::swift {
    * Specialized version of `std::vector<StringHolder>`.
    */
   using std__vector_StringHolder_ = std::vector<StringHolder>;
-  inline std::vector<StringHolder> create_std__vector_StringHolder_(size_t size) {
+  inline std::vector<StringHolder> create_std__vector_StringHolder_(size_t size) noexcept {
     std::vector<StringHolder> vector;
     vector.reserve(size);
     return vector;
@@ -72,8 +78,14 @@ namespace margelo::nitro::utils::bridge::swift {
    * Specialized version of `std::optional<std::vector<StringHolder>>`.
    */
   using std__optional_std__vector_StringHolder__ = std::optional<std::vector<StringHolder>>;
-  inline std::optional<std::vector<StringHolder>> create_std__optional_std__vector_StringHolder__(const std::vector<StringHolder>& value) {
+  inline std::optional<std::vector<StringHolder>> create_std__optional_std__vector_StringHolder__(const std::vector<StringHolder>& value) noexcept {
     return std::optional<std::vector<StringHolder>>(value);
+  }
+  inline bool has_value_std__optional_std__vector_StringHolder__(const std::optional<std::vector<StringHolder>>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline std::vector<StringHolder> get_std__optional_std__vector_StringHolder__(const std::optional<std::vector<StringHolder>>& optional) noexcept {
+    return *optional;
   }
   
   // pragma MARK: std::vector<Contact>
@@ -81,7 +93,7 @@ namespace margelo::nitro::utils::bridge::swift {
    * Specialized version of `std::vector<Contact>`.
    */
   using std__vector_Contact_ = std::vector<Contact>;
-  inline std::vector<Contact> create_std__vector_Contact_(size_t size) {
+  inline std::vector<Contact> create_std__vector_Contact_(size_t size) noexcept {
     std::vector<Contact> vector;
     vector.reserve(size);
     return vector;
@@ -92,10 +104,10 @@ namespace margelo::nitro::utils::bridge::swift {
    * Specialized version of `std::shared_ptr<Promise<std::vector<Contact>>>`.
    */
   using std__shared_ptr_Promise_std__vector_Contact___ = std::shared_ptr<Promise<std::vector<Contact>>>;
-  inline std::shared_ptr<Promise<std::vector<Contact>>> create_std__shared_ptr_Promise_std__vector_Contact___() {
+  inline std::shared_ptr<Promise<std::vector<Contact>>> create_std__shared_ptr_Promise_std__vector_Contact___() noexcept {
     return Promise<std::vector<Contact>>::create();
   }
-  inline PromiseHolder<std::vector<Contact>> wrap_std__shared_ptr_Promise_std__vector_Contact___(std::shared_ptr<Promise<std::vector<Contact>>> promise) {
+  inline PromiseHolder<std::vector<Contact>> wrap_std__shared_ptr_Promise_std__vector_Contact___(std::shared_ptr<Promise<std::vector<Contact>>> promise) noexcept {
     return PromiseHolder<std::vector<Contact>>(std::move(promise));
   }
   
@@ -109,15 +121,15 @@ namespace margelo::nitro::utils::bridge::swift {
    */
   class Func_void_std__vector_Contact__Wrapper final {
   public:
-    explicit Func_void_std__vector_Contact__Wrapper(std::function<void(const std::vector<Contact>& /* result */)>&& func): _function(std::make_shared<std::function<void(const std::vector<Contact>& /* result */)>>(std::move(func))) {}
-    inline void call(std::vector<Contact> result) const {
+    explicit Func_void_std__vector_Contact__Wrapper(std::function<void(const std::vector<Contact>& /* result */)>&& func): _function(std::make_unique<std::function<void(const std::vector<Contact>& /* result */)>>(std::move(func))) {}
+    inline void call(std::vector<Contact> result) const noexcept {
       _function->operator()(result);
     }
   private:
-    std::shared_ptr<std::function<void(const std::vector<Contact>& /* result */)>> _function;
-  };
-  Func_void_std__vector_Contact_ create_Func_void_std__vector_Contact_(void* _Nonnull swiftClosureWrapper);
-  inline Func_void_std__vector_Contact__Wrapper wrap_Func_void_std__vector_Contact_(Func_void_std__vector_Contact_ value) {
+    std::unique_ptr<std::function<void(const std::vector<Contact>& /* result */)>> _function;
+  } SWIFT_NONCOPYABLE;
+  Func_void_std__vector_Contact_ create_Func_void_std__vector_Contact_(void* _Nonnull swiftClosureWrapper) noexcept;
+  inline Func_void_std__vector_Contact__Wrapper wrap_Func_void_std__vector_Contact_(Func_void_std__vector_Contact_ value) noexcept {
     return Func_void_std__vector_Contact__Wrapper(std::move(value));
   }
   
@@ -131,15 +143,15 @@ namespace margelo::nitro::utils::bridge::swift {
    */
   class Func_void_std__exception_ptr_Wrapper final {
   public:
-    explicit Func_void_std__exception_ptr_Wrapper(std::function<void(const std::exception_ptr& /* error */)>&& func): _function(std::make_shared<std::function<void(const std::exception_ptr& /* error */)>>(std::move(func))) {}
-    inline void call(std::exception_ptr error) const {
+    explicit Func_void_std__exception_ptr_Wrapper(std::function<void(const std::exception_ptr& /* error */)>&& func): _function(std::make_unique<std::function<void(const std::exception_ptr& /* error */)>>(std::move(func))) {}
+    inline void call(std::exception_ptr error) const noexcept {
       _function->operator()(error);
     }
   private:
-    std::shared_ptr<std::function<void(const std::exception_ptr& /* error */)>> _function;
-  };
-  Func_void_std__exception_ptr create_Func_void_std__exception_ptr(void* _Nonnull swiftClosureWrapper);
-  inline Func_void_std__exception_ptr_Wrapper wrap_Func_void_std__exception_ptr(Func_void_std__exception_ptr value) {
+    std::unique_ptr<std::function<void(const std::exception_ptr& /* error */)>> _function;
+  } SWIFT_NONCOPYABLE;
+  Func_void_std__exception_ptr create_Func_void_std__exception_ptr(void* _Nonnull swiftClosureWrapper) noexcept;
+  inline Func_void_std__exception_ptr_Wrapper wrap_Func_void_std__exception_ptr(Func_void_std__exception_ptr value) noexcept {
     return Func_void_std__exception_ptr_Wrapper(std::move(value));
   }
   
@@ -148,60 +160,60 @@ namespace margelo::nitro::utils::bridge::swift {
    * Specialized version of `std::vector<ContactFields>`.
    */
   using std__vector_ContactFields_ = std::vector<ContactFields>;
-  inline std::vector<ContactFields> create_std__vector_ContactFields_(size_t size) {
+  inline std::vector<ContactFields> create_std__vector_ContactFields_(size_t size) noexcept {
     std::vector<ContactFields> vector;
     vector.reserve(size);
     return vector;
   }
   
-  // pragma MARK: std::shared_ptr<margelo::nitro::utils::HybridContactsModuleSpec>
+  // pragma MARK: std::shared_ptr<HybridContactsModuleSpec>
   /**
-   * Specialized version of `std::shared_ptr<margelo::nitro::utils::HybridContactsModuleSpec>`.
+   * Specialized version of `std::shared_ptr<HybridContactsModuleSpec>`.
    */
-  using std__shared_ptr_margelo__nitro__utils__HybridContactsModuleSpec_ = std::shared_ptr<margelo::nitro::utils::HybridContactsModuleSpec>;
-  std::shared_ptr<margelo::nitro::utils::HybridContactsModuleSpec> create_std__shared_ptr_margelo__nitro__utils__HybridContactsModuleSpec_(void* _Nonnull swiftUnsafePointer);
-  void* _Nonnull get_std__shared_ptr_margelo__nitro__utils__HybridContactsModuleSpec_(std__shared_ptr_margelo__nitro__utils__HybridContactsModuleSpec_ cppType);
+  using std__shared_ptr_HybridContactsModuleSpec_ = std::shared_ptr<HybridContactsModuleSpec>;
+  std::shared_ptr<HybridContactsModuleSpec> create_std__shared_ptr_HybridContactsModuleSpec_(void* _Nonnull swiftUnsafePointer) noexcept;
+  void* _Nonnull get_std__shared_ptr_HybridContactsModuleSpec_(std__shared_ptr_HybridContactsModuleSpec_ cppType) noexcept;
   
-  // pragma MARK: std::weak_ptr<margelo::nitro::utils::HybridContactsModuleSpec>
-  using std__weak_ptr_margelo__nitro__utils__HybridContactsModuleSpec_ = std::weak_ptr<margelo::nitro::utils::HybridContactsModuleSpec>;
-  inline std__weak_ptr_margelo__nitro__utils__HybridContactsModuleSpec_ weakify_std__shared_ptr_margelo__nitro__utils__HybridContactsModuleSpec_(const std::shared_ptr<margelo::nitro::utils::HybridContactsModuleSpec>& strong) { return strong; }
+  // pragma MARK: std::weak_ptr<HybridContactsModuleSpec>
+  using std__weak_ptr_HybridContactsModuleSpec_ = std::weak_ptr<HybridContactsModuleSpec>;
+  inline std__weak_ptr_HybridContactsModuleSpec_ weakify_std__shared_ptr_HybridContactsModuleSpec_(const std::shared_ptr<HybridContactsModuleSpec>& strong) noexcept { return strong; }
   
   // pragma MARK: Result<std::shared_ptr<Promise<std::vector<Contact>>>>
   using Result_std__shared_ptr_Promise_std__vector_Contact____ = Result<std::shared_ptr<Promise<std::vector<Contact>>>>;
-  inline Result_std__shared_ptr_Promise_std__vector_Contact____ create_Result_std__shared_ptr_Promise_std__vector_Contact____(const std::shared_ptr<Promise<std::vector<Contact>>>& value) {
+  inline Result_std__shared_ptr_Promise_std__vector_Contact____ create_Result_std__shared_ptr_Promise_std__vector_Contact____(const std::shared_ptr<Promise<std::vector<Contact>>>& value) noexcept {
     return Result<std::shared_ptr<Promise<std::vector<Contact>>>>::withValue(value);
   }
-  inline Result_std__shared_ptr_Promise_std__vector_Contact____ create_Result_std__shared_ptr_Promise_std__vector_Contact____(const std::exception_ptr& error) {
+  inline Result_std__shared_ptr_Promise_std__vector_Contact____ create_Result_std__shared_ptr_Promise_std__vector_Contact____(const std::exception_ptr& error) noexcept {
     return Result<std::shared_ptr<Promise<std::vector<Contact>>>>::withError(error);
   }
   
-  // pragma MARK: std::shared_ptr<margelo::nitro::utils::HybridNavBarManagerModuleSpec>
+  // pragma MARK: std::shared_ptr<HybridNavBarManagerModuleSpec>
   /**
-   * Specialized version of `std::shared_ptr<margelo::nitro::utils::HybridNavBarManagerModuleSpec>`.
+   * Specialized version of `std::shared_ptr<HybridNavBarManagerModuleSpec>`.
    */
-  using std__shared_ptr_margelo__nitro__utils__HybridNavBarManagerModuleSpec_ = std::shared_ptr<margelo::nitro::utils::HybridNavBarManagerModuleSpec>;
-  std::shared_ptr<margelo::nitro::utils::HybridNavBarManagerModuleSpec> create_std__shared_ptr_margelo__nitro__utils__HybridNavBarManagerModuleSpec_(void* _Nonnull swiftUnsafePointer);
-  void* _Nonnull get_std__shared_ptr_margelo__nitro__utils__HybridNavBarManagerModuleSpec_(std__shared_ptr_margelo__nitro__utils__HybridNavBarManagerModuleSpec_ cppType);
+  using std__shared_ptr_HybridNavBarManagerModuleSpec_ = std::shared_ptr<HybridNavBarManagerModuleSpec>;
+  std::shared_ptr<HybridNavBarManagerModuleSpec> create_std__shared_ptr_HybridNavBarManagerModuleSpec_(void* _Nonnull swiftUnsafePointer) noexcept;
+  void* _Nonnull get_std__shared_ptr_HybridNavBarManagerModuleSpec_(std__shared_ptr_HybridNavBarManagerModuleSpec_ cppType) noexcept;
   
-  // pragma MARK: std::weak_ptr<margelo::nitro::utils::HybridNavBarManagerModuleSpec>
-  using std__weak_ptr_margelo__nitro__utils__HybridNavBarManagerModuleSpec_ = std::weak_ptr<margelo::nitro::utils::HybridNavBarManagerModuleSpec>;
-  inline std__weak_ptr_margelo__nitro__utils__HybridNavBarManagerModuleSpec_ weakify_std__shared_ptr_margelo__nitro__utils__HybridNavBarManagerModuleSpec_(const std::shared_ptr<margelo::nitro::utils::HybridNavBarManagerModuleSpec>& strong) { return strong; }
+  // pragma MARK: std::weak_ptr<HybridNavBarManagerModuleSpec>
+  using std__weak_ptr_HybridNavBarManagerModuleSpec_ = std::weak_ptr<HybridNavBarManagerModuleSpec>;
+  inline std__weak_ptr_HybridNavBarManagerModuleSpec_ weakify_std__shared_ptr_HybridNavBarManagerModuleSpec_(const std::shared_ptr<HybridNavBarManagerModuleSpec>& strong) noexcept { return strong; }
   
   // pragma MARK: Result<void>
   using Result_void_ = Result<void>;
-  inline Result_void_ create_Result_void_() {
+  inline Result_void_ create_Result_void_() noexcept {
     return Result<void>::withValue();
   }
-  inline Result_void_ create_Result_void_(const std::exception_ptr& error) {
+  inline Result_void_ create_Result_void_(const std::exception_ptr& error) noexcept {
     return Result<void>::withError(error);
   }
   
   // pragma MARK: Result<std::string>
   using Result_std__string_ = Result<std::string>;
-  inline Result_std__string_ create_Result_std__string_(const std::string& value) {
+  inline Result_std__string_ create_Result_std__string_(const std::string& value) noexcept {
     return Result<std::string>::withValue(value);
   }
-  inline Result_std__string_ create_Result_std__string_(const std::exception_ptr& error) {
+  inline Result_std__string_ create_Result_std__string_(const std::exception_ptr& error) noexcept {
     return Result<std::string>::withError(error);
   }
 

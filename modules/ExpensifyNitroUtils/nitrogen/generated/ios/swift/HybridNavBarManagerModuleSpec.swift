@@ -19,8 +19,9 @@ public protocol HybridNavBarManagerModuleSpec_protocol: HybridObject {
 }
 
 /// See ``HybridNavBarManagerModuleSpec``
-public class HybridNavBarManagerModuleSpec_base {
+open class HybridNavBarManagerModuleSpec_base {
   private weak var cxxWrapper: HybridNavBarManagerModuleSpec_cxx? = nil
+  public init() { }
   public func getCxxWrapper() -> HybridNavBarManagerModuleSpec_cxx {
   #if DEBUG
     guard self is HybridNavBarManagerModuleSpec else {

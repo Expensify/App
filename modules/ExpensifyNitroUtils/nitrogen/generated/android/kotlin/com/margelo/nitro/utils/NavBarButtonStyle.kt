@@ -15,11 +15,7 @@ import com.facebook.proguard.annotations.DoNotStrip
  */
 @DoNotStrip
 @Keep
-enum class NavBarButtonStyle {
-  LIGHT,
-  DARK;
-
-  @DoNotStrip
-  @Keep
-  private val _ordinal = ordinal
+enum class NavBarButtonStyle(@DoNotStrip @Keep val value: Int) {
+  LIGHT(0),
+  DARK(1);
 }

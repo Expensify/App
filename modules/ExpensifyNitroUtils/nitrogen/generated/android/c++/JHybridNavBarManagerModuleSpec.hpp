@@ -29,6 +29,7 @@ namespace margelo::nitro::utils {
     // C++ constructor (called from Java via `initHybrid()`)
     explicit JHybridNavBarManagerModuleSpec(jni::alias_ref<jhybridobject> jThis) :
       HybridObject(HybridNavBarManagerModuleSpec::TAG),
+      HybridBase(jThis),
       _javaPart(jni::make_global(jThis)) {}
 
   public:
@@ -39,6 +40,7 @@ namespace margelo::nitro::utils {
 
   public:
     size_t getExternalMemorySize() noexcept override;
+    void dispose() noexcept override;
 
   public:
     inline const jni::global_ref<JHybridNavBarManagerModuleSpec::javaobject>& getJavaPart() const noexcept {

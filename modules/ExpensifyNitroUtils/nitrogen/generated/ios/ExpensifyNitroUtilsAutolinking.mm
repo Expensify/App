@@ -25,14 +25,14 @@
   HybridObjectRegistry::registerHybridObjectConstructor(
     "ContactsModule",
     []() -> std::shared_ptr<HybridObject> {
-      std::shared_ptr<margelo::nitro::utils::HybridContactsModuleSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createContactsModule();
+      std::shared_ptr<HybridContactsModuleSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createContactsModule();
       return hybridObject;
     }
   );
   HybridObjectRegistry::registerHybridObjectConstructor(
     "NavBarManagerModule",
     []() -> std::shared_ptr<HybridObject> {
-      std::shared_ptr<margelo::nitro::utils::HybridNavBarManagerModuleSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createNavBarManagerModule();
+      std::shared_ptr<HybridNavBarManagerModuleSpec> hybridObject = ExpensifyNitroUtils::ExpensifyNitroUtilsAutolinking::createNavBarManagerModule();
       return hybridObject;
     }
   );

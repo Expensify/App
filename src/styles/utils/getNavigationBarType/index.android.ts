@@ -1,5 +1,4 @@
-import NavBarManager from '@libs/NavBarManager';
-import {NAVIGATION_BAR_TYPE} from '@expensify/nitro-utils';
+import {NavBarManager, NAVIGATION_BAR_TYPE} from '@expensify/nitro-utils';
 import type GetNavigationBarType from './types';
 
 const getNavigationBarType: GetNavigationBarType = (insets) => {

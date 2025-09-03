@@ -1,7 +1,7 @@
-import {NavBarManagerNitroModule} from '@expensify/nitro-utils';
-import type NavBarManager from './types';
+import type {NavBarManagerType} from './types';
+import {NavBarManagerNitroModule} from '../index';
 
-const navBarManager: NavBarManager = {
+const navBarManager: NavBarManagerType = {
     setButtonStyle: (style) => {
         NavBarManagerNitroModule.setButtonStyle(style);
     },
