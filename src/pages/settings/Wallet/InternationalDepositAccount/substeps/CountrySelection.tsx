@@ -28,6 +28,7 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fiel
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [currentCountry, setCurrentCountry] = useState(formValues.bankCountry);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: false});
+    const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
     const onCountrySelected = useCallback(() => {
         if (currentCountry === CONST.COUNTRY.US) {
@@ -48,6 +49,7 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fiel
 
     const onSelectionChange = useCallback((country: Option) => {
         setCurrentCountry(country.value);
+        setHasUserInteracted(true);
     }, []);
 
     const countries = useMemo(
@@ -67,7 +69,7 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fiel
         [translate, currentCountry],
     );
 
-    const searchResults = searchOptions(debouncedSearchValue, countries);
+    const searchResults = searchOptions(debouncedSearchValue, countries, !hasUserInteracted);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     return (

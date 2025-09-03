@@ -9,13 +9,27 @@ type Option = {
 };
 
 /**
+ * Moves selected items to the top of the list while maintaining original sorting for non-selected items
+ * @param options - An array of option objects
+ * @returns An array of options with selected items at the top
+ */
+function moveSelectedOptionsToTop<T extends {isSelected?: boolean}>(options: T[]): T[] {
+    const selected: T[] = [];
+    const unselected: T[] = [];
+    for (const option of options) {
+        (option.isSelected ? selected : unselected).push(option);
+    }
+    return [...selected, ...unselected];
+}
+
+/**
  * Searches the options and returns sorted results based on the search query
  * @param options - An array of option objects
  * @returns An array of options sorted based on the search query
  */
-function searchOptions(searchValue: string, options: Option[]): Option[] {
+function searchOptions(searchValue: string, options: Option[], shouldMoveSelectedToTop = false): Option[] {
     if (!searchValue) {
-        return options;
+        return shouldMoveSelectedToTop ? moveSelectedOptionsToTop(options) : options;
     }
 
     const trimmedSearchValue = StringUtils.sanitizeString(searchValue);
@@ -69,7 +83,7 @@ function searchOptions(searchValue: string, options: Option[]): Option[] {
             return 0;
         });
     }
-    return fullSorted;
+    return shouldMoveSelectedToTop ? moveSelectedOptionsToTop(fullSorted) : fullSorted;
 }
 
 export default searchOptions;
