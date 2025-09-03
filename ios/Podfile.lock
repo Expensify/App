@@ -322,6 +322,13 @@ PODS:
   - GoogleUtilities/UserDefaults (8.1.0):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
+  - group-ib-fp (2.3.0):
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - ReactCommon/turbomodule/core
   - GTMAppAuth (4.1.1):
     - AppAuth/Core (~> 1.7)
     - GTMSessionFetcher/Core (< 4.0, >= 3.3)
@@ -503,6 +510,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -521,6 +529,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -538,6 +547,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -557,6 +567,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -575,6 +586,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -593,6 +605,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -611,6 +624,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -629,6 +643,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -647,6 +662,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -665,6 +681,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -683,6 +700,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -701,6 +719,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -719,6 +738,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -737,6 +757,7 @@ PODS:
     - React-jsinspector
     - React-jsitooling
     - React-perflogger
+    - React-rendererconsistency
     - React-runtimescheduler
     - React-utils
     - SocketRocket (= 0.7.1)
@@ -2822,30 +2843,6 @@ PODS:
     - Firebase/Performance (= 11.13.0)
     - React-Core
     - RNFBApp
-  - RNFlashList (1.8.2):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.11.18.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-hermes
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - RNFS (2.20.0):
     - React-Core
   - RNGestureHandler (2.25.0):
@@ -2905,13 +2902,13 @@ PODS:
     - Yoga
   - RNLocalize (2.2.6):
     - React-Core
-  - rnmapbox-maps (10.1.33):
+  - rnmapbox-maps (10.1.41):
     - MapboxMaps (~> 10.19.0)
     - React
     - React-Core
-    - rnmapbox-maps/DynamicLibrary (= 10.1.33)
+    - rnmapbox-maps/DynamicLibrary (= 10.1.41)
     - Turf
-  - rnmapbox-maps/DynamicLibrary (10.1.33):
+  - rnmapbox-maps/DynamicLibrary (10.1.41):
     - DoubleConversion
     - hermes-engine
     - MapboxMaps (~> 10.19.0)
@@ -3303,6 +3300,7 @@ DEPENDENCIES:
   - "FullStory (from `{:http=>\"https://ios-releases.fullstory.com/fullstory-1.61.0-xcframework.tar.gz\"}`)"
   - "fullstory_react-native (from `../node_modules/@fullstory/react-native`)"
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - group-ib-fp (from `../node_modules/group-ib-fp`)
   - GzipSwift
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
@@ -3404,7 +3402,6 @@ DEPENDENCIES:
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBCrashlytics (from `../node_modules/@react-native-firebase/crashlytics`)"
   - "RNFBPerf (from `../node_modules/@react-native-firebase/perf`)"
-  - "RNFlashList (from `../node_modules/@shopify/flash-list`)"
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
@@ -3464,6 +3461,7 @@ SPEC REPOS:
     - PromisesObjC
     - PromisesSwift
     - PusherSwift
+    - React-Codegen
     - SDWebImage
     - SDWebImageAVIFCoder
     - SDWebImageSVGCoder
@@ -3513,6 +3511,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@fullstory/react-native"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
+  group-ib-fp:
+    :path: "../node_modules/group-ib-fp"
   hermes-engine:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
     :tag: hermes-2025-03-03-RNv0.79.0-bc17d964d03743424823d7dd1a9f37633459c5c5
@@ -3710,8 +3710,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-firebase/crashlytics"
   RNFBPerf:
     :path: "../node_modules/@react-native-firebase/perf"
-  RNFlashList:
-    :path: "../node_modules/@shopify/flash-list"
   RNFS:
     :path: "../node_modules/react-native-fs"
   RNGestureHandler:
@@ -3755,7 +3753,7 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
+  boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXAV: 13d43af15268a3f448a6b994e91574c939f065e6
   EXConstants: 26f334022fc0b454b7ecdc7c12d36ffa68c7c397
@@ -3792,6 +3790,7 @@ SPEC CHECKSUMS:
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
+  group-ib-fp: fcdafae8102c5e77e35d313d7227a6eba2bbe95f
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
@@ -3821,7 +3820,8 @@ SPEC CHECKSUMS:
   RCTTypeSafety: 659ae318c09de0477fd27bbc9e140071c7ea5c93
   React: c2d3aa44c49bb34e4dfd49d3ee92da5ebacc1c1c
   React-callinvoker: 1bdfb7549b5af266d85757193b5069f60659ef9d
-  React-Core: 7150cf9b6a5af063b37003062689f1691e79c020
+  React-Codegen: 4b8b4817cea7a54b83851d4c1f91f79aa73de30a
+  React-Core: 7e3642ef83e1032df3d25ebc840868c0c54381ca
   React-CoreModules: 15a85e6665d61678942da6ae485b351f4c699049
   React-cxxreact: 74f9de59259ac951923f5726aa14f0398f167af9
   React-debug: a9861ea2196e886642887e29fd1d86c6eee93454
@@ -3870,7 +3870,7 @@ SPEC CHECKSUMS:
   react-native-webview: 9cf95bd9b16cde5d9bbae452a9cf55631b62028d
   React-NativeModulesApple: 1b5e6bf9164371771e553f744da801f5d9f5c7e5
   React-oscompat: ef5df1c734f19b8003e149317d041b8ce1f7d29c
-  React-perflogger: 6fd2f6811533e9c19a61e855c3033eecbf4ad2a0
+  React-perflogger: 005c6dfd4aa335fd527c94cc4591ed9b509f0486
   React-performancetimeline: df331d0764cc54204a73960408371111efbd34b7
   React-RCTActionSheet: a499b0d6d9793886b67ba3e16046a3fef2cdbbc3
   React-RCTAnimation: 2595dcb10a82216a511b54742f8c28d793852ac6
@@ -3885,7 +3885,7 @@ SPEC CHECKSUMS:
   React-RCTSettings: a060c7e381a3896104761b8eed7e284d95e37df3
   React-RCTText: 4f272b72dbb61f390d8c8274528f9fdbff983806
   React-RCTVibration: 0e5326220719aca12473d703aa46693e3b4ce67a
-  React-rendererconsistency: 68db5a64f0c42b0337e25ba7b0e9513caae1389d
+  React-rendererconsistency: 4e8e3fd5e90ec9594a4bd5950496eb8006c72f7e
   React-renderercss: eeb482d2790028a9b47ce9c214397ae2f4e2a7c5
   React-rendererdebug: c6e3b7583c2f0802cb3b4cf19f714853fa9ac670
   React-rncore: 0f64cacb1becc6f89c99018ca920d012f9044ebd
@@ -3908,13 +3908,12 @@ SPEC CHECKSUMS:
   RNFBApp: df5caad9f64b6bc87f8a0b110e6bc411fb00a12b
   RNFBCrashlytics: c9dbfcf63b06cf8e8c4d960719e81160b6bc2e76
   RNFBPerf: c32ec64522c2e4d81d1562747809314e9050b75f
-  RNFlashList: 2e3ff9db752b552fdb1cdb00b8fb2a408af4c516
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: b249b5be5a3659025aed8898aaaafd567dc2d660
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLiveMarkdown: 33974079f2be0b5c5e6032582c265494f00a8ce4
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
-  rnmapbox-maps: a5569b64e3ca5fcd1be1f9d5bb478bf601d2a033
+  rnmapbox-maps: 315b95f92be3bf9c86cac2925e39c9ab2ad2c793
   RNNitroSQLite: e36968e81bbcab6c9e97a35e74ae34c7420d734c
   RNPermissions: fd6b2676e74ecb6d2dec0a6168502ab7af733e34
   RNReactNativeHapticFeedback: 85c0a6ff490d52f5e8073040296fefe5945ebbfa
