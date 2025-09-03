@@ -12,7 +12,9 @@ import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
-import {getBankAccountRoute, getPolicyExpenseChat, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {isPolicyMember} from '@libs/PolicyUtils';
+import {getBankAccountRoute, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
 import {kycWallRef} from '@userActions/PaymentMethods';
 import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
 import {setKYCWallSource} from '@userActions/Wallet';
@@ -24,8 +26,6 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
 import type {AnchorPosition, DomRect, KYCWallProps, PaymentMethod} from './types';
-import { getLoginByAccountID } from '@libs/PersonalDetailsUtils';
-import { isPolicyMember } from '@libs/PolicyUtils';
 
 // This sets the Horizontal anchor position offset for POPOVER MENU.
 const POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET = 20;
@@ -127,12 +127,15 @@ function KYCWall({
                         const isMember = isPolicyMember(policy, getLoginByAccountID(iouReport.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID));
                         if (!isMember) {
                             const {policyExpenseChatReportID: newPolicyExpenseChatReportID} = moveIOUReportToPolicyAndInviteSubmitter(iouReport.reportID, policy.id, formatPhoneNumber) ?? {};
-                            savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[policy.id]);
-                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newPolicyExpenseChatReportID));
+                            if (newPolicyExpenseChatReportID) {
+                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newPolicyExpenseChatReportID));
+                            }
                         } else {
                             const {policyExpenseChatReportID} = moveIOUReportToPolicy(iouReport, policy, true) ?? {};
                             savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[policy.id]);
-                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(policyExpenseChatReportID));
+                            if (policyExpenseChatReportID) {
+                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(policyExpenseChatReportID));
+                            }
                         }
 
                         if (policy?.achAccount) {

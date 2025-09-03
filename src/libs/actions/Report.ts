@@ -5164,8 +5164,45 @@ function moveIOUReportToPolicy(iouReport: Report, policy: Policy, isFromSettleme
 
     const failureData: OnyxUpdate[] = [];
 
-    console.log('>>> useTemporaryOptimisticExpenseChatReportID', useTemporaryOptimisticExpenseChatReportID);
-
+    // If we generated an optimistic policy expense chat ID, create minimal optimistic placeholders
+    if (useTemporaryOptimisticExpenseChatReportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticExpenseChatReportID}`,
+            value: {isOptimisticReport: true},
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseChatReportID}`,
+            value: {
+                reportID: optimisticExpenseChatReportID,
+                policyID,
+                ownerAccountID: employeeAccountID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseChatReportID}`,
+            value: null,
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticExpenseChatReportID}`,
+            value: null,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseChatReportID}`,
+            value: null,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticExpenseChatReportID}`,
+            value: null,
+        });
+    }
 
     // Next we need to convert the IOU report to Expense report.
     // We need to change:
