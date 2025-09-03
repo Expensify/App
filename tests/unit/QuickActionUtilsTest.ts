@@ -22,20 +22,21 @@ describe('QuickActionUtils', () => {
                 jest.clearAllMocks();
             });
 
-            it('should return false when shouldShowPolicy returns true and isPolicyExpenseChatEnabled is true', () => {
+            it('should return true when shouldShowPolicy returns true and isPolicyExpenseChatEnabled is true', () => {
                 const policy: Partial<Policy> = {
                     id: 'policy123',
                     isPolicyExpenseChatEnabled: true,
                 };
 
-                mockedPolicyUtils.shouldShowPolicy.mockReturnValue(false);
+                mockedPolicyUtils.shouldShowPolicy.mockReturnValue(true);
 
                 const result = isQuickActionAllowed(createReportAction, undefined, policy as Policy);
 
-                expect(result).toBe(false);
+                expect(result).toBe(true);
+                expect(mockedPolicyUtils.shouldShowPolicy).toHaveBeenCalledWith(policy, false, undefined);
             });
 
-            it('should return false when shouldShowPolicy returns true but isPolicyExpenseChatEnabled is false', () => {
+            it('should return false when shouldShowPolicy returns false even if isPolicyExpenseChatEnabled is true', () => {
                 const policy: Partial<Policy> = {
                     id: 'policy123',
                     isPolicyExpenseChatEnabled: false,

@@ -1,9 +1,14 @@
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import type {PersonalDetails} from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
 import type {IOURequestType} from './IOU';
 import {startDistanceRequest, startMoneyRequest} from './IOU';
+import {createNewReport} from './Report';
 import {startOutCreateTaskQuickAction} from './Task';
 
 function getQuickActionRequestType(action: QuickActionName | undefined): IOURequestType | undefined {
@@ -29,6 +34,8 @@ function navigateToQuickAction(
     isValidReport: boolean,
     quickAction: QuickAction,
     selectOption: (onSelected: () => void, shouldRestrictAction: boolean) => void,
+    currentUserPersonalDetails: PersonalDetails,
+    policyID: string | undefined,
     isManualDistanceTrackingEnabled?: boolean,
 ) {
     const reportID = isValidReport && quickAction?.chatReportID ? quickAction?.chatReportID : generateReportID();
@@ -68,6 +75,18 @@ function navigateToQuickAction(
                 return;
             }
             selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true), false);
+            break;
+        case CONST.QUICK_ACTIONS.CREATE_REPORT:
+            selectOption(() => {
+                const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(
+                        isSearchTopmostFullScreenRoute()
+                            ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID})
+                            : ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, Navigation.getActiveRoute()),
+                    );
+                });
+            }, true);
             break;
         default:
     }
