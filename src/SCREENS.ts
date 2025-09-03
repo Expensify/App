@@ -195,6 +195,7 @@ const SCREENS = {
         REPORT_DETAILS: 'Report_Details',
         REPORT_CHANGE_WORKSPACE: 'ReportChangeWorkspace',
         WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
+        WORKSPACE_DUPLICATE: 'Workspace_Duplicate',
         REPORT_SETTINGS: 'Report_Settings',
         REPORT_DESCRIPTION: 'Report_Description',
         PARTICIPANTS: 'Participants',
@@ -391,6 +392,7 @@ const SCREENS = {
     },
 
     WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
+    WORKSPACE_DUPLICATE: {ROOT: 'Workspace_Duplicate_Root', SELECT_FEATURES: 'Workspace_Duplicate_Select_Features'},
 
     WORKSPACES_LIST: 'Workspaces_List',
 
@@ -517,6 +519,8 @@ const SCREENS = {
             SAGE_INTACCT_DEFAULT_VENDOR: 'Policy_Accounting_Sage_Intacct_Default_Vendor',
             SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Non_Reimbursable_Credit_Card_Account',
             SAGE_INTACCT_ADVANCED: 'Policy_Accounting_Sage_Intacct_Advanced',
+            SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Sage_Intacct_Auto_Sync',
+            SAGE_INTACCT_ACCOUNTING_METHOD: 'Policy_Accounting_Sage_Intacct_Accounting_Method',
             SAGE_INTACCT_PAYMENT_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Payment_Account',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             RECONCILIATION_ACCOUNT_SETTINGS: 'Policy_Accounting_Reconciliation_Account_Settings',
