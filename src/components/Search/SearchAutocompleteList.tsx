@@ -139,7 +139,6 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
             <SearchQueryListItem
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                shouldDisplayRBR
             />
         );
     }
@@ -148,7 +147,6 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
             pressableStyle={[styles.br2, styles.ph3]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            shouldDisplayRBR
         />
     );
 }
@@ -332,7 +330,8 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY: {
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY: {
                 const autocompleteList = autocompleteValue ? currencyAutocompleteList : (recentCurrencyAutocompleteList ?? []);
                 const filteredCurrencies = autocompleteList
                     .filter((currency) => currency.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(currency.toLowerCase()))

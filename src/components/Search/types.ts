@@ -130,7 +130,12 @@ type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN;
 
-type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL;
+type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
+
+type SearchCurrencyFilterKeys =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY;
 
 type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
@@ -220,5 +225,6 @@ export type {
     SearchDatePreset,
     SearchWithdrawalType,
     SearchAction,
+    SearchCurrencyFilterKeys,
     UserFriendlyValue,
 };
