@@ -16,7 +16,7 @@ import {canUserPerformWriteAction, formatReportLastMessageText, getParticipantsA
 import SidebarUtils from '@libs/SidebarUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, ReportAction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, ReportAction} from '@src/types/onyx';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 type DebugReportActionsProps = {
@@ -44,7 +44,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
         canBeMissing: true,
     });
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
-    const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
+    const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails as OnyxInputOrEntry<PersonalDetailsList>));
 
     const getReportActionDebugText = useCallback(
         (reportAction: ReportAction) => {

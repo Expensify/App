@@ -320,7 +320,7 @@ Onyx.connect({
  */
 function getPersonalDetailsForAccountIDs(
     accountIDs: number[] | undefined,
-    personalDetails: OnyxInputOrEntry<PersonalDetailsList> | OnyxCollection<PersonalDetails>,
+    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
 ): SetNonNullable<PersonalDetailsList> {
     const personalDetailsForAccountIDs: SetNonNullable<PersonalDetailsList> = {};
     if (!personalDetails) {
