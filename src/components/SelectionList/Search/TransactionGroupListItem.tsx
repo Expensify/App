@@ -65,6 +65,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const {translate, formatPhoneNumber} = useLocalize();
     const {selectedTransactions} = useSearchContext();
     const selectedTransactionIDs = Object.keys(selectedTransactions);
+    const selectedTransactionIDsSet = useMemo(() => new Set(selectedTransactionIDs), [selectedTransactionIDs]);
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`, {canBeMissing: true});
     const transactionsSnapshotMetadata = useMemo(() => {
         return transactionsSnapshot?.search;
@@ -80,9 +81,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
         const sectionData = getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, transactionsSnapshot?.data, accountID, formatPhoneNumber) as TransactionListItemType[];
         return sectionData.map((transactionItem) => ({
             ...transactionItem,
-            isSelected: selectedTransactionIDs.includes(transactionItem.transactionID),
+            isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
         }));
-    }, [isGroupByReports, transactionsSnapshot?.data, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDs]);
+    }, [isGroupByReports, transactionsSnapshot?.data, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDsSet]);
 
     const currentColumns = useMemo(() => {
         if (isGroupByReports) {

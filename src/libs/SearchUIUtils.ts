@@ -90,7 +90,7 @@ import {
     isOpenReport,
     isSettled,
 } from './ReportUtils';
-import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getCurrentSearchQueryJSON, buildSearchQueryString} from './SearchQueryUtils';
+import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {

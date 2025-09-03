@@ -46,7 +46,7 @@ type AnimatedCollapsibleProps = {
 function AnimatedCollapsible({isExpanded, children, header, duration = 300, style, headerStyle, contentStyle, expandButtonStyle, onPress, disabled = false}: AnimatedCollapsibleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const height = useSharedValue(0);
+    const contentHeight = useSharedValue(0);
     const isAnimating = useSharedValue(false);
     const hasExpanded = useSharedValue(false);
     const isExpandedFirstTime = useRef(false);
@@ -64,7 +64,7 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
 
     // Animation for content height and opacity
     const derivedHeight = useDerivedValue(() => {
-        const targetHeight = height.get() * Number(isExpanded);
+        const targetHeight = isExpanded ? contentHeight.get() : 0;
         return withTiming(
             targetHeight,
             {
@@ -134,7 +134,7 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
                         if (!isExpanded) {
                             hasExpanded.set(true);
                         }
-                        height.set(e.nativeEvent.layout.height);
+                        contentHeight.set(e.nativeEvent.layout.height);
                     }}
                 >
                     <View style={[styles.pv2, styles.ph3]}>
