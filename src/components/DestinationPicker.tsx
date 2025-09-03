@@ -10,8 +10,8 @@ import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SelectionList from './SelectionList';
-import type {ListItem} from './SelectionList/types';
 import SingleSelectListItem from './SelectionList/SingleSelectListItem';
+import type {ListItem} from './SelectionList/types';
 
 type DestinationPickerProps = {
     policyID: string;
