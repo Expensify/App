@@ -601,7 +601,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 errors={report.errorFields?.avatar ?? null}
                 errorRowStyles={styles.mt6}
                 onErrorClose={() => clearAvatarErrors(report.reportID)}
-                shouldUseStyleUtilityForAnchorPosition
                 style={[styles.w100, styles.mb3]}
             />
         );
@@ -804,7 +803,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             if (!isTransactionDeleted.current) {
                 return;
             }
-
+            isTransactionDeleted.current = false;
             deleteTransaction();
         };
     }, [deleteTransaction]);
