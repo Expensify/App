@@ -32,7 +32,7 @@ import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionTo
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
-import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
+import type {AuthScreensParamList, NavigationPartialRoute, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
 
 // Routes which are part of the flow to set up 2FA
 const SET_UP_2FA_ROUTES: Route[] = [
@@ -641,6 +641,12 @@ function clearPreloadedRoutes() {
     navigationRef.reset(rootStateWithoutPreloadedRoutes);
 }
 
+function removeRouteFromPreloadedRoutes(routeName: keyof AuthScreensParamList) {
+    const rootState = navigationRef.getRootState() as NavigationState<AuthScreensParamList> & {preloadedRoutes: Array<NavigationPartialRoute<keyof AuthScreensParamList>>};
+    const rootStateWithoutPreloadedRoutes = {...rootState, preloadedRoutes: rootState.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== routeName)} as NavigationState;
+    navigationRef.reset(rootStateWithoutPreloadedRoutes);
+}
+
 const modalDismissedListeners: Array<() => void> = [];
 
 function onModalDismissedOnce(callback: () => void) {
@@ -690,6 +696,7 @@ export default {
     clearPreloadedRoutes,
     onModalDismissedOnce,
     fireModalDismissed,
+    removeRouteFromPreloadedRoutes,
 };
 
 export {navigationRef};

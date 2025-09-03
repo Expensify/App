@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -8,9 +9,10 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateChatPriorityMode} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type PriorityModeItem = {
@@ -23,7 +25,7 @@ type PriorityModeItem = {
 
 function PriorityModePage() {
     const {translate} = useLocalize();
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: (mode) => mode ?? CONST.PRIORITY_MODE.DEFAULT});
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: (mode) => mode ?? CONST.PRIORITY_MODE.DEFAULT, canBeMissing: true});
     const styles = useThemeStyles();
     const priorityModes = Object.values(CONST.PRIORITY_MODE).map<PriorityModeItem>((mode) => ({
         value: mode,
@@ -39,7 +41,8 @@ function PriorityModePage() {
                 Navigation.goBack();
                 return;
             }
-            User.updateChatPriorityMode(mode.value);
+            updateChatPriorityMode(mode.value);
+            InteractionManager.runAfterInteractions(() => Navigation.removeRouteFromPreloadedRoutes(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
         },
         [priorityMode],
     );
