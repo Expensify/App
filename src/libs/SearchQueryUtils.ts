@@ -44,8 +44,6 @@ import {isValidDate} from './ValidationUtils';
 
 type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 
-type TodoSearchType = typeof CONST.SEARCH.SEARCH_KEYS.SUBMIT | typeof CONST.SEARCH.SEARCH_KEYS.APPROVE | typeof CONST.SEARCH.SEARCH_KEYS.PAY | typeof CONST.SEARCH.SEARCH_KEYS.EXPORT;
-
 // This map contains chars that match each operator
 const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ':' as const,
@@ -266,8 +264,8 @@ function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FI
         });
     }
 
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID) {
-        const cleanReportIDs = (value: string) =>
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID) {
+        const cleanIDs = (value: string) =>
             value
                 .split(',')
                 .map((id) => id.trim())
@@ -275,9 +273,9 @@ function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FI
                 .join(',');
 
         if (typeof filterValue === 'string') {
-            return cleanReportIDs(filterValue);
+            return cleanIDs(filterValue);
         }
-        return filterValue.map(cleanReportIDs);
+        return filterValue.map(cleanIDs);
     }
 
     return filterValue;
@@ -502,10 +500,10 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
                 }
             }
-            if (filterKey === FILTER_KEYS.REPORT_ID && filterValue) {
+            if ((filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID) && filterValue) {
                 const reportIDs = (filterValue as string)
                     .split(',')
-                    .map((id) => id.trim())
+                    .map((id) => sanitizeSearchValue(id.trim()))
                     .filter((id) => id.length > 0);
 
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
@@ -599,8 +597,10 @@ function buildFilterFormValuesFromQuery(
         const filterKey = queryFilter.key;
         const filterList = queryFilter.filters;
         const filterValues = filterList.map((item) => item.value.toString());
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID) {
+            filtersForm[filterKey] = filterValues.join(',');
+        }
         if (
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
@@ -1025,43 +1025,6 @@ function getCurrentSearchQueryJSON() {
     return queryJSON;
 }
 
-function getTodoSearchQuery(action: TodoSearchType, userAccountID: number | undefined) {
-    switch (action) {
-        case CONST.SEARCH.SEARCH_KEYS.SUBMIT:
-            return buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-                from: [`${userAccountID}`],
-            });
-        case CONST.SEARCH.SEARCH_KEYS.APPROVE:
-            return buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
-                to: [`${userAccountID}`],
-            });
-        case CONST.SEARCH.SEARCH_KEYS.PAY:
-            return buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                action: CONST.SEARCH.ACTION_FILTERS.PAY,
-                reimbursable: CONST.SEARCH.BOOLEAN.YES,
-                payer: userAccountID?.toString(),
-            });
-        case CONST.SEARCH.SEARCH_KEYS.EXPORT:
-            return buildQueryStringFromFilterFormValues({
-                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
-                exporter: [`${userAccountID}`],
-                exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
-            });
-
-        default:
-            return '';
-    }
-}
-
 /**
  * Extracts the query text without the filter parts.
  * This is used to determine if a user's core search terms have changed,
@@ -1114,7 +1077,6 @@ export {
     sortOptionsWithEmptyValue,
     shouldHighlight,
     getAllPolicyValues,
-    getTodoSearchQuery,
     getUserFriendlyValue,
     getUserFriendlyKey,
     getGroupByValue,
