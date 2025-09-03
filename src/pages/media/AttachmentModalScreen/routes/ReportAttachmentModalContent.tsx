@@ -11,18 +11,19 @@ import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import type {AttachmentModalBaseContentProps, OnValidateFileCallback} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import type {AttachmentModalBaseContentProps, OnValidateFileCallback} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps, FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ModalType from '@src/types/utils/ModalType';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 
-function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps) {
+function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.ATTACHMENTS>) {
     const {
         attachmentID,
         type,
@@ -167,7 +168,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         [getModalType],
     );
 
-    const contentTypeProps = useMemo<Partial<AttachmentModalBaseContentProps>>(
+    const contentTypeProps = useMemo<AttachmentModalBaseContentProps>(
         () =>
             fileParam
                 ? {
@@ -188,7 +189,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         [attachmentLink, fileParam, isAuthTokenRequired, isLoading, originalFileName, report, type, validateFile],
     );
 
-    const contentProps = useMemo<Partial<AttachmentModalBaseContentProps>>(
+    const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
             ...contentTypeProps,
             source,

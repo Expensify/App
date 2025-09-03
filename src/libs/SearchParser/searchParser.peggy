@@ -133,6 +133,7 @@ key "key"
       / exporter
       / expenseType
       / withdrawalType
+      / withdrawalID
       / submitted
       / approved
       / paid
@@ -146,6 +147,8 @@ key "key"
       / reimbursable
       / billable
       / action
+      / purchaseCurrency
+      / purchaseAmount
     )
 
 filterKey
