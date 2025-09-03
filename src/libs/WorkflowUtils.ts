@@ -164,7 +164,9 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
         });
     }
 
-    return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers: sortedApprovalWorkflows.at(0)?.members ?? []};
+    const availableMembers = sortedApprovalWorkflows?.flatMap((workflow) => workflow.members) ?? [];
+
+    return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers};
 }
 
 type ConvertApprovalWorkflowToPolicyEmployeesParams = {
