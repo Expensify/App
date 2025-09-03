@@ -1873,11 +1873,11 @@ const ROUTES = {
     },
     WORKSPACE_DUPLICATE: {
         route: 'workspace/:policyID/duplicate',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/duplicate`, backTo),
+        getRoute: (policyID: string) => `workspace/${policyID}/duplicate`,
     },
     WORKSPACE_DUPLICATE_SELECT_FEATURES: {
         route: 'workspace/:policyID/duplicate/select-features',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/duplicate/select-features`, backTo),
+        getRoute: (policyID: string) => `workspace/${policyID}/duplicate/select-features`,
     },
     WORKSPACE_RECEIPT_PARTNERS: {
         route: 'workspaces/:policyID/receipt-partners',

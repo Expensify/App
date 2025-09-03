@@ -17,7 +17,7 @@ import {openPolicyCategoriesPage} from '@userActions/Policy/Category';
 import {openPolicyDistanceRatesPage} from '@userActions/Policy/DistanceRate';
 import {openWorkspaceMembersPage} from '@userActions/Policy/Member';
 import {openPolicyPerDiemPage} from '@userActions/Policy/PerDiem';
-import {duplicateWorkspace as duplicateWorkspaceAction, openPolicyTaxesPage, openPolicyWorkflowsPage} from '@userActions/Policy/Policy';
+import {duplicateWorkspace as duplicateWorkspaceAction, openPolicyProfilePage, openPolicyTaxesPage, openPolicyWorkflowsPage} from '@userActions/Policy/Policy';
 import {openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
 import {openPolicyTagsPage} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
@@ -205,6 +205,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         if (!policyID) {
             return;
         }
+        openPolicyProfilePage(policyID);
         openWorkspaceMembersPage(policyID, Object.keys(allIds ?? {}));
         openPolicyCategoriesPage(policyID);
         openPolicyDistanceRatesPage(policyID);
@@ -310,7 +311,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     return (
         <>
             <HeaderWithBackButton
-                onBackButtonPress={policyID ? () => Navigation.goBack(ROUTES.WORKSPACE_DUPLICATE.getRoute(policyID, ROUTES.WORKSPACES_LIST.route)) : undefined}
+                onBackButtonPress={policyID ? () => Navigation.goBack(ROUTES.WORKSPACE_DUPLICATE.getRoute(policyID)) : undefined}
                 title={translate('workspace.common.duplicateWorkspace')}
             />
             <>

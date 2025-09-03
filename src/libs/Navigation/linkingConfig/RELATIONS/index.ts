@@ -1,3 +1,4 @@
+import WORKSPACES_LIST_TO_RHP from '@navigation/linkingConfig/RELATIONS/WORKSPACES_LIST_TO_RHP';
 import SEARCH_TO_RHP from './SEARCH_TO_RHP';
 import SETTINGS_TO_RHP from './SETTINGS_TO_RHP';
 import SIDEBAR_TO_RHP from './SIDEBAR_TO_RHP';
@@ -29,6 +30,7 @@ const RHP_TO_SETTINGS = createInverseRelation(SETTINGS_TO_RHP);
 const RHP_TO_WORKSPACE = createInverseRelation(WORKSPACE_TO_RHP);
 const RHP_TO_SIDEBAR = createInverseRelation(SIDEBAR_TO_RHP);
 const SPLIT_TO_SIDEBAR = createInverseRelation(SIDEBAR_TO_SPLIT);
+const RHP_TO_WORKSPACES_LIST = createInverseRelation(WORKSPACES_LIST_TO_RHP);
 const RHP_TO_SEARCH = createInverseRelation(SEARCH_TO_RHP);
 const FULLSCREEN_TO_TAB = createInverseRelation(TAB_TO_FULLSCREEN);
 
@@ -45,4 +47,5 @@ export {
     SPLIT_TO_SIDEBAR,
     TAB_TO_FULLSCREEN,
     FULLSCREEN_TO_TAB,
+    RHP_TO_WORKSPACES_LIST,
 };
