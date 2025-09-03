@@ -1,6 +1,8 @@
 import React, {useCallback} from 'react';
 import type {ConfirmModalProps} from '@components/ConfirmModal';
 import ConfirmModal from '@components/ConfirmModal';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import CONST from '@src/CONST';
 import type {ModalProps} from './ModalContext';
 
 type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm' | 'onCancel' | 'isVisible'>;
@@ -10,23 +12,7 @@ type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm'
 // - handle closeModal inside ConfirmModal
 // - remove ConfirmModalWrapper
 
-function ConfirmModalWrapper({
-    closeModal,
-    title = '',
-    prompt = '',
-    confirmText = '',
-    cancelText = '',
-    success = true,
-    danger = false,
-    shouldDisableConfirmButtonWhenOffline = false,
-    shouldShowCancelButton = true,
-    shouldSetModalVisibility = true,
-    shouldShowDismissIcon = false,
-    shouldCenterContent = false,
-    shouldStackButtons = true,
-    shouldReverseStackedButtons = false,
-    isConfirmLoading = false,
-}: ConfirmModalWrapperProps) {
+function ConfirmModalWrapper({closeModal, ...props}: ConfirmModalWrapperProps) {
     const handleConfirm = useCallback(() => {
         closeModal({action: 'CONFIRM'});
     }, [closeModal]);
@@ -35,25 +21,15 @@ function ConfirmModalWrapper({
         closeModal({action: 'CLOSE'});
     }, [closeModal]);
 
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, handleConfirm);
+
     return (
         <ConfirmModal
-            title={title}
             isVisible
             onConfirm={handleConfirm}
             onCancel={handleCancel}
-            prompt={prompt}
-            confirmText={confirmText}
-            cancelText={cancelText}
-            success={success}
-            danger={danger}
-            shouldDisableConfirmButtonWhenOffline={shouldDisableConfirmButtonWhenOffline}
-            shouldShowCancelButton={shouldShowCancelButton}
-            shouldSetModalVisibility={shouldSetModalVisibility}
-            shouldShowDismissIcon={shouldShowDismissIcon}
-            shouldCenterContent={shouldCenterContent}
-            shouldStackButtons={shouldStackButtons}
-            shouldReverseStackedButtons={shouldReverseStackedButtons}
-            isConfirmLoading={isConfirmLoading}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
         />
     );
 }
