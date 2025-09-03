@@ -1966,7 +1966,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     const shouldSetCreatedWorkspaceAsActivePolicy =
         !!activePolicyID &&
         allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL &&
-        PolicyUtils.getActivePolicies(allPolicies, sessionEmail).length === 0;
+        PolicyUtils.getGroupPaidPolicies(allPolicies).length === 0;
 
     // Determine workspace type based on selected features or user reported integration
     const isCorporateFeature = featuresMap?.some((feature) => !feature.enabledByDefault && feature.enabled && feature.requiresUpdate) ?? false;

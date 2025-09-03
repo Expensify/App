@@ -1399,6 +1399,13 @@ function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Pol
     return Object.values(policies).filter((policy) => isPaidGroupPolicy(policy) && policy?.isPolicyExpenseChatEnabled);
 }
 
+function getGroupPaidPolicies(policies: OnyxCollection<Policy> | null = allPolicies) {
+    if (isEmptyObject(policies)) {
+        return CONST.EMPTY_ARRAY;
+    }
+    return Object.values(policies).filter((policy) => isPaidGroupPolicy(policy));
+}
+
 // eslint-disable-next-line rulesdir/no-negated-variables
 function shouldDisplayPolicyNotFoundPage(policyID: string): boolean {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -1691,6 +1698,7 @@ export {
     isPolicyMemberWithoutPendingDelete,
     getPolicyEmployeeAccountIDs,
     isMemberPolicyAdmin,
+    getGroupPaidPolicies,
 };
 
 export type {MemberEmailsToAccountIDs};
