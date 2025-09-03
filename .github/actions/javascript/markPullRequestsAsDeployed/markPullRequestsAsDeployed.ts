@@ -26,15 +26,12 @@ function getDeployTableMessage(platformResult: PlatformResult): string {
     }
 }
 
-/**
- * Comment Single PR
- */
-async function commentPR(PR: number, message: string) {
+async function commentPR(PR: number, message: string, repo: string = context.repo.repo) {
     try {
-        await GithubUtils.createComment(context.repo.repo, PR, message);
-        console.log(`Comment created on #${PR} successfully 🎉`);
+        await GithubUtils.createComment(repo, PR, message);
+        console.log(`Comment created on ${repo}#${PR} successfully 🎉`);
     } catch (err) {
-        console.log(`Unable to write comment on #${PR} 😞`);
+        console.log(`Unable to write comment on ${repo}#${PR} 😞`);
         if (err instanceof Error) {
             core.setFailed(err.message);
         }
@@ -45,8 +42,63 @@ const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOS
 
 const getCommit = memoize(GithubUtils.octokit.git.getCommit);
 
+/**
+ * Process staging deploy comments for a list of PRs
+ */
+async function commentStagingDeployPRs(
+    prList: number[],
+    repoName: string,
+    recentTags: Awaited<ReturnType<typeof GithubUtils.octokit.repos.listTags>>['data'],
+    getDeployMessage: (deployer: string, deployVerb: string, prTitle?: string) => string,
+) {
+    for (const prNumber of prList) {
+        try {
+            const {data: pr} = await GithubUtils.octokit.pulls.get({
+                owner: CONST.GITHUB_OWNER,
+                repo: repoName,
+                pull_number: prNumber,
+            });
+
+            // Find the deployer: either the merger, or for CPs, the tag creator
+            const isCP = pr.labels.some(({name: labelName}) => labelName === CONST.LABELS.CP_STAGING);
+            let deployer = pr.merged_by?.login;
+            if (isCP) {
+                for (const tag of recentTags) {
+                    const {data: commit} = await getCommit({
+                        owner: CONST.GITHUB_OWNER,
+                        repo: repoName,
+                        commit_sha: tag.commit.sha,
+                    });
+                    const prNumForCPMergeCommit = commit.message.match(/Merge pull request #(\d+)[\S\s]*\(cherry picked from commit .*\)/);
+                    if (prNumForCPMergeCommit?.at(1) === String(prNumber)) {
+                        const cpActor = commit.message.match(/.*\(cherry-picked to .* by (.*)\)/)?.at(1);
+                        if (cpActor) {
+                            deployer = cpActor;
+                        }
+                        break;
+                    }
+                }
+            }
+
+            const title = pr.title;
+            const deployMessage = deployer ? getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', title) : '';
+            await commentPR(prNumber, deployMessage, repoName);
+        } catch (error) {
+            if ((error as RequestError).status === 404) {
+                console.log(`Unable to comment on ${repoName} PR #${prNumber}. GitHub responded with 404.`);
+            } else if (repoName === CONST.MOBILE_EXPENSIFY_REPO && process.env.GITHUB_REPOSITORY !== `${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`) {
+                console.warn(`Unable to comment on ${repoName} PR #${prNumber} from forked repository. This is expected.`);
+            } else {
+                throw error;
+            }
+        }
+    }
+}
+
 async function run() {
     const prList = (ActionUtils.getJSONInput('PR_LIST', {required: true}) as string[]).map((num) => Number.parseInt(num, 10));
+    const mobileExpensifyPRListInput = ActionUtils.getJSONInput('MOBILE_EXPENSIFY_PR_LIST', {required: false});
+    const mobileExpensifyPRList = Array.isArray(mobileExpensifyPRListInput) ? mobileExpensifyPRListInput.map((num: string) => Number.parseInt(num, 10)) : [];
     const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true}) as boolean;
     const version = core.getInput('DEPLOY_VERSION', {required: true});
 
@@ -103,62 +155,50 @@ async function run() {
         for (const pr of prList) {
             await commentPR(pr, deployMessage);
         }
+        console.log(`✅ Added production deploy comment on ${prList.length} App PRs`);
+
+        // Comment on Mobile-Expensify PRs as well
+        for (const pr of mobileExpensifyPRList) {
+            await commentPR(pr, deployMessage, CONST.MOBILE_EXPENSIFY_REPO);
+        }
+        if (mobileExpensifyPRList.length > 0) {
+            console.log(`✅ Added production deploy comment on ${mobileExpensifyPRList.length} Mobile-Expensify PRs`);
+        }
         return;
     }
 
-    const {data: recentTags} = await GithubUtils.octokit.repos.listTags({
+    const {data: appRecentTags} = await GithubUtils.octokit.repos.listTags({
         owner: CONST.GITHUB_OWNER,
         repo: CONST.APP_REPO,
         per_page: 100,
     });
 
-    for (const prNumber of prList) {
-        /*
-         * Determine who the deployer for the PR is. The "deployer" for staging deploys is:
-         *   1. For regular staging deploys, the person who merged the PR.
-         *   2. For CPs, the person who committed the cherry-picked commit (not necessarily the author of the commit).
-         */
+    // Only fetch Mobile-Expensify tags if there are Mobile-Expensify PRs
+    let mobileExpensifyRecentTags: typeof appRecentTags = [];
+    if (mobileExpensifyPRList.length > 0) {
         try {
-            const {data: pr} = await GithubUtils.octokit.pulls.get({
+            const response = await GithubUtils.octokit.repos.listTags({
                 owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
-                pull_number: prNumber,
+                repo: CONST.MOBILE_EXPENSIFY_REPO,
+                per_page: 100,
             });
-
-            // Check for the CP Staging label on the issue to see if it was cherry-picked
-            const isCP = pr.labels.some(({name: labelName}) => labelName === CONST.LABELS.CP_STAGING);
-
-            // Determine the deployer. For most PRs it will be whoever merged the PR.
-            // For CPs it will be whoever created the tag for the PR (i.e: whoever triggered the CP)
-            let deployer = pr.merged_by?.login;
-            if (isCP) {
-                for (const tag of recentTags) {
-                    const {data: commit} = await getCommit({
-                        owner: CONST.GITHUB_OWNER,
-                        repo: CONST.APP_REPO,
-                        commit_sha: tag.commit.sha,
-                    });
-                    const prNumForCPMergeCommit = commit.message.match(/Merge pull request #(\d+)[\S\s]*\(cherry picked from commit .*\)/);
-                    if (prNumForCPMergeCommit?.at(1) === String(prNumber)) {
-                        const cpActor = commit.message.match(/.*\(cherry-picked to .* by (.*)\)/)?.at(1);
-                        if (cpActor) {
-                            deployer = cpActor;
-                        }
-                        break;
-                    }
-                }
-            }
-
-            const title = pr.title;
-            const deployMessage = deployer ? getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', title) : '';
-            await commentPR(prNumber, deployMessage);
+            mobileExpensifyRecentTags = response.data;
         } catch (error) {
-            if ((error as RequestError).status === 404) {
-                console.log(`Unable to comment on PR #${prNumber}. GitHub responded with 404.`);
+            if (process.env.GITHUB_REPOSITORY !== `${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`) {
+                console.warn('Unable to fetch Mobile-Expensify tags from forked repository. This is expected.');
             } else {
-                throw error;
+                console.error('Failed to fetch Mobile-Expensify tags:', error);
             }
         }
+    }
+
+    // Comment on the PRs
+    await commentStagingDeployPRs(prList, CONST.APP_REPO, appRecentTags, getDeployMessage);
+    console.log(`✅ Added staging deploy comment ${prList.length} App PRs`);
+
+    if (mobileExpensifyPRList.length > 0) {
+        await commentStagingDeployPRs(mobileExpensifyPRList, CONST.MOBILE_EXPENSIFY_REPO, mobileExpensifyRecentTags, getDeployMessage);
+        console.log(`✅ Completed staging deploy comment on ${mobileExpensifyPRList.length} Mobile-Expensify PRs`);
     }
 }
 

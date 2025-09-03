@@ -9,6 +9,7 @@ import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
+import {InitialURLContext} from './components/InitialURLContextProvider';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
@@ -105,13 +106,13 @@ function Expensify() {
     const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
 
     useDebugShortcut();
     usePriorityMode();
 
     const [initialUrl, setInitialUrl] = useState<Route | null>(null);
-
+    const {setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
     useEffect(() => {
         if (isCheckingPublicRoom) {
             return;
@@ -126,17 +127,16 @@ function Expensify() {
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
 
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
-    const shouldHideSplash = (isSplashReadyToBeHidden || isSplashVisible) && shouldInit && !hybridApp?.loggedOutFromOldDot;
+    const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isSplashReadyToBeHidden : isSplashVisible);
 
-    // This effect is closing OldDot sign out modal based on splash screen state
     useEffect(() => {
-        if (!isSplashReadyToBeHidden || !isNavigationReady || !hasAttemptedToOpenPublicRoom || !hybridApp?.loggedOutFromOldDot) {
+        if (!shouldInit || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
             return;
         }
 
-        setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
+        // Clears OldDot UI after sign-out, if there's no OldDot UI left it has no effect.
         HybridAppModule.clearOldDotAfterSignOut();
-    }, [hasAttemptedToOpenPublicRoom, hybridApp?.loggedOutFromOldDot, isNavigationReady, isSplashReadyToBeHidden, setSplashScreenState]);
+    }, [shouldInit, splashScreenState]);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
@@ -219,15 +219,16 @@ function Expensify() {
 
         appStateChangeListener.current = AppState.addEventListener('change', initializeClient);
 
+        setIsAuthenticatedAtStartup(isAuthenticated);
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
             setInitialUrl(url as Route);
-            Report.openReportFromDeepLink(url ?? '', currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath);
+            Report.openReportFromDeepLink(url ?? '', currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports);
         });
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath);
+            Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports);
         });
         if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.onURLListenerAdded();

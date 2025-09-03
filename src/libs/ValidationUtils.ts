@@ -11,7 +11,7 @@ import type {Report, TaxRates} from '@src/types/onyx';
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
-import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
+import {getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
 
@@ -67,6 +67,15 @@ function isValidDate(date: string | Date): boolean {
 
     const pastDate = subYears(new Date(), 1000);
     const futureDate = addYears(new Date(), 1000);
+
+    if (typeof date === 'string') {
+        const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
+        if (!isValid(parsedDate)) {
+            return false;
+        }
+        return isAfter(parsedDate, pastDate) && isBefore(parsedDate, futureDate);
+    }
+
     const testDate = new Date(date);
     return isValid(testDate) && isAfter(testDate, pastDate) && isBefore(testDate, futureDate);
 }
@@ -533,8 +542,7 @@ function isValidEmail(email: string): boolean {
  * @param phoneNumber
  */
 function isValidPhoneInternational(phoneNumber: string): boolean {
-    const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
-    const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
+    const parsedPhoneNumber = parsePhoneNumber(phoneNumber);
 
     return parsedPhoneNumber.possible && Str.isValidE164Phone(parsedPhoneNumber.number?.e164 ?? '');
 }

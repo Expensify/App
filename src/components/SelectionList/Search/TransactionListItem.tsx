@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import type {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -32,9 +31,9 @@ function TransactionListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
-    isLoading,
-    shouldAnimateInHighlight,
     columns,
+    isLoading,
+    areAllOptionalColumnsHidden,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -61,7 +60,7 @@ function TransactionListItem<TItem extends ListItem>({
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
-        shouldHighlight: shouldAnimateInHighlight ?? false,
+        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });
@@ -139,13 +138,15 @@ function TransactionListItem<TItem extends ListItem>({
                     onButtonPress={handleActionButtonPress}
                     onCheckboxPress={handleCheckboxPress}
                     shouldUseNarrowLayout={!isLargeScreenWidth}
-                    columns={columns as Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>}
+                    columns={columns}
                     isActionLoading={isLoading ?? transactionItem.isActionLoading}
                     isSelected={!!transactionItem.isSelected}
                     dateColumnSize={dateColumnSize}
                     amountColumnSize={amountColumnSize}
                     taxAmountColumnSize={taxAmountColumnSize}
                     shouldShowCheckbox={!!canSelectMultiple}
+                    style={[styles.p3, shouldUseNarrowLayout ? styles.pt2 : {}]}
+                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>
