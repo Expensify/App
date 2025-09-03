@@ -1,7 +1,7 @@
 ---
 title: Travel Receipt Integrations
 description: Learn how to use pre-built or custom integrations to automatically track travel expenses in Expensify.
-keywords: [Expensify Classic, travel receipts, integrations, Bolt Work, SpotHero, Grab, KAYAK, email receipts]
+keywords: [Expensify Classic, New Expensify, travel receipts, integrations, Bolt Work, SpotHero, Grab, KAYAK, email receipts]
 ---
 
 
