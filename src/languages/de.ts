@@ -52,6 +52,7 @@ import type {
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
     BusinessBankAccountParams,
+    BusinessRegistrationNumberParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -203,6 +204,7 @@ import type {
     SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
+    SignerInfoMessageParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
@@ -321,6 +323,7 @@ const translations = {
         count: 'Zählen',
         cancel: 'Abbrechen',
         dismiss: 'Verwerfen',
+        proceed: 'Fortfahren',
         yes: 'Ja',
         no: 'No',
         ok: 'OK',
@@ -654,6 +657,7 @@ const translations = {
         forwardTo: 'Weiterleiten an',
         merge: 'Zusammenführen',
         unstableInternetConnection: 'Instabile Internetverbindung. Bitte überprüfe dein Netzwerk und versuche es erneut.',
+        enableGlobalReimbursements: 'Globale Rückerstattungen aktivieren',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -955,6 +959,7 @@ const translations = {
         distance: 'Entfernung',
         manual: 'Handbuch',
         scan: 'Scannen',
+        map: 'Karte',
     },
     spreadsheet: {
         upload: 'Eine Tabelle hochladen',
@@ -994,6 +999,7 @@ const translations = {
         sizeNotMet: 'Die Dateigröße muss größer als 0 Byte sein',
         invalidFileMessage:
             'Die Datei, die Sie hochgeladen haben, ist entweder leer oder enthält ungültige Daten. Bitte stellen Sie sicher, dass die Datei korrekt formatiert ist und die notwendigen Informationen enthält, bevor Sie sie erneut hochladen.',
+        importSpreadsheetLibraryError: 'Fehler beim Laden des Tabellenkalkulations-Moduls. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.',
         importSpreadsheet: 'Tabellenkalkulation importieren',
         downloadCSV: 'CSV herunterladen',
         importMemberConfirmation: () => ({
@@ -1252,6 +1258,7 @@ const translations = {
             invalidCategoryLength: 'Der Kategoriename überschreitet 255 Zeichen. Bitte kürzen Sie ihn oder wählen Sie eine andere Kategorie.',
             invalidTagLength: 'Der Tag-Name überschreitet 255 Zeichen. Bitte kürzen Sie ihn oder wählen Sie einen anderen Tag.',
             invalidAmount: 'Bitte geben Sie einen gültigen Betrag ein, bevor Sie fortfahren.',
+            invalidDistance: 'Bitte geben Sie eine gültige Entfernung ein, bevor Sie fortfahren',
             invalidIntegerAmount: 'Bitte geben Sie einen ganzen Dollarbetrag ein, bevor Sie fortfahren.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Der maximale Steuerbetrag beträgt ${amount}`,
             invalidSplit: 'Die Summe der Aufteilungen muss dem Gesamtbetrag entsprechen.',
@@ -1929,6 +1936,7 @@ const translations = {
         virtualCardNumber: 'Virtuelle Kartennummer',
         travelCardCvv: 'Travel-Karten-CVV',
         physicalCardNumber: 'Physische Kartennummer',
+        physicalCardPin: 'PIN',
         getPhysicalCard: 'Physische Karte erhalten',
         reportFraud: 'Virtuelle Kartenbetrug melden',
         reportTravelFraud: 'Reisebetrug mit der Karte melden',
@@ -3000,7 +3008,14 @@ const translations = {
         whatsTheBusinessName: 'Wie lautet der Firmenname?',
         whatsTheBusinessAddress: 'Wie lautet die Geschäftsadresse?',
         whatsTheBusinessContactInformation: 'Wie lauten die Geschäftskontaktdaten?',
-        whatsTheBusinessRegistrationNumber: 'Wie lautet die Handelsregisternummer?',
+        whatsTheBusinessRegistrationNumber: ({country}: BusinessRegistrationNumberParams) => {
+            switch (country) {
+                case CONST.COUNTRY.GB:
+                    return 'Wie lautet die Handelsregisternummer (CRN)?';
+                default:
+                    return 'Wie lautet die Handelsregisternummer?';
+            }
+        },
         whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:
@@ -3233,6 +3248,10 @@ const translations = {
         PDSandFSGDescription:
             'Unsere Partnerschaft mit Corpay nutzt eine API-Verbindung, um das umfangreiche Netzwerk internationaler Bankpartner zu nutzen und globale Rückerstattungen in Expensify zu ermöglichen. Gemäß der australischen Vorschriften stellen wir Ihnen den Financial Services Guide (FSG) und die Product Disclosure Statement (PDS) von Corpay zur Verfügung.\n\nBitte lesen Sie die FSG- und PDS-Dokumente sorgfältig durch, da sie vollständige Details und wichtige Informationen zu den von Corpay angebotenen Produkten und Dienstleistungen enthalten. Bewahren Sie diese Dokumente für zukünftige Referenz auf.',
         pleaseUpload: 'Bitte laden Sie zusätzliche Unterlagen hoch, um uns bei der Überprüfung Ihrer Identität als Direktor oder leitender Angestellter des Unternehmens zu unterstützen.',
+        enterSignerInfo: 'Unterschriftsberechtigte Person eingeben',
+        thisStep: 'Dieser Schritt wurde abgeschlossen',
+        isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+            `verbindet ein Geschäftskonto in ${currency} mit der Endung ${bankAccountLastFour} mit Expensify, um Mitarbeitende in ${currency} zu bezahlen. Der nächste Schritt erfordert Informationen einer unterschriftsberechtigten Person wie einem Geschäftsführer oder einer Führungskraft.`,
     },
     agreementsStep: {
         agreements: 'Vereinbarungen',
@@ -3447,12 +3466,14 @@ const translations = {
             customField1: 'Benutzerdefiniertes Feld 1',
             customField2: 'Benutzerdefiniertes Feld 2',
             customFieldHint: 'Fügen Sie benutzerdefinierten Code hinzu, der für alle Ausgaben dieses Mitglieds gilt.',
+            reports: 'Berichte',
             reportFields: 'Berichtsfelder',
             reportTitle: 'Berichtstitel',
             reportField: 'Berichtsfeld',
             taxes: 'Steuern',
             bills: 'Rechnungen',
             invoices: 'Rechnungen',
+            perDiem: 'Per diem',
             travel: 'Reisen',
             members: 'Mitglieder',
             accounting: 'Buchhaltung',
@@ -3465,6 +3486,7 @@ const translations = {
             testTransactions: 'Transaktionen testen',
             issueAndManageCards: 'Karten ausstellen und verwalten',
             reconcileCards: 'Karten abstimmen',
+            selectAll: 'Alle auswählen',
             selected: () => ({
                 one: '1 ausgewählt',
                 other: (count: number) => `${count} ausgewählt`,
@@ -3478,6 +3500,8 @@ const translations = {
             memberNotFound: 'Mitglied nicht gefunden. Um ein neues Mitglied zum Arbeitsbereich einzuladen, verwenden Sie bitte die Einladungsschaltfläche oben.',
             notAuthorized: `Sie haben keinen Zugriff auf diese Seite. Wenn Sie versuchen, diesem Arbeitsbereich beizutreten, bitten Sie einfach den Besitzer des Arbeitsbereichs, Sie als Mitglied hinzuzufügen. Etwas anderes? Kontaktieren Sie ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: 'Zum Arbeitsbereich gehen',
+            duplicateWorkspace: 'Arbeitsbereich duplizieren',
+            duplicateWorkspacePrefix: 'Duplizieren',
             goToWorkspaces: 'Zu Arbeitsbereichen gehen',
             clearFilter: 'Filter löschen',
             workspaceName: 'Arbeitsbereichsname',
@@ -3549,11 +3573,33 @@ const translations = {
             connect: 'Jetzt verbinden',
             uber: {
                 subtitle: 'Automatisieren Sie die Reisekosten und Essenslieferungskosten in Ihrem gesamten Unternehmen.',
+                sendInvites: 'Mitglieder einladen',
+                sendInvitesDescription: 'Diese Workspace-Mitglieder haben noch kein Uber for Business-Konto. Deaktivieren Sie alle Mitglieder, die Sie derzeit nicht einladen möchten.',
+                confirmInvite: 'Einladung bestätigen',
+                manageInvites: 'Einladungen verwalten',
+                confirm: 'Bestätigen',
+                allSet: 'Alles erledigt',
+                readyToRoll: 'Sie sind startklar',
+                takeBusinessRideMessage: "Machen Sie eine Geschäftsfahrt und Ihre Uber-Belege werden in Expensify importiert. Los geht's!",
+                all: 'Alle',
+                linked: 'Verknüpft',
+                outstanding: 'Ausstehend',
+                status: {
+                    resend: 'Erneut senden',
+                    invite: 'Einladen',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED]: 'Verknüpft',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Ausstehend',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Gesperrt',
+                },
+                invitationFailure: 'Mitglieder konnten nicht zu Uber for Business eingeladen werden',
                 autoRemove: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
                 autoInvite: 'Entfernte Workspace-Mitglieder von Uber for Business deaktivieren',
-                manageInvites: 'Einladungen verwalten',
                 bannerTitle: 'Expensify + Uber ren pekin angang',
                 bannerDescription: 'Kopwe riri ngeni Uber ren Business pwe epwe otot ren monien sai me mongo non unusen om mwicheich.',
+                emptyContent: {
+                    title: 'Keine Mitglieder zur Anzeige',
+                    subtitle: 'Wir haben überall gesucht und nichts gefunden.',
+                },
             },
         },
         perDiem: {
@@ -3945,6 +3991,18 @@ const translations = {
             syncReimbursedReportsDescription:
                 'Jedes Mal, wenn ein Bericht über Expensify ACH bezahlt wird, wird die entsprechende Rechnungszahlung im unten stehenden Sage Intacct-Konto erstellt.',
             paymentAccount: 'Sage Intacct Zahlungskonto',
+            accountingMethods: {
+                label: 'Wann exportieren',
+                description: 'Wählen Sie, wann die Ausgaben exportiert werden sollen:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Bargeld',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Auslagen werden exportiert, wenn sie endgültig genehmigt sind.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagen werden exportiert, wenn sie bezahlt sind.',
+                },
+            },
         },
         netsuite: {
             subsidiary: 'Tochtergesellschaft',
@@ -4418,6 +4476,8 @@ const translations = {
             verifyingTheDetails: 'Wir überprüfen ein paar Details. Concierge wird Sie informieren, wenn Expensify-Karten zur Ausgabe bereit sind.',
             disclaimer:
                 'The Expensify Visa® Commercial Card wird von der The Bancorp Bank, N.A., Mitglied FDIC, gemäß einer Lizenz von Visa U.S.A. Inc. ausgestellt und kann nicht bei allen Händlern verwendet werden, die Visa-Karten akzeptieren. Apple® und das Apple-Logo® sind Marken von Apple Inc., registriert in den USA und anderen Ländern. App Store ist eine Dienstleistungsmarke von Apple Inc. Google Play und das Google Play-Logo sind Marken von Google LLC.',
+            euUkDisclaimer:
+                'Karten für Einwohner des EWR werden von Transact Payments Malta Limited ausgestellt. Karten für Einwohner des Vereinigten Königreichs werden von Transact Payments Limited gemäß einer Lizenz von Visa Europe Limited ausgestellt. Transact Payments Malta Limited ist von der maltesischen Finanzaufsichtsbehörde als Finanzinstitut gemäß dem Financial Institution Act 1994 ordnungsgemäß zugelassen und reguliert. Registrierungsnummer: C 91879. Transact Payments Limited ist von der Gibraltar Financial Service Commission zugelassen und reguliert.',
             issueCard: 'Karte ausstellen',
             findCard: 'Karte finden',
             newCard: 'Neue Karte',
@@ -4888,6 +4948,18 @@ const translations = {
             importedFromAccountingSoftware: 'Die unten aufgeführten Steuern werden von Ihrem importiert',
             taxCode: 'Steuercode',
             updateTaxCodeFailureMessage: 'Beim Aktualisieren des Steuercodes ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
+        },
+        duplicateWorkspace: {
+            title: 'Benennen Sie Ihren neuen Arbeitsbereich',
+            selectFeatures: 'Auswählen der zu kopierenden Features',
+            whichFeatures: 'Welche Funktionen möchten Sie in Ihren neuen Arbeitsbereich kopieren?',
+            confirmDuplicate: '\n\nMöchten Sie fortfahren?',
+            categories: 'Kategorien und Ihre Auto-Kategorisierungsregeln',
+            reimbursementAccount: 'Erstattungskonto',
+            delayedSubmission: 'verspätete Einreichung',
+            welcomeNote: 'Bitte beginnen Sie mit der Nutzung meines neuen Arbeitsbereichs',
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `Sie sind dabei, ${newWorkspaceName ?? ''} zu erstellen und mit ${totalMembers ?? 0} Mitgliedern aus dem ursprünglichen Arbeitsbereich zu teilen.`,
         },
         emptyWorkspace: {
             title: 'Sie haben keine Arbeitsbereiche',
@@ -6623,7 +6695,7 @@ const translations = {
         isTransactionBillable: 'Wählen Sie, ob die Transaktion abrechenbar ist',
         keepThisOne: 'Keep this one',
         confirmDetails: `Bestätigen Sie die Details, die Sie behalten.`,
-        confirmDuplicatesInfo: `Die doppelten Anfragen, die Sie nicht behalten, werden für das Mitglied zur Löschung bereitgehalten.`,
+        confirmDuplicatesInfo: `Die Duplikate, die Sie nicht behalten, werden für den Einreicher zum Löschen bereitgehalten.`,
         hold: 'Diese Ausgabe wurde zurückgestellt.',
         resolvedDuplicates: 'den doppelten Eintrag gelöst',
     },

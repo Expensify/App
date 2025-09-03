@@ -17,7 +17,6 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -27,6 +26,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {openExternalLink} from '@userActions/Link';
 import {openPolicyReceiptPartnersPage, removePolicyReceiptPartnersConnection, togglePolicyUberAutoInvite, togglePolicyUberAutoRemove} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {AnchorPosition} from '@src/styles';
 import {getReceiptPartnersIntegrationData} from './utils';
@@ -37,7 +37,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const policyID = route.params.policyID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const receiptPartnerNames = CONST.POLICY.RECEIPT_PARTNERS.NAME;
     const receiptPartnerIntegrations = Object.values(receiptPartnerNames);
@@ -242,7 +241,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         shouldShowBackButton={shouldUseNarrowLayout}
                         icon={Illustrations.ReceiptPartners}
                         shouldUseHeadlineHeader
-                        threeDotsAnchorPosition={threeDotsAnchorPosition}
                         onBackButtonPress={Navigation.popToSidebar}
                     />
                     <ScrollView
@@ -300,8 +298,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                             shouldShowRightIcon
                                             icon={Expensicons.Mail}
                                             style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                                            // TODO add correct navigation when receipt members page will be ready
-                                            onPress={() => {}}
+                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER))}
                                         />
                                     </>
                                 )}
