@@ -1200,7 +1200,7 @@ function MoneyReportHeader({
             }
             handleDeleteTransactions();
         });
-    }, [showConfirmModal, translate, selectedTransactionIDs.length, transactions, handleDeleteTransactions]);
+    }, [showConfirmModal, translate, selectedTransactionIDs.length, transactions, handleDeleteTransactions, route.params?.backTo]);
 
     const showExportModal = useCallback(() => {
         if (!connectedIntegration) {
