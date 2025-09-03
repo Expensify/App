@@ -4536,7 +4536,7 @@ function getTransactionReportName({
         return translateLocal('parentReportAction.deletedExpense');
     }
 
-    const transaction = getLinkedTransaction(reportAction, transactions);
+    const transaction = transactions ? getLinkedTransaction(reportAction, transactions) : getLinkedTransaction(reportAction);
 
     if (isEmptyObject(transaction)) {
         // Transaction data might be empty on app's first load, if so we fallback to Expense/Track Expense
