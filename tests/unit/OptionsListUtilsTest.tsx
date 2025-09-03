@@ -18,6 +18,7 @@ import {
     formatMemberForList,
     getLastActorDisplayName,
     getSearchOptions,
+    getSearchValueForPhoneOrEmail,
     getShareDestinationOptions,
     getShareLogOptions,
     getValidOptions,
@@ -2012,6 +2013,32 @@ describe('OptionsListUtils', () => {
             const sortedOptions = sortAlphabetically(options, 'text', localeCompare);
             expect(sortedOptions.length).toBe(1);
             expect(sortedOptions.at(0)?.text).toBe('Single');
+        });
+    });
+    describe('getSearchValueForPhoneOrEmail', () => {
+        it('should return E164 format for valid phone number', () => {
+            const result = getSearchValueForPhoneOrEmail('+1 (234) 567-8901', 1);
+            expect(result).toBe('+12345678901');
+        });
+
+        it('should return E164 format for valid international phone number', () => {
+            const result = getSearchValueForPhoneOrEmail('+44 20 8759 9036', 44);
+            expect(result).toBe('+442087599036');
+        });
+
+        it('should return lowercase for email address', () => {
+            const result = getSearchValueForPhoneOrEmail('Test@Example.COM', 1);
+            expect(result).toBe('test@example.com');
+        });
+
+        it('should handle SMS domain removal for valid phone number', () => {
+            const result = getSearchValueForPhoneOrEmail('+12345678901@expensify.sms', 1);
+            expect(result).toBe('+12345678901');
+        });
+
+        it('should return empty string for empty input', () => {
+            const result = getSearchValueForPhoneOrEmail('', 1);
+            expect(result).toBe('');
         });
     });
 });
