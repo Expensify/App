@@ -856,4 +856,156 @@ describe('generateTranslations', () => {
         // eslint-disable-next-line no-template-curly-in-string
         expect(itContent).not.toContain('Welcome ${name} to our app');
     });
+
+    it('can handle structural differences between files for incremental translation', async () => {
+        // Step 1: Create old version with initial translations
+        const oldDir = fs.mkdtempSync(path.join(os.tmpdir(), 'translations-old-'));
+        const oldItPath = path.join(oldDir, 'src/languages/it.ts');
+        const oldEnPath = path.join(oldDir, 'src/languages/en.ts');
+        const oldFrPath = path.join(oldDir, 'src/languages/fr.ts');
+        fs.mkdirSync(path.dirname(oldItPath), {recursive: true});
+
+        // Old English version with specific structure
+        fs.writeFileSync(
+            oldEnPath,
+            dedent(`
+                import CONST from '@src/CONST';
+
+                const strings = {
+                    greeting: 'Hello',
+                    farewell: 'Goodbye',
+                    common: {
+                        save: 'Save',
+                        cancel: 'Cancel',
+                    },
+                };
+                export default strings;
+            `),
+            'utf8',
+        );
+
+        // Old Italian translation
+        fs.writeFileSync(
+            oldItPath,
+            dedent(`
+                import type en from './en';
+
+                const strings = {
+                    greeting: '[it] Hello',
+                    farewell: '[it] Goodbye', 
+                    common: {
+                        save: '[it] Save',
+                        cancel: '[it] Cancel',
+                    },
+                };
+                export default strings;
+            `),
+            'utf8',
+        );
+
+        // Old French translation with significantly different structure that breaks parallel traversal
+        fs.writeFileSync(
+            oldFrPath,
+            dedent(`
+                import type en from './en';
+                import {someHelper} from '@libs/SomeHelper';
+
+                // Extra comment that shifts the AST structure
+                const helperFunction = () => 'helper';
+
+                const strings = {
+                    greeting: '[fr] Hello',
+                    farewell: '[fr] Goodbye',
+                    // Extra property that doesn't exist in other files
+                    extraProp: '[fr] Extra',
+                    common: {
+                        save: '[fr] Save',
+                        cancel: '[fr] Cancel',
+                    },
+                };
+                export default strings;
+            `),
+            'utf8',
+        );
+
+        // Step 2: Mock GitHubUtils to return the old files
+        jest.spyOn(GitHubUtils, 'getFileContents').mockImplementation((filePath: string) => {
+            if (filePath.endsWith('en.ts')) {
+                return Promise.resolve(fs.readFileSync(oldEnPath, 'utf8'));
+            }
+            if (filePath.endsWith('it.ts')) {
+                return Promise.resolve(fs.readFileSync(oldItPath, 'utf8'));
+            }
+            if (filePath.endsWith('fr.ts')) {
+                return Promise.resolve(fs.readFileSync(oldFrPath, 'utf8'));
+            }
+            throw new Error(`Unexpected filePath: ${filePath}`);
+        });
+
+        // Step 3: Create new English source with one new string
+        const newStrings = {
+            greeting: 'Hello',
+            farewell: 'Goodbye',
+            common: {
+                save: 'Save',
+                cancel: 'Cancel',
+            },
+            newKey: 'New value!',
+        };
+        mockEn = newStrings;
+
+        fs.writeFileSync(
+            EN_PATH,
+            dedent(`
+                import CONST from '@src/CONST';
+
+                const strings = {
+                    greeting: 'Hello',
+                    farewell: 'Goodbye',
+                    common: {
+                        save: 'Save',
+                        cancel: 'Cancel',
+                    },
+                    newKey: 'New value!',
+                };
+                export default strings;
+            `),
+            'utf8',
+        );
+
+        // Step 4: Run translation with compare-ref
+        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it,fr', '--compare-ref=ref-does-not-matter-due-to-mock'];
+
+        const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+        await generateTranslations();
+
+        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+        const frContent = fs.readFileSync(path.join(LANGUAGES_DIR, 'fr.ts'), 'utf8');
+
+        // BUG: Due to structural differences in the old files, parallel AST traversal gets out of sync
+        // This should result in inconsistent behavior between IT and FR files
+
+        // Both files should preserve existing translations
+        expect(itContent).toContain('[it] Hello');
+        expect(itContent).toContain('[it] Goodbye');
+        expect(itContent).toContain('[it] Save');
+        expect(itContent).toContain('[it] Cancel');
+
+        expect(frContent).toContain('[fr] Hello');
+        expect(frContent).toContain('[fr] Goodbye');
+        expect(frContent).toContain('[fr] Save');
+        expect(frContent).toContain('[fr] Cancel');
+
+        // Both should have the new translation
+        expect(itContent).toContain('[it] New value!');
+        expect(frContent).toContain('[fr] New value!');
+
+        // Only the new string should have been translated
+        expect(translateSpy).toHaveBeenCalledTimes(2); // Once for IT, once for FR
+        expect(translateSpy).toHaveBeenCalledWith('it', 'New value!', undefined);
+        expect(translateSpy).toHaveBeenCalledWith('fr', 'New value!', undefined);
+
+        fs.rmSync(oldDir, {recursive: true});
+    });
 });
