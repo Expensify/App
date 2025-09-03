@@ -293,7 +293,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
             }
             // Prefer using a known non-optimistic accountID to correctly resolve secondary logins
             const accountID =
-                (option && !option.isOptimisticAccount ? option.accountID : undefined) ??
+                ((option && !option.isOptimisticAccount) ? option.accountID : undefined) ??
                 (selectedOptions.length === 1 && !selectedOptions.at(0)?.isOptimisticAccount ? selectedOptions.at(0)?.accountID : undefined);
             if (accountID) {
                 KeyboardUtils.dismiss().then(() => navigateToAndOpenReportWithAccountIDs([accountID]));
