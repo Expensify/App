@@ -48,6 +48,10 @@ function ImportedFromAccountingSoftware({
     const {environmentURL} = useEnvironment();
     const icon = getIntegrationIcon(connectedIntegration);
 
+    if (!customTagName) {
+        return undefined;
+    }
+
     return (
         <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexWrap]}>
             <TextBlock
