@@ -679,18 +679,7 @@ function MoneyReportHeader({
         }
 
         return options;
-    }, [
-        translate,
-        connectedIntegrationFallback,
-        connectedIntegration,
-        moneyRequestReport,
-        isOffline,
-        transactionIDs,
-        isExported,
-        beginExportWithTemplate,
-        exportTemplates,
-        policy,
-    ]);
+    }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, exportTemplates, policy]);
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (

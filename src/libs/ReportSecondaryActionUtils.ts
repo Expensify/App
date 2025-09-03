@@ -701,11 +701,7 @@ function getSecondaryReportActions({
     return options;
 }
 
-function getSecondaryExportReportActions(
-    report: Report,
-    policy?: Policy,
-    exportTemplates?: ExportTemplate[],
-): Array<ValueOf<string>> {
+function getSecondaryExportReportActions(report: Report, policy?: Policy, exportTemplates?: ExportTemplate[]): Array<ValueOf<string>> {
     const options: Array<ValueOf<string>> = [];
     if (isExportAction(report, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);

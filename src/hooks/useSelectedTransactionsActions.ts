@@ -5,6 +5,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
+import {getExportTemplates} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isMergeAction} from '@libs/ReportSecondaryActionUtils';
@@ -27,7 +28,6 @@ import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAnd
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
-import { getExportTemplates } from '@libs/actions/Search';
 
 // We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
 const HOLD = 'HOLD';

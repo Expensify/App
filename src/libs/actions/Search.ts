@@ -546,15 +546,22 @@ function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, r
  * @param includeReportLevelExport - Whether to include the report level export template
  * @returns
  */
-function getExportTemplates(integrationsExportTemplates: ExportTemplate[], csvExportLayouts: Record<string, ExportTemplate>, policy?: Policy, includeReportLevelExport = true): ExportTemplate[] {
+function getExportTemplates(
+    integrationsExportTemplates: ExportTemplate[],
+    csvExportLayouts: Record<string, ExportTemplate>,
+    policy?: Policy,
+    includeReportLevelExport = true,
+): ExportTemplate[] {
     // By default, we always include the expense level export template
-    const exportTemplates: ExportTemplate[] = [{
-        name: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
-        templateName: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
-        description: '',
-        policyID: undefined,
-        type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
-    }];
+    const exportTemplates: ExportTemplate[] = [
+        {
+            name: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
+            templateName: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
+            description: '',
+            policyID: undefined,
+            type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+        },
+    ];
 
     // Conditionally include the report level export template
     if (includeReportLevelExport) {

@@ -6,7 +6,7 @@ type ExportTemplate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     name: string;
 
     /** The internal name of the template */
-    templateName: string,
+    templateName: string;
 
     /** Type of the template */
     type: string;
