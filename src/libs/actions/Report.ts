@@ -146,6 +146,7 @@ import {
     getReportViolations,
     getRouteFromLink,
     getTitleReportField,
+    hasOutstandingChildRequest,
     isChatThread as isChatThreadReportUtils,
     isConciergeChatReport,
     isExpenseReport,
@@ -207,8 +208,6 @@ import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey} from './CachedPDFPaths';
 import {setDownload} from './Download';
-// eslint-disable-next-line import/no-cycle
-import {hasOutstandingChildRequest} from './IOU';
 import {close} from './Modal';
 import navigateFromNotification from './navigateFromNotification';
 import {getAll} from './PersistedRequests';

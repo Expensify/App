@@ -156,6 +156,7 @@ import {
     getTransactionDetails,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
+    hasOutstandingChildRequest,
     hasReportBeenReopened,
     hasReportBeenRetracted,
     isArchivedReport,
@@ -9133,38 +9134,6 @@ function getReportFromHoldRequestsOnyxData(
         optimisticHoldReportID: optimisticExpenseReport.reportID,
         optimisticHoldReportExpenseActionIDs,
     };
-}
-
-function hasOutstandingChildRequest(chatReport: OnyxTypes.Report, iouReportOrID: OnyxEntry<OnyxTypes.Report> | string) {
-    const reportActions = getAllReportActions(chatReport.reportID);
-    return Object.values(reportActions).some((action) => {
-        const iouReportID = getIOUReportIDFromReportActionPreview(action);
-        if (
-            !iouReportID ||
-            action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-            isDeletedAction(action) ||
-            (typeof iouReportOrID === 'string' && iouReportID === iouReportOrID)
-        ) {
-            return false;
-        }
-
-        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        // eslint-disable-next-line deprecation/deprecation
-        const policy = getPolicy(chatReport.policyID);
-        const iouReport = typeof iouReportOrID !== 'string' && iouReportOrID?.reportID === iouReportID ? iouReportOrID : getReportOrDraftReport(iouReportID);
-        const transactions = getReportTransactions(iouReportID);
-        console.log(
-            chatReport,
-            action,
-            iouReportOrID,
-            canIOUBePaid(iouReport, chatReport, policy, transactions),
-            canApproveIOU(iouReport, policy, transactions),
-            canSubmitReport(iouReport, policy, transactions, undefined, false),
-        );
-        return (
-            canIOUBePaid(iouReport, chatReport, policy, transactions) || canApproveIOU(iouReport, policy, transactions) || canSubmitReport(iouReport, policy, transactions, undefined, false)
-        );
-    });
 }
 
 function getPayMoneyRequestParams(
