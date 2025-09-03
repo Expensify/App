@@ -285,7 +285,7 @@ function Expensify() {
     }
 
     const tmp = [5, 3, 2, 4, 1].toSorted(); // Test to make sure the toSorted polyfill works
-    console.debug({tmp});
+    console.warn('toSorted result:', tmp);
 
     return (
         <DeeplinkWrapper
