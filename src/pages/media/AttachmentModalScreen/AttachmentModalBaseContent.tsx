@@ -24,7 +24,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
 import {getFileName} from '@libs/fileDownload/FileUtils';
@@ -209,7 +208,6 @@ function AttachmentModalBaseContent({
     onValidateFile,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // This logic is used to ensure that the source is updated when the source changes and
@@ -458,7 +456,6 @@ function AttachmentModalBaseContent({
                     onBackButtonPress={onClose}
                     onCloseButtonPress={onClose}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                     threeDotsAnchorAlignment={{
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,

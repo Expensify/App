@@ -73,6 +73,7 @@ import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
     getCorrectedAutoReportingFrequency,
     getDistanceRateCustomUnit,
+    getDistanceRateCustomUnitRate,
     getMemberAccountIDsForWorkspace,
     getPerDiemCustomUnit,
     getPerDiemRateCustomUnitRate,
@@ -184,7 +185,8 @@ import {
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
 } from '@libs/ReportUtils';
-import {buildSearchQueryJSON, getCurrentSearchQueryJSON, getTodoSearchQuery} from '@libs/SearchQueryUtils';
+import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import {getSession} from '@libs/SessionUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -2272,6 +2274,7 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
                     : {}),
                 [chat.reportPreviewAction.reportActionID]: {
                     pendingAction: null,
+                    isOptimisticAction: null,
                 },
             },
         },
@@ -8010,11 +8013,8 @@ function getNavigationUrlAfterTrackExpenseDelete(
         return getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
     }
 
-    const transactionThreadID = reportAction.childReportID;
-    const shouldDeleteTransactionThread = transactionThreadID ? (reportAction?.childVisibleActionCount ?? 0) === 0 : false;
-
     // Only navigate if in single transaction view and the thread will be deleted
-    if (isSingleTransactionView && shouldDeleteTransactionThread && chatReport?.reportID) {
+    if (isSingleTransactionView && chatReport?.reportID) {
         // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
         return ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID);
     }
@@ -11307,9 +11307,6 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
 function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string) {
     transactionsID.forEach((transactionID) => {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
-        if (!childReportID) {
-            return;
-        }
         putOnHold(transactionID, comment, childReportID);
     });
 }
@@ -11519,7 +11516,9 @@ function getIOUActionForTransactions(transactionIDList: Array<string | undefined
 }
 
 /** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
-function mergeDuplicates(params: MergeDuplicatesParams) {
+function mergeDuplicates({transactionThreadReportID: optimisticTransactionThreadReportID, ...params}: MergeDuplicatesParams) {
+    const allParams: MergeDuplicatesParams = {...params};
+
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
 
     const optimisticTransactionData: OnyxUpdate = {
@@ -11650,7 +11649,8 @@ function mergeDuplicates(params: MergeDuplicatesParams) {
 
     const optimisticReportAction = buildOptimisticResolvedDuplicatesReportAction();
 
-    const transactionThreadReportID = params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined;
+    const transactionThreadReportID =
+        optimisticTransactionThreadReportID ?? (params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined);
     const optimisticReportActionData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
@@ -11669,6 +11669,7 @@ function mergeDuplicates(params: MergeDuplicatesParams) {
 
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
 
     optimisticData.push(
         optimisticTransactionData,
@@ -11687,7 +11688,64 @@ function mergeDuplicates(params: MergeDuplicatesParams) {
         failureReportActionData,
     );
 
-    API.write(WRITE_COMMANDS.MERGE_DUPLICATES, {...params, reportActionID: optimisticReportAction.reportActionID}, {optimisticData, failureData});
+    if (optimisticTransactionThreadReportID) {
+        const iouAction = getIOUActionForReportID(params.reportID, params.transactionID);
+        const optimisticCreatedAction = buildOptimisticCreatedReportAction(currentUserEmail);
+        const optimisticTransactionThreadReport = buildTransactionThread(iouAction, expenseReport, undefined, optimisticTransactionThreadReportID);
+
+        allParams.transactionThreadReportID = optimisticTransactionThreadReportID;
+        allParams.createdReportActionIDForThread = optimisticCreatedAction?.reportActionID;
+        optimisticTransactionThreadReport.pendingFields = {
+            createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThreadReportID}`,
+                value: optimisticTransactionThreadReport,
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThreadReportID}`,
+                value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
+            },
+        );
+
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThreadReportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThreadReportID}`,
+                value: null,
+            },
+        );
+
+        if (iouAction?.reportActionID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThreadReport?.parentReportID}`,
+                value: {[iouAction?.reportActionID]: {childReportID: optimisticTransactionThreadReportID, childType: CONST.REPORT.TYPE.CHAT}},
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThreadReport?.parentReportID}`,
+                value: {[iouAction?.reportActionID]: {childReportID: null, childType: null}},
+            });
+        }
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThreadReportID}`,
+            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+        });
+    }
+
+    API.write(WRITE_COMMANDS.MERGE_DUPLICATES, {...allParams, reportActionID: optimisticReportAction.reportActionID}, {optimisticData, failureData, successData});
 }
 
 function updateLastLocationPermissionPrompt() {
@@ -11889,12 +11947,9 @@ function shouldOptimisticallyUpdateSearch(currentSearchQueryJSON: SearchQueryJSO
         return false;
     }
 
-    const submitQueryString = getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.SUBMIT, userAccountID);
-
-    const submitQueryJSON = buildSearchQueryJSON(submitQueryString);
-
-    const approveQueryString = getTodoSearchQuery(CONST.SEARCH.SEARCH_KEYS.APPROVE, userAccountID);
-    const approveQueryJSON = buildSearchQueryJSON(approveQueryString);
+    const suggestedSearches = getSuggestedSearches(userAccountID);
+    const submitQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT].searchQueryJSON;
+    const approveQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE].searchQueryJSON;
 
     const validSearchTypes =
         (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) || (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE);
@@ -12212,6 +12267,19 @@ function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Tra
     });
 }
 
+/**
+ * Clear errors from split transaction draft
+ */
+function clearSplitTransactionDraftErrors(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {
+        errors: null,
+    });
+}
+
 function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, hash: number) {
     const transactionReport = getReportOrDraftReport(draftTransaction?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
@@ -12228,6 +12296,23 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     const policyTags = getPolicyTagsData(expenseReport?.policyID);
     const participants = getMoneyRequestParticipantsFromReport(expenseReport);
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+
+    // Validate custom unit rate before proceeding with split
+    const customUnitRateID = originalTransaction?.comment?.customUnit?.customUnitRateID;
+
+    if (customUnitRateID && policy) {
+        const isPerDiem = isPerDiemRequestTransactionUtils(originalTransaction);
+        const customUnitRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policy, customUnitRateID);
+
+        // If the rate doesn't exist or is disabled, show an error and return early
+        if (!customUnitRate || !customUnitRate.enabled) {
+            // Show error to user
+            Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
+                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.invalidRate'),
+            });
+            return;
+        }
+    }
 
     const splits: SplitTransactionSplitsParam =
         splitExpenses.map((split) => {
@@ -12610,6 +12695,7 @@ export {
     reopenReport,
     retractReport,
     startDistanceRequest,
+    clearSplitTransactionDraftErrors,
     assignReportToMe,
     getPerDiemExpenseInformation,
     getSendInvoiceInformation,

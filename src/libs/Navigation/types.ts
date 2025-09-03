@@ -1578,6 +1578,15 @@ type WorkspaceConfirmationNavigatorParamList = {
     };
 };
 
+type WorkspaceDuplicateNavigatorParamList = {
+    [SCREENS.WORKSPACE_DUPLICATE.ROOT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE_DUPLICATE.SELECT_FEATURES]: {
+        policyID: string;
+    };
+};
+
 type NewTaskNavigatorParamList = {
     [SCREENS.NEW_TASK.ROOT]: {
         backTo?: Routes;
@@ -1642,6 +1651,14 @@ type ReimbursementAccountNavigatorParamList = {
         stepToOpen?: ReimbursementAccountStepToOpen;
         backTo?: Routes;
         policyID?: string;
+    };
+};
+
+type ReimbursementAccountEnterSignerInfoNavigatorParamList = {
+    [SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: {
+        policyID: string;
+        bankAccountID: string;
+        isCompleted: string;
     };
 };
 
@@ -1772,6 +1789,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: NavigatorScreenParams<RoomMembersNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: NavigatorScreenParams<MoneyRequestNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION]: NavigatorScreenParams<WorkspaceConfirmationNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.WORKSPACE_DUPLICATE]: NavigatorScreenParams<WorkspaceDuplicateNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_TASK]: NavigatorScreenParams<NewTaskNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: NavigatorScreenParams<TeachersUniteNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TASK_DETAILS]: NavigatorScreenParams<TaskDetailsNavigatorParamList>;
@@ -1849,6 +1867,7 @@ type ReportsSplitNavigatorParamList = {
         backTo?: Routes;
         moneyRequestReportActionID?: string;
         transactionID?: string;
+        iouReportID?: string;
     };
     [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
 };
@@ -1857,14 +1876,14 @@ type SettingsSplitNavigatorParamList = {
     [SCREENS.SETTINGS.ROOT]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
     [SCREENS.SETTINGS.SECURITY]: undefined;
-    [SCREENS.SETTINGS.PROFILE.ROOT]: {
+    [SCREENS.SETTINGS.PROFILE.ROOT]?: {
         backTo?: Routes;
     };
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
-    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: {backTo?: Routes};
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]?: {backTo?: Routes};
 };
 
 type WorkspaceSplitNavigatorParamList = {
@@ -1884,6 +1903,17 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE]: {
+        policyID: string;
+        integration: string;
+        backTo?: Routes;
+    };
+
+    [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT]: {
+        policyID: string;
+        integration: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
         policyID: string;
@@ -2189,7 +2219,6 @@ type SearchFullscreenNavigatorParamList = {
     };
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: {
         reportID: string;
-        backTo?: Routes;
     };
 };
 
@@ -2342,6 +2371,7 @@ export type {
     PublicScreensParamList,
     ReferralDetailsNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
+    ReimbursementAccountEnterSignerInfoNavigatorParamList,
     NewReportWorkspaceSelectionNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
@@ -2377,6 +2407,7 @@ export type {
     WorkspaceSplitNavigatorParamList,
     MigratedUserModalNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
+    WorkspaceDuplicateNavigatorParamList,
     TwoFactorAuthNavigatorParamList,
     ConsoleNavigatorParamList,
     ScheduleCallParamList,
