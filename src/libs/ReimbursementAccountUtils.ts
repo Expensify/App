@@ -14,6 +14,7 @@ const REIMBURSEMENT_ACCOUNT_ROUTE_NAMES = {
     NEW: 'new',
 } as const;
 
+
 function getRouteForCurrentStep(currentStep: ReimbursementAccountStep): ReimbursementAccountStepToOpen {
     switch (currentStep) {
         case CONST.BANK_ACCOUNT.STEP.COMPANY:
