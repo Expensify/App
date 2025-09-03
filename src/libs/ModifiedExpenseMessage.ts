@@ -360,8 +360,4 @@ function getForReportAction({
     return `${message.substring(1, message.length)}`;
 }
 
-export default {
-    getForReportAction,
-    getMovedReportID,
-    getMovedFromOrToReportMessage,
-};
+export {getForReportAction, getMovedReportID, getMovedFromOrToReportMessage};
