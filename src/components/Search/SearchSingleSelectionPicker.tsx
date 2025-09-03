@@ -87,7 +87,7 @@ function SearchSingleSelectionPicker({items, initiallySelectedItem, pickerTitle,
 
     const applyChanges = useCallback(() => {
         onSaveSelection(selectedItem?.value);
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [onSaveSelection, selectedItem]);
 
     const footerContent = useMemo(
