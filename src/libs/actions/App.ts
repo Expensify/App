@@ -43,8 +43,11 @@ Onyx.connect({
     },
 });
 
+// isSidebarLoaded isn't used directly when rendering the View. It's used in the event handler.
+// Using useOnyx would cause additional unnecessary rerenders that wouldn't change anything in the View,
+// so I'm leaving Onyx.connectWithoutView here.
 let isSidebarLoaded: boolean | undefined;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: (val) => (isSidebarLoaded = val),
     initWithStoredValues: false,
