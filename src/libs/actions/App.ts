@@ -309,12 +309,16 @@ function getOnyxDataForOpenOrReconnect(
  * Fetches data needed for app initialization
  */
 function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Record<string, string | undefined>) {
-    removeDraftTransactions(false, true);
-
-    return getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
-        const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
-        return API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments));
-    });
+    return removeDraftTransactions().then(() =>
+        getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
+            const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
+            return API.writeWithNoDuplicatesConflictAction(
+                WRITE_COMMANDS.OPEN_APP,
+                params,
+                getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
+            );
+        }),
+    );
 }
 
 /**

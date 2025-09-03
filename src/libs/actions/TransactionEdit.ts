@@ -97,9 +97,9 @@ function removeDraftSplitTransaction(transactionID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
-function removeDraftTransactions(shouldExcludeInitialTransaction = false, shouldUseConnectWithoutView = false) {
+function removeDraftTransactions(shouldExcludeInitialTransaction = false) {
     const draftTransactions = getDraftTransactions();
-    if ((!draftTransactions.length || draftTransactions.length === 0) && shouldUseConnectWithoutView) {
+    if (!draftTransactions || draftTransactions.length === 0) {
         return new Promise<void>((resolve) => {
             // We do not depend on updates on the UI to remove draft transactions
             // so we are safe to use `connectWithoutView` here.
