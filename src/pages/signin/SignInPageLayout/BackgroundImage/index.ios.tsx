@@ -3,7 +3,7 @@ import React, {useEffect, useState} from 'react';
 import type {ImageSourcePropType} from 'react-native';
 import {InteractionManager} from 'react-native';
 import Reanimated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import MobileBackgroundImage from '@assets/images/home-background--mobile-new.svg';
+import MobileBackgroundImage from '@assets/images/home-background--ios.svg';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isAnonymousUser} from '@libs/actions/Session';
