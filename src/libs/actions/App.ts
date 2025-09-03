@@ -58,14 +58,6 @@ Onyx.connect({
     },
 });
 
-let preservedShouldUseStagingServer: boolean | undefined;
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        preservedShouldUseStagingServer = value?.shouldUseStagingServer;
-    },
-});
-
 let resolveHasLoadedAppPromise: () => void;
 const hasLoadedAppPromise = new Promise<void>((resolve) => {
     resolveHasLoadedAppPromise = resolve;
@@ -114,6 +106,8 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.CREDENTIALS,
     ONYXKEYS.PRESERVED_USER_SESSION,
     ONYXKEYS.HYBRID_APP,
+    ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.IS_DEBUG_MODE_ENABLED,
 ];
 
 Onyx.connect({
@@ -602,7 +596,6 @@ function setPreservedUserSession(session: OnyxTypes.Session) {
 function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     // The value of isUsingImportedState will be lost once Onyx is cleared, so we need to store it
     const isStateImported = isUsingImportedState;
-    const shouldUseStagingServer = preservedShouldUseStagingServer;
     const sequentialQueue = getAll();
 
     rollbackOngoingRequest();
@@ -621,10 +614,6 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             if (preservedUserSession) {
                 Onyx.set(ONYXKEYS.SESSION, preservedUserSession);
                 Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, null);
-            }
-
-            if (shouldUseStagingServer) {
-                Onyx.set(ONYXKEYS.ACCOUNT, {shouldUseStagingServer});
             }
         })
         .then(() => {

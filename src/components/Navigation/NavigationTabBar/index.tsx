@@ -54,7 +54,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const {translate, preferredLocale} = useLocalize();
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {orderedReportIDs} = useSidebarOrderedReports();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: false});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const navigationState = useNavigationState(findFocusedRoute);
     const initialNavigationRouteState = getWorkspaceNavigationRouteState();
@@ -102,7 +102,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     }, [navigationState]);
 
     // On a wide layout DebugTabView should be rendered only within the navigation tab bar displayed directly on screens.
-    const shouldRenderDebugTabViewOnWideLayout = !!account?.isDebugModeEnabled && !isTopLevelBar;
+    const shouldRenderDebugTabViewOnWideLayout = !!isDebugModeEnabled && !isTopLevelBar;
 
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(orderedReportIDs, reportAttributes));
@@ -311,7 +311,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
 
     return (
         <>
-            {!!account?.isDebugModeEnabled && (
+            {!!isDebugModeEnabled && (
                 <DebugTabView
                     selectedTab={selectedTab}
                     chatTabBrickRoad={chatTabBrickRoad}
