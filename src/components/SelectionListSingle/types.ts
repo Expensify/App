@@ -22,7 +22,7 @@ import type CONST from '@src/CONST';
 import type {Policy, Report, TransactionViolation} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchCard, SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 
@@ -198,6 +198,9 @@ type ListItem<K extends string | number = string> = {
 
     /** Boolean whether to display the right icon */
     shouldShowRightIcon?: boolean;
+
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
 };
 
 type TransactionListItemType = ListItem &
@@ -314,10 +317,6 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** The personal details of the user paying the request */
         to: SearchPersonalDetails;
     };
-
-type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MEMBERS} & SearchPersonalDetails;
-
-type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARDS} & SearchPersonalDetails & SearchCard;
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
@@ -471,8 +470,8 @@ export type ValidListItem =
     | typeof SpendCategorySelectorListItem;
 
 type SelectionListProps<TItem extends ListItem> = {
-    ref?: React.Ref<SelectionListHandle>;
     data: TItem[];
+    ref?: React.Ref<SelectionListHandle>;
     ListItem: ValidListItem;
     onSelectRow: (item: TItem) => void;
     onSelectAll?: () => void;
@@ -483,10 +482,13 @@ type SelectionListProps<TItem extends ListItem> = {
     listEmptyContent?: React.JSX.Element | null | undefined;
     addBottomSafeAreaPadding?: boolean;
     footerContent?: React.ReactNode;
-    onConfirm?: ((e?: GestureResponderEvent | KeyboardEvent | undefined, option?: TItem | undefined) => void) | undefined;
-    confirmButtonStyle?: StyleProp<ViewStyle>;
-    confirmButtonText?: string;
-    isConfirmButtonDisabled?: boolean;
+    confirmButton?: {
+        showConfirmButton?: boolean;
+        onConfirm?: (e?: GestureResponderEvent | KeyboardEvent | undefined, option?: TItem) => void;
+        confirmButtonStyle?: StyleProp<ViewStyle>;
+        confirmButtonText?: string;
+        isConfirmButtonDisabled?: boolean;
+    };
     listFooterContent?: React.JSX.Element | null | undefined;
     showScrollIndicator?: boolean;
     onEndReached?: () => void;
@@ -515,7 +517,6 @@ type SelectionListProps<TItem extends ListItem> = {
     shouldIgnoreFocus?: boolean;
     listItemWrapperStyle?: StyleProp<ViewStyle>;
     isRowMultilineSupported?: boolean;
-    alternateTextNumberOfSupportedLines?: number;
     listItemTitleStyles?: StyleProp<TextStyle>;
     headerMessage?: string;
     initiallyFocusedItemKey?: string;
@@ -526,12 +527,13 @@ type SelectionListProps<TItem extends ListItem> = {
     shouldUpdateFocusedIndex?: boolean;
     listHeaderContent?: React.ReactNode;
     customListHeader?: React.ReactNode;
+    alternateNumberOfSupportedLines?: number;
+    onScrollBeginDrag?: () => void;
 };
 
 type SelectionListHandle = {
     scrollAndHighlightItem: (items: string[]) => void;
     scrollToIndex: (index: number, animated?: boolean) => void;
-    focusTextInput: () => void;
 };
 
 type DataDetailsType<TItem extends ListItem> = {
@@ -588,8 +590,6 @@ export type {
     TransactionGroupListItemProps,
     TransactionGroupListItemType,
     TransactionReportGroupListItemType,
-    TransactionMemberGroupListItemType,
-    TransactionCardGroupListItemType,
     TableListItemProps,
     TaskListItemType,
     TaskListItemProps,
