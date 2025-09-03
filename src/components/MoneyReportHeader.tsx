@@ -679,7 +679,7 @@ function MoneyReportHeader({
         }
 
         return options;
-    }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, exportTemplates, policy]);
+    }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, exportTemplates]);
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
@@ -833,7 +833,7 @@ function MoneyReportHeader({
             return [];
         }
         return getSecondaryExportReportActions(moneyRequestReport, policy, exportTemplates ?? []);
-    }, [moneyRequestReport, policy, reportActions, exportTemplates]);
+    }, [moneyRequestReport, policy, exportTemplates]);
 
     const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
 
