@@ -1146,12 +1146,7 @@ describe('getSecondaryExportReportActions', () => {
             },
         ];
 
-        const result = [
-            CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV,
-            'All Data - expense level',
-            'All Data - report level',
-            'Custom Template',
-        ];
+        const result = [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV, 'All Data - expense level', 'All Data - report level', 'Custom Template'];
         expect(getSecondaryExportReportActions(report, policy, exportTemplates)).toEqual(result);
     });
 
