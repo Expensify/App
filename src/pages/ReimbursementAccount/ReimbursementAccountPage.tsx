@@ -84,7 +84,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const prevIsOffline = usePrevious(isOffline);
     const policyCurrency = policy?.outputCurrency ?? '';
     const hasUnsupportedCurrency =
-        isComingFromExpensifyCard && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK)
+        isComingFromExpensifyCard && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) && policyCurrency !== CONST.CURRENCY.USD
             ? !isCurrencySupportedForECards(policyCurrency)
             : !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND));
     const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
