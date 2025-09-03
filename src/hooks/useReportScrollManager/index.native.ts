@@ -1,10 +1,10 @@
 import {useCallback, useContext} from 'react';
-import {Platform} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {ActionListContext} from '@pages/home/ReportScreenContext';
-import scrollToBottomHandler from './scrollToBottomHandler';
+import scrollToBottomHandler from './handlers/scrollToBottom';
+import scrollToOffsetHandler from './handlers/scrollToOffset';
 import type ReportScrollManagerData from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
@@ -52,21 +52,7 @@ function useReportScrollManager(): ReportScrollManagerData {
         flatListRef.current.scrollToEnd({animated: false});
     }, [flatListRef]);
 
-    const scrollToOffset = useCallback(
-        (offset: number) => {
-            if (!flatListRef?.current) {
-                return;
-            }
-
-            if (Platform.OS === 'ios' && isKeyboardActive) {
-                flatListRef.current?.scrollToOffset({animated: false, offset: offset - keyboardHeight});
-                return;
-            }
-
-            flatListRef.current.scrollToOffset({offset, animated: false});
-        },
-        [flatListRef, isKeyboardActive, keyboardHeight],
-    );
+    const scrollToOffset = useCallback((offset: number) => scrollToOffsetHandler({flatListRef, isKeyboardActive, keyboardHeight, offset}), [flatListRef, isKeyboardActive, keyboardHeight]);
 
     return {ref: flatListRef, scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};
 }
