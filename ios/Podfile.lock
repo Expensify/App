@@ -387,7 +387,7 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
-  - NitroModules (0.29.0):
+  - NitroModules (0.29.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -488,6 +488,7 @@ PODS:
     - React-RCTText (= 0.79.2)
     - React-RCTVibration (= 0.79.2)
   - React-callinvoker (0.79.2)
+  - React-Codegen (0.1.0)
   - React-Core (0.79.2):
     - glog
     - hermes-engine
@@ -3760,7 +3761,7 @@ SPEC CHECKSUMS:
   EXConstants: 26f334022fc0b454b7ecdc7c12d36ffa68c7c397
   EXImageLoader: ab4fcf9240cf3636a83c00e3fc5229d692899428
   expensify-react-native-background-task: 33f3c3977ee1bcfb75b5466735d467cacda86746
-  ExpensifyNitroUtils: e0db1bd03c2ee179bdca45c57bf0497e626b18cd
+  ExpensifyNitroUtils: fb0098627e13de07aef912c0bb70e8f307f01f60
   Expo: a02b1eb4c08689dc866eabf48e2eefee712ded6b
   ExpoAsset: 3ea3275cca6a7793b3d36fbf1075c590f803fbcb
   ExpoFont: 312c73403bbd4f98e1d6a5330641a56292583cd2
@@ -3805,7 +3806,7 @@ SPEC CHECKSUMS:
   MapboxMaps: 05822ab0ee74f7d626e6471572439afe35c1c116
   MapboxMobileEvents: d044b9edbe0ec7df60f6c2c9634fe9a7f449266b
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  NitroModules: 4345e0fb5f361bed436e53e87a0163d6a2f0440d
+  NitroModules: 1db6751c40aa0f741503015a9aef3f4c7bfd03eb
   NWWebSocket: 040d22f23438cc09aaeabf537beff67699c3c76d
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 0245dba46f3e3a10bbaf3969fc7c947a22fb46fa
