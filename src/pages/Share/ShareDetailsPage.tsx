@@ -35,6 +35,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
 import getFileSize from './getFileSize';
 import {showErrorAlert} from './ShareRootPage';
+import NewChatListItem from '@components/SelectionList/NewChatListItem';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SHARE_DETAILS>;
 
@@ -154,7 +155,7 @@ function ShareDetailsPage({
                             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
                                 <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
                             </View>
-                            <UserListItem
+                            <NewChatListItem
                                 item={displayReport}
                                 isFocused={false}
                                 showTooltip={false}
