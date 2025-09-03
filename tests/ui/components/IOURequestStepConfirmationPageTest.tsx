@@ -25,7 +25,6 @@ jest.mock('@libs/actions/IOU', () => {
         startMoneyRequest: jest.fn(),
     };
 });
-jest.mock('@libs/Fullstory');
 jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: () => [false],
 }));

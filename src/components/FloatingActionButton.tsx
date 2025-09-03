@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Role, Text, View} from 'react-native';
 import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -42,9 +42,12 @@ type FloatingActionButtonProps = {
 
     /* If the tooltip is allowed to be shown */
     isTooltipAllowed: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<HTMLDivElement | View | Text>;
 };
 
-function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, isTooltipAllowed}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View | Text>) {
+function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, isTooltipAllowed, ref}: FloatingActionButtonProps) {
     const {success, buttonDefaultBG, textLight} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
@@ -157,4 +160,4 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
 
 FloatingActionButton.displayName = 'FloatingActionButton';
 
-export default forwardRef(FloatingActionButton);
+export default FloatingActionButton;

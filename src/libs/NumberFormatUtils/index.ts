@@ -1,10 +1,9 @@
-import intlPolyfill from '@libs/IntlPolyfill';
 import memoize from '@libs/memoize';
 import CONST from '@src/CONST';
 import type Locale from '@src/types/onyx/Locale';
+import initPolyfill from './intlPolyfill';
 
-// Polyfill the Intl API if locale data is not as expected
-intlPolyfill();
+initPolyfill();
 
 const MemoizedNumberFormat = memoize(Intl.NumberFormat, {maxSize: 10, monitoringName: 'NumberFormatUtils'});
 

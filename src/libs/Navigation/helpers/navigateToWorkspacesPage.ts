@@ -45,8 +45,8 @@ const getWorkspaceNavigationRouteState = () => {
 const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy}: Params) => {
     const {lastWorkspacesTabNavigatorRoute, topmostFullScreenRoute} = getWorkspaceNavigationRouteState();
 
-    if (!topmostFullScreenRoute) {
-        // Not in a main workspace navigation context, so do nothing.
+    if (!topmostFullScreenRoute || topmostFullScreenRoute.name === SCREENS.WORKSPACES_LIST) {
+        // Not in a main workspace navigation context or the workspaces list page is already displayed, so do nothing.
         return;
     }
 

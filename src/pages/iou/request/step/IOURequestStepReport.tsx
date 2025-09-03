@@ -1,7 +1,9 @@
 import React from 'react';
 import {InteractionManager} from 'react-native';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
+import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,10 +26,12 @@ type TransactionGroupListItem = ListItem & {
 type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_REPORT> & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_REPORT>;
 
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
-    const {backTo, action, iouType, transactionID, reportID: reportIDFromRoute} = route.params;
+    const {backTo, action, iouType, transactionID, reportID: reportIDFromRoute, reportActionID} = route.params;
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const reportID = isUnreported ? transaction?.participants?.at(0)?.reportID : transaction?.reportID;
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const {removeTransaction} = useSearchContext();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateReport = action === CONST.IOU.ACTION.CREATE;
@@ -91,7 +95,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             );
 
             if (isEditing) {
-                changeTransactionsReport([transaction.transactionID], item.value);
+                changeTransactionsReport([transaction.transactionID], item.value, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]);
+                removeTransaction(transaction.transactionID);
             }
         });
     };
@@ -125,18 +130,24 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         Navigation.dismissModal();
         InteractionManager.runAfterInteractions(() => {
             changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID);
+            removeTransaction(transaction.transactionID);
         });
     };
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, reportOrDraftReport, transaction);
 
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
             transactionsReports={transactionReport ? [transactionReport] : []}
+            transactionIds={transaction ? [transaction.transactionID] : []}
             selectReport={selectReport}
             policyID={!isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined}
             removeFromReport={removeFromReport}
             isEditing={isEditing}
             isUnreported={isUnreported}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
         />
     );
 }

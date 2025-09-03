@@ -77,7 +77,7 @@ function traverseASTsInParallel<K extends string>(roots: Array<LabeledNode<K>>, 
     visit(nodeMap as Record<K, ts.Node>);
 
     // Collect children per label
-    const childrenByLabel = new Map<K, ts.Node[]>();
+    const childrenByLabel = new Map<K, readonly ts.Node[]>();
     let minChildren = Infinity;
 
     for (const {label, node} of roots) {

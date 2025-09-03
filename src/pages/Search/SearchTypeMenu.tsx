@@ -40,7 +40,7 @@ type SearchTypeMenuProps = {
 };
 
 function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
-    const {hash} = queryJSON ?? {};
+    const {hash, similarSearchHash} = queryJSON ?? {};
 
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -208,8 +208,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         }
 
         const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-        return flattenedMenuItems.findIndex((item) => item.hash === hash);
-    }, [hash, isSavedSearchActive, typeMenuSections]);
+        return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
+    }, [similarSearchHash, isSavedSearchActive, typeMenuSections]);
 
     return (
         <ScrollView
@@ -225,7 +225,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                         {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
                             <>
                                 {renderSavedSearchesSection(savedSearchesMenuItems)}
-                                <DeleteConfirmModal />
+                                {/* DeleteConfirmModal is a stable JSX element returned by the hook.
+                                Returning the element directly keeps the component identity across re-renders so React
+                                can play its exit animation instead of removing it instantly. */}
+                                {DeleteConfirmModal}
                             </>
                         ) : (
                             <>

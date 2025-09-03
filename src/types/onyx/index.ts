@@ -1,3 +1,4 @@
+import type {FileObject} from '@components/AttachmentModal';
 import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
 import type Account from './Account';
 import type AccountData from './AccountData';
@@ -6,6 +7,7 @@ import type {AssignCard} from './AssignCard';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
+import type BetaConfiguration from './BetaConfiguration';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingReceiptDetails from './BillingReceiptDetails';
 import type BillingStatus from './BillingStatus';
@@ -23,18 +25,20 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
-import type {ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerivedValue} from './DerivedValues';
+import type {OutstandingReportsByPolicyIDDerivedValue, ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerivedValue} from './DerivedValues';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
+import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
+import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
-import type IntegrationServerExportTemplate from './IntegrationServerExportTemplate';
+import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -124,6 +128,7 @@ import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 
 export type {
+    FileObject,
     TryNewDot,
     Account,
     AccountData,
@@ -131,6 +136,7 @@ export type {
     BankAccount,
     BankAccountList,
     Beta,
+    BetaConfiguration,
     BlockedFromConcierge,
     Card,
     CardList,
@@ -142,6 +148,7 @@ export type {
     CurrencyList,
     CustomStatusDraft,
     DismissedReferralBanners,
+    DuplicateWorkspace,
     Download,
     WorkspaceCardsList,
     ExpensifyCardSettings,
@@ -251,6 +258,7 @@ export type {
     SaveSearch,
     RecentSearchItem,
     ImportedSpreadsheet,
+    ImportedSpreadsheetMemberData,
     Onboarding,
     OnboardingPurpose,
     ValidateMagicCodeAction,
@@ -264,10 +272,11 @@ export type {
     LastPaymentMethodType,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
+    OutstandingReportsByPolicyIDDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,
     BillingReceiptDetails,
-    IntegrationServerExportTemplate,
+    ExportTemplate,
     HybridApp,
 };

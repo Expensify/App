@@ -27,8 +27,9 @@ import type {MergeFieldKey, MergeValue} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getCurrency} from '@libs/TransactionUtils';
-import {openReport} from '@userActions/Report';
+import {createTransactionThreadReport, openReport} from '@userActions/Report';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -44,16 +45,34 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const styles = useThemeStyles();
     const {transactionID, backTo} = route.params;
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
     const [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
         canBeMissing: true,
     });
-    const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
+    const [hasOnceLoadedTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${targetTransaction?.reportID}`, {
+        selector: (value) => value?.hasOnceLoadedReportActions,
         canBeMissing: true,
     });
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
-    const targetTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`];
+    const [iouReportForTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
+    const [iouActionForTargetTransaction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction?.reportID}`,
+        {
+            selector: (value) => {
+                if (!hasOnceLoadedTransactionThreadReportActions || !!targetTransactionThreadReportID || !targetTransaction?.transactionID) {
+                    return undefined;
+                }
+                return getIOUActionForTransactionID(Object.values(value ?? {}), targetTransaction?.transactionID);
+            },
+            canBeMissing: true,
+        },
+        [hasOnceLoadedTransactionThreadReportActions, targetTransactionThreadReportID, targetTransaction?.transactionID],
+    );
+    const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
+        canBeMissing: true,
+    });
+    const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`, {canBeMissing: true});
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [diffFields, setDiffFields] = useState<MergeFieldKey[]>([]);
@@ -79,6 +98,14 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         // The App may not have the transaction thread report loaded for card transactions, so we need to trigger
         // OpenReport to ensure the transaction thread report is available for confirmation page
         if (!targetTransactionThreadReportID && targetTransaction?.reportID) {
+            // If the report was already loaded before, but there are still no transaction thread report info, it means it hasn't been created yet.
+            // So we should create it.
+            if (hasOnceLoadedTransactionThreadReportActions) {
+                createTransactionThreadReport(iouReportForTargetTransaction, iouActionForTargetTransaction);
+                setIsCheckingDataBeforeGoNext(false);
+                Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
+                return;
+            }
             return openReport(targetTransaction.reportID);
         }
         if (targetTransactionThreadReportID && !targetTransactionThreadReport) {
@@ -91,7 +118,18 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
         Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
         setIsCheckingDataBeforeGoNext(false);
-    }, [isCheckingDataBeforeGoNext, targetTransactionThreadReportID, targetTransaction?.reportID, targetTransactionThreadReport, transactionID]);
+    }, [
+        isCheckingDataBeforeGoNext,
+        targetTransactionThreadReportID,
+        targetTransaction?.reportID,
+        targetTransactionThreadReport,
+        transactionID,
+        hasOnceLoadedTransactionThreadReportActions,
+        iouActionForTargetTransaction,
+        iouReportForTargetTransaction,
+        currentUserEmail,
+        targetTransaction?.transactionID,
+    ]);
 
     // Handle selection
     const handleSelect = (field: MergeFieldKey, value: MergeValue) => {
