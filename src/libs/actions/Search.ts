@@ -539,13 +539,34 @@ function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, r
 }
 
 /**
- * Collate a list of export templates available to the user from their account, policy, and custom integrations templates
- * @param integrationsExportTemplates
- * @param csvExportLayouts
- * @param policy
+ * Collates a list of export templates available to the user from their account, policy, and custom integrations templates
+ * @param integrationsExportTemplates - The user's custom integrations export templates
+ * @param csvExportLayouts - The user's custom account level export templates
+ * @param policy - The user's policy
+ * @param includeReportLevelExport - Whether to include the report level export template
  * @returns
  */
-function getExportTemplates(integrationsExportTemplates: ExportTemplate[], csvExportLayouts: Record<string, ExportTemplate>, policy?: Policy): ExportTemplate[] {
+function getExportTemplates(integrationsExportTemplates: ExportTemplate[], csvExportLayouts: Record<string, ExportTemplate>, policy?: Policy, includeReportLevelExport = true): ExportTemplate[] {
+    // By default, we always include the expense level export template
+    const exportTemplates: ExportTemplate[] = [{
+        name: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
+        templateName: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
+        description: '',
+        policyID: undefined,
+        type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+    }];
+
+    // Conditionally include the report level export template
+    if (includeReportLevelExport) {
+        exportTemplates.push({
+            name: CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT,
+            templateName: CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT,
+            description: '',
+            policyID: undefined,
+            type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+        });
+    }
+
     // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
     const accountInAppTemplates = Object.entries(csvExportLayouts ?? {})
         .filter(([, layout]) => layout.name !== CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV)
@@ -578,7 +599,7 @@ function getExportTemplates(integrationsExportTemplates: ExportTemplate[], csvEx
         type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
     }));
 
-    return [...integrationsTemplates, ...accountInAppTemplates, ...policyInAppTemplates];
+    return [...exportTemplates, ...integrationsTemplates, ...accountInAppTemplates, ...policyInAppTemplates];
 }
 
 /**

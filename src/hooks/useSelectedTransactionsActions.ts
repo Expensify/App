@@ -194,19 +194,8 @@ function useSelectedTransactionsActions({
                         clearSelectedTransactions(true);
                     },
                 },
-                {
-                    text: translate('export.expenseLevelExport'),
-                    icon: Expensicons.Table,
-                    onSelected: () => {
-                        if (!report) {
-                            return;
-                        }
-                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs);
-                    },
-                },
             ];
 
-            // If we've selected all the transactions on the report, we can also provide the report level export option
             if (allTransactionsLength === selectedTransactionIDs.length) {
                 exportOptions.push({
                     text: translate('export.reportLevelExport'),
@@ -216,9 +205,11 @@ function useSelectedTransactionsActions({
                         beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs),
                 });
             }
+            // If we've selected all the transactions on the report, we can also provide the report level export option
+            const includeReportLevelExport = allTransactionsLength === selectedTransactionIDs.length;
 
             // If the user has any custom integration export templates, add them as export options
-            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, policy);
+            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, policy, includeReportLevelExport);
             if (exportTemplates.length > 0) {
                 for (const template of exportTemplates) {
                     exportOptions.push({

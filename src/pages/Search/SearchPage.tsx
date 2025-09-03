@@ -178,16 +178,6 @@ function SearchPage({route}: SearchPageProps) {
                     shouldCloseModalOnSelect: true,
                     shouldCallAfterModalHide: true,
                 },
-                {
-                    text: translate('export.expenseLevelExport'),
-                    icon: Expensicons.Table,
-                    onSelected: () => {
-                        // The report level export template is not policy specific, so we don't need to pass a policyID
-                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
-                    },
-                    shouldCloseModalOnSelect: true,
-                    shouldCallAfterModalHide: true,
-                },
             ];
 
             // Determine if only full reports are selected by comparing the reportIDs of the selected transactions and the reportIDs of the selected reports
@@ -197,19 +187,8 @@ function SearchPage({route}: SearchPageProps) {
             const groupByReports = queryJSON?.groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
             const typeInvoice = queryJSON?.type === CONST.REPORT.TYPE.INVOICE;
 
-            // Add the report level export if fully reports are selected and we're on the report page
-            if ((groupByReports || typeInvoice) && areFullReportsSelected) {
-                exportOptions.push({
-                    text: translate('export.reportLevelExport'),
-                    icon: Expensicons.Table,
-                    onSelected: () => {
-                        // The report level export template is not policy specific, so we don't need to pass a policyID
-                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
-                    },
-                    shouldCloseModalOnSelect: true,
-                    shouldCallAfterModalHide: true,
-                });
-            }
+            // If we're grouping by invoice or report, and all the expenses on the report are selected, include the report level export option
+            const includeReportLevelExport = (groupByReports || typeInvoice) && areFullReportsSelected;
 
             // Collate a list of policyIDs from the selected transactions
             const selectedPolicyIDs = [
@@ -221,8 +200,8 @@ function SearchPage({route}: SearchPageProps) {
             ];
 
             // Collect a list of export templates available to the user from their account, policy, and custom integrations templates
-            const exportTemplatePolicy = selectedPolicyIDs.length === 1 ? activePolicy : undefined;
-            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, exportTemplatePolicy);
+            const policy = selectedPolicyIDs.length === 1 ? activePolicy : undefined;
+            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, policy, includeReportLevelExport);
             if (exportTemplates.length > 0) {
                 for (const template of exportTemplates) {
                     exportOptions.push({
