@@ -3,7 +3,6 @@ title: Create categories
 description: Use categories to classify and organize expenses
 keywords: [Expensify Classic, categories, categorize expenses]
 ---
-<div id="expensify-classic" markdown="1">
 
 Categories help you classify expenses by type. Expensify automatically provides default categories like fees, office supplies, travel, and more.
 
@@ -77,4 +76,3 @@ Once you manually add categories or import them from a connected accounting syst
 
 ⚠️ **Note:** Importing GL and payroll codes from your accounting system is only available on the Control plan.
 
-</div>

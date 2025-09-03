@@ -1,4 +1,4 @@
-import {findFocusedRoute, useFocusEffect, useNavigationState} from '@react-navigation/native';
+import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
@@ -461,21 +461,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
 
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    /** We added a delay to focus on text input to allow navigation/modal animations to get completed, see issue https://github.com/Expensify/App/issues/65855 for more details */
-    useFocusEffect(
-        useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => {
-                if (!textInputRef.current) {
-                    return;
-                }
-                textInputRef?.current?.focus();
-            }, CONST.ANIMATED_TRANSITION);
-
-            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
-        }, []),
-    );
-
     return (
         <View
             style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
@@ -515,7 +500,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 selection={selection}
                 substitutionMap={autocompleteSubstitutions}
                 ref={textInputRef}
-                autoFocus={false}
             />
             {shouldShowList && (
                 <SearchAutocompleteList

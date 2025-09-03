@@ -389,6 +389,16 @@ const tests = [
         },
     },
     {
+        query: 'status:all',
+        expected: {
+            type: 'expense',
+            status: '',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: null,
+        },
+    },
+    {
         query: 'amount>200 las vegas category:"Hotel : Marriott"',
         expected: {
             type: 'expense',
@@ -483,6 +493,20 @@ const tests = [
                 operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
                 left: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
                 right: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD,
+            },
+        },
+    },
+    {
+        query: 'type:expense withdrawal-id:1234567890',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
+                right: '1234567890',
             },
         },
     },
