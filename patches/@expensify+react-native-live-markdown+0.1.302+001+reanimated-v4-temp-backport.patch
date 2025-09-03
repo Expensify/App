@@ -37,3 +37,16 @@ index 82ee895..55c0e90 100644
  
  import MarkdownTextInputDecoratorViewNativeComponent from './MarkdownTextInputDecoratorViewNativeComponent';
  import type {MarkdownStyle} from './MarkdownTextInputDecoratorViewNativeComponent';
+diff --git a/node_modules/@expensify/react-native-live-markdown/src/parseExpensiMark.ts b/node_modules/@expensify/react-native-live-markdown/src/parseExpensiMark.ts
+index 6e14e25..38d92bb 100644
+--- a/node_modules/@expensify/react-native-live-markdown/src/parseExpensiMark.ts
++++ b/node_modules/@expensify/react-native-live-markdown/src/parseExpensiMark.ts
+@@ -4,7 +4,7 @@ import {Platform} from 'react-native';
+ import {ExpensiMark} from 'expensify-common';
+ import {unescapeText} from 'expensify-common/dist/utils';
+ import {decode} from 'html-entities';
+-import type {WorkletFunction} from 'react-native-reanimated/lib/typescript/commonTypes';
++import type {WorkletFunction} from 'react-native-worklets';
+ import type {MarkdownType, MarkdownRange} from './commonTypes';
+ import {groupRanges, sortRanges, splitRangesOnEmojis} from './rangeUtils';
+ 
