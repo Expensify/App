@@ -8,20 +8,11 @@ import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import variables from '@styles/variables';
+import {addTrailingForwardSlash} from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import {LOCALES} from './LOCALES';
-
-/**
- * Add / to the end of any URL if not present
- */
-function addTrailingForwardSlash(url: string): string {
-    if (!url.endsWith('/')) {
-        return `${url}/`;
-    }
-    return url;
-}
 
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
@@ -7189,6 +7180,6 @@ type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
 export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
 
-export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, addTrailingForwardSlash};
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS};
 
 export default CONST;
