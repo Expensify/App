@@ -552,59 +552,47 @@ function getExportTemplates(
     policy?: Policy,
     includeReportLevelExport = true,
 ): ExportTemplate[] {
+    // Helper function to normalize template data into consistent ExportTemplate format
+    const normalizeTemplate = (templateName: string, template: ExportTemplate, type: ValueOf<typeof CONST.EXPORT_TEMPLATE_TYPES>, description = '', policyID?: string): ExportTemplate => ({
+        ...template,
+        templateName,
+        description,
+        policyID,
+        type,
+    });
+
     // By default, we always include the expense level export template
     const exportTemplates: ExportTemplate[] = [
-        {
-            name: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
-            templateName: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
-            description: '',
-            policyID: undefined,
-            type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
-        },
+        normalizeTemplate(
+            CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
+            {name: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT} as ExportTemplate,
+            CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+        ),
     ];
 
     // Conditionally include the report level export template
     if (includeReportLevelExport) {
-        exportTemplates.push({
-            name: CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT,
-            templateName: CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT,
-            description: '',
-            policyID: undefined,
-            type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
-        });
+        exportTemplates.push(
+            normalizeTemplate(
+                CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT,
+                {name: CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT} as ExportTemplate,
+                CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+            ),
+        );
     }
 
     // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
     const accountInAppTemplates = Object.entries(csvExportLayouts ?? {})
         .filter(([, layout]) => layout.name !== CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV)
-        .map(([templateName, layout]) => ({
-            ...layout,
-            templateName,
-            description: '',
-            policyID: undefined,
-            type: CONST.EXPORT_TEMPLATE_TYPES.IN_APP,
-        }));
+        .map(([templateName, layout]) => normalizeTemplate(templateName, layout, CONST.EXPORT_TEMPLATE_TYPES.IN_APP));
 
     // If we have a policy, collate a list of the policy-level in-app export templates
-    let policyInAppTemplates: ExportTemplate[] = [];
-    if (policy) {
-        policyInAppTemplates = Object.entries(policy?.exportLayouts ?? {}).map(([templateName, layout]) => ({
-            ...layout,
-            templateName,
-            description: policy?.name,
-            policyID: policy?.id,
-            type: CONST.EXPORT_TEMPLATE_TYPES.IN_APP,
-        }));
-    }
+    const policyInAppTemplates = policy
+        ? Object.entries(policy.exportLayouts ?? {}).map(([templateName, layout]) => normalizeTemplate(templateName, layout, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, policy.name, policy.id))
+        : [];
 
     // Update the integrations export templates to include the name, description, policyID, and type
-    const integrationsTemplates = integrationsExportTemplates.map((template) => ({
-        ...template,
-        templateName: template.name,
-        description: '',
-        policyID: undefined,
-        type: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
-    }));
+    const integrationsTemplates = integrationsExportTemplates.map((template) => normalizeTemplate(template.name, template, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
 
     return [...exportTemplates, ...integrationsTemplates, ...accountInAppTemplates, ...policyInAppTemplates];
 }
