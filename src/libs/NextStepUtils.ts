@@ -125,7 +125,7 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
 }
 
 /**
- * Generates an optimistic nextStep based on a current report status and other properties.
+ * Please don't use this function anymore, let's use buildNextStepNew instead
  *
  * @param report
  * @param predictedNextStatus - a next expected status of the report
@@ -500,6 +500,7 @@ function buildNextStep(
 
 /**
  * Generates an optimistic nextStep based on a current report status and other properties.
+ * Need to rename this function and remove the buildNextStep function above after migrating to this function
  */
 function buildNextStepNew(
     report: OnyxEntry<Report>,
