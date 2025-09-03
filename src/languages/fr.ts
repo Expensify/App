@@ -5574,8 +5574,9 @@ const translations = {
                 headline: `Vous avez amélioré votre espace de travail !`,
                 successMessage: ({policyName, subscriptionLink}: UpgradeSuccessMessageParams) =>
                     `<centered-text>Vous avez réussi à passer de ${policyName} au forfait Control ! <a href="${subscriptionLink}">Consultez votre abonnement</a> pour plus de détails.</centered-text>`,
-                categorizeMessage: `Vous avez réussi à passer à un espace de travail sur le plan Collect. Vous pouvez maintenant catégoriser vos dépenses !`,
-                travelMessage: `Vous avez réussi à passer à un espace de travail sur le plan Collect. Vous pouvez maintenant commencer à réserver et gérer vos voyages !`,
+                categorizeMessage: `Vous avez réussi à passer au plan Collect. Vous pouvez maintenant catégoriser vos dépenses !`,
+                travelMessage: `Vous avez réussi à passer au plan Collect. Vous pouvez maintenant commencer à réserver et à gérer vos voyages !`,
+                distanceRateMessage: `Vous avez réussi à passer au plan Collect. Vous pouvez maintenant modifier le taux de distance !`,
                 gotIt: 'Compris, merci',
             },
             commonFeatures: {

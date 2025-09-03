@@ -5568,8 +5568,9 @@ const translations = {
                 headline: `Você atualizou seu espaço de trabalho!`,
                 successMessage: ({policyName, subscriptionLink}: UpgradeSuccessMessageParams) =>
                     `<centered-text>Você atualizou com sucesso o ${policyName} para o plano Controle! <a href="${subscriptionLink}">Veja sua assinatura</a> para mais detalhes.</centered-text>`,
-                categorizeMessage: `Você atualizou com sucesso para um workspace no plano Collect. Agora você pode categorizar suas despesas!`,
-                travelMessage: `Você atualizou com sucesso para um espaço de trabalho no plano Collect. Agora você pode começar a reservar e gerenciar viagens!`,
+                categorizeMessage: `Você atualizou com sucesso para o plano Collect. Agora você pode categorizar suas despesas!`,
+                travelMessage: `Você atualizou com sucesso para o plano Collect. Agora você pode começar a reservar e gerenciar viagens!`,
+                distanceRateMessage: `Você atualizou com sucesso para o plano Collect. Agora você pode alterar a taxa de distância!`,
                 gotIt: 'Entendi, obrigado',
             },
             commonFeatures: {

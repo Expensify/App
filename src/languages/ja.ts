@@ -5540,8 +5540,9 @@ const translations = {
                 headline: `ワークスペースをアップグレードしました！`,
                 successMessage: ({policyName, subscriptionLink}: UpgradeSuccessMessageParams) =>
                     `<centered-text>${policyName}をコントロールプランにアップグレードしました！詳細については、<a href="${subscriptionLink}">サブスクリプションをご確認</a>ください。</centered-text>`,
-                categorizeMessage: `Collectプランのワークスペースに正常にアップグレードされました。これで経費を分類できます！`,
-                travelMessage: `Collectプランのワークスペースに正常にアップグレードされました。これで、旅行の予約と管理を開始できます！`,
+                categorizeMessage: `Collectプランへのアップグレードに成功しました。これで経費を分類することができます！`,
+                travelMessage: `Collectプランへのアップグレードが成功しました。これで旅行の予約と管理を開始できます！`,
+                distanceRateMessage: `Collectプランへのアップグレードが成功しました。これで距離レートを変更できます！`,
                 gotIt: '了解しました、ありがとうございます。',
             },
             commonFeatures: {

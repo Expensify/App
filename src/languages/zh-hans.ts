@@ -5471,8 +5471,9 @@ const translations = {
                 headline: `您的工作区已升级！`,
                 successMessage: ({policyName, subscriptionLink}: UpgradeSuccessMessageParams) =>
                     `<centered-text>您已成功将 ${policyName} 升级到控制计划！<a href="${subscriptionLink}">查看订阅详情</a>。</centered-text>`,
-                categorizeMessage: `您已成功升级到 Collect 计划的工作区。现在您可以对费用进行分类了！`,
-                travelMessage: `您已成功升级到 Collect 计划的工作区。现在您可以开始预订和管理旅行了！`,
+                categorizeMessage: `您已成功升级到 Collect 计划。现在您可以对您的费用进行分类了！`,
+                travelMessage: `您已成功升级到 Collect 计划。现在您可以开始预订和管理旅行了！`,
+                distanceRateMessage: `您已成功升级到 Collect 计划。现在您可以更改距离费率了！`,
                 gotIt: '知道了，谢谢',
             },
             commonFeatures: {

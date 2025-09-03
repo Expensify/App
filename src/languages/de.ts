@@ -5559,8 +5559,9 @@ const translations = {
                 headline: `Sie haben Ihren Arbeitsbereich aktualisiert!`,
                 successMessage: ({policyName, subscriptionLink}: UpgradeSuccessMessageParams) =>
                     `<centered-text>Sie haben ${policyName} erfolgreich auf den Control-Tarif upgegradet! <a href="${subscriptionLink}">Sehen Sie sich Ihr Abonnement</a> für weitere Details an.</centered-text>`,
-                categorizeMessage: `Sie haben erfolgreich auf einen Workspace im Collect-Plan upgegradet. Jetzt können Sie Ihre Ausgaben kategorisieren!`,
-                travelMessage: `Sie haben erfolgreich auf einen Workspace im Collect-Plan aufgerüstet. Jetzt können Sie mit der Buchung und Verwaltung von Reisen beginnen!`,
+                categorizeMessage: `Sie haben erfolgreich auf den Collect-Plan aufgerüstet. Jetzt können Sie Ihre Ausgaben kategorisieren!`,
+                travelMessage: `Sie haben erfolgreich auf den Collect-Plan umgestellt. Jetzt können Sie mit der Buchung und Verwaltung von Reisen beginnen!`,
+                distanceRateMessage: `Sie haben erfolgreich auf den Collect-Plan umgestellt. Jetzt können Sie den Distanzsatz ändern!`,
                 gotIt: 'Verstanden, danke',
             },
             commonFeatures: {
