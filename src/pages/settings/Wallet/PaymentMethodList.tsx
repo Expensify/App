@@ -107,6 +107,8 @@ type PaymentMethodListProps = {
 
     /** Whether the bank accounts should be displayed in private and business sections */
     shouldShowBankAccountSections?: boolean;
+
+    policyID?: string;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -196,6 +198,7 @@ function PaymentMethodList({
     shouldShowRightIcon = true,
     invoiceTransferBankAccountID,
     shouldShowBankAccountSections = false,
+    policyID = '',
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -388,11 +391,16 @@ function PaymentMethodList({
 
     const onPressItem = useCallback(() => {
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route));
+            const path = Navigation.getActiveRoute();
+            if (path.includes(ROUTES.WORKSPACES_LIST.route) && policyID) {
+                Navigation.navigate(ROUTES.WORKSPACE_INVOICES_VERIFY_ACCOUNT.getRoute(policyID));
+            } else {
+                Navigation.navigate(ROUTES.SETTINGS_ADD_NEW_BANK_ACCOUNT_VERIFY_ACCOUNT);
+            }
             return;
         }
         onPress();
-    }, [isUserValidated, onPress]);
+    }, [isUserValidated, onPress, policyID]);
 
     const renderListFooterComponent = useCallback(
         () =>

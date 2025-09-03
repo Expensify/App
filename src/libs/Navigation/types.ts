@@ -165,6 +165,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: undefined;
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.ADD_NEW_BANK_ACCOUNT_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
@@ -966,6 +967,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
