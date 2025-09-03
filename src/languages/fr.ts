@@ -323,6 +323,7 @@ const translations = {
         count: 'Compter',
         cancel: 'Annuler',
         dismiss: 'Ignorer',
+        proceed: 'Procéder',
         yes: 'Oui',
         no: 'No',
         ok: "D'accord",
@@ -1000,6 +1001,7 @@ const translations = {
         sizeNotMet: 'La taille du fichier doit être supérieure à 0 octet',
         invalidFileMessage:
             'Le fichier que vous avez téléchargé est soit vide, soit contient des données invalides. Veuillez vous assurer que le fichier est correctement formaté et contient les informations nécessaires avant de le télécharger à nouveau.',
+        importSpreadsheetLibraryError: 'Échec du chargement du module de feuille de calcul. Veuillez vérifier votre connexion Internet et réessayer.',
         importSpreadsheet: 'Importer une feuille de calcul',
         downloadCSV: 'Télécharger CSV',
         importMemberConfirmation: () => ({
@@ -1937,6 +1939,7 @@ const translations = {
         virtualCardNumber: 'Numéro de carte virtuelle',
         travelCardCvv: 'CVV de la carte de voyage',
         physicalCardNumber: 'Numéro de carte physique',
+        physicalCardPin: 'PIN',
         getPhysicalCard: 'Obtenir une carte physique',
         reportFraud: 'Signaler une fraude à la carte virtuelle',
         reportTravelFraud: 'Signaler une fraude à la carte de voyage',
@@ -3471,12 +3474,14 @@ const translations = {
             customField1: 'Champ personnalisé 1',
             customField2: 'Champ personnalisé 2',
             customFieldHint: "Ajoutez un codage personnalisé qui s'applique à toutes les dépenses de ce membre.",
+            reports: 'Rapports',
             reportFields: 'Champs de rapport',
             reportTitle: 'Titre du rapport',
             reportField: 'Champ de rapport',
             taxes: 'Taxes',
             bills: 'Bills',
             invoices: 'Factures',
+            perDiem: 'Per diem',
             travel: 'Voyage',
             members: 'Membres',
             accounting: 'Comptabilité',
@@ -3489,6 +3494,7 @@ const translations = {
             testTransactions: 'Tester les transactions',
             issueAndManageCards: 'Émettre et gérer des cartes',
             reconcileCards: 'Rapprocher les cartes',
+            selectAll: 'Sélectionner tout',
             selected: () => ({
                 one: '1 sélectionné',
                 other: (count: number) => `${count} sélectionné(s)`,
@@ -3502,6 +3508,8 @@ const translations = {
             memberNotFound: "Membre introuvable. Pour inviter un nouveau membre à l'espace de travail, veuillez utiliser le bouton d'invitation ci-dessus.",
             notAuthorized: `Vous n'avez pas accès à cette page. Si vous essayez de rejoindre cet espace de travail, demandez simplement au propriétaire de l'espace de travail de vous ajouter en tant que membre. Autre chose ? Contactez ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: "Aller à l'espace de travail",
+            duplicateWorkspace: 'Dupliquer l’espace de travail',
+            duplicateWorkspacePrefix: 'Dupliquer',
             goToWorkspaces: 'Aller aux espaces de travail',
             clearFilter: 'Effacer le filtre',
             workspaceName: "Nom de l'espace de travail",
@@ -3995,6 +4003,18 @@ const translations = {
             syncReimbursedReportsDescription:
                 "Chaque fois qu'un rapport est payé en utilisant Expensify ACH, le paiement de facture correspondant sera créé dans le compte Sage Intacct ci-dessous.",
             paymentAccount: 'Compte de paiement Sage Intacct',
+            accountingMethods: {
+                label: 'Quand exporter',
+                description: 'Choisissez quand exporter les dépenses :',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Espèces',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Les dépenses hors de la poche seront exportées une fois approuvées définitivement.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: "Les dépenses personnelles seront exportées lorsqu'elles seront payées.",
+                },
+            },
         },
         netsuite: {
             subsidiary: 'Filiale',
@@ -4470,6 +4490,8 @@ const translations = {
             disclaimer:
                 "La carte commerciale Expensify Visa® est émise par The Bancorp Bank, N.A., membre FDIC, conformément à une licence de Visa U.S.A. Inc. et ne peut pas être utilisée chez tous les commerçants qui acceptent les cartes Visa. Apple® et le logo Apple® sont des marques déposées d'Apple Inc., enregistrées aux États-Unis et dans d'autres pays. App Store est une marque de service d'Apple Inc. Google Play et le logo Google Play sont des marques de commerce de Google LLC.",
             issueCard: 'Émettre une carte',
+            euUkDisclaimer:
+                "Les cartes fournies aux résidents de l'EEE sont émises par Transact Payments Malta Limited et celles fournies aux résidents du Royaume-Uni sont émises par Transact Payments Limited, conformément à la licence de Visa Europe Limited. Transact Payments Malta Limited est dûment agréée et réglementée par l'Autorité des services financiers de Malte en tant qu'institution financière en vertu de la loi de 1994 sur les institutions financières. Numéro d'enregistrement : C 91879. Transact Payments Limited est agréée et réglementée par la Commission des services financiers de Gibraltar.",
             findCard: 'Trouver la carte',
             newCard: 'Nouvelle carte',
             name: 'Nom',
@@ -4943,6 +4965,18 @@ const translations = {
             importedFromAccountingSoftware: 'Les taxes ci-dessous sont importées de votre',
             taxCode: 'Code fiscal',
             updateTaxCodeFailureMessage: "Une erreur s'est produite lors de la mise à jour du code fiscal, veuillez réessayer.",
+        },
+        duplicateWorkspace: {
+            title: 'Nombra tu nuevo espacio de trabajo',
+            selectFeatures: 'Selecciona las funciones que quieres copiar',
+            whichFeatures: '¿Qué funciones quieres copiar a tu nuevo espacio de trabajo?',
+            confirmDuplicate: '\n\nVoulez-vous continuer?',
+            categories: 'Categorías y tus reglas de categorización automática',
+            reimbursementAccount: 'Cuenta de reembolso',
+            delayedSubmission: 'Envío retrasado',
+            welcomeNote: 'Empieza a usar mi nuevo espacio de trabajo',
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `Vous êtes sur le point de créer et de partager ${newWorkspaceName ?? ''} avec ${totalMembers ?? 0} membres de l'espace de travail d'origine.`,
         },
         emptyWorkspace: {
             title: "Vous n'avez aucun espace de travail",
@@ -6673,7 +6707,7 @@ const translations = {
         isTransactionBillable: 'Choisissez si la transaction est facturable',
         keepThisOne: 'Keep this one',
         confirmDetails: `Confirmez les détails que vous conservez`,
-        confirmDuplicatesInfo: `Les demandes en double que vous ne conservez pas seront conservées pour que le membre les supprime.`,
+        confirmDuplicatesInfo: `Les doublons que vous ne conservez pas seront conservés afin que l’expéditeur puisse les supprimer.`,
         hold: 'Cette dépense a été mise en attente',
         resolvedDuplicates: 'résolu le doublon',
     },
