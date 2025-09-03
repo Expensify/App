@@ -27,7 +27,6 @@ import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isDraftReport} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import variables from '@styles/variables';
-import UserListItem from '@src/components/SelectionList/UserListItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

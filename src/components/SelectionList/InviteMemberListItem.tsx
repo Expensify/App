@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
@@ -150,7 +149,8 @@ function InviteMemberListItem<TItem extends ListItem>({
                         {!!shouldShowCheckBox && (
                             <Checkbox
                                 style={[styles.ml2]}
-                                disabled={isDisabled || item?.isDisabledCheckbox}
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                disabled={isDisabled || item.isDisabledCheckbox}
                                 isChecked={item.isSelected ?? false}
                                 accessibilityLabel={CONST.ROLE.CHECKBOX}
                                 onPress={handleCheckboxPress}
@@ -160,7 +160,8 @@ function InviteMemberListItem<TItem extends ListItem>({
                             <Checkbox
                                 style={[styles.ml2]}
                                 shouldSelectOnPressEnter
-                                disabled={isDisabled || item?.isDisabledCheckbox}
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                disabled={isDisabled || item.isDisabledCheckbox}
                                 containerBorderRadius={999}
                                 accessibilityLabel={CONST.ROLE.CHECKBOX}
                                 isChecked={item.isSelected}

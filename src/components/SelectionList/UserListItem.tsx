@@ -166,6 +166,7 @@ function UserListItem<TItem extends ListItem>({
                     {!shouldUseDefaultRightHandSideCheckmark && !canSelectMultiple && (
                         <Checkbox
                             containerBorderRadius={999}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || item.isDisabledCheckbox}
                             accessibilityLabel={item.text ?? ''}
                             style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.ml3]}

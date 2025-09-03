@@ -1284,7 +1284,12 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY: {
         route: 'workspaces/:policyID/workflows/auto-reporting-frequency',
-        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/auto-reporting-frequency` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY route');
+            }
+            return `workspaces/${policyID}/workflows/auto-reporting-frequency` as const;
+        },
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
         route: 'workspaces/:policyID/workflows/auto-reporting-frequency/monthly-offset',

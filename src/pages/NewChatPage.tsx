@@ -310,6 +310,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
             if (item.isSelected) {
                 return (
                     <Checkbox
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         disabled={item.isDisabled || item.isDisabledCheckbox}
                         accessibilityLabel={CONST.ROLE.BUTTON}
                         isChecked={item.isSelected}
@@ -328,7 +329,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
                 />
             );
         },
-        [toggleOption, styles.alignItemsCenter, styles.buttonDefaultHovered, styles.flexRow, styles.ml0, styles.ml5, styles.optionSelectCircle, styles.pl2, translate],
+        [toggleOption, styles.buttonDefaultHovered, styles.pl2, translate],
     );
 
     const createGroup = useCallback(() => {
