@@ -298,7 +298,7 @@ function MoneyReportHeader({
 
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
-    const {selectedTransactionIDs, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey} = useSearchContext();
+    const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey} = useSearchContext();
 
     const showExportProgressModal = useCallback(() => {
         return showConfirmModal({
@@ -1107,9 +1107,10 @@ function MoneyReportHeader({
                             if (!requestParentReportAction || !transaction?.transactionID) {
                                 throw new Error('Missing data!');
                             }
-                            InteractionManager.runAfterInteractions(() =>
-                                deleteMoneyRequest(transaction?.transactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations),
-                            );
+                            InteractionManager.runAfterInteractions(() => {
+                                deleteMoneyRequest(transaction?.transactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations);
+                                removeTransaction(transaction.transactionID);
+                            });
                             goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, false);
                         }
 
