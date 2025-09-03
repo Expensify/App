@@ -200,7 +200,8 @@ type ContextMenuActionPayload = {
     card?: Card;
     originalReport: OnyxEntry<ReportType>;
     isTryNewDotNVPDismissed?: boolean;
-    movedFromOrToReportMessage?: string;
+    movedFromReport?: OnyxEntry<ReportType>;
+    movedToReport?: OnyxEntry<ReportType>;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -498,7 +499,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fall back to
         // the `text` and `icon`
-        onPress: (closePopover, {reportAction, transaction, selection, report, reportID, card, originalReport, isTryNewDotNVPDismissed, movedFromOrToReportMessage}) => {
+        onPress: (closePopover, {reportAction, transaction, selection, report, reportID, card, originalReport, isTryNewDotNVPDismissed, movedFromReport, movedToReport}) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
             const messageHtml = getActionHtml(reportAction);
             const messageText = getReportActionMessageText(reportAction);
@@ -518,7 +519,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const modifyExpenseMessage = getForReportAction({
                         reportAction,
                         policyID: report?.policyID,
-                        movedFromOrToReportMessage,
+                        movedFromReport,
+                        movedToReport,
                     });
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {

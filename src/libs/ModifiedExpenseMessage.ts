@@ -173,20 +173,24 @@ function getMovedFromOrToReportMessage(movedFromReport: OnyxEntry<Report> | unde
 function getForReportAction({
     reportAction,
     policyID,
-    movedFromOrToReportMessage,
+    movedFromReport,
+    movedToReport,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     policyID: string | undefined;
-    movedFromOrToReportMessage?: string;
+    movedFromReport?: OnyxEntry<Report>;
+    movedToReport?: OnyxEntry<Report>;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
-    const reportActionOriginalMessage = getOriginalMessage(reportAction);
 
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(movedFromReport, movedToReport);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }
+
+    const reportActionOriginalMessage = getOriginalMessage(reportAction);
 
     const removalFragments: string[] = [];
     const setFragments: string[] = [];

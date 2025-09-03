@@ -22,7 +22,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getMovedFromOrToReportMessage, getMovedReportID} from '@libs/ModifiedExpenseMessage';
+import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
@@ -163,8 +163,6 @@ function BaseReportActionContextMenu({
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`, {canBeMissing: true});
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`, {canBeMissing: true});
-
-    const movedFromOrToReportMessage = useMemo(() => getMovedFromOrToReportMessage(movedFromReport, movedToReport), [movedFromReport, movedToReport]);
 
     const sourceID = getSourceIDFromReportAction(reportAction);
 
@@ -361,7 +359,8 @@ function BaseReportActionContextMenu({
                             card,
                             originalReport,
                             isTryNewDotNVPDismissed,
-                            movedFromOrToReportMessage,
+                            movedFromReport,
+                            movedToReport,
                         };
 
                         if ('renderContent' in contextAction) {

@@ -1,3 +1,4 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type ClearReportNotifications from '@libs/Notification/clearReportNotifications/types';
 import type {Report, ReportAction} from '@src/types/onyx';
 
@@ -18,7 +19,8 @@ type LocalNotificationModifiedExpenseParams = {
     report: Report;
     reportAction: ReportAction;
     onClick: LocalNotificationClickHandler;
-    movedFromOrToReportMessage?: string;
+    movedFromReport?: OnyxEntry<Report>;
+    movedToReport?: OnyxEntry<Report>;
 };
 
 type LocalNotificationModifiedExpensePushParams = LocalNotificationModifiedExpenseParams & {

@@ -7,7 +7,7 @@ import {getSortedReportActions, shouldReportActionBeVisibleAsLastAction} from '@
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
-import {getMovedFromOrToReportMessage, getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
+import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import type {OptionData} from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHN from './OptionRowLHN';
@@ -65,8 +65,6 @@ function OptionRowLHNData({
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`, {canBeMissing: true});
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`, {canBeMissing: true});
 
-    const movedFromOrToReportMessage = useMemo(() => getMovedFromOrToReportMessage(movedFromReport, movedToReport), [movedToReport, movedFromReport]);
-
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
@@ -84,7 +82,8 @@ function OptionRowLHNData({
             lastAction,
             localeCompare,
             isReportArchived,
-            movedFromOrToReportMessage,
+            movedFromReport,
+            movedToReport,
         });
         // eslint-disable-next-line react-compiler/react-compiler
         if (deepEqual(item, optionItemRef.current)) {
@@ -120,7 +119,8 @@ function OptionRowLHNData({
         card,
         localeCompare,
         isReportArchived,
-        movedFromOrToReportMessage,
+        movedFromReport,
+        movedToReport,
     ]);
 
     return (

@@ -546,13 +546,21 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  */
-function getLastMessageTextForReport(
-    report: OnyxEntry<Report>,
-    lastActorDetails: Partial<PersonalDetails> | null,
-    movedFromOrToReportMessage?: string,
-    policy?: OnyxEntry<Policy>,
+function getLastMessageTextForReport({
+    report,
+    lastActorDetails,
+    movedFromReport,
+    movedToReport,
+    policy,
     isReportArchived = false,
-): string {
+}: {
+    report: OnyxEntry<Report>;
+    lastActorDetails: Partial<PersonalDetails> | null;
+    movedFromReport?: OnyxEntry<Report>;
+    movedToReport?: OnyxEntry<Report>;
+    policy?: OnyxEntry<Policy>;
+    isReportArchived?: boolean;
+}): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
     const lastVisibleMessage = getLastVisibleMessage(report?.reportID);
@@ -620,7 +628,8 @@ function getLastMessageTextForReport(
         const properSchemaForModifiedExpenseMessage = getForReportAction({
             reportAction: lastReportAction,
             policyID: report?.policyID,
-            movedFromOrToReportMessage,
+            movedFromReport,
+            movedToReport,
         });
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {

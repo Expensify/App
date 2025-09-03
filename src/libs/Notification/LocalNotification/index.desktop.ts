@@ -10,8 +10,8 @@ function showUpdateAvailableNotification() {
     BrowserNotifications.pushUpdateAvailableNotification();
 }
 
-function showModifiedExpenseNotification({report, reportAction, movedFromOrToReportMessage, onClick}: LocalNotificationModifiedExpenseParams) {
-    BrowserNotifications.pushModifiedExpenseNotification({report, reportAction, movedFromOrToReportMessage, onClick});
+function showModifiedExpenseNotification({report, reportAction, movedFromReport, movedToReport, onClick}: LocalNotificationModifiedExpenseParams) {
+    BrowserNotifications.pushModifiedExpenseNotification({report, reportAction, movedFromReport, movedToReport, onClick});
 }
 
 function clearReportNotifications(reportID: string | undefined) {

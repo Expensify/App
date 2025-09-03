@@ -135,7 +135,7 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
 
-            it('returns "moved expense from " when reportName is empty', () => {
+            it('returns "moved an expense" when reportName is empty', () => {
                 const reportWithoutName = {
                     ...createRandomReport(1),
                     reportName: '',
@@ -145,6 +145,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', {
                     reportName: '',
                 });
+
                 expect(result).toEqual(expectedResult);
             });
         });
@@ -555,10 +556,15 @@ describe('ModifiedExpenseMessage', () => {
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                 };
 
-                const movedFromOrToReportMessage = 'Test moved expense message';
-                const expectedResult = movedFromOrToReportMessage;
+                const expectedResult = 'moved an expense';
 
-                const result = getForReportAction({reportAction, policyID: report.policyID, movedFromOrToReportMessage});
+                const movedFromReport = {
+                    ...createRandomReport(1),
+                    reportName: '',
+                    chatType: undefined,
+                };
+
+                const result = getForReportAction({reportAction, policyID: report.policyID, movedFromReport});
                 expect(result).toEqual(expectedResult);
             });
         });

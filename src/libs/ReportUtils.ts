@@ -93,7 +93,7 @@ import {translateLocal} from './Localize';
 import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
 // eslint-disable-next-line import/no-cycle
-import {getForReportAction, getMovedFromOrToReportMessage, getMovedReportID} from './ModifiedExpenseMessage';
+import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import getStateFromPath from './Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
 import {linkingConfig} from './Navigation/linkingConfig';
@@ -5353,11 +5353,11 @@ function getReportNameInternal({
 
             const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
             const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-            const movedFromOrToReportMessage = getMovedFromOrToReportMessage(movedFromReport, movedToReport);
             const modifiedMessage = getForReportAction({
                 reportAction: parentReportAction,
                 policyID,
-                movedFromOrToReportMessage,
+                movedFromReport,
+                movedToReport,
             });
             return formatReportLastMessageText(modifiedMessage);
         }
