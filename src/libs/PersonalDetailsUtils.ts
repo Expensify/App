@@ -10,7 +10,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
-import {parsePhoneNumber} from './PhoneNumber';
+import {parsePhoneNumber, addSMSDomainIfPhoneNumber} from './PhoneNumber';
 import {generateAccountID} from './UserUtils';
 
 type FirstAndLastName = {
@@ -167,7 +167,7 @@ function getAccountIDsByLogins(logins: string[]): number[] {
  * @returns Login according to passed accountID
  */
 function getLoginByAccountID(accountID: number): string | undefined {
-    return allPersonalDetails?.[accountID]?.login;
+    return addSMSDomainIfPhoneNumber(allPersonalDetails?.[accountID]?.login);
 }
 
 /**
