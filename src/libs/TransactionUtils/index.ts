@@ -89,6 +89,7 @@ type TransactionParams = {
     customUnit?: TransactionCustomUnit;
     splitExpenses?: SplitExpense[];
     participants?: Participant[];
+    distance?: number;
 };
 
 type BuildOptimisticTransactionParams = {
@@ -139,16 +140,44 @@ Onyx.connect({
     },
 });
 
-function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (lodashHas(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE || transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
+function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction>): boolean {
     const type = transaction?.comment?.type;
     const customUnitName = transaction?.comment?.customUnit?.name;
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+}
+
+function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+    // This is used during the expense creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return (
+            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
+            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
+            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL
+        );
+    }
+
+    // This is the case for transaction objects once they have been saved to the server
+    return hasDistanceCustomUnit(transaction);
+}
+
+function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+    // This is used during the expense creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+    }
+
+    // This is the case for transaction objects once they have been saved to the server
+    return hasDistanceCustomUnit(transaction);
+}
+
+function isManualDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+    // This is used during the expense creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+    }
+
+    // This is the case for transaction objects once they have been saved to the server
+    return hasDistanceCustomUnit(transaction) && isEmptyObject(transaction?.comment?.waypoints);
 }
 
 function isScanRequest(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
@@ -172,7 +201,15 @@ function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL;
 }
 
-function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
+function getRequestType(transaction: OnyxEntry<Transaction>, isManualDistanceEnabled?: boolean): IOURequestType {
+    if (isManualDistanceEnabled) {
+        if (isManualDistanceRequest(transaction)) {
+            return CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+        }
+        if (isMapDistanceRequest(transaction)) {
+            return CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+        }
+    }
     if (isDistanceRequest(transaction)) {
         return CONST.IOU.REQUEST_TYPE.DISTANCE;
     }
@@ -233,10 +270,6 @@ function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>)
     return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || isPartialTransaction(transaction) || (isScanRequest(transaction) && isScanning(transaction));
 }
 
-function isPendingCardOrIncompleteTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || (isAmountMissing(transaction) && isMerchantMissing(transaction));
-}
-
 /**
  * Optimistically generate a transaction.
  *
@@ -250,6 +283,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         amount,
         currency,
         reportID,
+        distance,
         comment = '',
         attendees = [],
         created = '',
@@ -287,10 +321,12 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         commentJSON.splitExpenses = splitExpenses;
     }
 
-    const isDistanceTransaction = !!pendingFields?.waypoints;
-    if (isDistanceTransaction) {
+    const isMapDistanceTransaction = !!pendingFields?.waypoints;
+    const isManualDistanceTransaction = isManualDistanceRequest(existingTransaction);
+    if (isMapDistanceTransaction || isManualDistanceTransaction) {
         // Set the distance unit, which comes from the policy distance unit or the P2P rate data
         lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
+        lodashSet(commentJSON, 'customUnit.quantity', distance);
     }
 
     const isPerDiemTransaction = !!pendingFields?.subRates;
@@ -1325,7 +1361,7 @@ function isPayAtEndExpense(transaction: Transaction | undefined | null): boolean
 /**
  * Get custom unit rate (distance rate) ID from the transaction object
  */
-function getRateID(transaction: OnyxInputOrEntry<Transaction>): string | undefined {
+function getRateID(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.comment?.customUnit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
@@ -1919,6 +1955,7 @@ export {
     getValidWaypoints,
     getValidDuplicateTransactionIDs,
     isDistanceRequest,
+    isManualDistanceRequest,
     isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
     isCardTransaction,
@@ -1980,7 +2017,6 @@ export {
     isDemoTransaction,
     shouldShowViolation,
     isUnreportedAndHasInvalidDistanceRateTransaction,
-    isPendingCardOrIncompleteTransaction,
     getTransactionViolationsOfTransaction,
     isExpenseSplit,
 };

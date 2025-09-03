@@ -52,6 +52,7 @@ import type {
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
     BusinessBankAccountParams,
+    BusinessRegistrationNumberParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -203,6 +204,7 @@ import type {
     SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
+    SignerInfoMessageParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
@@ -301,6 +303,7 @@ import type {
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
+    WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -320,6 +323,7 @@ const translations = {
         count: '计数',
         cancel: '取消',
         dismiss: '忽略',
+        proceed: 'Proceed',
         yes: '是的',
         no: '不',
         ok: '好的',
@@ -652,6 +656,7 @@ const translations = {
         forwardTo: '转发到',
         merge: '合并',
         unstableInternetConnection: '互联网连接不稳定。请检查你的网络，然后重试。',
+        enableGlobalReimbursements: '启用全球报销',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -949,6 +954,7 @@ const translations = {
         distance: '距离',
         manual: '手册',
         scan: '扫描',
+        map: '地图',
     },
     spreadsheet: {
         upload: '上传电子表格',
@@ -984,6 +990,7 @@ const translations = {
         importDescription: '通过点击每个导入列旁边的下拉菜单，选择要从电子表格中映射的字段。',
         sizeNotMet: '文件大小必须大于0字节',
         invalidFileMessage: '您上传的文件要么是空的，要么包含无效数据。请确保文件格式正确并包含必要的信息，然后再重新上传。',
+        importSpreadsheetLibraryError: '加载电子表格模块失败。请检查您的互联网连接并重试。',
         importSpreadsheet: '导入电子表格',
         downloadCSV: '下载 CSV',
         importMemberConfirmation: () => ({
@@ -1235,6 +1242,7 @@ const translations = {
             invalidCategoryLength: '类别名称超过255个字符。请缩短或选择不同的类别。',
             invalidTagLength: '标签名称超过255个字符。请缩短它或选择一个不同的标签。',
             invalidAmount: '请在继续之前输入有效金额',
+            invalidDistance: '请在继续之前输入有效的距离',
             invalidIntegerAmount: '请在继续之前输入一个完整的美元金额',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `最大税额为${amount}`,
             invalidSplit: '拆分的总和必须等于总金额',
@@ -1899,6 +1907,7 @@ const translations = {
         physicalCardNumber: '实体卡号',
         getPhysicalCard: '获取实体卡',
         reportFraud: '报告虚拟卡欺诈',
+        physicalCardPin: 'PIN',
         reportTravelFraud: '报告旅行卡欺诈',
         reviewTransaction: '查看交易',
         suspiciousBannerTitle: '可疑交易',
@@ -2982,7 +2991,14 @@ const translations = {
         whatsTheBusinessName: '企业名称是什么？',
         whatsTheBusinessAddress: '公司的地址是什么？',
         whatsTheBusinessContactInformation: '商业联系信息是什么？',
-        whatsTheBusinessRegistrationNumber: '营业登记号码是多少？',
+        whatsTheBusinessRegistrationNumber: ({country}: BusinessRegistrationNumberParams) => {
+            switch (country) {
+                case CONST.COUNTRY.GB:
+                    return '公司注册号（CRN）是多少？';
+                default:
+                    return '营业登记号码是多少？';
+            }
+        },
         whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:
@@ -3057,9 +3073,9 @@ const translations = {
         },
     },
     beneficialOwnerInfoStep: {
-        doYouOwn25percent: '您是否拥有25%或以上的',
-        doAnyIndividualOwn25percent: '是否有个人拥有25%或更多的股份',
-        areThereMoreIndividualsWhoOwn25percent: '是否有更多个人拥有25%或以上的股份',
+        doYouOwn25percent: ({companyName}: CompanyNameParams) => `您是否拥有${companyName}的25%或更多股份？`,
+        doAnyIndividualOwn25percent: ({companyName}: CompanyNameParams) => `是否有任何个人拥有${companyName}的25%或以上股份？`,
+        areThereMoreIndividualsWhoOwn25percent: ({companyName}: CompanyNameParams) => `还有其他个人持有${companyName} 25%或以上的股份吗？`,
         regulationRequiresUsToVerifyTheIdentity: '法规要求我们核实任何拥有超过25%业务的个人的身份。',
         companyOwner: '企业主',
         enterLegalFirstAndLastName: '所有者的法定姓名是什么？',
@@ -3140,21 +3156,6 @@ const translations = {
         enable2FAText: '我们非常重视您的安全。请立即设置双重身份验证（2FA），为您的账户增加一层额外的保护。',
         secureYourAccount: '保护您的账户',
     },
-    beneficialOwnersStep: {
-        additionalInformation: '附加信息',
-        checkAllThatApply: '检查所有适用项，否则留空。',
-        iOwnMoreThan25Percent: '我拥有超过25%的',
-        someoneOwnsMoreThan25Percent: '其他人拥有超过25%的股份',
-        additionalOwner: '额外的受益所有人',
-        removeOwner: '移除此受益所有人',
-        addAnotherIndividual: '添加另一位拥有超过25%股份的个人',
-        agreement: '协议：',
-        termsAndConditions: '条款和条件',
-        certifyTrueAndAccurate: '我保证所提供的信息真实准确。',
-        error: {
-            certify: '必须确认信息真实准确',
-        },
-    },
     completeVerificationStep: {
         completeVerification: '完成验证',
         confirmAgreements: '请确认以下协议。',
@@ -3226,6 +3227,10 @@ const translations = {
         PDSandFSGDescription:
             '我们与 Corpay 的合作利用了 API 连接，以利用其庞大的国际银行合作伙伴网络来支持 Expensify 的全球报销。根据澳大利亚法规，我们向您提供 Corpay 的金融服务指南 (FSG) 和产品披露声明 (PDS)。\n\n请仔细阅读 FSG 和 PDS 文件，因为它们包含 Corpay 提供的产品和服务的完整详细信息和重要信息。请保留这些文件以备将来参考。',
         pleaseUpload: '请在下方上传其他文件，以帮助我们验证您作为企业实体的董事或高级管理人员的身份。',
+        enterSignerInfo: '输入签署人信息',
+        thisStep: '此步骤已完成',
+        isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+            `正在将以 ${bankAccountLastFour} 结尾的 ${currency} 公司银行账户连接到 Expensify，以便用 ${currency} 向员工付款。下一步需要董事或高级管理人员的签署人信息。`,
     },
     agreementsStep: {
         agreements: '协议',
@@ -3233,10 +3238,11 @@ const translations = {
         regulationRequiresUs: '法规要求我们核实任何拥有超过25%业务的个人的身份。',
         iAmAuthorized: '我被授权使用公司银行账户进行业务支出。',
         iCertify: '我证明所提供的信息是真实准确的。',
-        termsAndConditions: '条款和条件',
+        iAcceptTheTermsAndConditions: `我接受<a href="https://cross-border.corpay.com/tc/">条款和条件</a>。`,
+        iAcceptTheTermsAndConditionsAccessibility: '我接受条款和条件。',
         accept: '接受并添加银行账户',
-        iConsentToThe: '我同意',
-        privacyNotice: '隐私声明',
+        iConsentToThePrivacyNotice: '我同意<a href="https://payments.corpay.com/compliance">隐私声明</a>。',
+        iConsentToThePrivacyNoticeAccessibility: '我同意隐私声明。',
         error: {
             authorized: '您必须是具有授权操作企业银行账户的控制官员。',
             certify: '请确认信息真实准确。',
@@ -3429,12 +3435,14 @@ const translations = {
             customField1: '自定义字段 1',
             customField2: '自定义字段2',
             customFieldHint: '添加适用于该成员所有支出的自定义编码。',
+            reports: '报告',
             reportFields: '报告字段',
             reportTitle: '报告标题',
             reportField: '报告字段',
             taxes: '税款',
             bills: '账单',
             invoices: '发票',
+            perDiem: 'Per diem',
             travel: '旅行',
             members: '成员',
             accounting: '会计',
@@ -3447,6 +3455,7 @@ const translations = {
             testTransactions: '测试交易',
             issueAndManageCards: '发行和管理卡片',
             reconcileCards: '对账卡片',
+            selectAll: '全选',
             selected: () => ({
                 one: '1 已选择',
                 other: (count: number) => `已选择${count}个`,
@@ -3460,6 +3469,8 @@ const translations = {
             memberNotFound: '未找到成员。要邀请新成员加入工作区，请使用上面的邀请按钮。',
             notAuthorized: `您无权访问此页面。如果您正在尝试加入此工作区，请请求工作区所有者将您添加为成员。还有其他问题？请联系${CONST.EMAIL.CONCIERGE}。`,
             goToWorkspace: '前往工作区',
+            duplicateWorkspace: '重复工作区',
+            duplicateWorkspacePrefix: '复制',
             goToWorkspaces: '前往工作区',
             clearFilter: '清除筛选器',
             workspaceName: '工作区名称',
@@ -3528,11 +3539,36 @@ const translations = {
             deepDiveExpensifyCard: `<muted-text-label>Expensify 卡交易将自动导出到与<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们集成</a>创建的 “Expensify 卡责任账户”。</muted-text-label>`,
         },
         receiptPartners: {
+            connect: '立即连接',
             uber: {
                 subtitle: '自动化整个组织的差旅和送餐费用。',
+                sendInvites: '邀请成员',
+                sendInvitesDescription: '这些工作区成员还没有 Uber for Business 账户。取消选择您此时不希望邀请的成员。',
+                confirmInvite: '确认邀请',
+                manageInvites: '管理邀请',
+                confirm: '确认',
+                allSet: '全部设置完毕',
+                readyToRoll: '您已准备就绪',
+                takeBusinessRideMessage: '进行商务出行，您的Uber收据将导入到Expensify。出发吧！',
+                all: '全部',
+                linked: '已关联',
+                outstanding: '待处理',
+                status: {
+                    resend: '重新发送',
+                    invite: '邀请',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED]: '已关联',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: '待处理',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: '已暂停',
+                },
+                invitationFailure: '邀请成员加入Uber for Business失败',
                 autoRemove: '邀请新工作区成员加入 Uber for Business',
                 autoInvite: '停用已从 Uber for Business 移除的工作区成员',
-                manageInvites: '管理邀请',
+                bannerTitle: 'Expensify + Uber 商务版',
+                bannerDescription: '连接 Uber for Business，以自动化整个组织的旅行和送餐费用。',
+                emptyContent: {
+                    title: '没有可显示的成员',
+                    subtitle: '我们到处寻找，但一无所获。',
+                },
             },
         },
         perDiem: {
@@ -4369,6 +4405,8 @@ const translations = {
                 'The Expensify Visa® Commercial Card 是由 The Bancorp Bank, N.A. 发行的，FDIC 成员，根据 Visa U.S.A. Inc. 的许可，并且可能无法在所有接受 Visa 卡的商户使用。Apple® 和 Apple logo® 是 Apple Inc. 在美国和其他国家注册的商标。App Store 是 Apple Inc. 的服务标志。Google Play 和 Google Play logo 是 Google LLC 的商标。',
             issueCard: '发卡',
             findCard: '查找卡片',
+            euUkDisclaimer:
+                '提供给欧洲经济区 (EEA) 居民的卡由 Transact Payments Malta Limited 发行，提供给英国居民的卡由 Transact Payments Limited 根据 Visa Europe Limited 的许可发行。Transact Payments Malta Limited 经马耳他金融服务管理局正式授权并受其监管，为根据 1994 年《金融机构法》设立的金融机构。注册编号为 C 91879。Transact Payments Limited 经直布罗陀金融服务委员会授权并受其监管。',
             newCard: '新卡片',
             name: '名称',
             lastFour: '最后4位数',
@@ -4827,6 +4865,18 @@ const translations = {
             taxCode: '税码',
             updateTaxCodeFailureMessage: '更新税码时发生错误，请重试',
         },
+        duplicateWorkspace: {
+            title: '命名您的新工作区',
+            selectFeatures: '选择要复制的功能',
+            whichFeatures: '您想要将哪些功能复制到您的新工作区？',
+            confirmDuplicate: '\n\n您想继续吗？',
+            categories: '类别和您的自动分类规则',
+            reimbursementAccount: '报销账户',
+            delayedSubmission: '延迟提交',
+            welcomeNote: '请开始使用我的新工作区',
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `您即将创建并与原始工作区中的 ${totalMembers ?? 0} 名成员共享 ${newWorkspaceName ?? ''}。`,
+        },
         emptyWorkspace: {
             title: '您没有任何工作区',
             subtitle: '跟踪收据、报销费用、管理差旅、发送发票等。',
@@ -4909,6 +4959,7 @@ const translations = {
                 limit: '限制',
                 limitType: '限制类型',
                 name: '名称',
+                disabledApprovalForSmartLimitError: '请在<strong>工作流程 > 添加审批</strong>中启用审批，然后再设置智能限制',
             },
             deactivateCardModal: {
                 deactivate: '停用',
@@ -5408,11 +5459,8 @@ const translations = {
                 perActiveMember: '每位活跃成员每月。',
                 perMember: '每位成员每月。',
             },
-            note: {
-                upgradeWorkspace: '升级您的工作区以访问此功能，或',
-                learnMore: '了解更多',
-                aboutOurPlans: '关于我们的计划和定价。',
-            },
+            note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+                `<muted-text>升级您的工作区即可使用该功能，或<a href="${subscriptionLink}">进一步了解</a>我们的计划和定价。</muted-text>`,
             upgradeToUnlock: '解锁此功能',
             completed: {
                 headline: `您的工作区已升级！`,
@@ -5936,6 +5984,7 @@ const translations = {
         statements: '发言',
         unapprovedCash: '未经批准的现金',
         unapprovedCard: '未批准的卡',
+        reconciliation: '对账',
         saveSearch: '保存搜索',
         deleteSavedSearch: '删除已保存的搜索',
         deleteSavedSearchConfirm: '您确定要删除此搜索吗？',
@@ -6511,7 +6560,7 @@ const translations = {
         isTransactionBillable: '选择交易是否可计费',
         keepThisOne: 'Keep this one',
         confirmDetails: `确认您保留的详细信息`,
-        confirmDuplicatesInfo: `您不保留的重复请求将由成员删除。`,
+        confirmDuplicatesInfo: `你不保留的重复项将被保留，供提交者删除。`,
         hold: '此费用已被搁置',
         resolvedDuplicates: '解决了重复问题',
     },
