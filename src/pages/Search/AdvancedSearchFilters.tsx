@@ -228,7 +228,7 @@ const baseFilterConfig = {
     action: {
         getTitle: getFilterDisplayTitle,
         description: 'common.action' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_ACTION,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ACTION),
     },
 };
 

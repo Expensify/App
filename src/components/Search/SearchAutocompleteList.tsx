@@ -476,9 +476,9 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION: {
-                return actionTypes.map((status) => ({
+                return actionTypes.map((action) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ACTION,
-                    text: status,
+                    text: action,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
