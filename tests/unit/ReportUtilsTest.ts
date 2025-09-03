@@ -396,6 +396,25 @@ describe('ReportUtils', () => {
                 }),
             );
         });
+
+        it('should not create tasks if the task feature is not in the selected interested features', () => {
+            const result = prepareOnboardingOnyxData(
+                undefined,
+                CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false, mediaAttributes: {}}],
+                },
+                '1',
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                ['categories', 'accounting', 'tags'],
+            );
+
+            expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(0);
+        });
     });
 
     describe('getIconsForParticipants', () => {
