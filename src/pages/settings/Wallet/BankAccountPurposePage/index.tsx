@@ -1,26 +1,24 @@
-import React, {useState} from 'react';
+import React from 'react';
+// TODO: uncomment this line after introducing Global Reimbursements
+// import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import Navigation from '@navigation/Navigation';
+// TODO: uncomment this line after introducing Global Reimbursements
+// import CountrySelection from './substeps/CountrySelection';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
-import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import BankAccountPurpose from './substeps/BankAccountPurpose';
-import CountrySelection from './substeps/CountrySelection';
 
 function BankAccountPurposePage() {
     const {translate} = useLocalize();
-    const [showCountrySelection, setShowCountrySelection] = useState(false);
-    const {isBetaEnabled} = usePermissions();
+    // TODO: uncomment this line after introducing Global Reimbursements
+    // const [showCountrySelection, setShowCountrySelection] = useState(false);
 
     const showCountrySelectionStep = () => {
-        if (isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND)) {
-            setShowCountrySelection(true);
-            return;
-        }
-
+        // TODO: uncomment this line after introducing Global Reimbursements
+        // setShowCountrySelection(true);
         navigateToBankAccountRoute(undefined, ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
     };
 
@@ -35,7 +33,9 @@ function BankAccountPurposePage() {
                 onBackButtonPress={() => Navigation.goBack()}
                 shouldDisplayHelpButton={false}
             />
-            {showCountrySelection ? <CountrySelection /> : <BankAccountPurpose showCountrySelectionStep={showCountrySelectionStep} />}
+            {/* TODO: uncomment this line after introducing Global Reimbursements */}
+            {/* {showCountrySelection ? <CountrySelection /> : <BankAccountPurpose showCountrySelectionStep={showCountrySelectionStep} />} */}
+            <BankAccountPurpose showCountrySelectionStep={showCountrySelectionStep} />
         </ScreenWrapper>
     );
 }
