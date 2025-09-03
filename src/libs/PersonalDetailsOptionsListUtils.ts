@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -173,6 +174,77 @@ function getUserToInviteOption({searchValue, loginsToExclude = {}, shouldAcceptN
         },
         undefined,
     );
+}
+
+type GetContactConfig = {
+    currentUserLogin: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    avatar: string | React.FC<SvgProps>;
+};
+
+function getContactOption({currentUserLogin, firstName, lastName, email, phone, avatar}: GetContactConfig): OptionData | null {
+    // If email is provided, use it as the primary identifier
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const effectiveSearchValue = email || phone;
+
+    // Handle phone number parsing for either provided phone or searchValue
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(effectiveSearchValue)));
+    const isValidEmail = Str.isValidEmail(effectiveSearchValue) && !Str.isDomainEmail(effectiveSearchValue) && !Str.endsWith(effectiveSearchValue, CONST.SMS.DOMAIN);
+    const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
+
+    const isCurrentUserLogin = addSMSDomainIfPhoneNumber(effectiveSearchValue).toLowerCase() === currentUserLogin;
+
+    if (!effectiveSearchValue || isCurrentUserLogin || (!isValidEmail && !isValidPhoneNumber)) {
+        return null;
+    }
+
+    // Generates an optimistic account ID for new users not yet saved in Onyx
+    const optimisticAccountID = generateAccountID(effectiveSearchValue);
+
+    // Construct display name if firstName/lastName are provided
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const displayName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || effectiveSearchValue;
+
+    // Create the base user details that will be used in both item and participantsList
+    const userDetails = {
+        accountID: optimisticAccountID,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        avatar: avatar || FallbackAvatar,
+        firstName: firstName ?? '',
+        lastName: lastName ?? '',
+        displayName,
+        login: effectiveSearchValue,
+        pronouns: '',
+        phoneNumber: phone ?? '',
+        validated: true,
+    };
+
+    const contactOption: OptionData = {
+        text: displayName,
+        alternateText: displayName !== effectiveSearchValue ? effectiveSearchValue : undefined,
+        brickRoadIndicator: null,
+        icons: [
+            {
+                source: userDetails.avatar,
+                type: CONST.ICON_TYPE_AVATAR,
+                name: effectiveSearchValue,
+                id: optimisticAccountID,
+            },
+        ],
+        tooltipText: null,
+        accountID: optimisticAccountID,
+        login: effectiveSearchValue,
+        reportID: '',
+        phoneNumber: phone ?? '',
+        keyForList: optimisticAccountID.toString(),
+        isOptimisticPersonalDetail: true,
+    };
+
+    return contactOption;
 }
 
 /**
@@ -545,6 +617,7 @@ function getHeaderMessage(translate: LocaleContextProps['translate'], searchValu
 
 export {
     getUserToInviteOption,
+    getContactOption,
     getPersonalDetailSearchTerms,
     canCreateOptimisticPersonalDetailOption,
     filterOption,

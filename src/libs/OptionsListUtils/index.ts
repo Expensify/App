@@ -20,6 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import Permissions from '@libs/Permissions';
+import type {OptionData as PersonalDetailOption} from '@libs/PersonalDetailsOptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
@@ -1371,100 +1372,31 @@ function getUserToInviteOption({
     return userToInvite;
 }
 
-function getUserToInviteContactOption({
-    searchValue = '',
-    optionsToExclude = [],
-    selectedOptions = [],
-    firstName = '',
-    lastName = '',
-    email = '',
-    phone = '',
-    avatar = '',
-}: GetUserToInviteConfig): SearchOption<PersonalDetails> | null {
-    // If email is provided, use it as the primary identifier
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const effectiveSearchValue = email || searchValue;
-
-    // Handle phone number parsing for either provided phone or searchValue
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const phoneToCheck = phone || searchValue;
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(phoneToCheck)));
-
-    const isCurrentUserLogin = isCurrentUser({login: effectiveSearchValue} as PersonalDetails);
-    const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === effectiveSearchValue);
-
-    // Validate email (either provided email or searchValue)
-    const isValidEmail = Str.isValidEmail(effectiveSearchValue) && !Str.isDomainEmail(effectiveSearchValue) && !Str.endsWith(effectiveSearchValue, CONST.SMS.DOMAIN);
-
-    const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
-
-    const isInOptionToExclude =
-        optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === addSMSDomainIfPhoneNumber(effectiveSearchValue).toLowerCase()) !== -1;
-
-    if (!effectiveSearchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber) || isInOptionToExclude) {
-        return null;
-    }
-
-    // Generates an optimistic account ID for new users not yet saved in Onyx
-    const optimisticAccountID = generateAccountID(effectiveSearchValue);
-
-    // Construct display name if firstName/lastName are provided
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const displayName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || effectiveSearchValue;
-
-    // Create the base user details that will be used in both item and participantsList
+function extendPersonalDetailOption(option: PersonalDetailOption): SearchOption<PersonalDetails> {
     const userDetails = {
-        accountID: optimisticAccountID,
+        accountID: option.accountID,
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        avatar: avatar || FallbackAvatar,
-        firstName: firstName ?? '',
-        lastName: lastName ?? '',
-        displayName,
-        login: effectiveSearchValue,
+        avatar: option.icons?.[0].source,
+        displayName: option.text,
+        login: option.login,
         pronouns: '',
-        phoneNumber: phone ?? '',
+        phoneNumber: option.phoneNumber,
         validated: true,
     };
 
-    const userToInvite = {
+    return {
+        ...option,
+        reportID: option.reportID ?? '',
         item: userDetails,
-        text: displayName,
-        displayName,
-        firstName,
-        lastName,
-        alternateText: displayName !== effectiveSearchValue ? effectiveSearchValue : undefined,
-        brickRoadIndicator: null,
-        icons: [
-            {
-                source: userDetails.avatar,
-                type: CONST.ICON_TYPE_AVATAR,
-                name: effectiveSearchValue,
-                id: optimisticAccountID,
-            },
-        ],
-        tooltipText: null,
         participantsList: [userDetails],
-        accountID: optimisticAccountID,
-        login: effectiveSearchValue,
-        reportID: '',
-        phoneNumber: phone ?? '',
-        hasDraftComment: false,
-        keyForList: optimisticAccountID.toString(),
         isDefaultRoom: false,
         isPinned: false,
-        isWaitingOnBankAccount: false,
-        isIOUReportOwner: false,
-        iouReportAmount: 0,
         isChatRoom: false,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
-        isExpenseReport: false,
         lastMessageText: '',
         isBold: true,
-        isOptimisticAccount: true,
     };
-
-    return userToInvite;
 }
 
 function isValidReport(option: SearchOption<Report>, config: GetValidReportsConfig): boolean {
@@ -2487,7 +2419,7 @@ export {
     getSearchValueForPhoneOrEmail,
     getShareDestinationOptions,
     getShareLogOptions,
-    getUserToInviteContactOption,
+    extendPersonalDetailOption,
     getUserToInviteOption,
     getValidOptions,
     hasEnabledOptions,

@@ -1,9 +1,8 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {PersonalDetails} from '@src/types/onyx';
 import type {DeviceContact, StringHolder} from './ContactImport/types';
-import {getUserToInviteContactOption} from './OptionsListUtils';
-import type {SearchOption} from './OptionsListUtils';
+import type {OptionData} from './PersonalDetailsOptionsListUtils';
+import {getContactOption} from './PersonalDetailsOptionsListUtils';
 import RandomAvatarUtils from './RandomAvatarUtils';
 
 function sortEmailObjects(emails: StringHolder[], localeCompare: LocaleContextProps['localeCompare']): string[] {
@@ -28,7 +27,7 @@ function sortEmailObjects(emails: StringHolder[], localeCompare: LocaleContextPr
     });
 }
 
-const getContacts = (deviceContacts: DeviceContact[] | [], localeCompare: LocaleContextProps['localeCompare']): Array<SearchOption<PersonalDetails>> => {
+const getContacts = (currentUserLogin: string, deviceContacts: DeviceContact[] | [], localeCompare: LocaleContextProps['localeCompare']): OptionData[] => {
     return deviceContacts
         .map((contact) => {
             const email = sortEmailObjects(contact?.emailAddresses ?? [], localeCompare)?.at(0) ?? '';
@@ -38,10 +37,8 @@ const getContacts = (deviceContacts: DeviceContact[] | [], localeCompare: Locale
             const firstName = contact?.firstName ?? '';
             const lastName = contact?.lastName ?? '';
 
-            return getUserToInviteContactOption({
-                selectedOptions: [],
-                optionsToExclude: [],
-                searchValue: email || phoneNumber || firstName || '',
+            return getContactOption({
+                currentUserLogin,
                 firstName,
                 lastName,
                 email,
@@ -49,7 +46,7 @@ const getContacts = (deviceContacts: DeviceContact[] | [], localeCompare: Locale
                 avatar: avatarSource,
             });
         })
-        .filter((contact): contact is SearchOption<PersonalDetails> => contact !== null);
+        .filter((contact): contact is OptionData => contact !== null);
 };
 
 export default getContacts;

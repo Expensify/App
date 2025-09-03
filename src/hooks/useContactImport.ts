@@ -5,15 +5,15 @@ import contactImport from '@libs/ContactImport';
 import type {ContactImportResult} from '@libs/ContactImport/types';
 import useContactPermissions from '@libs/ContactPermission/useContactPermissions';
 import getContacts from '@libs/ContactUtils';
-import type {SearchOption} from '@libs/OptionsListUtils';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {OptionData} from '@libs/PersonalDetailsOptionsListUtils';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 
 /**
  * Return type of the useContactImport hook.
  */
 type UseContactImportResult = {
-    contacts: Array<SearchOption<PersonalDetails>>;
+    contacts: OptionData[];
     contactPermissionState: PermissionStatus;
     importAndSaveContacts: () => void;
     setContactPermissionState: React.Dispatch<React.SetStateAction<PermissionStatus>>;
@@ -26,16 +26,17 @@ type UseContactImportResult = {
  */
 function useContactImport(): UseContactImportResult {
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
-    const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
+    const [contacts, setContacts] = useState<OptionData[]>([]);
     const {localeCompare} = useLocalize();
+    const {login} = useCurrentUserPersonalDetails();
 
     const importAndSaveContacts = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList, localeCompare);
+            const usersFromContact = getContacts(login ?? '', contactList, localeCompare);
             setContacts(usersFromContact);
         });
-    }, [localeCompare]);
+    }, [localeCompare, login]);
 
     useContactPermissions({
         importAndSaveContacts,

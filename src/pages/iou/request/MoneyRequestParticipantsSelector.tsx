@@ -35,6 +35,7 @@ import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import {
+    extendPersonalDetailOption,
     filterAndOrderOptions,
     formatSectionsFromSearchTerm,
     getHeaderMessage,
@@ -141,6 +142,12 @@ function MoneyRequestParticipantsSelector(
         initializeOptions();
     }, [initializeOptions]);
 
+    const correctedContacts = useMemo(() => {
+        return contacts.map((contact) => {
+            return extendPersonalDetailOption(contact);
+        });
+    }, [contacts]);
+
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return {
@@ -155,7 +162,7 @@ function MoneyRequestParticipantsSelector(
         const optionList = memoizedGetValidOptions(
             {
                 reports: options.reports,
-                personalDetails: options.personalDetails.concat(contacts),
+                personalDetails: options.personalDetails.concat(correctedContacts),
             },
             {
                 betas,
@@ -189,16 +196,16 @@ function MoneyRequestParticipantsSelector(
             ...orderedOptions,
         };
     }, [
-        action,
-        contacts,
         areOptionsInitialized,
-        betas,
         didScreenTransitionEnd,
-        iouType,
-        isCategorizeOrShareAction,
-        options.personalDetails,
         options.reports,
+        options.personalDetails,
+        correctedContacts,
+        betas,
         participants,
+        iouType,
+        action,
+        isCategorizeOrShareAction,
         isPerDiemRequest,
         canShowManagerMcTest,
     ]);
