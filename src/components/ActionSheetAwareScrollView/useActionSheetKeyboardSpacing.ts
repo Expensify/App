@@ -1,8 +1,8 @@
 import {useContext, useEffect} from 'react';
-import type {ViewProps} from 'react-native';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
-import {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
-import type {SharedValue} from 'react-native-reanimated';
+import type Reanimated from 'react-native-reanimated';
+import {useAnimatedReaction, useDerivedValue, useScrollViewOffset, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
+import type {AnimatedRef} from 'react-native-reanimated';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {Actions, ActionSheetAwareScrollViewContext, States} from './ActionSheetAwareScrollViewContext';
@@ -59,17 +59,13 @@ const useAnimatedKeyboard = () => {
     return {state, height, heightWhenOpened};
 };
 
-type ActionSheetKeyboardSpaceProps = ViewProps & {
-    /** scroll offset of the parent ScrollView */
-    position?: SharedValue<number>;
-};
+function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanimated.ScrollView>) {
+    const position = useScrollViewOffset(scrollViewAnimatedRef);
 
-function useActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
     const {
         unmodifiedPaddings: {top: paddingTop = 0, bottom: paddingBottom = 0},
     } = useSafeAreaPaddings();
     const keyboard = useAnimatedKeyboard();
-    const {position} = props;
 
     // Similar to using `global` in worklet but it's just a local object
     const syncLocalWorkletState = useSharedValue(KeyboardState.UNKNOWN);
@@ -100,7 +96,7 @@ function useActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
         [],
     );
 
-    const translateY = useDerivedValue(() => {
+    const spacing = useDerivedValue(() => {
         const {current, previous} = currentActionSheetState.get();
 
         // We don't need to run any additional logic. it will always return 0 for idle state
@@ -247,11 +243,7 @@ function useActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
         }
     }, []);
 
-    const animatedStyle = useAnimatedStyle(() => ({
-        paddingTop: translateY.get(),
-    }));
-
-    return {animatedStyle};
+    return spacing;
 }
 
-export default useActionSheetKeyboardSpace;
+export default useActionSheetKeyboardSpacing;
