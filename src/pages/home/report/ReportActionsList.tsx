@@ -1,16 +1,18 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useAnimatedReaction} from 'react-native-reanimated';
 import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
 import FlatList from '@components/FlatList';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {PersonalDetailsContext, usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useKeyboardDismissibleFlatListValues from '@hooks/useKeyboardDismissibleFlatListValues';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
@@ -18,11 +20,14 @@ import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import FS from '@libs/Fullstory';
+import getPlatform from '@libs/getPlatform';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -42,8 +47,6 @@ import {
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {
-    canShowReportRecipientLocalTime,
-    canUserPerformWriteAction,
     chatIncludesChronosWithID,
     getOriginalReportID,
     getReportLastVisibleActionCreated,
@@ -96,9 +99,6 @@ type ReportActionsListProps = {
     /** Callback executed on list layout */
     onLayout: (event: LayoutChangeEvent) => void;
 
-    /** Callback executed on scroll */
-    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-
     /** Function to load more chats */
     loadOlderChats: (force?: boolean) => void;
 
@@ -113,6 +113,9 @@ type ReportActionsListProps = {
 
     /** Should enable auto scroll to top threshold */
     shouldEnableAutoScrollToTopThreshold?: boolean;
+
+    /** The current composer height */
+    composerHeight: number;
 };
 
 // In the component we are subscribing to the arrival of new actions.
@@ -138,6 +141,8 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
     return item.reportActionID;
 }
 
+const ON_SCROLL_TO_LIMITS_THRESHOLD = 0.75;
+
 const onScrollToIndexFailed = () => {};
 
 function ReportActionsList({
@@ -146,22 +151,24 @@ function ReportActionsList({
     parentReportAction,
     sortedReportActions,
     sortedVisibleReportActions,
-    onScroll,
     mostRecentIOUReportActionID = '',
     loadNewerChats,
     loadOlderChats,
     onLayout,
-    isComposerFullSize,
     listID,
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
+    composerHeight,
+    isComposerFullSize,
 }: ReportActionsListProps) {
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {unmodifiedPaddings} = useSafeAreaPaddings();
+    const {isKeyboardActive} = useKeyboardState();
+    const StyleUtils = useStyleUtils();
 
     const {preferredLocale} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
@@ -171,6 +178,7 @@ function ReportActionsList({
     const lastMessageTime = useRef<string | null>(null);
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
+    const {scrollY, keyboardHeight, contentSizeHeight, layoutMeasurementHeight} = useKeyboardDismissibleFlatListValues();
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -196,10 +204,50 @@ function ReportActionsList({
         return unsubscribe;
     }, []);
 
-    const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
     const hasHeaderRendered = useRef(false);
     const linkedReportActionID = route?.params?.reportActionID;
+    const scrollingVerticalOffsetRef = useRef(0);
+
+    const onEndReached = useCallback(() => {
+        loadOlderChats(false);
+    }, [loadOlderChats]);
+
+    const onStartReached = useCallback(() => {
+        if (!isSearchTopmostFullScreenRoute()) {
+            loadNewerChats(false);
+            return;
+        }
+
+        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
+    }, [loadNewerChats]);
+
+    const platform = getPlatform();
+    const isTransactionThreadResult = isTransactionThread(parentReportAction);
+
+    // The previous scroll tracking implementation was made via ref. This is
+    // to ensure it will behave the same as before.
+    useAnimatedReaction(
+        () => {
+            return {
+                offsetY: scrollY.get(),
+                kHeight: keyboardHeight.get(),
+                csHeight: contentSizeHeight.get(),
+                lmHeight: layoutMeasurementHeight.get(),
+            };
+        },
+        ({offsetY, kHeight, csHeight, lmHeight}) => {
+            const correctedOffsetY = platform === CONST.PLATFORM.IOS ? kHeight + offsetY : offsetY;
+
+            if (isTransactionThreadResult) {
+                // For transaction threads, calculate distance from bottom like MoneyRequestReportActionsList
+                scrollingVerticalOffsetRef.current = csHeight - lmHeight - correctedOffsetY;
+            } else {
+                // For regular reports (InvertedFlatList), use raw contentOffset.y
+                scrollingVerticalOffsetRef.current = correctedOffsetY;
+            }
+        },
+    );
 
     // FlatList displays items from top to bottom, so we need the oldest actions first.
     // Since sortedReportActions and sortedVisibleReportActions are ordered from newest to oldest,
@@ -281,7 +329,7 @@ function ReportActionsList({
                     accountID,
                     prevSortedVisibleReportActionsObjects,
                     unreadMarkerTime,
-                    scrollingVerticalOffset: scrollingVerticalOffset.current,
+                    scrollingVerticalOffset: scrollingVerticalOffsetRef.current,
                     prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
                 });
             if (shouldDisplayNewMarker) {
@@ -344,23 +392,14 @@ function ReportActionsList({
     // Display the new message indicator when comment linking and not close to the newest message.
     const reportActionID = route?.params?.reportActionID;
 
-    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
+    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
-        currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
+        currentVerticalScrollingOffset: scrollY,
         readActionSkippedRef: readActionSkipped,
+        hasUnreadMarkerReportAction: !!unreadMarkerReportActionID,
         unreadMarkerReportActionIndex,
+        keyboardHeight,
         isInverted: !isTransactionThread(parentReportAction),
-        onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            if (isTransactionThread(parentReportAction)) {
-                // For transaction threads, calculate distance from bottom like MoneyRequestReportActionsList
-                const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
-                scrollingVerticalOffset.current = contentSize.height - layoutMeasurement.height - contentOffset.y;
-            } else {
-                // For regular reports (InvertedFlatList), use raw contentOffset.y
-                scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
-            }
-            onScroll?.(event);
-        },
     });
 
     const scrollToBottom = useCallback(() => {
@@ -376,7 +415,7 @@ function ReportActionsList({
 
     useEffect(() => {
         if (
-            scrollingVerticalOffset.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
+            scrollingVerticalOffsetRef.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
             previousLastIndex.current !== lastActionIndex &&
             reportActionSize.current > sortedVisibleReportActions.length &&
             hasNewestReportAction
@@ -412,7 +451,7 @@ function ReportActionsList({
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-            if ((isVisible || isFromNotification) && scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
+            if ((isVisible || isFromNotification) && scrollingVerticalOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
                 readNewestAction(report.reportID);
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
@@ -633,7 +672,7 @@ function ReportActionsList({
         lastMessageTime.current = null;
 
         const isArchivedReport = isArchivedNonExpenseReport(report, isReportArchived);
-        const hasNewMessagesInView = scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
+        const hasNewMessagesInView = scrollingVerticalOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
         const hasUnreadReportAction = sortedVisibleReportActions.some(
             (reportAction) =>
                 newMessageTimeReference &&
@@ -738,8 +777,6 @@ function ReportActionsList({
         () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived)],
         [unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
     );
-    const hideComposer = !canUserPerformWriteAction(report, isReportArchived);
-    const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
     const canShowHeader = isOffline || hasHeaderRendered.current;
 
     const onLayoutInner = useCallback(
@@ -783,18 +820,7 @@ function ReportActionsList({
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }, [shouldShowSkeleton]);
 
-    const onStartReached = useCallback(() => {
-        if (!isSearchTopmostFullScreenRoute()) {
-            loadNewerChats(false);
-            return;
-        }
-
-        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
-    }, [loadNewerChats]);
-
-    const onEndReached = useCallback(() => {
-        loadOlderChats(false);
-    }, [loadOlderChats]);
+    const paddingBottom = StyleUtils.getReportPaddingBottom(isKeyboardActive, composerHeight, unmodifiedPaddings.bottom, isComposerFullSize);
 
     // FlatList is used for transaction threads to keep the list scrolled at the top and display actions in chronological order.
     // InvertedFlatList is used for regular reports, always scrolling to the bottom initially and showing the newest messages at the bottom.
@@ -820,7 +846,7 @@ function ReportActionsList({
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <View
-                style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
+                style={[styles.flex1, {paddingBottom}]}
                 fsClass={reportActionsListFSClass}
             >
                 <ListComponent
@@ -830,28 +856,25 @@ function ReportActionsList({
                     style={styles.overscrollBehaviorContain}
                     data={visibleReportActions}
                     renderItem={renderItem}
+                    onStartReached={onStartReached}
+                    onEndReached={onEndReached}
+                    onStartReachedThreshold={ON_SCROLL_TO_LIMITS_THRESHOLD}
+                    onEndReachedThreshold={ON_SCROLL_TO_LIMITS_THRESHOLD}
                     renderScrollComponent={renderScrollComponent}
                     contentContainerStyle={contentContainerStyle}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
-                    onEndReached={onEndReached}
-                    onEndReachedThreshold={0.75}
-                    onStartReached={onStartReached}
-                    onStartReachedThreshold={0.75}
                     ListHeaderComponent={listHeaderComponent}
                     ListFooterComponent={listFooterComponent}
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
-                    onScroll={trackVerticalScrolling}
                     onViewableItemsChanged={onViewableItemsChanged}
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
                     initialScrollKey={reportActionID}
-                    onContentSizeChange={() => {
-                        trackVerticalScrolling(undefined);
-                    }}
+                    keyboardDismissMode="interactive"
                 />
             </View>
         </>

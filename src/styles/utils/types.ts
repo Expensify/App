@@ -1,5 +1,7 @@
 import type {ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import type Platform from '@libs/getPlatform/types';
 import type colors from '@styles/theme/colors';
 import type variables from '@styles/variables';
 import type CONST from '@src/CONST';
@@ -45,6 +47,17 @@ type AvatarSize = {width: number};
 type SVGAvatarColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
 type EreceiptColorStyle = {backgroundColor: ColorValue; color: ColorValue; titleColor: ColorValue};
 type TextColorStyle = {color: string};
+type ReportFooterStyle = {
+    platform: Platform;
+    paddingTop?: number;
+    paddingBottom?: number;
+    headerHeight: number;
+    isComposerFullSize?: boolean;
+    isKeyboardActive: boolean;
+    keyboardHeight: SharedValue<number>;
+    windowHeight: number;
+    composerHeight: number;
+};
 
 export type {
     AllStyles,
@@ -60,4 +73,5 @@ export type {
     SVGAvatarColorStyle,
     EreceiptColorStyle,
     TextColorStyle,
+    ReportFooterStyle,
 };

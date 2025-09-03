@@ -2,11 +2,13 @@ import {StyleSheet} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {SharedValue} from 'react-native-reanimated';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
 import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import type Platform from '@libs/getPlatform/types';
 import {hashText} from '@libs/UserUtils';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
@@ -47,6 +49,7 @@ import type {
     EReceiptColorName,
     EreceiptColorStyle,
     ParsableStyle,
+    ReportFooterStyle,
     SVGAvatarColorStyle,
     TextColorStyle,
 } from './types';
@@ -1901,6 +1904,74 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 : {},
             containerStyle: {paddingBottom},
         };
+    },
+    getReportFooterStyles: ({
+        platform,
+        headerHeight,
+        isKeyboardActive,
+        keyboardHeight,
+        windowHeight,
+        isComposerFullSize,
+        paddingBottom = 0,
+        paddingTop = 0,
+        composerHeight,
+    }: ReportFooterStyle): ViewStyle => {
+        'worklet';
+
+        const isIOS = platform === CONST.PLATFORM.IOS;
+
+        const correctedHeaderHeight = isIOS ? paddingTop + headerHeight : headerHeight;
+
+        const getSpacerHeight = () => {
+            if (isComposerFullSize) {
+                if (isKeyboardActive) {
+                    return windowHeight - keyboardHeight.get() - correctedHeaderHeight;
+                }
+
+                return windowHeight - correctedHeaderHeight;
+            }
+
+            return isIOS ? composerHeight : 'auto';
+        };
+
+        const transform = isComposerFullSize ? [] : [{translateY: keyboardHeight.get() > paddingBottom ? -keyboardHeight.get() : -paddingBottom}];
+
+        if (isIOS) {
+            return {
+                position: 'absolute',
+                bottom: 0,
+                width: '100%',
+                transform,
+                height: getSpacerHeight(),
+                paddingBottom: isComposerFullSize && !isKeyboardActive ? 16 : 0,
+            };
+        }
+
+        return {
+            height: isComposerFullSize ? '100%' : 'auto',
+        };
+    },
+    getOfflineIndicatorStyles: (platform: Platform, keyboardHeight: SharedValue<number>, paddingBottom: number): ViewStyle => {
+        'worklet';
+
+        const isIOS = platform === CONST.PLATFORM.IOS;
+
+        if (!isIOS) {
+            return {};
+        }
+
+        return {
+            position: 'absolute',
+            bottom: 0,
+            transform: [{translateY: keyboardHeight.get() > paddingBottom ? -keyboardHeight.get() + paddingBottom : 0}],
+        };
+    },
+    getReportPaddingBottom: (isKeyboardActive: boolean, composerHeight: number, paddingBottom = 0, isComposerFullSize?: boolean): number => {
+        const isIOS = getPlatform() === CONST.PLATFORM.IOS;
+
+        const safeAreaBottom = !isIOS || isKeyboardActive ? 0 : paddingBottom;
+
+        return isIOS && !isComposerFullSize ? composerHeight + safeAreaBottom : safeAreaBottom;
     },
 });
 

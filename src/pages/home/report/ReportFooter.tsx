@@ -1,8 +1,10 @@
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useCallback, useEffect, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
@@ -10,17 +12,21 @@ import BlockedReportFooter from '@components/BlockedReportFooter';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import SwipeableView from '@components/SwipeableView';
+import useKeyboardDismissibleFlatListValues from '@hooks/useKeyboardDismissibleFlatListValues';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useShortMentionsList from '@hooks/useShortMentionsList';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addComment} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
@@ -70,6 +76,15 @@ type ReportFooterProps = {
 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
+
+    /** The native ID for this component */
+    nativeID?: string;
+
+    /** Callback when layout of composer changes */
+    onLayout: (height: number) => void;
+
+    /** The current fixed header height of the chat */
+    headerHeight: number;
 };
 
 function ReportFooter({
@@ -82,12 +97,20 @@ function ReportFooter({
     onComposerBlur,
     onComposerFocus,
     reportTransactions,
+    nativeID,
+    onLayout,
+    headerHeight,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {unmodifiedPaddings} = useSafeAreaPaddings();
+    const {isKeyboardActive} = useKeyboardState();
+    const [composerHeight, setComposerHeight] = useState<number>(CONST.CHAT_FOOTER_MIN_HEIGHT);
+    const {keyboardHeight} = useKeyboardDismissibleFlatListValues();
 
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
@@ -187,6 +210,34 @@ function ReportFooter({
         setDidHideComposerInput(true);
     }, [shouldShowComposeInput, didHideComposerInput]);
 
+    const unmodifiedPaddingBottom = useMemo(() => unmodifiedPaddings?.bottom ?? 0, [unmodifiedPaddings.bottom]);
+
+    const platform = getPlatform();
+
+    const animatedStyle = useAnimatedStyle(() =>
+        StyleUtils.getReportFooterStyles({
+            platform,
+            composerHeight,
+            headerHeight,
+            isKeyboardActive,
+            keyboardHeight,
+            windowHeight,
+            isComposerFullSize,
+            paddingBottom: unmodifiedPaddingBottom,
+            paddingTop: unmodifiedPaddings.top,
+        }),
+    );
+
+    const onLayoutInternal = useCallback(
+        (event: LayoutChangeEvent) => {
+            const {height} = event.nativeEvent.layout;
+
+            setComposerHeight(height);
+            onLayout(height);
+        },
+        [onLayout],
+    );
+
     return (
         <>
             {!!shouldHideComposer && (
@@ -220,22 +271,22 @@ function ReportFooter({
                 </View>
             )}
             {!shouldHideComposer && (!!shouldShowComposeInput || !shouldUseNarrowLayout) && (
-                <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
-                    <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                        <ReportActionCompose
-                            onSubmit={onSubmitComment}
-                            onComposerFocus={onComposerFocus}
-                            onComposerBlur={onComposerBlur}
-                            reportID={report.reportID}
-                            report={report}
-                            lastReportAction={lastReportAction}
-                            pendingAction={pendingAction}
-                            isComposerFullSize={isComposerFullSize}
-                            didHideComposerInput={didHideComposerInput}
-                            reportTransactions={reportTransactions}
-                        />
-                    </SwipeableView>
-                </View>
+                <Animated.View style={[chatFooterStyles, animatedStyle]}>
+                    <ReportActionCompose
+                        onSubmit={onSubmitComment}
+                        onComposerFocus={onComposerFocus}
+                        onComposerBlur={onComposerBlur}
+                        reportID={report.reportID}
+                        report={report}
+                        lastReportAction={lastReportAction}
+                        pendingAction={pendingAction}
+                        isComposerFullSize={isComposerFullSize}
+                        didHideComposerInput={didHideComposerInput}
+                        reportTransactions={reportTransactions}
+                        nativeID={nativeID}
+                        onLayout={onLayoutInternal}
+                    />
+                </Animated.View>
             )}
         </>
     );
