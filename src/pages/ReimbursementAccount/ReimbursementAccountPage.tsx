@@ -26,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getRouteForCurrentStep, hasInProgressVBBA, hasInProgressUSDVBBA} from '@libs/ReimbursementAccountUtils';
+import {getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';

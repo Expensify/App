@@ -1,13 +1,13 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, InteractionManager, View } from 'react-native';
-import type { TupleToUnion } from 'type-fest';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
+import type {TupleToUnion} from 'type-fest';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
 import getBankIcon from '@components/Icon/BankIcons';
-import type { BankName } from '@components/Icon/BankIconsUtils';
-import { Plus } from '@components/Icon/Expensicons';
-import { Workflows } from '@components/Icon/Illustrations';
-import { LockedAccountContext } from '@components/LockedAccountModalProvider';
+import type {BankName} from '@components/Icon/BankIconsUtils';
+import {Plus} from '@components/Icon/Expensicons';
+import {Workflows} from '@components/Icon/Illustrations';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -22,33 +22,42 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { clearPolicyErrorField, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement, openPolicyWorkflowsPage, setIsForcedToChangeCurrency, setWorkspaceApprovalMode, setWorkspaceAutoReportingFrequency, setWorkspaceReimbursement, updateGeneralSettings } from '@libs/actions/Policy/Policy';
-import { setApprovalWorkflow } from '@libs/actions/Workflow';
-import { getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil } from '@libs/CardUtils';
-import { getLatestErrorField } from '@libs/ErrorUtils';
+import {
+    clearPolicyErrorField,
+    isCurrencySupportedForDirectReimbursement,
+    isCurrencySupportedForGlobalReimbursement,
+    openPolicyWorkflowsPage,
+    setIsForcedToChangeCurrency,
+    setWorkspaceApprovalMode,
+    setWorkspaceAutoReportingFrequency,
+    setWorkspaceReimbursement,
+    updateGeneralSettings,
+} from '@libs/actions/Policy/Policy';
+import {setApprovalWorkflow} from '@libs/actions/Workflow';
+import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
-import { getPaymentMethodDescription } from '@libs/PaymentUtils';
-import { getPersonalDetailByEmail } from '@libs/PersonalDetailsUtils';
-import { getCorrectedAutoReportingFrequency, isControlPolicy, isPaidGroupPolicy as isPaidGroupPolicyUtil, isPolicyAdmin as isPolicyAdminUtil } from '@libs/PolicyUtils';
-import { hasInProgressVBBA } from '@libs/ReimbursementAccountUtils';
-import { convertPolicyEmployeesToApprovalWorkflows, getEligibleExistingBusinessBankAccounts, INITIAL_APPROVAL_WORKFLOW } from '@libs/WorkflowUtils';
-import type { WorkspaceSplitNavigatorParamList } from '@navigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getPaymentMethodDescription} from '@libs/PaymentUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getCorrectedAutoReportingFrequency, isControlPolicy, isPaidGroupPolicy as isPaidGroupPolicyUtil, isPolicyAdmin as isPolicyAdminUtil} from '@libs/PolicyUtils';
+import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, getEligibleExistingBusinessBankAccounts, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type { WithPolicyProps } from '@pages/workspace/withPolicy';
+import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import { getPaymentMethods } from '@userActions/PaymentMethods';
-import { navigateToBankAccountRoute } from '@userActions/ReimbursementAccount';
+import {getPaymentMethods} from '@userActions/PaymentMethods';
+import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type { ToggleSettingOptionRowProps } from './ToggleSettingsOptionRow';
+import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
-import type { AutoReportingFrequencyKey } from './WorkspaceAutoReportingFrequencyPage';
-import { getAutoReportingFrequencyDisplayNames } from './WorkspaceAutoReportingFrequencyPage';
-
+import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyPage';
+import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
@@ -339,7 +348,27 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
             },
         ];
-    }, [policy, bankAccountList, styles, translate, onPressAutoReportingFrequency, isSmartLimitEnabled, approvalWorkflows, addApprovalAction, isOffline, theme.spinner, isPolicyAdmin, displayNameForAuthorizedPayer, route.params.policyID, updateApprovalMode, isAccountLocked, isBetaEnabled, hasValidExistingAccounts, shouldShowContinueModal, showLockedAccountModal]);
+    }, [
+        policy,
+        bankAccountList,
+        styles,
+        translate,
+        onPressAutoReportingFrequency,
+        isSmartLimitEnabled,
+        approvalWorkflows,
+        addApprovalAction,
+        isOffline,
+        theme.spinner,
+        isPolicyAdmin,
+        displayNameForAuthorizedPayer,
+        route.params.policyID,
+        updateApprovalMode,
+        isAccountLocked,
+        isBetaEnabled,
+        hasValidExistingAccounts,
+        shouldShowContinueModal,
+        showLockedAccountModal,
+    ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
         <Section
