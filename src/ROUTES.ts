@@ -10,8 +10,8 @@ import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
+import type {RootNavigatorParamList} from './libs/Navigation/types';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
-import type {AttachmentModalScreenParams} from './pages/media/AttachmentModalScreen/types';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
@@ -422,6 +422,10 @@ const ROUTES = {
             return `r/${reportID}/avatar` as const;
         },
     },
+    ATTACHMENTS: {
+        route: 'attachment',
+        getRoute: (params?: ReportAttachmentsRouteParams) => getAttachmentModalScreenRoute('attachment', params),
+    },
     EDIT_CURRENCY_REQUEST: {
         route: 'r/:threadReportID/edit/currency',
         getRoute: (threadReportID: string, currency: string, backTo: string) => `r/${threadReportID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
@@ -446,10 +450,6 @@ const ROUTES = {
             }
             return getUrlWithBackToParam(`r/${reportID}/details/shareCode` as const, backTo);
         },
-    },
-    ATTACHMENTS: {
-        route: 'attachment',
-        getRoute: (params?: AttachmentRouteParams) => getAttachmentModalScreenRoute('attachment', params),
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
@@ -2642,7 +2642,30 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/sage-intacct/advanced/payment-account',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT route');
+            }
+            return `workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const;
+        },
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/advanced/autosync',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC route');
+            }
+            return `workspaces/${policyID}/accounting/sage-intacct/advanced/autosync` as const;
+        },
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/advanced/autosync/accounting-method',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD route');
+            }
+            return `workspaces/${policyID}/accounting/sage-intacct/advanced/autosync/accounting-method` as const;
+        },
     },
     ADD_UNREPORTED_EXPENSE: {
         route: 'search/r/:reportID/add-unreported-expense/:backToReport?',
@@ -2761,12 +2784,12 @@ const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
 export {getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS};
 export default ROUTES;
 
-type AttachmentsRoute = typeof ROUTES.ATTACHMENTS.route;
-type ReportAddAttachmentRoute = `r/${string}/attachment/add`;
-type AttachmentRoutes = AttachmentsRoute | ReportAddAttachmentRoute;
-type AttachmentRouteParams = AttachmentModalScreenParams;
+type ReportAttachmentsRoute = typeof ROUTES.ATTACHMENTS.route;
+type AttachmentRoutes = ReportAttachmentsRoute;
 
-function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: AttachmentRouteParams) {
+type ReportAttachmentsRouteParams = RootNavigatorParamList[typeof SCREENS.ATTACHMENTS];
+
+function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: ReportAttachmentsRouteParams) {
     if (!params?.source) {
         return url;
     }
