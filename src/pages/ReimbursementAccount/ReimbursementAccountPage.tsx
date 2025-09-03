@@ -473,7 +473,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     if (USDBankAccountStep !== null) {
         return (
             <USDVerifiedBankAccountFlow
-                USDBankAccountStep={USDBankAccountStep}
+                USDBankAccountStep={currentStep}
                 policyID={policyIDParam}
                 onBackButtonPress={goBack}
                 requestorStepRef={requestorStepRef}
