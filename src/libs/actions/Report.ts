@@ -114,6 +114,7 @@ import {
     buildOptimisticSelfDMReport,
     buildOptimisticUnHoldReportAction,
     buildOptimisticUnreportedTransactionAction,
+    buildTransactionThread,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     findLastAccessedReport,
     findSelfDMReportID,
@@ -1325,6 +1326,17 @@ function getOptimisticChatReport(accountID: number): OptimisticChatReport {
     });
 }
 
+function createTransactionThreadReport(iouReport: OnyxEntry<Report>, iouReportAction: OnyxEntry<ReportAction>): OptimisticChatReport | undefined {
+    if (!iouReport || !iouReportAction) {
+        Log.warn('Cannot build transaction thread report without iouReport and iouReportAction parameters');
+        return;
+    }
+    const optimisticTransactionThreadReportID = generateReportID();
+    const optimisticTransactionThread = buildTransactionThread(iouReportAction, iouReport, undefined, optimisticTransactionThreadReportID);
+    openReport(optimisticTransactionThreadReportID, undefined, currentUserEmail ? [currentUserEmail] : [], optimisticTransactionThread, iouReportAction?.reportActionID);
+    return optimisticTransactionThread;
+}
+
 /**
  * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
  *
@@ -1415,7 +1427,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
 function navigateToAndOpenChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string) {
     const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
     if (childReport?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, Navigation.getActiveRoute()));
     } else {
         const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
         const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
@@ -1441,7 +1453,7 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
         }
 
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID, undefined, undefined, Navigation.getActiveRoute()));
     }
 }
 
@@ -6115,5 +6127,6 @@ export {
     changeReportPolicy,
     changeReportPolicyAndInviteSubmitter,
     removeFailedReport,
+    createTransactionThreadReport,
     openUnreportedExpense,
 };
