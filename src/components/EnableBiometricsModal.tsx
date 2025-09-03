@@ -40,7 +40,7 @@ function EnableBiometricsModal({isVisible, onCancel = () => {}, registerBiometri
     /**
      * Change to false if you want to test error page. This should be replaced by the actual logic checking if the registration was successful.
      */
-    const wasRegistrationSuccessful = false;
+    const wasRegistrationSuccessful = true;
 
     return (
         <View>

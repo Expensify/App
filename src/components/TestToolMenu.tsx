@@ -47,7 +47,8 @@ function TestToolMenu() {
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
-    const [isRegistered, setRegistered] = useState(true); // This should be replaced with actual logic to check if biometrics are registered just like the authenticated status above
+    // This should be replaced with actual logic to check if biometrics are registered just like the authenticated status above
+    const [isRegistered, setRegistered] = useState(false);
 
     const [showBiometricsModal, setShowBiometricsModal] = useState(false);
 
