@@ -1221,8 +1221,8 @@ function getTaskSections(
                     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                     // eslint-disable-next-line deprecation/deprecation
                     const policy = getPolicy(parentReport.policyID);
-                    const parentReportName = getReportName(parentReport, policy, undefined, undefined);
                     const isParentReportArchived = archivedReportsIDList?.has(parentReport?.reportID);
+                    const parentReportName = getReportName(parentReport, policy, undefined, personalDetails, undefined, undefined, undefined, isParentReportArchived);
                     const icons = getIcons(parentReport, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                     const parentReportIcon = icons?.at(0);
 

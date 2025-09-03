@@ -5094,7 +5094,7 @@ function getReportName(
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
     transactions?: SearchTransaction[],
-    isReportArchived?: boolean,
+    isReportArchived = false,
 ): string {
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue =
@@ -5298,8 +5298,6 @@ function getReportNameInternal({
         if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName({reportAction: parentReportAction, transactions, reports});
 
-            // This will get removed as part of https://github.com/Expensify/App/issues/59961
-            // eslint-disable-next-line deprecation/deprecation
             if (isArchivedNonExpense) {
                 formattedName = generateArchivedReportName(formattedName);
             }
@@ -5344,8 +5342,6 @@ function getReportNameInternal({
             return getAdminRoomInvitedParticipants(parentReportAction, reportActionMessage);
         }
 
-        // This will get removed as part of https://github.com/Expensify/App/issues/59961
-        // eslint-disable-next-line deprecation/deprecation
         if (reportActionMessage && isArchivedNonExpense) {
             return generateArchivedReportName(reportActionMessage);
         }
