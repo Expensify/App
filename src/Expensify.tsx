@@ -135,7 +135,7 @@ function Expensify() {
         }
 
         // Clears OldDot UI after sign-out, if there's no OldDot UI left it has no effect.
-        // HybridAppModule.clearOldDotAfterSignOut();
+        HybridAppModule.clearOldDotAfterSignOut();
     }, [shouldInit, splashScreenState]);
 
     const initializeClient = () => {
