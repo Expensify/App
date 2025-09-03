@@ -128,7 +128,7 @@ describe('BaseSelectionList', () => {
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}49`)).toBeTruthy();
 
-        // Should NOT render items from second page  
+        // Should NOT render items from second page
         expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}50`)).toBeFalsy();
         expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeFalsy();
     });
@@ -159,10 +159,10 @@ describe('BaseSelectionList', () => {
         // Should initially show first page items (0-48, 49 items total)
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}48`)).toBeTruthy();
-        
+
         // Items beyond first page should not be initially visible
         expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}49`)).toBeFalsy();
-        
+
         // Note: Scroll-based loading in test environment might not work as expected
         // This test verifies the initial state - actual scroll behavior would need integration testing
     });
