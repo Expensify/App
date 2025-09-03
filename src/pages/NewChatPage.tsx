@@ -67,6 +67,7 @@ function useOptions() {
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const defaultOptions = useMemo(() => {
         const filteredOptions = memoizedGetValidOptions(
@@ -78,9 +79,10 @@ function useOptions() {
                 betas: betas ?? [],
                 includeSelfDM: true,
             },
+            countryCode,
         );
         return filteredOptions;
-    }, [betas, listOptions.personalDetails, listOptions.reports, contacts]);
+    }, [betas, listOptions.personalDetails, listOptions.reports, contacts, countryCode]);
 
     const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
 
