@@ -114,6 +114,7 @@ import {
     isInvoiceRoom,
     isMoneyRequest,
     isPolicyAdmin,
+    isUnread,
     isAdminRoom as reportUtilsIsAdminRoom,
     isAnnounceRoom as reportUtilsIsAnnounceRoom,
     isChatReport as reportUtilsIsChatReport,
@@ -800,6 +801,10 @@ function createOption(
         // Set properties that are used in SearchOption context
         result.private_isArchived = reportNameValuePairs?.private_isArchived;
         result.keyForList = String(report.reportID);
+        const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
+        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
+        const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
+        result.isUnread = isUnread(report, oneTransactionThreadReport);
 
         // Set lastMessageText - use archived message if report is archived, otherwise use report's lastMessageText
         if (result.private_isArchived) {
