@@ -223,6 +223,7 @@ function ReportActionsList({
     }, [loadNewerChats]);
 
     const platform = getPlatform();
+    const isTransactionThreadResult = isTransactionThread(parentReportAction);
 
     // The previous scroll tracking implementation was made via ref. This is
     // to ensure it will behave the same as before.
@@ -238,7 +239,7 @@ function ReportActionsList({
         ({offsetY, kHeight, csHeight, lmHeight}) => {
             const correctedOffsetY = platform === CONST.PLATFORM.IOS ? kHeight + offsetY : offsetY;
 
-            if (isTransactionThread(parentReportAction)) {
+            if (isTransactionThreadResult) {
                 // For transaction threads, calculate distance from bottom like MoneyRequestReportActionsList
                 scrollingVerticalOffsetRef.current = csHeight - lmHeight - correctedOffsetY;
             } else {
