@@ -214,6 +214,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (isComingFromGlobalReimbursementsFlow) {
             setIsComingFromGlobalReimbursementsFlow(false);
             Navigation.goBack();
+            return;
         }
 
         if (backTo) {

@@ -6673,7 +6673,7 @@ const translations = {
         isTransactionBillable: 'Wybierz, czy transakcja jest rozliczalna',
         keepThisOne: 'Keep this one',
         confirmDetails: `Potwierdź szczegóły, które zachowujesz`,
-        confirmDuplicatesInfo: `Duplikaty wniosków, których nie zachowasz, zostaną wstrzymane, aby członek mógł je usunąć.`,
+        confirmDuplicatesInfo: `Duplikaty, których nie zachowasz, zostaną pozostawione do usunięcia przez osobę zgłaszającą.`,
         hold: 'Ten wydatek został wstrzymany',
         resolvedDuplicates: 'rozwiązano duplikat',
     },

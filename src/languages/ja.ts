@@ -6651,7 +6651,7 @@ const translations = {
         isTransactionBillable: '取引が請求可能か選択',
         keepThisOne: 'このままにしておく',
         confirmDetails: `保持している詳細を確認してください。`,
-        confirmDuplicatesInfo: `保持しない重複リクエストは、メンバーが削除するために保持されます。`,
+        confirmDuplicatesInfo: `保持しなかった重複は、提出者が削除できるように保留されます。`,
         hold: 'この経費は保留されました',
         resolvedDuplicates: '重複を解決しました',
     },
