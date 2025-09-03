@@ -196,15 +196,6 @@ function useSelectedTransactionsActions({
                 },
             ];
 
-            if (allTransactionsLength === selectedTransactionIDs.length) {
-                exportOptions.push({
-                    text: translate('export.reportLevelExport'),
-                    icon: Expensicons.Table,
-                    onSelected: () =>
-                        // The report level export template is not policy specific, so we don't need to pass a policyID
-                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs),
-                });
-            }
             // If we've selected all the transactions on the report, we can also provide the report level export option
             const includeReportLevelExport = allTransactionsLength === selectedTransactionIDs.length;
 
