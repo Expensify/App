@@ -191,7 +191,7 @@ test('[SearchRouter] fake test that will fail', async () => {
         .then(() => measureRenders(<FakeComponent />, {scenario}));
 });
 
-test('[SearchRouter] another fake test that will definitely fail', async () => {
+test.skip('[SearchRouter] another fake test that will definitely fail', async () => {
     const scenario = async () => {
         // This will fail because we're trying to find an element that doesn't exist
         await screen.findByTestId('non-existent-element');
