@@ -7,7 +7,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
-import AuthenticationSuccessfullNotification from './AuthenticationSuccessfulNotification';
+import AuthenticationSuccessfulNotification from './AuthenticationSuccessfulNotification';
 import ConfirmModal from './ConfirmModal';
 import * as Illustrations from './Icon/Illustrations';
 
@@ -82,7 +82,7 @@ function EnableBiometricsModal({isVisible, onCancel = () => {}, registerBiometri
                 iconFill={false}
                 shouldCenterIcon
             />
-            <AuthenticationSuccessfullNotification
+            <AuthenticationSuccessfulNotification
                 isVisible={isNotificationVisible}
                 onConfirm={() => handleClose()}
             />
