@@ -287,7 +287,7 @@ function getFilterDisplayTitle(
     translate: LocaleContextProps['translate'],
     localeCompare: LocaleContextProps['localeCompare'],
 ) {
-    let key = filterKey;
+    let key: SearchFilterKey = filterKey;
 
     if (DATE_FILTER_KEYS.includes(filterKey as SearchDateFilterKeys)) {
         const keyOn = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
@@ -441,11 +441,9 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
 
 function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, _: LocaleContextProps['translate'], reports?: OnyxCollection<Report>) {
     return filters.in
-        ? filters.in
-              .map((id) => getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]))
-              .filter(Boolean)
-              .join(', ')
-        : undefined;
+        ?.map((id) => getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]))
+        .filter(Boolean)
+        .join(', ');
 }
 
 function AdvancedSearchFilters() {
@@ -526,10 +524,6 @@ function AdvancedSearchFilters() {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, groupBy, translate);
-            } else if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
-            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY) {
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
             } else {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
             }
