@@ -1,11 +1,10 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import type {ViewToken} from 'react-native';
-import {Platform} from 'react-native';
-import {runOnJS, useAnimatedReaction} from 'react-native-reanimated';
+import {useAnimatedReaction} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
 import {readNewestAction} from '@userActions/Report';
-import CONST from '@src/CONST';
+import floatingMessageCounterVisibilityHandler from './floatingMessageCounterVisibilityHandler';
 
 type Args = {
     /** The report ID */
@@ -71,24 +70,15 @@ export default function useReportUnreadMessageScrollTracking({
                 kHeight: keyboardHeight.get(),
             };
         },
-        ({offsetY, kHeight}) => {
-            if (wasManuallySetRef.current) {
-                return;
-            }
-
-            const correctedOffsetY = Platform.OS === 'ios' ? kHeight + offsetY : offsetY;
-            const hasUnreadMarkerReportAction = unreadMarkerReportActionIndex !== -1;
-
-            // display floating button if we're scrolled more than the offset
-            if (correctedOffsetY > CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible && !hasUnreadMarkerReportAction) {
-                runOnJS(setIsFloatingMessageCounterVisible)(true);
-            }
-
-            // hide floating button if we're scrolled closer than the offset and mark message as read
-            if (correctedOffsetY < CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible && !hasUnreadMarkerReportAction) {
-                runOnJS(setIsFloatingMessageCounterVisible)(false);
-            }
-        },
+        ({offsetY, kHeight}) =>
+            floatingMessageCounterVisibilityHandler({
+                isFloatingMessageCounterVisible,
+                kHeight,
+                offsetY,
+                setIsFloatingMessageCounterVisible,
+                unreadMarkerReportActionIndex,
+                wasManuallySetRef,
+            }),
         [isFloatingMessageCounterVisible, reportID, readActionSkippedRef, unreadMarkerReportActionIndex],
     );
 
