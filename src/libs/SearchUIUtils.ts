@@ -1429,6 +1429,10 @@ function getReportSections(
             } else if (reportIDToTransactions[reportKey]) {
                 reportIDToTransactions[reportKey].transactions = [transaction];
                 reportIDToTransactions[reportKey].from = data.personalDetailsList[data?.[reportKey as ReportKey]?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+            } else {
+                reportIDToTransactions[reportKey] = {} as TransactionReportGroupListItemType;
+                reportIDToTransactions[reportKey].transactions = [transaction];
+                reportIDToTransactions[reportKey].from = data.personalDetailsList[data?.[reportKey as ReportKey]?.accountID ?? CONST.DEFAULT_NUMBER_ID];
             }
         }
     }
@@ -2045,8 +2049,8 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
     const {status} = queryJSON ?? {};
 
     const sortedSearchResultStatus = !Array.isArray(searchResults?.search?.status)
-        ? searchResults?.search?.status.split(',').sort().join(',')
-        : searchResults?.search?.status.sort().join(',');
+        ? searchResults?.search?.status?.split(',').sort().join(',')
+        : searchResults?.search?.status?.sort().join(',');
     const sortedQueryJSONStatus = Array.isArray(status) ? status.sort().join(',') : status;
     const isDataLoaded = searchResults?.data !== undefined && searchResults?.search?.type === queryJSON?.type && sortedSearchResultStatus === sortedQueryJSONStatus;
 

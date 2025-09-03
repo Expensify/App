@@ -1683,6 +1683,63 @@ describe('SearchUIUtils', () => {
                 SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResultsGroupByWithdrawalID.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID),
             ).toStrictEqual(transactionWithdrawalIDGroupListItems);
         });
+
+        it('should handle transaction keys before report keys correctly when groupBy is report', () => {
+            const originalData = searchResults.data;
+
+            const searchResultsWithTransactionKeysFirst: OnyxTypes.SearchResults = {
+                data: {
+                    // First add non-transaction and non-report keys
+                    personalDetailsList: originalData.personalDetailsList,
+                    [`policy_${policyID}`]: originalData[`policy_${policyID}`],
+                    [`reportActions_${reportID}`]: originalData[`reportActions_${reportID}`],
+
+                    // Then add transaction keys first (this is the key part of the test)
+                    [`transactions_${transactionID}`]: originalData[`transactions_${transactionID}`],
+                    [`transactions_${transactionID2}`]: originalData[`transactions_${transactionID2}`],
+                    [`transactions_${transactionID3}`]: originalData[`transactions_${transactionID3}`],
+                    [`transactions_${transactionID4}`]: originalData[`transactions_${transactionID4}`],
+
+                    // Finally add report keys after transaction keys
+                    [`report_${reportID}`]: originalData[`report_${reportID}`],
+                    [`report_${reportID2}`]: originalData[`report_${reportID2}`],
+                    [`report_${reportID3}`]: originalData[`report_${reportID3}`],
+                    [`report_${reportID4}`]: originalData[`report_${reportID4}`],
+                    [`report_${reportID5}`]: originalData[`report_${reportID5}`],
+                },
+                search: searchResults.search,
+            };
+
+            const resultWithTransactionKeysFirst = SearchUIUtils.getSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                searchResultsWithTransactionKeysFirst.data,
+                2074551,
+                formatPhoneNumber,
+                CONST.SEARCH.GROUP_BY.REPORTS,
+            );
+
+            const resultWithNormalOrder = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS);
+
+            expect(resultWithTransactionKeysFirst.length).toBe(resultWithNormalOrder.length);
+
+            const reportsWithTransactionKeysFirst = resultWithTransactionKeysFirst as TransactionReportGroupListItemType[];
+            const reportsWithNormalOrder = resultWithNormalOrder as TransactionReportGroupListItemType[];
+
+            reportsWithTransactionKeysFirst.forEach((reportWithTransactionKeysFirst, index) => {
+                const reportWithNormalOrder = reportsWithNormalOrder.at(index);
+                expect(reportWithTransactionKeysFirst.transactions.length).toBe(reportWithNormalOrder?.transactions.length);
+                expect(reportWithTransactionKeysFirst.reportID).toBe(reportWithNormalOrder?.reportID);
+
+                if (reportWithTransactionKeysFirst.reportID === reportID) {
+                    expect(reportWithTransactionKeysFirst.transactions.length).toBeGreaterThan(0);
+                    expect(reportWithTransactionKeysFirst.transactions.at(0)?.transactionID).toBe(transactionID);
+                }
+                if (reportWithTransactionKeysFirst.reportID === reportID2) {
+                    expect(reportWithTransactionKeysFirst.transactions.length).toBeGreaterThan(0);
+                    expect(reportWithTransactionKeysFirst.transactions.at(0)?.transactionID).toBe(transactionID2);
+                }
+            });
+        });
     });
 
     describe('Test getSortedSections', () => {

@@ -476,31 +476,32 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     shouldDisplayHelpButton={false}
                 />
             )}
-            <SearchInputSelectionWrapper
-                value={textInputValue}
-                isFullWidth={shouldUseNarrowLayout}
-                onSearchQueryChange={onSearchQueryChange}
-                onSubmit={() => {
-                    const focusedOption = listRef.current?.getFocusedOption();
+            <View style={[{height: variables.searchTopBarHeight}, shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}>
+                <SearchInputSelectionWrapper
+                    value={textInputValue}
+                    isFullWidth={shouldUseNarrowLayout}
+                    onSearchQueryChange={onSearchQueryChange}
+                    onSubmit={() => {
+                        const focusedOption = listRef.current?.getFocusedOption();
 
-                    if (!focusedOption) {
-                        submitSearch(textInputValue);
-                        return;
-                    }
+                        if (!focusedOption) {
+                            submitSearch(textInputValue);
+                            return;
+                        }
 
-                    onListItemPress(focusedOption);
-                }}
-                caretHidden={shouldHideInputCaret}
-                autocompleteListRef={listRef}
-                shouldShowOfflineMessage
-                wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
-                outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
-                wrapperFocusedStyle={styles.borderColorFocus}
-                isSearchingForReports={!!isSearchingForReports}
-                selection={selection}
-                substitutionMap={autocompleteSubstitutions}
-                ref={textInputRef}
-            />
+                        onListItemPress(focusedOption);
+                    }}
+                    caretHidden={shouldHideInputCaret}
+                    autocompleteListRef={listRef}
+                    shouldShowOfflineMessage
+                    wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
+                    wrapperFocusedStyle={styles.borderColorFocus}
+                    isSearchingForReports={!!isSearchingForReports}
+                    selection={selection}
+                    substitutionMap={autocompleteSubstitutions}
+                    ref={textInputRef}
+                />
+            </View>
             {shouldShowList && (
                 <SearchAutocompleteList
                     autocompleteQueryValue={autocompleteQueryValue || textInputValue}

@@ -25,8 +25,8 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
 import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, generateReportID, isArchivedReport} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {canEditFieldOfMoneyRequest, isArchivedReport} from '@libs/ReportUtils';
+import {buildCannedSearchQuery, buildSearchQueryString, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {
     getColumnsToShow,
     getListItem,
@@ -51,6 +51,7 @@ import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
+import {createTransactionThreadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -632,16 +633,12 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const generatedReportID = generateReportID();
-                updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, generatedReportID);
-                Navigation.navigate(
-                    ROUTES.SEARCH_REPORT.getRoute({
-                        reportID: generatedReportID,
-                        backTo,
-                        moneyRequestReportActionID: item.moneyRequestReportActionID,
-                        transactionID: item.transactionID,
-                    }),
-                );
+                const iouReportAction = getIOUActionForTransactionID(reportActionsArray, item.transactionID);
+                const transactionThreadReport = createTransactionThreadReport(item.report, iouReportAction);
+                if (transactionThreadReport?.reportID) {
+                    updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
+                }
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo}));
                 return;
             }
 
@@ -653,17 +650,21 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         },
+<<<<<<< HEAD
         [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, hash],
+=======
+        [hash, isMobileSelectionModeEnabled, toggleTransaction, queryJSON, reportActionsArray],
+>>>>>>> main
     );
 
     const currentColumns = useMemo(() => {
         if (!searchResults?.data) {
             return [];
         }
-        const columns = getColumnsToShow(accountID, searchResults?.data, false, searchResults?.search.type === CONST.SEARCH.DATA_TYPES.TASK);
+        const columns = getColumnsToShow(accountID, searchResults?.data, false, searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.TASK);
 
         return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
-    }, [accountID, searchResults?.data, searchResults?.search.type]);
+    }, [accountID, searchResults?.data, searchResults?.search?.type]);
 
     const opacity = useSharedValue(1);
     const animatedStyle = useAnimatedStyle(() => ({
@@ -819,14 +820,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }
 
     const visibleDataLength = data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
-    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchResults.search.type)) {
+    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchResults?.search?.type)) {
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
                     groupBy={groupBy}
-                    hasResults={searchResults.search.hasResults}
+                    hasResults={searchResults?.search?.hasResults}
                 />
             </View>
         );
