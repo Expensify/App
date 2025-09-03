@@ -936,7 +936,7 @@ function buildCannedSearchQuery({
  * For example: "type:trip" is a canned query.
  */
 function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
-    return !queryJSON.filters && !queryJSON.policyID;
+    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status;
 }
 
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
