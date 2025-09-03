@@ -1,7 +1,7 @@
 import {PortalHost} from '@gorhom/portal';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList} from 'react-native';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -13,12 +13,14 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPlatform from '@libs/getPlatform';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
 import {openReport} from '@userActions/Report';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ActionListContextType, ScrollPosition} from '@src/pages/home/ReportScreenContext';
 import {ActionListContext} from '@src/pages/home/ReportScreenContext';
@@ -81,6 +83,9 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         [reportID, reportMetadata?.isLoadingInitialReportActions],
     );
 
+    const platform = getPlatform();
+    const isIOS = platform === CONST.PLATFORM.IOS;
+
     if (shouldUseNarrowLayout) {
         return (
             <ActionListContext.Provider value={actionListValue}>
@@ -90,8 +95,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                         shouldEnableMaxHeight
                         offlineIndicatorStyle={styles.mtAuto}
                         headerGapStyles={styles.searchHeaderGap}
-                        shouldEnableKeyboardAvoidingView={isComposerFullSize || Platform.OS !== 'ios'}
-                        includeSafeAreaPaddingBottom={Platform.OS !== 'ios'}
+                        shouldEnableKeyboardAvoidingView={isComposerFullSize || !isIOS}
+                        includeSafeAreaPaddingBottom={!isIOS}
                     >
                         <FullPageNotFoundView
                             shouldShow={shouldShowNotFoundPage}
@@ -124,8 +129,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                     shouldEnableMaxHeight
                     offlineIndicatorStyle={styles.mtAuto}
                     headerGapStyles={[styles.searchHeaderGap, styles.h0]}
-                    shouldEnableKeyboardAvoidingView={isComposerFullSize || Platform.OS !== 'ios'}
-                    includeSafeAreaPaddingBottom={Platform.OS !== 'ios'}
+                    shouldEnableKeyboardAvoidingView={isComposerFullSize || !isIOS}
+                    includeSafeAreaPaddingBottom={!isIOS}
                 >
                     <View style={[styles.searchSplitContainer, styles.flexColumn, styles.flex1]}>
                         <FullPageNotFoundView

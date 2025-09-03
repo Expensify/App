@@ -3,7 +3,7 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, LayoutChangeEvent, ViewStyle} from 'react-native';
-import {DeviceEventEmitter, InteractionManager, Platform, View} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import {KeyboardController, KeyboardGestureArea} from 'react-native-keyboard-controller';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Banner from '@components/Banner';
@@ -34,6 +34,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -816,13 +817,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const onComposerLayout = useCallback((height: number) => setComposerHeight(height), []);
 
+    const platform = getPlatform();
+    const isIOS = platform === CONST.PLATFORM.IOS;
+
     const shouldEnableKeyboardAvoidingView = useMemo(() => {
-        if (Platform.OS === 'ios') {
+        if (isIOS) {
             return isComposerFullSize;
         }
 
         return isTopMostReportId || isInNarrowPaneModal;
-    }, [isComposerFullSize, isTopMostReportId, isInNarrowPaneModal]);
+    }, [isComposerFullSize, isTopMostReportId, isInNarrowPaneModal, isIOS]);
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
@@ -850,7 +854,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         style={screenWrapperStyle}
                         shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
                         testID={`report-screen-${reportID}`}
-                        includeSafeAreaPaddingBottom={Platform.OS !== 'ios'}
+                        includeSafeAreaPaddingBottom={!isIOS}
                     >
                         <FullPageNotFoundView
                             shouldShow={shouldShowNotFoundPage}
