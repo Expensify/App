@@ -5181,6 +5181,11 @@ function moveIOUReportToPolicy(iouReport: Report, policy: Policy, isFromSettleme
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticExpenseChatReportID}`,
             value: {isOptimisticReport: true, isLoadingInitialReportActions: true},
         });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticExpenseChatReportID}`,
+            value: {isLoadingInitialReportActions: null},
+        });
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseChatReportID}`,
@@ -5253,7 +5258,7 @@ function moveIOUReportToPolicy(iouReport: Report, policy: Policy, isFromSettleme
     });
 
     // We need to move the report preview action from the DM to the expense chat.
-    const parentReportActions = allReportActions?.[`${iouReport.parentReportID}`];
+    const parentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.parentReportID}`];
     const parentReportActionID = iouReport.parentReportActionID;
     const reportPreview = iouReport?.parentReportID && parentReportActionID ? parentReportActions?.[parentReportActionID] : undefined;
     const oldChatReportID = iouReport.chatReportID;
