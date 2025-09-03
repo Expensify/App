@@ -24,7 +24,7 @@ import type {OnyxCollectionKey, OnyxCollectionValuesMapping} from '@src/ONYXKEYS
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -240,6 +240,17 @@ function getFilters(queryJSON: SearchQueryJSON) {
  * - for personal filters it tries to substitute any user emails with accountIDs
  */
 function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filterValue: string | string[]) {
+    if (AMOUNT_FILTER_KEYS.includes(filterName as SearchAmountFilterKeys)) {
+        if (typeof filterValue === 'string') {
+            const backendAmount = convertToBackendAmount(Number(filterValue));
+            return Number.isNaN(backendAmount) ? filterValue : backendAmount.toString();
+        }
+        return filterValue.map((amount) => {
+            const backendAmount = convertToBackendAmount(Number(amount));
+            return Number.isNaN(backendAmount) ? amount : backendAmount.toString();
+        });
+    }
+
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
@@ -251,17 +262,6 @@ function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FI
         }
 
         return filterValue.map((email) => getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
-    }
-
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
-        if (typeof filterValue === 'string') {
-            const backendAmount = convertToBackendAmount(Number(filterValue));
-            return Number.isNaN(backendAmount) ? filterValue : backendAmount.toString();
-        }
-        return filterValue.map((amount) => {
-            const backendAmount = convertToBackendAmount(Number(amount));
-            return Number.isNaN(backendAmount) ? amount : backendAmount.toString();
-        });
     }
 
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID) {

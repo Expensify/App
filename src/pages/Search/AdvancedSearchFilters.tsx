@@ -542,6 +542,7 @@ function AdvancedSearchFilters() {
             };
         });
     });
+
     const displaySearchButton = queryJSON && !isCannedSearchQuery(queryJSON);
 
     const sections: SectionType[] = [
