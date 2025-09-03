@@ -147,7 +147,7 @@ function IOURequestStepDistanceManual({
                 if (distance !== distanceAsFloat) {
                     updateMoneyRequestDistance({
                         transactionID: transaction?.transactionID,
-                        transactionThreadReportID: transaction?.reportID,
+                        transactionThreadReportID: reportID,
                         distance: distanceAsFloat,
                         transactionBackup: undefined,
                         policy,

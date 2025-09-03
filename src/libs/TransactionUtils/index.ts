@@ -595,18 +595,19 @@ function getUpdatedTransaction({
         lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
         shouldStopSmartscan = true;
 
-        const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
-        const {unit, rate} = mileageRate;
-        const distanceInMeters = getDistanceInMeters(updatedTransaction, mileageRate?.unit);
-        const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
-        const updatedAmount = isFromExpenseReport || isUnReportedExpense ? amount : -amount;
-        const updatedCurrency = mileageRate.currency ?? CONST.CURRENCY.USD;
+        const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
+        const {unit, rate} = updatedMileageRate;
+
+        const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
+        let amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+        amount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
+        const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
         const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, translateLocal, (digit) =>
             toLocaleDigit(IntlStore.getCurrentLocale(), digit),
         );
 
-        updatedTransaction.amount = updatedAmount;
-        updatedTransaction.modifiedAmount = updatedAmount;
+        updatedTransaction.amount = amount;
+        updatedTransaction.modifiedAmount = amount;
         updatedTransaction.modifiedMerchant = updatedMerchant;
         updatedTransaction.modifiedCurrency = updatedCurrency;
     }
@@ -626,6 +627,11 @@ function getUpdatedTransaction({
         ...(Object.hasOwn(transactionChanges, 'taxAmount') && {taxAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'taxCode') && {taxCode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         ...(Object.hasOwn(transactionChanges, 'attendees') && {attendees: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+        ...(Object.hasOwn(transactionChanges, 'distance') && {
+            quantity: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        }),
     };
 
     return updatedTransaction;

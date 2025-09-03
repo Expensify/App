@@ -4295,7 +4295,6 @@ function getUpdateMoneyRequestParams(
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
             ...updatedTransaction,
-            pendingFields,
             errorFields: null,
         },
     });

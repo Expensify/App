@@ -4831,15 +4831,15 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.billable = transactionChanges?.billable ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
     }
 
-    if ('customUnitRateID' in transactionChanges && updatedTransaction?.comment?.customUnit?.customUnitRateID) {
+    if (('customUnitRateID' in transactionChanges && updatedTransaction?.comment?.customUnit?.customUnitRateID) || ('distance' in transactionChanges && updatedTransaction?.comment?.customUnit?.quantity)) {
         originalMessage.oldAmount = getTransactionAmount(oldTransaction, isFromExpenseReport);
         originalMessage.oldCurrency = getCurrency(oldTransaction);
         originalMessage.oldMerchant = getMerchant(oldTransaction);
 
         // For the originalMessage, we should use the non-negative amount, similar to what getAmount does for oldAmount
-        originalMessage.amount = Math.abs(updatedTransaction.modifiedAmount ?? 0);
-        originalMessage.currency = updatedTransaction.modifiedCurrency ?? CONST.CURRENCY.USD;
-        originalMessage.merchant = updatedTransaction.modifiedMerchant;
+        originalMessage.amount = Math.abs(updatedTransaction?.modifiedAmount ?? 0);
+        originalMessage.currency = updatedTransaction?.modifiedCurrency ?? CONST.CURRENCY.USD;
+        originalMessage.merchant = updatedTransaction?.modifiedMerchant;
     }
 
     return originalMessage;
