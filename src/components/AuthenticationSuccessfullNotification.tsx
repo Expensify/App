@@ -17,7 +17,7 @@ type AuthenticationSuccessfullNotificationProps = {
 function AuthenticationSuccessfullNotification({isVisible, onCancel = () => {}, onConfirm = () => {}}: AuthenticationSuccessfullNotificationProps) {
     return (
         <ScreenWrapper
-            testID='EnableBiometricsModal'
+            testID={AuthenticationSuccessfullNotification.displayName}
         >
             <ConfirmModal
                 title="Authentication successful"
@@ -33,5 +33,7 @@ function AuthenticationSuccessfullNotification({isVisible, onCancel = () => {}, 
         </ScreenWrapper>
     );
 }
+
+AuthenticationSuccessfullNotification.displayName = 'AuthenticationSuccessfullNotification';
 
 export default AuthenticationSuccessfullNotification;

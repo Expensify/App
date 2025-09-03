@@ -165,6 +165,7 @@ import ExpensifyApprovedLogoLight from '@assets/images/subscription-details__app
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 import SimpleSmartscan from '@assets/images/simple-illustration__smartscan.svg'
+import JustHumptyDumpty from '@assets/images/just-humpty-dumpty.svg';
 
 export {
     Abracadabra,
@@ -334,4 +335,5 @@ export {
     CardReplacementSuccess,
     EmptyShelves,
     SimpleSmartscan,
+    JustHumptyDumpty,
 };

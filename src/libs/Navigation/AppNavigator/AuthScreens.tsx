@@ -66,6 +66,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import EnableBiometricsErrorPage from '@pages/ErrorPage/EnableBiometricsErrorPage';
 import attachmentModalScreenOptions from './attachmentModalScreenOptions';
 import createRootStackNavigator from './createRootStackNavigator';
 import {screensWithEnteringAnimation, workspaceSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
@@ -647,6 +648,11 @@ function AuthScreens() {
                     name={SCREENS.NOT_FOUND}
                     options={rootNavigatorScreenOptions.fullScreen}
                     component={NotFoundPage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.ENABLE_BIOMETRICS_ERROR_PAGE}
+                    options={rootNavigatorScreenOptions.fullScreen}
+                    component={EnableBiometricsErrorPage}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
