@@ -31,7 +31,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getColumnsToShow, getSections, shouldShowYear as shouldShowYearUtil} from '@libs/SearchUIUtils';
+import {getColumnsToShow, getSections} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
@@ -246,8 +246,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
         return headers[groupBy];
     }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, groupBy]);
 
-    const shouldShowYear = shouldShowYearUtil(transactions);
-
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     return (
@@ -301,7 +299,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                             onSortPress={() => {}}
                                             sortOrder={undefined}
                                             sortBy={undefined}
-                                            shouldShowYear={shouldShowYear}
+                                            shouldShowYear={dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
                                             isAmountColumnWide={amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
                                             isTaxAmountColumnWide={taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
                                             shouldShowSorting={false}
