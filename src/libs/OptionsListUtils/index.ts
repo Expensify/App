@@ -13,7 +13,7 @@ import filterArrayByMatch from '@libs/filterArrayByMatch';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {translateLocal} from '@libs/Localize';
-import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
+import {appendCountryCode, appendCountryCodeWithCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {MaxHeap} from '@libs/MaxHeap';
 import {MinHeap} from '@libs/MinHeap';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
@@ -697,7 +697,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         !isReportArchived &&
         (report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED || (lastOriginalReportAction?.reportActionID && isDeletedAction(lastOriginalReportAction)))
     ) {
-        return lastMessageTextFromReport || (getReportLastMessage(reportID).lastMessageText ?? '');
+        return lastMessageTextFromReport || (getReportLastMessage(reportID, undefined, isReportArchived).lastMessageText ?? '');
     }
 
     // When the last report action has unknown mentions (@Hidden), we want to consistently show @Hidden in LHN and report screen
@@ -744,7 +744,9 @@ function createOption(
     // Initialize only the properties that are actually used in SearchOption context
     const result: SearchOptionData = {
         // Core identification - used in SearchOption context
-        reportID: report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+        // We use empty string as a default for reportID as in many places the application uses conditional checks that test for reportID existence with truthiness operators
+        // eslint-disable-next-line rulesdir/no-default-id-values
+        reportID: report?.reportID ?? '',
         accountID: 0, // Set conditionally below
         login: undefined, // Set conditionally below
         policyID: report?.policyID,
@@ -807,9 +809,8 @@ function createOption(
         }
 
         // Type/category flags already set in initialization above, but update brickRoadIndicator
-        const reportAttribute = reportAttributesDerived?.[report.reportID];
-        result.allReportErrors = reportAttribute?.reportErrors ?? {};
-        result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : (reportAttribute?.brickRoadStatus ?? '');
+        result.allReportErrors = reportAttributesDerived?.[report.reportID]?.reportErrors ?? {};
+        result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- below is a boolean expression
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
@@ -1020,8 +1021,8 @@ function isMakingLastRequiredTagListOptional(policy: Policy | undefined, policyT
     return false;
 }
 
-function getSearchValueForPhoneOrEmail(searchTerm: string) {
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(searchTerm)));
+function getSearchValueForPhoneOrEmail(searchTerm: string, countryCode: OnyxEntry<number>) {
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(searchTerm), countryCode ?? 1));
     return parsedPhoneNumber.possible ? (parsedPhoneNumber.number?.e164 ?? '') : searchTerm.toLowerCase();
 }
 
