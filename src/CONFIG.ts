@@ -143,4 +143,3 @@ export default {
     // eslint-disable-next-line no-restricted-properties
     IS_HYBRID_APP: HybridAppModule.isHybridApp(),
 } as const;
-

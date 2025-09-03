@@ -33,8 +33,8 @@ import {
     isMoneyRequestReport,
 } from '@libs/ReportUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
-import {getAvatarUrl} from '@libs/UserUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
+import {getAvatarUrl} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
