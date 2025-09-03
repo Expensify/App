@@ -647,10 +647,10 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         if (!searchResults?.data) {
             return [];
         }
-        const columns = getColumnsToShow(accountID, searchResults?.data, false, searchResults?.search.type === CONST.SEARCH.DATA_TYPES.TASK);
+        const columns = getColumnsToShow(accountID, searchResults?.data, false, searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.TASK);
 
         return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
-    }, [accountID, searchResults?.data, searchResults?.search.type]);
+    }, [accountID, searchResults?.data, searchResults?.search?.type]);
 
     const opacity = useSharedValue(1);
     const animatedStyle = useAnimatedStyle(() => ({
@@ -812,14 +812,14 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }
 
     const visibleDataLength = data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
-    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchResults.search.type)) {
+    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchResults?.search?.type)) {
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
                     similarSearchHash={similarSearchHash}
                     type={type}
                     groupBy={groupBy}
-                    hasResults={searchResults.search.hasResults}
+                    hasResults={searchResults?.search?.hasResults}
                 />
             </View>
         );
