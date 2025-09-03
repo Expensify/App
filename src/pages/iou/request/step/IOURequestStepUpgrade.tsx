@@ -28,17 +28,16 @@ type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigator
 
 function IOURequestStepUpgrade({
     route: {
-        params: {transactionID, action, featureName},
+        params: {transactionID, action, featureName = DEFAULT_FEATURE_NAME},
     },
 }: IOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
-    const featureNameAlias = featureName ?? DEFAULT_FEATURE_NAME;
     const feature = useMemo(
         () =>
             Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
                 .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
-                .find((f) => f.alias === featureNameAlias),
-        [featureNameAlias],
+                .find((f) => f.alias === featureName),
+        [featureName],
     );
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -49,7 +48,7 @@ function IOURequestStepUpgrade({
 
     const [isUpgraded, setIsUpgraded] = useState(false);
     const policyDataRef = useRef<CreateWorkspaceParams | null>(null);
-    const isDistanceRateUpgrade = featureNameAlias === CONST.UPGRADE_FEATURE_INTRO_MAPPING.distanceRates.alias;
+    const isDistanceRateUpgrade = featureName === CONST.UPGRADE_FEATURE_INTRO_MAPPING.distanceRates.alias;
     const isCategorizing = featureName === CONST.UPGRADE_FEATURE_INTRO_MAPPING.categories.alias;
 
     const onConfirmUpgrade = useCallback(() => {
@@ -121,6 +120,7 @@ function IOURequestStepUpgrade({
                         onConfirmUpgrade={onConfirmUpgrade}
                         policyName=""
                         isCategorizing={isCategorizing}
+                        isDistanceRateUpgrade={isDistanceRateUpgrade}
                     />
                 )}
                 {!isUpgraded && (

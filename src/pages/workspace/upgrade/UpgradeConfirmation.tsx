@@ -14,9 +14,10 @@ type Props = {
     onConfirmUpgrade: () => void;
     isCategorizing?: boolean;
     isTravelUpgrade?: boolean;
+    isDistanceRateUpgrade?: boolean;
 };
 
-function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isTravelUpgrade}: Props) {
+function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -40,12 +41,16 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isTr
             return <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.travelMessage')}</Text>;
         }
 
+        if (isDistanceRateUpgrade) {
+            return <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.distanceRateMessage')}</Text>;
+        }
+
         return (
             <View style={[styles.renderHTML, styles.w100]}>
                 <RenderHTML html={translate('workspace.upgrade.completed.successMessage', {policyName, subscriptionLink})} />
             </View>
         );
-    }, [isCategorizing, isTravelUpgrade, policyName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
+    }, [isCategorizing, isTravelUpgrade, isDistanceRateUpgrade, policyName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
 
     return (
         <ConfirmationPage
