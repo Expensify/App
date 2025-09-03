@@ -9,6 +9,7 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+import { InteractionManager } from 'react-native';
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
 
@@ -112,7 +113,9 @@ function useSearchHighlightAndScroll({
             triggeredByHookRef.current = true;
 
             // Trigger the search
-            search({queryJSON, searchKey, offset, shouldCalculateTotals});
+            InteractionManager.runAfterInteractions(() => {
+                search({queryJSON, searchKey, offset, shouldCalculateTotals});
+            });
 
             // Set the ref to prevent further triggers until reset
             searchTriggeredRef.current = true;
