@@ -18,6 +18,10 @@ const hasKeyTriggeredCompute = <K extends OnyxKey, Deps extends NonEmptyTuple<Ex
 const batchedUpdatesQueue = new Map<OnyxDerivedKey, OnyxInput<OnyxDerivedKey>>();
 let isFlushScheduled = false;
 let batchStartTime: number | null = null;
+let flushTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+// Batch size limits to prevent memory buildup
+const MAX_BATCH_SIZE = 50;
 
 const flushBatchedUpdatesNow = () => {
     if (batchedUpdatesQueue.size === 0) {
@@ -33,6 +37,8 @@ const flushBatchedUpdatesNow = () => {
     batchedUpdatesQueue.clear();
     isFlushScheduled = false;
     batchStartTime = null;
+    flushTimeoutId = null;
+
     // Apply all updates synchronously
     updates.forEach(([key, value]) => {
         Onyx.set(key, value, {
@@ -42,7 +48,8 @@ const flushBatchedUpdatesNow = () => {
 };
 
 /**
- * Schedule a flush using setTimeout(0) for better batching of synchronous updates
+ * Schedule a flush using queueMicrotask for batching of synchronous updates
+ * Falls back to setTimeout(0) if queueMicrotask is not available
  */
 const scheduleFlush = () => {
     if (isFlushScheduled) {
@@ -50,13 +57,31 @@ const scheduleFlush = () => {
     }
 
     isFlushScheduled = true;
-    setTimeout(flushBatchedUpdatesNow, 0);
+
+    if (typeof queueMicrotask !== 'undefined') {
+        queueMicrotask(flushBatchedUpdatesNow);
+        flushTimeoutId = null;
+    } else {
+        flushTimeoutId = setTimeout(flushBatchedUpdatesNow, 0);
+    }
+};
+
+/**
+ * Force flush all pending updates immediately
+ */
+const flushImmediately = () => {
+    if (flushTimeoutId) {
+        clearTimeout(flushTimeoutId);
+        flushTimeoutId = null;
+    }
+
+    flushBatchedUpdatesNow();
 };
 
 /**
  * Set a derived value in Onyx
  * As a performance optimization, it skips the cache check and null removal
- * For derived values, we fully control their lifecycle and recompute them when any dependency changes - so we don’t need a deep comparison
+ * For derived values, we fully control their lifecycle and recompute them when any dependency changes - so we don't need a deep comparison
  * Also, null may be a legitimate result of the computation, so pruning it is unnecessary
  */
 const setDerivedValue = (key: OnyxDerivedKey, value: OnyxInput<OnyxDerivedKey>) => {
@@ -65,10 +90,13 @@ const setDerivedValue = (key: OnyxDerivedKey, value: OnyxInput<OnyxDerivedKey>) 
         batchStartTime = performance.now();
     }
 
-    // Add or update the value in the batch queue (automatically deduplicates)
     batchedUpdatesQueue.set(key, value);
 
-    // Schedule the batch to be flushed using setTimeout(0) for better synchronous batching
+    if (batchedUpdatesQueue.size >= MAX_BATCH_SIZE) {
+        flushImmediately();
+        return;
+    }
+
     scheduleFlush();
 };
 
