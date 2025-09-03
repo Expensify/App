@@ -16,8 +16,8 @@ import ROUTES from '@src/ROUTES';
 function SearchFiltersCurrencyPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const selectedCurrenciesCodes = searchAdvancedFiltersForm?.currency;
 
     const {selectedCurrenciesItems, currencyItems} = useMemo(() => {
@@ -55,7 +55,7 @@ function SearchFiltersCurrencyPage() {
             <HeaderWithBackButton
                 title={translate('search.filters.currency')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>
