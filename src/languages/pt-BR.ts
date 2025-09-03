@@ -52,6 +52,7 @@ import type {
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
     BusinessBankAccountParams,
+    BusinessRegistrationNumberParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -103,7 +104,6 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
-    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -204,6 +204,7 @@ import type {
     SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
+    SignerInfoMessageParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
@@ -322,6 +323,7 @@ const translations = {
         count: 'Contagem',
         cancel: 'Cancelar',
         dismiss: 'Dispensar',
+        proceed: 'Proceed',
         yes: 'Sim',
         no: 'Não',
         ok: 'OK',
@@ -655,6 +657,7 @@ const translations = {
         forwardTo: 'Encaminhar para',
         merge: 'Mesclar',
         unstableInternetConnection: 'Conexão de internet instável. Verifique sua rede e tente novamente.',
+        enableGlobalReimbursements: 'Ativar reembolsos globais',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -995,6 +998,7 @@ const translations = {
         sizeNotMet: 'O tamanho do arquivo deve ser maior que 0 bytes',
         invalidFileMessage:
             'O arquivo que você enviou está vazio ou contém dados inválidos. Por favor, certifique-se de que o arquivo está formatado corretamente e contém as informações necessárias antes de enviá-lo novamente.',
+        importSpreadsheetLibraryError: 'Falha ao carregar o módulo de planilhas. Verifique sua conexão com a internet e tente novamente.',
         importSpreadsheet: 'Importar planilha',
         downloadCSV: 'Baixar CSV',
         importMemberConfirmation: () => ({
@@ -1930,6 +1934,7 @@ const translations = {
         reportFraud: 'Relatar fraude de cartão virtual',
         reportTravelFraud: 'Reportar fraude no cartão de viagem',
         reviewTransaction: 'Revisar transação',
+        physicalCardPin: 'PIN',
         suspiciousBannerTitle: 'Transação suspeita',
         suspiciousBannerDescription: 'Notamos transações suspeitas no seu cartão. Toque abaixo para revisar.',
         cardLocked: 'Seu cartão está temporariamente bloqueado enquanto nossa equipe revisa a conta da sua empresa.',
@@ -3024,7 +3029,14 @@ const translations = {
         whatsTheBusinessName: 'Qual é o nome da empresa?',
         whatsTheBusinessAddress: 'Qual é o endereço comercial?',
         whatsTheBusinessContactInformation: 'Qual é a informação de contato comercial?',
-        whatsTheBusinessRegistrationNumber: 'Qual é o número de registro da empresa?',
+        whatsTheBusinessRegistrationNumber: ({country}: BusinessRegistrationNumberParams) => {
+            switch (country) {
+                case CONST.COUNTRY.GB:
+                    return 'Qual é o número de registro da empresa (CRN)?';
+                default:
+                    return 'Qual é o número de registro da empresa?';
+            }
+        },
         whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:
@@ -3257,6 +3269,10 @@ const translations = {
         PDSandFSGDescription:
             'Nossa parceria com a Corpay utiliza uma conexão API para aproveitar sua vasta rede de parceiros bancários internacionais para viabilizar Reembolsos Globais na Expensify. De acordo com a regulamentação australiana, estamos fornecendo a você o Guia de Serviços Financeiros (FSG) e a Declaração de Divulgação de Produto (PDS) da Corpay.\n\nPor favor, leia os documentos FSG e PDS cuidadosamente, pois eles contêm detalhes completos e informações importantes sobre os produtos e serviços oferecidos pela Corpay. Guarde esses documentos para referência futura.',
         pleaseUpload: 'Por favor, envie documentação adicional abaixo para nos ajudar a verificar sua identidade como diretor ou executivo sênior da entidade empresarial.',
+        enterSignerInfo: 'Insira as informações do signatário',
+        thisStep: 'Esta etapa foi concluída',
+        isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+            `está conectando uma conta bancária empresarial em ${currency} com final ${bankAccountLastFour} ao Expensify para pagar funcionários em ${currency}. A próxima etapa exige as informações de um signatário, como um diretor ou executivo sênior.`,
     },
     agreementsStep: {
         agreements: 'Acordos',
@@ -3469,12 +3485,14 @@ const translations = {
             customField1: 'Campo personalizado 1',
             customField2: 'Campo personalizado 2',
             customFieldHint: 'Adicione uma codificação personalizada que se aplique a todos os gastos deste membro.',
+            reports: 'Relatórios',
             reportFields: 'Campos do relatório',
             reportTitle: 'Título do relatório',
             reportField: 'Campo de relatório',
             taxes: 'Impostos',
             bills: 'Faturas',
             invoices: 'Faturas',
+            perDiem: 'Per diem',
             travel: 'Viagem',
             members: 'Membros',
             accounting: 'Contabilidade',
@@ -3487,6 +3505,7 @@ const translations = {
             testTransactions: 'Testar transações',
             issueAndManageCards: 'Emitir e gerenciar cartões',
             reconcileCards: 'Conciliar cartões',
+            selectAll: 'Selecionar todos',
             selected: () => ({
                 one: '1 selecionado',
                 other: (count: number) => `${count} selecionado(s)`,
@@ -3500,6 +3519,8 @@ const translations = {
             memberNotFound: 'Membro não encontrado. Para convidar um novo membro para o espaço de trabalho, por favor, use o botão de convite acima.',
             notAuthorized: `Você não tem acesso a esta página. Se você está tentando entrar neste espaço de trabalho, basta pedir ao proprietário do espaço de trabalho para adicioná-lo como membro. Algo mais? Entre em contato com ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: 'Ir para o espaço de trabalho',
+            duplicateWorkspace: 'Espaço de trabalho duplicado',
+            duplicateWorkspacePrefix: 'Duplicado',
             goToWorkspaces: 'Ir para espaços de trabalho',
             clearFilter: 'Limpar filtro',
             workspaceName: 'Nome do espaço de trabalho',
@@ -3568,11 +3589,36 @@ const translations = {
             deepDiveExpensifyCard: `<muted-text-label>As transações do cartão Expensify serão exportadas automaticamente para uma “Conta de responsabilidade do cartão Expensify” criada com <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nossa integração</a>.</muted-text-label>`,
         },
         receiptPartners: {
+            connect: 'Conecte-se agora',
             uber: {
                 subtitle: 'Automatize despesas de viagens e entrega de refeições em toda a sua organização.',
+                sendInvites: 'Convidar membros',
+                sendInvitesDescription: 'Esses membros do workspace ainda não têm uma conta do Uber for Business. Desmarque quaisquer membros que você não deseja convidar neste momento.',
+                confirmInvite: 'Confirmar convite',
+                manageInvites: 'Gerenciar convites',
+                confirm: 'Confirmar',
+                allSet: 'Tudo pronto',
+                readyToRoll: 'Você está pronto para começar',
+                takeBusinessRideMessage: 'Faça uma viagem de negócios e seus recibos do Uber serão importados para o Expensify. Vamos lá!',
+                all: 'Todos',
+                linked: 'Vinculado',
+                outstanding: 'Pendente',
+                status: {
+                    resend: 'Reenviar',
+                    invite: 'Convidar',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED]: 'Vinculado',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Pendente',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Suspenso',
+                },
+                invitationFailure: 'Falha ao convidar membros para o Uber for Business',
                 autoRemove: 'Convidar novos membros do espaço de trabalho para o Uber for Business',
                 autoInvite: 'Desativar membros removidos do espaço de trabalho do Uber for Business',
-                manageInvites: 'Gerenciar convites',
+                bannerTitle: 'Expensify + Uber para empresas',
+                bannerDescription: 'Conecte o Uber for Business para automatizar despesas de viagens e entrega de refeições em toda a sua organização.',
+                emptyContent: {
+                    title: 'Nenhum membro para exibir',
+                    subtitle: 'Procuramos em todos os lugares e não encontramos nada.',
+                },
             },
         },
         perDiem: {
@@ -3962,6 +4008,18 @@ const translations = {
             syncReimbursedReports: 'Sincronizar relatórios reembolsados',
             syncReimbursedReportsDescription: 'Sempre que um relatório for pago usando Expensify ACH, o pagamento correspondente da fatura será criado na conta Sage Intacct abaixo.',
             paymentAccount: 'Conta de pagamento Sage Intacct',
+            accountingMethods: {
+                label: 'Quando Exportar',
+                description: 'Escolha quando exportar as despesas:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Acumulação',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Dinheiro',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Despesas do próprio bolso serão exportadas quando aprovadas em definitivo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Despesas do próprio bolso serão exportadas quando pagas',
+                },
+            },
         },
         netsuite: {
             subsidiary: 'Subsidiária',
@@ -4434,6 +4492,8 @@ const translations = {
             disclaimer:
                 'O Expensify Visa® Commercial Card é emitido pelo The Bancorp Bank, N.A., Membro FDIC, de acordo com uma licença da Visa U.S.A. Inc. e pode não ser aceito em todos os comerciantes que aceitam cartões Visa. Apple® e o logotipo da Apple® são marcas registradas da Apple Inc., registradas nos EUA e em outros países. App Store é uma marca de serviço da Apple Inc. Google Play e o logotipo do Google Play são marcas registradas da Google LLC.',
             issueCard: 'Emitir cartão',
+            euUkDisclaimer:
+                'Os cartões fornecidos a residentes do EEE são emitidos pela Transact Payments Malta Limited, enquanto os cartões fornecidos a residentes do Reino Unido são emitidos pela Transact Payments Limited, de acordo com a licença da Visa Europe Limited. A Transact Payments Malta Limited é devidamente autorizada e regulamentada pela Autoridade de Serviços Financeiros de Malta como uma instituição financeira, de acordo com a Lei de Instituições Financeiras de 1994. Número de registro C 91879. A Transact Payments Limited é autorizada e regulamentada pela Comissão de Serviços Financeiros de Gibraltar.',
             findCard: 'Encontrar cartão',
             newCard: 'Novo cartão',
             name: 'Nome',
@@ -4902,6 +4962,18 @@ const translations = {
             taxCode: 'Código fiscal',
             updateTaxCodeFailureMessage: 'Ocorreu um erro ao atualizar o código de imposto, por favor, tente novamente.',
         },
+        duplicateWorkspace: {
+            title: 'Nomeie seu novo espaço de trabalho',
+            selectFeatures: 'Selecione os recursos a serem copiados',
+            whichFeatures: 'Quais recursos você deseja copiar para o seu novo espaço de trabalho?',
+            confirmDuplicate: '\n\nVocê quer continuar?',
+            categories: 'categorias e suas regras de categorização automática',
+            reimbursementAccount: 'conta de reembolso',
+            delayedSubmission: 'envio atrasado',
+            welcomeNote: 'Comece a usar meu novo espaço de trabalho',
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `Você está prestes a criar e compartilhar ${newWorkspaceName ?? ''} com ${totalMembers ?? 0} membros do espaço de trabalho original.`,
+        },
         emptyWorkspace: {
             title: 'Você não tem espaços de trabalho',
             subtitle: 'Acompanhe recibos, reembolse despesas, gerencie viagens, envie faturas e muito mais.',
@@ -5233,8 +5305,7 @@ const translations = {
             continuousReconciliation: 'Reconciliação Contínua',
             saveHoursOnReconciliation:
                 'Economize horas na reconciliação de cada período contábil ao permitir que a Expensify reconcilie continuamente os extratos e liquidações do Cartão Expensify em seu nome.',
-            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
-                `<muted-text-label>Para ativar a reconciliação contínua, habilite a <a href="${accountingAdvancedSettingsLink}">sincronização automática</a> para o ${connectionName}.</muted-text-label>`,
+            enableContinuousReconciliation: 'Para ativar a Reconciliação Contínua, por favor, ative',
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Escolha a conta bancária na qual os pagamentos do seu Expensify Card serão reconciliados.',
                 accountMatches: 'Certifique-se de que esta conta corresponde à sua',
@@ -6630,7 +6701,7 @@ const translations = {
         isTransactionBillable: 'Escolha se a transação é faturável',
         keepThisOne: 'Keep this one',
         confirmDetails: `Confirme os detalhes que você está mantendo`,
-        confirmDuplicatesInfo: `As solicitações duplicadas que você não mantiver serão mantidas para o membro excluir.`,
+        confirmDuplicatesInfo: `Os duplicados que você não mantiver serão retidos para que o remetente os exclua.`,
         hold: 'Esta despesa foi colocada em espera',
         resolvedDuplicates: 'resolvido o duplicado',
     },

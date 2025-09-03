@@ -61,6 +61,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [error, setError] = useState<TranslationPaths | undefined>();
 
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
@@ -139,7 +140,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         }
 
         const filteredMembers =
-            debouncedSearchTerm !== '' ? tokenizedSearch(members, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? '']) : members;
+            debouncedSearchTerm !== ''
+                ? tokenizedSearch(members, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? ''])
+                : members;
 
         return [
             {
@@ -149,15 +152,16 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             },
         ];
     }, [
+        selectedMembers,
         approvalWorkflow?.availableMembers,
         debouncedSearchTerm,
-        policy?.preventSelfApproval,
+        countryCode,
+        localeCompare,
         policy?.employeeList,
         policy?.owner,
-        selectedMembers,
-        approversEmail,
+        policy?.preventSelfApproval,
         personalDetailLogins,
-        localeCompare,
+        approversEmail,
     ]);
 
     const goBack = useCallback(() => {

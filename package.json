@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.1.98-11",
+  "version": "9.2.1-2",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -46,7 +46,7 @@
     "test:debug": "TZ=utc NODE_OPTIONS='--inspect-brk --experimental-vm-modules' jest --runInBand",
     "perf-test": "NODE_OPTIONS=--experimental-vm-modules npx reassure",
     "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc",
-    "lint": "NODE_OPTIONS=--max_old_space_size=8192 eslint . --max-warnings=222 --cache --cache-location=node_modules/.cache/eslint",
+    "lint": "NODE_OPTIONS=--max_old_space_size=8192 eslint . --max-warnings=216 --cache --cache-location=node_modules/.cache/eslint",
     "lint-changed": "NODE_OPTIONS=--max_old_space_size=8192 ./scripts/lintChanged.sh",
     "lint-watch": "npx eslint-watch --watch --changed",
     "shellcheck": "./scripts/shellCheck.sh",
@@ -87,7 +87,7 @@
     "@expensify/nitro-utils": "file:./modules/ExpensifyNitroUtils",
     "@expensify/react-native-background-task": "file:./modules/background-task",
     "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app",
-    "@expensify/react-native-live-markdown": "0.1.299",
+    "@expensify/react-native-live-markdown": "0.1.302",
     "@expensify/react-native-wallet": "^0.1.5",
     "@expo/metro-runtime": "^5.0.4",
     "@firebase/app": "^0.13.2",
@@ -118,8 +118,8 @@
     "@react-navigation/native-stack": "7.3.14",
     "@react-navigation/stack": "7.3.3",
     "@react-ng/bounds-observer": "^0.2.1",
-    "@rnmapbox/maps": "10.1.33",
-    "@shopify/flash-list": "1.8.2",
+    "@rnmapbox/maps": "10.1.41",
+    "@shopify/flash-list": "2.0.3",
     "@ua/react-native-airship": "~24.4.0",
     "awesome-phonenumber": "^5.4.0",
     "babel-polyfill": "^6.26.0",
@@ -138,6 +138,7 @@
     "expo-image-manipulator": "^13.1.5",
     "fast-equals": "^5.2.2",
     "focus-trap-react": "^11.0.3",
+    "group-ib-fp": "file:modules/group-ib-fp",
     "heic-to": "^1.1.13",
     "howler": "^2.2.4",
     "htmlparser2": "^7.2.0",
@@ -179,7 +180,7 @@
     "react-native-modal": "^13.0.0",
     "react-native-nitro-modules": "0.26.2",
     "react-native-nitro-sqlite": "9.1.10",
-    "react-native-onyx": "2.0.133",
+    "react-native-onyx": "2.0.137",
     "react-native-pager-view": "6.5.3",
     "react-native-pdf": "6.7.3",
     "react-native-performance": "^5.1.4",
@@ -203,7 +204,8 @@
     "react-native-webview": "13.13.1",
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",
-    "react-webcam": "^7.1.1"
+    "react-webcam": "^7.1.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@actions/core": "1.10.0",
@@ -362,8 +364,7 @@
     "webpack-bundle-analyzer": "^4.5.0",
     "webpack-cli": "^5.0.4",
     "webpack-dev-server": "^5.2.1",
-    "webpack-merge": "^5.8.0",
-    "xlsx": "file:vendor/xlsx-0.20.3.tgz"
+    "webpack-merge": "^5.8.0"
   },
   "overrides": {
     "braces": "3.0.3",
