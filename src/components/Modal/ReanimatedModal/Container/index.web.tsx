@@ -37,7 +37,8 @@ function Container({
                 {
                     duration: animationInTiming,
                     easing,
-                    // ensuring the callback is called even with reduced motion setting turned on
+                    // on web the callbacks are not called when animations are disabled with the reduced motion setting on
+                    // we enable the animations to make sure they are called
                     reduceMotion: ReduceMotion.Never,
                 },
                 onOpenCallBack,
@@ -54,7 +55,8 @@ function Container({
                 .duration(animationOutTiming)
                 // eslint-disable-next-line react-compiler/react-compiler
                 .withCallback(() => onCloseCallbackRef.current())
-                // ensuring the callback is called even with reduced motion setting turned on
+                // on web the callbacks are not called when animations are disabled with the reduced motion setting on
+                // we enable the animations to make sure they are called
                 .reduceMotion(ReduceMotion.Never),
         [animationOutTiming, animationOut],
     );

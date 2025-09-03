@@ -52,6 +52,7 @@ import type {
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
     BusinessBankAccountParams,
+    BusinessRegistrationNumberParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -203,6 +204,7 @@ import type {
     SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
+    SignerInfoMessageParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
@@ -321,6 +323,7 @@ const translations = {
         count: 'Liczba',
         cancel: 'Anuluj',
         dismiss: 'Odrzuć',
+        proceed: 'Proceed',
         yes: 'Tak',
         no: 'Nie',
         ok: 'OK',
@@ -654,6 +657,7 @@ const translations = {
         forwardTo: 'Przekaż do',
         merge: 'Scal',
         unstableInternetConnection: 'Niestabilne połączenie internetowe. Sprawdź swoją sieć i spróbuj ponownie.',
+        enableGlobalReimbursements: 'Włącz globalne zwroty',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -954,6 +958,7 @@ const translations = {
         distance: 'Odległość',
         manual: 'Podręcznik',
         scan: 'Skanuj',
+        map: 'Mapa',
     },
     spreadsheet: {
         upload: 'Prześlij arkusz kalkulacyjny',
@@ -990,6 +995,7 @@ const translations = {
         sizeNotMet: 'Rozmiar pliku musi być większy niż 0 bajtów',
         invalidFileMessage:
             'Plik, który przesłałeś, jest pusty lub zawiera nieprawidłowe dane. Upewnij się, że plik jest poprawnie sformatowany i zawiera niezbędne informacje przed ponownym przesłaniem.',
+        importSpreadsheetLibraryError: 'Nie udało się załadować modułu arkuszy kalkulacyjnych. Sprawdź połączenie z internetem i spróbuj ponownie.',
         importSpreadsheet: 'Importuj arkusz kalkulacyjny',
         downloadCSV: 'Pobierz CSV',
         importMemberConfirmation: () => ({
@@ -1248,6 +1254,7 @@ const translations = {
             invalidCategoryLength: 'Nazwa kategorii przekracza 255 znaków. Proszę ją skrócić lub wybrać inną kategorię.',
             invalidTagLength: 'Nazwa tagu przekracza 255 znaków. Proszę skrócić ją lub wybrać inny tag.',
             invalidAmount: 'Proszę wprowadzić prawidłową kwotę przed kontynuowaniem',
+            invalidDistance: 'Proszę wprowadzić prawidłową odległość przed kontynuowaniem',
             invalidIntegerAmount: 'Proszę wprowadzić pełną kwotę w dolarach przed kontynuowaniem',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Maksymalna kwota podatku to ${amount}`,
             invalidSplit: 'Suma podziałów musi być równa całkowitej kwocie',
@@ -1917,6 +1924,7 @@ const translations = {
                 `Możesz wydać do ${formattedLimit} na tej karcie miesięcznie. Limit zostanie zresetowany pierwszego dnia każdego miesiąca kalendarzowego.`,
         },
         virtualCardNumber: 'Numer karty wirtualnej',
+        physicalCardPin: 'PIN',
         travelCardCvv: 'CVV karty podróżnej',
         physicalCardNumber: 'Numer karty fizycznej',
         getPhysicalCard: 'Uzyskaj fizyczną kartę',
@@ -3014,7 +3022,14 @@ const translations = {
         whatsTheBusinessName: 'Jak nazywa się firma?',
         whatsTheBusinessAddress: 'Jaki jest adres firmy?',
         whatsTheBusinessContactInformation: 'Jakie są dane kontaktowe firmy?',
-        whatsTheBusinessRegistrationNumber: 'Jaki jest numer rejestracyjny firmy?',
+        whatsTheBusinessRegistrationNumber: ({country}: BusinessRegistrationNumberParams) => {
+            switch (country) {
+                case CONST.COUNTRY.GB:
+                    return 'Jaki jest numer rejestracyjny firmy (CRN)?';
+                default:
+                    return 'Jaki jest numer rejestracyjny firmy?';
+            }
+        },
         whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:
@@ -3247,6 +3262,10 @@ const translations = {
         PDSandFSGDescription:
             'Nasze partnerstwo z Corpay wykorzystuje połączenie API, aby skorzystać z ich rozległej sieci międzynarodowych partnerów bankowych do zasilania Globalnych Zwrotów w Expensify. Zgodnie z australijskimi przepisami dostarczamy Ci Przewodnik po Usługach Finansowych (FSG) i Oświadczenie o Ujawnieniu Produktu (PDS) Corpay.\n\nProsimy o uważne przeczytanie dokumentów FSG i PDS, ponieważ zawierają one pełne szczegóły i ważne informacje na temat produktów i usług oferowanych przez Corpay. Zachowaj te dokumenty do przyszłego wglądu.',
         pleaseUpload: 'Proszę przesłać dodatkową dokumentację poniżej, aby pomóc nam zweryfikować Twoją tożsamość jako dyrektora lub starszego urzędnika jednostki gospodarczej.',
+        enterSignerInfo: 'Wprowadź dane osoby podpisującej',
+        thisStep: 'Ten krok został zakończony',
+        isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+            `łączy firmowe konto bankowe w ${currency} kończące się na ${bankAccountLastFour} z Expensify, aby wypłacać wynagrodzenia pracownikom w ${currency}. Następny krok wymaga danych podpisującego – dyrektora lub starszego urzędnika.`,
     },
     agreementsStep: {
         agreements: 'Umowy',
@@ -3460,6 +3479,7 @@ const translations = {
             customField1: 'Pole niestandardowe 1',
             customField2: 'Pole niestandardowe 2',
             customFieldHint: 'Dodaj niestandardowe kodowanie, które dotyczy wszystkich wydatków tego członka.',
+            reports: 'Raporty',
             reportFields: 'Pola raportu',
             reportTitle: 'Tytuł raportu',
             reportField: 'Pole raportu',
@@ -3467,6 +3487,7 @@ const translations = {
             bills: 'Rachunki',
             invoices: 'Faktury',
             travel: 'Podróżować',
+            perDiem: 'Per diem',
             members: 'Członkowie',
             accounting: 'Księgowość',
             receiptPartners: 'Partnerzy paragonów',
@@ -3478,6 +3499,7 @@ const translations = {
             testTransactions: 'Przetestuj transakcje',
             issueAndManageCards: 'Wydawaj i zarządzaj kartami',
             reconcileCards: 'Uzgodnij karty',
+            selectAll: 'Wybierz wszystkie',
             selected: () => ({
                 one: '1 wybrano',
                 other: (count: number) => `${count} wybrano`,
@@ -3491,6 +3513,8 @@ const translations = {
             memberNotFound: 'Nie znaleziono członka. Aby zaprosić nowego członka do przestrzeni roboczej, użyj przycisku zaproszenia powyżej.',
             notAuthorized: `Nie masz dostępu do tej strony. Jeśli próbujesz dołączyć do tego miejsca pracy, poproś właściciela miejsca pracy o dodanie Cię jako członka. Coś innego? Skontaktuj się z ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: 'Przejdź do przestrzeni roboczej',
+            duplicateWorkspace: 'Duplikat obszaru roboczego',
+            duplicateWorkspacePrefix: 'Duplikat',
             goToWorkspaces: 'Przejdź do przestrzeni roboczych',
             clearFilter: 'Wyczyść filtr',
             workspaceName: 'Nazwa przestrzeni roboczej',
@@ -3562,11 +3586,33 @@ const translations = {
             connect: 'Połącz się teraz',
             uber: {
                 subtitle: 'Zautomatyzuj wydatki na podróże i dostawę posiłków w swojej organizacji.',
+                sendInvites: 'Zaproś członków',
+                sendInvitesDescription: 'Ci członkowie obszaru roboczego nie mają jeszcze konta Uber for Business. Odznacz wszystkich członków, których nie chcesz zaprosic w tej chwili.',
+                confirmInvite: 'Potwierdź zaproszenie',
+                manageInvites: 'Zarządzaj zaproszeniami',
+                confirm: 'Potwierdź',
+                allSet: 'Wszystko gotowe',
+                readyToRoll: 'Jesteś gotowy',
+                takeBusinessRideMessage: 'Weź służbowy przejazd, a twoje paragony z Uber zostaną zaimportowane do Expensify. Ruszamy!',
+                all: 'Wszystkie',
+                linked: 'Połączone',
+                outstanding: 'Zaległe',
+                status: {
+                    resend: 'Wyślij ponownie',
+                    invite: 'Zaproś',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED]: 'Połączone',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'Oczekujące',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Zawieszone',
+                },
+                invitationFailure: 'Nie udało się zaprosić członków do Uber for Business',
                 autoRemove: 'Zaproś nowych członków przestrzeni roboczej do Ubera dla Firm',
                 autoInvite: 'Dezaktywuj usuniętych członków przestrzeni roboczej w Uberze dla Firm',
-                manageInvites: 'Zarządzaj zaproszeniami',
                 bannerTitle: 'Expensify + Uber dla firm',
                 bannerDescription: 'Połącz się z Uberem dla Firm, aby zautomatyzować wydatki na podróże i dostawę posiłków w całej organizacji.',
+                emptyContent: {
+                    title: 'Brak członków do wyświetlenia',
+                    subtitle: 'Szukaliśmy wszędzie i nic nie znaleźliśmy.',
+                },
             },
         },
         perDiem: {
@@ -4427,6 +4473,8 @@ const translations = {
                 'The Expensify Visa® Commercial Card jest wydawana przez The Bancorp Bank, N.A., członka FDIC, na podstawie licencji Visa U.S.A. Inc. i może nie być akceptowana u wszystkich sprzedawców, którzy przyjmują karty Visa. Apple® oraz logo Apple® są znakami towarowymi Apple Inc., zarejestrowanymi w USA i innych krajach. App Store jest znakiem usługowym Apple Inc. Google Play oraz logo Google Play są znakami towarowymi Google LLC.',
             issueCard: 'Wydaj kartę',
             findCard: 'Znajdź kartę',
+            euUkDisclaimer:
+                'Karty wydawane mieszkańcom EOG są wydawane przez Transact Payments Malta Limited, a karty wydawane mieszkańcom Wielkiej Brytanii są wydawane przez Transact Payments Limited na podstawie licencji udzielonej przez Visa Europe Limited. Transact Payments Malta Limited jest należycie autoryzowana i regulowana przez Malta Financial Services Authority jako instytucja finansowa na mocy Ustawy o instytucjach finansowych z 1994 r. Numer rejestracyjny C 91879. Transact Payments Limited jest autoryzowana i regulowana przez Gibraltar Financial Service Commission.',
             newCard: 'Nowa karta',
             name: 'Imię',
             lastFour: 'Ostatnie 4',
@@ -4894,6 +4942,18 @@ const translations = {
             importedFromAccountingSoftware: 'Poniższe podatki są importowane z Twojego',
             taxCode: 'Kod podatkowy',
             updateTaxCodeFailureMessage: 'Wystąpił błąd podczas aktualizacji kodu podatkowego, spróbuj ponownie.',
+        },
+        duplicateWorkspace: {
+            title: 'Nazwij swój nowy obszar roboczy',
+            selectFeatures: 'Wybierz funkcje do skopiowania',
+            whichFeatures: 'Które funkcje chcesz skopiować do nowego obszaru roboczego?',
+            confirmDuplicate: '\n\nCzy chcesz kontynuować?',
+            categories: 'kategorie i zasady automatycznej kategoryzacji',
+            reimbursementAccount: 'konto zwrotu',
+            delayedSubmission: 'opóźnione przesłanie',
+            welcomeNote: 'Proszę rozpocząć korzystanie z mojego nowego obszaru roboczego',
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `Zamierzasz utworzyć i udostępnić ${newWorkspaceName ?? ''} członkom ${totalMembers ?? 0} z oryginalnej przestrzeni roboczej.`,
         },
         emptyWorkspace: {
             title: 'Nie masz żadnych przestrzeni roboczych',
@@ -6613,7 +6673,7 @@ const translations = {
         isTransactionBillable: 'Wybierz, czy transakcja jest rozliczalna',
         keepThisOne: 'Keep this one',
         confirmDetails: `Potwierdź szczegóły, które zachowujesz`,
-        confirmDuplicatesInfo: `Duplikaty wniosków, których nie zachowasz, zostaną wstrzymane, aby członek mógł je usunąć.`,
+        confirmDuplicatesInfo: `Duplikaty, których nie zachowasz, zostaną pozostawione do usunięcia przez osobę zgłaszającą.`,
         hold: 'Ten wydatek został wstrzymany',
         resolvedDuplicates: 'rozwiązano duplikat',
     },
