@@ -174,7 +174,6 @@ function ConfirmModal({
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             restoreFocusType={restoreFocusType}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
-            shouldUseReanimatedModal
         >
             <ConfirmContent
                 title={title}
@@ -215,3 +214,4 @@ function ConfirmModal({
 ConfirmModal.displayName = 'ConfirmModal';
 
 export default ConfirmModal;
+export type {ConfirmModalProps};

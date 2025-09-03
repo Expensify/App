@@ -22,6 +22,7 @@ import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getReportDisplayOption} from '@libs/OptionsListUtils';
+import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isDraftReport} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import variables from '@styles/variables';
@@ -48,14 +49,21 @@ function ShareDetailsPage({
     const {translate} = useLocalize();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
+    const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
+
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
-    const isTextShared = currentAttachment?.mimeType === 'txt';
+    const isTextShared = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.TXT;
+    const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
     const [message, setMessage] = useState(isTextShared ? (currentAttachment?.content ?? '') : '');
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
     const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
+
+    const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
+    const validateFileName = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
+    const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? CONST.SHARE_FILE_MIMETYPE.JPEG) : (currentAttachment?.mimeType ?? '');
 
     useEffect(() => {
         if (!currentAttachment?.content || errorTitle) {
@@ -90,10 +98,8 @@ function ShareDetailsPage({
     const currentUserID = getCurrentUserAccountID();
     const shouldShowAttachment = !isTextShared;
 
-    const fileName = currentAttachment?.content.split('/').pop();
-
     const handleShare = () => {
-        if (!currentAttachment) {
+        if (!currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
             return;
         }
 
@@ -105,8 +111,8 @@ function ShareDetailsPage({
         }
 
         readFileAsync(
-            currentAttachment.content,
-            getFileName(currentAttachment.content),
+            fileSource,
+            validateFileName,
             (file) => {
                 if (isDraft) {
                     openReport(
@@ -127,7 +133,7 @@ function ShareDetailsPage({
                 Navigation.navigate(routeToNavigate, {forceReplace: true});
             },
             () => {},
-            currentAttachment.mimeType,
+            fileType,
         );
     };
 
@@ -197,14 +203,14 @@ function ShareDetailsPage({
                                 </View>
                                 <SafeAreaView>
                                     <AttachmentModal
-                                        headerTitle={fileName}
-                                        source={currentAttachment?.content}
-                                        originalFileName={fileName}
+                                        headerTitle={validateFileName}
+                                        source={fileSource}
+                                        originalFileName={validateFileName}
                                         fallbackSource={FallbackAvatar}
                                     >
                                         {({show}) => (
                                             <AttachmentPreview
-                                                source={currentAttachment?.content ?? ''}
+                                                source={fileSource ?? ''}
                                                 aspectRatio={currentAttachment?.aspectRatio}
                                                 onPress={show}
                                                 onLoadError={() => {

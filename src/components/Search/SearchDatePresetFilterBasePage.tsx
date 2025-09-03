@@ -60,7 +60,7 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
             return;
         }
 
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [selectedDateModifier]);
 
     const reset = useCallback(() => {

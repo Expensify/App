@@ -13,7 +13,6 @@ function Help({shouldHideSidePanel, closeSidePanel}: HelpProps) {
             shouldHandleNavigationBack
             propagateSwipe
             swipeDirection={CONST.SWIPE_DIRECTION.RIGHT}
-            shouldUseReanimatedModal
         >
             <HelpContent closeSidePanel={closeSidePanel} />
         </Modal>

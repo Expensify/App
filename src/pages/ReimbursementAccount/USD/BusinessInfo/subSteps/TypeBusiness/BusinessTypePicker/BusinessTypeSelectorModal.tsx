@@ -51,7 +51,6 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
                 onClose();
                 Navigation.dismissModal();
             }}
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={[styles.pb0]}

@@ -56,7 +56,6 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
                 onClose?.();
                 Navigation.dismissModal();
             }}
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={styles.pb0}

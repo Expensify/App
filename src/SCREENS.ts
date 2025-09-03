@@ -59,12 +59,14 @@ const SCREENS = {
         ADVANCED_FILTERS_MERCHANT_RHP: 'Search_Advanced_Filters_Merchant_RHP',
         ADVANCED_FILTERS_REPORT_ID_RHP: 'Search_Advanced_Filters_ReportID_RHP',
         ADVANCED_FILTERS_AMOUNT_RHP: 'Search_Advanced_Filters_Amount_RHP',
+        ADVANCED_FILTERS_TOTAL_RHP: 'Search_Advanced_Filters_Total_RHP',
         ADVANCED_FILTERS_CATEGORY_RHP: 'Search_Advanced_Filters_Category_RHP',
         ADVANCED_FILTERS_KEYWORD_RHP: 'Search_Advanced_Filters_Keyword_RHP',
         ADVANCED_FILTERS_CARD_RHP: 'Search_Advanced_Filters_Card_RHP',
         ADVANCED_FILTERS_TAX_RATE_RHP: 'Search_Advanced_Filters_Tax_Rate_RHP',
         ADVANCED_FILTERS_EXPENSE_TYPE_RHP: 'Search_Advanced_Filters_Expense_Type_RHP',
         ADVANCED_FILTERS_WITHDRAWAL_TYPE_RHP: 'Search_Advanced_Filters_Withdrawal_Type_RHP',
+        ADVANCED_FILTERS_WITHDRAWAL_ID_RHP: 'Search_Advanced_Filters_Withdrawal_ID_RHP',
         ADVANCED_FILTERS_TAG_RHP: 'Search_Advanced_Filters_Tag_RHP',
         ADVANCED_FILTERS_FROM_RHP: 'Search_Advanced_Filters_From_RHP',
         ADVANCED_FILTERS_TO_RHP: 'Search_Advanced_Filters_To_RHP',
@@ -136,6 +138,7 @@ const SCREENS = {
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION: 'Settings_Wallet_ReportVirtualCardFraudConfirmation',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
+            ENABLE_GLOBAL_REIMBURSEMENTS: 'Settings_Wallet_Enable_Global_Reimbursements',
         },
 
         EXIT_SURVEY: {
@@ -192,6 +195,7 @@ const SCREENS = {
         REPORT_DETAILS: 'Report_Details',
         REPORT_CHANGE_WORKSPACE: 'ReportChangeWorkspace',
         WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
+        WORKSPACE_DUPLICATE: 'Workspace_Duplicate',
         REPORT_SETTINGS: 'Report_Settings',
         REPORT_DESCRIPTION: 'Report_Description',
         PARTICIPANTS: 'Participants',
@@ -227,6 +231,7 @@ const SCREENS = {
         DEBUG: 'Debug',
         ADD_UNREPORTED_EXPENSE: 'AddUnreportedExpense',
         SCHEDULE_CALL: 'ScheduleCall',
+        REPORT_CHANGE_APPROVER: 'Report_Change_Approver',
         MERGE_TRANSACTION: 'MergeTransaction',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
@@ -257,7 +262,7 @@ const SCREENS = {
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
         STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
         STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
-        RECEIPT_VIEW_MODAL: 'Money_Request_Receipt_View_Modal',
+        RECEIPT_VIEW: 'Money_Request_Receipt_View',
         STEP_SPLIT_PAYER: 'Money_Request_Step_Split_Payer',
         STEP_SEND_FROM: 'Money_Request_Step_Send_From',
         STEP_COMPANY_INFO: 'Money_Request_Step_Company_Info',
@@ -281,6 +286,7 @@ const SCREENS = {
         DISTANCE_CREATE: 'Money_Request_Distance_Create',
         STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
         STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
+        RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -386,6 +392,7 @@ const SCREENS = {
     },
 
     WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
+    WORKSPACE_DUPLICATE: {ROOT: 'Workspace_Duplicate_Root', SELECT_FEATURES: 'Workspace_Duplicate_Select_Features'},
 
     WORKSPACES_LIST: 'Workspaces_List',
 
@@ -512,6 +519,8 @@ const SCREENS = {
             SAGE_INTACCT_DEFAULT_VENDOR: 'Policy_Accounting_Sage_Intacct_Default_Vendor',
             SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Non_Reimbursable_Credit_Card_Account',
             SAGE_INTACCT_ADVANCED: 'Policy_Accounting_Sage_Intacct_Advanced',
+            SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Sage_Intacct_Auto_Sync',
+            SAGE_INTACCT_ACCOUNTING_METHOD: 'Policy_Accounting_Sage_Intacct_Accounting_Method',
             SAGE_INTACCT_PAYMENT_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Payment_Account',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             RECONCILIATION_ACCOUNT_SETTINGS: 'Policy_Accounting_Reconciliation_Account_Settings',
@@ -551,6 +560,7 @@ const SCREENS = {
         MEMBERS: 'Workspace_Members',
         MEMBERS_IMPORT: 'Members_Import',
         MEMBERS_IMPORTED: 'Members_Imported',
+        MEMBERS_IMPORTED_CONFIRMATION: 'Members_Imported_Confirmation',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
         INVITE_MESSAGE_ROLE: 'Workspace_Invite_Message_Role',
@@ -633,6 +643,8 @@ const SCREENS = {
         DOWNGRADE: 'Workspace_Downgrade',
         PAY_AND_DOWNGRADE: 'Workspace_Pay_And_Downgrade',
         RECEIPT_PARTNERS: 'Workspace_Receipt_Partners',
+        RECEIPT_PARTNERS_INVITE: 'Workspace_Receipt_Partners_Invite',
+        RECEIPT_PARTNERS_INVITE_EDIT: 'Workspace_Receipt_Partners_Invite_Edit',
         RULES: 'Policy_Rules',
         REPORTS_DEFAULT_TITLE: 'Reports_Default_Title',
         RULES_AUTO_APPROVE_REPORTS_UNDER: 'Rules_Auto_Approve_Reports_Under',
@@ -642,6 +654,7 @@ const SCREENS = {
         RULES_MAX_EXPENSE_AMOUNT: 'Rules_Max_Expense_Amount',
         RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
         RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
+        RULES_REIMBURSABLE_DEFAULT: 'Rules_Reimbursable_Default',
         RULES_CUSTOM: 'Rules_Custom',
         RULES_PROHIBITED_DEFAULT: 'Rules_Prohibited_Default',
         PER_DIEM: 'Per_Diem',
@@ -736,6 +749,7 @@ const SCREENS = {
     },
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
+    REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO: 'Reimbursement_Account_Signer_Info',
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     SHARE: {
@@ -762,7 +776,9 @@ const SCREENS = {
         BOOK: 'ScheduleCall_Book',
         CONFIRMATION: 'ScheduleCall_Confirmation',
     },
-
+    REPORT_CHANGE_APPROVER: {
+        ROOT: 'Report_Change_Approver_Root',
+    },
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',
     },

@@ -9,6 +9,7 @@ import {getCountOfEnabledTagsOfList, getTagList} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
 import {getTagListSections} from '@libs/TagsOptionsListUtils';
+import {getTagArrayFromName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
@@ -89,7 +90,9 @@ function TagPicker({
 
         if (!shouldShowDisabledAndSelectedOption && hasDependentTags) {
             // Truncate transactionTag to the current level (e.g., "California:North")
-            const parentTag = transactionTag?.split(':').slice(0, tagListIndex).join(':');
+            const parentTag = getTagArrayFromName(transactionTag ?? '')
+                .slice(0, tagListIndex)
+                .join(':');
 
             return Object.values(policyTagList.tags).filter((policyTag) => {
                 const filterRegex = policyTag.rules?.parentTagsFilter;
