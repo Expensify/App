@@ -395,7 +395,6 @@ function getValidOptions(
     // Gather shared configs:
     const loginsToExclude: Record<string, boolean> = {
         [CONST.EMAIL.NOTIFICATIONS]: true,
-        [CONST.EMAIL.MANAGER_MCTEST]: true,
         ...excludeLogins,
         [currentUserLogin]: !includeCurrentUser,
     };

@@ -82,12 +82,12 @@ function PersonalDetailsOptionListContextProvider({children}: PersonalDetailsOpt
     const [options, setOptions] = useState<OptionData[]>([]);
     const currentOption = useRef<OptionData | undefined>(undefined);
     const {accountID} = useCurrentUserPersonalDetails();
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true, selector: (val) => mapOnyxCollectionItems(val, rNVPSelector)});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         canBeMissing: true,
         selector: (val) => mapOnyxCollectionItems(Object.fromEntries(Object.entries(val ?? {}).filter(([, value]) => isOneOnOneChat(value) || isSelfDM(value))), reportSelector),
     });
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true, selector: (val) => mapOnyxCollectionItems(val, rNVPSelector)});
     const personalDetails = usePersonalDetails();
 
     const loadOptions = useCallback(() => {

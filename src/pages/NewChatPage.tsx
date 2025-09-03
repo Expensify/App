@@ -261,6 +261,11 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
                 if (!existingLogins.has(option.login ?? '')) {
                     setExtraOptions((prev) => [...prev, {...option, isSelected: true}]);
                 }
+                selectionListRef?.current?.scrollToIndex(0, true);
+            }
+            selectionListRef?.current?.clearInputAfterSelect?.();
+            if (!canUseTouchScreen()) {
+                selectionListRef.current?.focusTextInput();
             }
         },
         [existingLogins, extraOptions],
