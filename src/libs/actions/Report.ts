@@ -139,6 +139,7 @@ import {
     getReportLastVisibleActionCreated,
     getReportMetadata,
     getReportNotificationPreference,
+    getReportOrDraftReport,
     getReportPreviewMessage,
     getReportTransactions,
     getReportViolations,
@@ -205,6 +206,8 @@ import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey} from './CachedPDFPaths';
 import {setDownload} from './Download';
+// eslint-disable-next-line import/no-cycle
+import {hasOutstandingChildRequest} from './IOU';
 import {close} from './Modal';
 import navigateFromNotification from './navigateFromNotification';
 import {getAll} from './PersistedRequests';
@@ -5095,11 +5098,14 @@ function deleteAppReport(reportID: string | undefined) {
         });
     }
 
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
-        value: {hasOutstandingChildRequest: false},
-    });
+    const chatReport = getReportOrDraftReport(report?.parentReportID);
+    if (chatReport) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
+            value: {hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, report?.reportID)},
+        });
+    }
 
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
