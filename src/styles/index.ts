@@ -3651,7 +3651,7 @@ const styles = (theme: ThemeColors) =>
         searchAutocompleteInputResults: {
             borderWidth: 1,
             borderColor: theme.border,
-            minHeight: 52,
+            height: 54,
         },
 
         searchAutocompleteInputResultsFocused: {
