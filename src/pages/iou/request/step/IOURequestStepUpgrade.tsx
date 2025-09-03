@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -52,13 +53,15 @@ function IOURequestStepUpgrade({
     const isCategorizing = featureName === CONST.UPGRADE_FEATURE_INTRO_MAPPING.categories.alias;
 
     const onConfirmUpgrade = useCallback(() => {
+        const reportID = policyDataRef.current?.expenseChatReportID;
+        const policyID = policyDataRef.current?.policyID;
         setMoneyRequestParticipants(transactionID, [
             {
                 selected: true,
                 accountID: 0,
                 isPolicyExpenseChat: true,
-                reportID: policyDataRef.current?.expenseChatReportID,
-                policyID: policyDataRef.current?.policyID,
+                reportID,
+                policyID,
                 searchText: policyDataRef.current?.policyName,
             },
         ]);
@@ -66,14 +69,15 @@ function IOURequestStepUpgrade({
 
         switch (feature?.id) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.distanceRates.id: {
-                if (!policyDataRef.current?.policyID) {
+                if (!policyID || !reportID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyDataRef.current.policyID, transactionID, Navigation.getActiveRoute()));
+                setTransactionReport(transactionID, {reportID}, true);
+                Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID, transactionID, reportID, Navigation.getActiveRoute()));
                 break;
             }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.categories.id:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, policyDataRef.current?.expenseChatReportID));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                 break;
             default:
         }

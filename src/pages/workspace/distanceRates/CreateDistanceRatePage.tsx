@@ -22,6 +22,7 @@ import {createPolicyDistanceRate} from '@userActions/Policy/DistanceRate';
 import {generateCustomUnitID} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyCreateDistanceRateForm';
 import type {Rate} from '@src/types/onyx/Policy';
@@ -30,7 +31,7 @@ type CreateDistanceRatePageProps = PlatformStackScreenProps<SettingsNavigatorPar
 
 function CreateDistanceRatePage({
     route: {
-        params: {policyID, transactionID},
+        params: {policyID, transactionID, reportID},
     },
 }: CreateDistanceRatePageProps) {
     const styles = useThemeStyles();
@@ -41,6 +42,7 @@ function CreateDistanceRatePage({
     const customUnitID = customUnit?.customUnitID;
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
+    const isDistanceRateUpgrade = transactionID && reportID;
 
     const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
 
@@ -64,8 +66,10 @@ function CreateDistanceRatePage({
         };
 
         createPolicyDistanceRate(policyID, customUnitID, newRate);
-        if (transactionID) {
+        if (isDistanceRateUpgrade) {
             setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy, true);
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+            return;
         }
         Navigation.goBack();
     };
@@ -82,7 +86,7 @@ function CreateDistanceRatePage({
                 testID={CreateDistanceRatePage.displayName}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton title={translate('workspace.distanceRates.addRate')} />
+                <HeaderWithBackButton title={isDistanceRateUpgrade ? translate('common.rate') : translate('workspace.distanceRates.addRate')} />
                 <FullPageBlockingView style={[styles.flexGrow1]}>
                     <FormProvider
                         formID={ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM}
