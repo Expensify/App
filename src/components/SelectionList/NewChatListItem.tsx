@@ -1,10 +1,8 @@
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -19,14 +17,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import BaseListItem from './BaseListItem';
 import type {ListItem, UserListItemProps} from './types';
 
-function UserListItem<TItem extends ListItem>({
+function NewChatListItem<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
     isDisabled,
     canSelectMultiple,
     onSelectRow,
-    onCheckboxPress,
     onDismissError,
     shouldPreventEnterKeySubmit,
     rightHandSideComponent,
@@ -34,7 +31,6 @@ function UserListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     pressableStyle,
-    shouldUseDefaultRightHandSideCheckmark,
 }: UserListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -44,14 +40,6 @@ function UserListItem<TItem extends ListItem>({
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
-
-    const handleCheckboxPress = useCallback(() => {
-        if (onCheckboxPress) {
-            onCheckboxPress(item);
-        } else {
-            onSelectRow(item);
-        }
-    }, [item, onCheckboxPress, onSelectRow]);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {
@@ -92,7 +80,6 @@ function UserListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            shouldUseDefaultRightHandSideCheckmark={false}
         >
             {(hovered?: boolean) => (
                 <>
@@ -142,43 +129,12 @@ function UserListItem<TItem extends ListItem>({
                             />
                         </View>
                     )}
-                    {!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
-                        <PressableWithFeedback
-                            accessibilityLabel={item.text ?? ''}
-                            role={CONST.ROLE.BUTTON}
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            disabled={isDisabled || item.isDisabledCheckbox}
-                            onPress={handleCheckboxPress}
-                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.ml3]}
-                        >
-                            <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
-                                {!!item.isSelected && (
-                                    <Icon
-                                        src={Expensicons.Checkmark}
-                                        fill={theme.textLight}
-                                        height={14}
-                                        width={14}
-                                    />
-                                )}
-                            </View>
-                        </PressableWithFeedback>
-                    )}
-                    {!shouldUseDefaultRightHandSideCheckmark && !canSelectMultiple && (
-                        <Checkbox
-                            containerBorderRadius={999}
-                            disabled={isDisabled || item.isDisabledCheckbox}
-                            accessibilityLabel={item.text ?? ''}
-                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.ml3]}
-                            isChecked={item.isSelected}
-                            onPress={handleCheckboxPress}
-                        />
-                    )}
                 </>
             )}
         </BaseListItem>
     );
 }
 
-UserListItem.displayName = 'UserListItem';
+NewChatListItem.displayName = 'NewChatListItem';
 
-export default UserListItem;
+export default NewChatListItem;
