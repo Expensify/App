@@ -9,46 +9,41 @@ import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateQuickbooksOnlineAccountingMethod} from '@libs/actions/connections/QuickbooksOnline';
+import {updateSageIntacctAccountingMethod} from '@libs/actions/connections/SageIntacct';
+import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
-import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
-type QuickbooksAccountingMethodPageRouteParams = {
-    backTo?: Route;
-};
-
-function QuickbooksAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
+function SageIntacctAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id;
-    const {backTo} = route.params as QuickbooksAccountingMethodPageRouteParams;
     const styles = useThemeStyles();
-    const config = policy?.connections?.quickbooksOnline?.config;
-    const accountingMethod = config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
+    const config = policy?.connections?.intacct?.config;
+    const accountingMethod = config?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
+
     const data: MenuListItem[] = Object.values(COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD).map((accountingMethodType) => ({
         value: accountingMethodType,
-        text: translate(`workspace.qbo.accountingMethods.values.${accountingMethodType}` as TranslationPaths),
-        alternateText: translate(`workspace.qbo.accountingMethods.alternateText.${accountingMethodType}` as TranslationPaths),
+        text: translate(`workspace.sageIntacct.accountingMethods.values.${accountingMethodType}` as TranslationPaths),
+        alternateText: translate(`workspace.sageIntacct.accountingMethods.alternateText.${accountingMethodType}` as TranslationPaths),
         keyForList: accountingMethodType,
         isSelected: accountingMethod === accountingMethodType,
     }));
 
     const pendingAction =
-        settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_SYNC], config?.pendingFields) ?? settingsPendingAction([CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
+        settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC], config?.pendingFields) ?? settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
 
     const headerContent = useMemo(
         () => (
             <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.accountingMethods.description')}</Text>
+                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.sageIntacct.accountingMethods.description')}</Text>
             </View>
         ),
         [translate, styles.pb5, styles.ph5],
@@ -56,18 +51,18 @@ function QuickbooksAccountingMethodPage({policy, route}: WithPolicyConnectionsPr
 
     const selectExpenseReportApprovalLevel = useCallback(
         (row: MenuListItem) => {
-            if (row.value !== config?.accountingMethod) {
-                updateQuickbooksOnlineAccountingMethod(policyID, row.value, config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH);
+            if (row.value !== accountingMethod) {
+                updateSageIntacctAccountingMethod(policyID, row.value, accountingMethod);
             }
-            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID, backTo));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID));
         },
-        [config?.accountingMethod, policyID, backTo],
+        [accountingMethod, policyID],
     );
 
     return (
         <SelectionScreen
-            displayName={QuickbooksAccountingMethodPage.displayName}
-            headerTitleAlreadyTranslated={translate('workspace.qbo.accountingMethods.label')}
+            displayName={SageIntacctAccountingMethodPage.displayName}
+            headerTitleAlreadyTranslated={translate('workspace.sageIntacct.accountingMethods.label')}
             headerContent={headerContent}
             sections={[{data}]}
             listItem={RadioListItem}
@@ -76,14 +71,14 @@ function QuickbooksAccountingMethodPage({policy, route}: WithPolicyConnectionsPr
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID, backTo))}
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID))}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             pendingAction={pendingAction}
             shouldBeBlocked={!config?.autoSync?.enabled}
         />
     );
 }
 
-QuickbooksAccountingMethodPage.displayName = 'QuickbooksAccountingMethodPage';
+SageIntacctAccountingMethodPage.displayName = 'SageIntacctAccountingMethodPage';
 
-export default withPolicyConnections(QuickbooksAccountingMethodPage);
+export default withPolicyConnections(SageIntacctAccountingMethodPage);

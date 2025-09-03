@@ -19,7 +19,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported, openReport, openUnreportedExpense} from '@libs/actions/Report';
+import {
+    createTransactionThreadReport,
+    deleteAppReport,
+    downloadReportPDF,
+    exportReportToCSV,
+    exportReportToPDF,
+    exportToIntegration,
+    markAsManuallyExported,
+    openUnreportedExpense,
+} from '@libs/actions/Report';
 import {queueExportSearchWithTemplate, search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
@@ -36,7 +45,6 @@ import {getIOUActionForReportID, getOriginalMessage, getReportAction, isMoneyReq
 import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
-    buildTransactionThread,
     changeMoneyRequestHoldStatus,
     getArchiveReason,
     getIntegrationExportIcon,
@@ -834,9 +842,8 @@ function MoneyReportHeader({
                         const duplicateTransaction = transactions.find((reportTransaction) => isDuplicate(reportTransaction));
                         const transactionID = duplicateTransaction?.transactionID;
                         const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
-                        const optimisticTransactionThread = buildTransactionThread(iouAction, moneyRequestReport);
-                        threadID = optimisticTransactionThread.reportID;
-                        openReport(threadID, undefined, session?.email ? [session?.email] : [], optimisticTransactionThread, iouAction?.reportActionID);
+                        const createdTransactionThreadReport = createTransactionThreadReport(moneyRequestReport, iouAction);
+                        threadID = createdTransactionThreadReport?.reportID;
                     }
                     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
                 }}
