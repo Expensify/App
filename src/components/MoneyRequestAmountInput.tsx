@@ -220,6 +220,7 @@ function MoneyRequestAmountInput({
             }}
             symbol={getLocalizedCurrencySymbol(currency) ?? ''}
             symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
+            currency={currency}
             hideSymbol={hideCurrencySymbol}
             isSymbolPressable={isCurrencyPressable}
             shouldShowBigNumberPad={shouldShowBigNumberPad}

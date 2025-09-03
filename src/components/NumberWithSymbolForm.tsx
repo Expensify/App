@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
 import usePrevious from '@hooks/usePrevious';
@@ -32,6 +32,9 @@ type NumberWithSymbolFormProps = {
 
     /** Number of decimals to display in the number */
     decimals?: number;
+
+    /** Currency of the input */
+    currency: string;
 
     /** Whether the big number pad should be shown */
     shouldShowBigNumberPad?: boolean;
@@ -99,6 +102,7 @@ const NUM_PAD_VIEW_ID = 'numPadView';
 function NumberWithSymbolForm({
     value: number,
     symbol = '',
+    currency = '',
     symbolPosition = CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX,
     hideSymbol = false,
     decimals = 0,
@@ -413,7 +417,7 @@ function NumberWithSymbolForm({
                 setSelection({start, end});
             }}
             onKeyPress={textInputKeyPress}
-            isSymbolPressable={isSymbolPressable}
+            isSymbolPressable={isSymbolPressable && !shouldWrapInputInContainer}
             symbolTextStyle={symbolTextStyle}
             style={style}
             containerStyle={containerStyle}
@@ -442,36 +446,67 @@ function NumberWithSymbolForm({
     );
 
     return (
-        <>
+        <ScrollView contentContainerStyle={styles.flexGrow1}>
             {shouldWrapInputInContainer ? (
-                <View
-                    id={NUMBER_VIEW_ID}
-                    onMouseDown={(event) => focusTextInput(event, [NUMBER_VIEW_ID])}
-                    style={[styles.moneyRequestAmountContainer, styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
-                >
-                    {textInputComponent}
-                    {!!errorText && (
-                        <FormHelpMessage
-                            style={[styles.pAbsolute, styles.b0, shouldShowBigNumberPad ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
-                            isError
-                            message={errorText}
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <View
+                        id={NUMBER_VIEW_ID}
+                        onMouseDown={(event) => focusTextInput(event, [NUMBER_VIEW_ID])}
+                        style={[styles.moneyRequestAmountContainer, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+                    >
+                        {textInputComponent}
+                        {!!errorText && (
+                            <FormHelpMessage
+                                style={[styles.pAbsolute, styles.b0, shouldShowBigNumberPad ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
+                                isError
+                                message={errorText}
+                            />
+                        )}
+                    </View>
+
+                    {isSymbolPressable && !canUseTouchScreen && (
+                        <Button
+                            shouldShowRightIcon
+                            small
+                            iconRight={Expensicons.DownArrow}
+                            onPress={onSymbolButtonPress}
+                            style={styles.minWidth18}
+                            isContentCentered
+                            text={currency}
                         />
                     )}
                 </View>
             ) : (
                 textInputComponent
             )}
-            {allowFlippingAmount && canUseTouchScreen && (
-                <Button
-                    shouldShowRightIcon
-                    small
-                    iconRight={Expensicons.PlusMinus}
-                    onPress={toggleNegative}
-                    style={styles.minWidth18}
-                    isContentCentered
-                    text={translate('iou.flip')}
-                />
-            )}
+
+            <View>
+                <View style={[styles.flexRow, styles.justifyContentCenter, styles.mb2, styles.gap2]}>
+                    {isSymbolPressable && canUseTouchScreen && (
+                        <Button
+                            shouldShowRightIcon
+                            small
+                            iconRight={Expensicons.DownArrow}
+                            onPress={onSymbolButtonPress}
+                            style={styles.minWidth18}
+                            isContentCentered
+                            text={currency}
+                        />
+                    )}
+                    {allowFlippingAmount && canUseTouchScreen && (
+                        <Button
+                            shouldShowRightIcon
+                            small
+                            iconRight={Expensicons.PlusMinus}
+                            onPress={toggleNegative}
+                            style={styles.minWidth18}
+                            isContentCentered
+                            text={translate('iou.flip')}
+                        />
+                    )}
+                </View>
+            </View>
+
             {shouldShowBigNumberPad || !!footer ? (
                 <View
                     onMouseDown={(event) => focusTextInput(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
@@ -488,7 +523,7 @@ function NumberWithSymbolForm({
                     {footer}
                 </View>
             ) : null}
-        </>
+        </ScrollView>
     );
 }
 
