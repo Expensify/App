@@ -10,44 +10,18 @@ import type {
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionList/types';
-import {generateReportID} from '@libs/ReportUtils';
-import type * as ReportUtils from '@libs/ReportUtils';
-import Navigation from '@navigation/Navigation';
-import {openReport} from '@userActions/Report';
-import type * as ReportUserActions from '@userActions/Report';
-import {updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
-import type * as SearchUtils from '@userActions/Search';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
-import {openTransactionThreadReport} from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import createRandomReportAction from '../../utils/collections/reportActions';
-import {createRandomReport} from '../../utils/collections/reports';
 import {formatPhoneNumber, localeCompare} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
-jest.mock('@src/libs/Navigation/Navigation', () => ({
-    navigate: jest.fn(),
-}));
-jest.mock('@src/libs/ReportUtils', () => ({
-    ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
-    generateReportID: jest.fn(),
-}));
-jest.mock('@userActions/Search', () => ({
-    ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
-    updateSearchResultsWithTransactionThreadReportID: jest.fn(),
-}));
-jest.mock('@userActions/Report', () => ({
-    ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
-    openReport: jest.fn(),
-}));
 
 const adminAccountID = 18439984;
 const adminEmail = 'admin@policy.com';
@@ -63,13 +37,10 @@ const reportID2 = '11111';
 const reportID3 = '99999';
 const reportID4 = '6155022250251839';
 const reportID5 = '22222';
-const iouReportID = '6';
-const iouReportActionID = '6';
 const transactionID = '1';
 const transactionID2 = '2';
 const transactionID3 = '3';
 const transactionID4 = '4';
-const transactionID6 = '6';
 const cardID = 20202020;
 const cardID2 = 30303030;
 const entryID = 5;
@@ -1393,8 +1364,6 @@ describe('SearchUIUtils', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, createRandomReport(Number(iouReportID)));
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {[iouReportActionID]: createRandomReportAction(Number(iouReportActionID))});
         await IntlStore.load('en');
     });
     describe('Test getAction', () => {
@@ -2537,48 +2506,6 @@ describe('SearchUIUtils', () => {
 
             // Should not show tag column because it's the empty tag value
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(false);
-        });
-    });
-
-    describe('openTransactionThreadReport', () => {
-        const transactionItemWithLoadedIOUReport = {
-            report: {reportID: iouReportID},
-            moneyRequestReportActionID: iouReportActionID,
-            transactionID: transactionID6,
-        } as TransactionListItemType;
-        const unloadedReportID = '000';
-        const transactionItemWithoutLoadedIOUReport = {
-            report: {reportID: unloadedReportID},
-            moneyRequestReportActionID: '111',
-            transactionID: transactionID6,
-        } as TransactionListItemType;
-        const searchHash = 1234;
-
-        it('Should update search results with optimistic thread report id and navigate to it', () => {
-            const optimisticThreadReportID = 'optimisticThreadReportID';
-
-            (generateReportID as jest.Mock).mockReturnValue(optimisticThreadReportID);
-            openTransactionThreadReport(transactionItemWithLoadedIOUReport, searchHash);
-
-            expect(updateSearchResultsWithTransactionThreadReportID).toHaveBeenCalledWith(searchHash, transactionID6, optimisticThreadReportID);
-            expect(Navigation.navigate).toHaveBeenCalledWith(
-                ROUTES.SEARCH_REPORT.getRoute({
-                    reportID: optimisticThreadReportID,
-                    moneyRequestReportActionID: iouReportActionID,
-                    transactionID: transactionID6,
-                    iouReportID,
-                }),
-            );
-        });
-
-        it('Should not load iou report data if it was loaded before', () => {
-            openTransactionThreadReport(transactionItemWithLoadedIOUReport, searchHash);
-            expect(openReport).not.toHaveBeenCalled();
-        });
-
-        it('Should load iou report data if it was not loaded before', () => {
-            openTransactionThreadReport(transactionItemWithoutLoadedIOUReport, searchHash);
-            expect(openReport).toHaveBeenCalledWith(unloadedReportID);
         });
     });
 });

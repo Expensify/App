@@ -20,10 +20,10 @@ import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
-import {buildTransactionThread, generateReportID, isValidReportIDFromPath} from '@libs/ReportUtils';
+import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
-import {openReport} from '@userActions/Report';
+import {createTransactionThreadReport, openReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ActionListContextType, ScrollPosition} from '@src/pages/home/ReportScreenContext';
@@ -62,7 +62,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const flatListRef = useRef<FlatList>(null);
     const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
-    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportIDFromRoute);
     const {transactions: allReportTransactions} = useTransactionsAndViolationsForReport(reportIDFromRoute);
@@ -79,18 +78,16 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     useEffect(() => {
         if (transactionThreadReportID === CONST.FAKE_REPORT_ID) {
-            const optimisticTransactionThreadReportID = generateReportID();
             const oneTransactionID = reportTransactions.at(0)?.transactionID;
             const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
-            const optimisticTransactionThread = buildTransactionThread(iouAction, report, undefined, optimisticTransactionThreadReportID);
-            openReport(optimisticTransactionThreadReportID, undefined, currentUserEmail ? [currentUserEmail] : [], optimisticTransactionThread, iouAction?.reportActionID);
+            createTransactionThreadReport(report, iouAction);
             return;
         }
 
         openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined);
         // We don't want this hook to re-run on the every report change
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [currentUserEmail, reportIDFromRoute, transactionThreadReportID]);
+    }, [reportIDFromRoute, transactionThreadReportID]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(

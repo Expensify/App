@@ -92,7 +92,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import HeaderView from './HeaderView';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionsView from './report/ReportActionsView';
@@ -166,8 +165,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID),
         canBeMissing: true,
     });
-    const [iouReportMetadata, iouReportMetadataResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params?.iouReportID}`, {canBeMissing: true});
-    const isLoadingIOUReportData = !!route.params?.iouReportID && (isLoadingOnyxValue(iouReportMetadataResult) || !!iouReportMetadata?.isLoadingInitialReportActions);
     const deletedParentAction = isDeletedParentAction(parentReportAction);
     const prevDeletedParentAction = usePrevious(deletedParentAction);
 
@@ -840,7 +837,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 testID="report-actions-view-wrapper"
                             >
-                                {(!report || shouldWaitForTransactions || isLoadingIOUReportData) && <ReportActionsSkeletonView />}
+                                {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
                                 {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
                                     <ReportActionsView
                                         report={report}

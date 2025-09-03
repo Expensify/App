@@ -17,7 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {openSearch} from '@libs/actions/Search';
+import {openSearch, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
 import Timing from '@libs/actions/Timing';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -43,7 +43,6 @@ import {
     isTransactionListItemType,
     isTransactionMemberGroupListItemType,
     isTransactionWithdrawalIDGroupListItemType,
-    openTransactionThreadReport,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
@@ -575,7 +574,12 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && item.isOneTransactionReport && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                openTransactionThreadReport(item, hash, backTo);
+                const iouReportAction = getIOUActionForTransactionID(reportActionsArray, item.transactionID);
+                const transactionThreadReport = createTransactionThreadReport(item.report, iouReportAction);
+                if (transactionThreadReport?.reportID) {
+                    updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
+                }
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo}));
                 return;
             }
 
@@ -622,17 +626,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             if (isTransactionGroupListItemType(item)) {
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}));
-                return;
-            }
-
-            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionItem && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const iouReportAction = getIOUActionForTransactionID(reportActionsArray, item.transactionID);
-                const transactionThreadReport = createTransactionThreadReport(item.report, iouReportAction);
-                if (transactionThreadReport?.reportID) {
-                    updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
-                }
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo}));
                 return;
             }
 
