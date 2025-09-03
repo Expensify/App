@@ -26,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getRouteForCurrentStep} from '@libs/ReimbursementAccountUtils';
+import {getRouteForCurrentStep, hasInProgressVBBA, hasInProgressUSDVBBA} from '@libs/ReimbursementAccountUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -127,26 +127,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         };
     }
 
-    /**
-     * Returns true if a VBBA exists in any state other than OPEN or LOCKED
-     */
-    const hasInProgressVBBA = useCallback((): boolean => {
-        return !!achData?.bankAccountID && !!achData?.state && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED;
-    }, [achData?.bankAccountID, achData?.state]);
-
-    /** Returns true if user passed first step of flow for non USD VBBA */
-    const hasInProgressNonUSDVBBA = useCallback((): boolean => {
-        return (!!achData?.bankAccountID && !!achData?.created) || nonUSDCountryDraftValue !== '';
-    }, [achData?.bankAccountID, achData?.created, nonUSDCountryDraftValue]);
-
-    /** Returns true if VBBA flow is in progress */
     const shouldShowContinueSetupButtonValue = useMemo(() => {
-        if (isNonUSDWorkspace) {
-            return hasInProgressNonUSDVBBA();
-        }
-
-        return hasInProgressVBBA();
-    }, [isNonUSDWorkspace, hasInProgressNonUSDVBBA, hasInProgressVBBA]);
+        return hasInProgressVBBA(achData, isNonUSDWorkspace, nonUSDCountryDraftValue);
+    }, [achData, isNonUSDWorkspace, nonUSDCountryDraftValue]);
 
     /**
      When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
@@ -224,7 +207,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
                 prevReimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 reimbursementAccount?.pendingAction !== prevReimbursementAccount.pendingAction
             ) {
-                setShouldShowContinueSetupButton(hasInProgressVBBA());
+                setShouldShowContinueSetupButton(hasInProgressUSDVBBA(achData));
             }
 
             if (shouldShowContinueSetupButton) {
@@ -325,7 +308,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
         switch (currentStep) {
             case CONST.BANK_ACCOUNT.STEP.COUNTRY:
-                if (hasInProgressVBBA()) {
+                if (hasInProgressUSDVBBA(achData)) {
                     setShouldShowContinueSetupButton(true);
                 }
                 setUSDBankAccountStep(null);
@@ -370,7 +353,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             default:
                 Navigation.dismissModal();
         }
-    }, [achData?.isOnfidoSetupComplete, achData?.state, currentStep, hasInProgressVBBA, isOffline, onfidoToken]);
+    }, [achData, currentStep, isOffline, onfidoToken]);
 
     const isLoading =
         (isLoadingApp || (reimbursementAccount?.isLoading && !reimbursementAccount?.isCreateCorpayBankAccount)) &&
