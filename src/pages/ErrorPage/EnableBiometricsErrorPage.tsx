@@ -29,6 +29,7 @@ function EnableBiometricsErrorPage() {
                     contentFitImage="fill"
                     title={translate('initialSettingsPage.troubleshoot.biometrics.errorPageTitle')}
                     subtitle={translate('initialSettingsPage.troubleshoot.biometrics.errorPageContent')}
+                    subtitleStyle={styles.textSupporting}
                     testID={EnableBiometricsErrorPage.displayName}
                 />
             </View>
