@@ -1,6 +1,7 @@
 import type * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, screen} from '@testing-library/react-native';
 import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -8,6 +9,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {OptionsListContext} from '@components/OptionListContextProvider';
 import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
+import FakeComponent from '@components/__mocks__/FakeComponent';
 import {createOptionList} from '@libs/OptionsListUtils';
 import ComposeProviders from '@src/components/ComposeProviders';
 import CONST from '@src/CONST';
@@ -110,6 +112,7 @@ afterEach(() => {
 
 const mockOnClose = jest.fn();
 
+
 function SearchAutocompleteInputWrapper() {
     const [value, setValue] = React.useState('');
     return (
@@ -169,4 +172,39 @@ test('[SearchRouter] should react to text input changes', async () => {
             }),
         )
         .then(() => measureRenders(<SearchAutocompleteInputWrapper />, {scenario}));
+});
+
+test('[SearchRouter] fake test that will fail', async () => {
+    const scenario = async () => {
+        await screen.findByTestId('fake-component');
+    };
+
+    return waitForBatchedUpdates()
+        .then(() =>
+            Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+            }),
+        )
+        .then(() => measureRenders(<FakeComponent />, {scenario}));
+});
+
+test('[SearchRouter] another fake test that will definitely fail', async () => {
+    const scenario = async () => {
+        // This will fail because we're trying to find an element that doesn't exist
+        await screen.findByTestId('non-existent-element');
+    };
+
+    return waitForBatchedUpdates()
+        .then(() =>
+            Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+            }),
+        )
+        .then(() => measureRenders(<View testID="some-other-element">Not the element we&apos;re looking for</View>, {scenario}));
 });
