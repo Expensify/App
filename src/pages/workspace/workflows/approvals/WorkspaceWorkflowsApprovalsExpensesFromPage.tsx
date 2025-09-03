@@ -185,7 +185,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const nextStep = useCallback(() => {
         const members: Member[] = selectedMembers.map((member) => ({displayName: member.text, avatar: member.icons?.[0]?.source, email: member.login}));
 
-        if (compareMembers(members, approvalWorkflow?.members ?? [])) {
+        if (compareMembers(members, approvalWorkflow?.availableMembers ?? [])) {
             setError('workflowsExpensesFromPage.notAllowedError');
             return;
         }
@@ -197,7 +197,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         } else {
             goBack();
         }
-    }, [selectedMembers, approvalWorkflow?.availableMembers.length, isInitialCreationFlow, route.params.policyID, goBack]);
+    }, [selectedMembers, approvalWorkflow?.availableMembers, isInitialCreationFlow, route.params.policyID, goBack]);
 
     const button = useMemo(() => {
         let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
