@@ -1,6 +1,7 @@
 import React from 'react';
 import {InteractionManager} from 'react-native';
 import {useSession} from '@components/OnyxListItemProvider';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
@@ -32,6 +33,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const reportID = isUnreported ? transaction?.participants?.at(0)?.reportID : transaction?.reportID;
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const {removeTransaction} = useSearchContext();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateReport = action === CONST.IOU.ACTION.CREATE;
@@ -106,6 +108,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                     session?.email ?? '',
                     allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                 );
+                removeTransaction(transaction.transactionID);
             }
         });
     };
@@ -145,6 +148,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 session?.email ?? '',
             );
+            removeTransaction(transaction.transactionID);
         });
     };
 
