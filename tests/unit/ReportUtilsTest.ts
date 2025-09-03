@@ -2072,6 +2072,18 @@ describe('ReportUtils', () => {
             };
             expect(isChatUsedForOnboarding(report2)).toBeFalsy();
         });
+
+        it('should return true for admins rooms chat when posting tasks in admins room', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
+            });
+
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+            };
+            expect(isChatUsedForOnboarding(report, CONST.ONBOARDING_CHOICES.MANAGE_TEAM)).toBeTruthy();
+        });
     });
 
     describe('canHoldUnholdReportAction', () => {
