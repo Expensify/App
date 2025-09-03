@@ -42,6 +42,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
     const {isOffline} = useNetwork();
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const currency = useCurrencyForExpensifyCard({policyID});
 
     const isEditing = issueNewCard?.isEditing;
@@ -123,7 +124,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
             ];
         }
 
-        const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm).toLowerCase();
+        const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
         const filteredOptions = tokenizedSearch(membersDetails, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
 
         return [
@@ -133,7 +134,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
                 shouldShow: true,
             },
         ];
-    }, [membersDetails, debouncedSearchTerm]);
+    }, [debouncedSearchTerm, countryCode, membersDetails]);
 
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
