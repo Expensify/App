@@ -100,6 +100,7 @@
     "@fullstory/react-native": "^1.7.6",
     "@gorhom/portal": "^1.0.14",
     "@invertase/react-native-apple-authentication": "^2.2.2",
+    "@noble/ed25519": "^3.0.0",
     "@onfido/react-native-sdk": "10.6.0",
     "@pusher/pusher-websocket-react-native": "^1.3.1",
     "@react-native-camera-roll/camera-roll": "7.4.0",
@@ -136,6 +137,7 @@
     "expo-font": "^13.0.4",
     "expo-image": "^2.1.6",
     "expo-image-manipulator": "^13.1.5",
+    "expo-secure-store": "~14.2.4",
     "fast-equals": "^5.2.2",
     "focus-trap-react": "^11.0.3",
     "group-ib-fp": "file:modules/group-ib-fp",
@@ -205,8 +207,7 @@
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",
     "react-webcam": "^7.1.1",
-    "xlsx": "^0.18.5",
-    "expo-secure-store": "~14.2.4"
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@actions/core": "1.10.0",
