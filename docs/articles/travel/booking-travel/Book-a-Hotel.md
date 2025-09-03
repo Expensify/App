@@ -42,7 +42,7 @@ Book hotels in Expensify using the built-in travel tool, available in both Class
 
 - Your booking may require approval depending on your company’s travel policy.
 - You’ll receive a confirmation email once your reservation is complete.
-- The booking receipt will be automatically added to your Expensify account for easier expense tracking.
+- You’ll need to upload your final hotel receipts on Expensify. Hotel expenses in particular are post-paid and your card is only charged after you complete your stay.
 - If the payment card used is importing into your Expensify account, the receipt will automatically merge with the imported expense.
 
 ---
