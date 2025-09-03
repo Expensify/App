@@ -56,6 +56,9 @@ function EnableBiometrcicsModal({isVisible, onCancel = () => {}, registerBiometr
                     }
                 }}
                 onCancel={() => onCancel()}
+                // onModalHide shouldn't be needed when the real biometry is used because there will be no issue with one confirm modal trying to open while the second one didn't completely close 
+                // (i.e. between soft prompt and success notification there will be biometrics actions which will allow soft prompt to close long before we need to show success notification)
+                // Then we would require only one state not two like it is currently.
                 onModalHide={() => {
                     if (!shouldNotifyAboutSuccess) {
                         return;
