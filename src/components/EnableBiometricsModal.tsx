@@ -62,7 +62,7 @@ function EnableBiometrcicsModal({isVisible, onCancel = () => {}, registerBiometr
                 /**
                  * The `onModalHide` prop, along with one of the two states checking if the success notification should be visible, will become redundant when the biometric functionality is integrated.
                  * This is because now we have nothing between soft prompt and success notification thus one confirmation modal attempts to open while another has not fully closed yet which leads to issues.
-                 * 
+                 *
                  * Native biometric actions/popups will prompt us to hide the soft prompt beforehand, ensuring it is fully closed before there's a need to display the success notification.
                  */
                 onModalHide={() => {
