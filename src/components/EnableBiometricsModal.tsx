@@ -11,7 +11,7 @@ import AuthenticationSuccessfulNotification from './AuthenticationSuccessfulNoti
 import ConfirmModal from './ConfirmModal';
 import * as Illustrations from './Icon/Illustrations';
 
-type EnableBiometrcicsVerificationProps = {
+type EnableBiometricsVerificationProps = {
     /** Soft prompt visibility */
     isVisible: boolean;
 
@@ -22,7 +22,7 @@ type EnableBiometrcicsVerificationProps = {
     registerBiometrics?: () => void;
 };
 
-function EnableBiometricsModal({isVisible, onCancel = () => {}, registerBiometrics = () => {}}: EnableBiometrcicsVerificationProps) {
+function EnableBiometricsModal({isVisible, onCancel = () => {}, registerBiometrics = () => {}}: EnableBiometricsVerificationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [shouldNotifyAboutSuccess, setSuccess] = useState(false);
