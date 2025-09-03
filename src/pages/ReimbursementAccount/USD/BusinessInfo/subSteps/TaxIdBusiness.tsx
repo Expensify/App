@@ -6,7 +6,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import BankAccount from '@libs/models/BankAccount';
 import {getFieldRequiredErrors, isValidTaxID} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,7 +25,7 @@ function TaxIdBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const defaultCompanyTaxID = reimbursementAccount?.achData?.companyTaxID ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID;
     const bankAccountState = reimbursementAccount?.achData?.state ?? '';
-    const shouldDisableCompanyTaxID = !!(bankAccountID && defaultCompanyTaxID && ![BankAccount.STATE.SETUP, BankAccount.STATE.VERIFYING].includes(bankAccountState));
+    const shouldDisableCompanyTaxID = !!(bankAccountID && defaultCompanyTaxID && ![CONST.BANK_ACCOUNT_STATE.SETUP, CONST.BANK_ACCOUNT_STATE.VERIFYING].includes(bankAccountState as typeof CONST.BANK_ACCOUNT_STATE.SETUP));
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
