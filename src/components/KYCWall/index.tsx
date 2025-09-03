@@ -1,9 +1,8 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef} from 'react';
+import React from 'react';
 import BaseKYCWall from './BaseKYCWall';
-import type {KYCWallProps, KYCWallRef} from './types';
+import type {KYCWallProps} from './types';
 
-function KYCWall(props: KYCWallProps, ref: ForwardedRef<KYCWallRef>) {
+function KYCWall({ref, ...props}: KYCWallProps) {
     return (
         <BaseKYCWall
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -16,4 +15,4 @@ function KYCWall(props: KYCWallProps, ref: ForwardedRef<KYCWallRef>) {
 
 KYCWall.displayName = 'KYCWall';
 
-export default forwardRef(KYCWall);
+export default KYCWall;

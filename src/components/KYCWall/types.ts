@@ -1,4 +1,4 @@
-import type {RefObject} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -68,6 +68,9 @@ type KYCWallProps = {
 
     /** The policy used for payment */
     policy?: Policy;
+
+    /** Reference to the KYCWall component */
+    ref: ForwardedRef<KYCWallRef>;
 };
 
 type KYCWallRef = {
