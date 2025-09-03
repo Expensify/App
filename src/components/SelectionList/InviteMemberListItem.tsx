@@ -148,37 +148,24 @@ function InviteMemberListItem<TItem extends ListItem>({
                         </View>
                         {!!item.rightElement && item.rightElement}
                         {!!shouldShowCheckBox && (
-                            <PressableWithFeedback
-                                onPress={handleCheckboxPress}
-                                disabled={isDisabled}
-                                role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={item.text ?? ''}
+                            <Checkbox
                                 style={[styles.ml2]}
-                            >
-                                <Checkbox
-                                    isChecked={item.isSelected ?? false}
-                                    onPress={handleCheckboxPress}
-                                    accessibilityLabel={CONST.ROLE.CHECKBOX}
-                                />
-                            </PressableWithFeedback>
+                                disabled={isDisabled || item?.isDisabledCheckbox}
+                                isChecked={item.isSelected ?? false}
+                                accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                onPress={handleCheckboxPress}
+                            />
                         )}
                         {!!shouldShowRadio && (
-                            <PressableWithFeedback
-                                onPress={handleCheckboxPress}
-                                disabled={isDisabled}
-                                role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={item.text ?? ''}
-                                style={[styles.ml2]}
-                            >
                             <Checkbox
+                                style={[styles.ml2]}
                                 shouldSelectOnPressEnter
+                                disabled={isDisabled || item?.isDisabledCheckbox}
                                 containerBorderRadius={999}
-                                accessibilityLabel="SelectMember"
+                                accessibilityLabel={CONST.ROLE.CHECKBOX}
                                 isChecked={item.isSelected}
-                                onPress={() => onSelectRow(item)}
+                                onPress={handleCheckboxPress}
                             />
-                            </PressableWithFeedback>
-
                         )}
                     </View>
                 </EducationalTooltip>
