@@ -28,6 +28,7 @@ import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
+import * as Localize from '@libs/Localize';
 
 function handleActionButtonPress(
     hash: number,
@@ -564,8 +565,8 @@ function getExportTemplates(
     // By default, we always include the expense level export template
     const exportTemplates: ExportTemplate[] = [
         normalizeTemplate(
-            CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
-            {name: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT} as ExportTemplate,
+            CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
+            {name: Localize.translateLocal('export.expenseLevelExport')} as ExportTemplate,
             CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
         ),
     ];
@@ -574,8 +575,8 @@ function getExportTemplates(
     if (includeReportLevelExport) {
         exportTemplates.push(
             normalizeTemplate(
-                CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT,
-                {name: CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT} as ExportTemplate,
+                CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
+                {name: Localize.translateLocal('export.reportLevelExport')} as ExportTemplate,
                 CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
             ),
         );
