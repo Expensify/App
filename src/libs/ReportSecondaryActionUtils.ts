@@ -467,10 +467,11 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     }
 
     if (isExpenseReport) {
-        const isCardTransactionWithCorporateLiability =
-            isSingleTransaction && isCardTransactionUtils(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
+        const hasRestrictedCardTransaction = reportTransactions?.some(
+            (reportTransaction) => isCardTransactionUtils(reportTransaction) && reportTransaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT,
+        );
 
-        if (isCardTransactionWithCorporateLiability) {
+        if (hasRestrictedCardTransaction) {
             return false;
         }
 
