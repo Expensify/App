@@ -875,17 +875,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Esta sala de bate-papo é para qualquer coisa relacionada ao <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Este bate-papo é para faturas entre <strong>${invoicePayer}</strong> e a <strong>${invoiceReceiver}</strong>. Use o botão + para enviar uma fatura.`,
+            `Este bate-papo é para faturas entre <strong>${invoicePayer}</strong> e a <strong>${invoiceReceiver}</strong>. Use o botão <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> para enviar uma fatura.`,
         beginningOfChatHistory: 'Este chat é com',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `É aqui que <strong>${submitterDisplayName}</strong> enviará as despesas para a <strong>${workspaceName}</strong>. Basta usar o botão +.`,
+            `É aqui que <strong>${submitterDisplayName}</strong> enviará as despesas para a <strong>${workspaceName}</strong>. Basta usar o botão <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
         beginningOfChatHistorySelfDM: 'Este é o seu espaço pessoal. Use-o para anotações, tarefas, rascunhos e lembretes.',
         beginningOfChatHistorySystemDM: 'Bem-vindo! Vamos configurá-lo.',
         chatWithAccountManager: 'Converse com o seu gerente de conta aqui',
         sayHello: 'Diga olá!',
         yourSpace: 'Seu espaço',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bem-vindo(a) ao ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Use o botão + para ${additionalText} uma despesa.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use o botão ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} para ${additionalText} uma despesa.`,
         askConcierge: 'Faça perguntas e receba suporte em tempo real 24/7.',
         conciergeSupport: 'Suporte 24/7',
         create: 'criar',
@@ -4008,6 +4008,18 @@ const translations = {
             syncReimbursedReports: 'Sincronizar relatórios reembolsados',
             syncReimbursedReportsDescription: 'Sempre que um relatório for pago usando Expensify ACH, o pagamento correspondente da fatura será criado na conta Sage Intacct abaixo.',
             paymentAccount: 'Conta de pagamento Sage Intacct',
+            accountingMethods: {
+                label: 'Quando Exportar',
+                description: 'Escolha quando exportar as despesas:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Acumulação',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Dinheiro',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Despesas do próprio bolso serão exportadas quando aprovadas em definitivo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Despesas do próprio bolso serão exportadas quando pagas',
+                },
+            },
         },
         netsuite: {
             subsidiary: 'Subsidiária',
@@ -6052,7 +6064,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Nada para mostrar',
-                subtitle: 'Tente ajustar seus critérios de busca ou criar algo com o botão verde +.',
+                subtitle: `Tente ajustar seus critérios de busca ou criar algo com o botão verde ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
             },
             emptyExpenseResults: {
                 title: 'Você ainda não criou nenhuma despesa ainda',
@@ -6690,7 +6702,7 @@ const translations = {
         isTransactionBillable: 'Escolha se a transação é faturável',
         keepThisOne: 'Keep this one',
         confirmDetails: `Confirme os detalhes que você está mantendo`,
-        confirmDuplicatesInfo: `As solicitações duplicadas que você não mantiver serão mantidas para o membro excluir.`,
+        confirmDuplicatesInfo: `Os duplicados que você não mantiver serão retidos para que o remetente os exclua.`,
         hold: 'Esta despesa foi colocada em espera',
         resolvedDuplicates: 'resolvido o duplicado',
     },
