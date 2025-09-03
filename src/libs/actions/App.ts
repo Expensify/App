@@ -28,6 +28,7 @@ import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
 import {isAnonymousUser} from './Session';
+import {removeDraftTransactions} from './TransactionEdit';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
@@ -308,6 +309,8 @@ function getOnyxDataForOpenOrReconnect(
  * Fetches data needed for app initialization
  */
 function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Record<string, string | undefined>) {
+    removeDraftTransactions(false, true);
+
     return getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
         const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
         return API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments));
