@@ -70,7 +70,7 @@ function setOfflineStatus(isCurrentlyOffline: boolean, reason = ''): void {
 let shouldForceOffline = false;
 let isPoorConnectionSimulated: boolean | undefined;
 let connectionChanges: ConnectionChanges | undefined;
-let isNetworkInitialized = false;
+let isNetworkStatusInitialized = false;
 // We do not depend on updates on the UI to determine the network status
 // or the offline status, so we can use `connectWithoutView` here.
 Onyx.connectWithoutView({
@@ -80,7 +80,7 @@ Onyx.connectWithoutView({
             return;
         }
 
-        isNetworkInitialized = true;
+        isNetworkStatusInitialized = true;
 
         simulatePoorConnection(network);
 
@@ -233,7 +233,7 @@ function subscribeToNetInfo(): () => void {
     // Subscribe to the state change event via NetInfo so we can update
     // whether a user has internet connectivity or not.
     const unsubscribeNetInfo = NetInfo.addEventListener((state) => {
-        if (!isNetworkInitialized) {
+        if (!isNetworkStatusInitialized) {
             return;
         }
 
