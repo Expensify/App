@@ -220,7 +220,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import {TransactionViolation} from '@src/types/onyx';
 import type {Accountant, Attendee, Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -4473,10 +4472,10 @@ function getUpdateMoneyRequestParams(
         });
 
         const duplicateViolation = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find(
-            (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            (violation: OnyxTypes.TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
         );
-        if (duplicateViolation && hasModifiedAmount && !!transaction?.transactionID) {
-            const duplicateTransactionIDs = duplicateViolation.data?.duplicates;
+        if (hasModifiedAmount && !!transaction?.transactionID) {
+            const duplicateTransactionIDs = duplicateViolation?.data?.duplicates;
             duplicateTransactionIDs?.push(transaction?.transactionID);
             const currentTransactionViolationsData = duplicateTransactionIDs?.map((id) => ({transactionID: id, violations: allTransactionViolations?.[id] ?? []}));
             const optimisticDataTransactionViolations: OnyxUpdate[] | undefined = currentTransactionViolationsData?.map((transactionViolations) => ({
