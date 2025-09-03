@@ -1640,7 +1640,7 @@ const translations = {
                 notificationContent: 'Face ID による認証に成功しました。',
                 biometricsTest: '生体認証テスト',
                 errorPageTitle: 'エラーが発生しました',
-                errorPageContent: 'デバイスを登録できませんでした。',
+                errorPageContent: 'お使いのデバイスを登録できませんでした。',
             },
         },
         debugConsole: {
