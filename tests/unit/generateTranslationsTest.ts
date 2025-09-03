@@ -776,4 +776,84 @@ describe('generateTranslations', () => {
 
         expect(translateSpy).toHaveBeenCalledTimes(2);
     });
+
+    it('should preserve existing translations for paths not specified in --paths', async () => {
+        const strings = {
+            greeting: 'Hello',
+            farewell: 'Goodbye',
+            common: {
+                save: 'Save',
+                cancel: 'Cancel',
+            },
+            errors: {
+                generic: 'An error occurred',
+                network: 'Network error',
+            },
+            simpleTemplate: (name: string) => `Welcome ${name} to our app`,
+        };
+        mockEn = strings;
+
+        // Create English source file
+        fs.writeFileSync(
+            EN_PATH,
+            dedent(`
+                const strings = ${JSON.stringify(strings)};
+                export default strings;
+            `),
+            'utf8',
+        );
+
+        // Create an existing Italian translation file with all strings already translated
+        fs.writeFileSync(
+            IT_PATH,
+            dedent(`
+                import type en from './en';
+
+                const strings = {
+                    greeting: '[it] Hello (existing)',
+                    farewell: '[it] Goodbye (existing)',
+                    common: {
+                        save: '[it] Save (existing)',
+                        cancel: '[it] Cancel (existing)',
+                    },
+                    errors: {
+                        generic: '[it] An error occurred (existing)',
+                        network: '[it] Network error (existing)',
+                    },
+                    // eslint-disable-next-line no-template-curly-in-string
+                    simpleTemplate: (name: string) => \`[it] Welcome \${name} to our app (existing)\`,
+                };
+                export default strings;
+            `),
+            'utf8',
+        );
+
+        // Only retranslate specific paths - the bug is that existing translations get lost
+        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save,errors.generic'];
+
+        await generateTranslations();
+        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+        // Specified paths should be retranslated (lose the "(existing)" suffix)
+        expect(itContent).toContain('[it] Save');
+        expect(itContent).toContain('[it] An error occurred');
+        expect(itContent).not.toContain('[it] Save (existing)');
+        expect(itContent).not.toContain('[it] An error occurred (existing)');
+
+        // BUG: Existing translations for paths NOT in filter should be preserved
+        expect(itContent).toContain('[it] Hello (existing)');
+        expect(itContent).toContain('[it] Goodbye (existing)');
+        expect(itContent).toContain('[it] Cancel (existing)');
+        expect(itContent).toContain('[it] Network error (existing)');
+        // eslint-disable-next-line no-template-curly-in-string
+        expect(itContent).toContain('[it] Welcome ${name} to our app (existing)');
+
+        // Should NOT contain English versions (which would indicate the bug)
+        expect(itContent).not.toContain("greeting: 'Hello'");
+        expect(itContent).not.toContain("farewell: 'Goodbye'");
+        expect(itContent).not.toContain("cancel: 'Cancel'");
+        expect(itContent).not.toContain("network: 'Network error'");
+        // eslint-disable-next-line no-template-curly-in-string
+        expect(itContent).not.toContain('Welcome ${name} to our app');
+    });
 });
