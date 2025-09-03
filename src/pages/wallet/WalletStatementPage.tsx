@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WalletStatementNavigatorParamList} from '@navigation/types';
 import {generateStatementPDF} from '@userActions/User';
-import {addTrailingForwardSlash} from '@src/CONFIG';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';

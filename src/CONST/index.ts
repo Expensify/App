@@ -8,7 +8,7 @@ import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import variables from '@styles/variables';
-import {addTrailingForwardSlash} from '@src/CONFIG';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';

@@ -4,6 +4,7 @@ import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
 import CONST from './CONST';
 import getPlatform from './libs/getPlatform';
+import addTrailingForwardSlash from './libs/UrlUtils';
 
 // react-native-config doesn't trim whitespace on iOS for some reason so we
 // add a trim() call to prevent headaches
@@ -28,16 +29,6 @@ const getDefaultLegacyPartnerConfig = () => {
         password: 'c3a9ac418ea3f152aae2',
     };
 };
-
-/**
- * Add / to the end of any URL if not present
- */
-function addTrailingForwardSlash(url: string): string {
-    if (!url.endsWith('/')) {
-        return `${url}/`;
-    }
-    return url;
-}
 
 // Set default values to contributor friendly values to make development work out of the box without an .env file
 const ENVIRONMENT = get(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV);
@@ -153,4 +144,3 @@ export default {
     IS_HYBRID_APP: HybridAppModule.isHybridApp(),
 } as const;
 
-export {addTrailingForwardSlash};

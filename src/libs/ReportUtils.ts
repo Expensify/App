@@ -19,7 +19,6 @@ import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvata
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
-import {addTrailingForwardSlash} from '@src/CONFIG';
 import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
@@ -71,6 +70,7 @@ import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/ony
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import addTrailingForwardSlash from './UrlUtils';
 import {createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyRequestParticipants, unholdRequest} from './actions/IOU';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
