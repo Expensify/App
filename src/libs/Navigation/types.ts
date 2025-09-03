@@ -963,13 +963,13 @@ type SettingsNavigatorParamList = {
         policyID: string;
         taxID: string;
     };
+    [SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.INVOICES_COMPANY_NAME]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {

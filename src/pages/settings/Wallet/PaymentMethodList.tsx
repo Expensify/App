@@ -108,6 +108,7 @@ type PaymentMethodListProps = {
     /** Whether the bank accounts should be displayed in private and business sections */
     shouldShowBankAccountSections?: boolean;
 
+    /** The policy ID associated with the workspace, if component is rendered in workspace context */
     policyID?: string;
 };
 
