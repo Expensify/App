@@ -29,7 +29,7 @@ import {
     markAsManuallyExported,
     openUnreportedExpense,
 } from '@libs/actions/Report';
-import {queueExportSearchWithTemplate, search} from '@libs/actions/Search';
+import {getExportTemplates, queueExportSearchWithTemplate, search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
@@ -183,28 +183,7 @@ function MoneyReportHeader({
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
-
-    // Collate the list of user-created in-app export templates
-    const customInAppTemplates = useMemo(() => {
-        const policyTemplates = Object.entries(policy?.exportLayouts ?? {}).map(([templateName, layout]) => ({
-            ...layout,
-            templateName,
-            description: policy?.name,
-            policyID: policy?.id,
-        }));
-
-        // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
-        const csvTemplates = Object.entries(csvExportLayouts ?? {})
-            .filter(([, layout]) => layout.name !== CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV)
-            .map(([templateName, layout]) => ({
-                ...layout,
-                templateName,
-                description: '',
-                policyID: undefined,
-            }));
-
-        return [...policyTemplates, ...csvTemplates];
-    }, [csvExportLayouts, policy]);
+    const exportTemplates = useMemo(() => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, policy), [integrationsExportTemplates, csvExportLayouts, policy]);
 
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
@@ -699,27 +678,14 @@ function MoneyReportHeader({
             },
         };
 
-        // Add any custom IS export templates that have been added to the user's account as export options
-        if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
-            for (const template of integrationsExportTemplates) {
-                options[template.name] = {
-                    text: template.name,
-                    icon: Expensicons.Table,
-                    value: template.name,
-                    onSelected: () => beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, transactionIDs),
-                };
-            }
-        }
-
-        // Add any in-app export templates that the user has created as export options
-        if (customInAppTemplates && customInAppTemplates.length > 0) {
-            for (const template of customInAppTemplates) {
+        if (exportTemplates.length > 0) {
+            for (const template of exportTemplates) {
                 options[template.name] = {
                     text: template.name,
                     icon: Expensicons.Table,
                     value: template.templateName,
                     description: template.description,
-                    onSelected: () => beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, transactionIDs, template.policyID),
+                    onSelected: () => beginExportWithTemplate(template.templateName, template.type, transactionIDs, template.policyID),
                 };
             }
         }
@@ -734,8 +700,8 @@ function MoneyReportHeader({
         transactionIDs,
         isExported,
         beginExportWithTemplate,
-        integrationsExportTemplates,
-        customInAppTemplates,
+        exportTemplates,
+        policy,
     ]);
 
     const primaryActionsImplementation = {
@@ -889,8 +855,8 @@ function MoneyReportHeader({
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryExportReportActions(moneyRequestReport, policy, reportActions, integrationsExportTemplates ?? [], customInAppTemplates ?? []);
-    }, [moneyRequestReport, policy, reportActions, integrationsExportTemplates, customInAppTemplates]);
+        return getSecondaryExportReportActions(moneyRequestReport, policy, exportTemplates ?? []);
+    }, [moneyRequestReport, policy, reportActions, exportTemplates]);
 
     const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
 

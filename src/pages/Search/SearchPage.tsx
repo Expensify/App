@@ -33,6 +33,7 @@ import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
     exportSearchItemsToCSV,
+    getExportTemplates,
     getLastPolicyPaymentMethod,
     payMoneyRequestOnSearch,
     queueExportSearchItemsToCSV,
@@ -210,22 +211,6 @@ function SearchPage({route}: SearchPageProps) {
                 });
             }
 
-            // If the user has any custom integration export templates, add them as export options
-            if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
-                for (const template of integrationsExportTemplates) {
-                    exportOptions.push({
-                        text: template.name,
-                        icon: Expensicons.Table,
-                        onSelected: () => {
-                            // Custom IS templates are not policy specific, so we don't need to pass a policyID
-                            beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined);
-                        },
-                        shouldCloseModalOnSelect: true,
-                        shouldCallAfterModalHide: true,
-                    });
-                }
-            }
-
             // Collate a list of policyIDs from the selected transactions
             const selectedPolicyIDs = [
                 ...new Set(
@@ -235,45 +220,17 @@ function SearchPage({route}: SearchPageProps) {
                 ),
             ];
 
-            // If all of the transactions are on the same policy, add the policy-level in-app export templates as export options
-            if (selectedPolicyIDs.length === 1) {
-                const policyID = selectedPolicyIDs.at(0);
-                const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-                const templates = Object.entries(policy?.exportLayouts ?? {}).map(([templateName, layout]) => ({
-                    ...layout,
-                    templateName,
-                }));
-
-                for (const template of templates) {
+            // Collect a list of export templates available to the user from their account, policy, and custom integrations templates
+            const exportTemplatePolicy = selectedPolicyIDs.length === 1 ? activePolicy : undefined;
+            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, exportTemplatePolicy);
+            if (exportTemplates.length > 0) {
+                for (const template of exportTemplates) {
                     exportOptions.push({
                         text: template.name,
                         icon: Expensicons.Table,
-                        description: policy?.name,
+                        description: template.description,
                         onSelected: () => {
-                            beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, policyID);
-                        },
-                        shouldCloseModalOnSelect: true,
-                        shouldCallAfterModalHide: true,
-                    });
-                }
-            }
-
-            // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
-            const accountInAppTemplates = Object.entries(csvExportLayouts ?? {})
-                .filter(([, layout]) => layout.name !== CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV)
-                .map(([templateName, layout]) => ({
-                    ...layout,
-                    templateName,
-                }));
-
-            if (accountInAppTemplates && accountInAppTemplates.length > 0) {
-                for (const template of accountInAppTemplates) {
-                    exportOptions.push({
-                        text: template.name,
-                        icon: Expensicons.Table,
-                        onSelected: () => {
-                            // Account level in-app export templates are not policy specific, so we don't need to pass a policyID
-                            beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, undefined);
+                            beginExportWithTemplate(template.templateName, template.type, template.policyID);
                         },
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,

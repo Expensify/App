@@ -27,6 +27,7 @@ import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAnd
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
+import { getExportTemplates } from '@libs/actions/Search';
 
 // We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
 const HOLD = 'HOLD';
@@ -57,28 +58,6 @@ function useSelectedTransactionsActions({
 
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
-
-    // Collate the list of user-created in-app export templates
-    const customInAppTemplates = useMemo(() => {
-        const policyTemplates = Object.entries(policy?.exportLayouts ?? {}).map(([templateName, layout]) => ({
-            ...layout,
-            templateName,
-            description: policy?.name,
-            policyID: policy?.id,
-        }));
-
-        // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
-        const csvTemplates = Object.entries(csvExportLayouts ?? {})
-            .filter(([, layout]) => layout.name !== CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV)
-            .map(([templateName, layout]) => ({
-                ...layout,
-                templateName,
-                description: '',
-                policyID: undefined,
-            }));
-
-        return [...policyTemplates, ...csvTemplates];
-    }, [csvExportLayouts, policy]);
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -239,28 +218,17 @@ function useSelectedTransactionsActions({
             }
 
             // If the user has any custom integration export templates, add them as export options
-            if (integrationsExportTemplates && integrationsExportTemplates.length > 0) {
-                for (const template of integrationsExportTemplates) {
-                    exportOptions.push({
-                        text: template.name,
-                        icon: Expensicons.Table,
-                        onSelected: () => beginExportWithTemplate(template.name, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs),
-                    });
-                }
-            }
-
-            // If the user has any custom in-app export templates, add them as export options
-            if (customInAppTemplates && customInAppTemplates.length > 0) {
-                for (const template of customInAppTemplates) {
+            const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, policy);
+            if (exportTemplates.length > 0) {
+                for (const template of exportTemplates) {
                     exportOptions.push({
                         text: template.name,
                         icon: Expensicons.Table,
                         description: template.description,
-                        onSelected: () => beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, selectedTransactionIDs, template.policyID),
+                        onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.policyID),
                     });
                 }
             }
-
             return exportOptions;
         };
 
@@ -354,7 +322,7 @@ function useSelectedTransactionsActions({
         policy,
         beginExportWithTemplate,
         integrationsExportTemplates,
-        customInAppTemplates,
+        csvExportLayouts,
     ]);
 
     return {
