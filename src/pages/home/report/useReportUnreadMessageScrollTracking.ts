@@ -89,7 +89,7 @@ export default function useReportUnreadMessageScrollTracking({
         const minIndex = Math.min(...viewableIndexes);
         const unreadActionIndex = ref.current.unreadMarkerReportActionIndex;
         const hasUnreadMarkerReportAction = unreadActionIndex !== -1;
-        const unreadActionVisible = isInverted ? unreadActionIndex >= minIndex : unreadActionIndex <= maxIndex;
+        const unreadActionVisible = isInverted ? unreadActionIndex >= minIndex : unreadActionIndex < maxIndex;
 
         // display floating button if the unread report action is out of view
         if (!unreadActionVisible && hasUnreadMarkerReportAction) {

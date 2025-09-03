@@ -323,6 +323,7 @@ const translations = {
         count: '计数',
         cancel: '取消',
         dismiss: '忽略',
+        proceed: 'Proceed',
         yes: '是的',
         no: '不',
         ok: '好的',
@@ -656,6 +657,7 @@ const translations = {
         merge: '合并',
         unstableInternetConnection: '互联网连接不稳定。请检查你的网络，然后重试。',
         enableGlobalReimbursements: '启用全球报销',
+        purchaseAmount: '购买金额',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -871,17 +873,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `本聊天室用于与 <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> 有关的任何内容。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `该聊天用于 <strong>${invoicePayer}</strong> 和 <strong>${invoiceReceiver}</strong> 之间的发票。使用 + 按钮发送发票。`,
+            `该聊天用于 <strong>${invoicePayer}</strong> 和 <strong>${invoiceReceiver}</strong> 之间的发票。使用 <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> 按钮发送发票。`,
         beginningOfChatHistory: '此聊天是与',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `这是<strong>${submitterDisplayName}</strong> 向<strong>${workspaceName}</strong> 提交费用的地方。使用 + 按钮即可。`,
+            `这是<strong>${submitterDisplayName}</strong> 向<strong>${workspaceName}</strong> 提交费用的地方。使用 <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> 按钮即可。`,
         beginningOfChatHistorySelfDM: '这是您的个人空间。用于记录笔记、任务、草稿和提醒。',
         beginningOfChatHistorySystemDM: '欢迎！让我们为您进行设置。',
         chatWithAccountManager: '在这里与您的客户经理聊天',
         sayHello: '说你好！',
         yourSpace: '您的空间',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `欢迎来到${roomName}！`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `使用 + 按钮${additionalText}一笔费用。`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` 使用 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮${additionalText}一笔费用。`,
         askConcierge: '随时提问并获得全天候实时支持。',
         conciergeSupport: '24/7 支持',
         create: '创建',
@@ -989,6 +991,7 @@ const translations = {
         importDescription: '通过点击每个导入列旁边的下拉菜单，选择要从电子表格中映射的字段。',
         sizeNotMet: '文件大小必须大于0字节',
         invalidFileMessage: '您上传的文件要么是空的，要么包含无效数据。请确保文件格式正确并包含必要的信息，然后再重新上传。',
+        importSpreadsheetLibraryError: '加载电子表格模块失败。请检查您的互联网连接并重试。',
         importSpreadsheet: '导入电子表格',
         downloadCSV: '下载 CSV',
         importMemberConfirmation: () => ({
@@ -1905,6 +1908,7 @@ const translations = {
         physicalCardNumber: '实体卡号',
         getPhysicalCard: '获取实体卡',
         reportFraud: '报告虚拟卡欺诈',
+        physicalCardPin: 'PIN',
         reportTravelFraud: '报告旅行卡欺诈',
         reviewTransaction: '查看交易',
         suspiciousBannerTitle: '可疑交易',
@@ -3432,12 +3436,14 @@ const translations = {
             customField1: '自定义字段 1',
             customField2: '自定义字段2',
             customFieldHint: '添加适用于该成员所有支出的自定义编码。',
+            reports: '报告',
             reportFields: '报告字段',
             reportTitle: '报告标题',
             reportField: '报告字段',
             taxes: '税款',
             bills: '账单',
             invoices: '发票',
+            perDiem: 'Per diem',
             travel: '旅行',
             members: '成员',
             accounting: '会计',
@@ -3450,6 +3456,7 @@ const translations = {
             testTransactions: '测试交易',
             issueAndManageCards: '发行和管理卡片',
             reconcileCards: '对账卡片',
+            selectAll: '全选',
             selected: () => ({
                 one: '1 已选择',
                 other: (count: number) => `已选择${count}个`,
@@ -3463,6 +3470,8 @@ const translations = {
             memberNotFound: '未找到成员。要邀请新成员加入工作区，请使用上面的邀请按钮。',
             notAuthorized: `您无权访问此页面。如果您正在尝试加入此工作区，请请求工作区所有者将您添加为成员。还有其他问题？请联系${CONST.EMAIL.CONCIERGE}。`,
             goToWorkspace: '前往工作区',
+            duplicateWorkspace: '重复工作区',
+            duplicateWorkspacePrefix: '复制',
             goToWorkspaces: '前往工作区',
             clearFilter: '清除筛选器',
             workspaceName: '工作区名称',
@@ -3932,6 +3941,18 @@ const translations = {
             syncReimbursedReports: '同步已报销的报告',
             syncReimbursedReportsDescription: '每当使用 Expensify ACH 支付报告时，相应的账单付款将在以下 Sage Intacct 账户中创建。',
             paymentAccount: 'Sage Intacct付款账户',
+            accountingMethods: {
+                label: '何时导出',
+                description: '选择何时导出费用：',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '应计',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '现金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自付费用将在最终批准时导出',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自付费用将在支付时导出',
+                },
+            },
         },
         netsuite: {
             subsidiary: '子公司',
@@ -4397,6 +4418,8 @@ const translations = {
                 'The Expensify Visa® Commercial Card 是由 The Bancorp Bank, N.A. 发行的，FDIC 成员，根据 Visa U.S.A. Inc. 的许可，并且可能无法在所有接受 Visa 卡的商户使用。Apple® 和 Apple logo® 是 Apple Inc. 在美国和其他国家注册的商标。App Store 是 Apple Inc. 的服务标志。Google Play 和 Google Play logo 是 Google LLC 的商标。',
             issueCard: '发卡',
             findCard: '查找卡片',
+            euUkDisclaimer:
+                '提供给欧洲经济区 (EEA) 居民的卡由 Transact Payments Malta Limited 发行，提供给英国居民的卡由 Transact Payments Limited 根据 Visa Europe Limited 的许可发行。Transact Payments Malta Limited 经马耳他金融服务管理局正式授权并受其监管，为根据 1994 年《金融机构法》设立的金融机构。注册编号为 C 91879。Transact Payments Limited 经直布罗陀金融服务委员会授权并受其监管。',
             newCard: '新卡片',
             name: '名称',
             lastFour: '最后4位数',
@@ -4854,6 +4877,18 @@ const translations = {
             importedFromAccountingSoftware: '以下税费是从您的',
             taxCode: '税码',
             updateTaxCodeFailureMessage: '更新税码时发生错误，请重试',
+        },
+        duplicateWorkspace: {
+            title: '命名您的新工作区',
+            selectFeatures: '选择要复制的功能',
+            whichFeatures: '您想要将哪些功能复制到您的新工作区？',
+            confirmDuplicate: '\n\n您想继续吗？',
+            categories: '类别和您的自动分类规则',
+            reimbursementAccount: '报销账户',
+            delayedSubmission: '延迟提交',
+            welcomeNote: '请开始使用我的新工作区',
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `您即将创建并与原始工作区中的 ${totalMembers ?? 0} 名成员共享 ${newWorkspaceName ?? ''}。`,
         },
         emptyWorkspace: {
             title: '您没有任何工作区',
@@ -5911,7 +5946,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: '无内容显示',
-                subtitle: '尝试调整您的搜索条件或使用绿色的 + 按钮创建内容。',
+                subtitle: `尝试调整您的搜索条件或使用绿色的 ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} 按钮创建内容。`,
             },
             emptyExpenseResults: {
                 title: '您还没有创建任何费用',
@@ -6022,6 +6057,7 @@ const translations = {
             withdrawn: '撤回',
             billable: '可计费的',
             reimbursable: '可报销的',
+            purchaseCurrency: '购买货币',
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.REPORTS]: '报告',
                 [CONST.SEARCH.GROUP_BY.FROM]: '从',
@@ -6538,7 +6574,7 @@ const translations = {
         isTransactionBillable: '选择交易是否可计费',
         keepThisOne: 'Keep this one',
         confirmDetails: `确认您保留的详细信息`,
-        confirmDuplicatesInfo: `您不保留的重复请求将由成员删除。`,
+        confirmDuplicatesInfo: `你不保留的重复项将被保留，供提交者删除。`,
         hold: '此费用已被搁置',
         resolvedDuplicates: '解决了重复问题',
     },
