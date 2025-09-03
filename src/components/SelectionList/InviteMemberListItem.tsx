@@ -115,6 +115,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                                     isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                     hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                 ]}
+                                fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
                                 singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                                 reportID={item.reportID}
                                 accountIDs={accountID ? [accountID] : undefined}
