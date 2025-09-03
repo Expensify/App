@@ -218,6 +218,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import {TransactionViolation} from '@src/types/onyx';
 import type {Accountant, Attendee, Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -4469,22 +4470,25 @@ function getUpdateMoneyRequestParams(
             value: currentTransactionViolations,
         });
 
-        if (duplicateViolation && hasModifiedAmount) {
+        const duplicateViolation = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find(
+            (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+        );
+        if (duplicateViolation && hasModifiedAmount && !!transaction?.transactionID) {
             const duplicateTransactionIDs = duplicateViolation.data?.duplicates;
             duplicateTransactionIDs?.push(transaction?.transactionID);
             const currentTransactionViolationsData = duplicateTransactionIDs?.map((id) => ({transactionID: id, violations: allTransactionViolations?.[id] ?? []}));
-            const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolationsData?.map((transactionViolations) => ({
+            const optimisticDataTransactionViolations: OnyxUpdate[] | undefined = currentTransactionViolationsData?.map((transactionViolations) => ({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
                 value: transactionViolations.violations?.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
             }));
-            optimisticData.push(...optimisticDataTransactionViolations);
-            const failureDataTransactionViolations: OnyxUpdate = currentTransactionViolationsData?.map((transactionViolations) => ({
+            optimisticData.push(...(optimisticDataTransactionViolations ?? []));
+            const failureDataTransactionViolations: OnyxUpdate[] = (currentTransactionViolationsData ?? []).map((transactionViolations) => ({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
                 value: allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [],
             }));
-            failureData.push(failureDataTransactionViolations);
+            failureData.push(...failureDataTransactionViolations);
         }
 
         if (hash) {
