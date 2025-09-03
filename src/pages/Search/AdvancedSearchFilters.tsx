@@ -511,38 +511,8 @@ function AdvancedSearchFilters() {
         return section.map((key) => {
             const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
             let filterTitle;
-            if (
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID ||
-                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE
-            ) {
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
-            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
-            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
-            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+            if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, allCards, translate);
-            } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED) {
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, taxRates);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
@@ -560,7 +530,10 @@ function AdvancedSearchFilters() {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
+            } else {
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate, localeCompare);
             }
+
             return {
                 key,
                 title: filterTitle,
