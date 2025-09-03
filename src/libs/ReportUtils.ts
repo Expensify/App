@@ -4466,7 +4466,9 @@ function areAllRequestsBeingSmartScanned(iouReportID: string | undefined, report
  * Get the details linked to the IOU reportAction
  */
 function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, transactions: SearchTransaction[]): OnyxEntry<Transaction> | SearchTransaction;
-// @deprecated - this overload is deprecated due to its reliance on Onyx.connect. Use useOnyx to subscribe to transactions and pass them to this function.
+/**
+ * @deprecated - this overload is deprecated due to its reliance on Onyx.connect. Use useOnyx to subscribe to transactions and pass them to this function.
+ */
 function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): OnyxEntry<Transaction> | SearchTransaction;
 function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, transactions?: SearchTransaction[]): OnyxEntry<Transaction> | SearchTransaction {
     let transactionID: string | undefined;
