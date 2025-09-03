@@ -5164,13 +5164,7 @@ function moveIOUReportToPolicy(iouReport: Report, policy: Policy, isFromSettleme
 
     const failureData: OnyxUpdate[] = [];
 
-    // If we generated an optimistic policy expense chat ID, create minimal optimistic placeholders
     if (useTemporaryOptimisticExpenseChatReportID) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticExpenseChatReportID}`,
-            value: {isOptimisticReport: true},
-        });
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseChatReportID}`,
@@ -5182,15 +5176,10 @@ function moveIOUReportToPolicy(iouReport: Report, policy: Policy, isFromSettleme
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             },
         });
-        successData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseChatReportID}`,
-            value: null,
-        });
-        successData.push({
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticExpenseChatReportID}`,
-            value: null,
+            value: {isOptimisticReport: true, isLoadingInitialReportActions: true},
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -5421,6 +5410,17 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     const policyExpenseChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
     const optimisticPolicyExpenseChatReportID = policyExpenseChats.reportCreationData[submitterEmail].reportID;
     const optimisticPolicyExpenseChatCreatedReportActionID = policyExpenseChats.reportCreationData[submitterEmail].reportActionID;
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticPolicyExpenseChatReportID}`,
+        value: {isLoadingInitialReportActions: true},
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticPolicyExpenseChatReportID}`,
+        value: {isLoadingInitialReportActions: null},
+    });
 
     // Set up optimistic member state
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {
