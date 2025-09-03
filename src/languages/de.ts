@@ -659,6 +659,7 @@ const translations = {
         none: 'Keine',
         unstableInternetConnection: 'Instabile Internetverbindung. Bitte überprüfe dein Netzwerk und versuche es erneut.',
         enableGlobalReimbursements: 'Globale Rückerstattungen aktivieren',
+        purchaseAmount: 'Kaufbetrag',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -4868,7 +4869,8 @@ const translations = {
             existingTagError: 'Ein Tag mit diesem Namen existiert bereits',
             invalidTagNameError: 'Der Tag-Name darf nicht 0 sein. Bitte wählen Sie einen anderen Wert.',
             genericFailureMessage: 'Beim Aktualisieren des Tags ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
-            importedFromAccountingSoftware: 'Die unten stehenden Tags werden aus Ihrem',
+            importedFromAccountingSoftware: 'Tags werden in deiner',
+            employeesSeeTagsAs: 'Mitarbeiter sehen Tags als ',
             glCode: 'GL-Code',
             updateGLCodeFailureMessage: 'Beim Aktualisieren des GL-Codes ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
             tagRules: 'Tag-Regeln',
@@ -6167,6 +6169,7 @@ const translations = {
             withdrawn: 'Storniert',
             billable: 'Abrechenbar',
             reimbursable: 'Erstattungsfähig',
+            purchaseCurrency: 'Kaufwährung',
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.REPORTS]: 'Bericht',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
