@@ -7,7 +7,6 @@ import Text from '@components/Text';
 import useEffectOnMount from '@hooks/useEffectOnMount';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateCodeActionContentProps} from './type';
 import ValidateCodeForm from './ValidateCodeForm';
@@ -31,7 +30,6 @@ function ValidateCodeActionContent({
     const themeStyles = useThemeStyles();
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const styles = useThemeStyles();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffset);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     useEffectOnMount(() => {
         if (validateCodeAction?.validateCodeSent) {
@@ -59,7 +57,6 @@ function ValidateCodeActionContent({
                 threeDotsMenuItems={threeDotsMenuItems}
                 shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                 shouldOverlayDots
-                threeDotsAnchorPosition={threeDotsAnchorPosition}
                 onThreeDotsButtonPress={onThreeDotsButtonPress}
             />
 
