@@ -11,6 +11,7 @@ import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import NewChatListItem from '@components/SelectionList/NewChatListItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -36,7 +37,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
 import getFileSize from './getFileSize';
 import {showErrorAlert} from './ShareRootPage';
-import NewChatListItem from '@components/SelectionList/NewChatListItem';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SHARE_DETAILS>;
 
