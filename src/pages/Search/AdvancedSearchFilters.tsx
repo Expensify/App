@@ -390,6 +390,11 @@ function getFilterDisplayTitle(
         return filterValue ? translate(`search.filters.withdrawalType.${filterValue}`) : undefined;
     }
 
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION) {
+        const filterValue = filters[nonDateFilterKey] as ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>;
+        return filterValue ? translate(`search.filters.action.${filterValue}`) : undefined;
+    }
+
     const filterValue = filters[nonDateFilterKey];
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }
