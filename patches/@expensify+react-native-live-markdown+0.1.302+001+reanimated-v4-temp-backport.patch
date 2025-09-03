@@ -11,3 +11,29 @@ index 21de59d..7165118 100644
  
    s.xcconfig = {
      "OTHER_CFLAGS" => "$(inherited) -DREACT_NATIVE_MINOR_VERSION=#{react_native_minor_version}",
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/MarkdownTextInput.d.ts b/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/MarkdownTextInput.d.ts
+index e6ad088..90f2487 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/MarkdownTextInput.d.ts
++++ b/node_modules/@expensify/react-native-live-markdown/lib/typescript/src/MarkdownTextInput.d.ts
+@@ -2,7 +2,7 @@ import { TextInput } from 'react-native';
+ import React from 'react';
+ import type { TextInputProps } from 'react-native';
+ import type { WorkletRuntime } from 'react-native-reanimated';
+-import type { ShareableRef, WorkletFunction } from 'react-native-reanimated/lib/typescript/commonTypes';
++import type { ShareableRef, WorkletFunction } from 'react-native-worklets';
+ import type { PartialMarkdownStyle } from './styleUtils';
+ import type { InlineImagesInputProps, MarkdownRange } from './commonTypes';
+ declare global {
+diff --git a/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.tsx b/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.tsx
+index 82ee895..55c0e90 100644
+--- a/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.tsx
++++ b/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.tsx
+@@ -3,7 +3,7 @@ import React from 'react';
+ import type {TextInputProps} from 'react-native';
+ import {createWorkletRuntime, makeShareableCloneRecursive} from 'react-native-reanimated';
+ import type {WorkletRuntime} from 'react-native-reanimated';
+-import type {ShareableRef, WorkletFunction} from 'react-native-reanimated/lib/typescript/commonTypes';
++import type {ShareableRef, WorkletFunction} from 'react-native-worklets';
+ 
+ import MarkdownTextInputDecoratorViewNativeComponent from './MarkdownTextInputDecoratorViewNativeComponent';
+ import type {MarkdownStyle} from './MarkdownTextInputDecoratorViewNativeComponent';
