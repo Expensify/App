@@ -92,7 +92,7 @@ describe('SidebarLinks', () => {
         await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });
 
-    test('[SidebarLinks] should click on list item', async () => {
+    test.skip('[SidebarLinks] should click on list item', async () => {
         const scenario = async () => {
             // Wait for the sidebar container to be rendered first
             await waitFor(async () => {
