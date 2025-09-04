@@ -3,6 +3,7 @@ type MoveIOUReportToExistingPolicyParams = {
     policyID: string;
     changePolicyReportActionID: string;
     dmMovedReportActionID: string;
+    optimisticReportID?: string;
 };
 
 export default MoveIOUReportToExistingPolicyParams;
