@@ -13,12 +13,13 @@ import variables from '@styles/variables';
 function EnableBiometricsErrorPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const onGoBackPress = () => Navigation.goBack();
 
     return (
         <ScreenWrapper testID={EnableBiometricsErrorPage.displayName}>
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.troubleshoot.biometrics.biometricsTest')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={onGoBackPress}
                 shouldShowBackButton
             />
             <View style={[styles.flex1]}>
@@ -37,7 +38,7 @@ function EnableBiometricsErrorPage() {
                 <Button
                     success
                     style={[styles.flex1]}
-                    onPress={() => Navigation.goBack()}
+                    onPress={onGoBackPress}
                     text={translate('common.buttonConfirm')}
                 />
             </View>

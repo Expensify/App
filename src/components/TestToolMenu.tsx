@@ -131,7 +131,7 @@ function TestToolMenu() {
                     <EnableBiometricsModal
                         isVisible={showBiometricsModal}
                         onCancel={() => setShowBiometricsModal(false)}
-                        registerBiometrics={() => setRegistered(true)}
+                        updateLabelToRegistered={() => setRegistered(true)}
                     />
                 </>
             )}

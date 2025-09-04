@@ -18,24 +18,37 @@ type EnableBiometricsVerificationProps = {
     /** A callback to call when the initial soft prompt has been closed */
     onCancel?: () => void;
 
-    /** A callback to set biometrics as enabled (registered) */
-    registerBiometrics?: () => void;
+    /** A callback to set biometrics label as registered */
+    updateLabelToRegistered?: () => void;
 };
 
-function EnableBiometricsModal({isVisible, onCancel = () => {}, registerBiometrics = () => {}}: EnableBiometricsVerificationProps) {
+function EnableBiometricsModal({isVisible, onCancel = () => {}, updateLabelToRegistered = () => {}}: EnableBiometricsVerificationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [shouldNotifyAboutSuccess, setSuccess] = useState(false);
     const [isNotificationVisible, setNotificationVisibility] = useState(false);
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
-    const action = singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.ENABLE_BIOMETRICS_ERROR_PAGE)));
+    const navigateToErrorPage = singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.ENABLE_BIOMETRICS_ERROR_PAGE)));
 
     const handleClose = () => {
         onCancel();
         setSuccess(false);
         setNotificationVisibility(false);
     };
+
+    /**
+     * The `onModalHide` prop, along with one of the two states checking if the success notification should be visible, will become redundant when the biometric functionality is integrated.
+     * This is because now we have nothing between soft prompt and success notification thus one confirmation modal attempts to open while another has not fully closed yet which leads to issues.
+     *
+     * Native biometric actions/popups will prompt us to hide the soft prompt beforehand, ensuring it is fully closed before there's a need to display the success notification.
+     */
+    const onModalHide = () => {
+        if (!shouldNotifyAboutSuccess) {
+            return;
+        }
+        setNotificationVisibility(true);
+    }
 
     /**
      * Change to false if you want to test error page. This should be replaced by the actual logic checking if the registration was successful.
@@ -50,27 +63,16 @@ function EnableBiometricsModal({isVisible, onCancel = () => {}, registerBiometri
                 isVisible={isVisible}
                 onConfirm={() => {
                     if (wasRegistrationSuccessful) {
-                        registerBiometrics();
+                        updateLabelToRegistered();
                         onCancel();
                         setSuccess(true);
                     } else {
                         handleClose();
-                        action();
+                        navigateToErrorPage();
                     }
                 }}
                 onCancel={onCancel}
-                /**
-                 * The `onModalHide` prop, along with one of the two states checking if the success notification should be visible, will become redundant when the biometric functionality is integrated.
-                 * This is because now we have nothing between soft prompt and success notification thus one confirmation modal attempts to open while another has not fully closed yet which leads to issues.
-                 *
-                 * Native biometric actions/popups will prompt us to hide the soft prompt beforehand, ensuring it is fully closed before there's a need to display the success notification.
-                 */
-                onModalHide={() => {
-                    if (!shouldNotifyAboutSuccess) {
-                        return;
-                    }
-                    setNotificationVisibility(true);
-                }}
+                onModalHide={onModalHide}
                 prompt={translate('initialSettingsPage.troubleshoot.biometrics.softPromptContent')}
                 promptStyles={styles.textSupporting}
                 confirmText={translate('common.continue')}
