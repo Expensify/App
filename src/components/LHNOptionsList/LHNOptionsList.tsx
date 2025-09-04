@@ -405,6 +405,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     maintainVisibleContentPosition={{disabled: true}}
                     drawDistance={1000}
                     removeClippedSubviews
+                    estimatedItemSize={estimatedItemSize}
                 />
             )}
         </View>

@@ -7,6 +7,7 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type BaseSearchListProps from './types';
 
@@ -120,6 +121,7 @@ function BaseSearchList({
             drawDistance={1000}
             contentContainerStyle={contentContainerStyle}
             maintainVisibleContentPosition={{disabled: true}}
+            estimatedItemSize={variables.optionRowHeight}
         />
     );
 }

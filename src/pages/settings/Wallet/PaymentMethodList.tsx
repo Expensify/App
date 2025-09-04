@@ -518,6 +518,7 @@ function PaymentMethodList({
                     ListEmptyComponent={shouldShowEmptyListMessage ? renderListEmptyComponent : null}
                     ListHeaderComponent={listHeaderComponent}
                     onContentSizeChange={onListContentSizeChange}
+                    estimatedItemSize={variables.optionRowHeight}
                 />
                 {shouldShowAddBankAccount && renderListFooterComponent()}
             </View>

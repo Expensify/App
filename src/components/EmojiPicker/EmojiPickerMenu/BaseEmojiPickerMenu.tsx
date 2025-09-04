@@ -114,6 +114,7 @@ function BaseEmojiPickerMenu(
                         },
                     }}
                     scrollEnabled={data.length > 0}
+                    estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
                 />
             </View>
             <EmojiSkinToneList />
