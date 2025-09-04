@@ -11,8 +11,10 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionList/types';
 import Navigation from '@navigation/Navigation';
+// eslint-disable-next-line no-restricted-syntax
 import type * as ReportUserActions from '@userActions/Report';
 import {createTransactionThreadReport} from '@userActions/Report';
+// eslint-disable-next-line no-restricted-syntax
 import type * as SearchUtils from '@userActions/Search';
 import {updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
 import * as Expensicons from '@src/components/Icon/Expensicons';
