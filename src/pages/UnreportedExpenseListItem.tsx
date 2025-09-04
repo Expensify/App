@@ -4,7 +4,6 @@ import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {ListItem, ListItemProps, TransactionListItemType} from '@components/SelectionList/types';
-import type {TransactionViolation} from '@src/types/onyx';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -14,12 +13,22 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {TransactionViolation} from '@src/types/onyx';
 
 type UnreportedExpenseListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     violations?: Record<string, TransactionViolation[]>;
 };
 
-function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, onFocus, shouldSyncFocus, onSelectRow, violations}: UnreportedExpenseListItemProps<TItem>) {
+function UnreportedExpenseListItem<TItem extends ListItem>({
+    item,
+    isFocused,
+    showTooltip,
+    isDisabled,
+    onFocus,
+    shouldSyncFocus,
+    onSelectRow,
+    violations,
+}: UnreportedExpenseListItemProps<TItem>) {
     const styles = useThemeStyles();
     const transactionItem = item as unknown as TransactionListItemType;
     const [isSelected, setIsSelected] = useState<boolean>(false);

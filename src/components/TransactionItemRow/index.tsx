@@ -73,7 +73,6 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** Type of transaction */
     transactionType?: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
-
 };
 
 type TransactionItemRowProps = {

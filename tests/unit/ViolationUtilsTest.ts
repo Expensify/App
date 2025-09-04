@@ -648,7 +648,7 @@ describe('getRBRMessages', () => {
         created: '2023-07-24 13:46:20',
         merchant: 'Test Merchant',
     };
-    
+
     const mockViolations: TransactionViolation[] = [
         {
             name: CONST.VIOLATIONS.MISSING_CATEGORY,
