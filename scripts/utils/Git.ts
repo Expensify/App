@@ -44,6 +44,25 @@ type DiffResult = {
  */
 class Git {
     /**
+     * Check if a git reference is valid.
+     *
+     * @param ref - The git reference to validate (branch, tag, commit hash, etc.)
+     * @returns true if the reference exists, false otherwise
+     */
+    static isValidRef(ref: string): boolean {
+        try {
+            execSync(`git rev-parse --verify "${ref}"`, {
+                encoding: 'utf8',
+                cwd: process.cwd(),
+                stdio: 'pipe', // Suppress output
+            });
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    /**
      * Execute a git diff between two refs and return structured diff information.
      *
      * @param fromRef - The starting reference (commit, branch, tag, etc.)

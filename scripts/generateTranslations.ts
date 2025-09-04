@@ -3,7 +3,6 @@
 /*
  * This script uses src/languages/en.ts as the source of truth, and leverages ChatGPT to generate translations for other languages.
  */
-import {execSync} from 'child_process';
 import * as dotenv from 'dotenv';
 import fs from 'fs';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
@@ -20,6 +19,7 @@ import type {Locale, TranslationTargetLocale} from '@src/CONST/LOCALES';
 import en from '@src/languages/en';
 import type {TranslationPaths} from '@src/languages/types';
 import CLI from './utils/CLI';
+import Git from './utils/Git';
 import Prettier from './utils/Prettier';
 import PromisePool from './utils/PromisePool';
 import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
@@ -714,17 +714,12 @@ async function main(): Promise<void> {
                         return val; // Empty string is valid (means no comparison)
                     }
 
-                    // Validate that the ref exists by attempting to resolve it
-                    try {
-                        execSync(`git rev-parse --verify "${val}"`, {
-                            encoding: 'utf8',
-                            cwd: process.cwd(),
-                            stdio: 'pipe', // Suppress output
-                        });
-                        return val;
-                    } catch (error) {
+                    // Validate that the ref exists using our Git utility
+                    if (!Git.isValidRef(val)) {
                         throw new Error(`Invalid git reference: "${val}". Please provide a valid branch, tag, or commit hash.`);
                     }
+
+                    return val;
                 },
             },
             paths: {

@@ -14,6 +14,47 @@ describe('Git', () => {
         jest.clearAllMocks();
     });
 
+    describe('isValidRef', () => {
+        it('returns true for valid git references', () => {
+            mockExecSync.mockReturnValue('abc123def456\n');
+
+            const result = Git.isValidRef('main');
+
+            expect(result).toBe(true);
+            expect(mockExecSync).toHaveBeenCalledWith('git rev-parse --verify "main"', {
+                encoding: 'utf8',
+                cwd: process.cwd(),
+                stdio: 'pipe',
+            });
+        });
+
+        it('returns false for invalid git references', () => {
+            mockExecSync.mockImplementation(() => {
+                throw new Error("fatal: bad revision 'invalid-ref'");
+            });
+
+            const result = Git.isValidRef('invalid-ref');
+
+            expect(result).toBe(false);
+        });
+
+        it('returns true for commit hashes', () => {
+            mockExecSync.mockReturnValue('abc123def456\n');
+
+            const result = Git.isValidRef('abc123def456');
+
+            expect(result).toBe(true);
+        });
+
+        it('returns true for tags', () => {
+            mockExecSync.mockReturnValue('abc123def456\n');
+
+            const result = Git.isValidRef('v1.0.0');
+
+            expect(result).toBe(true);
+        });
+    });
+
     describe('diff', () => {
         it('returns empty result when no changes exist', () => {
             mockExecSync.mockReturnValue('');
