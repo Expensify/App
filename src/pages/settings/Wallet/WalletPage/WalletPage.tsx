@@ -68,6 +68,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const isUserValidated = userAccount?.validated ?? false;
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
@@ -99,7 +100,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const hasAssignedCard = !isEmpty(cardList);
 
     const currentUserEmail = getCurrentUserEmail();
-    const isAdmin = useMemo(() => hasActiveAdminWorkspaces(currentUserEmail), [currentUserEmail]);
+    const isAdmin = useMemo(() => hasActiveAdminWorkspaces(currentUserEmail, allPolicies), [currentUserEmail, allPolicies]);
 
     const isPendingOnfidoResult = userWallet?.isPendingOnfidoResult ?? false;
     const hasFailedOnfido = userWallet?.hasFailedOnfido ?? false;

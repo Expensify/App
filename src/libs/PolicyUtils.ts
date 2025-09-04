@@ -820,8 +820,8 @@ function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, cu
 /**
  * Checks whether the current user has a policy with admin access
  */
-function hasActiveAdminWorkspaces(currentUserLogin: string | undefined) {
-    return getActiveAdminWorkspaces(allPolicies, currentUserLogin).length > 0;
+function hasActiveAdminWorkspaces(currentUserLogin: string | undefined, policies?: OnyxCollection<Policy>) {
+    return getActiveAdminWorkspaces(policies ?? allPolicies, currentUserLogin).length > 0;
 }
 
 /**
