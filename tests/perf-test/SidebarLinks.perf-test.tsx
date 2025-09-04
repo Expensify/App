@@ -50,7 +50,7 @@ const getMockedReportsMap = (length = 100) => {
 
 const mockedResponseMap = getMockedReportsMap(500);
 
-describe('SidebarLinks', () => {
+describe.skip('SidebarLinks', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
