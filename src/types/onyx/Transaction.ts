@@ -8,7 +8,7 @@ import type * as OnyxCommon from './OnyxCommon';
 import type {Unit} from './Policy';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReportAction from './ReportAction';
-import type {TransactionViolation, ViolationName} from './TransactionViolation';
+import type {ViolationName} from './TransactionViolation';
 
 /** Model of waypoint */
 type Waypoint = {
