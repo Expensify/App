@@ -45,6 +45,7 @@ type SelectedReports = {
     reportID: string;
     policyID: string | undefined;
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
+    allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
     total: number;
 };
 
@@ -68,10 +69,12 @@ type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
+type SearchAction = ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>;
 
 type SearchContextData = {
     currentSearchHash: number;
     currentSearchKey: SearchKey | undefined;
+    currentSearchQueryJSON: SearchQueryJSON | undefined;
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
@@ -82,6 +85,7 @@ type SearchContextData = {
 
 type SearchContext = SearchContextData & {
     setCurrentSearchHashAndKey: (hash: number, key: SearchKey | undefined) => void;
+    setCurrentSearchQueryJSON: (searchQueryJSON: SearchQueryJSON | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;
@@ -125,6 +129,13 @@ type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN;
+
+type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
+
+type SearchCurrencyFilterKeys =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY;
 
 type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
@@ -187,6 +198,7 @@ export type {
     SearchColumnType,
     SearchBooleanFilterKeys,
     SearchDateFilterKeys,
+    SearchAmountFilterKeys,
     SearchStatus,
     SearchQueryJSON,
     SearchQueryString,
@@ -212,5 +224,7 @@ export type {
     SingularSearchStatus,
     SearchDatePreset,
     SearchWithdrawalType,
+    SearchAction,
+    SearchCurrencyFilterKeys,
     UserFriendlyValue,
 };

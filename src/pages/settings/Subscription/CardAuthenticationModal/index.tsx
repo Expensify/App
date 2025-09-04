@@ -67,8 +67,6 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
             isVisible={isVisible}
             onClose={onModalClose}
-            onModalHide={onModalClose}
-            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={styles.pb0}
