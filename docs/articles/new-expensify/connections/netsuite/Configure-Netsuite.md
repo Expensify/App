@@ -5,7 +5,6 @@ keywords: [New Expensify, NetSuite configuration, import settings, export settin
 order: 2
 ---
 
-<div id="new-expensify" markdown="1">
 
 Expensify’s integration with NetSuite streamlines expense management by automatically syncing reports. This reduces manual work, improves visibility, and supports accurate compliance and budgeting.
 
@@ -160,4 +159,3 @@ No. Auto-Sync only applies to newly approved reports. Export older reports manua
 - The employee/vendor currency must match the subsidiary
 - The bank account currency must match the subsidiary for bill payments
 
-</div>
