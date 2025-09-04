@@ -7,6 +7,7 @@ import type {OptionData} from '@libs/PersonalDetailsOptionsListUtils';
 import {isOneOnOneChat, isSelfDM} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import {usePersonalDetails} from './OnyxListItemProvider';
 
@@ -65,29 +66,61 @@ const generateAccountIDToReportIDMap = (reports: OnyxCollection<Report>, current
     return accountIDToReportIDMap;
 };
 
-const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
-    report && {
-        reportID: report.reportID,
-        participants: report.participants,
-        lastVisibleActionCreated: report.lastVisibleActionCreated,
-    };
+const reportsSelector = (reports: OnyxCollection<Report>) => {
+    return mapOnyxCollectionItems(reports, (report) => {
+        if (!report) {
+            return;
+        }
 
-const rNVPSelector = (rNVP: OnyxEntry<ReportNameValuePairs>): OnyxEntry<ReportNameValuePairs> =>
-    rNVP && {
+        if (!isOneOnOneChat(report) && !isSelfDM(report)) {
+            return;
+        }
+
+        return {
+            reportID: report.reportID,
+            participants: report.participants,
+            lastVisibleActionCreated: report.lastVisibleActionCreated,
+        };
+    });
+};
+
+const rNVPSelector = (rNVP: OnyxEntry<ReportNameValuePairs>, reportID: string, reportIDsSet: Set<string>): OnyxEntry<ReportNameValuePairs> => {
+    if (!rNVP) {
+        return;
+    }
+
+    if (!reportIDsSet.has(reportID)) {
+        return;
+    }
+
+    return {
         private_isArchived: rNVP.private_isArchived,
     };
+};
+
+const reportAttributesSelector = (reportAttributes: Record<string, ReportAttributes> | undefined, reportIDsSet: Set<string>) => {
+    return Object.entries(reportAttributes ?? {}).reduce((acc: Record<string, ReportAttributes>, [key, entry]) => {
+        if (reportIDsSet.has(key)) {
+            acc[key] = entry;
+        }
+
+        return acc;
+    }, {});
+};
 
 function PersonalDetailsOptionListContextProvider({children}: PersonalDetailsOptionsListProviderProps) {
     const areOptionsInitialized = useRef(false);
     const [options, setOptions] = useState<OptionData[]>([]);
     const currentOption = useRef<OptionData | undefined>(undefined);
     const {accountID} = useCurrentUserPersonalDetails();
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: reportsSelector});
+    const reportIDs = useMemo(() => Object.keys(reports ?? {}), [reports]);
+    const reportIDsSet = useMemo(() => new Set(reportIDs), [reportIDs]);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => reportAttributesSelector(val?.reports, reportIDsSet)});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
-        selector: (val) => mapOnyxCollectionItems(Object.fromEntries(Object.entries(val ?? {}).filter(([, value]) => isOneOnOneChat(value) || isSelfDM(value))), reportSelector),
+        selector: (collection) => mapOnyxCollectionItems(collection, (entry, key) => rNVPSelector(entry, key, reportIDsSet)),
     });
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true, selector: (val) => mapOnyxCollectionItems(val, rNVPSelector)});
     const personalDetails = usePersonalDetails();
 
     const loadOptions = useCallback(() => {
