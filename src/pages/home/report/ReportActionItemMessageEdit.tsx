@@ -20,6 +20,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollBlocker from '@hooks/useScrollBlocker';
@@ -130,6 +131,7 @@ function ReportActionItemMessageEdit(
     const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
+    const isReportArchived = useReportIsArchived(reportID);
 
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();
@@ -286,9 +288,9 @@ function ReportActionItemMessageEdit(
             ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
+        editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache), isReportArchived);
         deleteDraft();
-    }, [action, deleteDraft, draft, reportID]);
+    }, [action, deleteDraft, draft, reportID, isReportArchived]);
 
     /**
      * @param emoji

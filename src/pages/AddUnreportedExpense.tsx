@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -49,6 +50,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const policy = usePolicy(report?.policyID);
     const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS, {canBeMissing: true});
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
     function getUnreportedTransactions(transactions: OnyxCollection<Transaction>) {
@@ -204,7 +206,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     Navigation.dismissModal();
                     InteractionManager.runAfterInteractions(() => {
                         if (report && isIOUReport(report)) {
-                            convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
+                            convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID, isReportArchived);
                         } else {
                             changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID, policy, reportNextStep);
                         }

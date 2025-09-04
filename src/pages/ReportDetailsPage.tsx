@@ -776,7 +776,15 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
 
         if (isTrackExpense) {
-            deleteTrackExpense(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations, isSingleTransactionView);
+            deleteTrackExpense(
+                moneyRequestReport?.reportID,
+                iouTransactionID,
+                requestParentReportAction,
+                duplicateTransactions,
+                duplicateTransactionViolations,
+                isSingleTransactionView,
+                isReportArchived,
+            );
         } else {
             deleteMoneyRequest(iouTransactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations, isSingleTransactionView);
             removeTransaction(iouTransactionID);

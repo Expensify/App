@@ -337,6 +337,7 @@ type TrackedExpenseParams = {
     policyParams: TrackedExpensePolicyParams;
     createdWorkspaceParams?: CreateWorkspaceParams;
     accountantParams?: TrackExpenseAccountantParams;
+    isReportArchived?: boolean;
 };
 
 type SendInvoiceInformation = {
@@ -463,6 +464,7 @@ type RequestMoneyInformation = {
     optimisticIOUReportID?: string;
     optimisticReportPreviewActionID?: string;
     shouldGenerateTransactionThreadReport: boolean;
+    isReportArchived?: boolean;
 };
 
 type MoneyRequestInformationParams = {
@@ -593,6 +595,7 @@ type CreateTrackExpenseParams = {
     isRetry?: boolean;
     shouldPlaySound?: boolean;
     shouldHandleNavigation?: boolean;
+    isReportArchived?: boolean;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -2951,6 +2954,7 @@ function getDeleteTrackExpenseInformation(
     actionableWhisperReportActionID = '',
     resolution = '',
     shouldRemoveIOUTransaction = true,
+    isReportArchived = false,
 ) {
     // STEP 1: Get all collections we're updating
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
@@ -2992,7 +2996,7 @@ function getDeleteTrackExpenseInformation(
     } as OnyxTypes.ReportActions;
     let canUserPerformWriteAction = true;
     if (chatReport) {
-        canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport);
+        canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isReportArchived);
     }
     const lastVisibleAction = getLastVisibleAction(chatReportID, canUserPerformWriteAction, updatedReportAction);
     const {lastMessageText = '', lastMessageHtml = ''} = getLastVisibleMessage(chatReportID, canUserPerformWriteAction, updatedReportAction);
@@ -5028,6 +5032,7 @@ const getConvertTrackedExpenseInformation = (
     linkedTrackedExpenseReportID: string,
     transactionThreadReportID: string | undefined,
     resolution: IOUAction,
+    isReportArchived = false,
 ) => {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -5038,7 +5043,17 @@ const getConvertTrackedExpenseInformation = (
         optimisticData: deleteOptimisticData,
         successData: deleteSuccessData,
         failureData: deleteFailureData,
-    } = getDeleteTrackExpenseInformation(linkedTrackedExpenseReportID, transactionID, linkedTrackedExpenseReportAction, false, true, actionableWhisperReportActionID, resolution);
+    } = getDeleteTrackExpenseInformation(
+        linkedTrackedExpenseReportID,
+        transactionID,
+        linkedTrackedExpenseReportAction,
+        false,
+        true,
+        actionableWhisperReportActionID,
+        resolution,
+        true,
+        isReportArchived,
+    );
 
     optimisticData?.push(...deleteOptimisticData);
     successData?.push(...deleteSuccessData);
@@ -5129,6 +5144,7 @@ type ConvertTrackedExpenseToRequestParams = {
         reportID: string;
         createdReportActionID: string | undefined;
         reportPreviewReportActionID: string;
+        isReportArchived: boolean | undefined;
     };
     iouParams: {
         reportID: string;
@@ -5170,6 +5186,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
         CONST.IOU.ACTION.SUBMIT,
+        chatParams.isReportArchived,
     );
 
     optimisticData?.push(...convertTransactionOptimisticData);
@@ -5226,7 +5243,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
 /**
  * Move multiple tracked expenses from self-DM to an IOU report
  */
-function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportID: string) {
+function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportID: string, isReportArchived = false) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`];
 
     if (!iouReport || !isMoneyRequestReportReportUtils(iouReport)) {
@@ -5365,6 +5382,7 @@ function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportI
                 reportID: moneyRequestChatReport.reportID,
                 createdReportActionID: createdChatReportActionID,
                 reportPreviewReportActionID: reportPreviewAction.reportActionID,
+                isReportArchived,
             },
             iouParams: {
                 reportID: moneyRequestIOUReport.reportID,
@@ -5379,7 +5397,7 @@ function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportI
 }
 
 function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams} = trackedExpenseParams;
+    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, isReportArchived} = trackedExpenseParams;
     const {optimisticData, successData, failureData} = onyxData ?? {};
     const {transactionID} = transactionParams;
     const {isDraftPolicy} = policyParams;
@@ -5397,6 +5415,7 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
         CONST.IOU.ACTION.CATEGORIZE,
+        isReportArchived,
     );
 
     optimisticData?.push(...moveTransactionOptimisticData);
@@ -5433,7 +5452,7 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 }
 
 function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams} = trackedExpenseParams;
+    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams, isReportArchived} = trackedExpenseParams;
 
     const policyID = policyParams?.policyID;
     const chatReportID = reportInformation?.chatReportID;
@@ -5466,6 +5485,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
         CONST.IOU.ACTION.SHARE,
+        isReportArchived,
     );
 
     optimisticData?.push(...shareTrackedExpenseOptimisticData);
@@ -5551,6 +5571,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport,
+        isReportArchived = false,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -5685,6 +5706,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                     reportID: chatReport.reportID,
                     createdReportActionID: createdChatReportActionID,
                     reportPreviewReportActionID: reportPreviewAction.reportActionID,
+                    isReportArchived,
                 },
                 iouParams: {
                     reportID: iouReport.reportID,
@@ -5951,6 +5973,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         accountantParams,
         shouldHandleNavigation = true,
         shouldPlaySound = true,
+        isReportArchived = false,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -6127,6 +6150,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 transactionParams,
                 policyParams,
                 createdWorkspaceParams,
+                isReportArchived,
             };
 
             categorizeTrackedExpense(trackedExpenseParams);
@@ -6176,6 +6200,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 policyParams,
                 createdWorkspaceParams,
                 accountantParams,
+                isReportArchived,
             };
             shareTrackedExpense(trackedExpenseParams);
             break;
@@ -8471,6 +8496,7 @@ function deleteTrackExpense(
     transactions: OnyxCollection<OnyxTypes.Transaction>,
     violations: OnyxCollection<OnyxTypes.TransactionViolations>,
     isSingleTransactionView = false,
+    isReportArchived = false,
 ) {
     if (!chatReportID || !transactionID) {
         return;
@@ -8496,6 +8522,7 @@ function deleteTrackExpense(
         actionableWhisperReportActionID,
         CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
         false,
+        isReportArchived,
     );
 
     // STEP 6: Make the API request

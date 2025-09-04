@@ -20,6 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
@@ -170,6 +171,7 @@ function IOURequestStepConfirmation({
     const isManualDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
@@ -506,6 +508,7 @@ function IOURequestStepConfirmation({
                     shouldHandleNavigation: index === transactions.length - 1,
                     shouldGenerateTransactionThreadReport,
                     backToReport,
+                    isReportArchived,
                 });
             });
         },
@@ -524,6 +527,7 @@ function IOURequestStepConfirmation({
             customUnitRateID,
             backToReport,
             shouldGenerateTransactionThreadReport,
+            isReportArchived,
         ],
     );
 
@@ -583,6 +587,7 @@ function IOURequestStepConfirmation({
                     report,
                     isDraftPolicy,
                     action,
+                    isReportArchived,
                     participantParams: {
                         payeeEmail: currentUserPersonalDetails.login,
                         payeeAccountID: currentUserPersonalDetails.accountID,
@@ -637,6 +642,7 @@ function IOURequestStepConfirmation({
             customUnitRateID,
             isDraftPolicy,
             isManualDistanceRequest,
+            isReportArchived,
         ],
     );
 

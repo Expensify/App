@@ -78,6 +78,7 @@ function IOURequestStepAmount({
     const policyID = report?.policyID;
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const isReportArchived = isArchivedReport(reportNameValuePairs);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
@@ -217,6 +218,7 @@ function IOURequestStepAmount({
                         },
                         backToReport,
                         shouldGenerateTransactionThreadReport,
+                        isReportArchived,
                     });
                     return;
                 }
@@ -235,6 +237,7 @@ function IOURequestStepAmount({
                             created: transaction?.created,
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         },
+                        isReportArchived,
                     });
                     return;
                 }
