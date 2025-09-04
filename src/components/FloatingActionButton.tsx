@@ -142,15 +142,14 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                 shouldUseHapticsOnLongPress
                 testID="floating-action-button"
             >
-                {(state) => (
+                {({hovered}) => (
                     <Animated.View
                         style={[
                             styles.floatingActionButton,
                             {borderRadius},
                             isLHBVisible && styles.floatingActionButtonSmall,
                             animatedStyle,
-                            // Apply success-hover background while hovered (when not active)
-                            state.hovered && {backgroundColor: successHover},
+                            hovered && {backgroundColor: successHover},
                         ]}
                         testID="fab-animated-container"
                     >
