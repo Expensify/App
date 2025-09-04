@@ -7,8 +7,7 @@ import type {ValueOf} from 'type-fest';
 import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
-import BankAccount from '@libs/models/BankAccount';
-import {addTrailingForwardSlash} from '@libs/Url';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -225,7 +224,7 @@ const CONST = {
         horizontal: 12 + variables.navigationTabBarSize,
         vertical: 72,
     },
-    POPOVER_DROPDOWN_WIDTH: 336,
+    POPOVER_DROPDOWN_WIDTH: 334,
     POPOVER_DROPDOWN_MIN_HEIGHT: 0,
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
     POPOVER_DATE_WIDTH: 338,
@@ -549,6 +548,8 @@ const CONST = {
             SETUP: 'SETUP',
             PENDING: 'PENDING',
             OPEN: 'OPEN',
+            DELETED: 'DELETED',
+            LOCKED: 'LOCKED',
         },
         MAX_LENGTH: {
             FULL_SSN: 9,
@@ -692,10 +693,10 @@ const CONST = {
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         TRACK_FLOWS: 'trackFlows',
+        EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         EUR_BILLING: 'eurBilling',
         MANUAL_DISTANCE: 'manualDistance',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
-        VACATION_DELEGATE: 'vacationDelegate',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         DUPLICATE_WORKSPACE: 'duplicatePolicyNewDot',
     },
@@ -952,6 +953,13 @@ const CONST = {
     SET_NOTIFICATION_LINK: 'https://community.expensify.com/discussion/5651/deep-dive-best-practices-when-youre-running-into-trouble-receiving-emails-from-expensify',
     GITHUB_URL: 'https://github.com/Expensify/App',
     HELP_LINK_URL: `${USE_EXPENSIFY_URL}/usa-patriot-act`,
+    REGISTRATION_NUMBER_HELP_URL: {
+        AU: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-Australia',
+        CA: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-Canada',
+        EU: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-Europe',
+        UK: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-United-Kingdom',
+        US: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Global-Reimbursement-United-States',
+    },
     ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
     GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
     ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
@@ -1466,6 +1474,7 @@ const CONST = {
         EXPORT_OPTION_LABELS: {
             REPORT_LEVEL_EXPORT: 'All Data - Report Level Export',
             EXPENSE_LEVEL_EXPORT: 'All Data - Expense Level Export',
+            DEFAULT_CSV: 'Default CSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -2186,6 +2195,7 @@ const CONST = {
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         ENTITY: 'entity',
         DIMENSION_PREFIX: 'dimension_',
+        ACCOUNTING_METHOD: 'accountingMethod',
     },
 
     SAGE_INTACCT: {
@@ -3249,6 +3259,7 @@ const CONST = {
     EXPENSIFY_CARD: {
         NAME: 'expensifyCard',
         BANK: 'Expensify Card',
+        ROUTE: 'expensify-card',
         FRAUD_TYPES: {
             DOMAIN: 'domain',
             INDIVIDUAL: 'individual',
@@ -4160,6 +4171,69 @@ const CONST = {
         SI: 'Slovenia',
         ES: 'Spain',
         SE: 'Sweden',
+    },
+    EUROPEAN_UNION_COUNTRIES_WITH_GB: {
+        AT: 'Austria',
+        BE: 'Belgium',
+        BG: 'Bulgaria',
+        HR: 'Croatia',
+        CY: 'Cyprus',
+        CZ: 'Czech Republic',
+        DK: 'Denmark',
+        EE: 'Estonia',
+        FI: 'Finland',
+        FR: 'France',
+        DE: 'Germany',
+        GB: 'United Kingdom',
+        GI: 'Gibraltar',
+        GR: 'Greece',
+        HU: 'Hungary',
+        IE: 'Ireland',
+        IT: 'Italy',
+        LT: 'Lithuania',
+        LU: 'Luxembourg',
+        LV: 'Latvia',
+        MT: 'Malta',
+        NL: 'Netherlands',
+        PL: 'Poland',
+        PT: 'Portugal',
+        RO: 'Romania',
+        SK: 'Slovakia',
+        SI: 'Slovenia',
+        ES: 'Spain',
+        SE: 'Sweden',
+    },
+
+    EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES: ['BE', 'CY', 'EE', 'FI', 'DE', 'GR', 'IE', 'LV', 'LT', 'LU', 'MT', 'NL', 'PT', 'SK', 'SI', 'ES', 'GB', 'GI'],
+
+    EU_REGISTRATION_NUMBER_REGEX: {
+        AT: /^FN\d{6}[a-z]?$/i,
+        BE: /^0\d{3}\.\d{3}\.\d{3}$/,
+        BG: /^\d{9}|\d{13}$/,
+        HR: /^\d{11}$/,
+        CY: /^HE\d{1,6}$/,
+        CZ: /^\d{8}$/,
+        DK: /^\d{8}$/,
+        EE: /^\d{7,8}$/,
+        FI: /^\d{7}-\d$/,
+        FR: /^(\d{9}|\d{14})$/,
+        DE: /^(HRB|HRA)\s?\d+$/,
+        GR: /^\d{12}$/,
+        HU: /^\d{2}-\d{6,7}$/,
+        IE: /^([A-Z]?\d{1,6})$/,
+        IT: /^(MI-\d+|R\d+|\d{11})$/,
+        LV: /^\d{11}$/,
+        LT: /^\d{7}|\d{9}$/,
+        LU: /^B\d{1,6}$/,
+        MT: /^C\d+$/,
+        NL: /^\d{8}$/,
+        PL: /^\d{10}$/,
+        PT: /^\d{9}$/,
+        RO: /^J\d{2}\/\d{4}\/\d+$/,
+        SK: /^\d{8}$/,
+        SI: /^\d{8}$/,
+        ES: /^[A-Z]\d{8}$/,
+        SE: /^\d{10}$/,
     },
 
     PLAID_EXCLUDED_COUNTRIES: ['IR', 'CU', 'SY', 'UA', 'KP'] as string[],
@@ -5572,7 +5646,7 @@ const CONST = {
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
-                state: BankAccount.STATE.SETUP,
+                state: 'SETUP',
             },
             isLoading: false,
             errorFields: {},
@@ -6361,6 +6435,7 @@ const CONST = {
             CHAT: 'chat',
         },
         ACTION_FILTERS: {
+            SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
             EXPORT: 'export',
@@ -6519,6 +6594,8 @@ const CONST = {
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
             ACTION: 'action',
+            PURCHASE_AMOUNT: 'purchaseAmount',
+            PURCHASE_CURRENCY: 'purchaseCurrency',
             WITHDRAWAL_ID: 'withdrawalID',
         },
         TAG_EMPTY_VALUE: 'none',
@@ -6567,10 +6644,10 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             ACTION: 'action',
+            PURCHASE_AMOUNT: 'purchase-amount',
+            PURCHASE_CURRENCY: 'purchase-currency',
             WITHDRAWAL_ID: 'withdrawal-id',
         },
-
-        // Maps an internal search value to the user friendly display text, e.g. `perDiem` -> `per-diem`
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
@@ -7131,6 +7208,26 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
 ] as SearchFilterKey[];
 
+const FEATURE_IDS = {
+    CATEGORIES: 'categories',
+    ACCOUNTING: 'accounting',
+    COMPANY_CARDS: 'company-cards',
+    TAGS: 'tags',
+    WORKFLOWS: 'workflows',
+    INVOICES: 'invoices',
+    RULES: 'rules',
+    PER_DIEM: 'per-diem',
+    DISTANCE_RATES: 'distance-rates',
+    EXPENSIFY_CARD: 'expensify-card',
+};
+
+const TASK_TO_FEATURE: Record<string, string> = {
+    [CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES]: FEATURE_IDS.CATEGORIES,
+    [CONST.ONBOARDING_TASK_TYPE.ADD_ACCOUNTING_INTEGRATION]: FEATURE_IDS.ACCOUNTING,
+    [CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD]: FEATURE_IDS.COMPANY_CARDS,
+    [CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS]: FEATURE_IDS.TAGS,
+};
+
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
@@ -7144,6 +7241,6 @@ type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
 export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
 
-export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS};
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FEATURE_IDS};
 
 export default CONST;

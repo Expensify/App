@@ -639,6 +639,7 @@ const translations = {
         merge: 'Fusionar',
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
         enableGlobalReimbursements: 'Habilitar Reembolsos Globales',
+        purchaseAmount: 'Importe de compra',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -856,17 +857,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Esta sala de chat es para cualquier cosa relacionada con <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Este chat es para facturas entre <strong>${invoicePayer}</strong> y <strong>${invoiceReceiver}</strong>. Usa el botón + para enviar una factura.`,
+            `Este chat es para facturas entre <strong>${invoicePayer}</strong> y <strong>${invoiceReceiver}</strong>. Usa el botón <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> para enviar una factura.`,
         beginningOfChatHistory: 'Este chat es con ',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `Aquí es donde <strong>${submitterDisplayName}</strong> enviará los gastos al espacio de trabajo <strong>${workspaceName}</strong>. Solo usa el botón +.`,
+            `Aquí es donde <strong>${submitterDisplayName}</strong> enviará los gastos al espacio de trabajo <strong>${workspaceName}</strong>. Solo usa el botón <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
         yourSpace: 'Tu espacio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Usa el botón + para ${additionalText} un gasto`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Usa el botón ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} para ${additionalText} un gasto`,
         askConcierge: ' Haz preguntas y obtén soporte en tiempo real las 24/7.',
         conciergeSupport: 'Soporte 24/7',
         create: 'crear',
@@ -983,6 +984,7 @@ const translations = {
         sizeNotMet: 'El archivo adjunto debe ser más grande que 0 bytes.',
         invalidFileMessage:
             'El archivo que subiste está vacío o contiene datos no válidos. Asegúrate de que el archivo esté correctamente formateado y contenga la información necesaria antes de volver a subirlo.',
+        importSpreadsheetLibraryError: 'Error al cargar el módulo de hojas de cálculo. Por favor, verifica tu conexión a internet e inténtalo de nuevo.',
         importSpreadsheet: 'Importar hoja de cálculo',
         downloadCSV: 'Descargar CSV',
         importMemberConfirmation: () => ({
@@ -1910,6 +1912,7 @@ const translations = {
         virtualCardNumber: 'Número de la tarjeta virtual',
         travelCardCvv: 'CVV de la tarjeta de viaje',
         physicalCardNumber: 'Número de la tarjeta física',
+        physicalCardPin: 'PIN',
         getPhysicalCard: 'Obtener tarjeta física',
         reportFraud: 'Reportar fraude con la tarjeta virtual',
         reportTravelFraud: 'Reportar fraude con la tarjeta de viaje',
@@ -3983,6 +3986,18 @@ const translations = {
             syncReimbursedReportsDescription:
                 'Cuando un informe se reembolsa utilizando Expensify ACH, la factura de compra correspondiente se creará en la cuenta de Sage Intacct a continuación.',
             paymentAccount: 'Cuenta de pago Sage Intacct',
+            accountingMethods: {
+                label: 'Cuándo Exportar',
+                description: 'Elige cuándo exportar los gastos:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Devengo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Efectivo',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando estén aprobados definitivamente',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
+                },
+            },
         },
         netsuite: {
             subsidiary: 'Subsidiaria',
@@ -4454,6 +4469,8 @@ const translations = {
             verifyingTheDetails: 'Estamos verificando algunos detalles. Concierge te avisará cuando las tarjetas de Expensify estén listas para emitirse.',
             disclaimer:
                 'La tarjeta comercial Expensify Visa® es emitida por The Bancorp Bank, N.A., miembro de la FDIC, en virtud de una licencia de Visa U.S.A. Inc. y no puede utilizarse en todos los comercios que aceptan tarjetas Visa. Apple® y el logotipo de Apple® son marcas comerciales de Apple Inc. registradas en EE.UU. y otros países. App Store es una marca de servicio de Apple Inc. Google Play y el logotipo de Google Play son marcas comerciales de Google LLC.',
+            euUkDisclaimer:
+                'Las tarjetas proporcionadas a residentes del EEE son emitidas por Transact Payments Malta Limited, y las proporcionadas a residentes del Reino Unido son emitidas por Transact Payments Limited con licencia de Visa Europe Limited. Transact Payments Malta Limited está debidamente autorizada y regulada por la Autoridad de Servicios Financieros de Malta como Institución Financiera, de conformidad con la Ley de Instituciones Financieras de 1994. Número de registro: C 91879. Transact Payments Limited está autorizada y regulada por la Comisión de Servicios Financieros de Gibraltar.',
             issueCard: 'Emitir tarjeta',
             findCard: 'Encontrar tarjeta',
             newCard: 'Nueva tarjeta',
@@ -4843,7 +4860,8 @@ const translations = {
             existingTagError: 'Ya existe una etiqueta con este nombre',
             invalidTagNameError: 'El nombre de la etiqueta no puede ser 0. Por favor, elige un valor diferente.',
             genericFailureMessage: 'Se ha producido un error al actualizar la etiqueta. Por favor, inténtelo nuevamente.',
-            importedFromAccountingSoftware: 'Etiquetas importadas desde',
+            importedFromAccountingSoftware: 'Las etiquetas se gestionan en tu',
+            employeesSeeTagsAs: 'Los empleados ven las etiquetas como ',
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Por favor, inténtelo nuevamente.',
             tagRules: 'Reglas de etiquetas',
@@ -6034,7 +6052,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'No hay nada que ver aquí',
-                subtitle: 'Intenta ajustar tus criterios de búsqueda o crear algo con el botón verde +.',
+                subtitle: `Intenta ajustar tus criterios de búsqueda o crear algo con el botón verde ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
             },
             emptyExpenseResults: {
                 title: 'Aún no has creado ningún gasto',
@@ -6145,6 +6163,7 @@ const translations = {
             withdrawn: 'Retirada',
             billable: 'Facturable',
             reimbursable: 'Reembolsable',
+            purchaseCurrency: 'Moneda de compra',
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.REPORTS]: 'Informe',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
@@ -6155,6 +6174,12 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
+            },
+            action: {
+                [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Enviar',
+                [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Aprobar',
+                [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pagar',
+                [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
         },
         groupBy: 'Agrupar por',
@@ -6314,7 +6339,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `comenzó a exportar este informe a ${label}...`,
                 },
                 integrationsMessage: ({label, errorMessage, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `no se pudo exportar este informe a ${label} ("${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
+                    `no se pudo exportar este informe a ${label} ("${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}")`,
                 managerAttachReceipt: `agregó un recibo`,
                 managerDetachReceipt: `quitó un recibo`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pagó ${currency}${amount} en otro lugar`,
@@ -7135,7 +7160,7 @@ const translations = {
         isTransactionBillable: 'Elige si la transacción es facturable',
         keepThisOne: 'Mantener éste',
         confirmDetails: 'Confirma los detalles que conservas',
-        confirmDuplicatesInfo: 'Los duplicados que no conserves se guardarán para que el usuario los elimine',
+        confirmDuplicatesInfo: 'Los duplicados que no conserves se mantendrán para que el remitente los elimine.',
         hold: 'Este gasto está retenido',
         resolvedDuplicates: 'resolvió el duplicado',
     },
