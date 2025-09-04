@@ -434,14 +434,6 @@ function MoneyReportHeader({
         } else {
             startApprovedAnimation();
             approveMoneyRequest(moneyRequestReport, true);
-            if (currentSearchQueryJSON) {
-                search({
-                    searchKey: currentSearchKey,
-                    shouldCalculateTotals: true,
-                    offset: 0,
-                    queryJSON: currentSearchQueryJSON,
-                });
-            }
         }
     };
 
