@@ -95,7 +95,7 @@ class TranslationGenerator {
     /**
      * Specific paths to retranslate (supersedes compareRef).
      */
-    private readonly paths: TranslationPaths[] | undefined;
+    private readonly paths: Set<TranslationPaths> | undefined;
 
     /**
      * Should we print verbose logs?
@@ -120,7 +120,7 @@ class TranslationGenerator {
         sourceFile: string;
         translator: Translator;
         compareRef: string;
-        paths?: TranslationPaths[];
+        paths?: Set<TranslationPaths>;
         verbose: boolean;
     }) {
         this.targetLanguages = config.targetLanguages;
@@ -215,17 +215,17 @@ class TranslationGenerator {
             });
         }
 
-        // TODO: if paths or compareRef are provided, we need to build a set of dot-notation paths for all added/modified lines, and another set for all removed lines.
-        // TODO: if paths are provided, just populate the set of added/modified lines with the paths
-        // TODO: if compareRef is provided:
-        //     1. run a git diff to find the changed lines in en.ts source file
-        //     2. parse en.ts into an AST
-        //     3. find the main translation object with findTranslationsNode
-        //     4. Traverse the whole AST
-        //     5. As we visit each node, look at the line number provided by the TS compiler API
-        //     6. If the line number is in the set of changed lines, then traverse the tree upwards until we reach the root of the translation object we found in step 2.
-        //     7. Depending on if the line was added/modified or removed, add the dot-notation path to the appropriate set. An important note here is that you might have lines that are added and others that are removed that are part of the same function denoted by the same dot-notation path. In this case, the dot-notation path needs to be treated as modified, not deleted.
+        // Build sets of dot-notation paths for incremental translations
+        // If paths are provided, just use them directly as the set of added/modified paths
+        const addedOrModifiedPaths = this.paths ?? new Set<TranslationPaths>();
+        const removedPaths = new Set<TranslationPaths>();
+
         // TODO: modify extractStringsToTranslate to check the node's dot-notation path against the set of added/modified paths if we're doing an incremental translation. Only include it as a string to translate if it's in the set of added/modified paths.
+
+        if (!this.paths && this.compareRef) {
+            // If compareRef is provided, use git diff to find changed lines and build dot-notation paths
+            this.buildPathsFromGitDiff(addedOrModifiedPaths, removedPaths);
+        }
         for (const targetLanguage of this.targetLanguages) {
             // Map of translations
             const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
@@ -464,7 +464,7 @@ class TranslationGenerator {
      * If paths are specified, only paths that match exactly or are nested under a specified path should be translated.
      */
     private shouldTranslatePath(currentPath: string): boolean {
-        if (!this.paths || this.paths.length === 0) {
+        if (!this.paths || this.paths.size === 0) {
             return true;
         }
 
@@ -619,6 +619,138 @@ class TranslationGenerator {
     }
 
     /**
+     * Build dot-notation paths from git diff by analyzing changed lines.
+     */
+    private buildPathsFromGitDiff(addedOrModifiedPaths: Set<TranslationPaths>, removedPaths: Set<TranslationPaths>): void {
+        try {
+            // Get the relative path from the git repo root
+            const relativePath = path.relative(process.cwd(), path.join(this.languagesDir, 'en.ts'));
+
+            // Run git diff to find changed lines
+            const diffResult = Git.diff(this.compareRef, undefined, relativePath);
+
+            if (!diffResult.hasChanges) {
+                if (this.verbose) {
+                    console.log('🔍 No changes detected in git diff');
+                }
+                return;
+            }
+
+            // Find the main translation object in en.ts
+            const translationsNode = this.findTranslationsNode(this.sourceFile);
+            if (!translationsNode) {
+                throw new Error('Could not find translation node in en.ts');
+            }
+
+            // Get changed lines from the diff
+            const changedLines = diffResult.files.at(0);
+            if (!changedLines) {
+                return;
+            }
+
+            if (this.verbose) {
+                console.log(`🔍 Found ${changedLines.addedLines.size} added lines, ${changedLines.removedLines.size} removed lines`);
+            }
+
+            // Traverse the AST and build dot-notation paths for nodes on changed lines
+            this.extractPathsFromChangedLines(translationsNode, changedLines.addedLines, changedLines.removedLines, addedOrModifiedPaths, removedPaths);
+
+            // Handle the case where the same path has both additions and removals (treat as modified, not deleted)
+            for (const removedPath of removedPaths) {
+                if (addedOrModifiedPaths.has(removedPath)) {
+                    removedPaths.delete(removedPath); // It's modified, not removed
+                }
+            }
+
+            if (this.verbose) {
+                console.log(`📝 Paths to retranslate: ${Array.from(addedOrModifiedPaths).join(', ')}`);
+                console.log(`🗑️ Paths to remove: ${Array.from(removedPaths).join(', ')}`);
+            }
+        } catch (error) {
+            if (this.verbose) {
+                console.warn('⚠️ Error building paths from git diff, falling back to full translation:', error);
+            }
+            // On error, don't populate any paths (will fall back to full translation)
+        }
+    }
+
+    /**
+     * Extract dot-notation paths from nodes that are on changed lines.
+     */
+    private extractPathsFromChangedLines(
+        node: ts.Node,
+        addedLines: Set<number>,
+        removedLines: Set<number>,
+        addedOrModifiedPaths: Set<TranslationPaths>,
+        removedPaths: Set<TranslationPaths>,
+        currentPath = '',
+    ): void {
+        // Check if this node is on a changed line
+        const sourceFile = node.getSourceFile();
+        const start = sourceFile.getLineAndCharacterOfPosition(node.getStart());
+        const end = sourceFile.getLineAndCharacterOfPosition(node.getEnd());
+
+        // Check if any line of this node is in the changed lines
+        const nodeLines = Array.from({length: end.line - start.line + 1}, (_, i) => start.line + i + 1);
+        const isOnAddedLine = nodeLines.some((lineNumber) => addedLines.has(lineNumber));
+        const isOnRemovedLine = nodeLines.some((lineNumber) => removedLines.has(lineNumber));
+
+        if ((isOnAddedLine || isOnRemovedLine) && this.shouldNodeBeTranslated(node)) {
+            // This node is on a changed line and should be translated
+            // Traverse up the tree to build the dot notation path
+            const dotPath = this.buildDotNotationPathFromNode(node);
+            if (dotPath) {
+                if (isOnAddedLine) {
+                    addedOrModifiedPaths.add(dotPath as TranslationPaths);
+                }
+                if (isOnRemovedLine) {
+                    removedPaths.add(dotPath as TranslationPaths);
+                }
+
+                if (this.verbose) {
+                    console.log(`🔄 Found changed path: ${dotPath} (added: ${isOnAddedLine}, removed: ${isOnRemovedLine})`);
+                }
+            }
+        }
+
+        // Continue traversing children
+        node.forEachChild((child) => {
+            let childPath = currentPath;
+
+            // If the child is a property assignment, update the path
+            if (ts.isPropertyAssignment(child)) {
+                const propName = TSCompilerUtils.extractKeyFromPropertyNode(child);
+                if (propName) {
+                    childPath = currentPath ? `${currentPath}.${propName}` : propName;
+                }
+            }
+
+            this.extractPathsFromChangedLines(child, addedLines, removedLines, addedOrModifiedPaths, removedPaths, childPath);
+        });
+    }
+
+    /**
+     * Build a dot notation path from a node by traversing up the AST to the translations root.
+     */
+    private buildDotNotationPathFromNode(node: ts.Node): string | null {
+        const pathParts: string[] = [];
+        let current: ts.Node | undefined = node;
+
+        // Traverse up the tree until we reach the translations object or source file
+        while (current && current !== this.sourceFile) {
+            if (ts.isPropertyAssignment(current)) {
+                const key = TSCompilerUtils.extractKeyFromPropertyNode(current);
+                if (key) {
+                    pathParts.unshift(key);
+                }
+            }
+            current = current.parent;
+        }
+
+        return pathParts.length > 0 ? pathParts.join('.') : null;
+    }
+
+    /**
      * Generate an AST transformer for the given set of translations.
      */
     private createTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
@@ -724,14 +856,14 @@ async function main(): Promise<void> {
             },
             paths: {
                 description: 'Comma-separated list of specific translation paths to retranslate (e.g., "common.save,errors.generic").',
-                parse: (val: string): TranslationPaths[] => {
+                parse: (val: string): Set<TranslationPaths> => {
                     const rawPaths = val.split(',').map((translationPath) => translationPath.trim());
-                    const validatedPaths: TranslationPaths[] = [];
+                    const validatedPaths = new Set<TranslationPaths>();
                     const invalidPaths: string[] = [];
 
                     for (const rawPath of rawPaths) {
                         if (get(en, rawPath)) {
-                            validatedPaths.push(rawPath as TranslationPaths);
+                            validatedPaths.add(rawPath as TranslationPaths);
                         } else {
                             invalidPaths.push(rawPath);
                         }
