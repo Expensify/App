@@ -20,16 +20,6 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {
-                    shouldShowResetModal: false,
-                    isLoading: true,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    achData: null,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     achAccount: null,
