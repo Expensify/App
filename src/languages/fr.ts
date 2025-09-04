@@ -4885,7 +4885,8 @@ const translations = {
             existingTagError: 'Un tag avec ce nom existe déjà',
             invalidTagNameError: 'Le nom de la balise ne peut pas être 0. Veuillez choisir une autre valeur.',
             genericFailureMessage: "Une erreur s'est produite lors de la mise à jour du tag, veuillez réessayer.",
-            importedFromAccountingSoftware: 'Les balises ci-dessous sont importées de votre',
+            importedFromAccountingSoftware: 'Les étiquettes sont gérées dans votre',
+            employeesSeeTagsAs: 'Les employés voient les étiquettes comme ',
             glCode: 'Code GL',
             updateGLCodeFailureMessage: "Une erreur s'est produite lors de la mise à jour du code GL, veuillez réessayer.",
             tagRules: 'Règles de balise',
@@ -6193,6 +6194,12 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Remboursement',
             },
+            action: {
+                [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Soumettre',
+                [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approuver',
+                [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Payer',
+                [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporter',
+            },
         },
         groupBy: 'Groupe par',
         moneyRequestReport: {
@@ -6351,7 +6358,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `a commencé à exporter ce rapport vers ${label}...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `échec de l'exportation de ce rapport vers ${label} ("${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
+                    `échec de l'exportation de ce rapport vers ${label} ("${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}")`,
                 managerAttachReceipt: `a ajouté un reçu`,
                 managerDetachReceipt: `a supprimé un reçu`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `payé ${currency}${amount} ailleurs`,
