@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -100,7 +100,7 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksDesktopOutOfPocketExpenseEntitySelectPage.displayName}
             sections={sections}
-            listItem={RadioListItem}
+            listItem={SingleSelectListItem}
             onBackButtonPress={goBack}
             onSelectRow={(selection: SelectorType) => selectExportEntity(selection as MenuItem)}
             shouldSingleExecuteRowSelect

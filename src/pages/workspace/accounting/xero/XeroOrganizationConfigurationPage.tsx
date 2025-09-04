@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -84,7 +84,7 @@ function XeroOrganizationConfigurationPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={XeroOrganizationConfigurationPage.displayName}
             sections={sections.length ? [{data: sections}] : []}
-            listItem={RadioListItem}
+            listItem={SingleSelectListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             onSelectRow={saveSelection}
             initiallyFocusedOptionKey={currentXeroOrganization?.id}

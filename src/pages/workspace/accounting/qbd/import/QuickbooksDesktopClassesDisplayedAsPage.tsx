@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -58,7 +58,7 @@ function QuickbooksDesktopClassesDisplayedAsPage({policy}: WithPolicyConnections
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={QuickbooksDesktopClassesDisplayedAsPage.displayName}
             sections={data.length ? [{data}] : []}
-            listItem={RadioListItem}
+            listItem={SingleSelectListItem}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES.getRoute(policyID))}
             onSelectRow={selectDisplayedAs}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
