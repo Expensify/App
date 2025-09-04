@@ -6,11 +6,13 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Network from '@src/types/onyx/Network';
 import type {ConnectionChanges} from '@src/types/onyx/Network';
 import * as NetworkActions from './actions/Network';
 import AppStateMonitor from './AppStateMonitor';
+import DateUtils from './DateUtils';
 import Log from './Log';
 
 let isOffline = false;
@@ -70,12 +72,25 @@ function setOfflineStatus(isCurrentlyOffline: boolean, reason = ''): void {
 let shouldForceOffline = false;
 let isPoorConnectionSimulated: boolean | undefined;
 let connectionChanges: ConnectionChanges | undefined;
+let isOfflineFlag: boolean | undefined;
+let networkTimeSkew = 0;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
             return;
         }
+
+        networkTimeSkew = network?.timeSkew ?? 0;
+        if (!network?.lastOfflineAt) {
+            NetworkActions.setNetworkLastOffline(DateUtils.getLocalDateFromDatetime(IntlStore.getCurrentLocale()));
+        }
+
+        const newIsOffline = network?.isOffline ?? network?.shouldForceOffline;
+        if (newIsOffline && isOfflineFlag === false) {
+            NetworkActions.setNetworkLastOffline(DateUtils.getLocalDateFromDatetime(IntlStore.getCurrentLocale()));
+        }
+        isOfflineFlag = newIsOffline;
 
         simulatePoorConnection(network);
 
@@ -115,6 +130,17 @@ Onyx.connect({
         accountID = session.accountID;
     },
 });
+
+/**
+ * Returns the current time plus skew in milliseconds in the format expected by the database
+ */
+function getDBTimeWithSkew(timestamp: string | number = ''): string {
+    if (networkTimeSkew > 0) {
+        const datetime = timestamp ? new Date(timestamp) : new Date();
+        return DateUtils.getDBTime(datetime.valueOf() + networkTimeSkew);
+    }
+    return DateUtils.getDBTime(timestamp);
+}
 
 function simulatePoorConnection(network: Network) {
     // Starts random network status change when shouldSimulatePoorConnection is turned into true
@@ -302,5 +328,6 @@ export default {
     triggerReconnectionCallbacks,
     recheckNetworkConnection,
     subscribeToNetInfo,
+    getDBTimeWithSkew,
 };
 export type {NetworkStatus};

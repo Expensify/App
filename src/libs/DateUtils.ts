@@ -36,13 +36,11 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
 import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {setCurrentDate} from './actions/CurrentDate';
-import {setNetworkLastOffline} from './actions/Network';
 import {translate, translateLocal} from './Localize';
 import Log from './Log';
 import memoize from './memoize';
@@ -79,29 +77,6 @@ Onyx.connect({
             selected: personalDetailsTimezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
             automatic: personalDetailsTimezone?.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
         };
-    },
-});
-
-let networkTimeSkew = 0;
-let isOffline: boolean | undefined;
-
-/**
- * We use Onyx.connectWithoutView because we do not use this in React components and this logic is not tied to the UI.
- *
- */
-Onyx.connectWithoutView({
-    key: ONYXKEYS.NETWORK,
-    callback: (val) => {
-        networkTimeSkew = val?.timeSkew ?? 0;
-        if (!val?.lastOfflineAt) {
-            setNetworkLastOffline(getLocalDateFromDatetime(IntlStore.getCurrentLocale()));
-        }
-
-        const newIsOffline = val?.isOffline ?? val?.shouldForceOffline;
-        if (newIsOffline && isOffline === false) {
-            setNetworkLastOffline(getLocalDateFromDatetime(IntlStore.getCurrentLocale()));
-        }
-        isOffline = newIsOffline;
     },
 });
 
@@ -408,17 +383,6 @@ function getDBTimeFromDate(date: Date): string {
 function getDBTime(timestamp: string | number = ''): string {
     const datetime = timestamp ? new Date(timestamp) : new Date();
     return getDBTimeFromDate(datetime);
-}
-
-/**
- * Returns the current time plus skew in milliseconds in the format expected by the database
- */
-function getDBTimeWithSkew(timestamp: string | number = ''): string {
-    if (networkTimeSkew > 0) {
-        const datetime = timestamp ? new Date(timestamp) : new Date();
-        return getDBTime(datetime.valueOf() + networkTimeSkew);
-    }
-    return getDBTime(timestamp);
 }
 
 function subtractMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
@@ -985,7 +949,6 @@ const DateUtils = {
     setTimezoneUpdated,
     getMicroseconds,
     getDBTime,
-    getDBTimeWithSkew,
     subtractMillisecondsFromDateTime,
     addMillisecondsFromDateTime,
     getEndOfToday,
