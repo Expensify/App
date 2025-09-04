@@ -102,6 +102,11 @@ class TranslationGenerator {
     private readonly verbose: boolean;
 
     /**
+     * Is this an incremental translation run, or a full translation run?
+     */
+    private readonly isIncremental: boolean;
+
+    /**
      * If a complex template expression comes from an existing translation file rather than ChatGPT, then the hashes of its spans will be serialized from the translated version of those spans.
      * This map provides us a way to look up the English hash for each translated span hash, so that when we're transforming the English file and we encounter a translated expression hash,
      * we can look up English hash and use it to look up the translation for that hash (since the translation map is keyed by English string hashes).
@@ -125,6 +130,7 @@ class TranslationGenerator {
         this.compareRef = config.compareRef;
         this.paths = config.paths;
         this.verbose = config.verbose;
+        this.isIncremental = !!this.paths || !!this.compareRef;
     }
 
     public async generateTranslations(): Promise<void> {
@@ -208,6 +214,17 @@ class TranslationGenerator {
             });
         }
 
+        // TODO: if paths or compareRef are provided, we need to build a set of dot-notation paths for all added/modified lines, and another set for all removed lines.
+        // TODO: if paths are provided, just populate the set of added/modified lines with the paths
+        // TODO: if compareRef is provided:
+        //     1. run a git diff to find the changed lines in en.ts source file
+        //     2. parse en.ts into an AST
+        //     3. find the main translation object with findTranslationsNode
+        //     4. Traverse the whole AST
+        //     5. As we visit each node, look at the line number provided by the TS compiler API
+        //     6. If the line number is in the set of changed lines, then traverse the tree upwards until we reach the root of the translation object we found in step 2.
+        //     7. Depending on if the line was added/modified or removed, add the dot-notation path to the appropriate set. An important note here is that you might have lines that are added and others that are removed that are part of the same function denoted by the same dot-notation path. In this case, the dot-notation path needs to be treated as modified, not deleted.
+        // TODO: modify extractStringsToTranslate to check the node's dot-notation path against the set of added/modified paths if we're doing an incremental translation. Only include it as a string to translate if it's in the set of added/modified paths.
         for (const targetLanguage of this.targetLanguages) {
             // Map of translations
             const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
@@ -230,6 +247,18 @@ class TranslationGenerator {
 
             // Replace translated strings in the AST
             const transformer = this.createTransformer(translationsForLocale);
+
+            // TODO: for incremental translations, don't translate the full source file. Instead, we first need to:
+            //     1. Create a TS AST node that represents an object. This object will be empty to start, but will be populated with the translated ASTs for the added/modified paths.
+            //     2. Parse en.ts, and ONLY for added/modified paths, transform the subtree and populate the tree from the previous step. Note that this needs to work with complex templates, translating their spans first just as createTransformer currently does
+            //     3. Parse the full existing AST for the target locale.
+            //     4. Merge the translated AST for the object from step one into the full existing translated ASTS from step 3.
+            //         - TODO: in order to do this, we need a new utility in TSCompilerUtils: objectMerge, which is effectively the same as _.merge from lodash, but for TS ASTs that are the roots of objects. For any other type of node it should throw an error. We will want to add unit tests for this function in TSCompilerUtilsTest
+            //         - TODO: first, add another utility in TSCompilerUtils: isObject, which returns true if the node is the root of an object, or false otherwise. Add unit tests for this function.
+            //     5. Prune the delete dot notation paths from the existing translated AST:
+            //         - TODO: in order to do this, we need a new utility in TSCompilerUtils: objectOmit, which is effectively the same as _.omit from lodash, but for TS ASTs that are the roots of objects. For any other type of node it should throw an error. We will want to add unit tests for this function in TSCompilerUtilsTest
+            //     6. Write the final translated AST to the target locale file.
+
             const result = ts.transform(this.sourceFile, [transformer]);
             let transformedSourceFile = result.transformed.at(0) ?? this.sourceFile; // Ensure we always have a valid SourceFile
             result.dispose();
@@ -678,6 +707,7 @@ async function main(): Promise<void> {
             'compare-ref': {
                 description:
                     'For incremental translations, this ref is the previous version of the codebase to compare to. Only strings that changed or had their context changed since this ref will be retranslated.',
+                // TODO: parse compare-ref and validate that it's a valid Git ref
                 default: '',
             },
             paths: {
