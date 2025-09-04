@@ -5733,7 +5733,6 @@ const translations = {
             customRules: {
                 title: 'Aangepaste regels',
                 subtitle: 'Beschrijving',
-                description: "Voer aangepaste regels in voor onkostennota's",
                 cardSubtitle: 'Hier staat het uitgavenbeleid van je team, zodat iedereen weet wat er wel en niet wordt vergoed.',
             },
         },

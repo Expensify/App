@@ -79,7 +79,6 @@ function RulesCustomPage({
                             autoGrowHeight
                             maxLength={CONST.DESCRIPTION_LIMIT}
                         />
-                        <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.customRules.description')}</Text>
                     </View>
                 </FormProvider>
             </ScreenWrapper>

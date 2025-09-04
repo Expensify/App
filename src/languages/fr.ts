@@ -5739,7 +5739,6 @@ const translations = {
             customRules: {
                 title: 'Règles personnalisées',
                 subtitle: 'Description',
-                description: 'Saisir des règles personnalisées pour les rapports de dépenses',
                 cardSubtitle: 'Voici où se trouve la politique de dépenses de votre équipe, afin que tout le monde sache ce qui est couvert.',
             },
         },

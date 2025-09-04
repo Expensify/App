@@ -458,7 +458,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         <Section
                             isCentralPane
                             title={translate('workspace.editor.policy')}
-                            titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
+                            titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb0]}
                             subtitle={translate('workspace.rules.customRules.cardSubtitle')}
                             subtitleStyles={[styles.mb6]}
                             subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5, styles.mt1]}

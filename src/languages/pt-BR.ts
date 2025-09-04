@@ -5734,7 +5734,6 @@ const translations = {
             customRules: {
                 title: 'Regras personalizadas',
                 subtitle: 'Descrição',
-                description: 'Insira regras personalizadas para relatórios de despesas',
                 cardSubtitle: 'Aqui está a política de despesas da sua equipe, para que todos saibam o que está incluso.',
             },
         },

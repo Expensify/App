@@ -5699,8 +5699,7 @@ const translations = {
             customRules: {
                 title: 'Expense policy',
                 subtitle: 'Policy',
-                description: 'Enter your expense policy',
-                cardSubtitle: "Here's where your team's expense policy lives, so everyone's on the same page about what's covered",
+                cardSubtitle: "Here's where your team's expense policy lives, so everyone's on the same page about what's covered.",
             },
         },
         planTypePage: {
