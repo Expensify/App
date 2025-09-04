@@ -806,11 +806,11 @@ function ReportActionsList({
             // InvertedFlatList applies a scale: -1 transform, so top padding becomes bottom padding and vice versa.
             // When using FlatList for transaction threads, we need to manually add top padding (pt4) and remove bottom padding (pb0)
             // to maintain consistent spacing and visual appearance at the top of the list.
-            baseStyles.push(styles.pb0, styles.pt4);
+            baseStyles.push(styles.pb0, styles.pt4, styles.justifyContentEnd);
         }
 
         return baseStyles;
-    }, [parentReportAction, styles.chatContentScrollView, styles.pb0, styles.pt4]);
+    }, [parentReportAction, styles.chatContentScrollView, styles.justifyContentEnd, styles.pb0, styles.pt4]);
 
     return (
         <>
