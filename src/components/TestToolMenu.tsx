@@ -43,8 +43,9 @@ function TestToolMenu() {
     const shouldShowTransactionThreadReportToggle = isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isNative = getPlatform() !== (CONST.PLATFORM.WEB || CONST.PLATFORM.MOBILE_WEB);
-
+    const platform = getPlatform();
+    const isNative = platform !== CONST.PLATFORM.WEB && platform !== CONST.PLATFORM.MOBILE_WEB;
+    
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
     // This should be replaced with actual logic to check if biometrics are registered just like the authenticated status above
