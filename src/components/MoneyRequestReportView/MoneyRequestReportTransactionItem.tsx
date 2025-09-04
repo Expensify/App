@@ -4,7 +4,7 @@ import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
-import {expenseHeaders} from '@components/SelectionList/SearchTableHeader';
+import {getExpenseHeaders} from '@components/SelectionList/SearchTableHeader';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
@@ -59,6 +59,8 @@ type MoneyRequestReportTransactionItemProps = {
     /** Callback function that scrolls to this transaction in case it is newly added */
     scrollToNewTransaction?: (offset: number) => void;
 };
+
+const expenseHeaders = getExpenseHeaders();
 
 function MoneyRequestReportTransactionItem({
     transaction,

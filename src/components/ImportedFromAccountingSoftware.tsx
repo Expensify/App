@@ -26,14 +26,31 @@ type ImportedFromAccountingSoftwareProps = {
 
     /** The translated text for the "imported from" message */
     translatedText: string;
+
+    /** The custom tag name */
+    customTagName?: string;
+
+    /** Whether we are displaying the tags */
+    isDisplayingTags?: boolean;
 };
 
-function ImportedFromAccountingSoftware({policyID, currentConnectionName, translatedText, connectedIntegration}: ImportedFromAccountingSoftwareProps) {
+function ImportedFromAccountingSoftware({
+    policyID,
+    currentConnectionName,
+    translatedText,
+    connectedIntegration,
+    customTagName,
+    isDisplayingTags = false,
+}: ImportedFromAccountingSoftwareProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const icon = getIntegrationIcon(connectedIntegration);
+
+    if (!customTagName) {
+        return undefined;
+    }
 
     return (
         <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexWrap]}>
@@ -56,7 +73,14 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
                     ) : undefined
                 }
             />
-            <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+            <Text style={[styles.textNormal, styles.colorMuted]}>. </Text>
+            {isDisplayingTags && (
+                <>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.employeesSeeTagsAs')}</Text>
+                    <Text style={[styles.textBold, styles.colorMuted]}>{customTagName}</Text>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+                </>
+            )}
         </View>
     );
 }
