@@ -248,7 +248,7 @@ function SearchList(
                     return;
                 }
 
-                listRef.current.scrollToOffset({offset});
+                listRef.current.scrollToOffset({offset, animated: false});
             });
         }, [getScrollOffset, route]),
     );
