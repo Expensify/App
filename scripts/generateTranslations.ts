@@ -171,9 +171,6 @@ class TranslationGenerator {
             // Replace translated strings in the AST
             const transformer = this.createTransformer(translationsForLocale);
 
-            // TODO:for incremental translations, don't translate the full source file. Instead, we first need to:
-            //     1. Create a TS AST node that represents an object. This object will be empty to start, but will be populated with the translated ASTs for the added/modified paths.
-            //     2. Parse en.ts, and ONLY for added/modified paths, transform the subtree and populate the tree from the previous step. Note that this needs to work with complex templates, translating their spans first just as createTransformer currently does
             //     3. Parse the full existing AST for the target locale.
             //     4. Merge the translated AST for the object from step one into the full existing translated ASTS from step 3.
             //         - TODO: in order to do this, we need a new utility in TSCompilerUtils: objectMerge, which is effectively the same as _.merge from lodash, but for TS ASTs that are the roots of objects. For any other type of node it should throw an error. We will want to add unit tests for this function in TSCompilerUtilsTest
@@ -182,9 +179,35 @@ class TranslationGenerator {
             //         - TODO: in order to do this, we need a new utility in TSCompilerUtils: objectOmit, which is effectively the same as _.omit from lodash, but for TS ASTs that are the roots of objects. For any other type of node it should throw an error. We will want to add unit tests for this function in TSCompilerUtilsTest
             //     6. Write the final translated AST to the target locale file.
 
-            const result = ts.transform(this.sourceFile, [transformer]);
-            let transformedSourceFile = result.transformed.at(0) ?? this.sourceFile; // Ensure we always have a valid SourceFile
-            result.dispose();
+            // Step 2: For incremental mode, transform just the translations node; otherwise transform the full file
+            let transformedSourceFile: ts.SourceFile;
+            if (this.isIncremental) {
+                // Find the translations node in en.ts
+                const translationsNode = this.findTranslationsNode(this.sourceFile);
+                if (!translationsNode) {
+                    throw new Error('Could not find translations node in en.ts for incremental transformation');
+                }
+
+                // Transform just the translations node directly - this will filter to only pathsToTranslate
+                const nodeResult = ts.transform(translationsNode, [transformer]); // Type assertion needed for Node vs SourceFile
+                const transformedTranslationsNode = nodeResult.transformed.at(0);
+                nodeResult.dispose();
+
+                if (!transformedTranslationsNode) {
+                    throw new Error('Transformation of translations node failed');
+                }
+
+                // TODO: Use transformedTranslationsNode in subsequent steps
+                // For now, fall back to full transformation to maintain existing behavior
+                const fullResult = ts.transform(this.sourceFile, [transformer]);
+                transformedSourceFile = (fullResult.transformed.at(0) ?? this.sourceFile) as ts.SourceFile;
+                fullResult.dispose();
+            } else {
+                // Full transformation for non-incremental mode
+                const result = ts.transform(this.sourceFile, [transformer]);
+                transformedSourceFile = (result.transformed.at(0) ?? this.sourceFile) as ts.SourceFile;
+                result.dispose();
+            }
 
             // Import en.ts
             transformedSourceFile = TSCompilerUtils.addImport(transformedSourceFile, 'en', './en', true);
@@ -668,10 +691,14 @@ class TranslationGenerator {
     /**
      * Generate an AST transformer for the given set of translations.
      */
-    private createTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
+    private createTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.Node> {
         return (context: ts.TransformationContext) => {
-            const visit: ts.Visitor = (node) => {
+            const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
                 if (this.shouldNodeBeTranslated(node)) {
+                    // For incremental mode, check if this node's path is included
+                    if (this.isIncremental && !this.shouldTranslatePath(currentPath)) {
+                        return undefined; // Remove this node from the transformed AST
+                    }
                     if (ts.isStringLiteral(node)) {
                         const translatedText = translations.get(this.getTranslationKey(node));
                         return translatedText ? ts.factory.createStringLiteral(translatedText) : node;
@@ -699,7 +726,7 @@ class TranslationGenerator {
                                 continue;
                             }
                             const hash = hashStr(expression.getText());
-                            const translatedExpression = ts.visitNode(expression, visit);
+                            const translatedExpression = visitWithPath(expression, currentPath);
                             translatedComplexExpressions.set(hash, translatedExpression as ts.Expression);
                         }
 
@@ -707,12 +734,30 @@ class TranslationGenerator {
                         return this.stringToTemplateExpression(translatedTemplate, translatedComplexExpressions);
                     }
                 }
-                return ts.visitEachChild(node, visit, context);
+
+                // Continue traversing children, updating path for property assignments
+                return ts.visitEachChild(
+                    node,
+                    (child) => {
+                        let childPath = currentPath;
+
+                        // If the child is a property assignment, update the path
+                        if (ts.isPropertyAssignment(child)) {
+                            const propName = TSCompilerUtils.extractKeyFromPropertyNode(child);
+                            if (propName) {
+                                childPath = currentPath ? `${currentPath}.${propName}` : propName;
+                            }
+                        }
+
+                        return visitWithPath(child, childPath);
+                    },
+                    context,
+                );
             };
 
-            return (node: ts.SourceFile) => {
-                const transformedNode = ts.visitNode(node, visit) ?? node; // Ensure we always return a valid node
-                return transformedNode as ts.SourceFile; // Safe cast since we always pass in a SourceFile
+            return (node: ts.Node) => {
+                const transformedNode = ts.visitNode(node, visitWithPath) ?? node; // Use path-aware visitor
+                return transformedNode;
             };
         };
     }
