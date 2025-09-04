@@ -206,7 +206,6 @@ function BaseSelectionList<TItem extends ListItem>({
         }));
     };
 
-
     const canShowProductTrainingTooltipMemo = useMemo(() => {
         return canShowProductTrainingTooltip && isFocused;
     }, [canShowProductTrainingTooltip, isFocused]);
@@ -294,9 +293,10 @@ function BaseSelectionList<TItem extends ListItem>({
     }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, itemHeights, getItemHeight]);
 
     const incrementPage = useCallback(() => {
-        if (flattenedSections.allOptions.length > CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
-            setCurrentPage((prev) => prev + 1);
+        if (flattenedSections.allOptions.length <= CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
+            return;
         }
+        setCurrentPage((prev) => prev + 1);
     }, [flattenedSections.allOptions.length, currentPage]);
 
     const slicedSections = useMemo(() => {
