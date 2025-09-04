@@ -1,8 +1,8 @@
-import {findFocusedRoute} from '@react-navigation/native';
 import type {NavigatorScreenParams} from '@react-navigation/native';
+import {findFocusedRoute} from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import type {NavigationPartialRoute, SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import type CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import {getSettingsTabStateFromSessionStorage} from './lastVisitedTabPathUtils';
@@ -20,10 +20,10 @@ export default function getAccountTabScreenToOpen(subscriptionPlan: ValueOf<type
         return {screen: SCREENS.SETTINGS.PROFILE.ROOT, params: {}};
     }
 
-    const focusedRoute = findFocusedRoute(settingsTabState) as NavigationPartialRoute<keyof SettingsSplitNavigatorParamList> | undefined;
-    if ((!subscriptionPlan && focusedRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ROOT) || !focusedRoute) {
+    const screen = findFocusedRoute(settingsTabState)?.name as keyof SettingsSplitNavigatorParamList | undefined;
+    if ((!subscriptionPlan && screen === SCREENS.SETTINGS.SUBSCRIPTION.ROOT) || !screen) {
         return {screen: SCREENS.SETTINGS.PROFILE.ROOT, params: {}};
     }
 
-    return {screen: focusedRoute.name};
+    return {screen};
 }
