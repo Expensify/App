@@ -4905,6 +4905,9 @@ const translations = {
             overrideMultiTagWarning: {
                 title: '',
                 prompt1: '',
+                prompt2: '',
+                prompt3: '',
+                prompt4: '',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Znaleźliśmy *${columnCounts} kolumny* w Twoim arkuszu kalkulacyjnym. Wybierz *Nazwa* obok kolumny, która zawiera nazwy tagów. Możesz również wybrać *Włączone* obok kolumny, która ustawia status tagów.`,

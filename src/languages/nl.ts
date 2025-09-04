@@ -4916,6 +4916,9 @@ const translations = {
             overrideMultiTagWarning: {
                 title: '',
                 prompt1: '',
+                prompt2: '',
+                prompt3: '',
+                prompt4: '',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `We hebben *${columnCounts} kolommen* in uw spreadsheet gevonden. Selecteer *Naam* naast de kolom die tag-namen bevat. U kunt ook *Ingeschakeld* selecteren naast de kolom die de tag-status instelt.`,

@@ -4827,6 +4827,9 @@ const translations = {
             overrideMultiTagWarning: {
                 title: '',
                 prompt1: '',
+                prompt2: '',
+                prompt3: '',
+                prompt4: '',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `我们在您的电子表格中找到了*${columnCounts} 列*。在包含标签名称的列旁边选择*名称*。您还可以在设置标签状态的列旁边选择*启用*。`,

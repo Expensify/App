@@ -96,6 +96,62 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         return <NotFoundPage />;
     }
 
+    const overrideMultiTagPrompt = (
+        <Text>
+            {translate('workspace.tags.overrideMultiTagWarning.prompt1')}
+            {!hasDependentTags && (
+                <>
+                    {translate('workspace.tags.overrideMultiTagWarning.prompt2')}
+                    <TextLink
+                        onPress={() => {
+                            if (hasIndependentTags && isMultiLevelTags) {
+                                downloadMultiLevelIndependentTagsCSV(policyID, () => {
+                                    setIsDownloadFailureModalVisible(true);
+                                });
+                            } else {
+                                downloadTagsCSV(policyID, () => {
+                                    setIsDownloadFailureModalVisible(true);
+                                });
+                            }
+                        }}
+                    >
+                        {translate('workspace.tags.overrideMultiTagWarning.prompt3')}
+                    </TextLink>
+                    {translate('workspace.tags.overrideMultiTagWarning.prompt4')}
+                </>
+            )}
+        </Text>
+    );
+
+    const switchSingleToMultiLevelTagPrompt = (
+        <Text>
+            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt1')}
+            {!hasDependentTags && (
+                <>
+                    {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt2')}
+                    <TextLink
+                        onPress={() => {
+                            if (hasIndependentTags && isMultiLevelTags) {
+                                downloadMultiLevelIndependentTagsCSV(policyID, () => {
+                                    setIsDownloadFailureModalVisible(true);
+                                });
+                            } else {
+                                downloadTagsCSV(policyID, () => {
+                                    setIsDownloadFailureModalVisible(true);
+                                });
+                            }
+                        }}
+                    >
+                        {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt3')}
+                    </TextLink>
+                    {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt4')}
+                    <TextLink href={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}>{translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt5')}</TextLink>
+                    {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt6')}
+                </>
+            )}
+        </Text>
+    );
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -173,34 +229,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     );
                 }}
                 title={isOverridingMultiTag ? translate('workspace.tags.overrideMultiTagWarning.title') : translate('workspace.tags.switchSingleToMultiLevelTagWarning.title')}
-                prompt={
-                    <Text>
-                        {isOverridingMultiTag ? translate('workspace.tags.overrideMultiTagWarning.prompt1') : translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt1')}
-                        {!hasDependentTags && (
-                            <>
-                                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt2')}
-                                <TextLink
-                                    onPress={() => {
-                                        if (hasIndependentTags && isMultiLevelTags) {
-                                            downloadMultiLevelIndependentTagsCSV(policyID, () => {
-                                                setIsDownloadFailureModalVisible(true);
-                                            });
-                                        } else {
-                                            downloadTagsCSV(policyID, () => {
-                                                setIsDownloadFailureModalVisible(true);
-                                            });
-                                        }
-                                    }}
-                                >
-                                    {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt3')}
-                                </TextLink>
-                                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt4')}
-                                <TextLink href={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}>{translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt5')}</TextLink>
-                                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt6')}
-                            </>
-                        )}
-                    </Text>
-                }
+                prompt={isOverridingMultiTag ? overrideMultiTagPrompt : switchSingleToMultiLevelTagPrompt}
                 confirmText={isOverridingMultiTag ? translate('workspace.tags.overrideMultiTagWarning.title') : translate('workspace.tags.switchSingleToMultiLevelTagWarning.title')}
                 danger
                 cancelText={translate('common.cancel')}

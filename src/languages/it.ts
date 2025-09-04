@@ -4914,6 +4914,9 @@ const translations = {
             overrideMultiTagWarning: {
                 title: '',
                 prompt1: '',
+                prompt2: '',
+                prompt3: '',
+                prompt4: '',
             },
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `Abbiamo trovato *${columnCounts} colonne* nel tuo foglio di calcolo. Seleziona *Nome* accanto alla colonna che contiene i nomi dei tag. Puoi anche selezionare *Abilitato* accanto alla colonna che imposta lo stato dei tag.`,
