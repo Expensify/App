@@ -19,9 +19,7 @@ function AuthenticationSuccessfulNotification({isVisible, onConfirm = () => {}}:
             <ConfirmModal
                 title={translate('initialSettingsPage.troubleshoot.biometrics.notificationTitle')}
                 isVisible={isVisible}
-                onConfirm={() => {
-                    onConfirm();
-                }}
+                onConfirm={onConfirm}
                 prompt={translate('initialSettingsPage.troubleshoot.biometrics.notificationContent')}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
