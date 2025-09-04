@@ -8,12 +8,13 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import Text from '@components/Text';
 import useDismissModalForUSD from '@hooks/useDismissModalForUSD';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
+import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
 import getPlatform from '@libs/getPlatform';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -63,9 +64,11 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountList ?? {});
     const isDesktop = getPlatform() === CONST.PLATFORM.DESKTOP;
     const disclaimerPaddingTop = !shouldUseNarrowLayout && isDesktop ? styles.pt40 : styles.pt20;
-
     const reimbursementAccountStatus = reimbursementAccount?.achData?.state ?? '';
     const isSetupUnfinished = isEmptyObject(bankAccountList) && reimbursementAccountStatus && reimbursementAccountStatus !== CONST.BANK_ACCOUNT.STATE.OPEN;
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
+
+    const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountList, policy?.outputCurrency) : getEligibleBankAccountsForCard(bankAccountList);
 
     const startFlow = useCallback(() => {
         if (!eligibleBankAccounts.length || isSetupUnfinished) {
@@ -96,7 +99,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         >
             <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <FeatureList
-                    menuItems={expensifyCardFeatures}
+                    menuItems={isUkEuCurrencySupported ? expensifyCardFeatures.slice(1) : expensifyCardFeatures}
                     title={translate('workspace.moreFeatures.expensifyCard.feed.title')}
                     subtitle={translate('workspace.moreFeatures.expensifyCard.feed.subTitle')}
                     ctaText={translate(isSetupUnfinished ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard')}
@@ -110,7 +113,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                             showLockedAccountModal();
                             return;
                         }
-                        if (!(policy?.outputCurrency === CONST.CURRENCY.USD)) {
+                        if (!(policy?.outputCurrency === CONST.CURRENCY.USD || isUkEuCurrencySupported)) {
                             setIsCurrencyModalOpen(true);
                             return;
                         }
@@ -131,7 +134,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                <Text style={[styles.textMicroSupporting, styles.m5, disclaimerPaddingTop]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
+                <Text style={[styles.textMicroSupporting, styles.m5, disclaimerPaddingTop]}>{translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}</Text>
             </View>
         </WorkspacePageWithSections>
     );
