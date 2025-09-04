@@ -22,7 +22,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilities';
-import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import type VideoPlayerProps from './types';
 import useHandleNativeVideoControls from './useHandleNativeVideoControls';
@@ -76,8 +75,6 @@ function BaseVideoPlayer({
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
     const [controlStatusState, setControlStatusState] = useState(controlsStatus);
     const controlsOpacity = useSharedValue(1);
-    // temporary solution, will be fixed upstream in Expo-video
-    const platform = getPlatform();
     const controlsAnimatedStyle = useAnimatedStyle(() => ({
         opacity: controlsOpacity.get(),
     }));
@@ -392,7 +389,7 @@ function BaseVideoPlayer({
                                             allowsFullscreen
                                             player={videoPlayerRef.current}
                                             style={[styles.w100, styles.h100, videoPlayerStyle]}
-                                            nativeControls={isFullScreenRef.current}
+                                            nativeControls={false}
                                             playsInline
                                             testID={CONST.VIDEO_PLAYER_TEST_ID}
                                             ref={videoViewRef}
@@ -415,15 +412,6 @@ function BaseVideoPlayer({
 
                                                 // Sync volume updates in full screen mode after leaving it
                                                 updateVolume(videoPlayerRef.current.muted ? 0 : videoPlayerRef.current.volume || 1);
-                                            }}
-                                            onNativeControlsEnabled={() => {
-                                                if (videoPlayerRef.current !== currentVideoPlayerRef.current) {
-                                                    return;
-                                                }
-                                                updateCurrentURLAndReportID(url, reportID);
-                                                const result = videoViewRef.current?.enterFullscreen();
-                                                // eslint-disable-next-line react-compiler/react-compiler
-                                                result?.then(() => (isFullScreenRef.current = true)).catch(() => {});
                                             }}
                                         />
                                     </View>
@@ -448,13 +436,6 @@ function BaseVideoPlayer({
                                     controlsStatus={controlStatusState}
                                     showPopoverMenu={showPopoverMenu}
                                     reportID={reportID}
-                                    enterFullscreenAction={
-                                        platform === 'android'
-                                            ? () => {
-                                                  isFullScreenRef.current = true;
-                                              }
-                                            : undefined
-                                    }
                                 />
                             )}
                         </View>
