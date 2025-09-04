@@ -655,7 +655,7 @@ function BaseSelectionList<TItem extends ListItem>({
         const selected = isItemSelected(item);
         const isItemFocused = (selected ? hasKeyBeenPressed.current : !isDisabled) && focusedIndex === normalizedIndex;
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
-
+        const accessibilityState = {selected: hasKeyBeenPressed.current ? isItemFocused : selected};
         return (
             <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
                 <BaseSelectionListItemRenderer
@@ -690,6 +690,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
+                    accessibilityState={accessibilityState}
                 />
             </View>
         );
