@@ -119,7 +119,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             changedReportKeys.forEach((reportKey) => {
                 const report = changedReportsEntries[reportKey];
                 const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
-                const {reportOption} = processReport(report, personalDetails, reportAttributes?.reports);
+                const {reportOption} = processReport(report, personalDetails, reportAttributes?.reports, undefined);
 
                 if (reportOption) {
                     updatedReportsMap.set(reportID, reportOption);
@@ -133,7 +133,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportsEntries, personalDetails, reportAttributes?.reports]);
+    }, [changedReportsEntries, personalDetails, reportAttributes?.reports, transactions]);
 
     useEffect(() => {
         if (!changedReportActions || !areOptionsInitialized.current) {
@@ -165,7 +165,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportActions, personalDetails, reportAttributes?.reports, transactions]);
+    }, [changedReportActions, personalDetails, reportAttributes?.reports]);
 
     /**
      * This effect is used to update the options list when personal details change.

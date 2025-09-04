@@ -419,11 +419,11 @@ function IOURequestStepDistanceMap({
         currentUserPersonalDetails.accountID,
         policy,
         waypoints,
+        lastSelectedDistanceRates,
         backToReport,
         customUnitRateID,
         navigateToConfirmationPage,
         reportID,
-        lastSelectedDistanceRates,
     ]);
 
     const getError = () => {

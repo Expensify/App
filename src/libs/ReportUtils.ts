@@ -886,6 +886,7 @@ type GetReportNameParams = {
     draftReports?: OnyxCollection<Report>;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     policies?: SearchPolicy[];
+    policyTags?: PolicyTagLists;
 };
 
 type ReportByPolicyMap = Record<string, OnyxCollection<Report>>;
@@ -4938,7 +4939,7 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
     for (const match of matches) {
         if (match[1] !== childReportID) {
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            reportIDToName[match[1]] = getReportName(getReportOrDraftReport(match[1])) ?? '';
+            reportIDToName[match[1]] = getReportName({report: getReportOrDraftReport(match[1])}) ?? '';
         }
     }
 
@@ -5083,18 +5084,21 @@ function generateReportName(report: OnyxEntry<Report>): string {
     return getReportNameInternal({report});
 }
 
+type GetReportNameArguments = {
+    report: OnyxEntry<Report>;
+    policy?: OnyxEntry<Policy>;
+    parentReportActionParam?: OnyxInputOrEntry<ReportAction>;
+    personalDetails?: Partial<PersonalDetailsList>;
+    invoiceReceiverPolicy?: OnyxEntry<Policy>;
+    transactions?: SearchTransaction[];
+    reportAttributes?: ReportAttributesDerivedValue['reports'];
+    policyTags?: PolicyTagLists;
+};
+
 /**
  * Get the title for a report.
  */
-function getReportName(
-    report: OnyxEntry<Report>,
-    policy?: OnyxEntry<Policy>,
-    parentReportActionParam?: OnyxInputOrEntry<ReportAction>,
-    personalDetails?: Partial<PersonalDetailsList>,
-    invoiceReceiverPolicy?: OnyxEntry<Policy>,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
-    transactions?: SearchTransaction[],
-): string {
+function getReportName({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes, transactions, policyTags}: GetReportNameArguments): string {
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue = report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined;
     const attributes = reportAttributes ?? reportAttributesDerivedValue;
@@ -5102,7 +5106,7 @@ function getReportName(
     if (canUseDerivedValue && derivedNameExists) {
         return attributes[report.reportID].reportName;
     }
-    return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy, transactions});
+    return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy, transactions, policyTags});
 }
 
 function getSearchReportName(props: GetReportNameParams): string {
@@ -5133,6 +5137,7 @@ function getReportNameInternal({
     reports,
     reportNameValuePairs = allReportNameValuePair,
     policies,
+    policyTags,
 }: GetReportNameParams): string {
     let formattedName: string | undefined;
     let parentReportAction: OnyxEntry<ReportAction>;
@@ -5349,7 +5354,12 @@ function getReportNameInternal({
             return generateArchivedReportName(reportActionMessage);
         }
         if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
-            const modifiedMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: parentReportAction, searchReports: reports});
+            const modifiedMessage = ModifiedExpenseMessage.getForReportAction({
+                reportOrID: report?.reportID,
+                reportAction: parentReportAction,
+                searchReports: reports,
+                policyTags: policyTags ?? {},
+            });
             return formatReportLastMessageText(modifiedMessage);
         }
         if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
@@ -5531,7 +5541,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportAr
     }
 
     return {
-        reportName: getReportName(parentReport),
+        reportName: getReportName({report: parentReport}),
         workspaceName: getPolicyName({report: parentReport, returnEmptyIfNotFound: true}),
     };
 }
@@ -6224,7 +6234,7 @@ function getDeletedTransactionMessage(action: ReportAction) {
 }
 
 function getMovedTransactionMessage(report: OnyxEntry<Report>) {
-    const reportName = getReportName(report) ?? report?.reportName ?? '';
+    const reportName = getReportName({report}) ?? report?.reportName ?? '';
     const reportUrl = `${environmentURL}/r/${report?.reportID}`;
     const message = translateLocal('iou.movedTransaction', {
         reportUrl,
@@ -11274,10 +11284,10 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
     }
 
     if (report?.reportID) {
-        return getReportName(getReport(report?.reportID, allReports));
+        return getReportName({report: getReport(report?.reportID, allReports)});
     }
 
-    return getReportName(report);
+    return getReportName({report});
 }
 
 /**
@@ -11385,7 +11395,7 @@ function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Re
         const originalMessage = getOriginalMessage(action);
         return originalMessage && translateLocal('iou.invoiceReportName', originalMessage);
     }
-    return getReportName(iouReport) || action.childReportName;
+    return getReportName({report: iouReport}) || action.childReportName;
 }
 
 /**

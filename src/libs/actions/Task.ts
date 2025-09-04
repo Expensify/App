@@ -1004,7 +1004,7 @@ function getShareDestination(
     }
     return {
         icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar),
-        displayName: ReportUtils.getReportName(report),
+        displayName: ReportUtils.getReportName({report}),
         subtitle,
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),

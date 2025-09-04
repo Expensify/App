@@ -511,7 +511,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                             <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
                             <OfflineWithFeedback pendingAction={reportPendingAction}>
                                 <MenuItem
-                                    title={getReportName(currentUserPolicyExpenseChat)}
+                                    title={getReportName({report: currentUserPolicyExpenseChat})}
                                     description={translate('workspace.common.workspace')}
                                     onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID))}
                                     shouldShowRightIcon
