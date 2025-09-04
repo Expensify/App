@@ -50,7 +50,7 @@ const getMockedReportsMap = (length = 100) => {
 
 const mockedResponseMap = getMockedReportsMap(500);
 
-describe.skip('SidebarLinks', () => {
+describe('SidebarLinks', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -92,14 +92,8 @@ describe.skip('SidebarLinks', () => {
         await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });
 
-    test.skip('[SidebarLinks] should click on list item', async () => {
+    test('[SidebarLinks] should click on list item', async () => {
         const scenario = async () => {
-            // Wait for the sidebar container to be rendered first
-            await waitFor(async () => {
-                await screen.findByTestId('lhn-options-list');
-            });
-
-            // Then wait for the specific list item to be available
             await waitFor(async () => {
                 const button = await screen.findByTestId('1');
                 await wrapInAct(() => {
@@ -108,16 +102,15 @@ describe.skip('SidebarLinks', () => {
             });
         };
 
-        await Onyx.multiSet({
+        await waitForBatchedUpdates();
+
+        Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
             ...mockedResponseMap,
         });
-
-        // Wait for Onyx to process the data
-        await waitForBatchedUpdates();
 
         await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });
