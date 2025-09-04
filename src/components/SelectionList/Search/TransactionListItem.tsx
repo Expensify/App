@@ -148,7 +148,7 @@ function TransactionListItem<TItem extends ListItem>({
                     shouldShowCheckbox={!!canSelectMultiple}
                     style={[styles.p3, shouldUseNarrowLayout ? styles.pt2 : {}]}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                    violations={violations}
+                    violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`]}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>
