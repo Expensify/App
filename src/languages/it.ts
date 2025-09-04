@@ -6195,6 +6195,12 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Rimborso',
             },
+            action: {
+                [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Inviare',
+                [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approvare',
+                [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pagare',
+                [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Esportare',
+            },
         },
         groupBy: 'Gruppo per',
         moneyRequestReport: {
@@ -6353,7 +6359,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `iniziato a esportare questo report su ${label}...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `impossibile esportare questo report su ${label} ("${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
+                    `impossibile esportare questo report su ${label} ("${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}")`,
                 managerAttachReceipt: `ha aggiunto una ricevuta`,
                 managerDetachReceipt: `rimosso una ricevuta`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pagato ${currency}${amount} altrove`,
