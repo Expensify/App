@@ -20,7 +20,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -63,7 +62,6 @@ function AttachmentModalBaseContent({
     onCarouselAttachmentChange = () => {},
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -309,7 +307,6 @@ function AttachmentModalBaseContent({
                 onCloseButtonPress={onClose}
                 shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                 threeDotsMenuItems={threeDotsMenuItems}
-                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                 threeDotsAnchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,

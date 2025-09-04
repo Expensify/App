@@ -16,14 +16,14 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentContentProps, AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
+import useFileUploadValidation from '@pages/media/AttachmentModalScreen/routes/hooks/useFileUploadValidation';
+import useNavigateToReportOnRefresh from '@pages/media/AttachmentModalScreen/routes/hooks/useNavigateToReportOnRefresh';
+import useReportAttachmentModalType from '@pages/media/AttachmentModalScreen/routes/hooks/useReportAttachmentModalType';
 import type {AttachmentModalScreenProps, FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import useFileUploadValidation from '../hooks/useFileUploadValidation';
-import useNavigateToReportOnRefresh from '../hooks/useNavigateToReportOnRefresh';
-import useReportAttachmentModalType from '../hooks/useReportAttachmentModalType';
 
 const convertFileToAttachment = (file: FileObject | undefined): Attachment => {
     if (!file) {
