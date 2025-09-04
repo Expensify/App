@@ -44,14 +44,13 @@ jobs:
       - name: Run performance testing script
         shell: bash
         run: |
-         set -euo pipefail
+          set -e
 
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
           PR_SHA="${{ github.event.pull_request.head.sha }}"
 
-          git fetch --prune origin "$BASELINE_BRANCH" --no-tags --depth=1
-          BASELINE_SHA="$(git rev-parse "origin/$BASELINE_BRANCH")"
-          git switch --detach "$BASELINE_SHA"
+          git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
+          git switch "$BASELINE_BRANCH"
 
           cd Mobile-Expensify
           git checkout "$(git rev-parse HEAD)"
@@ -61,7 +60,7 @@ jobs:
           npm install --force || (rm -rf node_modules && npm install --force) 
           NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
 
-          git switch --detach "$BASELINE_SHA"
+          git switch --force --detach "${PR_SHA:-${GITHUB_SHA}}"
 
           cd Mobile-Expensify
           git checkout "$(git rev-parse HEAD)"
