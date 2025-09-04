@@ -1,24 +1,26 @@
 import type {NavigationRoute} from '@react-navigation/native';
-import {findFocusedRoute, useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import {useCallback, useMemo, useRef} from 'react';
 import type {ValueOf} from 'type-fest';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useOnyx from '@hooks/useOnyx';
+import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import {isAnonymousUser} from '@libs/actions/Session';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import {getSettingsTabStateFromSessionStorage, getWorkspacesTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
+import getAccountTabScreenToOpen from '@libs/Navigation/helpers/getAccountTabScreenToOpen';
+import getReportsTabScreenToOpen from '@libs/Navigation/helpers/getReportsTabScreenToOpen';
+import {getWorkspacesTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {TAB_TO_FULLSCREEN} from '@libs/Navigation/linkingConfig/RELATIONS';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList, FullScreenName, SearchFullscreenNavigatorParamList, SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import type {AuthScreensParamList, FullScreenName} from '@libs/Navigation/types';
+import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import {getPreservedNavigatorState} from './createSplitNavigator/usePreserveNavigatorState';
+import type {SaveSearch} from '@src/types/onyx';
 
 // This timing is used to call the preload function after a tab change, when the initial tab screen has already been rendered.
 const TIMING_TO_CALL_PRELOAD = 1000;
@@ -33,59 +35,33 @@ function preloadWorkspacesTab(navigation: PlatformStackNavigationProp<AuthScreen
     navigation.preload(SCREENS.WORKSPACES_LIST, {});
 }
 
-function preloadReportsTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
-    const lastSearchNavigator = navigation.getState().routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-    const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
-    const lastSearchRoute = lastSearchNavigatorState?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
-
-    if (lastSearchRoute) {
-        const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-        const queryJSON = buildSearchQueryJSON(q);
-        if (queryJSON) {
-            const query = buildSearchQueryString(queryJSON);
-            navigation.preload(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, {screen: SCREENS.SEARCH.ROOT, params: {q: query, ...rest}});
-            return;
-        }
-    }
-
-    navigation.preload(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, {screen: SCREENS.SEARCH.ROOT, params: {q: buildCannedSearchQuery()}});
+function preloadReportsTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>, typeMenuSections: SearchTypeMenuSection[], savedSearches: SaveSearch | undefined) {
+    const reportsTabPayload = getReportsTabScreenToOpen(navigation.getState(), typeMenuSections, savedSearches);
+    navigation.preload(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, reportsTabPayload);
 }
 
 function preloadAccountTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>, subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null) {
-    if (!getIsNarrowLayout()) {
-        const settingsTabState = getSettingsTabStateFromSessionStorage();
-
-        if (!settingsTabState) {
-            navigation.preload(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, {screen: SCREENS.SETTINGS.PROFILE.ROOT, params: {}});
-            return;
-        }
-
-        const screenName = findFocusedRoute(settingsTabState)?.name as keyof SettingsSplitNavigatorParamList | undefined;
-
-        if ((!subscriptionPlan && screenName === SCREENS.SETTINGS.SUBSCRIPTION.ROOT) || !screenName) {
-            navigation.preload(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, {screen: SCREENS.SETTINGS.PROFILE.ROOT, params: {}});
-            return;
-        }
-
-        navigation.preload(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, {
-            screen: screenName,
-        });
-        return;
-    }
-    navigation.preload(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, {screen: SCREENS.SETTINGS.ROOT});
+    const accountTabPayload = getAccountTabScreenToOpen(subscriptionPlan);
+    navigation.preload(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, accountTabPayload);
 }
 
 function preloadInboxTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
     navigation.preload(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {screen: SCREENS.HOME});
 }
 
-function preloadTab(tabName: string, navigation: PlatformStackNavigationProp<AuthScreensParamList>, subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null) {
+function preloadTab(
+    tabName: string,
+    navigation: PlatformStackNavigationProp<AuthScreensParamList>,
+    subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null,
+    typeMenuSections: SearchTypeMenuSection[],
+    savedSearches: SaveSearch | undefined,
+) {
     switch (tabName) {
         case NAVIGATION_TABS.WORKSPACES:
             preloadWorkspacesTab(navigation);
             return;
         case NAVIGATION_TABS.SEARCH:
-            preloadReportsTab(navigation);
+            preloadReportsTab(navigation, typeMenuSections, savedSearches);
             return;
         case NAVIGATION_TABS.SETTINGS:
             preloadAccountTab(navigation, subscriptionPlan);
@@ -115,10 +91,13 @@ function usePreloadFullScreenNavigators() {
     const route = useRoute();
     const state = navigation.getState();
     const preloadedRoutes = useMemo(() => state.preloadedRoutes, [state]);
+    const hasPreloadedRef = useRef(false);
+
     const subscriptionPlan = useSubscriptionPlan();
     const isAuthenticated = useIsAuthenticated();
-    const hasPreloadedRef = useRef(false);
     const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (hybridApp) => hybridApp?.isSingleNewDotEntry, canBeMissing: true});
+    const {typeMenuSections} = useSearchTypeMenuSections();
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
 
     const hasSubscriptionPlanTurnedOff = useMemo(() => {
         return !subscriptionPlan && preloadedRoutes.some(isPreloadedRouteSubscriptionScreen);
@@ -148,10 +127,10 @@ function usePreloadFullScreenNavigators() {
                         return !isCurrentTab && !isRouteAlreadyPreloaded;
                     })
                     .forEach((tabName) => {
-                        preloadTab(tabName, navigation, subscriptionPlan);
+                        preloadTab(tabName, navigation, subscriptionPlan, typeMenuSections, savedSearches);
                     });
             }, TIMING_TO_CALL_PRELOAD);
-        }, [isAuthenticated, isSingleNewDotEntry, route.name, preloadedRoutes, navigation, subscriptionPlan]),
+        }, [isAuthenticated, isSingleNewDotEntry, route.name, preloadedRoutes, navigation, subscriptionPlan, typeMenuSections, savedSearches]),
     );
 }
 
