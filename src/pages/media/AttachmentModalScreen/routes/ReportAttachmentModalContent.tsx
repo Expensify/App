@@ -1,33 +1,29 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {View} from 'react-native';
 import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {openReport} from '@libs/actions/Report';
-import validateAttachmentFile from '@libs/AttachmentUtils';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
-import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportNotFound} from '@libs/ReportUtils';
-import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import type {AttachmentModalBaseContentProps, OnValidateFileCallback} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
+import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
-import type {AttachmentModalScreenProps, FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type ModalType from '@src/types/utils/ModalType';
+import useNavigateToReportOnRefresh from './hooks/useNavigateToReportOnRefresh';
+import useReportAttachmentModalType from './hooks/useReportAttachmentModalType';
 
 function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.ATTACHMENTS>) {
     const {
         attachmentID,
         type,
-        file: fileParam,
-        source: sourceParam,
+        file,
+        source,
         isAuthTokenRequired,
         attachmentLink,
         originalFileName,
@@ -36,7 +32,6 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         hashKey,
         shouldDisableSendButton,
         headerTitle,
-        onConfirm,
         onShow,
     } = route.params;
 
@@ -49,12 +44,11 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         canBeMissing: false,
     });
 
+    useNavigateToReportOnRefresh({source, file, reportID});
+
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {isOffline} = useNetwork();
 
-    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [attachmentInvalidReason, setAttachmentInvalidReason] = useState<TranslationPaths | null>(null);
-    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths | null>(null);
     const submitRef = useRef<View | HTMLElement>(null);
 
     // Extract the reportActionID from the attachmentID (format: reportActionID_index)
@@ -71,9 +65,6 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         const isEmptyReport = isEmptyObject(report);
         return !!isLoadingApp || isEmptyReport || (reportMetadata?.isLoadingInitialReportActions !== false && shouldFetchReport);
     }, [isOffline, reportID, isLoadingApp, report, reportMetadata, shouldFetchReport]);
-
-    const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
-    const [source, setSource] = useState(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined));
 
     const fetchReport = useCallback(() => {
         openReport(reportID, reportActionID);
@@ -110,93 +101,24 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         ComposerFocusManager.setReadyToFocus();
     }, []);
 
-    /**
-     * If our attachment is a PDF, return the unswipeable Modal type.
-     */
-    const getModalType = useCallback(
-        (sourceURL: string, fileObject: FileObject) =>
-            sourceURL && (Str.isPDF(sourceURL) || (fileObject && Str.isPDF(fileObject.name ?? translateLocal('attachmentView.unknownFilename'))))
-                ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
-                : CONST.MODAL.MODAL_TYPE.CENTERED,
-        [],
-    );
-
-    // Validates the attachment file and renders the appropriate modal type or errors
-    const validateFile: OnValidateFileCallback = useCallback(
-        (file, setFile) => {
-            if (!file) {
-                return;
-            }
-
-            validateAttachmentFile(file).then((result) => {
-                if (!result.isValid) {
-                    const {error} = result;
-
-                    setIsAttachmentInvalid?.(true);
-                    switch (error) {
-                        case 'tooLarge':
-                            setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentTooLarge');
-                            setAttachmentInvalidReason?.('attachmentPicker.sizeExceeded');
-                            break;
-                        case 'tooSmall':
-                            setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentTooSmall');
-                            setAttachmentInvalidReason?.('attachmentPicker.sizeNotMet');
-                            break;
-                        case 'fileDoesNotExist':
-                            setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentError');
-                            setAttachmentInvalidReason?.('attachmentPicker.folderNotAllowedMessage');
-                            break;
-                        case 'fileInvalid':
-                        default:
-                            setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentError');
-                            setAttachmentInvalidReason?.('attachmentPicker.errorWhileSelectingCorruptedAttachment');
-                    }
-
-                    return;
-                }
-
-                const {source: fileSource} = result;
-                const inputModalType = getModalType(fileSource, file);
-                setModalType(inputModalType);
-                setSource(fileSource);
-                setFile(file);
-            });
-        },
-        [getModalType],
-    );
-
-    const contentTypeProps = useMemo<AttachmentModalBaseContentProps>(
-        () =>
-            fileParam
-                ? {
-                      file: fileParam,
-                      onValidateFile: validateFile,
-                  }
-                : {
-                      // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
-                      type,
-                      report,
-                      shouldShowNotFoundPage: !isLoading && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID,
-                      allowDownload: true,
-                      isAuthTokenRequired: !!isAuthTokenRequired,
-                      attachmentLink: attachmentLink ?? '',
-                      originalFileName: originalFileName ?? '',
-                      isLoading,
-                  },
-        [attachmentLink, fileParam, isAuthTokenRequired, isLoading, originalFileName, report, type, validateFile],
-    );
+    const modalType = useReportAttachmentModalType(file);
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
-            ...contentTypeProps,
+            // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
+            type,
+            file,
+            report,
+            shouldShowNotFoundPage: !isLoading && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID,
+            allowDownload: true,
+            isAuthTokenRequired: !!isAuthTokenRequired,
+            attachmentLink: attachmentLink ?? '',
+            originalFileName: originalFileName ?? '',
+            isLoading,
             source,
             attachmentID,
             accountID,
-            onConfirm,
             headerTitle,
-            isAttachmentInvalid,
-            attachmentInvalidReasonTitle,
-            attachmentInvalidReason,
             shouldDisableSendButton,
             submitRef,
             onCarouselAttachmentChange,
@@ -204,32 +126,19 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         [
             accountID,
             attachmentID,
-            attachmentInvalidReason,
-            attachmentInvalidReasonTitle,
-            contentTypeProps,
+            attachmentLink,
+            file,
             headerTitle,
-            isAttachmentInvalid,
+            isAuthTokenRequired,
+            isLoading,
             onCarouselAttachmentChange,
-            onConfirm,
+            originalFileName,
+            report,
             shouldDisableSendButton,
             source,
+            type,
         ],
     );
-
-    // If the user refreshes during the send attachment flow, we need to navigate back to the report or home
-    useEffect(() => {
-        if (!!sourceParam || !!fileParam) {
-            return;
-        }
-
-        Navigation.isNavigationReady().then(() => {
-            if (reportID) {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-            } else {
-                Navigation.goBack(ROUTES.HOME);
-            }
-        });
-    }, [sourceParam, reportID, route.name, fileParam]);
 
     return (
         <AttachmentModalContainer
