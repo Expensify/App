@@ -135,7 +135,7 @@ function ReportActionItemImage({
     let propsObj: ReceiptImageProps;
 
     if (isEReceipt) {
-        propsObj = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: isSingleImage ? 'medium' : ('small' as IconSize)};
+        propsObj = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: isSingleImage ? 'medium' : ('small' as IconSize), shouldUseFullHeight};
     } else if (thumbnail && !isLocalFile) {
         propsObj = {
             shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,

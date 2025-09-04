@@ -168,6 +168,7 @@ function ReceiptImage({
             <EReceiptWithSizeCalculation
                 transactionID={transactionID}
                 transactionItem={transactionItem}
+                shouldUseAspectRatio={shouldUseFullHeight}
                 onLoad={onLoad}
             />
         );
