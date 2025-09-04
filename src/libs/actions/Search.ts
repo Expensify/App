@@ -489,7 +489,24 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
-    API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
+
+    const transactionOptimisticData: OnyxUpdate[] = transactionIDList.map((transactionID) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        value: {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        },
+    }));
+
+    const violationOptimisticData: OnyxUpdate[] = transactionIDList.map((transactionID) => ({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: null,
+    }));
+
+    const allOptimisticData = [...optimisticData, ...transactionOptimisticData, ...violationOptimisticData];
+
+    API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData: allOptimisticData, finallyData});
 }
 
 type Params = Record<string, ExportSearchItemsToCSVParams>;
