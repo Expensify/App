@@ -99,7 +99,7 @@ const createDownloadQueue: CreateDownloadQueue = () => {
                     } else if (state === 'completed') {
                         if (process.platform === 'darwin') {
                             const savePath = electronDownloadItem.getSavePath();
-                            app.dock.downloadFinished(savePath);
+                            app?.dock?.downloadFinished(savePath);
                         }
                         item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_COMPLETED, {url: item.url});
                         resolve();

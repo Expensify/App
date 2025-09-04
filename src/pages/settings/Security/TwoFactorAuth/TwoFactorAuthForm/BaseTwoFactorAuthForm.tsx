@@ -21,12 +21,15 @@ type BaseTwoFactorAuthFormProps = {
     // Set this to false in order to disable 2FA when a valid code is entered.
     validateInsteadOfDisable?: boolean;
 
+    /** Callback that is called when the text input is focused */
+    onFocus?: () => void;
+
     shouldAutoFocusOnMobile?: boolean;
 };
 
 const isMobile = !canFocusInputOnScreenFocus();
 
-function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, shouldAutoFocusOnMobile = true}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
+function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, onFocus, shouldAutoFocusOnMobile = true}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
     const {translate} = useLocalize();
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -117,6 +120,7 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable, shouldAu
             name="twoFactorAuthCode"
             value={twoFactorAuthCode}
             onChangeText={onTextInput}
+            onFocus={onFocus}
             onFulfill={validateAndSubmitForm}
             errorText={formError.twoFactorAuthCode ?? getLatestErrorMessage(account)}
             ref={inputRef}

@@ -1,4 +1,4 @@
-import type {MutableRefObject, ReactElement, ReactNode} from 'react';
+import type {ForwardedRef, MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {
     GestureResponderEvent,
     InputModeOptions,
@@ -25,7 +25,16 @@ import type CONST from '@src/CONST';
 import type {PersonalDetailsList, Policy, Report, TransactionViolation} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchCard, SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {
+    SearchCardGroup,
+    SearchMemberGroup,
+    SearchPersonalDetails,
+    SearchReport,
+    SearchReportAction,
+    SearchTask,
+    SearchTransaction,
+    SearchWithdrawalIDGroup,
+} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -215,6 +224,9 @@ type ListItem<K extends string | number = string> = {
 
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
+
+    /** Used to initiate payment from search page */
+    hash?: number;
 };
 
 type TransactionListItemType = ListItem &
@@ -245,24 +257,6 @@ type TransactionListItemType = ListItem &
 
         /** Whether we should show the merchant column */
         shouldShowMerchant: boolean;
-
-        /** Whether the description column should be shown */
-        shouldShowDescription: boolean;
-
-        /** Whether we should show the category column */
-        shouldShowCategory: boolean;
-
-        /** Whether we should show the tag column */
-        shouldShowTag: boolean;
-
-        /** Whether we should show the tax column */
-        shouldShowTax: boolean;
-
-        /** Whether we should show the From column */
-        shouldShowFrom: boolean;
-
-        /** Whether we should show the to column */
-        shouldShowTo: boolean;
 
         /** Whether we should show the transaction year.
          * This is true if at least one transaction in the dataset was created in past years
@@ -353,9 +347,11 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         to: SearchPersonalDetails;
     };
 
-type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MEMBERS} & SearchPersonalDetails;
+type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & SearchPersonalDetails & SearchMemberGroup;
 
-type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARDS} & SearchPersonalDetails & SearchCard;
+type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & SearchPersonalDetails & SearchCardGroup;
+
+type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup;
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
@@ -475,7 +471,8 @@ type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
-    columns?: SortableColumnName[];
+    columns?: SearchColumnType[];
+    areAllOptionalColumnsHidden?: boolean;
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -485,7 +482,9 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
-    columns?: SortableColumnName[];
+    policies?: OnyxCollection<Policy>;
+    columns?: SearchColumnType[];
+    areAllOptionalColumnsHidden?: boolean;
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -539,6 +538,12 @@ type Section<TItem extends ListItem> = {
 
     /** Whether this section should be shown or not */
     shouldShow?: boolean;
+};
+
+type LoadingPlaceholderComponentProps = {
+    shouldStyleAsTable?: boolean;
+    fixedNumItems?: number;
+    speed?: number;
 };
 
 type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
@@ -666,6 +671,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to show the loading placeholder */
     showLoadingPlaceholder?: boolean;
 
+    /** The component to show when the list is loading */
+    LoadingPlaceholderComponent?: React.ComponentType<LoadingPlaceholderComponentProps>;
+
     /** Whether to show the default confirm button */
     showConfirmButton?: boolean;
 
@@ -789,6 +797,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      */
     onEndReachedThreshold?: number;
 
+    /** Whether to skip the Show More button pagination logic */
+    shouldSkipShowMoreButton?: boolean;
+
     /**
      * While maxToRenderPerBatch tells the amount of items rendered per batch, setting updateCellsBatchingPeriod tells your VirtualizedList the delay in milliseconds between batch renders (how frequently your component will be rendering the windowed items).
      * https://reactnative.dev/docs/optimizing-flatlist-configuration#updatecellsbatchingperiod
@@ -863,6 +874,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to hide the keyboard when scrolling a list */
     shouldHideKeyboardOnScroll?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<SelectionListHandle>;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -926,6 +940,7 @@ export type {
     TransactionReportGroupListItemType,
     TransactionMemberGroupListItemType,
     TransactionCardGroupListItemType,
+    TransactionWithdrawalIDGroupListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,

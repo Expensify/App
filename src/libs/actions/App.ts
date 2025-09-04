@@ -4,14 +4,11 @@ import type {AppStateStatus} from 'react-native';
 import {AppState} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {importEmojiLocale} from '@assets/emojis';
 import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, OpenOldDotLinkParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Browser from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
-import {buildEmojisTrie} from '@libs/EmojiTrie';
-import localeEventCallback from '@libs/Localize/localeEventCallback';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,8 +17,6 @@ import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
-import {isFullySupportedLocale, isSupportedLocale} from '@src/CONST/LOCALES';
-import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -48,46 +43,22 @@ Onyx.connect({
     },
 });
 
+// `isSidebarLoaded` is only used inside the event handler, not during render.
+// `useOnyx` would trigger extra rerenders without affecting the View, so `Onyx.connectWithoutView` is used instead
 let isSidebarLoaded: boolean | undefined;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: (val) => (isSidebarLoaded = val),
     initWithStoredValues: false,
 });
 
-let preferredLocale: Locale | undefined;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => {
-        if (!val || !isSupportedLocale(val)) {
-            return;
-        }
-
-        preferredLocale = val;
-        IntlStore.load(val);
-        localeEventCallback(val);
-
-        // For locales without emoji support, fallback on English
-        const normalizedLocale = isFullySupportedLocale(val) ? val : CONST.LOCALES.DEFAULT;
-        importEmojiLocale(normalizedLocale).then(() => {
-            buildEmojisTrie(normalizedLocale);
-        });
-    },
-});
-
+// `isUsingImportedState` is only used in `clearOnyxAndResetApp`, not during render. So `Onyx.connectWithoutView` is appropriate.
+// If React components need this value in the future, use `useOnyx` instead.
 let isUsingImportedState: boolean | undefined;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.IS_USING_IMPORTED_STATE,
     callback: (value) => {
         isUsingImportedState = value ?? false;
-    },
-});
-
-let preservedUserSession: OnyxTypes.Session | undefined;
-Onyx.connect({
-    key: ONYXKEYS.PRESERVED_USER_SESSION,
-    callback: (value) => {
-        preservedUserSession = value;
     },
 });
 
@@ -99,13 +70,18 @@ Onyx.connect({
     },
 });
 
+// hasLoadedAppPromise is used in the "reconnectApp" function and is not directly associated with the View,
+// so retrieving it using Onyx.connectWithoutView is correct.
 let resolveHasLoadedAppPromise: () => void;
 const hasLoadedAppPromise = new Promise<void>((resolve) => {
     resolveHasLoadedAppPromise = resolve;
 });
 
+// hasLoadedApp is used in the "reconnectApp" function and is not directly associated with the View,
+// so retrieving it using Onyx.connectWithoutView is correct.
+// If this variable is ever needed for use in React components, it should be retrieved using useOnyx.
 let hasLoadedApp: boolean | undefined;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.HAS_LOADED_APP,
     callback: (value) => {
         hasLoadedApp = value;
@@ -119,6 +95,16 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
+    },
+});
+
+let preservedUserSession: OnyxTypes.Session | undefined;
+
+// We called `connectWithoutView` here because it is not connected to any UI
+Onyx.connectWithoutView({
+    key: ONYXKEYS.PRESERVED_USER_SESSION,
+    callback: (value) => {
+        preservedUserSession = value;
     },
 });
 
@@ -139,7 +125,13 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.HYBRID_APP,
 ];
 
-Onyx.connect({
+/*
+ * This listener allows you to reset the state stored in Onyx by changing the value under the ONYXKEYS.RESET_REQUIRED key.
+ * It is only used in emergencies when the entire state requires clearing.
+ *
+ * It has no direct impact on the View, making the use of Onyx.connectWithoutView justified in this case.
+ */
+Onyx.connectWithoutView({
     key: ONYXKEYS.RESET_REQUIRED,
     callback: (isResetRequired) => {
         if (!isResetRequired) {
@@ -172,8 +164,8 @@ function getNonOptimisticPolicyIDs(policies: OnyxCollection<OnyxTypes.Policy>): 
         .filter((id): id is string => !!id);
 }
 
-function setLocale(locale: OnyxTypes.Locale) {
-    if (locale === preferredLocale) {
+function setLocale(locale: Locale, currentPreferredLocale: Locale | undefined) {
+    if (locale === currentPreferredLocale) {
         return;
     }
 
@@ -197,11 +189,6 @@ function setLocale(locale: OnyxTypes.Locale) {
     };
 
     API.write(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, parameters, {optimisticData});
-}
-
-function setLocaleAndNavigate(locale: OnyxTypes.Locale) {
-    setLocale(locale);
-    Navigation.goBack();
 }
 
 function setSidebarLoaded() {
@@ -634,6 +621,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     const sequentialQueue = getAll();
 
     rollbackOngoingRequest();
+    Navigation.clearPreloadedRoutes();
     Onyx.clear(KEYS_TO_PRESERVE)
         .then(() => {
             // Network key is preserved, so when using imported state, we should stop forcing offline mode so that the app can re-fetch the network
@@ -673,7 +661,6 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
 
 export {
     setLocale,
-    setLocaleAndNavigate,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
     redirectThirdPartyDesktopSignIn,

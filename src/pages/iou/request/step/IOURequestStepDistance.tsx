@@ -17,6 +17,7 @@ import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
@@ -71,7 +72,7 @@ type IOURequestStepDistanceProps = WithCurrentUserPersonalDetailsProps &
 function IOURequestStepDistance({
     report,
     route: {
-        params: {action, iouType, reportID, transactionID, backTo, backToReport},
+        params: {action, iouType, reportID, transactionID, backTo, backToReport, reportActionID},
     },
     transaction,
     currentUserPersonalDetails,
@@ -79,6 +80,7 @@ function IOURequestStepDistance({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
@@ -87,6 +89,7 @@ function IOURequestStepDistance({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: false});
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: false});
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const waypoints = useMemo(
         () =>
@@ -138,10 +141,10 @@ function IOURequestStepDistance({
     const transactionWasSaved = useRef(false);
     const isCreatingNewRequest = !(backTo || isEditing);
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
-    const iouRequestType = getRequestType(transaction);
+    const iouRequestType = getRequestType(transaction, isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE));
     const customUnitRateID = getRateID(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, report, CONST.EDIT_REQUEST_FIELD.DISTANCE);
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
     const setDistanceRequestData = useCallback(
@@ -334,6 +337,7 @@ function IOURequestStepDistance({
                             merchant: translate('iou.fieldPending'),
                             receipt: {},
                             billable: false,
+                            reimbursable: true,
                             validWaypoints: getValidWaypoints(waypoints, true),
                             customUnitRateID,
                             attendees: transaction?.comment?.attendees,
@@ -341,6 +345,8 @@ function IOURequestStepDistance({
                     });
                     return;
                 }
+
+                const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
 
                 createDistanceRequest({
                     report,
@@ -356,8 +362,9 @@ function IOURequestStepDistance({
                         currency: transaction?.currency ?? 'USD',
                         merchant: translate('iou.fieldPending'),
                         billable: !!policy?.defaultBillable,
+                        reimbursable: !!policy?.defaultReimbursable,
                         validWaypoints: getValidWaypoints(waypoints, true),
-                        customUnitRateID: DistanceRequestUtils.getCustomUnitRateID(report.reportID),
+                        customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates}),
                         splitShares: transaction?.splitShares,
                         attendees: transaction?.comment?.attendees,
                     },
@@ -375,7 +382,12 @@ function IOURequestStepDistance({
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
         if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
-            const rateID = DistanceRequestUtils.getCustomUnitRateID(activePolicyExpenseChat?.reportID);
+            const rateID = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: activePolicyExpenseChat?.reportID,
+                isPolicyExpenseChat: true,
+                policy: activePolicy,
+                lastSelectedDistanceRates,
+            });
             setCustomUnitRateID(transactionID, rateID);
             setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
                 Navigation.navigate(
@@ -411,6 +423,7 @@ function IOURequestStepDistance({
         customUnitRateID,
         navigateToConfirmationPage,
         reportID,
+        lastSelectedDistanceRates,
     ]);
 
     const getError = () => {

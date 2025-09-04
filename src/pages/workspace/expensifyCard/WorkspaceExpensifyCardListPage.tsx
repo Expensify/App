@@ -18,8 +18,10 @@ import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -28,7 +30,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {clearIssueNewCardFormData, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {filterCardsByPersonalDetails, getCardsByCardholderName, sortCardsByCardholderName} from '@libs/CardUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -74,6 +76,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
 
@@ -81,8 +84,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const {windowHeight} = useWindowDimensions();
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
 
-    // Currently Expensify Cards only support USD, once support for more currencies is implemented, we will need to update this
-    const settlementCurrency = CONST.CURRENCY.USD;
+    const settlementCurrency = useCurrencyForExpensifyCard({policyID});
 
     const allCards = useMemo(() => {
         const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
@@ -94,6 +96,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
 
     const handleIssueCardPress = () => {
+        clearIssueNewCardFormData();
         if (isAccountLocked) {
             showLockedAccountModal();
             return;
@@ -232,7 +235,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 </View>
             )}
             {isEmptyObject(cardsList) ? (
-                <EmptyCardView isBankAccountVerified={isBankAccountVerified} />
+                <EmptyCardView
+                    isBankAccountVerified={isBankAccountVerified}
+                    policyID={policyID}
+                />
             ) : (
                 <ScrollView
                     addBottomSafeAreaPadding
@@ -247,7 +253,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                             keyboardShouldPersistTaps="handled"
                         />
                     </View>
-                    <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
+                    <Text style={[styles.textMicroSupporting, styles.m5]}>
+                        {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
+                    </Text>
                 </ScrollView>
             )}
         </ScreenWrapper>

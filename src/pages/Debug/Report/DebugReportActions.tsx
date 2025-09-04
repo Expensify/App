@@ -23,13 +23,13 @@ type DebugReportActionsProps = {
 };
 
 function DebugReportActions({reportID}: DebugReportActionsProps) {
-    const {translate, datetimeToCalendarTime} = useLocalize();
+    const {translate, datetimeToCalendarTime, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(reportID);
-    const ifUserCanPerformWriteAction = canUserPerformWriteAction(report);
+    const ifUserCanPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
         selector: (allReportActions) => getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true),
@@ -50,7 +50,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
             }
 
             if (isCreatedAction(reportAction)) {
-                return formatReportLastMessageText(SidebarUtils.getWelcomeMessage(report, policy, isReportArchived).messageText ?? translate('report.noActivityYet'));
+                return formatReportLastMessageText(SidebarUtils.getWelcomeMessage(report, policy, localeCompare, isReportArchived).messageText ?? translate('report.noActivityYet'));
             }
 
             if (reportActionMessage.html) {
@@ -59,7 +59,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
             return getReportActionMessageText(reportAction);
         },
-        [translate, policy, report, isReportArchived],
+        [translate, policy, report, isReportArchived, localeCompare],
     );
 
     const searchedReportActions = useMemo(() => {

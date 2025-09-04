@@ -2,15 +2,23 @@ import Onyx from 'react-native-onyx';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ReportActionListItemType, TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
+import type {
+    ReportActionListItemType,
+    TransactionCardGroupListItemType,
+    TransactionListItemType,
+    TransactionMemberGroupListItemType,
+    TransactionReportGroupListItemType,
+    TransactionWithdrawalIDGroupListItemType,
+} from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import {localeCompare} from '../../utils/TestHelper';
+import {formatPhoneNumber, localeCompare} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
@@ -33,6 +41,12 @@ const transactionID = '1';
 const transactionID2 = '2';
 const transactionID3 = '3';
 const transactionID4 = '4';
+const cardID = 20202020;
+const cardID2 = 30303030;
+const entryID = 5;
+const entryID2 = 6;
+const accountNumber = 'XXXXXXXX6789';
+const accountNumber2 = 'XXXXXXXX5544';
 
 const report1 = {
     accountID: adminAccountID,
@@ -267,6 +281,7 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID}`]: {
             accountID: adminAccountID,
             action: 'view',
+            allActions: ['view'],
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -310,6 +325,7 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID2}`]: {
             accountID: adminAccountID,
             action: 'view',
+            allActions: ['view'],
             amount: -5000,
             canDelete: true,
             canHold: true,
@@ -355,6 +371,7 @@ const searchResults: OnyxTypes.SearchResults = {
             accountID: adminAccountID,
             amount: 1200,
             action: 'view',
+            allActions: ['view'],
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -398,6 +415,7 @@ const searchResults: OnyxTypes.SearchResults = {
             accountID: adminAccountID,
             amount: 3200,
             action: 'view',
+            allActions: ['view'],
             canDelete: true,
             canHold: true,
             canUnhold: false,
@@ -439,18 +457,137 @@ const searchResults: OnyxTypes.SearchResults = {
         },
     },
     search: {
-        columnsToShow: {
-            shouldShowCategoryColumn: true,
-            shouldShowTagColumn: false,
-            shouldShowTaxColumn: false,
-            shouldShowFromColumn: true,
-            shouldShowToColumn: true,
-            shouldShowDescriptionColumn: false,
-        },
         hasMoreResults: false,
         hasResults: true,
         offset: 0,
         status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
+const searchResultsGroupByFrom: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {
+            [adminAccountID]: {
+                accountID: adminAccountID,
+                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                displayName: 'Zara',
+                login: adminEmail,
+            },
+            [approverAccountID]: {
+                accountID: approverAccountID,
+                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                displayName: 'Andrew',
+                login: approverEmail,
+            },
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}${adminAccountID}` as const]: {
+            accountID: adminAccountID,
+            count: 3,
+            currency: 'USD',
+            total: 70,
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}${approverAccountID}` as const]: {
+            accountID: approverAccountID,
+            count: 2,
+            currency: 'USD',
+            total: 30,
+        },
+    },
+    search: {
+        count: 5,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+        total: 100,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
+const searchResultsGroupByCard: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {
+            [adminAccountID]: {
+                accountID: adminAccountID,
+                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                displayName: 'Zara',
+                login: adminEmail,
+            },
+            [approverAccountID]: {
+                accountID: approverAccountID,
+                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                displayName: 'Andrew',
+                login: approverEmail,
+            },
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}${cardID}` as const]: {
+            accountID: adminAccountID,
+            bank: CONST.BANK_NAMES.CHASE,
+            cardID,
+            cardName: "Zara's card",
+            count: 4,
+            currency: 'USD',
+            lastFourPAN: '1234',
+            total: 40,
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}${cardID2}` as const]: {
+            accountID: approverAccountID,
+            bank: CONST.BANK_NAMES.AMERICAN_EXPRESS,
+            cardID: cardID2,
+            cardName: "Andrew's card",
+            count: 6,
+            currency: 'USD',
+            lastFourPAN: '1234',
+            total: 20,
+        },
+    },
+    search: {
+        count: 10,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+        total: 60,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
+const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {},
+        [`${CONST.SEARCH.GROUP_PREFIX}${entryID}` as const]: {
+            entryID,
+            accountNumber,
+            bankName: CONST.BANK_NAMES.CHASE,
+            debitPosted: '2025-08-12 17:11:22',
+            count: 4,
+            currency: 'USD',
+            total: 40,
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}${cardID2}` as const]: {
+            entryID: entryID2,
+            accountNumber: accountNumber2,
+            bankName: CONST.BANK_NAMES.CITIBANK,
+            debitPosted: '2025-08-19 18:10:54',
+            count: 6,
+            currency: 'USD',
+            total: 20,
+        },
+    },
+    search: {
+        count: 10,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        total: 60,
         isLoading: false,
         type: 'expense',
     },
@@ -493,6 +630,7 @@ const transactionsListItems = [
     {
         accountID: 18439984,
         action: 'submit',
+        allActions: ['submit'],
         amount: -5000,
         report: report1,
         canDelete: true,
@@ -529,14 +667,8 @@ const transactionsListItems = [
         policyID: 'A1B2C3',
         reportID: '123456789',
         reportType: 'expense',
-        shouldShowCategory: true,
-        shouldShowDescription: false,
         shouldShowMerchant: true,
-        shouldShowTag: false,
-        shouldShowTax: false,
         shouldShowYear: true,
-        shouldShowFrom: true,
-        shouldShowTo: true,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         tag: '',
@@ -564,6 +696,7 @@ const transactionsListItems = [
     {
         accountID: 18439984,
         action: 'review',
+        allActions: ['review', 'approve'],
         amount: -5000,
         report: report2,
         canDelete: true,
@@ -599,14 +732,8 @@ const transactionsListItems = [
         policyID: 'A1B2C3',
         reportID: '11111',
         reportType: 'expense',
-        shouldShowCategory: true,
         shouldShowMerchant: true,
-        shouldShowTag: false,
-        shouldShowTax: false,
         shouldShowYear: true,
-        shouldShowFrom: true,
-        shouldShowTo: true,
-        shouldShowDescription: false,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         tag: '',
@@ -641,6 +768,7 @@ const transactionsListItems = [
         accountID: 18439984,
         amount: 1200,
         action: 'view',
+        allActions: ['view'],
         report: report3,
         canDelete: true,
         canHold: true,
@@ -685,14 +813,8 @@ const transactionsListItems = [
         formattedMerchant: '',
         date: '2025-03-05',
         shouldShowMerchant: true,
-        shouldShowCategory: true,
-        shouldShowTag: false,
-        shouldShowTax: false,
-        keyForList: '3',
         shouldShowYear: true,
-        shouldShowFrom: true,
-        shouldShowTo: true,
-        shouldShowDescription: false,
+        keyForList: '3',
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         receipt: undefined,
@@ -712,6 +834,7 @@ const transactionsListItems = [
         accountID: 18439984,
         amount: 3200,
         action: 'view',
+        allActions: ['view'],
         report: report3,
         canDelete: true,
         canHold: true,
@@ -756,14 +879,8 @@ const transactionsListItems = [
         formattedMerchant: '',
         date: '2025-03-05',
         shouldShowMerchant: true,
-        shouldShowCategory: true,
-        shouldShowTag: false,
-        shouldShowTax: false,
-        keyForList: '3',
         shouldShowYear: true,
-        shouldShowFrom: true,
-        shouldShowTo: true,
-        shouldShowDescription: false,
+        keyForList: '3',
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         receipt: undefined,
@@ -786,6 +903,7 @@ const transactionReportGroupListItems = [
         groupedBy: 'reports',
         accountID: 18439984,
         action: 'submit',
+        allActions: ['submit'],
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
@@ -818,6 +936,7 @@ const transactionReportGroupListItems = [
             {
                 accountID: 18439984,
                 action: 'submit',
+                allActions: ['submit'],
                 report: report1,
                 amount: -5000,
                 canDelete: true,
@@ -856,14 +975,8 @@ const transactionReportGroupListItems = [
                 policyID: 'A1B2C3',
                 reportID: '123456789',
                 reportType: 'expense',
-                shouldShowCategory: true,
                 shouldShowMerchant: true,
-                shouldShowTag: false,
-                shouldShowTax: false,
                 shouldShowYear: true,
-                shouldShowFrom: true,
-                shouldShowTo: true,
-                shouldShowDescription: false,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
                 tag: '',
@@ -894,6 +1007,7 @@ const transactionReportGroupListItems = [
         groupedBy: 'reports',
         accountID: 18439984,
         action: 'review',
+        allActions: ['review', 'approve'],
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
@@ -926,6 +1040,7 @@ const transactionReportGroupListItems = [
             {
                 accountID: 18439984,
                 action: 'review',
+                allActions: ['review', 'approve'],
                 report: report2,
                 amount: -5000,
                 canDelete: true,
@@ -969,14 +1084,8 @@ const transactionReportGroupListItems = [
                 policyID: 'A1B2C3',
                 reportID: '11111',
                 reportType: 'expense',
-                shouldShowCategory: true,
                 shouldShowMerchant: true,
-                shouldShowTag: false,
-                shouldShowTax: false,
                 shouldShowYear: true,
-                shouldShowFrom: true,
-                shouldShowTo: true,
-                shouldShowDescription: false,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
                 tag: '',
@@ -1028,6 +1137,7 @@ const transactionReportGroupListItems = [
         type: 'iou',
         unheldTotal: 4400,
         action: 'pay',
+        allActions: ['pay'],
         keyForList: '99999',
         from: {
             accountID: 18439984,
@@ -1047,6 +1157,7 @@ const transactionReportGroupListItems = [
         groupedBy: 'reports',
         accountID: 18439984,
         action: 'view',
+        allActions: ['view'],
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
@@ -1081,6 +1192,173 @@ const transactionReportGroupListItems = [
     },
 ] as TransactionReportGroupListItemType[];
 
+const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
+    {
+        accountID: 18439984,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+        count: 3,
+        currency: 'USD',
+        displayName: 'Zara',
+        groupedBy: 'from',
+        login: 'admin@policy.com',
+        total: 70,
+        transactions: [],
+    },
+    {
+        accountID: 1111111,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+        count: 2,
+        currency: 'USD',
+        displayName: 'Andrew',
+        groupedBy: 'from',
+        login: 'approver@policy.com',
+        total: 30,
+        transactions: [],
+    },
+];
+
+const transactionMemberGroupListItemsSorted: TransactionMemberGroupListItemType[] = [
+    {
+        accountID: 1111111,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+        count: 2,
+        currency: 'USD',
+        displayName: 'Andrew',
+        groupedBy: 'from',
+        login: 'approver@policy.com',
+        total: 30,
+        transactions: [],
+    },
+
+    {
+        accountID: 18439984,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+        count: 3,
+        currency: 'USD',
+        displayName: 'Zara',
+        groupedBy: 'from',
+        login: 'admin@policy.com',
+        total: 70,
+        transactions: [],
+    },
+];
+
+const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
+    {
+        accountID: 18439984,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+        bank: CONST.BANK_NAMES.CHASE,
+        cardID: 20202020,
+        cardName: "Zara's card",
+        count: 4,
+        currency: 'USD',
+        displayName: 'Zara',
+        groupedBy: 'card',
+        lastFourPAN: '1234',
+        login: 'admin@policy.com',
+        total: 40,
+        transactions: [],
+    },
+    {
+        accountID: 1111111,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+        bank: CONST.BANK_NAMES.AMERICAN_EXPRESS,
+        cardID: 30303030,
+        cardName: "Andrew's card",
+        count: 6,
+        currency: 'USD',
+        displayName: 'Andrew',
+        groupedBy: 'card',
+        lastFourPAN: '1234',
+        login: 'approver@policy.com',
+        total: 20,
+        transactions: [],
+    },
+];
+
+const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = [
+    {
+        accountID: 1111111,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+        bank: CONST.BANK_NAMES.AMERICAN_EXPRESS,
+        cardID: 30303030,
+        cardName: "Andrew's card",
+        count: 6,
+        currency: 'USD',
+        displayName: 'Andrew',
+        groupedBy: 'card',
+        lastFourPAN: '1234',
+        login: 'approver@policy.com',
+        total: 20,
+        transactions: [],
+    },
+    {
+        accountID: 18439984,
+        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+        bank: CONST.BANK_NAMES.CHASE,
+        cardID: 20202020,
+        cardName: "Zara's card",
+        count: 4,
+        currency: 'USD',
+        displayName: 'Zara',
+        groupedBy: 'card',
+        lastFourPAN: '1234',
+        login: 'admin@policy.com',
+        total: 40,
+        transactions: [],
+    },
+];
+
+const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListItemType[] = [
+    {
+        bankName: CONST.BANK_NAMES.CHASE,
+        entryID,
+        accountNumber,
+        debitPosted: '2025-08-12 17:11:22',
+        count: 4,
+        currency: 'USD',
+        total: 40,
+        groupedBy: 'withdrawal-id',
+        transactions: [],
+    },
+    {
+        bankName: CONST.BANK_NAMES.CITIBANK,
+        entryID: entryID2,
+        accountNumber: accountNumber2,
+        debitPosted: '2025-08-19 18:10:54',
+        count: 6,
+        currency: 'USD',
+        total: 20,
+        groupedBy: 'withdrawal-id',
+        transactions: [],
+    },
+];
+
+const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupListItemType[] = [
+    {
+        bankName: CONST.BANK_NAMES.CITIBANK,
+        entryID: entryID2,
+        accountNumber: accountNumber2,
+        debitPosted: '2025-08-19 18:10:54',
+        count: 6,
+        currency: 'USD',
+        total: 20,
+        groupedBy: 'withdrawal-id',
+        transactions: [],
+    },
+    {
+        bankName: CONST.BANK_NAMES.CHASE,
+        entryID,
+        accountNumber,
+        debitPosted: '2025-08-12 17:11:22',
+        count: 4,
+        currency: 'USD',
+        total: 40,
+        groupedBy: 'withdrawal-id',
+        transactions: [],
+    },
+];
+
 describe('SearchUIUtils', () => {
     beforeAll(async () => {
         Onyx.init({
@@ -1090,15 +1368,15 @@ describe('SearchUIUtils', () => {
     });
     describe('Test getAction', () => {
         test('Should return `View` action for an invalid key', () => {
-            const action = SearchUIUtils.getAction(searchResults.data, {}, 'invalid_key', CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, 'invalid_key', CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
         test('Should return `Submit` action for transaction on policy with delayed submission and no violations', () => {
-            let action = SearchUIUtils.getAction(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            let action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
 
-            action = SearchUIUtils.getAction(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            action = SearchUIUtils.getActions(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
@@ -1121,8 +1399,10 @@ describe('SearchUIUtils', () => {
                     managerID: adminAccountID,
                 },
             };
-            expect(SearchUIUtils.getAction(localSearchResults, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES)).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
-            expect(SearchUIUtils.getAction(localSearchResults, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES)).toStrictEqual(
+            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, submitterAccountID).at(0)).toStrictEqual(
+                CONST.SEARCH.ACTION_TYPES.VIEW,
+            );
+            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, submitterAccountID).at(0)).toStrictEqual(
                 CONST.SEARCH.ACTION_TYPES.VIEW,
             );
         });
@@ -1139,15 +1419,15 @@ describe('SearchUIUtils', () => {
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`, searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`]);
 
-            const action = SearchUIUtils.getAction(searchResults.data, duplicateViolation, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            const action = SearchUIUtils.getActions(searchResults.data, duplicateViolation, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
         });
 
         test('Should return `Review` action for transaction on policy with delayed submission and with violations', () => {
-            let action = SearchUIUtils.getAction(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            let action = SearchUIUtils.getActions(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
 
-            action = SearchUIUtils.getAction(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            action = SearchUIUtils.getActions(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
         });
 
@@ -1166,7 +1446,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getAction(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
         });
 
@@ -1190,7 +1470,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getAction(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
         });
 
@@ -1206,7 +1486,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
 
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
@@ -1224,7 +1504,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
 
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.DONE);
         });
@@ -1239,12 +1519,12 @@ describe('SearchUIUtils', () => {
                     errors: {error: 'An error'},
                 },
             };
-            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${errorReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${errorReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
         });
 
         test('Should return `View` action for non-money request reports', () => {
-            const action = SearchUIUtils.getAction(searchResults.data, {}, `report_${reportID4}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID4}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
@@ -1258,7 +1538,7 @@ describe('SearchUIUtils', () => {
                     reportID: 'non_existent_report',
                 },
             };
-            const action = SearchUIUtils.getAction(localSearchResults, {}, `transactions_${orphanedTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${orphanedTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `View` action for a transaction in a multi-transaction report', () => {
@@ -1271,7 +1551,7 @@ describe('SearchUIUtils', () => {
                     isFromOneTransactionReport: false,
                 },
             };
-            const action = SearchUIUtils.getAction(localSearchResults, {}, `transactions_${multiTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${multiTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `Review` action if report export has failed', () => {
@@ -1288,7 +1568,7 @@ describe('SearchUIUtils', () => {
                     exportFailedTime: '2024-01-01',
                 },
             };
-            const action = SearchUIUtils.getAction(localSearchResults, {}, `report_${failedExportReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${failedExportReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
         });
         test('Should return `Review` action if transaction has errors', () => {
@@ -1301,14 +1581,14 @@ describe('SearchUIUtils', () => {
                     errors: {error: 'An error'},
                 },
             };
-            const action = SearchUIUtils.getAction(localSearchResults, {}, `transactions_${errorTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${errorTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
         });
         test('Should return `Pay` action for an IOU report ready to be paid', async () => {
             Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
             await waitForBatchedUpdates();
             const iouReportKey = `report_${reportID3}`;
-            const action = SearchUIUtils.getAction(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
     });
@@ -1335,58 +1615,119 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return TransactionGroupListItem when type is EXPENSE and groupBy is member', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual(TransactionGroupListItem);
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.FROM)).toStrictEqual(TransactionGroupListItem);
         });
 
         it('should return TransactionGroupListItem when type is TRIP and groupBy is member', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual(TransactionGroupListItem);
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.FROM)).toStrictEqual(TransactionGroupListItem);
         });
 
         it('should return TransactionGroupListItem when type is INVOICE and groupBy is member', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual(TransactionGroupListItem);
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.STATUS.EXPENSE.ALL, CONST.SEARCH.GROUP_BY.FROM)).toStrictEqual(TransactionGroupListItem);
         });
     });
 
     describe('Test getSections', () => {
         it('should return getReportActionsSections result when type is CHAT', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.CHAT, searchResults.data, searchResults.search)).toStrictEqual(reportActionListItems);
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.CHAT, searchResults.data, 2074551, formatPhoneNumber)).toStrictEqual(reportActionListItems);
         });
 
         it('should return getTransactionsSections result when groupBy is undefined', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, searchResults.search, undefined)).toStrictEqual(transactionsListItems);
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber)).toStrictEqual(transactionsListItems);
         });
 
         it('should return getReportSections result when type is EXPENSE and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, searchResults.search, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
                 transactionReportGroupListItems,
             );
         });
 
         it('should return getReportSections result when type is TRIP and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, searchResults.search, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
                 transactionReportGroupListItems,
             );
         });
 
         it('should return getReportSections result when type is INVOICE and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, searchResults.search, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
                 transactionReportGroupListItems,
             );
         });
 
-        it('should return getMemberSections result when type is EXPENSE and groupBy is member', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, searchResults.search, CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual([]); // s77rt update test
+        it('should return getMemberSections result when type is EXPENSE and groupBy is from', () => {
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResultsGroupByFrom.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.FROM)).toStrictEqual(
+                transactionMemberGroupListItems,
+            );
         });
 
-        it('should return getMemberSections result when type is TRIP and groupBy is member', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, searchResults.search, CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual([]); // s77rt update test
+        it('should return getCardSections result when type is EXPENSE and groupBy is card', () => {
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResultsGroupByCard.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.CARD)).toStrictEqual(
+                transactionCardGroupListItems,
+            );
         });
 
-        it('should return getMemberSections result when type is INVOICE and groupBy is member', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, searchResults.search, CONST.SEARCH.GROUP_BY.MEMBERS)).toStrictEqual([]); // s77rt update test
+        it('should return getWithdrawalIDSections result when type is EXPENSE and groupBy is withdrawal-id', () => {
+            expect(
+                SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResultsGroupByWithdrawalID.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID),
+            ).toStrictEqual(transactionWithdrawalIDGroupListItems);
         });
 
-        // s77rt add test for group by card
+        it('should handle transaction keys before report keys correctly when groupBy is report', () => {
+            const originalData = searchResults.data;
+
+            const searchResultsWithTransactionKeysFirst: OnyxTypes.SearchResults = {
+                data: {
+                    // First add non-transaction and non-report keys
+                    personalDetailsList: originalData.personalDetailsList,
+                    [`policy_${policyID}`]: originalData[`policy_${policyID}`],
+                    [`reportActions_${reportID}`]: originalData[`reportActions_${reportID}`],
+
+                    // Then add transaction keys first (this is the key part of the test)
+                    [`transactions_${transactionID}`]: originalData[`transactions_${transactionID}`],
+                    [`transactions_${transactionID2}`]: originalData[`transactions_${transactionID2}`],
+                    [`transactions_${transactionID3}`]: originalData[`transactions_${transactionID3}`],
+                    [`transactions_${transactionID4}`]: originalData[`transactions_${transactionID4}`],
+
+                    // Finally add report keys after transaction keys
+                    [`report_${reportID}`]: originalData[`report_${reportID}`],
+                    [`report_${reportID2}`]: originalData[`report_${reportID2}`],
+                    [`report_${reportID3}`]: originalData[`report_${reportID3}`],
+                    [`report_${reportID4}`]: originalData[`report_${reportID4}`],
+                    [`report_${reportID5}`]: originalData[`report_${reportID5}`],
+                },
+                search: searchResults.search,
+            };
+
+            const resultWithTransactionKeysFirst = SearchUIUtils.getSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                searchResultsWithTransactionKeysFirst.data,
+                2074551,
+                formatPhoneNumber,
+                CONST.SEARCH.GROUP_BY.REPORTS,
+            );
+
+            const resultWithNormalOrder = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS);
+
+            expect(resultWithTransactionKeysFirst.length).toBe(resultWithNormalOrder.length);
+
+            const reportsWithTransactionKeysFirst = resultWithTransactionKeysFirst as TransactionReportGroupListItemType[];
+            const reportsWithNormalOrder = resultWithNormalOrder as TransactionReportGroupListItemType[];
+
+            reportsWithTransactionKeysFirst.forEach((reportWithTransactionKeysFirst, index) => {
+                const reportWithNormalOrder = reportsWithNormalOrder.at(index);
+                expect(reportWithTransactionKeysFirst.transactions.length).toBe(reportWithNormalOrder?.transactions.length);
+                expect(reportWithTransactionKeysFirst.reportID).toBe(reportWithNormalOrder?.reportID);
+
+                if (reportWithTransactionKeysFirst.reportID === reportID) {
+                    expect(reportWithTransactionKeysFirst.transactions.length).toBeGreaterThan(0);
+                    expect(reportWithTransactionKeysFirst.transactions.at(0)?.transactionID).toBe(transactionID);
+                }
+                if (reportWithTransactionKeysFirst.reportID === reportID2) {
+                    expect(reportWithTransactionKeysFirst.transactions.length).toBeGreaterThan(0);
+                    expect(reportWithTransactionKeysFirst.transactions.at(0)?.transactionID).toBe(transactionID2);
+                }
+            });
+        });
     });
 
     describe('Test getSortedSections', () => {
@@ -1449,28 +1790,34 @@ describe('SearchUIUtils', () => {
 
         it('should return getSortedMemberData result when type is EXPENSE and groupBy is member', () => {
             expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.MEMBERS),
-            ).toStrictEqual([]); // s77rt update test
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionMemberGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.FROM),
+            ).toStrictEqual(transactionMemberGroupListItemsSorted);
         });
 
-        it('should return getSortedMemberData result when type is TRIP and groupBy is member', () => {
+        it('should return getSortedCardData result when type is EXPENSE and groupBy is card', () => {
             expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.MEMBERS),
-            ).toStrictEqual([]); // s77rt update test
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, '', transactionCardGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.CARD),
+            ).toStrictEqual(transactionCardGroupListItemsSorted);
         });
 
-        it('should return getSortedMemberData result when type is INVOICE and groupBy is member', () => {
+        it('should return getSortedWithdrawalIDData result when type is EXPENSE and groupBy is withdrawal-id', () => {
             expect(
-                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, '', transactionReportGroupListItems, localeCompare, 'date', 'asc', CONST.SEARCH.GROUP_BY.MEMBERS),
-            ).toStrictEqual([]); // s77rt update test
+                SearchUIUtils.getSortedSections(
+                    CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    '',
+                    transactionWithdrawalIDGroupListItems,
+                    localeCompare,
+                    'date',
+                    'asc',
+                    CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                ),
+            ).toStrictEqual(transactionWithdrawalIDGroupListItemsSorted);
         });
-
-        // s77rt add test for group by card
     });
 
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {})
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, {}, false)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -1496,8 +1843,307 @@ describe('SearchUIUtils', () => {
             );
         });
 
+        it('should show todo section with submit, approve, pay, and export items when user has appropriate permissions', () => {
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Test Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    approver: adminEmail,
+                    exporter: adminEmail,
+                    achAccount: {
+                        bankAccountID: 1,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                    areExpensifyCardsEnabled: true,
+                    areCompanyCardsEnabled: true,
+                    employeeList: {
+                        [adminEmail]: {
+                            email: adminEmail,
+                            role: CONST.POLICY.ROLE.ADMIN,
+                            submitsTo: approverEmail,
+                        },
+                        [approverEmail]: {
+                            email: approverEmail,
+                            role: CONST.POLICY.ROLE.USER,
+                            submitsTo: adminEmail,
+                        },
+                    },
+                },
+            };
+
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy1: [
+                    {
+                        id: 'card1',
+                        feed: 'Expensify Card' as const,
+                        fundID: 'fund1',
+                        name: 'Test Card Feed',
+                    },
+                ],
+            };
+
+            const mockSavedSearches = {};
+
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, mockSavedSearches, false);
+
+            const todoSection = sections.find((section) => section.translationPath === 'common.todo');
+            expect(todoSection).toBeDefined();
+            expect(todoSection?.menuItems.length).toBeGreaterThan(0);
+
+            const menuItemKeys = todoSection?.menuItems.map((item) => item.key) ?? [];
+            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.APPROVE);
+            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
+        });
+
+        it('should show accounting section with statements, unapproved cash, unapproved card, and reconciliation items', () => {
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Test Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: true,
+                    areCompanyCardsEnabled: true,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                },
+            };
+
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+                policy1: [
+                    {
+                        id: 'card1',
+                        feed: 'Expensify Card' as const,
+                        fundID: 'fund1',
+                        name: 'Test Card Feed',
+                    },
+                ],
+            };
+
+            const mockSavedSearches = {};
+
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, mockSavedSearches, false);
+
+            const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
+            expect(accountingSection).toBeDefined();
+            expect(accountingSection?.menuItems.length).toBeGreaterThan(0);
+
+            const menuItemKeys = accountingSection?.menuItems.map((item) => item.key) ?? [];
+            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
+            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH);
+            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD);
+            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+        });
+
+        it('should show saved section when there are saved searches', () => {
+            const mockSavedSearches = {
+                search1: {
+                    id: 'search1',
+                    name: 'My Saved Search',
+                    query: 'type:expense',
+                    pendingAction: undefined,
+                },
+                search2: {
+                    id: 'search2',
+                    name: 'Another Search',
+                    query: 'type:report',
+                    pendingAction: undefined,
+                },
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false);
+
+            const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
+            expect(savedSection).toBeDefined();
+        });
+
+        it('should not show saved section when there are no saved searches', () => {
+            const mockSavedSearches = {};
+
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false);
+
+            const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
+            expect(savedSection).toBeUndefined();
+        });
+
+        it('should not show saved section when all saved searches are pending deletion and not offline', () => {
+            const mockSavedSearches = {
+                search1: {
+                    id: 'search1',
+                    name: 'Deleted Search',
+                    query: 'type:expense',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections(
+                adminEmail,
+                adminAccountID,
+                {},
+                undefined,
+                {},
+                mockSavedSearches,
+                false, // not offline
+            );
+
+            const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
+            expect(savedSection).toBeUndefined();
+        });
+
+        it('should show saved section when searches are pending deletion but user is offline', () => {
+            const mockSavedSearches = {
+                search1: {
+                    id: 'search1',
+                    name: 'Deleted Search',
+                    query: 'type:expense',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections(
+                adminEmail,
+                adminAccountID,
+                {},
+                undefined,
+                {},
+                mockSavedSearches,
+                true, // offline
+            );
+
+            const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
+            expect(savedSection).toBeDefined();
+        });
+
+        it('should not show todo section when user has no appropriate permissions', () => {
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Personal Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: false,
+                    role: CONST.POLICY.ROLE.USER,
+                    type: CONST.POLICY.TYPE.PERSONAL, // personal policy, not team
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                },
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false);
+
+            const todoSection = sections.find((section) => section.translationPath === 'common.todo');
+            expect(todoSection).toBeUndefined();
+        });
+
+        it('should not show accounting section when user has no admin permissions or card feeds', () => {
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Team Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                    role: CONST.POLICY.ROLE.USER, // not admin
+                    type: CONST.POLICY.TYPE.TEAM,
+                    areCompanyCardsEnabled: false,
+                },
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections(
+                adminEmail,
+                adminAccountID,
+                {}, // no card feeds
+                undefined,
+                mockPolicies,
+                {},
+                false,
+            );
+
+            const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
+            expect(accountingSection).toBeUndefined();
+        });
+
+        it('should show reconciliation for ACH-only scenario (payments enabled, active VBBA, reimburser set, areExpensifyCardsEnabled = false)', () => {
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'ACH Only Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: false,
+                    achAccount: {
+                        bankAccountID: 1234,
+                        reimburser: adminEmail,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '1234567890',
+                        routingNumber: '1234567890',
+                        addressName: 'Test Address',
+                        bankName: 'Test Bank',
+                    },
+                },
+            };
+
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false);
+
+            const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
+            expect(accountingSection).toBeDefined();
+
+            const menuItemKeys = accountingSection?.menuItems.map((item) => item.key) ?? [];
+            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+        });
+
+        it('should not show reconciliation for card-only scenario without card feeds (areExpensifyCardsEnabled = true but no card feeds)', () => {
+            const mockPolicies = {
+                policy1: {
+                    id: 'policy1',
+                    name: 'Card Only Policy',
+                    owner: adminEmail,
+                    outputCurrency: 'USD',
+                    isPolicyExpenseChatEnabled: true,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: true,
+                },
+            };
+
+            const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false);
+            const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
+
+            expect(accountingSection).toBeDefined();
+            const menuItemKeys = accountingSection?.menuItems.map((item) => item.key) ?? [];
+            expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+        });
+
         it('should generate correct routes', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {})
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, {}, false)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -1513,10 +2159,10 @@ describe('SearchUIUtils', () => {
         Onyx.merge(ONYXKEYS.SESSION, {accountID: overlimitApproverAccountID});
         searchResults.data[`policy_${policyID}`].role = CONST.POLICY.ROLE.USER;
         return waitForBatchedUpdates().then(() => {
-            let action = SearchUIUtils.getAction(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            let action = SearchUIUtils.getActions(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, overlimitApproverAccountID).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
 
-            action = SearchUIUtils.getAction(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            action = SearchUIUtils.getActions(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, overlimitApproverAccountID).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
     });
@@ -1603,6 +2249,7 @@ describe('SearchUIUtils', () => {
                     cardName: undefined,
                     category: 'Employee Meals Remote (Fringe Benefit)',
                     action: 'approve',
+                    allActions: ['approve'],
                     comment: {
                         comment: '',
                     },
@@ -1637,18 +2284,10 @@ describe('SearchUIUtils', () => {
                 hasMoreResults: false,
                 hasResults: true,
                 isLoading: false,
-                columnsToShow: {
-                    shouldShowCategoryColumn: true,
-                    shouldShowTagColumn: true,
-                    shouldShowTaxColumn: true,
-                    shouldShowFromColumn: true,
-                    shouldShowToColumn: true,
-                    shouldShowDescriptionColumn: false,
-                },
             },
         };
         return waitForBatchedUpdates().then(() => {
-            const action = SearchUIUtils.getAction(result.data, allViolations, 'report_6523565988285061', CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            const action = SearchUIUtils.getActions(result.data, allViolations, 'report_6523565988285061', CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.APPROVE);
         });
     });
@@ -1688,9 +2327,7 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test getColumnsToShow', () => {
-        test('Should only show columns when at least one transaction has a value for them', async () => {
-            await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
-
+        test('Should only show columns when at least one transaction has a value for them', () => {
             // Use the existing transaction as a base and modify only the fields we need to test
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
 
@@ -1769,7 +2406,7 @@ describe('SearchUIUtils', () => {
             };
 
             // Test 1: No optional fields should be shown when all transactions are empty
-            let columns = SearchUIUtils.getColumnsToShow([emptyTransaction, emptyTransaction], false);
+            let columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, emptyTransaction], false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(false);
@@ -1778,22 +2415,22 @@ describe('SearchUIUtils', () => {
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TO]).toBe(false);
 
             // Test 2: Merchant column should show when at least one transaction has merchant
-            columns = SearchUIUtils.getColumnsToShow([emptyTransaction, merchantTransaction], false);
+            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, merchantTransaction], false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(false);
 
             // Test 3: Category column should show when at least one transaction has category
-            columns = SearchUIUtils.getColumnsToShow([emptyTransaction, categoryTransaction], false);
+            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, categoryTransaction], false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(false);
 
             // Test 4: Tag column should show when at least one transaction has tag
-            columns = SearchUIUtils.getColumnsToShow([emptyTransaction, tagTransaction], false);
+            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, tagTransaction], false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(false);
 
             // Test 5: Description column should show when at least one transaction has description
-            columns = SearchUIUtils.getColumnsToShow([emptyTransaction, descriptionTransaction], false);
+            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, descriptionTransaction], false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(false);
 
@@ -1804,12 +2441,12 @@ describe('SearchUIUtils', () => {
                 [`transactions_${emptyTransaction.transactionID}`]: emptyTransaction,
                 [`transactions_${differentUsersTransaction.transactionID}`]: differentUsersTransaction,
             };
-            columns = SearchUIUtils.getColumnsToShow(data, false);
+            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, data, false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.FROM]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TO]).toBe(true);
 
             // Test 7: Multiple columns should show when transactions have different fields
-            columns = SearchUIUtils.getColumnsToShow([merchantTransaction, categoryTransaction, tagTransaction], false);
+            columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [merchantTransaction, categoryTransaction, tagTransaction], false);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(true);
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(true);
@@ -1832,7 +2469,7 @@ describe('SearchUIUtils', () => {
             };
 
             // In expense report view, From/To columns should not be shown
-            const columns = SearchUIUtils.getColumnsToShow([testTransaction], true);
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], true);
 
             // These columns should be shown based on data
             expect(columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]).toBe(true);
@@ -1859,7 +2496,7 @@ describe('SearchUIUtils', () => {
                 managerID: adminAccountID,
             };
 
-            const columns = SearchUIUtils.getColumnsToShow([testTransaction], false);
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], false);
 
             // Should show merchant column because modifiedMerchant has value
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);

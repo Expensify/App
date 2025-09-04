@@ -32,6 +32,7 @@ import {
     clearPendingContactActionErrors,
     clearUnvalidatedNewContactMethodAction,
     requestValidateCodeAction,
+    resetValidateActionCodeSent,
 } from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,7 +44,9 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 type NewContactMethodPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
 function NewContactMethodPage({route}: NewContactMethodPageProps) {
-    const contactMethod = getContactMethod();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const contactMethod = getContactMethod(account?.primaryLogin, session?.email);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
@@ -61,6 +64,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         const phoneLogin = getPhoneLogin(values.phoneOrEmail);
         const validateIfNumber = validateNumber(phoneLogin);
         const submitDetail = (validateIfNumber || values.phoneOrEmail).trim().toLowerCase();
+        resetValidateActionCodeSent();
         addPendingContactMethod(submitDetail);
         setIsValidateCodeActionModalVisible(true);
     }, []);

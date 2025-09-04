@@ -33,10 +33,9 @@ import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
+import CONST, {FEATURE_IDS} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingInterestedFeaturesProps, Feature, SectionObject} from './types';
 
 function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardingInterestedFeaturesProps) {
@@ -68,73 +67,73 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const features: Feature[] = useMemo(() => {
         return [
             {
-                id: 'categories',
+                id: FEATURE_IDS.CATEGORIES,
                 title: translate('workspace.moreFeatures.categories.title'),
                 icon: Illustrations.FolderOpen,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
             },
             {
-                id: 'accounting',
+                id: FEATURE_IDS.ACCOUNTING,
                 title: translate('workspace.moreFeatures.connections.title'),
                 icon: Illustrations.Accounting,
-                enabledByDefault: true,
+                enabledByDefault: !!userReportedIntegration,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
             },
             {
-                id: 'company-cards',
+                id: FEATURE_IDS.COMPANY_CARDS,
                 title: translate('workspace.moreFeatures.companyCards.title'),
                 icon: Illustrations.CompanyCard,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
             },
             {
-                id: 'workflows',
+                id: FEATURE_IDS.WORKFLOWS,
                 title: translate('workspace.moreFeatures.workflows.title'),
                 icon: Illustrations.Workflows,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
             },
             {
-                id: 'invoices',
+                id: FEATURE_IDS.INVOICES,
                 title: translate('workspace.moreFeatures.invoices.title'),
                 icon: Illustrations.InvoiceBlue,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
             },
             {
-                id: 'rules',
+                id: FEATURE_IDS.RULES,
                 title: translate('workspace.moreFeatures.rules.title'),
                 icon: Illustrations.Rules,
                 apiEndpoint: WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
                 requiresUpdate: true,
             },
             {
-                id: 'distance-rates',
+                id: FEATURE_IDS.DISTANCE_RATES,
                 title: translate('workspace.moreFeatures.distanceRates.title'),
                 icon: Illustrations.Car,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES,
             },
             {
-                id: 'expensify-card',
+                id: FEATURE_IDS.EXPENSIFY_CARD,
                 title: translate('workspace.moreFeatures.expensifyCard.title'),
                 icon: Illustrations.HandCard,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
             },
             {
-                id: 'tags',
+                id: FEATURE_IDS.TAGS,
                 title: translate('workspace.moreFeatures.tags.title'),
                 icon: Illustrations.Tag,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_TAGS,
             },
             {
-                id: 'per-diem',
+                id: FEATURE_IDS.PER_DIEM,
                 title: translate('workspace.moreFeatures.perDiem.title'),
                 icon: Illustrations.PerDiem,
                 apiEndpoint: WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM,
                 requiresUpdate: true,
             },
         ];
-    }, [translate]);
+    }, [translate, userReportedIntegration]);
 
     const [selectedFeatures, setSelectedFeatures] = useState<string[]>(() => features.filter((feature) => feature.enabledByDefault).map((feature) => feature.id));
 
@@ -153,7 +152,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         }
 
         if (CONFIG.IS_HYBRID_APP) {
-            closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+            closeReactNativeApp({shouldSetNVP: true});
             setRootStatusBarEnabled(false);
             return;
         }
@@ -183,7 +182,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                   policyName: '',
                   policyID: generatePolicyID(),
                   engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-                  currency: '',
+                  currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
                   file: undefined,
                   shouldAddOnboardingTasks: false,
                   companySize: onboardingCompanySize,
@@ -210,6 +209,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             userReportedIntegration: newUserReportedIntegration,
             firstName: currentUserPersonalDetails?.firstName,
             lastName: currentUserPersonalDetails?.lastName,
+            selectedInterestedFeatures: featuresMap.filter((feature) => feature.enabled).map((feature) => feature.id),
         });
 
         if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, newUserReportedIntegration)) {
@@ -250,6 +250,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         selectedFeatures,
         currentUserPersonalDetails?.firstName,
         currentUserPersonalDetails?.lastName,
+        currentUserPersonalDetails?.localCurrencyCode,
     ]);
 
     // Create items for enabled features
@@ -346,7 +347,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={90}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_ACCOUNTING.getRoute())}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('onboarding.interestedFeatures.title')}</Text>
