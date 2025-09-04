@@ -258,11 +258,13 @@ function SearchPage({route}: SearchPageProps) {
                 }
             }
 
-            // Collate a list of the account level in-app export templates for the
-            const accountInAppTemplates = Object.entries(csvExportLayouts ?? {}).map(([templateName, layout]) => ({
-                ...layout,
-                templateName,
-            }));
+            // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
+            const accountInAppTemplates = Object.entries(csvExportLayouts ?? {})
+                .filter(([, layout]) => layout.name !== CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV)
+                .map(([templateName, layout]) => ({
+                    ...layout,
+                    templateName,
+                }));
 
             if (accountInAppTemplates && accountInAppTemplates.length > 0) {
                 for (const template of accountInAppTemplates) {
@@ -727,6 +729,7 @@ function SearchPage({route}: SearchPageProps) {
                                 setIsExportWithTemplateModalVisible(false);
                                 clearSelectedTransactions(undefined, true);
                             }}
+                            onCancel={() => setIsExportWithTemplateModalVisible(false)}
                             title={translate('export.exportInProgress')}
                             prompt={translate('export.conciergeWillSend')}
                             confirmText={translate('common.buttonConfirm')}
@@ -821,6 +824,7 @@ function SearchPage({route}: SearchPageProps) {
                         setIsExportWithTemplateModalVisible(false);
                         clearSelectedTransactions(undefined, true);
                     }}
+                    onCancel={() => setIsExportWithTemplateModalVisible(false)}
                     title={translate('export.exportInProgress')}
                     prompt={translate('export.conciergeWillSend')}
                     confirmText={translate('common.buttonConfirm')}
