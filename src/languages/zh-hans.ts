@@ -6226,7 +6226,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `开始将此报告导出到${label}...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `无法将此报告导出到${label}（"${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}"）`,
+                    `无法将此报告导出到${label}（"${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}"）`,
                 managerAttachReceipt: `添加了一张收据`,
                 managerDetachReceipt: `已删除收据`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `在其他地方支付了${currency}${amount}`,

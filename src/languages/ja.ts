@@ -6310,7 +6310,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `このレポートのエクスポートを${label}に開始しました...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `このレポートを${label}にエクスポートできませんでした（"${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}"）`,
+                    `このレポートを${label}にエクスポートできませんでした（"${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}"）`,
                 managerAttachReceipt: `領収書を追加しました`,
                 managerDetachReceipt: `領収書を削除しました`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `他の場所で${currency}${amount}を支払いました。`,

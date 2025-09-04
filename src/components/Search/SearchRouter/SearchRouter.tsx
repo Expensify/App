@@ -2,7 +2,7 @@ import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -466,8 +466,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
             testID={SearchRouter.displayName}
             ref={ref}
-            onStartShouldSetResponder={() => true}
-            onResponderRelease={Keyboard.dismiss}
         >
             {shouldUseNarrowLayout && (
                 <HeaderWithBackButton
