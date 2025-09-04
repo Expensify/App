@@ -2973,12 +2973,8 @@ function getCardIssuedMessage({
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
             return translateLocal('workspace.expensifyCard.issuedCard', {assignee});
-        case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL: {
-            return translateLocal('workspace.expensifyCard.issuedCardVirtual', {
-                assignee,
-                link: expensifyCardLink,
-            });
-        }
+        case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
+            return translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
             return translateLocal('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
