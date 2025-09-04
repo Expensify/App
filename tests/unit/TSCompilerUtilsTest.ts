@@ -1238,5 +1238,119 @@ describe('TSCompilerUtils', () => {
             expect(resultCode).not.toContain('removeLevel');
             expect(resultCode).not.toContain('remove entire branch');
         });
+
+        it('omits deeply nested properties using dot-notation paths', () => {
+            const objCode = dedent(`
+                const obj = {
+                    common: {
+                        save: 'Save',
+                        cancel: 'Cancel',
+                        nested: {
+                            deep: 'value'
+                        }
+                    },
+                    errors: {
+                        network: 'Network error',
+                        validation: 'Invalid input'
+                    },
+                    topLevel: 'keep this'
+                };
+            `);
+
+            const ast = createSourceFile(objCode);
+            const objLiteral = (ast.statements[0] as ts.VariableStatement).declarationList.declarations[0].initializer;
+
+            expect(objLiteral).toBeDefined();
+            if (!objLiteral) {
+                return;
+            }
+
+            const result = TSCompilerUtils.objectOmit(objLiteral, ['common.save', 'errors.network', 'common.nested.deep']);
+            const resultCode = ts.createPrinter().printNode(ts.EmitHint.Expression, result, ast);
+
+            // Validate structure with nested properties omitted
+            expect(resultCode).toContain('topLevel: "keep this"'); // Top level preserved
+            expect(resultCode).toContain('common:'); // Common object still exists
+            expect(resultCode).toContain('cancel: "Cancel"'); // Common.cancel preserved
+            expect(resultCode).toContain('errors:'); // Errors object still exists
+            expect(resultCode).toContain('validation: "Invalid input"'); // Errors.validation preserved
+
+            // Ensure deeply nested properties are omitted
+            expect(resultCode).not.toContain('save: "Save"'); // common.save omitted
+            expect(resultCode).not.toContain('network: "Network error"'); // errors.network omitted
+            expect(resultCode).not.toContain('deep: "value"'); // common.nested.deep omitted
+
+            // Validate that empty parent objects are removed entirely (better than preserving empty objects)
+            expect(resultCode).not.toContain('nested:'); // common.nested should be removed entirely when empty
+        });
+
+        it('omits entire nested branches when all children are removed', () => {
+            const objCode = dedent(`
+                const obj = {
+                    removeAll: {
+                        child1: 'remove',
+                        child2: 'remove'
+                    },
+                    keepSome: {
+                        keep: 'this',
+                        remove: 'that'
+                    }
+                };
+            `);
+
+            const ast = createSourceFile(objCode);
+            const objLiteral = (ast.statements[0] as ts.VariableStatement).declarationList.declarations[0].initializer;
+
+            expect(objLiteral).toBeDefined();
+            if (!objLiteral) {
+                return;
+            }
+
+            const result = TSCompilerUtils.objectOmit(objLiteral, ['removeAll.child1', 'removeAll.child2', 'keepSome.remove']);
+            const resultCode = ts.createPrinter().printNode(ts.EmitHint.Expression, result, ast);
+
+            // When all children are removed, parent object should be removed entirely
+            expect(resultCode).not.toContain('removeAll'); // Entire branch removed when empty
+            expect(resultCode).toContain('keepSome: { keep: "this" }'); // Partial removal in keepSome
+            expect(resultCode).not.toContain('remove: "that"'); // Specific child omitted
+        });
+
+        it('handles mixed top-level and dot-notation omissions', () => {
+            const objCode = dedent(`
+                const obj = {
+                    topRemove: 'remove this',
+                    nested: {
+                        keep: 'this',
+                        remove: 'that',
+                        deep: {
+                            omit: 'this too'
+                        }
+                    },
+                    topKeep: 'preserve'
+                };
+            `);
+
+            const ast = createSourceFile(objCode);
+            const objLiteral = (ast.statements[0] as ts.VariableStatement).declarationList.declarations[0].initializer;
+
+            expect(objLiteral).toBeDefined();
+            if (!objLiteral) {
+                return;
+            }
+
+            const result = TSCompilerUtils.objectOmit(objLiteral, ['topRemove', 'nested.remove', 'nested.deep.omit']);
+            const resultCode = ts.createPrinter().printNode(ts.EmitHint.Expression, result, ast);
+
+            // Validate mixed omission results
+            expect(resultCode).toContain('topKeep: "preserve"'); // Top level preserved
+            expect(resultCode).toContain('nested:'); // Nested object preserved
+            expect(resultCode).toContain('keep: "this"'); // Nested property preserved
+            expect(resultCode).not.toContain('deep:'); // Deep object removed entirely when empty (better behavior)
+
+            // Ensure omitted properties are removed
+            expect(resultCode).not.toContain('topRemove'); // Top level omitted
+            expect(resultCode).not.toContain('remove: "that"'); // Nested property omitted
+            expect(resultCode).not.toContain('omit: "this too"'); // Deep property omitted
+        });
     });
 });

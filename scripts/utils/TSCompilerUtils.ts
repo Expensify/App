@@ -269,23 +269,65 @@ function objectOmit(obj: ts.Node, keysToOmit: string[]): ts.ObjectLiteralExpress
         throw new Error('Node must be an object literal expression');
     }
 
-    const omitSet = new Set(keysToOmit);
+    // Separate top-level keys from dot-notation paths
+    const topLevelOmits = new Set<string>();
+    const nestedOmits = new Map<string, string[]>(); // key -> array of nested paths
+
+    for (const key of keysToOmit) {
+        if (key.includes('.')) {
+            // Dot-notation path - extract first level and remaining path
+            const [firstKey, ...restPath] = key.split('.');
+            const remainingPath = restPath.join('.');
+
+            if (!nestedOmits.has(firstKey)) {
+                nestedOmits.set(firstKey, []);
+            }
+            const nestedPaths = nestedOmits.get(firstKey);
+            if (nestedPaths) {
+                nestedPaths.push(remainingPath);
+            }
+        } else {
+            // Top-level key
+            topLevelOmits.add(key);
+        }
+    }
+
     const keptProperties: ts.ObjectLiteralElementLike[] = [];
 
     for (const prop of obj.properties) {
         if (ts.isPropertyAssignment(prop) || ts.isMethodDeclaration(prop)) {
             const key = extractKeyFromPropertyNode(prop);
-            if (key && !omitSet.has(key)) {
-                // Keep this property - clone it to avoid source file context issues
-                if (ts.isPropertyAssignment(prop)) {
-                    const clonedProp = clonePropertyAssignment(prop);
-                    keptProperties.push(clonedProp);
-                } else if (ts.isMethodDeclaration(prop)) {
-                    const clonedMethod = cloneMethodDeclaration(prop);
-                    keptProperties.push(clonedMethod);
-                }
+            if (!key) {
+                continue;
             }
-            // If key is in omitSet, skip this property (effectively omitting it)
+
+            if (topLevelOmits.has(key)) {
+                // Skip this property (omit top-level)
+                continue;
+            }
+
+            if (nestedOmits.has(key) && ts.isPropertyAssignment(prop) && isObject(prop.initializer)) {
+                // This property has nested omissions - recursively omit from its value
+                const nestedOmitPaths = nestedOmits.get(key);
+                if (!nestedOmitPaths) {
+                    continue;
+                }
+                const omittedNestedObj = objectOmit(prop.initializer, nestedOmitPaths);
+
+                // Only keep the property if the nested object still has properties after omission
+                if (omittedNestedObj.properties.length > 0) {
+                    const clonedProp = ts.factory.createPropertyAssignment(clonePropertyName(prop.name), omittedNestedObj);
+                    keptProperties.push(clonedProp);
+                }
+                // If nested object becomes empty, omit the entire property
+            } else if (ts.isPropertyAssignment(prop)) {
+                // Keep this property - clone it to avoid source file context issues
+                const clonedProp = clonePropertyAssignment(prop);
+                keptProperties.push(clonedProp);
+            } else if (ts.isMethodDeclaration(prop)) {
+                const clonedMethod = cloneMethodDeclaration(prop);
+                keptProperties.push(clonedMethod);
+            }
         } else {
             // For spread assignments, shorthand properties, etc., keep them as-is
             keptProperties.push(prop);
