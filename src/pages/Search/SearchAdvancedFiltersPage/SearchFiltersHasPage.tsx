@@ -65,7 +65,7 @@ function SearchFiltersHasPage() {
         updateAdvancedFilters({
             has: newHas,
         });
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [selectedItems]);
 
     if (searchAdvancedFiltersFormResult.status === 'loading') {
@@ -82,7 +82,7 @@ function SearchFiltersHasPage() {
             <HeaderWithBackButton
                 title={translate('search.has')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>
