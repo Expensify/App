@@ -42,6 +42,7 @@ If you don’t see this option, reach out to your Account Manager or Concierge t
 - Your company’s travel policy may require approval before the reservation is finalized.
 - You’ll receive a confirmation email after booking.
 - The hotel receipt will automatically be added to your Expensify account.
+   - Note: If your hotel booking is post-paid, then you'll need to upload your final hotel bill to your Expensify account instead. 
 - If your payment card is connected to Expensify, the receipt will merge with the imported expense.
 
 # FAQ
