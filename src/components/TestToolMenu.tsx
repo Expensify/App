@@ -12,9 +12,9 @@ import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from
 import {setIsDebugModeEnabled, setShouldBlockTransactionThreadReportCreation, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account as AccountOnyx} from '@src/types/onyx';
-import type { TranslationPaths } from '@src/languages/types';
 import Button from './Button';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import EnableBiometricsModal from './EnableBiometricsModal';
@@ -54,7 +54,7 @@ function TestToolMenu() {
 
     const [showBiometricsModal, setShowBiometricsModal] = useState(false);
 
-    const biometricsTitle = useMemo(() => `initialSettingsPage.troubleshoot.biometrics.biometrics${isRegistered ? "" : "Not"}Registered`, [isRegistered])
+    const biometricsTitle = useMemo(() => `initialSettingsPage.troubleshoot.biometrics.biometrics${isRegistered ? '' : 'Not'}Registered`, [isRegistered]);
 
     return (
         <>

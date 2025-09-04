@@ -48,7 +48,7 @@ function EnableBiometricsModal({isVisible, onCancel = () => {}, updateLabelToReg
             return;
         }
         setNotificationVisibility(true);
-    }
+    };
 
     /**
      * Change to false if you want to test error page. This should be replaced by the actual logic checking if the registration was successful.
