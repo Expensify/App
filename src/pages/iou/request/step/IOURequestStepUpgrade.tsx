@@ -2,6 +2,8 @@ import React, {useRef, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
+import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -24,7 +26,7 @@ type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigator
 
 function IOURequestStepUpgrade({
     route: {
-        params: {transactionID, action, isCategorizing, isReporting, shouldSubmitExpense},
+        params: {transactionID, action, reportID, isCategorizing, isReporting},
     },
 }: IOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
@@ -33,34 +35,34 @@ function IOURequestStepUpgrade({
     const {isOffline} = useNetwork();
 
     const [isUpgraded, setIsUpgraded] = useState(false);
+    const [showConfirmationForm, setShowConfirmationForm] = useState(false);
+    const [createdPolicyName, setCreatedPolicyName] = useState('');
     const policyDataRef = useRef<CreateWorkspaceParams | null>(null);
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
-    // Check if expense is unreported
     const isExpenseUnreportedValue = transaction ? isExpenseUnreported(transaction) : false;
 
+    const onWorkspaceConfirmationSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
+        const policyData = Policy.createWorkspace({
+            policyOwnerEmail: '',
+            makeMeAdmin: false,
+            policyName: params.name,
+            policyID: params.policyID,
+            currency: params.currency,
+            engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+        });
+        policyDataRef.current = policyData;
+        setCreatedPolicyName(params.name);
+        setShowConfirmationForm(false);
+        setIsUpgraded(true);
+    };
+
     const onConfirmUpgrade = () => {
-        if (isCategorizing) {
-            if (shouldSubmitExpense) {
-                // existing logic -> link
-                setMoneyRequestParticipants(transactionID, [
-                    {
-                        selected: true,
-                        accountID: 0,
-                        isPolicyExpenseChat: true,
-                        reportID: policyDataRef.current?.expenseChatReportID,
-                        policyID: policyDataRef.current?.policyID,
-                        searchText: policyDataRef.current?.policyName,
-                    },
-                ]);
-                Navigation.goBack();
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, policyDataRef.current?.expenseChatReportID));
-            } else {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, policyDataRef.current?.expenseChatReportID));
-            }
+        if (isCategorizing && isExpenseUnreportedValue) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
         } else {
-            // Default behavior for other cases
             setMoneyRequestParticipants(transactionID, [
                 {
                     selected: true,
@@ -82,39 +84,36 @@ function IOURequestStepUpgrade({
             testID="workspaceUpgradePage"
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <HeaderWithBackButton
-                title={translate('common.upgrade')}
-                onBackButtonPress={() => {
-                    Navigation.goBack();
-                }}
-            />
+            {(!!isUpgraded || !showConfirmationForm) && (
+                <HeaderWithBackButton
+                    title={translate('common.upgrade')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+            )}
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!isUpgraded && (
                     <UpgradeConfirmation
                         onConfirmUpgrade={onConfirmUpgrade}
-                        policyName=""
+                        policyName={createdPolicyName}
                         isCategorizing={isCategorizing}
                         isReporting={isReporting}
                     />
                 )}
-                {!isUpgraded && (
+                {!isUpgraded && !showConfirmationForm && (
                     <UpgradeIntro
                         feature={feature}
-                        onUpgrade={() => {
-                            const policyData = Policy.createWorkspace({
-                                policyOwnerEmail: '',
-                                makeMeAdmin: false,
-                                policyName: '',
-                                policyID: undefined,
-                                engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
-                            });
-                            setIsUpgraded(true);
-                            policyDataRef.current = policyData;
-                        }}
+                        onUpgrade={() => setShowConfirmationForm(true)}
                         buttonDisabled={isOffline}
                         loading={false}
                         isCategorizing={isCategorizing}
                         isReporting={isReporting}
+                    />
+                )}
+                {!isUpgraded && showConfirmationForm && (
+                    <WorkspaceConfirmationForm
+                        policyOwnerEmail={session?.email ?? ''}
+                        onSubmit={onWorkspaceConfirmationSubmit}
+                        onBackButtonPress={() => setShowConfirmationForm(false)}
                     />
                 )}
             </ScrollView>
