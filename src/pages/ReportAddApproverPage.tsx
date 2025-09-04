@@ -43,6 +43,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -90,7 +91,9 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
         }
 
         const filteredApprovers =
-            debouncedSearchTerm !== '' ? tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? '']) : approvers;
+            debouncedSearchTerm !== ''
+                ? tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? ''])
+                : approvers;
 
         const data = sortAlphabetically(filteredApprovers, 'text', localeCompare);
         return [
@@ -100,7 +103,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 shouldShow: true,
             },
         ];
-    }, [employeeList, debouncedSearchTerm, localeCompare, report, personalDetails, selectedApproverEmail, translate]);
+    }, [employeeList, debouncedSearchTerm, countryCode, localeCompare, report.managerID, personalDetails, selectedApproverEmail, translate]);
 
     const shouldShowListEmptyContent = !debouncedSearchTerm && !sections.at(0)?.data.length;
 
