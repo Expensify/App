@@ -380,6 +380,11 @@ function getFilterDisplayTitle(
         return filterValue ? translate(`common.${filterValue as ValueOf<typeof CONST.SEARCH.DATA_TYPES>}`) : undefined;
     }
 
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION) {
+        const filterValue = filters[key];
+        return filterValue ? translate(`search.filters.action.${filterValue as ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>}`) : undefined;
+    }
+
     if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
         const filterValue = filters[key];
         return filterValue ? translate(`search.filters.groupBy.${filterValue}`) : undefined;
