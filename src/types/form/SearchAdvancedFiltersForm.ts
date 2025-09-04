@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {SearchDateFilterKeys, SearchGroupBy, SearchWithdrawalType} from '@components/Search/types';
+import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchGroupBy, SearchWithdrawalType} from '@components/Search/types';
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type Form from './Form';
@@ -13,6 +13,8 @@ const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
 ];
+
+const AMOUNT_FILTER_KEYS: SearchAmountFilterKeys[] = [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT];
 
 const FILTER_KEYS = {
     GROUP_BY: 'groupBy',
@@ -68,6 +70,9 @@ const FILTER_KEYS = {
     BILLABLE: 'billable',
     ACTION: 'action',
     HAS: 'has',
+    PURCHASE_AMOUNT_LESS_THAN: 'purchaseAmountLessThan',
+    PURCHASE_AMOUNT_GREATER_THAN: 'purchaseAmountGreaterThan',
+    PURCHASE_CURRENCY: 'purchaseCurrency',
     WITHDRAWAL_ID: 'withdrawalID',
 } as const;
 
@@ -124,6 +129,9 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.FEED,
         FILTER_KEYS.ACTION,
         FILTER_KEYS.HAS,
+        FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN,
+        FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN,
+        FILTER_KEYS.PURCHASE_CURRENCY,
         FILTER_KEYS.WITHDRAWAL_ID,
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
@@ -171,6 +179,9 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_ON,
         FILTER_KEYS.EXPORTER,
         FILTER_KEYS.ACTION,
+        FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN,
+        FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN,
+        FILTER_KEYS.PURCHASE_CURRENCY,
         FILTER_KEYS.WITHDRAWAL_ID,
     ],
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
@@ -217,6 +228,9 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.GROUP_BY,
         FILTER_KEYS.FEED,
         FILTER_KEYS.ACTION,
+        FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN,
+        FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN,
+        FILTER_KEYS.PURCHASE_CURRENCY,
     ],
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
         FILTER_KEYS.TYPE,
@@ -302,10 +316,13 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.BILLABLE]: string;
         [FILTER_KEYS.ACTION]: string;
         [FILTER_KEYS.HAS]: string[];
+        [FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN]: string;
+        [FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN]: string;
+        [FILTER_KEYS.PURCHASE_CURRENCY]: string[];
         [FILTER_KEYS.WITHDRAWAL_ID]: string;
     }
 >;
 
 export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey};
 export default FILTER_KEYS;
-export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, FILTER_KEYS};
+export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, FILTER_KEYS, AMOUNT_FILTER_KEYS};

@@ -148,6 +148,8 @@ key "key"
       / billable
       / action
       / has
+      / purchaseCurrency
+      / purchaseAmount
     )
 
 filterKey
