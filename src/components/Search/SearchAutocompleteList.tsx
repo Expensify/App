@@ -525,6 +525,7 @@ function SearchAutocompleteList(
         cardAutocompleteList,
         booleanTypes,
         workspaceList,
+        actionTypes,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
