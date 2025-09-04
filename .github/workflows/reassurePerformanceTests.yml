@@ -58,7 +58,7 @@ jobs:
           git add Mobile-Expensify
           npm install --force || (rm -rf node_modules && npm install --force) 
           NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
-          git switch --force --detach -
+          git switch --force --detach "${PR_SHA:-${GITHUB_SHA}}"
           cd Mobile-Expensify
           git checkout "$(git rev-parse HEAD)"
           cd ..
