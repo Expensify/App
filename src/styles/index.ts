@@ -1790,7 +1790,7 @@ const styles = (theme: ThemeColors) =>
             width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
             height: '100%',
             right: 0,
-            position: 'fixed',
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
         }),
 
         animatedRHPNavigatorContainer: (shouldUseNarrowLayout: boolean, expandedRHPProgress: Animated.Value) => ({
@@ -5758,7 +5758,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         wideRHPExtendedCardInterpolatorStyles: {
-            position: 'fixed',
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             height: '100%',
             right: 0,
             width: Animated.add(variables.sideBarWidth, receiptPaneRHPWidth),

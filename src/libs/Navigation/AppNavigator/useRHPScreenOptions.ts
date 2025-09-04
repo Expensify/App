@@ -30,7 +30,7 @@ const useRHPScreenOptions = (): PlatformStackNavigationOptions => {
     const customInterpolator = useModalCardStyleInterpolator();
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
 
-    // In this case we need isSmallScreenWidth
+    // We have to use the isSmallScreenWidth instead of shouldUseNarrow layout, because we want to have information about screen width without the context of side modal.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 

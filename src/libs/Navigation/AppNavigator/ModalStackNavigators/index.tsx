@@ -88,18 +88,17 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
         const {secondOverlayProgress, shouldRenderSecondaryOverlay} = useContext(WideRHPContext);
         const route = useRoute();
 
-        // We have to use the isSmallScreenWidth instead of shouldUseNarrow layout.
+        // We have to use the isSmallScreenWidth instead of shouldUseNarrow layout, because we want to have information about screen width without the context of side modal.
         // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
         const {isSmallScreenWidth} = useResponsiveLayout();
 
         const getScreenOptions = useCallback<typeof screenOptions>(
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            ({route}) => {
+            ({route: optionRoute}) => {
                 // Extend common options if they are defined for the screen.
-                if (OPTIONS_PER_SCREEN[route.name as Screen]) {
-                    return {...screenOptions({route}), ...OPTIONS_PER_SCREEN[route.name as Screen]};
+                if (OPTIONS_PER_SCREEN[optionRoute.name as Screen]) {
+                    return {...screenOptions({route: optionRoute}), ...OPTIONS_PER_SCREEN[optionRoute.name as Screen]};
                 }
-                return screenOptions({route});
+                return screenOptions({route: optionRoute});
             },
             [screenOptions],
         );
