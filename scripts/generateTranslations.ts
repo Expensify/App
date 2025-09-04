@@ -171,7 +171,7 @@ class TranslationGenerator {
             // Replace translated strings in the AST
             const transformer = this.createTransformer(translationsForLocale);
 
-            // TODO: for incremental translations, don't translate the full source file. Instead, we first need to:
+            // TODO:for incremental translations, don't translate the full source file. Instead, we first need to:
             //     1. Create a TS AST node that represents an object. This object will be empty to start, but will be populated with the translated ASTs for the added/modified paths.
             //     2. Parse en.ts, and ONLY for added/modified paths, transform the subtree and populate the tree from the previous step. Note that this needs to work with complex templates, translating their spans first just as createTransformer currently does
             //     3. Parse the full existing AST for the target locale.

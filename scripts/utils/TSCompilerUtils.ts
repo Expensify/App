@@ -162,6 +162,17 @@ function extractIdentifierFromExpression(node: ts.Node): string | null {
 }
 
 /**
+ * Check if a TypeScript AST node represents the root of an object literal.
+ * This is used to determine if object manipulation utilities can be applied.
+ *
+ * @param node The AST node to check
+ * @returns true if the node is an object literal expression, false otherwise
+ */
+function isObject(node: ts.Node): node is ts.ObjectLiteralExpression {
+    return ts.isObjectLiteralExpression(node);
+}
+
+/**
  * Extracts the key name from a TypeScript property assignment or method declaration node.
  * Handles cases like:
  * - Property assignment: `key: value` -> "key"
@@ -182,5 +193,5 @@ function extractKeyFromPropertyNode(node: ts.PropertyAssignment | ts.MethodDecla
     return undefined;
 }
 
-export default {findAncestor, addImport, findDefaultExport, resolveDeclaration, extractIdentifierFromExpression, extractKeyFromPropertyNode};
+export default {findAncestor, addImport, findDefaultExport, resolveDeclaration, extractIdentifierFromExpression, extractKeyFromPropertyNode, isObject};
 export type {ExpressionWithType};

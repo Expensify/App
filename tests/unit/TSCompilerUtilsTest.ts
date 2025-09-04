@@ -439,4 +439,111 @@ describe('TSCompilerUtils', () => {
             expect(result).toBe('arrowFunc');
         });
     });
+
+    describe('isObject', () => {
+        it('returns true for object literal expressions', () => {
+            const code = dedent(`
+                const obj = {
+                    key: 'value',
+                    nested: {
+                        prop: 123
+                    }
+                };
+            `);
+            const ast = createSourceFile(code);
+            const varDecl = ast.statements[0] as ts.VariableStatement;
+            const objLiteral = varDecl.declarationList.declarations[0].initializer;
+
+            expect(objLiteral).toBeDefined();
+            if (objLiteral) {
+                expect(TSCompilerUtils.isObject(objLiteral)).toBe(true);
+            }
+        });
+
+        it('returns false for non-object expressions', () => {
+            const code = dedent(`
+                const str = 'hello';
+                const num = 42;
+                const arr = [1, 2, 3];
+                const func = () => 'test';
+            `);
+            const ast = createSourceFile(code);
+
+            // String literal
+            const strDecl = ast.statements[0] as ts.VariableStatement;
+            const strLiteral = strDecl.declarationList.declarations[0].initializer;
+            expect(strLiteral).toBeDefined();
+            if (strLiteral) {
+                expect(TSCompilerUtils.isObject(strLiteral)).toBe(false);
+            }
+
+            // Number literal
+            const numDecl = ast.statements[1] as ts.VariableStatement;
+            const numLiteral = numDecl.declarationList.declarations[0].initializer;
+            expect(numLiteral).toBeDefined();
+            if (numLiteral) {
+                expect(TSCompilerUtils.isObject(numLiteral)).toBe(false);
+            }
+
+            // Array literal
+            const arrDecl = ast.statements[2] as ts.VariableStatement;
+            const arrLiteral = arrDecl.declarationList.declarations[0].initializer;
+            expect(arrLiteral).toBeDefined();
+            if (arrLiteral) {
+                expect(TSCompilerUtils.isObject(arrLiteral)).toBe(false);
+            }
+
+            // Arrow function
+            const funcDecl = ast.statements[3] as ts.VariableStatement;
+            const funcExpr = funcDecl.declarationList.declarations[0].initializer;
+            expect(funcExpr).toBeDefined();
+            if (funcExpr) {
+                expect(TSCompilerUtils.isObject(funcExpr)).toBe(false);
+            }
+        });
+
+        it('returns true for empty object literals', () => {
+            const code = 'const empty = {};';
+            const ast = createSourceFile(code);
+            const varDecl = ast.statements[0] as ts.VariableStatement;
+            const emptyObj = varDecl.declarationList.declarations[0].initializer;
+
+            expect(emptyObj).toBeDefined();
+            if (emptyObj) {
+                expect(TSCompilerUtils.isObject(emptyObj)).toBe(true);
+            }
+        });
+
+        it('returns true for nested object literals', () => {
+            const code = dedent(`
+                const nested = {
+                    level1: {
+                        level2: {
+                            value: 'deep'
+                        }
+                    }
+                };
+            `);
+            const ast = createSourceFile(code);
+            const varDecl = ast.statements[0] as ts.VariableStatement;
+            const outerObj = varDecl.declarationList.declarations[0].initializer as ts.ObjectLiteralExpression;
+            const level1Prop = outerObj.properties[0] as ts.PropertyAssignment;
+            const level1Obj = level1Prop.initializer;
+
+            expect(TSCompilerUtils.isObject(outerObj)).toBe(true);
+            expect(TSCompilerUtils.isObject(level1Obj)).toBe(true);
+        });
+
+        it('returns false for method calls that return objects', () => {
+            const code = 'const result = getObject();';
+            const ast = createSourceFile(code);
+            const varDecl = ast.statements[0] as ts.VariableStatement;
+            const callExpr = varDecl.declarationList.declarations[0].initializer;
+
+            expect(callExpr).toBeDefined();
+            if (callExpr) {
+                expect(TSCompilerUtils.isObject(callExpr)).toBe(false);
+            }
+        });
+    });
 });
