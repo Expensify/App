@@ -37,9 +37,7 @@ Onyx.connect({
 
 let hiddenTranslation = '';
 let youTranslation = '';
-// We use this value solely to verify whether the translation is loaded
-// Since they aren't connected to a UI anywhere, it's OK to use connectWithoutView()
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
     initWithStoredValues: false,
     callback: (value) => {
@@ -51,15 +49,25 @@ Onyx.connectWithoutView({
     },
 });
 
+function getHiddenAndYouTranslation(areTranslationsLoading: boolean) {
+    if (areTranslationsLoading ?? true) {
+        return {hiddenTranslationNew: '', youTranslationNew: ''};
+    }
+    const hiddenTranslationNew = translateLocal('common.hidden');
+    const youTranslationNew = translateLocal('common.you').toLowerCase();
+    return {hiddenTranslationNew, youTranslationNew};
+}
+
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
 function getDisplayNameOrDefault(
+    areTranslationsLoading: boolean,
     passedPersonalDetails?: Partial<PersonalDetails> | null,
     defaultValue = '',
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
-    youAfterTranslation = youTranslation,
 ): string {
+    const {hiddenTranslationNew, youTranslationNew} = getHiddenAndYouTranslation(areTranslationsLoading);
     let displayName = passedPersonalDetails?.displayName ?? '';
 
     let login = passedPersonalDetails?.login ?? '';
@@ -80,7 +88,7 @@ function getDisplayNameOrDefault(
     }
 
     if (shouldAddCurrentUserPostfix && !!displayName) {
-        displayName = `${displayName} (${youAfterTranslation})`;
+        displayName = `${displayName} (${youTranslationNew || youTranslation})`;
     }
 
     if (passedPersonalDetails?.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
@@ -99,7 +107,11 @@ function getDisplayNameOrDefault(
         return login;
     }
 
-    return shouldFallbackToHidden ? hiddenTranslation : '';
+    if (shouldFallbackToHidden) {
+        return hiddenTranslationNew || hiddenTranslation;
+    }
+
+    return '';
 }
 
 /**

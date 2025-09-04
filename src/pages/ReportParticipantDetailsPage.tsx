@@ -37,6 +37,8 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
+
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
@@ -47,7 +49,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
-    const displayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details));
+    const displayName = formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(areTranslationsLoading, details));
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const removeUser = useCallback(() => {

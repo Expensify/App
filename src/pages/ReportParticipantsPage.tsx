@@ -73,6 +73,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const textInputRef = useRef<TextInput>(null);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: false});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
@@ -175,7 +176,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                 isSelected,
                 isDisabledCheckbox: accountID === currentUserAccountID,
                 isDisabled: pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || details?.isOptimisticPersonalDetail,
-                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
+                text: formatPhoneNumber(getDisplayNameOrDefault(areTranslationsLoading, details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
                 pendingAction,
