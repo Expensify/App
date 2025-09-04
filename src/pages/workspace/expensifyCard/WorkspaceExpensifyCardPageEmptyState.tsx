@@ -61,13 +61,14 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
-    const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountList ?? {});
     const isDesktop = getPlatform() === CONST.PLATFORM.DESKTOP;
     const disclaimerPaddingTop = !shouldUseNarrowLayout && isDesktop ? styles.pt40 : styles.pt20;
     const reimbursementAccountStatus = reimbursementAccount?.achData?.state ?? '';
     const isSetupUnfinished = isEmptyObject(bankAccountList) && reimbursementAccountStatus && reimbursementAccountStatus !== CONST.BANK_ACCOUNT.STATE.OPEN;
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
 
+    const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountList, policy?.outputCurrency) : getEligibleBankAccountsForCard(bankAccountList);
+    
     const startFlow = useCallback(() => {
         if (!eligibleBankAccounts.length || isSetupUnfinished) {
             Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policy?.id, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id)));
