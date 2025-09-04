@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -25,7 +26,9 @@ import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/home/report/ReportActionsView';
 import ReportFooter from '@pages/home/report/ReportFooter';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {ThemeStyles} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -45,15 +48,26 @@ type MoneyRequestReportViewProps = {
     shouldDisplayReportFooter: boolean;
 
     shouldWaitForReportSync: boolean;
+
+    /** The `backTo` route that should be used when clicking back button */
+    backToRoute: Route | undefined;
 };
 
 function goBackFromSearchMoneyRequest() {
-    if (navigationRef.canGoBack()) {
+    const rootState = navigationRef.getRootState();
+    const lastRoute = rootState.routes.at(-1);
+
+    if (lastRoute?.name !== NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
+        Log.hmmm('[goBackFromSearchMoneyRequest()] goBackFromSearchMoneyRequest was called from a different navigator than SearchFullscreenNavigator.');
+        return;
+    }
+
+    if (rootState.routes.length > 1) {
         Navigation.goBack();
         return;
     }
 
-    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({groupBy: 'reports'})}));
+    Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 }
 
 function InitialLoadingSkeleton({styles}: {styles: ThemeStyles}) {
@@ -74,7 +88,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, shouldWaitForReportSync}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter,backToRoute, shouldWaitForReportSync}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -127,7 +141,13 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     report={report}
                     policy={policy}
                     parentReportAction={parentReportAction}
-                    onBackButtonPress={goBackFromSearchMoneyRequest}
+                    onBackButtonPress={() => {
+                        if (!backToRoute) {
+                            goBackFromSearchMoneyRequest();
+                            return;
+                        }
+                        Navigation.goBack(backToRoute);
+                    }}
                 />
             ) : (
                 <MoneyReportHeader
@@ -137,10 +157,16 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     transactionThreadReportID={transactionThreadReportID}
                     isLoadingInitialReportActions={isLoadingInitialReportActions}
                     shouldDisplayBackButton
-                    onBackButtonPress={goBackFromSearchMoneyRequest}
+                    onBackButtonPress={() => {
+                        if (!backToRoute) {
+                            goBackFromSearchMoneyRequest();
+                            return;
+                        }
+                        Navigation.goBack(backToRoute);
+                    }}
                 />
             ),
-        [isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
+        [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],
     );
 
     if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions || shouldWaitForReportSync) {
