@@ -4454,8 +4454,7 @@ const translations = {
             addShippingDetails: '添加运输详情',
             issuedCard: ({assignee}: AssigneeParams) => `已为${assignee}发放了一张Expensify卡！该卡将在2-3个工作日内送达。`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `已为${assignee}发放了一张Expensify卡！一旦添加了运送详情，卡片将被寄出。`,
-            issuedCardVirtual: ({assignee, link, isCardDeactivated}: IssueVirtualCardParams) =>
-                `已向${assignee}发放了一张虚拟${link}${isCardDeactivated ? '（卡片已停用）' : ''}！该卡可以立即使用。`,
+            issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `已向${assignee}发放了一张虚拟${link}！该卡可以立即使用。`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} 添加了送货详情。Expensify Card 将在2-3个工作日内送达。`,
             verifyingHeader: '验证中',
             bankAccountVerifiedHeader: '银行账户已验证',

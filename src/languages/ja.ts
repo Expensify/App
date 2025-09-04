@@ -4516,8 +4516,7 @@ const translations = {
             addShippingDetails: '配送詳細を追加',
             issuedCard: ({assignee}: AssigneeParams) => `${assignee}にExpensifyカードを発行しました！カードは2～3営業日で到着します。`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `${assignee}にExpensifyカードを発行しました！カードは発送情報が追加され次第、発送されます。`,
-            issuedCardVirtual: ({assignee, link, isCardDeactivated}: IssueVirtualCardParams) =>
-                `${assignee}にバーチャル${link}${isCardDeactivated ? '（カード無効化）' : ''}を発行しました！カードはすぐに使用できます。`,
+            issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `${assignee}にバーチャル${link}を発行しました！カードはすぐに使用できます。`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee}が配送情報を追加しました。Expensify Cardは2～3営業日で到着します。`,
             verifyingHeader: '確認中',
             bankAccountVerifiedHeader: '銀行口座が確認されました',

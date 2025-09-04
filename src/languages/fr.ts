@@ -4534,8 +4534,7 @@ const translations = {
             issuedCard: ({assignee}: AssigneeParams) => `a émis une carte Expensify à ${assignee} ! La carte arrivera dans 2-3 jours ouvrables.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
                 `a émis une carte Expensify à ${assignee} ! La carte sera expédiée une fois que les détails d'expédition seront ajoutés.`,
-            issuedCardVirtual: ({assignee, link, isCardDeactivated}: IssueVirtualCardParams) =>
-                `a émis une ${link} virtuelle à ${assignee}${isCardDeactivated ? ' (carte désactivée)' : ''} ! La carte peut être utilisée immédiatement.`,
+            issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `a émis une ${link} virtuelle à ${assignee} ! La carte peut être utilisée immédiatement.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} a ajouté les détails d'expédition. La carte Expensify arrivera dans 2-3 jours ouvrables.`,
             verifyingHeader: 'Vérification en cours',
             bankAccountVerifiedHeader: 'Compte bancaire vérifié',

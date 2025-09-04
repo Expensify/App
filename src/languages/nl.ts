@@ -4540,8 +4540,7 @@ const translations = {
             issuedCard: ({assignee}: AssigneeParams) => `heeft ${assignee} een Expensify Card uitgegeven! De kaart zal binnen 2-3 werkdagen arriveren.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
                 `heeft ${assignee} een Expensify Card uitgegeven! De kaart wordt verzonden zodra de verzendgegevens zijn toegevoegd.`,
-            issuedCardVirtual: ({assignee, link, isCardDeactivated}: IssueVirtualCardParams) =>
-                `heeft ${assignee} een virtuele ${link}${isCardDeactivated ? ' (kaart gedeactiveerd)' : ''} uitgegeven! De kaart kan direct worden gebruikt.`,
+            issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `heeft ${assignee} een virtuele ${link} uitgegeven! De kaart kan direct worden gebruikt.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} heeft verzendgegevens toegevoegd. Expensify Card zal binnen 2-3 werkdagen arriveren.`,
             verifyingHeader: 'Verifiëren',
             bankAccountVerifiedHeader: 'Bankrekening geverifieerd',
