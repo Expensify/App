@@ -114,8 +114,7 @@ function PersonalDetailsOptionListContextProvider({children}: PersonalDetailsOpt
     const currentOption = useRef<OptionData | undefined>(undefined);
     const {accountID} = useCurrentUserPersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: reportsSelector});
-    const reportIDs = useMemo(() => Object.keys(reports ?? {}), [reports]);
-    const reportIDsSet = useMemo(() => new Set(reportIDs), [reportIDs]);
+    const reportIDsSet = useMemo(() => new Set(Object.keys(reports ?? {})), [reports]);
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => reportAttributesSelector(val?.reports, reportIDsSet)});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
