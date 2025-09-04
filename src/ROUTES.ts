@@ -2063,8 +2063,8 @@ const ROUTES = {
         getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address`, backTo),
     },
     TRAVEL_VERIFY_ACCOUNT: {
-        route: 'travel/:domain/verify-account',
-        getRoute: (domain: string) => `travel/${domain}/verify-account` as const,
+        route: `travel/:domain/${VERIFY_ACCOUNT}`,
+        getRoute: (domain: string) => `travel/${domain}/${VERIFY_ACCOUNT}` as const,
     },
     ONBOARDING_ROOT: {
         route: 'onboarding',
