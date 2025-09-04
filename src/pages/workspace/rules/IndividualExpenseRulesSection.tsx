@@ -215,7 +215,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
 
                 <View style={[styles.mt3]}>
                     <OfflineWithFeedback pendingAction={policy?.pendingFields?.eReceipts}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, {height: variables.h40}]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, {minHeight: variables.h40}]}>
                             <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.eReceipts')}</Text>
                             <Switch
                                 isOn={areEReceiptsEnabled}
@@ -238,7 +238,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                 </View>
                 <View style={[styles.mt3]}>
                     <OfflineWithFeedback pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, {height: variables.h40}]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, {minHeight: variables.h40}]}>
                             <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.attendeeTracking')}</Text>
                             <Switch
                                 isOn={isAttendeeTrackingEnabled}
