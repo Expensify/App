@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FormProvider from '@components/Form/FormProvider';
@@ -37,6 +37,7 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const policy = usePolicy(policyID);
     const defaultWorkspaceName = `${policy?.name} (${translate('workspace.common.duplicateWorkspacePrefix')})`;
+    const newPolicyID = useMemo(generatePolicyID, []);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_DUPLICATE_FORM>) => {
@@ -61,13 +62,12 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
             if (!policyID) {
                 return;
             }
-            const newPolicyID = generatePolicyID();
             fileToBase64(avatarFile as File | undefined).then((base64) => {
                 setDuplicateWorkspaceData({policyID: newPolicyID, name, file: base64});
             });
             Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE_SELECT_FEATURES.getRoute(policyID, ROUTES.WORKSPACES_LIST.route));
         },
-        [policyID],
+        [policyID, newPolicyID],
     );
 
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
@@ -82,7 +82,7 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
     const stashedLocalAvatarImage = workspaceAvatar?.avatarUri ?? undefined;
 
     const DefaultAvatar = useWorkspaceConfirmationAvatar({
-        policyID,
+        policyID: newPolicyID,
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
         source: stashedLocalAvatarImage || getDefaultWorkspaceAvatar(workspaceNameFirstCharacter),
         name: workspaceNameFirstCharacter,
