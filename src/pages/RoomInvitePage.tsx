@@ -16,7 +16,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {inviteToRoom, searchInServer} from '@libs/actions/Report';
+import {inviteToRoomAction, searchInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -53,7 +53,7 @@ function RoomInvitePage({
     },
 }: RoomInvitePageProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
@@ -203,11 +203,11 @@ function RoomInvitePage({
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         if (reportID) {
-            inviteToRoom(reportID, invitedEmailsToAccountIDs, formatPhoneNumber);
+            inviteToRoomAction(reportID, invitedEmailsToAccountIDs);
         }
         clearUserSearchPhrase();
-        Navigation.goBack(backRoute);
-    }, [selectedOptions, backRoute, reportID, validate, formatPhoneNumber]);
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID ?? 0, backTo));
+    }, [validate, selectedOptions, reportID, backTo]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backRoute);
