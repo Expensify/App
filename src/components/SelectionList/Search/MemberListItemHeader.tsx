@@ -40,7 +40,7 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onSel
     const {isLargeScreenWidth} = useResponsiveLayout();
     const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
     const [formattedDisplayName, formattedLogin] = useMemo(
-        () => [formatPhoneNumber(getDisplayNameOrDefault(areTranslationsLoading, memberItem)), formatPhoneNumber(memberItem.login ?? '')],
+        () => [formatPhoneNumber(getDisplayNameOrDefault(memberItem, undefined, undefined, undefined, areTranslationsLoading)), formatPhoneNumber(memberItem.login ?? '')],
         [formatPhoneNumber, memberItem, areTranslationsLoading],
     );
     const shouldShowAction = isLargeScreenWidth;

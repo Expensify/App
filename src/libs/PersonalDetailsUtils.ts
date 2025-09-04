@@ -50,7 +50,7 @@ Onyx.connect({
 });
 
 function getHiddenAndYouTranslation(areTranslationsLoading: boolean) {
-    if (areTranslationsLoading ?? true) {
+    if (areTranslationsLoading) {
         return {hiddenTranslationNew: '', youTranslationNew: ''};
     }
     const hiddenTranslationNew = translateLocal('common.hidden');
@@ -61,13 +61,13 @@ function getHiddenAndYouTranslation(areTranslationsLoading: boolean) {
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
 function getDisplayNameOrDefault(
-    areTranslationsLoading: boolean,
     passedPersonalDetails?: Partial<PersonalDetails> | null,
     defaultValue = '',
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
+    areTranslationsLoading?: boolean | null | undefined,
 ): string {
-    const {hiddenTranslationNew, youTranslationNew} = getHiddenAndYouTranslation(areTranslationsLoading);
+    const {hiddenTranslationNew, youTranslationNew} = getHiddenAndYouTranslation(areTranslationsLoading ?? true);
     let displayName = passedPersonalDetails?.displayName ?? '';
 
     let login = passedPersonalDetails?.login ?? '';

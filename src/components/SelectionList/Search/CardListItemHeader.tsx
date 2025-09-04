@@ -44,7 +44,10 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onSelectRow
     const {translate, formatPhoneNumber} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
-    const formattedDisplayName = useMemo(() => formatPhoneNumber(getDisplayNameOrDefault(areTranslationsLoading, cardItem)), [cardItem, formatPhoneNumber, areTranslationsLoading]);
+    const formattedDisplayName = useMemo(
+        () => formatPhoneNumber(getDisplayNameOrDefault(cardItem, undefined, undefined, undefined, areTranslationsLoading)),
+        [cardItem, formatPhoneNumber, areTranslationsLoading],
+    );
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
     const shouldShowAction = isLargeScreenWidth;

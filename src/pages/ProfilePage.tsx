@@ -111,7 +111,7 @@ function ProfilePage({route}: ProfilePageProps) {
     }, [personalDetails, accountID, loginParams, isValidAccountID]);
     const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
 
-    const displayName = formatPhoneNumber(getDisplayNameOrDefault(areTranslationsLoading, details, undefined, undefined, isCurrentUser));
+    const displayName = formatPhoneNumber(getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser, areTranslationsLoading));
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
