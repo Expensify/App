@@ -1,0 +1,581 @@
+diff --git a/node_modules/react-native/Libraries/Pressability/Pressability.js b/node_modules/react-native/Libraries/Pressability/Pressability.js
+index 24614858116..c750c51ac59 100644
+--- a/node_modules/react-native/Libraries/Pressability/Pressability.js
++++ b/node_modules/react-native/Libraries/Pressability/Pressability.js
+@@ -805,7 +805,7 @@ export default class Pressability {
+     if (typeof this._responderID === 'number') {
+       UIManager.measure(this._responderID, this._measureCallback);
+     } else {
+-      this._responderID.measure(this._measureCallback);
++      this._responderID.measureAsyncOnUI(this._measureCallback);
+     }
+   }
+ 
+diff --git a/node_modules/react-native/Libraries/ReactNative/FabricUIManager.js b/node_modules/react-native/Libraries/ReactNative/FabricUIManager.js
+index 7766b3ee551..2dd61e718f1 100644
+--- a/node_modules/react-native/Libraries/ReactNative/FabricUIManager.js
++++ b/node_modules/react-native/Libraries/ReactNative/FabricUIManager.js
+@@ -46,6 +46,14 @@ export interface Spec {
+   +measure: (
+     node: Node | NativeElementReference,
+     callback: MeasureOnSuccessCallback,
++  ) => void;
++    /**
++   * Same as `measure()`, but instead of using the shadow nodes layout information,
++   * it uses the native layout hierarchy to measure the view on the UI thread.
++   */
++  +measureAsyncOnUI: (
++    node: Node | NativeElementReference,
++    callback: MeasureOnSuccessCallback,
+   ) => void;
+   +measureInWindow: (
+     node: Node | NativeElementReference,
+@@ -110,6 +118,7 @@ const CACHED_PROPERTIES = [
+   'appendChildToSet',
+   'completeRoot',
+   'measure',
++  'measureAsyncOnUI',
+   'measureInWindow',
+   'measureLayout',
+   'configureNextLayoutAnimation',
+diff --git a/node_modules/react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactFabricHostComponent.js b/node_modules/react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactFabricHostComponent.js
+index 1c243f58ab4..0073a286877 100644
+--- a/node_modules/react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactFabricHostComponent.js
++++ b/node_modules/react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactFabricHostComponent.js
+@@ -29,6 +29,7 @@ import nullthrows from 'nullthrows';
+ 
+ const {
+   measure: fabricMeasure,
++  measureAsyncOnUI: fabricMeasureAsyncOnUI,
+   measureInWindow: fabricMeasureInWindow,
+   measureLayout: fabricMeasureLayout,
+   getBoundingClientRect: fabricGetBoundingClientRect,
+@@ -76,6 +77,15 @@ export default class ReactFabricHostComponent
+     }
+   }
+ 
++  measureAsyncOnUI(callback: MeasureOnSuccessCallback) {
++    const node = getNodeFromInternalInstanceHandle(
++      this.__internalInstanceHandle,
++    );
++    if (node != null) {
++      fabricMeasureAsyncOnUI(node, callback);
++    }
++  }
++
+   measureInWindow(callback: MeasureInWindowOnSuccessCallback) {
+     const node = getNodeFromInternalInstanceHandle(
+       this.__internalInstanceHandle,
+diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.h b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.h
+index d9b2c79bb3f..a2836c66567 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.h
++++ b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.h
+@@ -69,6 +69,8 @@ NS_ASSUME_NONNULL_BEGIN
+ - (void)synchronouslyUpdateViewOnUIThread:(ReactTag)reactTag
+                              changedProps:(NSDictionary *)props
+                       componentDescriptor:(const facebook::react::ComponentDescriptor &)componentDescriptor;
++                     
++- (void)measure:(ReactTag)reactTag callback:(const std::function<void (folly::dynamic)> &)callback;
+ @end
+ 
+ NS_ASSUME_NONNULL_END
+diff --git a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm
+index ac762b9ea51..df321ed9e69 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/RCTMountingManager.mm
+@@ -6,6 +6,7 @@
+  */
+ 
+ #import "RCTMountingManager.h"
++#import "UIView+React.h"
+ 
+ #import <QuartzCore/QuartzCore.h>
+ 
+@@ -333,4 +334,37 @@ - (void)synchronouslyDispatchAccessbilityEventOnUIThread:(ReactTag)reactTag even
+   }
+ }
+ 
++- (void)measure:(ReactTag)reactTag callback:(const std::function<void (folly::dynamic)> &)callback {
++  std::function<void (folly::dynamic)> callbackCopy = callback;
++  RCTExecuteOnMainQueue(^{
++    UIView<RCTComponentViewProtocol> *view = [self->_componentViewRegistry findComponentViewWithTag:reactTag];
++    if (!view) {
++      // this view was probably collapsed out
++      RCTLogWarn(@"measure cannot find view with tag #%@", reactTag);
++      callbackCopy({});
++      return;
++    }
++    
++    // If in a <Modal>, rootView will be the root of the modal container.
++    UIView *rootView = view;
++    while (rootView.superview && ![rootView isReactRootView]) {
++      rootView = rootView.superview;
++    }
++
++    // By convention, all coordinates, whether they be touch coordinates, or
++    // measurement coordinates are with respect to the root view.
++    CGRect frame = view.frame;
++    CGRect globalBounds = [view convertRect:view.bounds toView:rootView];
++
++    callbackCopy(
++             folly::dynamic::array(frame.origin.x,
++                                   frame.origin.y,
++                                   globalBounds.size.width,
++                                   globalBounds.size.height,
++                                   globalBounds.origin.x,
++                                   globalBounds.origin.y)
++             );
++  });
++}
++
+ @end
+diff --git a/node_modules/react-native/React/Fabric/RCTScheduler.h b/node_modules/react-native/React/Fabric/RCTScheduler.h
+index f5df6a938c9..c29b61c4bd6 100644
+--- a/node_modules/react-native/React/Fabric/RCTScheduler.h
++++ b/node_modules/react-native/React/Fabric/RCTScheduler.h
+@@ -41,6 +41,9 @@ NS_ASSUME_NONNULL_BEGIN
+ - (void)schedulerDidSetIsJSResponder:(BOOL)isJSResponder
+                 blockNativeResponder:(BOOL)blockNativeResponder
+                        forShadowView:(const facebook::react::ShadowView &)shadowView;
++                       
++- (void)schedulerMeasureAsync:(const facebook::react::ShadowView &)shadowView
++               callback:(const std::function<void(folly::dynamic)> &)callback;
+ 
+ @end
+ 
+diff --git a/node_modules/react-native/React/Fabric/RCTScheduler.mm b/node_modules/react-native/React/Fabric/RCTScheduler.mm
+index 9bfb79f84d4..350bffa63da 100644
+--- a/node_modules/react-native/React/Fabric/RCTScheduler.mm
++++ b/node_modules/react-native/React/Fabric/RCTScheduler.mm
+@@ -68,6 +68,11 @@ void schedulerDidSendAccessibilityEvent(const ShadowView &shadowView, const std:
+     [scheduler.delegate schedulerDidSendAccessibilityEvent:shadowView eventType:eventType];
+   }
+ 
++  void schedulerMeasureAsync(const ShadowView& shadowView, const std::function<void(folly::dynamic)> &callback) override {
++    RCTScheduler *scheduler = (__bridge RCTScheduler *)scheduler_;
++    [scheduler.delegate schedulerMeasureAsync:shadowView callback:callback];
++  }
++
+  private:
+   void *scheduler_;
+ };
+diff --git a/node_modules/react-native/React/Fabric/RCTSurfacePresenter.mm b/node_modules/react-native/React/Fabric/RCTSurfacePresenter.mm
+index dbea5607fb9..0ed191a8d80 100644
+--- a/node_modules/react-native/React/Fabric/RCTSurfacePresenter.mm
++++ b/node_modules/react-native/React/Fabric/RCTSurfacePresenter.mm
+@@ -326,6 +326,11 @@ - (void)schedulerDidSetIsJSResponder:(BOOL)isJSResponder
+   [_mountingManager setIsJSResponder:isJSResponder blockNativeResponder:blockNativeResponder forShadowView:shadowView];
+ }
+ 
++- (void)schedulerMeasureAsync:(const facebook::react::ShadowView &)shadowView callback:(const std::function<void (folly::dynamic)> &)callback {
++  ReactTag tag = shadowView.tag;
++  [_mountingManager measure:tag callback:callback];
++}
++
+ - (void)addObserver:(id<RCTSurfacePresenterObserver>)observer
+ {
+   std::unique_lock lock(_observerListMutex);
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java
+index fe2ed4003cf..8f05249ac05 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java
+@@ -32,6 +32,7 @@ import androidx.annotation.UiThread;
+ import com.facebook.common.logging.FLog;
+ import com.facebook.infer.annotation.ThreadConfined;
+ import com.facebook.proguard.annotations.DoNotStripAny;
++import com.facebook.react.bridge.Callback;
+ import com.facebook.react.bridge.ColorPropConverter;
+ import com.facebook.react.bridge.GuardedRunnable;
+ import com.facebook.react.bridge.LifecycleEventListener;
+@@ -1187,6 +1188,27 @@ public class FabricUIManager
+         });
+   }
+ 
++  public void measureAsync(int surfaceId, int reactTag, final Callback callback) {
++    mMountItemDispatcher.addMountItem(
++      new MountItem() {
++        @Override
++        public void execute(@NonNull MountingManager mountingManager) {
++          mMountingManager.measure(surfaceId, reactTag, callback);
++        }
++
++        @Override
++        public int getSurfaceId() {
++          return surfaceId;
++        }
++
++        @NonNull
++        @Override
++        public String toString() {
++          return "MEASURE_VIEW";
++        }
++      });
++  }
++
+   @Override
+   public void profileNextBatch() {
+     // TODO T31905686: Remove this method and add support for multi-threading performance counters
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/MountingManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/MountingManager.java
+index 580eed74c1a..9bba3597029 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/MountingManager.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/MountingManager.java
+@@ -10,13 +10,18 @@ package com.facebook.react.fabric.mounting;
+ import static com.facebook.infer.annotation.ThreadConfined.ANY;
+ import static com.facebook.infer.annotation.ThreadConfined.UI;
+ 
++import android.graphics.Matrix;
++import android.graphics.RectF;
+ import android.view.View;
++import android.view.ViewParent;
++
+ import androidx.annotation.AnyThread;
+ import androidx.annotation.NonNull;
+ import androidx.annotation.Nullable;
+ import androidx.annotation.UiThread;
+ import com.facebook.common.logging.FLog;
+ import com.facebook.infer.annotation.ThreadConfined;
++import com.facebook.react.bridge.Callback;
+ import com.facebook.react.bridge.ReactContext;
+ import com.facebook.react.bridge.ReactSoftExceptionLogger;
+ import com.facebook.react.bridge.ReadableArray;
+@@ -30,7 +35,10 @@ import com.facebook.react.fabric.FabricUIManager;
+ import com.facebook.react.fabric.events.EventEmitterWrapper;
+ import com.facebook.react.fabric.mounting.mountitems.MountItem;
+ import com.facebook.react.touch.JSResponderHandler;
++import com.facebook.react.uimanager.IllegalViewOperationException;
++import com.facebook.react.uimanager.PixelUtil;
+ import com.facebook.react.uimanager.RootViewManager;
++import com.facebook.react.uimanager.RootViewUtil;
+ import com.facebook.react.uimanager.ThemedReactContext;
+ import com.facebook.react.uimanager.ViewManagerRegistry;
+ import com.facebook.react.uimanager.common.ViewUtil;
+@@ -472,4 +480,76 @@ public class MountingManager {
+         ? getSurfaceManagerForView(reactTag)
+         : getSurfaceManager(surfaceId));
+   }
++
++   public synchronized void measure(int surfaceId, int reactTag, final Callback callback) {
++    UiThreadUtil.assertOnUiThread();
++    SurfaceMountingManager smm = getSurfaceMountingManager(surfaceId, reactTag);
++    View view;
++    try {
++      view = smm.getView(reactTag);
++    } catch (IllegalViewOperationException ex) {
++      FLog.e(TAG, "Failed to find view for tag: %d. Error: %s", reactTag, ex.getMessage());
++      return;
++    }
++    int[] mMeasureBuffer = new int[4];
++    View rootView = (View) RootViewUtil.getRootView(view);
++    if (rootView == null) {
++      FLog.e(TAG, "Failed to get root view for surfaceId: %d", surfaceId);
++      return; // Simply omit the measure call, we assume that we are in the process of tearing down
++      // the surface and all its children, so we don't care at this point about delivering
++    }
++
++    measure(rootView, view, mMeasureBuffer);
++
++    float x = PixelUtil.toDIPFromPixel(mMeasureBuffer[0]);
++    float y = PixelUtil.toDIPFromPixel(mMeasureBuffer[1]);
++    float width = PixelUtil.toDIPFromPixel(mMeasureBuffer[2]);
++    float height = PixelUtil.toDIPFromPixel(mMeasureBuffer[3]);
++    callback.invoke(0, 0, width, height, x, y);
++  }
++
++  public synchronized void measure(View rootView, View v, int[] outputBuffer) {
++    computeBoundingBox(rootView, outputBuffer);
++    int rootX = outputBuffer[0];
++    int rootY = outputBuffer[1];
++    computeBoundingBox(v, outputBuffer);
++    outputBuffer[0] -= rootX;
++    outputBuffer[1] -= rootY;
++  }
++
++  private void computeBoundingBox(View view, int[] outputBuffer) {
++    RectF mBoundingBox = new RectF();
++    mBoundingBox.set(0, 0, view.getWidth(), view.getHeight());
++    mapRectFromViewToWindowCoords(view, mBoundingBox);
++
++    outputBuffer[0] = Math.round(mBoundingBox.left);
++    outputBuffer[1] = Math.round(mBoundingBox.top);
++    outputBuffer[2] = Math.round(mBoundingBox.right - mBoundingBox.left);
++    outputBuffer[3] = Math.round(mBoundingBox.bottom - mBoundingBox.top);
++  }
++
++  private void mapRectFromViewToWindowCoords(View view, RectF rect) {
++    Matrix matrix = view.getMatrix();
++    if (!matrix.isIdentity()) {
++      matrix.mapRect(rect);
++    }
++
++    rect.offset(view.getLeft(), view.getTop());
++
++    ViewParent parent = view.getParent();
++    while (parent instanceof View) {
++      View parentView = (View) parent;
++
++      rect.offset(-parentView.getScrollX(), -parentView.getScrollY());
++
++      matrix = parentView.getMatrix();
++      if (!matrix.isIdentity()) {
++        matrix.mapRect(rect);
++      }
++
++      rect.offset(parentView.getLeft(), parentView.getTop());
++
++      parent = parentView.getParent();
++    }
++  }
+ }
+diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
+index 5cdf7a4107a..0c63c048c1a 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
++++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
+@@ -14,6 +14,7 @@
+ #include <cxxreact/TraceSection.h>
+ #include <react/featureflags/ReactNativeFeatureFlags.h>
+ #include <react/jni/ReadableNativeMap.h>
++#include <react/jni/JCallback.h>
+ #include <react/renderer/components/scrollview/ScrollViewProps.h>
+ #include <react/renderer/core/DynamicPropsUtilities.h>
+ #include <react/renderer/core/conversions.h>
+@@ -1068,4 +1069,16 @@ void FabricMountingManager::onAllAnimationsComplete() {
+   allAnimationsCompleteJNI(javaUIManager_);
+ }
+ 
++void FabricMountingManager::measureAsync(
++    const ShadowView& shadowView,
++    const std::function<void(folly::dynamic)>& callback) {
++  static auto measureJNI =
++      JFabricUIManager::javaClassStatic()->getMethod<void(jint, jint, jni::alias_ref<JCallback>)>(
++          "measureAsync");
++
++  auto javaCallback = JCxxCallbackImpl::newObjectCxxArgs(callback);
++
++  measureJNI(javaUIManager_, shadowView.surfaceId, shadowView.tag, javaCallback);
++}
++
+ } // namespace facebook::react
+diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.h b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.h
+index 781489a5c86..af01b68ab9e 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.h
++++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.h
+@@ -60,6 +60,10 @@ class FabricMountingManager final {
+ 
+   void onAllAnimationsComplete();
+ 
++  void measureAsync(
++      const ShadowView& shadowView,
++      const std::function<void(folly::dynamic)>& callback);
++
+  private:
+   bool isOnMainThread();
+ 
+diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
+index 4b6418c5500..7fd23ae902f 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
++++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
+@@ -610,6 +610,14 @@ void FabricUIManagerBinding::schedulerDidSetIsJSResponder(
+       shadowView, isJSResponder, blockNativeResponder);
+ }
+ 
++void FabricUIManagerBinding::schedulerMeasureAsync(
++    const facebook::react::ShadowView& shadowView,
++    const std::function<void(folly::dynamic)>& callback) {
++  if (mountingManager_) {
++    mountingManager_->measureAsync(shadowView, callback);
++  }
++}
++
+ void FabricUIManagerBinding::onAnimationStarted() {
+   auto mountingManager = getMountingManager("onAnimationStarted");
+   if (!mountingManager) {
+diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h
+index 50c234eca5f..17251f152c7 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h
++++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h
+@@ -119,6 +119,10 @@ class FabricUIManagerBinding : public jni::HybridClass<FabricUIManagerBinding>,
+       const ShadowView& shadowView,
+       bool isJSResponder,
+       bool blockNativeResponder) override;
++    
++  void schedulerMeasureAsync(
++      const ShadowView& shadowView,
++      const std::function<void(folly::dynamic)>& callback) override;
+ 
+   void setPixelDensity(float pointScaleFactor);
+ 
+diff --git a/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp b/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
+index ae976409e75..2b3b4d77f39 100644
+--- a/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
++++ b/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
+@@ -12,6 +12,8 @@
+ #include <react/renderer/uimanager/UIManagerBinding.h>
+ #include <react/renderer/uimanager/primitives.h>
+ 
++#include <utility>
++
+ #ifdef RN_DISABLE_OSS_PLUGIN_HEADER
+ #include "Plugins.h"
+ #endif
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp
+index 20a96109746..4af6596c99a 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.cpp
+@@ -320,6 +320,15 @@ void Scheduler::uiManagerDidSetIsJSResponder(
+   }
+ }
+ 
++void Scheduler::uiManagerMeasureAsync(
++    const ShadowNode::Shared& shadowNode,
++    const std::function<void(folly::dynamic)>& callback) {
++    if (delegate_ != nullptr) {
++      auto shadowView = ShadowView(*shadowNode);
++      delegate_->schedulerMeasureAsync(shadowView, callback);
++    }
++}
++
+ void Scheduler::reportMount(SurfaceId surfaceId) const {
+   uiManager_->reportMount(surfaceId);
+ }
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h
+index 4e364dbe6fc..69515328ba7 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/Scheduler.h
+@@ -95,6 +95,9 @@ class Scheduler final : public UIManagerDelegate {
+       const ShadowNode::Shared& shadowNode,
+       bool isJSResponder,
+       bool blockNativeResponder) override;
++  void uiManagerMeasureAsync(
++      const ShadowNode::Shared& shadowNode,
++      const std::function<void(folly::dynamic)>& callback) override;
+ 
+ #pragma mark - ContextContainer
+   ContextContainer::Shared getContextContainer() const;
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/scheduler/SchedulerDelegate.h b/node_modules/react-native/ReactCommon/react/renderer/scheduler/SchedulerDelegate.h
+index 1f84bd582c2..05a5049c6b8 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/scheduler/SchedulerDelegate.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/scheduler/SchedulerDelegate.h
+@@ -64,6 +64,10 @@ class SchedulerDelegate {
+       bool isJSResponder,
+       bool blockNativeResponder) = 0;
+ 
++  virtual void schedulerMeasureAsync(
++      const ShadowView& shadowView,
++      const std::function<void(folly::dynamic)>& callback) = 0;
++
+   virtual ~SchedulerDelegate() noexcept = default;
+ };
+ 
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp b/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp
+index e43f94b645e..9bdbb6b2dc5 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp
+@@ -642,6 +642,46 @@ jsi::Value UIManagerBinding::get(
+         });
+   }
+ 
++  if (methodName == "measureAsyncOnUI") {
++    auto paramCount = 2;
++    return jsi::Function::createFromHostFunction(
++        runtime,
++        name,
++        paramCount,
++        [uiManager, methodName, paramCount](
++            jsi::Runtime& runtime,
++            const jsi::Value& /*thisValue*/,
++            const jsi::Value* arguments,
++            size_t count) {
++          validateArgumentCount(runtime, methodName, paramCount, count);
++
++          auto shadowNode = shadowNodeFromValue(runtime, arguments[0]);
++          auto callbackFunction =
++              arguments[1].getObject(runtime).getFunction(runtime);
++
++          auto sharedCallback = std::make_shared<jsi::Function>(std::move(callbackFunction));
++          auto runtimeExecutor = uiManager->runtimeExecutor_;
++          std::function<void(folly::dynamic)> jsCallback = [sharedCallback, runtimeExecutor](folly::dynamic args) {
++            // Schedule call on JS
++            runtimeExecutor([sharedCallback, args](jsi::Runtime& jsRuntime) {
++              // Invoke the actual callback we got from JS
++              sharedCallback->call(jsRuntime, {
++                                                  jsi::Value{jsRuntime, args.at(0).getDouble()},
++                                                  jsi::Value{jsRuntime, args.at(1).getDouble()},
++                                                  jsi::Value{jsRuntime, args.at(2).getDouble()},
++                                                  jsi::Value{jsRuntime, args.at(3).getDouble()},
++                                                  jsi::Value{jsRuntime, args.at(4).getDouble()},
++                                                  jsi::Value{jsRuntime, args.at(5).getDouble()},
++                                              });
++            });
++          };
++
++          uiManager->getDelegate()->uiManagerMeasureAsync(shadowNode, std::move(jsCallback));
++
++          return jsi::Value::undefined();
++        });
++  }
++
+   if (methodName == "measureInWindow") {
+     auto paramCount = 2;
+     return jsi::Function::createFromHostFunction(
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h b/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h
+index 46b78957705..ef280de42b5 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/uimanager/UIManagerDelegate.h
+@@ -58,6 +58,14 @@ class UIManagerDelegate {
+       bool isJSResponder,
+       bool blockNativeResponder) = 0;
+ 
++  /*
++   * Measures the layout of the shadow node async on the UI thread using the native layout hierarchy.
++   * As this has to schedule a call on the UI thread its async.
++   */
++  virtual void uiManagerMeasureAsync(
++      const ShadowNode::Shared& shadowNode,
++      const std::function<void(folly::dynamic)>& callback) = 0;
++
+   virtual ~UIManagerDelegate() noexcept = default;
+ };
+ 
+diff --git a/node_modules/react-native/jest/mockNativeComponent.js b/node_modules/react-native/jest/mockNativeComponent.js
+index da1cf85e202..8903b70d7d5 100644
+--- a/node_modules/react-native/jest/mockNativeComponent.js
++++ b/node_modules/react-native/jest/mockNativeComponent.js
+@@ -25,6 +25,7 @@ export default viewName => {
+     blur = jest.fn();
+     focus = jest.fn();
+     measure = jest.fn();
++    measureAsyncOnUI = jest.fn();
+     measureInWindow = jest.fn();
+     measureLayout = jest.fn();
+     setNativeProps = jest.fn();
+diff --git a/node_modules/react-native/src/private/types/HostInstance.js b/node_modules/react-native/src/private/types/HostInstance.js
+index bf7aa5a592f..0ddd15127a1 100644
+--- a/node_modules/react-native/src/private/types/HostInstance.js
++++ b/node_modules/react-native/src/private/types/HostInstance.js
+@@ -38,6 +38,11 @@ export interface LegacyHostInstanceMethods {
+   blur(): void;
+   focus(): void;
+   measure(callback: MeasureOnSuccessCallback): void;
++    /**
++   * Same as `measure()`, but instead of using the shadow nodes layout information,
++   * it uses the native layout hierarchy to measure the view on the UI thread.
++   */
++  measureAsyncOnUI(callback: MeasureOnSuccessCallback): void;
+   measureInWindow(callback: MeasureInWindowOnSuccessCallback): void;
+   measureLayout(
+     relativeToNativeNode: number | HostInstance,
+diff --git a/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js b/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js
+index 362726e0b17..29a777fd074 100644
+--- a/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js
++++ b/node_modules/react-native/src/private/webapis/dom/nodes/ReactNativeElement.js
+@@ -162,6 +162,10 @@ class ReactNativeElement
+     }
+   }
+ 
++  measureAsyncOnUI(callback: MeasureOnSuccessCallback) {
++    this.measure(callback);
++  }
++
+   measureInWindow(callback: MeasureInWindowOnSuccessCallback) {
+     const node = getNativeElementReference(this);
+     if (node != null) {
