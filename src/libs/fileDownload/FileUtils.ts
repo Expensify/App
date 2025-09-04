@@ -254,6 +254,25 @@ function base64ToFile(base64: string, filename: string): File {
     return file;
 }
 
+/**
+ * Converts a File instance in to base64 encoded image.
+ *
+ * @param file - The File instance with image.
+ * @returns string with base64 encoding of image.
+ */
+function fileToBase64(file?: File) {
+    return new Promise<string>((resolve, reject) => {
+        if (!file) {
+            resolve('');
+            return;
+        }
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (error) => reject(error);
+    });
+}
+
 function validateImageForCorruption(file: FileObject): Promise<{width: number; height: number} | void> {
     if (!Str.isImage(file.name ?? '') || !file.uri) {
         return Promise.resolve();
@@ -669,6 +688,7 @@ export {
     appendTimeToFileName,
     readFileAsync,
     base64ToFile,
+    fileToBase64,
     isLocalFile,
     validateImageForCorruption,
     isImage,

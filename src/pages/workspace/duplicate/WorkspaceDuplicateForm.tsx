@@ -17,6 +17,7 @@ import useWorkspaceConfirmationAvatar from '@hooks/useWorkspaceConfirmationAvata
 import {generatePolicyID, setDuplicateWorkspaceData} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {addErrorMessage} from '@libs/ErrorUtils';
+import {fileToBase64} from '@libs/fileDownload/FileUtils';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
@@ -61,7 +62,9 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
                 return;
             }
             const newPolicyID = generatePolicyID();
-            setDuplicateWorkspaceData({policyID: newPolicyID, name, file: avatarFile});
+            fileToBase64(avatarFile as File | undefined).then((base64) => {
+                setDuplicateWorkspaceData({policyID: newPolicyID, name, file: base64});
+            });
             Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE_SELECT_FEATURES.getRoute(policyID, ROUTES.WORKSPACES_LIST.route));
         },
         [policyID],
