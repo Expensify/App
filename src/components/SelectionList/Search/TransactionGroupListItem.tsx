@@ -27,9 +27,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
+import {createAndOpenSearchTransactionThread} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
-import {createTransactionThreadReport} from '@userActions/Report';
-import {updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -96,11 +95,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
             if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 const iouAction = getReportAction(transactionItem.report.reportID, transactionItem.moneyRequestReportActionID);
-                const transactionThreadReport = createTransactionThreadReport(transactionItem.report, iouAction);
-                if (transactionThreadReport?.reportID) {
-                    updateSearchResultsWithTransactionThreadReportID(currentSearchHash, transactionItem.transactionID, transactionThreadReport.reportID);
-                }
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo}));
+                createAndOpenSearchTransactionThread(transactionItem, iouAction, currentSearchHash, backTo);
                 return;
             }
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
