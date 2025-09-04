@@ -57,7 +57,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {OutstandingReportsByPolicyIDDerivedValue, ReportAction, TransactionViolation} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -858,7 +858,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     queryJSON={queryJSON}
                     columns={columnsToShow}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                    violations={violations as Record<string, TransactionViolation[]> | undefined}
+                    violations={violations}
                     onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}

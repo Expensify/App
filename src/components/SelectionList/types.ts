@@ -22,7 +22,7 @@ import type SpendCategorySelectorListItem from '@pages/workspace/categories/Spen
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
@@ -470,7 +470,7 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     isLoading?: boolean;
     columns?: SearchColumnType[];
     areAllOptionalColumnsHidden?: boolean;
-    violations?: TransactionViolation[];
+    violations?: Record<string, TransactionViolations | undefined> | undefined;
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -483,7 +483,7 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     policies?: OnyxCollection<Policy>;
     columns?: SearchColumnType[];
     areAllOptionalColumnsHidden?: boolean;
-    violations?: Record<string, TransactionViolation[]>;
+    violations?: Record<string, TransactionViolations | undefined> | undefined;
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
