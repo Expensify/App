@@ -8348,6 +8348,7 @@ type ShouldReportBeInOptionListParams = {
     login?: string;
     includeDomainEmail?: boolean;
     isReportArchived?: boolean;
+    draftComment: string | null;
 };
 
 function reasonForReportToBeInOptionList({
@@ -8358,6 +8359,7 @@ function reasonForReportToBeInOptionList({
     betas,
     excludeEmptyChats,
     doesReportHaveViolations,
+    draftComment,
     includeSelfDM = false,
     login,
     includeDomainEmail = false,
@@ -8430,7 +8432,7 @@ function reasonForReportToBeInOptionList({
     }
 
     // Retrieve the draft comment for the report and convert it to a boolean
-    const hasDraftComment = hasValidDraftComment(report.reportID);
+    const hasDraftComment = hasValidDraftComment(report.reportID, draftComment);
 
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

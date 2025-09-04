@@ -31,7 +31,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // Mock DraftCommentUtils
 jest.mock('@libs/DraftCommentUtils', () => ({
     hasValidDraftComment: jest.fn(),
-    getDraftComment: jest.fn(),
     isValidDraftComment: jest.fn(),
     prepareDraftComment: jest.fn(),
 }));
@@ -1508,12 +1507,12 @@ describe('SidebarUtils', () => {
             it('should categorize reports into correct groups', () => {
                 // Given hasValidDraftComment is mocked to return true for report '2'
                 const {hasValidDraftComment} = require('@libs/DraftCommentUtils') as {hasValidDraftComment: jest.Mock};
-                hasValidDraftComment.mockImplementation((reportID: string) => reportID === '2');
+                hasValidDraftComment.mockImplementation((reportID: string, draftComment: string | null) => reportID === '2' && draftComment === 'test');
 
                 const {reports, reportNameValuePairs, reportAttributes} = createSidebarTestData();
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, reportNameValuePairs, reportAttributes);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, null, reportNameValuePairs, reportAttributes);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
@@ -1549,7 +1548,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, reportAttributes);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, null, undefined, reportAttributes);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);

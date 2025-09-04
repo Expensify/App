@@ -177,6 +177,7 @@ function shouldDisplayReportInLHN(
     isInFocusMode: boolean,
     betas: OnyxEntry<Beta[]>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
+    draftComment: string | null,
     isReportArchived?: boolean,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
@@ -209,7 +210,12 @@ function shouldDisplayReportInLHN(
     // Check if report should override hidden status
     const isSystemChat = isSystemChatUtil(report);
     const shouldOverrideHidden =
-        hasValidDraftComment(report.reportID) || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || !!report.isPinned || reportAttributes?.[report?.reportID]?.requiresAttention;
+        hasValidDraftComment(report.reportID, draftComment) ||
+        hasErrorsOtherThanFailedReceipt ||
+        isFocused ||
+        isSystemChat ||
+        !!report.isPinned ||
+        reportAttributes?.[report?.reportID]?.requiresAttention;
 
     if (isHidden && !shouldOverrideHidden) {
         return {shouldDisplay: false};
@@ -224,6 +230,7 @@ function shouldDisplayReportInLHN(
         betas,
         excludeEmptyChats: true,
         doesReportHaveViolations,
+        draftComment,
         includeSelfDM: true,
         isReportArchived,
     });
@@ -313,6 +320,7 @@ function updateReportsToDisplayInLHN(
  */
 function categorizeReportsForLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
+    draftComment: string | null,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
