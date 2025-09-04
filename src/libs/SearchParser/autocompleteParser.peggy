@@ -87,6 +87,8 @@ autocompleteKey "key"
       / exported
       / withdrawn
       / posted
+      / purchaseCurrency
+      / purchaseAmount
     )
 
 filterKey

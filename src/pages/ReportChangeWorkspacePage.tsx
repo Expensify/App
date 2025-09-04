@@ -8,6 +8,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import useWorkspaceList from '@hooks/useWorkspaceList';
@@ -37,6 +38,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    const isReportArchived = useReportIsArchived(reportID);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
     const selectPolicy = useCallback(
@@ -57,12 +59,12 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                 // eslint-disable-next-line deprecation/deprecation
             } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
                 const employeeList = policy?.employeeList;
-                changeReportPolicyAndInviteSubmitter(report, policy, employeeList, formatPhoneNumber);
+                changeReportPolicyAndInviteSubmitter(report, policy, employeeList, formatPhoneNumber, isReportArchived);
             } else {
-                changeReportPolicy(report, policy, reportNextStep);
+                changeReportPolicy(report, policy, reportNextStep, isReportArchived);
             }
         },
-        [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber],
+        [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportArchived],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({

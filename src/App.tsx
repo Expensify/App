@@ -26,6 +26,7 @@ import {ProductTrainingContextProvider} from './components/ProductTrainingContex
 import SafeArea from './components/SafeArea';
 import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
 import {SearchRouterContextProvider} from './components/Search/SearchRouter/SearchRouterContext';
+import SidePanelContextProvider from './components/SidePanel/SidePanelContextProvider';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesProvider';
@@ -114,6 +115,7 @@ function App() {
                                         InputBlurContextProvider,
                                         FullScreenBlockingViewContextProvider,
                                         FullScreenLoaderContextProvider,
+                                        SidePanelContextProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />

@@ -232,7 +232,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
 
         // This effect is used to update the options list when personal details change so we ignore all dependencies except personalDetails
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [personalDetails, reportAttributes?.reports]);
+    }, [personalDetails]);
 
     const initializeOptions = useCallback(() => {
         loadOptions();

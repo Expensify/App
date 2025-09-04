@@ -215,6 +215,16 @@ const baseFilterConfig = {
         description: 'workspace.common.workspace' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID),
     },
+    purchaseAmount: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.purchaseAmount' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.PURCHASE_AMOUNT),
+    },
+    purchaseCurrency: {
+        getTitle: getFilterDisplayTitle,
+        description: 'search.filters.purchaseCurrency' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.PURCHASE_CURRENCY),
+    },
 };
 
 function getFilterWorkspaceDisplayTitle(filters: SearchAdvancedFiltersForm, policies: WorkspaceListItem[]) {
@@ -303,7 +313,11 @@ function getFilterDisplayTitle(
 
     const nonDateFilterKey = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys>;
 
-    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL) {
+    if (
+        nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
+        nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL ||
+        nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT
+    ) {
         const lessThanKey = `${nonDateFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as keyof SearchAdvancedFiltersForm;
         const greaterThanKey = `${nonDateFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as keyof SearchAdvancedFiltersForm;
 
@@ -326,7 +340,7 @@ function getFilterDisplayTitle(
         return;
     }
 
-    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY && filters[nonDateFilterKey]) {
+    if ((nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY) && filters[nonDateFilterKey]) {
         const filterArray = filters[nonDateFilterKey] ?? [];
         return filterArray.sort(localeCompare).join(', ');
     }
@@ -515,6 +529,8 @@ function AdvancedSearchFilters() {
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT ||
+                key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID ||
                 key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE
             ) {

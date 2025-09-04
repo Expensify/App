@@ -67,12 +67,15 @@ function useSelectedTransactionsActions({
             policyID: policy?.id,
         }));
 
-        const csvTemplates = Object.entries(csvExportLayouts ?? {}).map(([templateName, layout]) => ({
-            ...layout,
-            templateName,
-            description: '',
-            policyID: undefined,
-        }));
+        // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
+        const csvTemplates = Object.entries(csvExportLayouts ?? {})
+            .filter(([, layout]) => layout.name !== CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV)
+            .map(([templateName, layout]) => ({
+                ...layout,
+                templateName,
+                description: '',
+                policyID: undefined,
+            }));
 
         return [...policyTemplates, ...csvTemplates];
     }, [csvExportLayouts, policy]);

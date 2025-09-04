@@ -17,7 +17,6 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -38,7 +37,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const policyID = route.params.policyID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const receiptPartnerNames = CONST.POLICY.RECEIPT_PARTNERS.NAME;
     const receiptPartnerIntegrations = Object.values(receiptPartnerNames);
@@ -243,7 +241,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         shouldShowBackButton={shouldUseNarrowLayout}
                         icon={Illustrations.ReceiptPartners}
                         shouldUseHeadlineHeader
-                        threeDotsAnchorPosition={threeDotsAnchorPosition}
                         onBackButtonPress={Navigation.popToSidebar}
                     />
                     <ScrollView

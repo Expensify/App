@@ -134,8 +134,7 @@ function SearchRouterWrapperWithCachedOptions() {
     );
 }
 
-// Skipping until a mock for Promise.withResolvers is added https://github.com/Expensify/App/issues/69621
-test.skip('[SearchRouter] should render list with cached options', async () => {
+test('[SearchRouter] should render list with cached options', async () => {
     const scenario = async () => {
         await screen.findByTestId('SearchRouter');
     };

@@ -43,6 +43,9 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
 }));
+jest.mock('@src/libs/SearchUIUtils', () => ({
+    getSuggestedSearches: jest.fn().mockReturnValue({}),
+}));
 
 describe('getReportPreviewAction', () => {
     beforeAll(() => {
