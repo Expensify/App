@@ -43,7 +43,9 @@ import BaseSelectionListItemRenderer from './BaseSelectionListItemRenderer';
 import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
 import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListProps} from './types';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getDefaultItemHeight = (ListItem: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     switch (ListItem?.displayName) {
         case 'SingleSelectListItem':
         case 'MultiSelectListItem':
@@ -270,8 +272,9 @@ function BaseSelectionList<TItem extends ListItem>({
                 }
                 disabledIndex += 1;
 
+                const defaultItemHeight = getItemHeight ? getItemHeight(item) : getDefaultItemHeight(ListItem);
                 // Account for the height of the item in getItemLayout
-                const fullItemHeight = item?.keyForList && itemHeights[item.keyForList] ? itemHeights[item.keyForList] : getItemHeight ? getItemHeight(item) : getDefaultItemHeight(ListItem);
+                const fullItemHeight = item?.keyForList && itemHeights[item.keyForList] ? itemHeights[item.keyForList] : defaultItemHeight;
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
 

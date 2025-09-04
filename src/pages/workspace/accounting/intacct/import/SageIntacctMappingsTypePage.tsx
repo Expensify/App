@@ -6,12 +6,12 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateSageIntacctMappingValue} from '@libs/actions/connections/SageIntacct';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -25,7 +25,7 @@ function SageIntacctMappingsTypePage({route}: SageIntacctMappingsTypePageProps) 
 
     const mappingName: SageIntacctMappingName = route.params.mapping;
     const policy = usePolicy(route.params.policyID);
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
     const {config} = policy?.connections?.intacct ?? {};
     const {mappings, pendingFields, export: exportConfig} = config ?? {};
@@ -88,9 +88,9 @@ function SageIntacctMappingsTypePage({route}: SageIntacctMappingsTypePageProps) 
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, mappingName))}
             title="workspace.common.displayedAs"
             pendingAction={settingsPendingAction([mappingName], pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config ?? {}, mappingName)}
+            errors={getLatestErrorField(config ?? {}, mappingName)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearSageIntacctErrorField(policyID, mappingName)}
+            onClose={() => clearSageIntacctErrorField(policyID, mappingName)}
         />
     );
 }
