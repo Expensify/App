@@ -206,7 +206,13 @@ function BaseSelectionList<TItem extends ListItem>({
         }));
     };
 
-    const incrementPage = () => setCurrentPage((prev) => prev + 1);
+    const incrementPage = useCallback(() => {
+        // Calculate total options from sections
+        const totalOptions = sections.reduce((total, section) => total + (section.data?.length ?? 0), 0);
+        if (totalOptions > CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
+            setCurrentPage((prev) => prev + 1);
+        }
+    }, [sections, currentPage]);
 
     const canShowProductTrainingTooltipMemo = useMemo(() => {
         return canShowProductTrainingTooltip && isFocused;
