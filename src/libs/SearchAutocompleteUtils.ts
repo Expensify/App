@@ -159,6 +159,7 @@ function filterOutRangesWithCorrectValue(
 
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY:
             return currencyList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE:
             return typeList.includes(range.value);
