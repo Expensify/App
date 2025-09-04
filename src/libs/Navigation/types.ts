@@ -1496,6 +1496,9 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
+        isCategorizing?: boolean;
+        isReporting?: boolean;
+        shouldSubmitExpense?: boolean;
     };
     [SCREENS.MONEY_REQUEST.STEP_DESTINATION]: {
         action: IOUAction;
