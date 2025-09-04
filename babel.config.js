@@ -130,7 +130,7 @@ const metro = {
                 },
             },
         ],
-        // The reanimated babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/
+        // The worklets babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/
         'react-native-worklets/plugin',
     ],
     env: {
