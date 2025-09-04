@@ -285,13 +285,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
         for (const savedSearch of savedSearchValues) {
             const searchData = buildSearchQueryJSON(savedSearch.query);
-            if (searchData && searchData.hash === hash) {
+            if (searchData && searchData.similarSearchHash === similarSearchHash) {
                 return true;
             }
         }
 
         return false;
-    }, [hash, offset, savedSearches, searchKey]);
+    }, [offset, savedSearches, searchKey, similarSearchHash]);
 
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(
