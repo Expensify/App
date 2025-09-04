@@ -706,10 +706,6 @@ const SCREENS = {
         WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
     },
 
-    WELCOME_VIDEO: {
-        ROOT: 'Welcome_Video_Root',
-    },
-
     EXPLANATION_MODAL: {
         ROOT: 'Explanation_Modal_Root',
     },

@@ -59,14 +59,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: ROUTES.CHANGE_POLICY_EDUCATIONAL.route,
             },
         },
-        [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: {
-            screens: {
-                [SCREENS.WELCOME_VIDEO.ROOT]: {
-                    path: ROUTES.WELCOME_VIDEO_ROOT,
-                    exact: true,
-                },
-            },
-        },
         [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.EXPLANATION_MODAL.ROOT]: {
