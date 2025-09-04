@@ -58,7 +58,7 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
-import {createNewReport, createTransactionThreadReport} from './actions/Report';
+import {createNewReport, createTransactionThreadReport, openReport} from './actions/Report';
 import {updateSearchResultsWithTransactionThreadReportID} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
@@ -1267,7 +1267,11 @@ function getTaskSections(
 
 /** Creates transaction thread report and navigates to it from the search page */
 function createAndOpenSearchTransactionThread(item: TransactionListItemType, iouReportAction: OnyxEntry<OnyxTypes.ReportAction>, hash: number, backTo: string) {
-    const transactionThreadReport = createTransactionThreadReport(item.report, iouReportAction);
+    // We know that iou report action exists, but it wasn't loaded yet. We need to load iou report to have the necessary data in the onyx.
+    if (!iouReportAction) {
+        openReport(item.report.reportID);
+    }
+    const transactionThreadReport = createTransactionThreadReport(item.report, iouReportAction ?? ({reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction));
     if (transactionThreadReport?.reportID) {
         updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
     }
