@@ -5721,7 +5721,6 @@ const translations = {
             },
             customRules: {
                 title: 'Niestandardowe zasady',
-                subtitle: 'Opis',
                 cardSubtitle: 'Tutaj znajduje się polityka wydatków Twojego zespołu, aby każdy wiedział, co jest objęte.',
             },
         },

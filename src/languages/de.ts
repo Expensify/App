@@ -5725,7 +5725,6 @@ const translations = {
             },
             customRules: {
                 title: 'Benutzerdefinierte Regeln',
-                subtitle: 'Beschreibung',
                 cardSubtitle: 'Hier befindet sich die Ausgabenrichtlinie deines Teams, damit alle genau wissen, was abgedeckt ist.',
             },
         },

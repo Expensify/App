@@ -5734,7 +5734,6 @@ const translations = {
             },
             customRules: {
                 title: 'Reglas personalizadas',
-                subtitle: 'Descripción',
                 cardSubtitle: 'Aquí es donde se definen las reglas de tu equipo, para que todos sepan lo que esta cubierto.',
             },
         },

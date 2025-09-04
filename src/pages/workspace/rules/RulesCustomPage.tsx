@@ -69,7 +69,7 @@ function RulesCustomPage({
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.CUSTOM_RULES}
-                            label={translate('workspace.rules.customRules.subtitle')}
+                            label={translate('workspace.rules.customRules.title')}
                             role={CONST.ROLE.PRESENTATION}
                             value={customRulesValue}
                             onChangeText={onChangeCustomRules}

@@ -5629,7 +5629,6 @@ const translations = {
             },
             customRules: {
                 title: '自定义规则',
-                subtitle: '描述',
                 cardSubtitle: '这里是你团队的报销政策，让所有人都清楚哪些费用涵盖在内。',
             },
         },

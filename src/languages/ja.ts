@@ -5704,7 +5704,6 @@ const translations = {
             },
             customRules: {
                 title: 'カスタムルール',
-                subtitle: '説明',
                 cardSubtitle: 'ここにチームの経費ポリシーがあり、何が対象になるのか全員が同じ理解を持てます。',
             },
         },

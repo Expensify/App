@@ -5737,7 +5737,6 @@ const translations = {
             },
             customRules: {
                 title: 'Regole personalizzate',
-                subtitle: 'Descrizione',
                 cardSubtitle: 'Qui si trova la politica sulle spese del tuo team, così tutti sanno cosa è incluso.',
             },
         },

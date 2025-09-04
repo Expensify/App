@@ -5738,7 +5738,6 @@ const translations = {
             },
             customRules: {
                 title: 'Règles personnalisées',
-                subtitle: 'Description',
                 cardSubtitle: 'Voici où se trouve la politique de dépenses de votre équipe, afin que tout le monde sache ce qui est couvert.',
             },
         },
