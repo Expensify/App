@@ -21,6 +21,7 @@ import {openSearch, updateSearchResultsWithTransactionThreadReportID} from '@lib
 import Timing from '@libs/actions/Timing';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
+import isRoutePreloaded from '@libs/Navigation/helpers/isRoutePreloaded';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
@@ -338,8 +339,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
+        const isSearchPreloaded = isRoutePreloaded(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
 
-        if ((!isFocused && !isMigratedModalDisplayed) || isOffline) {
+        if ((!isSearchPreloaded && !isFocused && !isMigratedModalDisplayed) || isOffline) {
             return;
         }
 
