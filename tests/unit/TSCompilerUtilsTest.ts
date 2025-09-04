@@ -996,4 +996,247 @@ describe('TSCompilerUtils', () => {
             expect(resultCode).not.toContain('`Hello ${user.name}`'); // Target's original nested template should be overwritten
         });
     });
+
+    describe('objectOmit', () => {
+        it('omits simple properties from object', () => {
+            const objCode = dedent(`
+                const obj = {
+                    keep: 'value',
+                    omitThis: 'remove',
+                    alsoKeep: 42,
+                    omitThat: true
+                };
+            `);
+
+            const ast = createSourceFile(objCode);
+            const objLiteral = (ast.statements[0] as ts.VariableStatement).declarationList.declarations[0].initializer;
+
+            expect(objLiteral).toBeDefined();
+            if (!objLiteral) {
+                return;
+            }
+
+            const result = TSCompilerUtils.objectOmit(objLiteral, ['omitThis', 'omitThat']);
+            const resultCode = ts.createPrinter().printNode(ts.EmitHint.Expression, result, ast);
+
+            // Validate exact omitted structure
+            expect(resultCode).toBe('{ keep: "value", alsoKeep: 42 }');
+
+            // Ensure omitted properties are actually removed
+            expect(resultCode).not.toContain('omitThis');
+            expect(resultCode).not.toContain('omitThat');
+            expect(resultCode).not.toContain('"remove"');
+            expect(resultCode).not.toContain('true');
+        });
+
+        it('omits nested object properties', () => {
+            const objCode = dedent(`
+                const obj = {
+                    keep: {
+                        nested: 'value',
+                        remove: 'this'
+                    },
+                    omitWhole: {
+                        entire: 'object'
+                    },
+                    preserve: 'simple'
+                };
+            `);
+
+            const ast = createSourceFile(objCode);
+            const objLiteral = (ast.statements[0] as ts.VariableStatement).declarationList.declarations[0].initializer;
+
+            expect(objLiteral).toBeDefined();
+            if (!objLiteral) {
+                return;
+            }
+
+            const result = TSCompilerUtils.objectOmit(objLiteral, ['omitWhole']);
+            const resultCode = ts.createPrinter().printNode(ts.EmitHint.Expression, result, ast);
+
+            // Validate exact structure with nested objects preserved
+            expect(resultCode).toContain('keep: { nested: "value", remove: "this" }'); // Nested object preserved
+            expect(resultCode).toContain('preserve: "simple"'); // Simple property preserved
+
+            // Ensure omitted nested object is completely removed
+            expect(resultCode).not.toContain('omitWhole');
+            expect(resultCode).not.toContain('entire: "object"');
+        });
+
+        it('omits method declarations', () => {
+            const objCode = dedent(`
+                const obj = {
+                    keepMethod() {
+                        return 'keep this';
+                    },
+                    omitMethod() {
+                        return 'remove this';
+                    },
+                    keepProp: 'value'
+                };
+            `);
+
+            const ast = createSourceFile(objCode);
+            const objLiteral = (ast.statements[0] as ts.VariableStatement).declarationList.declarations[0].initializer;
+
+            expect(objLiteral).toBeDefined();
+            if (!objLiteral) {
+                return;
+            }
+
+            const result = TSCompilerUtils.objectOmit(objLiteral, ['omitMethod']);
+            const resultCode = ts.createPrinter().printNode(ts.EmitHint.Expression, result, ast);
+
+            // Validate method omission (TypeScript printer uses multiline for methods)
+            expect(resultCode).toContain('keepMethod()'); // Method name preserved
+            expect(resultCode).toContain("return 'keep this'"); // Method body preserved
+            expect(resultCode).toContain('keepProp: "value"'); // Property preserved
+
+            // Ensure omitted method is completely removed
+            expect(resultCode).not.toContain('omitMethod');
+            expect(resultCode).not.toContain('remove this');
+        });
+
+        it('omits complex expressions like arrow functions and templates', () => {
+            const objCode = dedent(`
+                const obj = {
+                    keepArrow: (name: string) => \`Hello \${name}\`,
+                    omitArrow: (user: User) => \`Goodbye \${user.name}\`,
+                    keepTernary: condition ? 'yes' : 'no',
+                    omitTernary: flag ? \`Template \${value}\` : 'default'
+                };
+            `);
+
+            const ast = createSourceFile(objCode);
+            const objLiteral = (ast.statements[0] as ts.VariableStatement).declarationList.declarations[0].initializer;
+
+            expect(objLiteral).toBeDefined();
+            if (!objLiteral) {
+                return;
+            }
+
+            const result = TSCompilerUtils.objectOmit(objLiteral, ['omitArrow', 'omitTernary']);
+            const resultCode = ts.createPrinter().printNode(ts.EmitHint.Expression, result, ast);
+
+            // Validate complex expressions preserved
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(resultCode).toContain('keepArrow: (name: string) => `Hello ${name}`'); // Arrow function preserved
+            expect(resultCode).toContain('keepTernary: condition ? "yes" : "no"'); // Ternary preserved
+
+            // Ensure complex expressions are completely omitted
+            expect(resultCode).not.toContain('omitArrow');
+            expect(resultCode).not.toContain('omitTernary');
+            expect(resultCode).not.toContain('(user: User)');
+            expect(resultCode).not.toContain('Goodbye');
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(resultCode).not.toContain('`Template ${value}`');
+        });
+
+        it('handles empty omit list (returns clone of original)', () => {
+            const objCode = 'const obj = { a: 1, b: "test", c: () => "func" };';
+
+            const ast = createSourceFile(objCode);
+            const objLiteral = (ast.statements[0] as ts.VariableStatement).declarationList.declarations[0].initializer;
+
+            expect(objLiteral).toBeDefined();
+            if (!objLiteral) {
+                return;
+            }
+
+            const result = TSCompilerUtils.objectOmit(objLiteral, []);
+            const resultCode = ts.createPrinter().printNode(ts.EmitHint.Expression, result, ast);
+
+            // Should be identical to original (but cloned)
+            expect(resultCode).toBe('{ a: 1, b: "test", c: () => "func" }');
+        });
+
+        it('omits all properties (returns empty object)', () => {
+            const objCode = 'const obj = { a: 1, b: "test" };';
+
+            const ast = createSourceFile(objCode);
+            const objLiteral = (ast.statements[0] as ts.VariableStatement).declarationList.declarations[0].initializer;
+
+            expect(objLiteral).toBeDefined();
+            if (!objLiteral) {
+                return;
+            }
+
+            const result = TSCompilerUtils.objectOmit(objLiteral, ['a', 'b']);
+            const resultCode = ts.createPrinter().printNode(ts.EmitHint.Expression, result, ast);
+
+            // Should be empty object
+            expect(resultCode).toBe('{}');
+
+            // Ensure all properties removed
+            expect(resultCode).not.toContain('a:');
+            expect(resultCode).not.toContain('b:');
+        });
+
+        it('handles non-existent keys gracefully', () => {
+            const objCode = 'const obj = { a: 1, b: "test" };';
+
+            const ast = createSourceFile(objCode);
+            const objLiteral = (ast.statements[0] as ts.VariableStatement).declarationList.declarations[0].initializer;
+
+            expect(objLiteral).toBeDefined();
+            if (!objLiteral) {
+                return;
+            }
+
+            const result = TSCompilerUtils.objectOmit(objLiteral, ['nonexistent', 'a', 'alsoMissing']);
+            const resultCode = ts.createPrinter().printNode(ts.EmitHint.Expression, result, ast);
+
+            // Should only omit existing properties
+            expect(resultCode).toBe('{ b: "test" }');
+            expect(resultCode).not.toContain('a: 1'); // Existing property omitted
+            expect(resultCode).not.toContain('nonexistent'); // Non-existent keys ignored
+        });
+
+        it('throws error for non-object input', () => {
+            const code = 'const notObj = "not an object";';
+            const ast = createSourceFile(code);
+            const invalid = (ast.statements[0] as ts.VariableStatement).declarationList.declarations[0].initializer;
+
+            expect(invalid).toBeDefined();
+            if (!invalid) {
+                return;
+            }
+
+            expect(() => TSCompilerUtils.objectOmit(invalid, ['key'])).toThrow('Node must be an object literal expression');
+        });
+
+        it('handles deeply nested structures with partial omission', () => {
+            const objCode = dedent(`
+                const obj = {
+                    level1: {
+                        keep: 'this',
+                        omit: 'that'
+                    },
+                    removeLevel: {
+                        nested: 'remove entire branch'
+                    },
+                    preserve: 'top level'
+                };
+            `);
+
+            const ast = createSourceFile(objCode);
+            const objLiteral = (ast.statements[0] as ts.VariableStatement).declarationList.declarations[0].initializer;
+
+            expect(objLiteral).toBeDefined();
+            if (!objLiteral) {
+                return;
+            }
+
+            const result = TSCompilerUtils.objectOmit(objLiteral, ['removeLevel']);
+            const resultCode = ts.createPrinter().printNode(ts.EmitHint.Expression, result, ast);
+
+            // Validate structure with partial omission
+            expect(resultCode).toContain('level1: { keep: "this", omit: "that" }'); // Nested object preserved completely
+            expect(resultCode).toContain('preserve: "top level"'); // Top level preserved
+
+            // Ensure omitted branch is completely removed
+            expect(resultCode).not.toContain('removeLevel');
+            expect(resultCode).not.toContain('remove entire branch');
+        });
+    });
 });

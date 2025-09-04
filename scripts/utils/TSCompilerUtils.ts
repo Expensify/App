@@ -256,6 +256,46 @@ function objectMerge(target: ts.Node, source: ts.Node): ts.ObjectLiteralExpressi
 }
 
 /**
+ * Remove specified properties from a TypeScript object literal AST node, similar to _.omit from lodash.
+ * Creates a new object with all properties except the ones specified in the omit list.
+ *
+ * @param obj The object literal to omit properties from
+ * @param keysToOmit Array of property keys to remove from the object
+ * @returns A new object literal expression with specified properties omitted
+ * @throws Error if the node is not an object literal expression
+ */
+function objectOmit(obj: ts.Node, keysToOmit: string[]): ts.ObjectLiteralExpression {
+    if (!isObject(obj)) {
+        throw new Error('Node must be an object literal expression');
+    }
+
+    const omitSet = new Set(keysToOmit);
+    const keptProperties: ts.ObjectLiteralElementLike[] = [];
+
+    for (const prop of obj.properties) {
+        if (ts.isPropertyAssignment(prop) || ts.isMethodDeclaration(prop)) {
+            const key = extractKeyFromPropertyNode(prop);
+            if (key && !omitSet.has(key)) {
+                // Keep this property - clone it to avoid source file context issues
+                if (ts.isPropertyAssignment(prop)) {
+                    const clonedProp = clonePropertyAssignment(prop);
+                    keptProperties.push(clonedProp);
+                } else if (ts.isMethodDeclaration(prop)) {
+                    const clonedMethod = cloneMethodDeclaration(prop);
+                    keptProperties.push(clonedMethod);
+                }
+            }
+            // If key is in omitSet, skip this property (effectively omitting it)
+        } else {
+            // For spread assignments, shorthand properties, etc., keep them as-is
+            keptProperties.push(prop);
+        }
+    }
+
+    return ts.factory.createObjectLiteralExpression(keptProperties);
+}
+
+/**
  * Clone a property assignment by recreating it with the TypeScript factory.
  * This ensures the cloned property doesn't maintain references to the original source file.
  */
@@ -451,5 +491,6 @@ export default {
     extractKeyFromPropertyNode,
     isObject,
     objectMerge,
+    objectOmit,
 };
 export type {ExpressionWithType};
