@@ -713,6 +713,22 @@ describe('actions/IOU', () => {
                     () =>
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`,
+                                callback: (iouReportMetadata) => {
+                                    Onyx.disconnect(connection);
+
+                                    expect(iouReportMetadata?.isOptimisticReport).toBe(true);
+                                    expect(iouReportMetadata?.hasOnceLoadedReportActions).toBe(true);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
                                 waitForCollectionCallback: false,
                                 callback: (reportActionsForIOUReport) => {
