@@ -116,7 +116,13 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.HYBRID_APP,
 ];
 
-Onyx.connect({
+/*
+ * This listener allows you to reset the state stored in Onyx by changing the value under the ONYXKEYS.RESET_REQUIRED key.
+ * It is only used in emergencies when the entire state requires clearing.
+ *
+ * It has no direct impact on the View, making the use of Onyx.connectWithoutView justified in this case.
+ */
+Onyx.connectWithoutView({
     key: ONYXKEYS.RESET_REQUIRED,
     callback: (isResetRequired) => {
         if (!isResetRequired) {

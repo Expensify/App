@@ -696,7 +696,6 @@ const CONST = {
         EUR_BILLING: 'eurBilling',
         MANUAL_DISTANCE: 'manualDistance',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
-        VACATION_DELEGATE: 'vacationDelegate',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         DUPLICATE_WORKSPACE: 'duplicatePolicyNewDot',
     },
@@ -1467,6 +1466,7 @@ const CONST = {
         EXPORT_OPTION_LABELS: {
             REPORT_LEVEL_EXPORT: 'All Data - Report Level Export',
             EXPENSE_LEVEL_EXPORT: 'All Data - Expense Level Export',
+            DEFAULT_CSV: 'Default CSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -2187,6 +2187,7 @@ const CONST = {
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         ENTITY: 'entity',
         DIMENSION_PREFIX: 'dimension_',
+        ACCOUNTING_METHOD: 'accountingMethod',
     },
 
     SAGE_INTACCT: {
@@ -6554,6 +6555,8 @@ const CONST = {
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
             ACTION: 'action',
+            PURCHASE_AMOUNT: 'purchaseAmount',
+            PURCHASE_CURRENCY: 'purchaseCurrency',
             WITHDRAWAL_ID: 'withdrawalID',
         },
         TAG_EMPTY_VALUE: 'none',
@@ -6602,10 +6605,10 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             ACTION: 'action',
+            PURCHASE_AMOUNT: 'purchase-amount',
+            PURCHASE_CURRENCY: 'purchase-currency',
             WITHDRAWAL_ID: 'withdrawal-id',
         },
-
-        // Maps an internal search value to the user friendly display text, e.g. `perDiem` -> `per-diem`
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
@@ -7166,6 +7169,26 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
 ] as SearchFilterKey[];
 
+const FEATURE_IDS = {
+    CATEGORIES: 'categories',
+    ACCOUNTING: 'accounting',
+    COMPANY_CARDS: 'company-cards',
+    TAGS: 'tags',
+    WORKFLOWS: 'workflows',
+    INVOICES: 'invoices',
+    RULES: 'rules',
+    PER_DIEM: 'per-diem',
+    DISTANCE_RATES: 'distance-rates',
+    EXPENSIFY_CARD: 'expensify-card',
+};
+
+const TASK_TO_FEATURE: Record<string, string> = {
+    [CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES]: FEATURE_IDS.CATEGORIES,
+    [CONST.ONBOARDING_TASK_TYPE.ADD_ACCOUNTING_INTEGRATION]: FEATURE_IDS.ACCOUNTING,
+    [CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD]: FEATURE_IDS.COMPANY_CARDS,
+    [CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS]: FEATURE_IDS.TAGS,
+};
+
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
@@ -7179,6 +7202,6 @@ type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
 export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
 
-export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS};
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FEATURE_IDS};
 
 export default CONST;
