@@ -329,7 +329,8 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY: {
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY: {
                 const autocompleteList = autocompleteValue ? currencyAutocompleteList : (recentCurrencyAutocompleteList ?? []);
                 const filteredCurrencies = autocompleteList
                     .filter((currency) => currency.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(currency.toLowerCase()))
