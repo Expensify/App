@@ -50,6 +50,7 @@ type Sections = Array<SectionListData<MemberForList, Section<MemberForList>>>;
 
 function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: InviteReportParticipantsPageProps) {
     const route = useRoute<PlatformStackRouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -121,7 +122,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         // Filter all options that is a part of the search term or in the personal details
         let filterSelectedOptions = selectedOptions;
         if (debouncedSearchTerm !== '') {
-            const processedSearchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
+            const processedSearchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
             filterSelectedOptions = tokenizedSearch(selectedOptions, processedSearchValue, (option) => [option.text ?? '', option.login ?? '']).filter((option) => {
                 const accountID = option?.accountID;
                 const isOptionInPersonalDetails = inviteOptions.personalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID);
@@ -162,7 +163,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         }
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, inviteOptions.recentReports, inviteOptions.personalDetails, inviteOptions.userToInvite, translate]);
+    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, inviteOptions.recentReports, inviteOptions.personalDetails, inviteOptions.userToInvite, translate, countryCode]);
 
     const toggleOption = useCallback(
         (option: MemberForList) => {

@@ -225,7 +225,7 @@ const CONST = {
         horizontal: 12 + variables.navigationTabBarSize,
         vertical: 72,
     },
-    POPOVER_DROPDOWN_WIDTH: 336,
+    POPOVER_DROPDOWN_WIDTH: 334,
     POPOVER_DROPDOWN_MIN_HEIGHT: 0,
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
     POPOVER_DATE_WIDTH: 338,
@@ -696,7 +696,6 @@ const CONST = {
         EUR_BILLING: 'eurBilling',
         MANUAL_DISTANCE: 'manualDistance',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
-        VACATION_DELEGATE: 'vacationDelegate',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         DUPLICATE_WORKSPACE: 'duplicatePolicyNewDot',
     },
@@ -2187,6 +2186,7 @@ const CONST = {
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         ENTITY: 'entity',
         DIMENSION_PREFIX: 'dimension_',
+        ACCOUNTING_METHOD: 'accountingMethod',
     },
 
     SAGE_INTACCT: {
@@ -6554,6 +6554,8 @@ const CONST = {
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
             ACTION: 'action',
+            PURCHASE_AMOUNT: 'purchaseAmount',
+            PURCHASE_CURRENCY: 'purchaseCurrency',
             WITHDRAWAL_ID: 'withdrawalID',
         },
         TAG_EMPTY_VALUE: 'none',
@@ -6602,10 +6604,10 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             ACTION: 'action',
+            PURCHASE_AMOUNT: 'purchase-amount',
+            PURCHASE_CURRENCY: 'purchase-currency',
             WITHDRAWAL_ID: 'withdrawal-id',
         },
-
-        // Maps an internal search value to the user friendly display text, e.g. `perDiem` -> `per-diem`
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',

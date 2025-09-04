@@ -59,6 +59,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const session = useSession();
     const {isBetaEnabled} = usePermissions();
@@ -168,7 +169,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                 const accountID = option.accountID;
                 const isOptionInPersonalDetails = Object.values(personalDetails).some((personalDetail) => personalDetail.accountID === accountID);
 
-                const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
+                const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
 
                 const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
@@ -206,7 +207,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         });
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite]);
+    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite, countryCode]);
 
     const toggleOption = (option: MemberForList) => {
         const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);

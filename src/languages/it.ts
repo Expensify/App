@@ -658,6 +658,7 @@ const translations = {
         merge: 'Unisci',
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la tua rete e riprova.',
         enableGlobalReimbursements: 'Abilita i rimborsi globali',
+        purchaseAmount: 'Importo di acquisto',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -873,17 +874,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Questa chat è per tutto ciò che riguarda <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Questa chat è per le fatture tra <strong>${invoicePayer}</strong> e <strong>${invoiceReceiver}</strong>. Utilizzare il pulsante + per inviare una fattura.`,
+            `Questa chat è per le fatture tra <strong>${invoicePayer}</strong> e <strong>${invoiceReceiver}</strong>. Utilizzare il pulsante <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> per inviare una fattura.`,
         beginningOfChatHistory: 'Questa chat è con',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `È qui che <strong>${submitterDisplayName}</strong> presenterà le spese a <strong>${workspaceName}</strong>. Basta usare il pulsante +.`,
+            `È qui che <strong>${submitterDisplayName}</strong> presenterà le spese a <strong>${workspaceName}</strong>. Basta usare il pulsante <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
         beginningOfChatHistorySelfDM: 'Questo è il tuo spazio personale. Usalo per appunti, compiti, bozze e promemoria.',
         beginningOfChatHistorySystemDM: 'Benvenuto! Iniziamo con la configurazione.',
         chatWithAccountManager: 'Chatta con il tuo account manager qui',
         sayHello: 'Ciao!',
         yourSpace: 'Il tuo spazio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Benvenuto in ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Usa il pulsante + per ${additionalText} una spesa.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Usa il pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} per ${additionalText} una spesa.`,
         askConcierge: 'Fai domande e ricevi supporto in tempo reale 24/7.',
         conciergeSupport: 'Supporto 24/7',
         create: 'creare',
@@ -4007,6 +4008,18 @@ const translations = {
             syncReimbursedReportsDescription:
                 "Ogni volta che un report viene pagato utilizzando Expensify ACH, il pagamento della fattura corrispondente verrà creato nell'account Sage Intacct qui sotto.",
             paymentAccount: 'Account di pagamento Sage Intacct',
+            accountingMethods: {
+                label: 'Quando Esportare',
+                description: 'Scegli quando esportare le spese:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contanti',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Le spese anticipate verranno esportate quando approvate definitivamente.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate quando pagate',
+                },
+            },
         },
         netsuite: {
             subsidiary: 'Sussidiaria',
@@ -6058,7 +6071,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Niente da mostrare',
-                subtitle: 'Prova a modificare i criteri di ricerca o a creare qualcosa con il pulsante verde +.',
+                subtitle: `Prova a modificare i criteri di ricerca o a creare qualcosa con il pulsante verde ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
             },
             emptyExpenseResults: {
                 title: 'Non hai ancora creato nessuna spesa.',
@@ -6169,6 +6182,7 @@ const translations = {
             withdrawn: 'Ritirato',
             billable: 'Fatturabile',
             reimbursable: 'Rimborsabile',
+            purchaseCurrency: 'Valuta di acquisto',
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.REPORTS]: 'Rapporto',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
@@ -6695,7 +6709,7 @@ const translations = {
         isTransactionBillable: 'Scegli se la transazione è fatturabile',
         keepThisOne: 'Mantieni questo',
         confirmDetails: `Conferma i dettagli che stai conservando`,
-        confirmDuplicatesInfo: `Le richieste duplicate che non conservi saranno tenute in attesa che il membro le elimini.`,
+        confirmDuplicatesInfo: `I duplicati che non conservi verranno mantenuti per consentire al mittente di eliminarli.`,
         hold: 'Questa spesa è stata messa in sospeso',
         resolvedDuplicates: 'risolto il duplicato',
     },
