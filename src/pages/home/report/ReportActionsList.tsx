@@ -1,10 +1,11 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
+import type {RenderScrollComponentType} from '@components/ActionSheetAwareScrollView/types';
 import FlatList from '@components/FlatList';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
@@ -201,14 +202,16 @@ function ReportActionsList({
     const hasHeaderRendered = useRef(false);
     const linkedReportActionID = route?.params?.reportActionID;
 
+    const isTransactionThreadReport = useMemo(() => isTransactionThread(parentReportAction), [parentReportAction]);
+
     // FlatList displays items from top to bottom, so we need the oldest actions first.
     // Since sortedReportActions and sortedVisibleReportActions are ordered from newest to oldest,
     // we use toReversed() to reverse the order when using FlatList, ensuring the oldest action appears at the top.
     // InvertedFlatList automatically shows the newest action at the bottom, so no reversal is needed there.
-    const reportActions = useMemo(() => (isTransactionThread(parentReportAction) ? sortedReportActions.toReversed() : sortedReportActions), [parentReportAction, sortedReportActions]);
+    const reportActions = useMemo(() => (isTransactionThreadReport ? sortedReportActions.toReversed() : sortedReportActions), [isTransactionThreadReport, sortedReportActions]);
     const visibleReportActions = useMemo(
-        () => (isTransactionThread(parentReportAction) ? sortedVisibleReportActions.toReversed() : sortedVisibleReportActions),
-        [parentReportAction, sortedVisibleReportActions],
+        () => (isTransactionThreadReport ? sortedVisibleReportActions.toReversed() : sortedVisibleReportActions),
+        [isTransactionThreadReport, sortedVisibleReportActions],
     );
     const lastAction = sortedVisibleReportActions.at(0);
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
@@ -349,9 +352,9 @@ function ReportActionsList({
         currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
         readActionSkippedRef: readActionSkipped,
         unreadMarkerReportActionIndex,
-        isInverted: !isTransactionThread(parentReportAction),
+        isInverted: !isTransactionThreadReport,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            if (isTransactionThread(parentReportAction)) {
+            if (isTransactionThreadReport) {
                 // For transaction threads, calculate distance from bottom like MoneyRequestReportActionsList
                 const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
                 scrollingVerticalOffset.current = contentSize.height - layoutMeasurement.height - contentOffset.y;
@@ -364,7 +367,7 @@ function ReportActionsList({
     });
 
     const scrollToBottom = useCallback(() => {
-        if (isTransactionThread(parentReportAction)) {
+        if (isTransactionThreadReport) {
             // In a transaction thread, we want to scroll to the end of the list
             reportScrollManager.scrollToEnd(true);
             return;
@@ -372,7 +375,7 @@ function ReportActionsList({
 
         // On remaining reports, we want to scroll to the bottom of the inverted FlatList which is the top of the list (offset: 0)
         reportScrollManager.scrollToBottom();
-    }, [parentReportAction, reportScrollManager]);
+    }, [isTransactionThreadReport, reportScrollManager]);
 
     useEffect(() => {
         if (
@@ -431,7 +434,7 @@ function ReportActionsList({
 
         InteractionManager.runAfterInteractions(() => {
             setIsFloatingMessageCounterVisible(false);
-            if (!isTransactionThread(parentReportAction)) {
+            if (!isTransactionThreadReport) {
                 scrollToBottom();
             }
         });
@@ -604,7 +607,7 @@ function ReportActionsList({
             return false;
         }
 
-        if (isTransactionThread(parentReportAction)) {
+        if (isTransactionThreadReport) {
             return !isDeletedParentAction(parentReportAction) && !isReversedTransaction(parentReportAction);
         }
 
@@ -613,7 +616,7 @@ function ReportActionsList({
         }
 
         return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
-    }, [parentReportAction, report, sortedVisibleReportActions]);
+    }, [isTransactionThreadReport, parentReportAction, report, sortedVisibleReportActions]);
 
     useEffect(() => {
         if (report.reportID !== prevReportID) {
@@ -657,7 +660,7 @@ function ReportActionsList({
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-            const actionIndex = isTransactionThread(parentReportAction) ? sortedVisibleReportActions.length - index - 1 : index;
+            const actionIndex = isTransactionThreadReport ? sortedVisibleReportActions.length - index - 1 : index;
             const originalReportID = getOriginalReportID(report.reportID, reportAction);
             const reportDraftMessages = draftMessage?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`];
             const matchingDraftMessage = reportDraftMessages?.[reportAction.reportActionID];
@@ -706,29 +709,30 @@ function ReportActionsList({
             );
         },
         [
-            reportActions,
+            isTransactionThreadReport,
+            sortedVisibleReportActions,
+            report,
             draftMessage,
             emojiReactions,
+            transactions,
             allReports,
             policies,
+            reportActions,
             parentReportAction,
             parentReportActionForTransactionThread,
-            report,
             transactionThreadReport,
             linkedReportActionID,
-            sortedVisibleReportActions,
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             shouldUseThreadDividerLine,
-            transactions,
             userWalletTierName,
             isUserValidated,
             personalDetailsList,
+            isReportArchived,
             userBillingFundID,
             isTryNewDotNVPDismissed,
-            isReportArchived,
         ],
     );
 
@@ -798,11 +802,11 @@ function ReportActionsList({
 
     // FlatList is used for transaction threads to keep the list scrolled at the top and display actions in chronological order.
     // InvertedFlatList is used for regular reports, always scrolling to the bottom initially and showing the newest messages at the bottom.
-    const ListComponent = isTransactionThread(parentReportAction) ? FlatList : InvertedFlatList;
+    const ListComponent = isTransactionThreadReport ? FlatList : InvertedFlatList;
     const contentContainerStyle = useMemo(() => {
         const baseStyles: StyleProp<ViewStyle> = [styles.chatContentScrollView];
 
-        if (isTransactionThread(parentReportAction)) {
+        if (isTransactionThreadReport) {
             // InvertedFlatList applies a scale: -1 transform, so top padding becomes bottom padding and vice versa.
             // When using FlatList for transaction threads, we need to manually add top padding (pt4) and remove bottom padding (pb0)
             // to maintain consistent spacing and visual appearance at the top of the list.
@@ -810,7 +814,21 @@ function ReportActionsList({
         }
 
         return baseStyles;
-    }, [parentReportAction, styles.chatContentScrollView, styles.justifyContentEnd, styles.pb0, styles.pt4]);
+    }, [isTransactionThreadReport, styles.chatContentScrollView, styles.justifyContentEnd, styles.pb0, styles.pt4]);
+
+    /**
+     * Wraps the provided renderScrollComponent to pass isInvertedScrollView prop.
+     *
+     * This is required for correct handling of inverted scroll views in transaction threads, when context menu is shown.
+     */
+    const getRenderScrollComponentWithAnimationProps = useCallback(
+        (render: NonNullable<RenderScrollComponentType>) => (props: ScrollViewProps) =>
+            render({
+                ...props,
+                isInvertedScrollView: !isTransactionThreadReport,
+            }),
+        [isTransactionThreadReport],
+    );
 
     return (
         <>
@@ -830,7 +848,7 @@ function ReportActionsList({
                     style={styles.overscrollBehaviorContain}
                     data={visibleReportActions}
                     renderItem={renderItem}
-                    renderScrollComponent={renderScrollComponent}
+                    renderScrollComponent={renderScrollComponent ? getRenderScrollComponentWithAnimationProps(renderScrollComponent) : undefined}
                     contentContainerStyle={contentContainerStyle}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}

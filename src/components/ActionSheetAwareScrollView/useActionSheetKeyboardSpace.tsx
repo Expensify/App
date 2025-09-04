@@ -1,11 +1,10 @@
 import {useContext, useEffect} from 'react';
-import type {ViewProps} from 'react-native';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
 import {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
-import type {SharedValue} from 'react-native-reanimated';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {Actions, ActionSheetAwareScrollViewContext, States} from './ActionSheetAwareScrollViewContext';
+import type {ActionSheetKeyboardSpaceProps} from './types';
 
 const KeyboardState = {
     UNKNOWN: 0,
@@ -59,17 +58,12 @@ const useAnimatedKeyboard = () => {
     return {state, height, heightWhenOpened};
 };
 
-type ActionSheetKeyboardSpaceProps = ViewProps & {
-    /** scroll offset of the parent ScrollView */
-    position?: SharedValue<number>;
-};
-
 function useActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
     const {
         unmodifiedPaddings: {top: paddingTop = 0, bottom: paddingBottom = 0},
     } = useSafeAreaPaddings();
     const keyboard = useAnimatedKeyboard();
-    const {position} = props;
+    const {position, isInvertedScrollView = true} = props;
 
     // Similar to using `global` in worklet but it's just a local object
     const syncLocalWorkletState = useSharedValue(KeyboardState.UNKNOWN);
@@ -247,9 +241,18 @@ function useActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
         }
     }, []);
 
-    const animatedStyle = useAnimatedStyle(() => ({
-        paddingTop: translateY.get(),
-    }));
+    const animatedStyle = useAnimatedStyle(
+        () =>
+            isInvertedScrollView
+                ? {
+                      paddingTop: translateY.get(),
+                  }
+                : {
+                      // On non-inverted scroll views we use bottom to ensure that content is displayed above the context menu / keyboard
+                      bottom: translateY.get(),
+                  },
+        [isInvertedScrollView],
+    );
 
     return {animatedStyle};
 }

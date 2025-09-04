@@ -1,12 +1,13 @@
 import type {PropsWithChildren} from 'react';
 import React, {forwardRef, useCallback} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView, ScrollViewProps} from 'react-native';
+import type {ScrollView} from 'react-native';
 import Reanimated, {useAnimatedRef, useScrollViewOffset} from 'react-native-reanimated';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
+import type {ActionSheetAwareScrollViewProps, RenderScrollComponentType} from './types';
 import useActionSheetKeyboardSpace from './useActionSheetKeyboardSpace';
 
-const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<ScrollViewProps>>(({style, children, ...rest}, ref) => {
+const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<ActionSheetAwareScrollViewProps>>(({style, children, isInvertedScrollView, ...rest}, ref) => {
     const scrollViewAnimatedRef = useAnimatedRef<Reanimated.ScrollView>();
     const position = useScrollViewOffset(scrollViewAnimatedRef);
 
@@ -24,7 +25,7 @@ const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<Scro
         [ref, scrollViewAnimatedRef],
     );
 
-    const {animatedStyle} = useActionSheetKeyboardSpace({position});
+    const {animatedStyle} = useActionSheetKeyboardSpace({position, isInvertedScrollView});
 
     return (
         <Reanimated.ScrollView
@@ -45,9 +46,9 @@ export default ActionSheetAwareScrollView;
  * @param props - props that will be passed to the ScrollView from FlatList
  * @returns - ActionSheetAwareScrollView
  */
-function renderScrollComponent(props: ScrollViewProps) {
+const renderScrollComponent: RenderScrollComponentType = (props: ActionSheetAwareScrollViewProps) => {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <ActionSheetAwareScrollView {...props} />;
-}
+};
 
 export {renderScrollComponent, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider, Actions};
