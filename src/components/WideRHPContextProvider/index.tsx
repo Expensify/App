@@ -211,6 +211,8 @@ function useShowWideRHPVersion(condition: boolean) {
     }, [condition, reportID, isReportIDMarkedAsExpense, route, showWideRHPVersion]);
 }
 
+WideRHPContextProvider.displayName = 'WideRHPContextProvider';
+
 export default WideRHPContextProvider;
 
 export {expandedRHPProgress, receiptPaneRHPWidth, secondOverlayProgress, useShowWideRHPVersion, WideRHPContext};

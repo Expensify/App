@@ -20,6 +20,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function useShowWideRHPVersion(condition: boolean) {}
 
+WideRHPContextProvider.displayName = 'WideRHPContextProvider';
+
 export default WideRHPContextProvider;
 export type {WideRHPContextType};
 export {expandedRHPProgress, secondOverlayProgress, WideRHPContext, useShowWideRHPVersion, receiptPaneRHPWidth};
