@@ -33,7 +33,8 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
     const emojiStatus = currentUserPersonalDetails?.status?.emojiCode ?? '';
 
     /**
-     * Returns the avatar element with the correct active (ring) state.
+     * Renders the appropriate avatar component based on user state (delegate, emoji status, or default profile)
+     * with the correct active (ring) state for selection and hover effects.
      */
     const renderAvatar = (active: boolean) => {
         if (delegateEmail) {
