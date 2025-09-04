@@ -5400,6 +5400,7 @@ const translations = {
             genericFailureMessage: 'Wystąpił błąd podczas aktualizacji przestrzeni roboczej. Proszę spróbować ponownie.',
             avatarUploadFailureMessage: 'Wystąpił błąd podczas przesyłania awatara. Proszę spróbować ponownie.',
             addressContext: 'Aby włączyć Expensify Travel, wymagany jest adres Workspace. Proszę wprowadzić adres powiązany z Twoją firmą.',
+            policy: 'Polityka wydatków',
         },
         bankAccount: {
             continueWithSetup: 'Kontynuuj konfigurację',
@@ -5734,8 +5735,7 @@ const translations = {
             },
             customRules: {
                 title: 'Niestandardowe zasady',
-                subtitle: 'Opis',
-                description: 'Wprowadź niestandardowe zasady dla raportów wydatków',
+                cardSubtitle: 'Tutaj znajduje się polityka wydatków Twojego zespołu, aby każdy wiedział, co jest objęte.',
             },
         },
         planTypePage: {
@@ -6173,6 +6173,12 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Zwrot kosztów',
             },
+            action: {
+                [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Prześlij',
+                [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Zatwierdź',
+                [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Zapłać',
+                [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Eksportuj',
+            },
         },
         groupBy: 'Grupa według',
         moneyRequestReport: {
@@ -6331,7 +6337,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `rozpoczęto eksportowanie tego raportu do ${label}...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `nie udało się wyeksportować tego raportu do ${label} ("${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
+                    `nie udało się wyeksportować tego raportu do ${label} ("${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}")`,
                 managerAttachReceipt: `dodano paragon`,
                 managerDetachReceipt: `usunięto paragon`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `zapłacono ${currency}${amount} gdzie indziej`,

@@ -69,6 +69,7 @@ type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
+type SearchAction = ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>;
 
 type SearchContextData = {
     currentSearchHash: number;
@@ -223,6 +224,7 @@ export type {
     SingularSearchStatus,
     SearchDatePreset,
     SearchWithdrawalType,
+    SearchAction,
     SearchCurrencyFilterKeys,
     UserFriendlyValue,
 };

@@ -5318,6 +5318,7 @@ const translations = {
             genericFailureMessage: '更新工作区时发生错误。请再试一次。',
             avatarUploadFailureMessage: '上传头像时发生错误。请再试一次。',
             addressContext: '启用 Expensify Travel 需要一个工作区地址。请输入与您的业务相关的地址。',
+            policy: '费用政策',
         },
         bankAccount: {
             continueWithSetup: '继续设置',
@@ -5642,8 +5643,7 @@ const translations = {
             },
             customRules: {
                 title: '自定义规则',
-                subtitle: '描述',
-                description: '输入自定义费用报告规则',
+                cardSubtitle: '这里是你团队的报销政策，让所有人都清楚哪些费用涵盖在内。',
             },
         },
         planTypePage: {
@@ -6070,6 +6070,12 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '报销',
             },
+            action: {
+                [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '提交',
+                [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '批准',
+                [CONST.SEARCH.ACTION_FILTERS.PAY]: '支付',
+                [CONST.SEARCH.ACTION_FILTERS.EXPORT]: '导出',
+            },
         },
         groupBy: '组别',
         moneyRequestReport: {
@@ -6226,7 +6232,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `开始将此报告导出到${label}...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `无法将此报告导出到${label}（"${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}"）`,
+                    `无法将此报告导出到${label}（"${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}"）`,
                 managerAttachReceipt: `添加了一张收据`,
                 managerDetachReceipt: `已删除收据`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `在其他地方支付了${currency}${amount}`,
