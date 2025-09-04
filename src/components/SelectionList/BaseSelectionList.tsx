@@ -650,7 +650,7 @@ function BaseSelectionList<TItem extends ListItem>({
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
         const selected = isItemSelected(item);
-        const isItemFocused = (!isDisabled || selected) && focusedIndex === normalizedIndex;
+        const isItemFocused = (!isDisabled || selected) && focusedIndex === normalizedIndex && hasKeyBeenPressed.current;
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
         return (
