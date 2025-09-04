@@ -3,6 +3,7 @@ import Checkbox from '@components/Checkbox';
 import useThemeStyles from '@hooks/useThemeStyles';
 import RadioListItem from './RadioListItem';
 import type {ListItem, SingleSelectListItemProps} from './types';
+import CONST from '@src/CONST';
 
 /**
  * SingleSelectListItem mirrors the behavior of a default RadioListItem, but adds support
@@ -32,7 +33,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             <Checkbox
                 shouldSelectOnPressEnter
                 containerBorderRadius={999}
-                accessibilityLabel="SingleSelectListItem"
+                accessibilityLabel={CONST.ROLE.CHECKBOX}
                 isChecked={isSelected}
                 onPress={() => onSelectRow(item)}
             />

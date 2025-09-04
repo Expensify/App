@@ -168,7 +168,7 @@ function UserListItem<TItem extends ListItem>({
                             containerBorderRadius={999}
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || item.isDisabledCheckbox}
-                            accessibilityLabel={item.text ?? ''}
+                            accessibilityLabel={CONST.ROLE.CHECKBOX}
                             style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.ml3]}
                             isChecked={item.isSelected}
                             onPress={handleCheckboxPress}

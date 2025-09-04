@@ -312,7 +312,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
                     <Checkbox
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         disabled={item.isDisabled || item.isDisabledCheckbox}
-                        accessibilityLabel={CONST.ROLE.BUTTON}
+                        accessibilityLabel={CONST.ROLE.CHECKBOX}
                         isChecked={item.isSelected}
                         onPress={() => toggleOption(item)}
                     />
