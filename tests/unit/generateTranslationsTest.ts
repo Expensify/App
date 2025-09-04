@@ -1008,4 +1008,27 @@ describe('generateTranslations', () => {
 
         fs.rmSync(oldDir, {recursive: true});
     });
+
+    it('validates compare-ref is a valid git reference', async () => {
+        fs.writeFileSync(
+            EN_PATH,
+            dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                };
+                export default strings;
+            `),
+            'utf8',
+        );
+
+        // Test with invalid git reference
+        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'invalid-ref-that-does-not-exist'];
+
+        // Expect the script to throw an error during CLI parsing
+        await generateTranslations();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            'Invalid value for --compare-ref: Invalid git reference: "invalid-ref-that-does-not-exist". Please provide a valid branch, tag, or commit hash.',
+        );
+        expect(processExitSpy).toHaveBeenCalledWith(1);
+    });
 });

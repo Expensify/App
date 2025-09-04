@@ -3,6 +3,7 @@
 /*
  * This script uses src/languages/en.ts as the source of truth, and leverages ChatGPT to generate translations for other languages.
  */
+import {execSync} from 'child_process';
 import * as dotenv from 'dotenv';
 import fs from 'fs';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
@@ -707,8 +708,24 @@ async function main(): Promise<void> {
             'compare-ref': {
                 description:
                     'For incremental translations, this ref is the previous version of the codebase to compare to. Only strings that changed or had their context changed since this ref will be retranslated.',
-                // TODO: parse compare-ref and validate that it's a valid Git ref
                 default: '',
+                parse: (val: string): string => {
+                    if (!val.trim()) {
+                        return val; // Empty string is valid (means no comparison)
+                    }
+
+                    // Validate that the ref exists by attempting to resolve it
+                    try {
+                        execSync(`git rev-parse --verify "${val}"`, {
+                            encoding: 'utf8',
+                            cwd: process.cwd(),
+                            stdio: 'pipe', // Suppress output
+                        });
+                        return val;
+                    } catch (error) {
+                        throw new Error(`Invalid git reference: "${val}". Please provide a valid branch, tag, or commit hash.`);
+                    }
+                },
             },
             paths: {
                 description: 'Comma-separated list of specific translation paths to retranslate (e.g., "common.save,errors.generic").',
