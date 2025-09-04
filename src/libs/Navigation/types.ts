@@ -2139,7 +2139,6 @@ type AttachmentModalScreensParamList = {
         maybeIcon?: boolean;
         file?: FileObject;
         shouldDisableSendButton?: boolean;
-        onConfirm?: (file: FileObject) => void;
     };
     [SCREENS.REPORT_ADD_ATTACHMENT]: AttachmentModalContainerModalProps & {
         reportID?: string;
