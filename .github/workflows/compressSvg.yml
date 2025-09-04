@@ -20,11 +20,6 @@ jobs:
       - name: Checkout
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-        with:
-          # Fetch full history for proper git diff
-          fetch-depth: 0
-          # Use a token that can create PRs
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
