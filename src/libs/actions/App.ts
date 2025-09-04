@@ -50,8 +50,10 @@ Onyx.connect({
     initWithStoredValues: false,
 });
 
+// `isUsingImportedState` is only used in `clearOnyxAndResetApp`, not during render. So `Onyx.connectWithoutView` is appropriate.
+// If React components need this value in the future, use `useOnyx` instead.
 let isUsingImportedState: boolean | undefined;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.IS_USING_IMPORTED_STATE,
     callback: (value) => {
         isUsingImportedState = value ?? false;
