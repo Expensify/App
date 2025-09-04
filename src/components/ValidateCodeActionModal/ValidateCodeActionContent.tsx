@@ -29,7 +29,6 @@ function ValidateCodeActionContent({
 }: ValidateCodeActionContentProps) {
     const themeStyles = useThemeStyles();
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
-    const styles = useThemeStyles();
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     useEffectOnMount(() => {
         if (validateCodeAction?.validateCodeSent) {
@@ -61,8 +60,8 @@ function ValidateCodeActionContent({
             />
 
             <ScrollView
-                style={[styles.w100, styles.h100, styles.flex1]}
-                contentContainerStyle={styles.flexGrow1}
+                style={[themeStyles.w100, themeStyles.h100, themeStyles.flex1]}
+                contentContainerStyle={themeStyles.flexGrow1}
                 keyboardShouldPersistTaps="handled"
             >
                 <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
