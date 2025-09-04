@@ -5,6 +5,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePreferredWorkspace from '@hooks/usePreferredWorkspace';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {READ_COMMANDS} from '@libs/API/types';
@@ -16,7 +17,7 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getPolicyExpenseChat, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getRequestType, isPerDiemRequest} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
@@ -79,6 +80,8 @@ function IOURequestStepParticipants({
     });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, policySelector), canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const transactions = useMemo(() => {
         const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
@@ -117,8 +120,27 @@ function IOURequestStepParticipants({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
 
+    // Get preferred workspace settings
+    const {isRestrictedToPreferredWorkspace, preferredWorkspaceID} = usePreferredWorkspace();
+
+    // Check if we should auto-select the preferred workspace
+    const shouldUsePreferredWorkspace =
+        isRestrictedToPreferredWorkspace &&
+        preferredWorkspaceID &&
+        (iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SUBMIT || (iouType === CONST.IOU.TYPE.TRACK && action === CONST.IOU.ACTION.SUBMIT));
+
+    // Get preferred workspace policy (outside useEffect since it only depends on static data)
+    const preferredPolicy = shouldUsePreferredWorkspace && preferredWorkspaceID && allPolicies ? allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${preferredWorkspaceID}`] : null;
+
+    // Calculate final IOU type (static logic, doesn't need to be in useEffect)
+    const finalIouType = iouType === CONST.IOU.TYPE.TRACK && action === CONST.IOU.ACTION.SUBMIT ? CONST.IOU.TYPE.SUBMIT : iouType;
+
     const isActivePolicyRequest =
-        iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id);
+        iouType === CONST.IOU.TYPE.CREATE &&
+        isPaidGroupPolicy(activePolicy) &&
+        activePolicy?.isPolicyExpenseChatEnabled &&
+        !!activePolicyID &&
+        !shouldRestrictUserBillableActions(activePolicyID);
 
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
     const isMobileSafari = isMobileSafariBrowser();
@@ -126,6 +148,41 @@ function IOURequestStepParticipants({
     useEffect(() => {
         Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE_CONTACT);
     }, []);
+
+    // Auto-select preferred workspace if restricted
+    useEffect(() => {
+        if (!shouldUsePreferredWorkspace || !preferredPolicy || !session?.accountID || !transactions?.length) {
+            return;
+        }
+
+        // Find the policy expense chat for this user in the preferred workspace
+        const policyExpenseChat = getPolicyExpenseChat(session.accountID, preferredWorkspaceID, allReports);
+        const policyExpenseChatReportID = policyExpenseChat?.reportID;
+        const finalReportID = policyExpenseChatReportID ?? preferredWorkspaceID;
+
+        // Create participant object for the preferred workspace
+        const preferredWorkspaceParticipant: Participant = {
+            policyID: preferredWorkspaceID,
+            isPolicyExpenseChat: true,
+            reportID: policyExpenseChatReportID ?? preferredWorkspaceID,
+            selected: true,
+            searchText: preferredPolicy.name ?? '',
+            alternateText: preferredPolicy.name ?? '',
+            displayName: preferredPolicy.name ?? '',
+        };
+
+        // Set participants for all transactions and navigate
+        transactions.forEach((transaction) => {
+            if (!transaction?.transactionID) {
+                return;
+            }
+            setMoneyRequestParticipants(transaction.transactionID, [preferredWorkspaceParticipant]);
+        });
+
+        const nextStepRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action ?? CONST.IOU.ACTION.CREATE, finalIouType, initialTransactionID, finalReportID);
+
+        Navigation.navigate(nextStepRoute);
+    }, [shouldUsePreferredWorkspace, preferredPolicy, preferredWorkspaceID, session?.accountID, allReports, transactions, finalIouType, action, initialTransactionID]);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the expense is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then

@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePreferredWorkspace from '@hooks/usePreferredWorkspace';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
@@ -22,7 +23,7 @@ import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Nav
 import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getPerDiemCustomUnit, getPerDiemCustomUnits} from '@libs/PolicyUtils';
-import {getPayeeName} from '@libs/ReportUtils';
+import {getPayeeName, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {IOURequestType} from '@userActions/IOU';
 import {initMoneyRequest} from '@userActions/IOU';
@@ -54,6 +55,7 @@ function IOURequestStartPage({
 }: IOURequestStartPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isRestrictedToPreferredWorkspace} = usePreferredWorkspace();
     const shouldUseTab = iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE;
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
@@ -194,6 +196,33 @@ function IOURequestStartPage({
         },
     );
 
+    // Block direct URL access to restricted expense types when preferred workspace is enforced
+    // Allow access only for workspace expense chats, selfDM track expenses, and global FAB create
+    const isBlockedByPreferredWorkspace = useMemo(() => {
+        if (!isRestrictedToPreferredWorkspace) {
+            return false;
+        }
+
+        // Allow global FAB create (when no reportID)
+        if (!reportID) {
+            return false;
+        }
+
+        // Allow workspace expense chats
+        if (isPolicyExpenseChat(report)) {
+            return false;
+        }
+
+        // Allow track expense in selfDM
+        if (iouType === CONST.IOU.TYPE.TRACK && isSelfDM(report)) {
+            return false;
+        }
+
+        // Block PAY, SPLIT, and CREATE/SUBMIT in non-workspace reports
+        // Note: CREATE is allowed for global FAB (covered by !reportID check above)
+        return iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SUBMIT;
+    }, [isRestrictedToPreferredWorkspace, reportID, report, iouType]);
+
     return (
         <AccessOrNotFoundWrapper
             reportID={reportID}
@@ -201,6 +230,7 @@ function IOURequestStartPage({
             policyID={policy?.id}
             accessVariants={[CONST.IOU.ACCESS_VARIANTS.CREATE]}
             allPolicies={allPolicies}
+            shouldBeBlocked={isBlockedByPreferredWorkspace}
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
