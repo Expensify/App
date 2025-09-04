@@ -2977,7 +2977,6 @@ function getCardIssuedMessage({
             return translateLocal('workspace.expensifyCard.issuedCardVirtual', {
                 assignee,
                 link: expensifyCardLink,
-                isCardDeactivated: expensifyCard && !isExpensifyCardActive,
             });
         }
         case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
