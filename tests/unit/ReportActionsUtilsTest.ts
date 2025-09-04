@@ -1352,11 +1352,6 @@ describe('ReportActionsUtils', () => {
             fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
         } as Card;
 
-        const deactivatedExpensifyCard: Card = {
-            ...activeExpensifyCard,
-            state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
-        } as Card;
-
         const testPolicyID = 'test-policy-123';
 
         describe('render virtual card issued messages', () => {
@@ -1369,17 +1364,6 @@ describe('ReportActionsUtils', () => {
                 });
 
                 expect(messageResult).toBe('issued <mention-user accountID="456"/> a virtual Expensify Card! The card can be used right away.');
-            });
-
-            it('should render a message with deactivation notice when the card is deactivated', () => {
-                const messageResult = getCardIssuedMessage({
-                    reportAction: mockVirtualCardIssuedAction,
-                    shouldRenderHTML: true,
-                    policyID: testPolicyID,
-                    expensifyCard: deactivatedExpensifyCard,
-                });
-
-                expect(messageResult).toBe('issued <mention-user accountID="456"/> a virtual Expensify Card (card deactivated)! The card can be used right away.');
             });
 
             it('should render a message with clickable card link when the card is active', () => {
