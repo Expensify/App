@@ -2811,6 +2811,7 @@ const translations = {
             formLabel: 'Pokaż PDF',
         },
         attachmentNotFound: 'Załącznik nie znaleziony',
+        tryAgain: 'Spróbuj ponownie',
     },
     messages: {
         errorMessageInvalidPhone: `Proszę wprowadzić prawidłowy numer telefonu bez nawiasów i myślników. Jeśli jesteś poza USA, dołącz swój kod kraju (np. ${CONST.EXAMPLE_PHONE_NUMBER}).`,

@@ -2781,6 +2781,7 @@ const translations = {
             formLabel: '查看PDF',
         },
         attachmentNotFound: '未找到附件',
+        tryAgain: '再试一次',
     },
     messages: {
         errorMessageInvalidPhone: `请输入一个有效的电话号码，不要使用括号或破折号。如果您在美国以外，请包括您的国家代码（例如 ${CONST.EXAMPLE_PHONE_NUMBER}）。`,

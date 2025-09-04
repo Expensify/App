@@ -2670,8 +2670,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.heading,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
-            marginTop: 20,
-            marginBottom: 8,
+            marginVertical: 20,
             textAlign: 'center',
         },
 
