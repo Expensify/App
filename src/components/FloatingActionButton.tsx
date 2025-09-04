@@ -144,13 +144,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
             >
                 {({hovered}) => (
                     <Animated.View
-                        style={[
-                            styles.floatingActionButton,
-                            {borderRadius},
-                            isLHBVisible && styles.floatingActionButtonSmall,
-                            animatedStyle,
-                            hovered && {backgroundColor: successHover},
-                        ]}
+                        style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, animatedStyle, hovered && {backgroundColor: successHover}]}
                         testID="fab-animated-container"
                     >
                         <Svg
