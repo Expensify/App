@@ -1386,6 +1386,7 @@ function extendPersonalDetailOption(option: PersonalDetailOption): SearchOption<
 
     return {
         ...option,
+        // eslint-disable-next-line rulesdir/no-default-id-values
         reportID: option.reportID ?? '',
         item: userDetails,
         participantsList: [userDetails],

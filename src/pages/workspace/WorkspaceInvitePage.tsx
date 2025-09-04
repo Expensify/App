@@ -66,7 +66,9 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const firstRenderRef = useRef(true);
-    const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`);
+    const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`, {
+        canBeMissing: true,
+    });
     const isLoading = isLoadingOnyxValue(invitedEmailsToAccountIDsDraftMetadata);
 
     const openWorkspaceInvitePage = () => {
