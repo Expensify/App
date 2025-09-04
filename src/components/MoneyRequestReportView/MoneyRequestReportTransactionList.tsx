@@ -24,14 +24,15 @@ import FS from '@libs/Fullstory';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {generateReportID, getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
+import {createTransactionThreadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -190,7 +191,7 @@ function MoneyRequestReportTransactionList({
         (activeTransactionID: string) => {
             const iouAction = getIOUActionForTransactionID(reportActions, activeTransactionID);
             const backTo = Navigation.getActiveRoute();
-            const reportIDToNavigate = iouAction?.childReportID ?? generateReportID();
+            const reportIDToNavigate = iouAction?.childReportID;
 
             const routeParams = {
                 reportID: reportIDToNavigate,
@@ -198,9 +199,10 @@ function MoneyRequestReportTransactionList({
             } as ReportScreenNavigationProps;
 
             if (!iouAction?.childReportID) {
-                routeParams.moneyRequestReportActionID = iouAction?.reportActionID;
-                routeParams.transactionID = activeTransactionID;
-                routeParams.iouReportID = isMoneyRequestAction(iouAction) ? getOriginalMessage(iouAction)?.IOUReportID : undefined;
+                const transactionThreadReport = createTransactionThreadReport(report, iouAction);
+                if (transactionThreadReport) {
+                    routeParams.reportID = transactionThreadReport.reportID;
+                }
             }
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
@@ -210,7 +212,7 @@ function MoneyRequestReportTransactionList({
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
             });
         },
-        [reportActions, sortedTransactions],
+        [report, reportActions, sortedTransactions],
     );
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
