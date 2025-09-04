@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {InteractionManager} from 'react-native';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
@@ -34,6 +35,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const outstandingReportID = isPolicyExpenseChat(participantReport) ? participantReport?.iouReportID : participantReportID;
     const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const {removeTransaction} = useSearchContext();
     const selectedReport = useMemo(() => {
         if (!selectedReportID) {
             return undefined;
@@ -103,6 +105,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
             if (isEditing) {
                 changeTransactionsReport([transaction.transactionID], item.value, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]);
+                removeTransaction(transaction.transactionID);
             }
         });
     };
@@ -136,6 +139,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         Navigation.dismissModal();
         InteractionManager.runAfterInteractions(() => {
             changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID);
+            removeTransaction(transaction.transactionID);
         });
     };
 
