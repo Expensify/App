@@ -7,7 +7,6 @@ import Text from '@components/Text';
 import useEffectOnMount from '@hooks/useEffectOnMount';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateCodeActionContentProps} from './type';
 import ValidateCodeForm from './ValidateCodeForm';
@@ -30,8 +29,6 @@ function ValidateCodeActionContent({
 }: ValidateCodeActionContentProps) {
     const themeStyles = useThemeStyles();
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
-    const styles = useThemeStyles();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffset);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     useEffectOnMount(() => {
         if (validateCodeAction?.validateCodeSent) {
@@ -59,13 +56,12 @@ function ValidateCodeActionContent({
                 threeDotsMenuItems={threeDotsMenuItems}
                 shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                 shouldOverlayDots
-                threeDotsAnchorPosition={threeDotsAnchorPosition}
                 onThreeDotsButtonPress={onThreeDotsButtonPress}
             />
 
             <ScrollView
-                style={[styles.w100, styles.h100, styles.flex1]}
-                contentContainerStyle={styles.flexGrow1}
+                style={[themeStyles.w100, themeStyles.h100, themeStyles.flex1]}
+                contentContainerStyle={themeStyles.flexGrow1}
                 keyboardShouldPersistTaps="handled"
             >
                 <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
