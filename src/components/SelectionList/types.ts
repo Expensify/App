@@ -107,7 +107,7 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
 
-    /** Accessibility State tells a person using either VoiceOver on iOS or TalkBack on Android the state of the element currently focused on*/
+    /** Accessibility State tells a person using either VoiceOver on iOS or TalkBack on Android the state of the element currently focused on */
     accessibilityState?: AccessibilityState;
 } & TRightHandSideComponent<TItem>;
 
