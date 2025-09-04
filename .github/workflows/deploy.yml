@@ -1,8 +1,9 @@
 name: Deploy code to staging or production
 
 on:
-  push:
-    branches: [staging, production]
+  workflow_dispatch:
+  # push:
+  #   branches: [staging, production]
 
 env:
   IS_APP_REPO: ${{ github.repository == 'Expensify/App' }}

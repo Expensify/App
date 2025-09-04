@@ -1,15 +1,15 @@
 name: Update Redirects to ExpensifyHelp
 
 on:
+  workflow_dispatch:
   # Run on any push to main that has changes to the redirects file
-  push:
-    branches:
-      - main
-    paths:
-      - 'docs/redirects.csv'
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'docs/redirects.csv'
 
   # Run on any manual trigger
-  workflow_dispatch:
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.

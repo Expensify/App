@@ -2,9 +2,11 @@
 name: Process new code merged to main
 
 on:
-  push:
-    branches: [main]
-    paths-ignore: [docs/**, help/**, contributingGuides/**, jest/**, tests/**]
+  # push:
+  #   branches: [main]
+  #   paths-ignore: [docs/**, help/**, contributingGuides/**, jest/**, tests/**]
+
+  workflow_dispatch:
 
 jobs:
   typecheck:

@@ -1,9 +1,10 @@
 name: Send Reassure Performance Tests to Graphite
 
 on:
-  push:
-    branches: [main]
-    paths-ignore: [docs/**, help/**, contributingGuides/**, jest/**]
+  workflow_dispatch:
+  # push:
+  #   branches: [main]
+  #   paths-ignore: [docs/**, help/**, contributingGuides/**, jest/**]
 
 jobs:
   perf-tests:
