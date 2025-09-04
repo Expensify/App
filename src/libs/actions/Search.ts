@@ -487,12 +487,7 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-function deleteMoneyRequestOnSearch(
-    hash: number,
-    transactionIDList: string[],
-    allTransactions: OnyxCollection<Transaction>,
-    allTransactionViolations: OnyxCollection<TransactionViolations>,
-) {
+function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], transactions: OnyxCollection<Transaction>, violations: OnyxCollection<TransactionViolations>) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
 
     const transactionOptimisticData: OnyxUpdate[] = [];
@@ -501,8 +496,8 @@ function deleteMoneyRequestOnSearch(
     const violationFailureData: OnyxUpdate[] = [];
 
     transactionIDList.forEach((transactionID) => {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+        const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        const transactionViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
 
         transactionOptimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
