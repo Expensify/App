@@ -657,6 +657,7 @@ const translations = {
         merge: 'Samenvoegen',
         unstableInternetConnection: 'Onstabiele internetverbinding. Controleer je netwerk en probeer het opnieuw.',
         enableGlobalReimbursements: 'Wereldwijde terugbetalingen inschakelen',
+        purchaseAmount: 'Aankoopbedrag',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -4884,7 +4885,8 @@ const translations = {
             existingTagError: 'Er bestaat al een tag met deze naam.',
             invalidTagNameError: 'Tagnaam kan niet 0 zijn. Kies een andere waarde.',
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de tag, probeer het alstublieft opnieuw.',
-            importedFromAccountingSoftware: 'De onderstaande labels zijn geïmporteerd uit uw',
+            importedFromAccountingSoftware: 'Tags worden beheerd in je',
+            employeesSeeTagsAs: 'Werknemers zien tags als ',
             glCode: 'GL-code',
             updateGLCodeFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de GL-code, probeer het alstublieft opnieuw.',
             tagRules: 'Tagregels',
@@ -6173,6 +6175,7 @@ const translations = {
             withdrawn: 'Teruggetrokken',
             billable: 'Factureerbaar',
             reimbursable: 'Vergoedbaar',
+            purchaseCurrency: 'Aankoopvaluta',
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.REPORTS]: 'Verslag',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
