@@ -68,7 +68,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
 
     const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountList, policy?.outputCurrency) : getEligibleBankAccountsForCard(bankAccountList);
-    
+
     const startFlow = useCallback(() => {
         if (!eligibleBankAccounts.length || isSetupUnfinished) {
             Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policy?.id, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id)));
