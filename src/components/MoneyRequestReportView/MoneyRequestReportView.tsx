@@ -1,7 +1,7 @@
-import {PortalHost} from '@gorhom/portal';
-import React, {useCallback, useMemo} from 'react';
-import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import { PortalHost } from '@gorhom/portal';
+import React, { useCallback, useMemo } from 'react';
+import { InteractionManager, View } from 'react-native';
+import type { OnyxEntry } from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
@@ -14,25 +14,26 @@ import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
-import {removeFailedReport} from '@libs/actions/Report';
+import { removeFailedReport } from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
+import { getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil } from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import { getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isMoneyRequestAction } from '@libs/ReportActionsUtils';
+import { canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread } from '@libs/ReportUtils';
+import { buildCannedSearchQuery } from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/home/report/ReportActionsView';
 import ReportFooter from '@pages/home/report/ReportFooter';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import type { Route } from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {ThemeStyles} from '@src/styles';
+import type { ThemeStyles } from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
+
 
 type MoneyRequestReportViewProps = {
     /** The report */
@@ -100,17 +101,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     const {transactions: reportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportID);
-    const transactions = useMemo(() => {
-        const nonDeletedTransactions = getAllNonDeletedTransactions(reportTransactions, reportActions);
-
-        return nonDeletedTransactions.map((transaction) => {
-            const transactionViolations = allReportViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] || [];
-            return {
-                ...transaction,
-                violations: transactionViolations,
-            };
-        });
-    }, [reportTransactions, reportActions, allReportViolations]);
+    const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions), [reportTransactions, reportActions]);
 
     const visibleTransactions = transactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
@@ -231,6 +222,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             transactions={visibleTransactions}
                             newTransactions={newTransactions}
                             reportActions={reportActions}
+                            violations={allReportViolations}
                             hasOlderActions={hasOlderActions}
                             hasNewerActions={hasNewerActions}
                             showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}

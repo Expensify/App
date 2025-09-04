@@ -1057,7 +1057,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     splitExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isDemoTransaction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxValue: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                    violations: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1211,13 +1210,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 timestamp: 'string',
                 originalMessage: 'object',
                 previousMessage: 'object',
-            });
-        case 'violations':
-            return validateArray<ArrayElement<Transaction, 'violations'>>(value, {
-                type: CONST.VIOLATION_TYPES,
-                name: CONST.VIOLATIONS,
-                data: 'object',
-                showInReview: 'boolean',
             });
     }
 }

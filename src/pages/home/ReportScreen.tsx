@@ -302,17 +302,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
     const {transactions: allReportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportIDFromRoute);
 
-    const reportTransactions = useMemo(() => {
-        const nonDeletedTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions);
-
-        return nonDeletedTransactions.map((transaction) => {
-            const transactionViolations = allReportViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] || [];
-            return {
-                ...transaction,
-                violations: transactionViolations,
-            };
-        });
-    }, [allReportTransactions, reportActions, allReportViolations]);
+    const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions), [allReportTransactions, reportActions]);
 
     // wrapping in useMemo because this is array operation and can cause performance issues
     const visibleTransactions = useMemo(
@@ -885,6 +875,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         reportActions={reportActions}
                                         transactions={visibleTransactions}
                                         newTransactions={newTransactions}
+                                        violations={allReportViolations}
                                         hasOlderActions={hasOlderActions}
                                         hasNewerActions={hasNewerActions}
                                         showReportActionsLoadingState={showReportActionsLoadingState}

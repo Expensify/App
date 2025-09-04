@@ -16,12 +16,15 @@ import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
+import type {Report, TransactionViolation} from '@src/types/onyx';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {
     /** The transaction that is being displayed */
     transaction: TransactionWithOptionalHighlight;
+
+    /** Transaction violations */
+    violations?: TransactionViolation[];
 
     /** Report to which the transaction belongs */
     report: Report;
@@ -59,6 +62,7 @@ type MoneyRequestReportTransactionItemProps = {
 
 function MoneyRequestReportTransactionItem({
     transaction,
+    violations,
     report,
     isSelectionModeEnabled,
     toggleTransaction,
@@ -128,6 +132,7 @@ function MoneyRequestReportTransactionItem({
             >
                 <TransactionItemRow
                     transactionItem={transaction}
+                    violations={violations}
                     report={report}
                     isSelected={isSelected}
                     dateColumnSize={dateColumnSize}

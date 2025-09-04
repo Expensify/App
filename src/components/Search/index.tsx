@@ -57,7 +57,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {OutstandingReportsByPolicyIDDerivedValue, ReportAction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -198,6 +198,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
+    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
@@ -857,6 +858,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     queryJSON={queryJSON}
                     columns={columnsToShow}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                    violations={violations as Record<string, TransactionViolation[]> | undefined}
                     onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}

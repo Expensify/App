@@ -34,6 +34,7 @@ function TransactionListItem<TItem extends ListItem>({
     columns,
     isLoading,
     areAllOptionalColumnsHidden,
+    violations,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -147,6 +148,7 @@ function TransactionListItem<TItem extends ListItem>({
                     shouldShowCheckbox={!!canSelectMultiple}
                     style={[styles.p3, shouldUseNarrowLayout ? styles.pt2 : {}]}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                    violations={violations}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>

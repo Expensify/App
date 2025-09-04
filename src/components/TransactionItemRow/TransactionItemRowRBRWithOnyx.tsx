@@ -12,12 +12,15 @@ import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, TransactionViolation} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
 type TransactionItemRowRBRProps = {
     /** Transaction item */
     transaction: Transaction;
+
+    /** Transaction violations */
+    violations?: TransactionViolation[];
 
     /** Report item */
     report?: Report;
@@ -29,7 +32,7 @@ type TransactionItemRowRBRProps = {
     missingFieldError?: string;
 };
 
-function TransactionItemRowRBRWithOnyx({transaction, report, containerStyles, missingFieldError}: TransactionItemRowRBRProps) {
+function TransactionItemRowRBRWithOnyx({transaction, violations, report, containerStyles, missingFieldError}: TransactionItemRowRBRProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -42,7 +45,7 @@ function TransactionItemRowRBRWithOnyx({transaction, report, containerStyles, mi
         canBeMissing: true,
     });
 
-    const RBRMessages = ViolationsUtils.getRBRMessages(transaction, translate, missingFieldError, Object.values(transactionThreadActions ?? {}), policyTags);
+    const RBRMessages = ViolationsUtils.getRBRMessages(transaction, violations ?? [], translate, missingFieldError, Object.values(transactionThreadActions ?? {}), policyTags);
 
     return (
         RBRMessages.length > 0 && (
