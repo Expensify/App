@@ -10,6 +10,7 @@ import TextLink from '@components/TextLink';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
@@ -33,6 +34,8 @@ type ConfirmationStepProps = {
 function Confirmation({onNext, policyID, isComingFromExpensifyCard}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
@@ -55,7 +58,7 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
         }
 
         setIsComingFromGlobalReimbursementsFlow(true);
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID), {forceReplace: !isSmallScreenWidth});
     };
 
     const handleSubmit = () => {
