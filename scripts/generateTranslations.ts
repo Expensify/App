@@ -93,9 +93,14 @@ class TranslationGenerator {
     private readonly compareRef: string;
 
     /**
-     * Specific paths to retranslate (supersedes compareRef).
+     * Specific paths to retranslate.
      */
-    private readonly paths: Set<TranslationPaths> | undefined;
+    private readonly pathsToTranslate: Set<TranslationPaths>;
+
+    /**
+     * Paths to remove (only populated when using compareRef).
+     */
+    private readonly pathsToRemove: Set<TranslationPaths>;
 
     /**
      * Should we print verbose logs?
@@ -129,9 +134,10 @@ class TranslationGenerator {
         this.sourceFile = ts.createSourceFile(config.sourceFile, sourceCode, ts.ScriptTarget.Latest, true);
         this.translator = config.translator;
         this.compareRef = config.compareRef;
-        this.paths = config.paths;
+        this.pathsToTranslate = config.paths ?? new Set<TranslationPaths>();
+        this.pathsToRemove = new Set<TranslationPaths>();
         this.verbose = config.verbose;
-        this.isIncremental = !!this.paths || !!this.compareRef;
+        this.isIncremental = this.pathsToTranslate.size > 0 || !!this.compareRef;
     }
 
     public async generateTranslations(): Promise<void> {
@@ -141,7 +147,7 @@ class TranslationGenerator {
         const translations = new Map<TranslationTargetLocale, Map<number, string>>();
 
         // If paths are specified, we only retranslate those paths and skip comparing with existing translations
-        const shouldUseExistingTranslations = !this.paths && this.compareRef;
+        const shouldUseExistingTranslations = this.pathsToTranslate.size === 0 && this.compareRef;
 
         // If a compareRef is provided and we're not filtering by paths, fetch the old version of the files, and traverse the ASTs in parallel to extract existing translations
         if (shouldUseExistingTranslations) {
@@ -215,16 +221,9 @@ class TranslationGenerator {
             });
         }
 
-        // Build sets of dot-notation paths for incremental translations
-        // If paths are provided, just use them directly as the set of added/modified paths
-        const addedOrModifiedPaths = this.paths ?? new Set<TranslationPaths>();
-        const removedPaths = new Set<TranslationPaths>();
-
-        // TODO: modify extractStringsToTranslate to check the node's dot-notation path against the set of added/modified paths if we're doing an incremental translation. Only include it as a string to translate if it's in the set of added/modified paths.
-
-        if (!this.paths && this.compareRef) {
-            // If compareRef is provided, use git diff to find changed lines and build dot-notation paths
-            this.buildPathsFromGitDiff(addedOrModifiedPaths, removedPaths);
+        if (this.pathsToTranslate.size === 0 && this.compareRef) {
+            // If compareRef is provided (and no specific paths), use git diff to find changed lines and build dot-notation paths
+            this.buildPathsFromGitDiff();
         }
         for (const targetLanguage of this.targetLanguages) {
             // Map of translations
@@ -464,11 +463,11 @@ class TranslationGenerator {
      * If paths are specified, only paths that match exactly or are nested under a specified path should be translated.
      */
     private shouldTranslatePath(currentPath: string): boolean {
-        if (!this.paths || this.paths.size === 0) {
+        if (this.pathsToTranslate.size === 0) {
             return true;
         }
 
-        for (const targetPath of this.paths) {
+        for (const targetPath of this.pathsToTranslate) {
             // Exact match
             if (currentPath === targetPath) {
                 return true;
@@ -621,7 +620,7 @@ class TranslationGenerator {
     /**
      * Build dot-notation paths from git diff by analyzing changed lines.
      */
-    private buildPathsFromGitDiff(addedOrModifiedPaths: Set<TranslationPaths>, removedPaths: Set<TranslationPaths>): void {
+    private buildPathsFromGitDiff(): void {
         try {
             // Get the relative path from the git repo root
             const relativePath = path.relative(process.cwd(), path.join(this.languagesDir, 'en.ts'));
@@ -653,18 +652,18 @@ class TranslationGenerator {
             }
 
             // Traverse the AST and build dot-notation paths for nodes on changed lines
-            this.extractPathsFromChangedLines(translationsNode, changedLines.addedLines, changedLines.removedLines, addedOrModifiedPaths, removedPaths);
+            this.extractPathsFromChangedLines(translationsNode, changedLines.addedLines, changedLines.removedLines);
 
             // Handle the case where the same path has both additions and removals (treat as modified, not deleted)
-            for (const removedPath of removedPaths) {
-                if (addedOrModifiedPaths.has(removedPath)) {
-                    removedPaths.delete(removedPath); // It's modified, not removed
+            for (const removedPath of this.pathsToRemove) {
+                if (this.pathsToTranslate.has(removedPath)) {
+                    this.pathsToRemove.delete(removedPath); // It's modified, not removed
                 }
             }
 
             if (this.verbose) {
-                console.log(`📝 Paths to retranslate: ${Array.from(addedOrModifiedPaths).join(', ')}`);
-                console.log(`🗑️ Paths to remove: ${Array.from(removedPaths).join(', ')}`);
+                console.log(`📝 Paths to retranslate: ${Array.from(this.pathsToTranslate).join(', ')}`);
+                console.log(`🗑️ Paths to remove: ${Array.from(this.pathsToRemove).join(', ')}`);
             }
         } catch (error) {
             if (this.verbose) {
@@ -677,14 +676,7 @@ class TranslationGenerator {
     /**
      * Extract dot-notation paths from nodes that are on changed lines.
      */
-    private extractPathsFromChangedLines(
-        node: ts.Node,
-        addedLines: Set<number>,
-        removedLines: Set<number>,
-        addedOrModifiedPaths: Set<TranslationPaths>,
-        removedPaths: Set<TranslationPaths>,
-        currentPath = '',
-    ): void {
+    private extractPathsFromChangedLines(node: ts.Node, addedLines: Set<number>, removedLines: Set<number>, currentPath = ''): void {
         // Check if this node is on a changed line
         const sourceFile = node.getSourceFile();
         const start = sourceFile.getLineAndCharacterOfPosition(node.getStart());
@@ -701,10 +693,10 @@ class TranslationGenerator {
             const dotPath = this.buildDotNotationPathFromNode(node);
             if (dotPath) {
                 if (isOnAddedLine) {
-                    addedOrModifiedPaths.add(dotPath as TranslationPaths);
+                    this.pathsToTranslate.add(dotPath as TranslationPaths);
                 }
                 if (isOnRemovedLine) {
-                    removedPaths.add(dotPath as TranslationPaths);
+                    this.pathsToRemove.add(dotPath as TranslationPaths);
                 }
 
                 if (this.verbose) {
@@ -725,7 +717,7 @@ class TranslationGenerator {
                 }
             }
 
-            this.extractPathsFromChangedLines(child, addedLines, removedLines, addedOrModifiedPaths, removedPaths, childPath);
+            this.extractPathsFromChangedLines(child, addedLines, removedLines, childPath);
         });
     }
 
