@@ -573,7 +573,10 @@ function updateNetSuiteSyncTaxConfiguration(policyID: string, isSyncTaxEnabled: 
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_TAX_CONFIGURATION, params, onyxData);
 }
 
-function updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID: string, isCrossSubsidiaryCustomersEnabled: boolean) {
+function updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID: string | undefined, isCrossSubsidiaryCustomersEnabled: boolean) {
+    if (!policyID) {
+        return;
+    }
     const onyxData = updateNetSuiteSyncOptionsOnyxData(
         policyID,
         CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS,

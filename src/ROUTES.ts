@@ -2429,7 +2429,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT: {
         route: 'workspaces/:policyID/accounting/netsuite/import/customer-projects/select',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/import/customer-projects/select` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import/customer-projects/select` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT: {
         route: 'workspaces/:policyID/connections/netsuite/export/',
