@@ -4868,7 +4868,8 @@ const translations = {
             existingTagError: 'Ein Tag mit diesem Namen existiert bereits',
             invalidTagNameError: 'Der Tag-Name darf nicht 0 sein. Bitte wählen Sie einen anderen Wert.',
             genericFailureMessage: 'Beim Aktualisieren des Tags ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
-            importedFromAccountingSoftware: 'Die unten stehenden Tags werden aus Ihrem',
+            importedFromAccountingSoftware: 'Tags werden in deiner',
+            employeesSeeTagsAs: 'Mitarbeiter sehen Tags als ',
             glCode: 'GL-Code',
             updateGLCodeFailureMessage: 'Beim Aktualisieren des GL-Codes ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
             tagRules: 'Tag-Regeln',
@@ -6337,7 +6338,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `hat begonnen, diesen Bericht nach ${label} zu exportieren...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `Fehler beim Exportieren dieses Berichts nach ${label} ("${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
+                    `Fehler beim Exportieren dieses Berichts nach ${label} ("${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}")`,
                 managerAttachReceipt: `hat eine Quittung hinzugefügt`,
                 managerDetachReceipt: `einen Beleg entfernt`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `${currency}${amount} anderswo bezahlt`,
