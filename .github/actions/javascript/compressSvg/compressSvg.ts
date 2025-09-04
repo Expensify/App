@@ -234,7 +234,7 @@ async function processFiles(svgFiles: string[]): Promise<CompressionSummary> {
     console.log('='.repeat(60));
     console.log(`📁 Total files processed: ${summary.totalFiles}`);
     console.log(`📦 Original total size: ${formatBytes(summary.totalOriginalSize)} KB`);
-    console.log(`🗜️  Compressed total size: ${formatBytes(summary.totalCompressedSize)} KB`);
+    console.log(`🗜️ Compressed total size: ${formatBytes(summary.totalCompressedSize)} KB`);
     console.log(`💾 Total savings: ${formatBytes(summary.totalSavings)} KB`);
     console.log(`📈 Total savings: ${summary.totalSavingsPercent.toFixed(2)}%`);
     console.log('='.repeat(60));
