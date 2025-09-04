@@ -35,6 +35,7 @@ function UserListItem<TItem extends ListItem>({
     wrapperStyle,
     pressableStyle,
     shouldUseDefaultRightHandSideCheckmark,
+    accessibilityState,
 }: UserListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -93,6 +94,7 @@ function UserListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             shouldUseDefaultRightHandSideCheckmark={false}
+            accessibilityState={accessibilityState}
         >
             {(hovered?: boolean) => (
                 <>

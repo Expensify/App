@@ -31,6 +31,7 @@ function NewChatListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     pressableStyle,
+    accessibilityState,
 }: UserListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -80,6 +81,7 @@ function NewChatListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            accessibilityState={accessibilityState}
         >
             {(hovered?: boolean) => (
                 <>

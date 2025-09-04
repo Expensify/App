@@ -33,6 +33,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     wrapperStyle,
     canShowProductTrainingTooltip = true,
     shouldUseDefaultRightHandSideCheckmark = false,
+    accessibilityState,
 }: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -95,6 +96,7 @@ function InviteMemberListItem<TItem extends ListItem>({
             shouldDisplayRBR={!shouldShowCheckBox}
             testID={item.text}
             shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
+            accessibilityState={accessibilityState}
         >
             {(hovered?: boolean) => (
                 <EducationalTooltip

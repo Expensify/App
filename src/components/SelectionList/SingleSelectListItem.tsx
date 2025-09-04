@@ -24,6 +24,7 @@ function SingleSelectListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
+    accessibilityState,
 }: SingleSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
     const isSelected = item.isSelected;
@@ -57,6 +58,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             wrapperStyle={[wrapperStyle, styles.optionRowCompact]}
             titleStyles={titleStyles}
+            accessibilityState={accessibilityState}
         />
     );
 }
