@@ -225,6 +225,11 @@ const baseFilterConfig = {
         description: 'search.filters.purchaseCurrency' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.PURCHASE_CURRENCY),
     },
+    action: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.action' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ACTION),
+    },
 };
 
 function getFilterWorkspaceDisplayTitle(filters: SearchAdvancedFiltersForm, policies: WorkspaceListItem[]) {
@@ -373,6 +378,11 @@ function getFilterDisplayTitle(
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
         const filterValue = filters[key];
         return filterValue ? translate(`common.${filterValue as ValueOf<typeof CONST.SEARCH.DATA_TYPES>}`) : undefined;
+    }
+
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION) {
+        const filterValue = filters[key];
+        return filterValue ? translate(`search.filters.action.${filterValue as ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>}`) : undefined;
     }
 
     if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {

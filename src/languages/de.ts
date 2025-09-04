@@ -6180,6 +6180,12 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Erstattung',
             },
+            action: {
+                [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Einreichen',
+                [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Genehmigen',
+                [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Bezahlen',
+                [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportieren',
+            },
         },
         groupBy: 'Gruppe nach',
         moneyRequestReport: {
