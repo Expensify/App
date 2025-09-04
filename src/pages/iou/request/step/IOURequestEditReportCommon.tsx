@@ -86,7 +86,7 @@ function IOURequestEditReportCommon({
             return Object.values(allPoliciesID ?? {})
                 .filter((policyID) => personalPolicyID !== policyID)
                 .flatMap((policyID) => {
-                    if (!policyID || policyID !== selectedPolicyID) {
+                    if (!policyID) {
                         return [];
                     }
                     const reports = getOutstandingReportsForUser(
