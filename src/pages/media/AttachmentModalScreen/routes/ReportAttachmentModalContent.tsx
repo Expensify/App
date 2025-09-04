@@ -4,11 +4,12 @@ import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {openReport} from '@libs/actions/Report';
-import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportNotFound} from '@libs/ReportUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
+import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,22 +19,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import useNavigateToReportOnRefresh from './hooks/useNavigateToReportOnRefresh';
 import useReportAttachmentModalType from './hooks/useReportAttachmentModalType';
 
-function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.ATTACHMENTS>) {
-    const {
-        attachmentID,
-        type,
-        file,
-        source,
-        isAuthTokenRequired,
-        attachmentLink,
-        originalFileName,
-        accountID = CONST.DEFAULT_NUMBER_ID,
-        reportID,
-        hashKey,
-        shouldDisableSendButton,
-        headerTitle,
-        onShow,
-    } = route.params;
+function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ATTACHMENTS>) {
+    const {attachmentID, type, source: sourceParam, isAuthTokenRequired, attachmentLink, originalFileName, accountID, reportID, hashKey, headerTitle, onShow, onClose} = route.params;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
@@ -44,7 +31,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         canBeMissing: false,
     });
 
-    useNavigateToReportOnRefresh({source, file, reportID});
+    useNavigateToReportOnRefresh({source: sourceParam, reportID});
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {isOffline} = useNetwork();
@@ -80,7 +67,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
 
     const onCarouselAttachmentChange = useCallback(
         (attachment: Attachment) => {
-            const routeToNavigate = ROUTES.ATTACHMENTS.getRoute({
+            const routeToNavigate = ROUTES.REPORT_ATTACHMENTS.getRoute({
                 reportID,
                 attachmentID: attachment.attachmentID,
                 type,
@@ -96,21 +83,19 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         [reportID, type, accountID, hashKey],
     );
 
-    const onClose = useCallback(() => {
-        // This enables Composer refocus when the attachments modal is closed by the browser navigation
-        ComposerFocusManager.setReadyToFocus();
-    }, []);
+    const onDownloadAttachment = useDownloadAttachment({
+        isAuthTokenRequired,
+    });
 
-    const modalType = useReportAttachmentModalType(file);
+    const source = useMemo(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined), [sourceParam]);
+    const modalType = useReportAttachmentModalType();
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
             // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
             type,
-            file,
             report,
             shouldShowNotFoundPage: !isLoading && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID,
-            allowDownload: true,
             isAuthTokenRequired: !!isAuthTokenRequired,
             attachmentLink: attachmentLink ?? '',
             originalFileName: originalFileName ?? '',
@@ -119,29 +104,15 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             attachmentID,
             accountID,
             headerTitle,
-            shouldDisableSendButton,
             submitRef,
+            onDownloadAttachment,
             onCarouselAttachmentChange,
         }),
-        [
-            accountID,
-            attachmentID,
-            attachmentLink,
-            file,
-            headerTitle,
-            isAuthTokenRequired,
-            isLoading,
-            onCarouselAttachmentChange,
-            originalFileName,
-            report,
-            shouldDisableSendButton,
-            source,
-            type,
-        ],
+        [accountID, attachmentID, attachmentLink, headerTitle, isAuthTokenRequired, isLoading, onCarouselAttachmentChange, onDownloadAttachment, originalFileName, report, source, type],
     );
 
     return (
-        <AttachmentModalContainer
+        <AttachmentModalContainer<typeof SCREENS.REPORT_ATTACHMENTS>
             navigation={navigation}
             contentProps={contentProps}
             modalType={modalType}
