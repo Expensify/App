@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
@@ -14,6 +14,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account as AccountOnyx} from '@src/types/onyx';
+import type { TranslationPaths } from '@src/languages/types';
 import Button from './Button';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import EnableBiometricsModal from './EnableBiometricsModal';
@@ -45,7 +46,7 @@ function TestToolMenu() {
     const {translate} = useLocalize();
     const platform = getPlatform();
     const isNative = platform !== CONST.PLATFORM.WEB && platform !== CONST.PLATFORM.MOBILE_WEB;
-    
+
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
     // This should be replaced with actual logic to check if biometrics are registered just like the authenticated status above
@@ -53,12 +54,7 @@ function TestToolMenu() {
 
     const [showBiometricsModal, setShowBiometricsModal] = useState(false);
 
-    const biometricsTitle = useCallback(() => {
-        if (isRegistered) {
-            return 'initialSettingsPage.troubleshoot.biometrics.biometricsRegistered';
-        }
-        return 'initialSettingsPage.troubleshoot.biometrics.biometricsNotRegistered';
-    }, [isRegistered]);
+    const biometricsTitle = useMemo(() => `initialSettingsPage.troubleshoot.biometrics.biometrics${isRegistered ? "" : "Not"}Registered`, [isRegistered])
 
     return (
         <>
@@ -119,7 +115,7 @@ function TestToolMenu() {
 
                     {/* Starts Biometrics test flow -> possible only on native */}
                     {isNative && (
-                        <TestToolRow title={translate(biometricsTitle())}>
+                        <TestToolRow title={translate(biometricsTitle as TranslationPaths)}>
                             <View style={[styles.flexRow, styles.gap2]}>
                                 <Button
                                     small
