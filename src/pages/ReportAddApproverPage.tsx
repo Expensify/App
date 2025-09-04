@@ -23,7 +23,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getMemberAccountIDsForWorkspace, isPolicyAdmin} from '@libs/PolicyUtils';
-import {isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import {getDisplayNameForParticipant, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -69,7 +69,8 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                         return null;
                     }
 
-                    const {avatar, displayName = email} = personalDetails?.[accountID] ?? {};
+                    const {avatar} = personalDetails?.[accountID] ?? {};
+                    const displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails});
                     return {
                         text: displayName,
                         alternateText: email,
