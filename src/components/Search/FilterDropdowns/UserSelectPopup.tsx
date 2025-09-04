@@ -53,6 +53,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.accountID});
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const [searchTerm, setSearchTerm] = useState('');
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
@@ -90,8 +91,9 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
             },
+            countryCode,
         );
-    }, [options.reports, options.personalDetails]);
+    }, [options.reports, options.personalDetails, countryCode]);
 
     const filteredOptions = useMemo(() => {
         return filterAndOrderOptions(optionsList, cleanSearchTerm, {
