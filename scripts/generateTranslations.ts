@@ -10,12 +10,11 @@ import get from 'lodash/get';
 import path from 'path';
 import type {TemplateExpression} from 'typescript';
 import ts from 'typescript';
-import GitHubUtils from '@github/libs/GithubUtils';
 import decodeUnicode from '@libs/StringUtils/decodeUnicode';
 import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
 import {isTranslationTargetLocale, LOCALES, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
-import type {Locale, TranslationTargetLocale} from '@src/CONST/LOCALES';
+import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import en from '@src/languages/en';
 import type {TranslationPaths} from '@src/languages/types';
 import CLI from './utils/CLI';
@@ -26,7 +25,6 @@ import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
 import DummyTranslator from './utils/Translator/DummyTranslator';
 import type Translator from './utils/Translator/Translator';
 import TSCompilerUtils from './utils/TSCompilerUtils';
-import type {LabeledNode} from './utils/TSCompilerUtils';
 
 /**
  * This represents a string to translate. In the context of translation, two strings are considered equal only if their contexts are also equal.
@@ -145,81 +143,6 @@ class TranslationGenerator {
 
         // map of translations for each locale
         const translations = new Map<TranslationTargetLocale, Map<number, string>>();
-
-        // If paths are specified, we only retranslate those paths and skip comparing with existing translations
-        const shouldUseExistingTranslations = this.pathsToTranslate.size === 0 && this.compareRef;
-
-        // If a compareRef is provided and we're not filtering by paths, fetch the old version of the files, and traverse the ASTs in parallel to extract existing translations
-        if (shouldUseExistingTranslations) {
-            const allLocales: Locale[] = [LOCALES.EN, ...this.targetLanguages];
-
-            // An array of labeled "translation nodes", where "translations node" refers to the main object in en.ts and
-            // other locale files that contains all the translations.
-            const oldTranslationNodes: Array<LabeledNode<Locale>> = [];
-            const downloadPromises = [];
-            for (const targetLanguage of allLocales) {
-                const targetPath = `src/languages/${targetLanguage}.ts`;
-                downloadPromises.push(
-                    promisePool.add(() =>
-                        // Download the file from GitHub
-                        GitHubUtils.getFileContents(targetPath, this.compareRef).then((content) => {
-                            // Parse the file contents and find the translations node, save it in the oldTranslationsNodes map
-                            const parsed = ts.createSourceFile(targetPath, content, ts.ScriptTarget.Latest, true);
-                            const oldTranslationNode = this.findTranslationsNode(parsed);
-                            if (!oldTranslationNode) {
-                                throw new Error(`Could not find translation node in ${targetPath}`);
-                            }
-                            oldTranslationNodes.push({label: targetLanguage, node: oldTranslationNode});
-                        }),
-                    ),
-                );
-            }
-            await Promise.all(downloadPromises);
-
-            // Traverse ASTs of all downloaded files in parallel, building a map of {locale => {translationKey => translation}}
-            // Note: traversing in parallel is not just a performance optimization. We need the translation key
-            // from en.ts to map to translations in other files, but we can't rely on dot-notation style paths alone
-            // because sometimes there are strings defined elsewhere, such as in functions or nested templates.
-            // So instead, we rely on the fact that the AST structure of en.ts will very nearly match the AST structure of other locales.
-            // We walk through the AST of en.ts in parallel with all the other ASTs, and take the translation key from
-            // en.ts and the translated value from the target locale.
-            TSCompilerUtils.traverseASTsInParallel(oldTranslationNodes, (nodes: Record<Locale, ts.Node>) => {
-                const enNode = nodes[LOCALES.EN];
-                if (!this.shouldNodeBeTranslated(enNode)) {
-                    return;
-                }
-
-                // Use English for the translation key
-                const translationKey = this.getTranslationKey(enNode);
-
-                for (const targetLanguage of this.targetLanguages) {
-                    const translatedNode = nodes[targetLanguage];
-                    if (!this.shouldNodeBeTranslated(translatedNode)) {
-                        if (this.verbose) {
-                            console.warn('😕 found translated node that should not be translated while English node should be translated', {enNode, translatedNode});
-                            console.trace();
-                        }
-                        continue;
-                    }
-                    const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
-                    const serializedNode =
-                        ts.isStringLiteral(translatedNode) || ts.isNoSubstitutionTemplateLiteral(translatedNode)
-                            ? translatedNode.getText().slice(1, -1)
-                            : this.templateExpressionToString(translatedNode);
-                    translationsForLocale.set(translationKey, serializedNode);
-                    translations.set(targetLanguage, translationsForLocale);
-
-                    // For complex template expressions, we need a way to look up the English span hash for each translated span hash, so we track those here
-                    if (ts.isTemplateExpression(enNode) && ts.isTemplateExpression(translatedNode) && !this.isSimpleTemplateExpression(enNode)) {
-                        for (let i = 0; i < enNode.templateSpans.length; i++) {
-                            const enSpan = enNode.templateSpans[i];
-                            const translatedSpan = translatedNode.templateSpans[i];
-                            this.translatedSpanHashToEnglishSpanHash.set(hashStr(translatedSpan.expression.getText()), hashStr(enSpan.expression.getText()));
-                        }
-                    }
-                }
-            });
-        }
 
         if (this.pathsToTranslate.size === 0 && this.compareRef) {
             // If compareRef is provided (and no specific paths), use git diff to find changed lines and build dot-notation paths

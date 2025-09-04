@@ -43,14 +43,6 @@ function addImport(sourceFile: ts.SourceFile, identifierName: string, modulePath
 }
 
 /**
- * This type is just a simple wrapper around a ts node with a label.
- */
-type LabeledNode<K extends string> = {
-    label: K;
-    node: ts.Node;
-};
-
-/**
  * Custom type for expressions that have both 'expression' and 'type' properties.
  * This is useful for satisfies expressions and type assertions.
  */
@@ -58,49 +50,6 @@ type ExpressionWithType = ts.Node & {
     expression: ts.Expression;
     type: ts.TypeNode;
 };
-
-/**
- * Walks a list of AST nodes in parallel and applies the visitor function at each set of corresponding nodes.
- * Traverses only to the depth and breadth of the shortest subtree at each level.
- *
- * disclaimer: I don't know how this should/will work for ASTs that don't share a common structure. For now, that's undefined behavior.
- */
-function traverseASTsInParallel<K extends string>(roots: Array<LabeledNode<K>>, visit: (nodes: Record<K, ts.Node>) => void): void {
-    if (roots.length === 0) {
-        return;
-    }
-
-    const nodeMap: Partial<Record<K, ts.Node>> = {};
-    for (const {label, node} of roots) {
-        nodeMap[label] = node;
-    }
-    visit(nodeMap as Record<K, ts.Node>);
-
-    // Collect children per label
-    const childrenByLabel = new Map<K, readonly ts.Node[]>();
-    let minChildren = Infinity;
-
-    for (const {label, node} of roots) {
-        const children = node.getChildren();
-        childrenByLabel.set(label, children);
-        if (children.length < minChildren) {
-            minChildren = children.length;
-        }
-    }
-
-    // Traverse child nodes in parallel, stopping at the shortest list
-    for (let i = 0; i < minChildren; i++) {
-        const nextLevel: Array<LabeledNode<K>> = [];
-        for (const {label} of roots) {
-            const children = childrenByLabel.get(label) ?? [];
-            const child = children.at(i);
-            if (child) {
-                nextLevel.push({label, node: child});
-            }
-        }
-        traverseASTsInParallel(nextLevel, visit);
-    }
-}
 
 /**
  * Finds the node that is exported as the default export.
@@ -233,5 +182,5 @@ function extractKeyFromPropertyNode(node: ts.PropertyAssignment | ts.MethodDecla
     return undefined;
 }
 
-export default {findAncestor, addImport, traverseASTsInParallel, findDefaultExport, resolveDeclaration, extractIdentifierFromExpression, extractKeyFromPropertyNode};
-export type {LabeledNode, ExpressionWithType};
+export default {findAncestor, addImport, findDefaultExport, resolveDeclaration, extractIdentifierFromExpression, extractKeyFromPropertyNode};
+export type {ExpressionWithType};
