@@ -19,7 +19,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getIOUActionForTransactionID, getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
@@ -73,13 +73,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     );
     const reportTransactionIDs = useMemo(() => visibleTransactions?.map((transaction) => transaction.transactionID), [visibleTransactions]);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
+    const oneTransactionID = reportTransactions.at(0)?.transactionID;
 
     const reportID = report?.reportID;
 
     useEffect(() => {
-        if (transactionThreadReportID === CONST.FAKE_REPORT_ID) {
-            const oneTransactionID = reportTransactions.at(0)?.transactionID;
-            const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
+        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && oneTransactionID) {
+            const iouAction = getIOUActionForTransactionID(reportActions, oneTransactionID);
             createTransactionThreadReport(report, iouAction);
             return;
         }
