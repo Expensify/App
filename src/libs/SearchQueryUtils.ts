@@ -253,7 +253,7 @@ function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FI
         return filterValue.map((email) => getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
     }
 
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL) {
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
         if (typeof filterValue === 'string') {
             const backendAmount = convertToBackendAmount(Number(filterValue));
             return Number.isNaN(backendAmount) ? filterValue : backendAmount.toString();
@@ -524,6 +524,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.EXPENSE_TYPE ||
                     filterKey === FILTER_KEYS.TAG ||
                     filterKey === FILTER_KEYS.CURRENCY ||
+                    filterKey === FILTER_KEYS.PURCHASE_CURRENCY ||
                     filterKey === FILTER_KEYS.FROM ||
                     filterKey === FILTER_KEYS.TO ||
                     filterKey === FILTER_KEYS.FEED ||
@@ -553,7 +554,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         filtersString.push(dateFilter);
     });
 
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT].forEach((filterKey) => {
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT].forEach((filterKey) => {
         const amountFilter = buildAmountFilterQuery(filterKey, supportedFilterValues);
         filtersString.push(amountFilter);
     });
@@ -643,7 +644,7 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {
             filtersForm[filterKey] = filterValues.find((id) => personalDetails && personalDetails[id]);
         }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) {
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY) {
             const validCurrency = new Set(Object.keys(currencyList));
             filtersForm[filterKey] = filterValues.filter((currency) => validCurrency.has(currency));
         }
@@ -703,7 +704,7 @@ function buildFilterFormValuesFromQuery(
             filtersForm[afterKey] = afterFilter?.value.toString() ?? filtersForm[afterKey];
             filtersForm[onKey] = onFilter?.value.toString() ?? filtersForm[onKey];
         }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL) {
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
             // backend amount is an integer and is 2 digits longer than frontend amount
             filtersForm[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`] =
                 filterList.find((filter) => filter.operator === 'lt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
@@ -779,7 +780,7 @@ function getFilterDisplayValue(
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
     }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL) {
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
         const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue));
         return Number.isNaN(frontendAmount) ? filterValue : frontendAmount.toString();
     }
@@ -936,7 +937,7 @@ function buildCannedSearchQuery({
  * For example: "type:trip" is a canned query.
  */
 function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
-    return !queryJSON.filters && !queryJSON.policyID;
+    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status;
 }
 
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
