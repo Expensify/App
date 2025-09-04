@@ -59,12 +59,10 @@ function EmptyCardView({isBankAccountVerified, policyID}: EmptyCardViewProps) {
             </View>
 
             <View style={[styles.workspaceSection]}>
-                <Text style={[styles.textMicroSupporting, styles.m5]}>{translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}</Text>
+                <Text style={[styles.textMicroSupporting, styles.m5]}>
+                    {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
+                </Text>
             </View>
-
-            <Text style={[styles.textMicroSupporting, styles.m5]}>
-                
-            </Text>
         </ScrollView>
     );
 }

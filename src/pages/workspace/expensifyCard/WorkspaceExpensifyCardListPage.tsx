@@ -259,7 +259,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                             ListFooterComponentStyle={[styles.flexGrow1, styles.justifyContentEnd]}
                             ListFooterComponent={
                                 <View style={[styles.workspaceSection]}>
-                                    <Text style={[styles.textMicroSupporting, styles.m5]}>{translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}</Text>
+                                    <Text style={[styles.textMicroSupporting, styles.m5]}>
+                                        {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
+                                    </Text>
                                 </View>
                             }
                             keyboardShouldPersistTaps="handled"
