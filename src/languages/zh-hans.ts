@@ -4796,7 +4796,8 @@ const translations = {
             existingTagError: '具有此名称的标签已存在',
             invalidTagNameError: '标签名称不能为0。请选择其他值。',
             genericFailureMessage: '更新标签时发生错误，请重试。',
-            importedFromAccountingSoftware: '以下标签是从您的...导入的',
+            importedFromAccountingSoftware: '标签在您的系统中管理',
+            employeesSeeTagsAs: '员工看到的标签为 ',
             glCode: 'GL代码',
             updateGLCodeFailureMessage: '更新总账代码时发生错误，请重试。',
             tagRules: '标签规则',
@@ -6231,7 +6232,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `开始将此报告导出到${label}...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `无法将此报告导出到${label}（"${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}"）`,
+                    `无法将此报告导出到${label}（"${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}"）`,
                 managerAttachReceipt: `添加了一张收据`,
                 managerDetachReceipt: `已删除收据`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `在其他地方支付了${currency}${amount}`,
