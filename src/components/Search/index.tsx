@@ -573,7 +573,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             const backTo = Navigation.getActiveRoute();
 
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionItem && item.isOneTransactionReport && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 const iouReportAction = getIOUActionForTransactionID(reportActionsArray, item.transactionID);
                 createAndOpenSearchTransactionThread(item, iouReportAction, hash, backTo);
                 return;

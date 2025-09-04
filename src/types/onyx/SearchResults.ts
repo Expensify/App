@@ -389,9 +389,6 @@ type SearchTransaction = {
     /** The ID of the report the transaction is associated with */
     reportID: string;
 
-    /** Whether the report the transaction is associated with has a single transaction */
-    isOneTransactionReport?: boolean;
-
     /** The name of the file used for a receipt */
     filename?: string;
 
