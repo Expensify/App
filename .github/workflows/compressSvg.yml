@@ -1,23 +1,77 @@
-name: Compress SVG files
+name: Compress SVG files (ImgBot-like)
 
 on:
-  pull_request:
-    types: [opened, synchronize]
-    branches-ignore: [staging, production]
+  push:
+    branches-ignore: [staging, production, compress-svgs-*]
     paths:
       - "**/*.svg"
+  schedule:
+    # Run weekly on Sundays at midnight to catch any missed files
+    - cron: '0 0 * * 0'
   workflow_dispatch:
 
 jobs:
   compress:
     runs-on: macos-latest
+    # Skip if the push is from the compression bot itself
+    if: github.actor != 'github-actions[bot]' && !startsWith(github.ref_name, 'compress-svgs-')
+    
     steps:
       - name: Checkout
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          # Fetch full history for proper git diff
+          fetch-depth: 0
+          # Use a token that can create PRs
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
+      - name: Check for existing compression PRs
+        id: check_existing
+        if: github.event_name == 'schedule'
+        run: |
+          # Check if there's already an open PR with compression
+          EXISTING_PR=$(gh pr list --state open --label "compression" --limit 1 --json number --jq '.[0].number')
+          if [ ! -z "$EXISTING_PR" ] && [ "$EXISTING_PR" != "null" ]; then
+            echo "existing_pr=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Found existing compression PR #$EXISTING_PR, skipping to avoid spam"
+          else
+            echo "existing_pr=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Compress SVG files
+        id: compress
+        if: steps.check_existing.outputs.existing_pr != 'true'
         uses: ./.github/actions/javascript/compressSvg
+
+      - name: Create Pull Request
+        if: steps.compress.outputs.has_changes == 'true' && steps.check_existing.outputs.existing_pr != 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "🗜️ Compress SVG files (${{ steps.compress.outputs.files_changed }} files, ${{ steps.compress.outputs.savings_kb }} KB saved)"
+          title: "🗜️ Compress SVG files"
+          body: |
+            ${{ steps.compress.outputs.markdown }}
+            
+            ---
+            
+            This automated PR was created to compress SVG files and reduce repository size.
+            
+            **Review checklist:**
+            - [ ] Verify that compressed SVGs still render correctly
+            - [ ] Check that file sizes have been reduced without quality loss
+            - [ ] Ensure no important SVG metadata was removed
+            
+            *This PR will be automatically updated if more SVG files are added and need compression.*
+          branch: compress-svgs-${{ github.run_number }}
+          delete-branch: true
+          labels: |
+            automated
+            compression
+            svg
