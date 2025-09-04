@@ -51,10 +51,6 @@ function HeaderWithBackButton({
     subtitle = '',
     title = '',
     titleColor,
-    threeDotsAnchorPosition = {
-        vertical: 0,
-        horizontal: 0,
-    },
     threeDotsAnchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -154,12 +150,12 @@ function HeaderWithBackButton({
                 </Tooltip>
             ) : (
                 <ThreeDotsMenu
+                    shouldSelfPosition
                     icon={threeDotsMenuIcon}
                     iconFill={threeDotsMenuIconFill}
                     disabled={shouldDisableThreeDotsButton}
                     menuItems={threeDotsMenuItems}
                     onIconPress={onThreeDotsButtonPress}
-                    anchorPosition={threeDotsAnchorPosition}
                     shouldOverlay={shouldOverlayDots}
                     anchorAlignment={threeDotsAnchorAlignment}
                     shouldSetModalVisibility={shouldSetModalVisibility}
@@ -168,19 +164,18 @@ function HeaderWithBackButton({
         }
         return null;
     }, [
-        onThreeDotsButtonPress,
-        shouldDisableThreeDotsButton,
-        shouldOverlayDots,
-        shouldSetModalVisibility,
         shouldShowThreeDotsButton,
-        styles.touchableButtonImage,
-        theme.icon,
-        threeDotsAnchorAlignment,
-        threeDotsAnchorPosition,
-        threeDotsMenuIcon,
-        threeDotsMenuIconFill,
         threeDotsMenuItems,
         shouldMinimizeMenuButton,
+        styles.touchableButtonImage,
+        theme.icon,
+        threeDotsMenuIcon,
+        threeDotsMenuIconFill,
+        shouldDisableThreeDotsButton,
+        onThreeDotsButtonPress,
+        shouldOverlayDots,
+        threeDotsAnchorAlignment,
+        shouldSetModalVisibility,
     ]);
 
     return (
