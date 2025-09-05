@@ -77,7 +77,7 @@ function traverseASTsInParallel<K extends string>(roots: Array<LabeledNode<K>>, 
     visit(nodeMap as Record<K, ts.Node>);
 
     // Collect children per label
-    const childrenByLabel = new Map<K, ts.Node[]>();
+    const childrenByLabel = new Map<K, readonly ts.Node[]>();
     let minChildren = Infinity;
 
     for (const {label, node} of roots) {
@@ -212,5 +212,26 @@ function extractIdentifierFromExpression(node: ts.Node): string | null {
     return null;
 }
 
-export default {findAncestor, addImport, traverseASTsInParallel, findDefaultExport, resolveDeclaration, extractIdentifierFromExpression};
+/**
+ * Extracts the key name from a TypeScript property assignment or method declaration node.
+ * Handles cases like:
+ * - Property assignment: `key: value` -> "key"
+ * - String literal property: `"key": value` -> "key"
+ * - Method declaration: `key() { ... }` -> "key"
+ *
+ * @param node The PropertyAssignment or MethodDeclaration node to extract the key from
+ * @returns The key name as a string, or undefined if the key cannot be extracted
+ */
+function extractKeyFromPropertyNode(node: ts.PropertyAssignment | ts.MethodDeclaration): string | undefined {
+    if (ts.isPropertyAssignment(node)) {
+        if (ts.isIdentifier(node.name) || ts.isStringLiteral(node.name)) {
+            return node.name.text;
+        }
+    } else if (ts.isMethodDeclaration(node) && ts.isIdentifier(node.name)) {
+        return node.name.text;
+    }
+    return undefined;
+}
+
+export default {findAncestor, addImport, traverseASTsInParallel, findDefaultExport, resolveDeclaration, extractIdentifierFromExpression, extractKeyFromPropertyNode};
 export type {LabeledNode, ExpressionWithType};

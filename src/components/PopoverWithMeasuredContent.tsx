@@ -1,12 +1,14 @@
 import {circularDeepEqual, deepEqual} from 'fast-equals';
-import React, {useContext, useMemo, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import usePrevious from '@hooks/usePrevious';
+import useSidePanel from '@hooks/useSidePanel';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {AnchorDimensions, AnchorPosition} from '@src/styles';
 import * as ActionSheetAwareScrollView from './ActionSheetAwareScrollView';
@@ -43,8 +45,8 @@ type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
 
 function PopoverWithMeasuredContent({
     popoverDimensions = {
-        height: 0,
-        width: 0,
+        width: CONST.POPOVER_DROPDOWN_WIDTH,
+        height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
     },
     anchorPosition,
     isVisible,
@@ -80,19 +82,26 @@ function PopoverWithMeasuredContent({
     const [isContentMeasured, setIsContentMeasured] = useState(popoverWidth > 0 && popoverHeight > 0);
     const prevIsVisible = usePrevious(isVisible);
     const prevAnchorPosition = usePrevious(anchorPosition);
-    const prevWindowDimensions = usePrevious({windowWidth, windowHeight});
+    const {shouldHideSidePanel} = useSidePanel();
+    const availableWidth = windowWidth - (shouldHideSidePanel ? 0 : variables.sideBarWidth);
+    const prevWindowDimensions = usePrevious({availableWidth, windowHeight});
+
+    const hasStaticDimensions = popoverDimensions.width > 0 && popoverDimensions.height > 0;
 
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
 
-    if (!prevIsVisible && isVisible && shouldEnableNewFocusManagement) {
+    useEffect(() => {
+        if (prevIsVisible || !isVisible || !shouldEnableNewFocusManagement) {
+            return;
+        }
         ComposerFocusManager.saveFocusState(modalId);
-    }
+    }, [isVisible, shouldEnableNewFocusManagement, prevIsVisible, modalId]);
 
     if (!prevIsVisible && isVisible && isContentMeasured && !shouldSkipRemeasurement) {
         // Check if anything significant changed that would require re-measurement
         const hasAnchorPositionChanged = !deepEqual(prevAnchorPosition, anchorPosition);
-        const hasWindowSizeChanged = !deepEqual(prevWindowDimensions, {windowWidth, windowHeight});
-        const hasStaticDimensions = popoverDimensions.width > 0 && popoverDimensions.height > 0;
+
+        const hasWindowSizeChanged = !deepEqual(prevWindowDimensions, {availableWidth, windowHeight});
 
         // Only reset if:
         // 1. We don't have static dimensions, OR
@@ -108,8 +117,12 @@ function PopoverWithMeasuredContent({
      */
     const measurePopover = ({nativeEvent}: LayoutChangeEvent) => {
         const {width, height} = nativeEvent.layout;
-        setPopoverWidth(width);
-        setPopoverHeight(height);
+        if (width !== 0 && !hasStaticDimensions) {
+            setPopoverWidth(width);
+        }
+        if (height !== 0 && !hasStaticDimensions) {
+            setPopoverHeight(height);
+        }
         setIsContentMeasured(true);
 
         // it handles the case when `measurePopover` is called with values like: 192, 192.00003051757812, 192
@@ -162,7 +175,7 @@ function PopoverWithMeasuredContent({
     }, [anchorPosition, anchorAlignment, popoverWidth, popoverHeight]);
 
     const positionCalculations = useMemo(() => {
-        const horizontalShift = PopoverWithMeasuredContentUtils.computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, windowWidth);
+        const horizontalShift = PopoverWithMeasuredContentUtils.computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, availableWidth);
         const verticalShift = PopoverWithMeasuredContentUtils.computeVerticalShift(
             adjustedAnchorPosition.top,
             popoverHeight,
@@ -171,7 +184,7 @@ function PopoverWithMeasuredContent({
             shouldSwitchPositionIfOverflow,
         );
         return {horizontalShift, verticalShift};
-    }, [adjustedAnchorPosition.left, adjustedAnchorPosition.top, popoverWidth, popoverHeight, windowWidth, windowHeight, anchorDimensions.height, shouldSwitchPositionIfOverflow]);
+    }, [adjustedAnchorPosition.left, adjustedAnchorPosition.top, popoverWidth, availableWidth, popoverHeight, windowHeight, anchorDimensions.height, shouldSwitchPositionIfOverflow]);
 
     const shiftedAnchorPosition: PopoverAnchorPosition = useMemo(() => {
         const result: PopoverAnchorPosition = {

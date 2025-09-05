@@ -4,7 +4,6 @@ description: Learn how to delete expenses from reports in New Expensify, includi
 keywords: [New Expensify, delete expenses, remove expense, company card, undo submit, draft expense, report expense, expense deletion]
 ---
 
-<div id="new-expensify" markdown="1">
 
 Do you need to remove an expense in New Expensify? The steps differ depending on whether the expense is still open or already submitted. This guide covers how to remove company card and personal expenses.
 
@@ -20,7 +19,7 @@ Do you need to remove an expense in New Expensify? The steps differ depending on
 
 You can delete any out-of-pocket expense that hasn’t been submitted yet:
 
-1. From the left-hand menu, head to **Reports > Expense Reports**.
+1. From the left-hand menu, head to **Reports > Reports**.
 2. Open the report containing the expense.
 3. Select the checkbox next to the expense you want to delete.
 4. Choose **Delete** from the drop-down menu.
@@ -63,4 +62,3 @@ Expenses tied to company cards without the **Allow deleting transactions** setti
 
 No, once a report is approved or paid, it cannot be reopened. Only reports in a **Closed** or **Processing** state can be reopened to delete the expenses.
 
-</div>

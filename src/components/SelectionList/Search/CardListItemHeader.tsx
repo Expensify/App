@@ -1,35 +1,32 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {ListItem, TransactionCardGroupListItemType} from '@components/SelectionList/types';
-import SubscriptAvatar from '@components/SubscriptAvatar';
-import type {SubIcon} from '@components/SubscriptAvatar';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
-import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon} from '@libs/CardUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
+import ActionCell from './ActionCell';
+import TotalCell from './TotalCell';
 
 type CardListItemHeaderProps<TItem extends ListItem> = {
     /** The card currently being looked at */
     card: TransactionCardGroupListItemType;
+
+    /** Callback to fire when the item is pressed */
+    onSelectRow: (item: TItem) => void;
 
     /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
-
-    /** Whether the item is hovered */
-    isHovered?: boolean;
 
     /** Whether the item is focused */
     isFocused?: boolean;
@@ -38,37 +35,16 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     canSelectMultiple: boolean | undefined;
 };
 
-function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxPress, isDisabled, isHovered, isFocused, canSelectMultiple}: CardListItemHeaderProps<TItem>) {
+function CardListItemHeader<TItem extends ListItem>({card: cardItem, onSelectRow, onCheckboxPress, isDisabled, isFocused, canSelectMultiple}: CardListItemHeaderProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
-    const illustrations = useThemeIllustrations();
-
-    const formattedDisplayName = useMemo(() => formatPhoneNumber(getDisplayNameOrDefault(cardItem)), [cardItem]);
-
-    const [memberAvatar, cardIcon] = useMemo(() => {
-        const avatar: Icon = {
-            source: cardItem.avatar,
-            type: CONST.ICON_TYPE_AVATAR,
-            name: formattedDisplayName,
-            id: cardItem.accountID,
-        };
-
-        const icon: SubIcon = {
-            source: getCardFeedIcon(cardItem.bank as CompanyCardFeed, illustrations),
-            width: variables.cardAvatarWidth,
-            height: variables.cardAvatarHeight,
-        };
-
-        return [avatar, icon];
-    }, [formattedDisplayName, illustrations, cardItem]);
-
+    const {translate, formatPhoneNumber} = useLocalize();
+    const {isLargeScreenWidth} = useResponsiveLayout();
+    const formattedDisplayName = useMemo(() => formatPhoneNumber(getDisplayNameOrDefault(cardItem)), [cardItem, formatPhoneNumber]);
     const backgroundColor =
-        StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
-        theme.highlightBG;
-
-    // s77rt add total cell, action cell and collapse/expand button
+        StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
+    const shouldShowAction = isLargeScreenWidth;
 
     return (
         <View>
@@ -82,28 +58,40 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
                             accessibilityLabel={translate('common.select')}
                         />
                     )}
-                    <View style={[styles.flexRow, styles.gap3]}>
-                        <SubscriptAvatar
-                            mainAvatar={memberAvatar}
-                            subscriptIcon={cardIcon}
-                            backgroundColor={backgroundColor}
-                            noMargin
+                    <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
+                        <ReportActionAvatars
+                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
+                            subscriptAvatarBorderColor={backgroundColor}
+                            noRightMarginOnSubscriptContainer
+                            accountIDs={[cardItem.accountID]}
                         />
-                        <View style={[styles.gapHalf]}>
+                        <View style={[styles.gapHalf, styles.flexShrink1]}>
                             <TextWithTooltip
                                 text={formattedDisplayName}
                                 style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre]}
                             />
                             <TextWithTooltip
-                                text={`${cardItem.cardName} • ${cardItem.lastFourPAN}`}
+                                text={`${cardItem.cardName}${cardItem.lastFourPAN ? ` ${CONST.DOT_SEPARATOR} ` : ''}${cardItem.lastFourPAN}`}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         </View>
                     </View>
                 </View>
-            </View>
-            <View style={[styles.pv2, styles.ph3]}>
-                <View style={[styles.borderBottom]} />
+                <View style={[styles.flexShrink0, styles.mr3]}>
+                    <TotalCell
+                        total={cardItem.total}
+                        currency={cardItem.currency}
+                    />
+                </View>
+                {shouldShowAction && (
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                        <ActionCell
+                            action={CONST.SEARCH.ACTION_TYPES.VIEW}
+                            goToItem={() => onSelectRow(cardItem as unknown as TItem)}
+                            isSelected={cardItem.isSelected}
+                        />
+                    </View>
+                )}
             </View>
         </View>
     );

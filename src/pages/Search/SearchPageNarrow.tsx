@@ -1,4 +1,5 @@
-import React, {useCallback, useState} from 'react';
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback, useContext, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {clamp, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -8,8 +9,10 @@ import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
+import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
@@ -17,6 +20,7 @@ import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -24,11 +28,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
 import {search} from '@userActions/Search';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
 
@@ -52,23 +58,29 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
     const {clearSelectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
-
+    const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchResultsKey}`, {canBeMissing: true});
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
     const triggerScrollEvent = useScrollEventEmitter();
+    const route = useRoute();
+    const {saveScrollOffset} = useContext(ScrollOffsetContext);
+
+    const scrollOffset = useSharedValue(0);
+    const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
 
     const handleBackButtonPress = useCallback(() => {
         if (!isMobileSelectionModeEnabled) {
             return false;
         }
-        clearSelectedTransactions(undefined, true);
+        topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
+        clearSelectedTransactions();
+        turnOffMobileSelectionMode();
         return true;
-    }, [isMobileSelectionModeEnabled, clearSelectedTransactions]);
+    }, [isMobileSelectionModeEnabled, clearSelectedTransactions, topBarOffset, StyleUtils.searchHeaderDefaultOffset]);
 
     useHandleBackButton(handleBackButtonPress);
 
-    const scrollOffset = useSharedValue(0);
-    const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
     const topBarAnimatedStyle = useAnimatedStyle(() => ({
         top: topBarOffset.get(),
     }));
@@ -85,6 +97,8 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
                 const isScrollingDown = currentOffset > scrollOffset.get();
                 const distanceScrolled = currentOffset - scrollOffset.get();
 
+                runOnJS(saveScrollOffset)(route, currentOffset);
+
                 if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
                     topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset));
                 } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
@@ -98,14 +112,10 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
-    const shouldDisplayCancelSearch = shouldUseNarrowLayout && ((!!queryJSON && !isCannedSearchQuery(queryJSON)) || searchRouterListVisible);
+    const shouldDisplayCancelSearch = shouldUseNarrowLayout && searchRouterListVisible;
     const cancelSearchCallback = useCallback(() => {
-        if (searchRouterListVisible) {
-            setSearchRouterListVisible(false);
-            return;
-        }
-        Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
-    }, [searchRouterListVisible]);
+        setSearchRouterListVisible(false);
+    }, []);
 
     const handleSearchAction = useCallback((value: SearchParams | string) => {
         if (typeof value === 'string') {
@@ -133,7 +143,9 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
     }
 
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
-    const shouldShowLoadingState = !isOffline && !isDataLoaded;
+    const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!currentSearchResults?.search?.isLoading);
+    const metadata = searchResults?.search;
+    const shouldShowFooter = !!metadata?.count;
 
     return (
         <ScreenWrapper
@@ -216,6 +228,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
                         />
                     </View>
                 )}
+                {shouldShowFooter && <SearchPageFooter metadata={metadata} />}
             </View>
         </ScreenWrapper>
     );

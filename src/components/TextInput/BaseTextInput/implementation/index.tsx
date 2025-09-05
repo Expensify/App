@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
-import type {ForwardedRef, RefObject} from 'react';
-import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
+import type {RefObject} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -32,58 +32,57 @@ import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-function BaseTextInput(
-    {
-        label = '',
-        /**
-         * To be able to function as either controlled or uncontrolled component we should not
-         * assign a default prop value for `value` or `defaultValue` props
-         */
-        value = undefined,
-        defaultValue = undefined,
-        placeholder = '',
-        errorText = '',
-        icon = null,
-        iconLeft = null,
-        textInputContainerStyles,
-        shouldApplyPaddingToContainer = true,
-        touchableInputWrapperStyle,
-        containerStyles,
-        inputStyle,
-        forceActiveLabel = false,
-        disableKeyboard = false,
-        autoGrow = false,
-        autoGrowHeight = false,
-        maxAutoGrowHeight,
-        hideFocusedState = false,
-        maxLength = undefined,
-        hint = '',
-        onInputChange = () => {},
-        multiline = false,
-        shouldInterceptSwipe = false,
-        autoCorrect = true,
-        prefixCharacter = '',
-        suffixCharacter = '',
-        inputID,
-        type = 'default',
-        excludedMarkdownStyles = [],
-        shouldShowClearButton = false,
-        shouldHideClearButton = true,
-        shouldUseDisabledStyles = true,
-        prefixContainerStyle = [],
-        prefixStyle = [],
-        suffixContainerStyle = [],
-        suffixStyle = [],
-        contentWidth,
-        loadingSpinnerStyle,
-        uncontrolled = false,
-        placeholderTextColor,
-        onClearInput,
-        iconContainerStyle,
-        ...inputProps
-    }: BaseTextInputProps,
-    ref: ForwardedRef<BaseTextInputRef>,
-) {
+function BaseTextInput({
+    label = '',
+    /**
+     * To be able to function as either controlled or uncontrolled component we should not
+     * assign a default prop value for `value` or `defaultValue` props
+     */
+    value = undefined,
+    defaultValue = undefined,
+    placeholder = '',
+    errorText = '',
+    icon = null,
+    iconLeft = null,
+    textInputContainerStyles,
+    shouldApplyPaddingToContainer = true,
+    touchableInputWrapperStyle,
+    containerStyles,
+    inputStyle,
+    forceActiveLabel = false,
+    disableKeyboard = false,
+    autoGrow = false,
+    autoGrowHeight = false,
+    maxAutoGrowHeight,
+    hideFocusedState = false,
+    maxLength = undefined,
+    hint = '',
+    onInputChange = () => {},
+    multiline = false,
+    shouldInterceptSwipe = false,
+    autoCorrect = true,
+    prefixCharacter = '',
+    suffixCharacter = '',
+    inputID,
+    type = 'default',
+    excludedMarkdownStyles = [],
+    shouldShowClearButton = false,
+    shouldHideClearButton = true,
+    shouldUseDisabledStyles = true,
+    prefixContainerStyle = [],
+    prefixStyle = [],
+    suffixContainerStyle = [],
+    suffixStyle = [],
+    contentWidth,
+    loadingSpinnerStyle,
+    uncontrolled = false,
+    placeholderTextColor,
+    onClearInput,
+    iconContainerStyle,
+    shouldUseDefaultLineHeightForPrefix = true,
+    ref,
+    ...inputProps
+}: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
@@ -280,12 +279,12 @@ function BaseTextInput(
         shouldAddPaddingBottom && styles.pb1,
     ]);
 
+    const verticalPaddingDiff = StyleUtils.getVerticalPaddingDiffFromStyle(newTextInputContainerStyles);
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
-
     return (
         <>
             <View
@@ -368,14 +367,14 @@ function BaseTextInput(
                                         tabIndex={-1}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                        shouldUseDefaultLineHeight={!Object.keys(StyleSheet.flatten(prefixStyle)).includes('lineHeight')}
+                                        shouldUseDefaultLineHeight={shouldUseDefaultLineHeightForPrefix}
                                     >
                                         {prefixCharacter}
                                     </Text>
                                 </View>
                             )}
                             <InputComponent
-                                ref={(element: AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
+                                ref={(element: HTMLFormElement | AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
                                     const baseTextInputRef = element as BaseTextInputRef | null;
                                     if (typeof ref === 'function') {
                                         ref(baseTextInputRef);
@@ -442,7 +441,7 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && (
+                            {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && !inputProps.isLoading && (
                                 <View
                                     onLayout={() => {
                                         if (didScrollToEndRef.current || !input.current) {
@@ -453,22 +452,21 @@ function BaseTextInput(
                                     }}
                                 >
                                     <TextInputClearButton
-                                        style={StyleUtils.getTextInputIconContainerStyles(hasLabel, false)}
                                         onPressButton={() => {
                                             setValue('');
                                             onClearInput?.();
                                         }}
+                                        style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}
                                     />
                                 </View>
                             )}
-                            {inputProps.isLoading !== undefined && (
+                            {inputProps.isLoading !== undefined && !shouldShowClearButton && (
                                 <ActivityIndicator
                                     size="small"
                                     color={theme.iconSuccessFill}
                                     style={[
-                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false),
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff),
                                         styles.ml1,
-                                        styles.justifyContentStart,
                                         loadingSpinnerStyle,
                                         StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0),
                                     ]}
@@ -476,7 +474,7 @@ function BaseTextInput(
                             )}
                             {!!inputProps.secureTextEntry && (
                                 <Checkbox
-                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel)}
+                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff)}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(e) => {
                                         e.preventDefault();
@@ -490,7 +488,13 @@ function BaseTextInput(
                                 </Checkbox>
                             )}
                             {!inputProps.secureTextEntry && !!icon && (
-                                <View style={[StyleUtils.getTextInputIconContainerStyles(hasLabel), !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone, iconContainerStyle]}>
+                                <View
+                                    style={[
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff),
+                                        !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone,
+                                        iconContainerStyle,
+                                    ]}
+                                >
                                     <Icon
                                         src={icon}
                                         fill={theme.icon}
@@ -528,4 +532,4 @@ function BaseTextInput(
 
 BaseTextInput.displayName = 'BaseTextInput';
 
-export default forwardRef(BaseTextInput);
+export default BaseTextInput;

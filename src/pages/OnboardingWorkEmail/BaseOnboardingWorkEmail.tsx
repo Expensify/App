@@ -11,6 +11,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import OnboardingMergingAccountBlockedView from '@components/OnboardingMergingAccountBlockedView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -138,7 +139,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         <ScreenWrapper
             shouldEnableMaxHeight={!isMobileSafari()}
             shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
-            includeSafeAreaPaddingBottom={isOffline}
+            includeSafeAreaPaddingBottom
             testID="BaseOnboardingWorkEmail"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
@@ -146,95 +147,104 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 progressBarPercentage={10}
                 shouldShowBackButton={false}
             />
-            <FormProvider
-                style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
-                formID={ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM}
-                validate={validate}
-                onSubmit={submitWorkEmail}
-                submitButtonText={translate('onboarding.workEmail.addWorkEmail')}
-                enabledWhenOffline
-                submitFlexEnabled
-                shouldValidateOnBlur={false}
-                shouldValidateOnChange={shouldValidateOnChange}
-                shouldTrimValues={false}
-                footerContent={
-                    <OfflineWithFeedback
-                        shouldDisplayErrorAbove
-                        style={styles.mb3}
-                        errors={onboardingErrorMessage ? {addWorkEmailError: onboardingErrorMessage} : undefined}
-                        errorRowStyles={[styles.mt2, styles.textWrap]}
-                        onClose={() => setOnboardingErrorMessage('')}
-                    >
-                        <Button
-                            large
-                            text={translate('common.skip')}
-                            testID="onboardingPrivateEmailSkipButton"
-                            onPress={() => {
-                                setOnboardingErrorMessage('');
-
-                                setOnboardingMergeAccountStepValue(true, true);
-                            }}
-                        />
-                    </OfflineWithFeedback>
-                }
-                shouldRenderFooterAboveSubmit
-                shouldHideFixErrorsAlert
-            >
-                <View>
-                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
-                        <Text style={styles.textHeadlineH1}>{translate('onboarding.workEmail.title')}</Text>
-                    </View>
-                    <View style={styles.mb2}>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.workEmail.subtitle')}</Text>
-                    </View>
-                    <View>
-                        {section.map((item) => {
-                            return (
-                                <View
-                                    key={item.titleTranslationKey}
-                                    style={[styles.mt2, styles.mb3]}
-                                >
-                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                                        <Icon
-                                            src={item.icon}
-                                            height={ICON_SIZE}
-                                            width={ICON_SIZE}
-                                            additionalStyles={[styles.mr3]}
-                                        />
-                                        <View style={[styles.flexColumn, styles.flex1]}>
-                                            {item.shouldRenderEmail ? (
-                                                <AutoEmailLink
-                                                    style={[styles.textStrong, styles.lh20]}
-                                                    text={translate(item.titleTranslationKey)}
-                                                />
-                                            ) : (
-                                                <Text style={[styles.textStrong, styles.lh20]}>{translate(item.titleTranslationKey)}</Text>
-                                            )}
-                                        </View>
-                                    </View>
-                                </View>
-                            );
-                        })}
-                    </View>
-                </View>
-
-                <View style={[styles.mb4, styles.pt3]}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        // We do not want to auto-focus for mobile platforms
-                        ref={operatingSystem !== CONST.OS.ANDROID && operatingSystem !== CONST.OS.IOS ? inputCallbackRef : undefined}
-                        name="fname"
-                        inputID={INPUT_IDS.ONBOARDING_WORK_EMAIL}
-                        label={translate('common.workEmail')}
-                        aria-label={translate('common.workEmail')}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={workEmail ?? ''}
-                        shouldSaveDraft
-                        maxLength={CONST.LOGIN_CHARACTER_LIMIT}
-                        spellCheck={false}
+            {onboardingValues?.isMergingAccountBlocked ? (
+                <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
+                    <OnboardingMergingAccountBlockedView
+                        workEmail={workEmail}
+                        isVsb={isVsb}
                     />
                 </View>
-            </FormProvider>
+            ) : (
+                <FormProvider
+                    style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
+                    formID={ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM}
+                    validate={validate}
+                    onSubmit={submitWorkEmail}
+                    submitButtonText={translate('onboarding.workEmail.addWorkEmail')}
+                    enabledWhenOffline
+                    submitFlexEnabled
+                    shouldValidateOnBlur={false}
+                    shouldValidateOnChange={shouldValidateOnChange}
+                    shouldTrimValues={false}
+                    footerContent={
+                        <OfflineWithFeedback
+                            shouldDisplayErrorAbove
+                            style={styles.mb3}
+                            errors={onboardingErrorMessage ? {addWorkEmailError: onboardingErrorMessage} : undefined}
+                            errorRowStyles={[styles.mt2, styles.textWrap]}
+                            onClose={() => setOnboardingErrorMessage('')}
+                        >
+                            <Button
+                                large
+                                text={translate('common.skip')}
+                                testID="onboardingPrivateEmailSkipButton"
+                                onPress={() => {
+                                    setOnboardingErrorMessage('');
+
+                                    setOnboardingMergeAccountStepValue(true, true);
+                                }}
+                            />
+                        </OfflineWithFeedback>
+                    }
+                    shouldRenderFooterAboveSubmit
+                    shouldHideFixErrorsAlert
+                >
+                    <View>
+                        <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
+                            <Text style={styles.textHeadlineH1}>{translate('onboarding.workEmail.title')}</Text>
+                        </View>
+                        <View style={styles.mb2}>
+                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.workEmail.subtitle')}</Text>
+                        </View>
+                        <View>
+                            {section.map((item) => {
+                                return (
+                                    <View
+                                        key={item.titleTranslationKey}
+                                        style={[styles.mt2, styles.mb3]}
+                                    >
+                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+                                            <Icon
+                                                src={item.icon}
+                                                height={ICON_SIZE}
+                                                width={ICON_SIZE}
+                                                additionalStyles={[styles.mr3]}
+                                            />
+                                            <View style={[styles.flexColumn, styles.flex1]}>
+                                                {item.shouldRenderEmail ? (
+                                                    <AutoEmailLink
+                                                        style={[styles.textStrong, styles.lh20]}
+                                                        text={translate(item.titleTranslationKey)}
+                                                    />
+                                                ) : (
+                                                    <Text style={[styles.textStrong, styles.lh20]}>{translate(item.titleTranslationKey)}</Text>
+                                                )}
+                                            </View>
+                                        </View>
+                                    </View>
+                                );
+                            })}
+                        </View>
+                    </View>
+
+                    <View style={[styles.mb4, styles.pt3]}>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            // We do not want to auto-focus for mobile platforms
+                            ref={operatingSystem !== CONST.OS.ANDROID && operatingSystem !== CONST.OS.IOS ? inputCallbackRef : undefined}
+                            name="fname"
+                            inputID={INPUT_IDS.ONBOARDING_WORK_EMAIL}
+                            label={translate('common.workEmail')}
+                            aria-label={translate('common.workEmail')}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={workEmail ?? ''}
+                            shouldSaveDraft
+                            maxLength={CONST.LOGIN_CHARACTER_LIMIT}
+                            spellCheck={false}
+                        />
+                    </View>
+                </FormProvider>
+            )}
         </ScreenWrapper>
     );
 }

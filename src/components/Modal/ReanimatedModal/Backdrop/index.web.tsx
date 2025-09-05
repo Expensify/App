@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Animated, {Keyframe} from 'react-native-reanimated';
+import Animated, {Keyframe, ReduceMotion} from 'react-native-reanimated';
 import type {BackdropProps} from '@components/Modal/ReanimatedModal/types';
 import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -22,16 +22,20 @@ function Backdrop({
     const {translate} = useLocalize();
 
     const Entering = useMemo(() => {
+        if (!backdropOpacity) {
+            return;
+        }
         const FadeIn = new Keyframe(getModalInAnimation('fadeIn'));
-
-        return FadeIn.duration(animationInTiming);
-    }, [animationInTiming]);
+        return FadeIn.duration(animationInTiming).reduceMotion(ReduceMotion.Never);
+    }, [animationInTiming, backdropOpacity]);
 
     const Exiting = useMemo(() => {
+        if (!backdropOpacity) {
+            return;
+        }
         const FadeOut = new Keyframe(getModalOutAnimation('fadeOut'));
-
-        return FadeOut.duration(animationOutTiming);
-    }, [animationOutTiming]);
+        return FadeOut.duration(animationOutTiming).reduceMotion(ReduceMotion.Never);
+    }, [animationOutTiming, backdropOpacity]);
 
     const backdropStyle = useMemo(
         () => ({
@@ -61,14 +65,18 @@ function Backdrop({
     }
     return (
         isBackdropVisible && (
-            <Animated.View
-                entering={Entering}
-                exiting={Exiting}
+            <View
                 style={[styles.userSelectNone]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
-                <View style={[styles.modalBackdrop, backdropStyle, style]}>{!!customBackdrop && customBackdrop}</View>
-            </Animated.View>
+                <Animated.View
+                    entering={Entering}
+                    exiting={Exiting}
+                    style={[styles.modalBackdrop, backdropStyle, style]}
+                >
+                    {!!customBackdrop && customBackdrop}
+                </Animated.View>
+            </View>
         )
     );
 }

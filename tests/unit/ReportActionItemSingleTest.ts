@@ -28,10 +28,9 @@ describe('ReportActionItemSingle', () => {
         Onyx.clear();
     });
 
-    describe('when the Report is a policy expense chat', () => {
-        describe('and the property "shouldShowSubscriptAvatar" is true', () => {
-            const shouldShowSubscriptAvatar = true;
-            const fakeReport = LHNTestUtils.getFakeReportWithPolicy([1, 2]);
+    describe('when the Report is a DM chat', () => {
+        describe('component properly renders both avatar & name of the sender', () => {
+            const fakeReport = {...LHNTestUtils.getFakeReportWithPolicy([1, 2]), chatType: undefined};
             const fakeReportAction = LHNTestUtils.getFakeAdvancedReportAction();
             const fakePolicy = LHNTestUtils.getFakePolicy(fakeReport.policyID);
             const faceAccountId = fakeReportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -52,20 +51,28 @@ describe('ReportActionItemSingle', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {
+                                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`]: {
+                                    [fakeReportAction.reportActionID]: fakeReportAction,
+                                },
+                            },
+                            [ONYXKEYS.COLLECTION.REPORT]: {
+                                [fakeReport.reportID]: fakeReport,
+                            },
                             ...policyCollectionDataSet,
                         }),
                     )
                     .then(() => {
-                        LHNTestUtils.getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar, fakeReport, fakeReportAction);
+                        LHNTestUtils.getDefaultRenderedReportActionItemSingle(fakeReport, fakeReportAction);
                     });
             }
 
-            it('renders secondary Avatar properly', async () => {
-                const expectedSecondaryIconTestId = 'SvgDefaultAvatar_w Icon';
+            it('renders avatar properly', async () => {
+                const expectedIconTestID = 'ReportActionAvatars-SingleAvatar';
 
                 await setup();
                 await waitFor(() => {
-                    expect(screen.getByTestId(expectedSecondaryIconTestId)).toBeOnTheScreen();
+                    expect(screen.getByTestId(expectedIconTestID)).toBeOnTheScreen();
                 });
             });
 

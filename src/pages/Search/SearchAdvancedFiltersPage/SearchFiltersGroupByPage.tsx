@@ -29,7 +29,7 @@ function SearchFiltersGroupByPage() {
             keyForList: groupOption.value,
             isSelected: selectedItem === groupOption.value,
         }));
-    }, [selectedItem, translate]);
+    }, [selectedItem]);
 
     const updateSelectedItem = useCallback((type: ListItem<SearchGroupBy>) => {
         setSelectedItem(type?.keyForList ?? undefined);
@@ -41,7 +41,7 @@ function SearchFiltersGroupByPage() {
 
     const applyChanges = useCallback(() => {
         updateAdvancedFilters({groupBy: selectedItem ?? null});
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [selectedItem]);
 
     return (
@@ -54,7 +54,7 @@ function SearchFiltersGroupByPage() {
             <HeaderWithBackButton
                 title={translate('search.groupBy')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />
             <View style={[styles.flex1]}>

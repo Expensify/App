@@ -7,7 +7,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,7 +38,6 @@ function ValidateCodeActionModal({
     const firstRenderRef = useRef(true);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const styles = useThemeStyles();
-    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffset);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
 
     const hide = useCallback(() => {
@@ -68,8 +66,6 @@ function ValidateCodeActionModal({
             onClose={hide}
             onModalHide={onModalHide ?? hide}
             onBackdropPress={() => Navigation.dismissModal()}
-            hideModalContentWhileAnimating
-            useNativeDriver
             shouldUseModalPaddingStyle={false}
             animationInTiming={disableAnimation ? 1 : undefined}
         >
@@ -86,7 +82,6 @@ function ValidateCodeActionModal({
                     threeDotsMenuItems={threeDotsMenuItems}
                     shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                     shouldOverlayDots
-                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                     onThreeDotsButtonPress={onThreeDotsButtonPress}
                 />
 

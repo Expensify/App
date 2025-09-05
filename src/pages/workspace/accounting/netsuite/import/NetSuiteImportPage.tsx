@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
 
@@ -131,7 +131,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                         shouldDisableStrikeThrough
                     >
                         <MenuItemWithTopDescription
-                            title={getNetSuiteImportCustomFieldLabel(policy, importField, translate)}
+                            title={getNetSuiteImportCustomFieldLabel(policy, importField, translate, localeCompare)}
                             description={translate(`workspace.netsuite.import.importCustomFields.${importField}.title`)}
                             shouldShowRightIcon
                             onPress={() => {

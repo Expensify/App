@@ -5,7 +5,10 @@ type TextWithEmojiFragmentProps = {
     message?: string;
 
     /** Any additional styles to apply */
-    style: StyleProp<TextStyle>;
+    style?: StyleProp<TextStyle>;
+
+    /** Whether the text is alternate text */
+    alignCustomEmoji?: boolean;
 };
 
 export default TextWithEmojiFragmentProps;

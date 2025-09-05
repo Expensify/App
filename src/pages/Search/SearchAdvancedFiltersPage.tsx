@@ -9,14 +9,14 @@ import {clearAdvancedFilters} from '@libs/actions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import AdvancedSearchFilters from './AdvancedSearchFilters';
 
 function SearchAdvancedFiltersPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const emptySearchFilters: SearchAdvancedFiltersForm = {} as SearchAdvancedFiltersForm;
-    const [searchAdvancedFilters = emptySearchFilters] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
     const shouldShowResetFilters = Object.entries(searchAdvancedFilters)
         .filter(([key, value]) => {

@@ -22,13 +22,13 @@ function SearchFiltersKeywordPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const keyword = searchAdvancedFiltersForm?.[FILTER_KEYS.KEYWORD];
     const {inputCallbackRef} = useAutoFocusInput();
 
     const updateKeywordFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         updateAdvancedFilters(values);
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     };
 
     return (
@@ -42,7 +42,7 @@ function SearchFiltersKeywordPage() {
                 <HeaderWithBackButton
                     title={translate('search.filters.keyword')}
                     onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                     }}
                 />
                 <FormProvider

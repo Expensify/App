@@ -26,13 +26,18 @@ type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) =
 type AccountType = ValueOf<typeof CONST.PAYMENT_METHODS> | undefined;
 
 /**
- * Check to see if user has either a debit card or personal bank account added that can be used with a wallet.
+ * Check to see if user has either a debit card or personal US bank account added that can be used with a wallet.
  */
 function hasExpensifyPaymentMethod(fundList: Record<string, Fund>, bankAccountList: Record<string, BankAccount>, shouldIncludeDebitCard = true): boolean {
     const validBankAccount = Object.values(bankAccountList).some((bankAccountJSON) => {
         const bankAccount = new BankAccountModel(bankAccountJSON);
 
-        return bankAccount.getPendingAction() !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount.isOpen() && bankAccount.getType() === CONST.BANK_ACCOUNT.TYPE.PERSONAL;
+        return (
+            bankAccount.getPendingAction() !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            bankAccount.isOpen() &&
+            bankAccount.getType() === CONST.BANK_ACCOUNT.TYPE.PERSONAL &&
+            bankAccount?.getCountry() === CONST.COUNTRY.US
+        );
     });
 
     // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them

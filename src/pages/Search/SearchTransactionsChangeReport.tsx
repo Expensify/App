@@ -1,10 +1,12 @@
 import React, {useMemo} from 'react';
+import {InteractionManager} from 'react-native';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
@@ -18,6 +20,8 @@ function SearchTransactionsChangeReport() {
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const transactionsReports = useMemo(() => {
         const reports = Object.values(selectedTransactions).reduce((acc, transaction) => {
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
@@ -34,9 +38,22 @@ function SearchTransactionsChangeReport() {
             return;
         }
 
-        changeTransactionsReport(selectedTransactionsKeys, item.value);
-        clearSelectedTransactions();
+        const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.value}`];
+        changeTransactionsReport(selectedTransactionsKeys, item.value, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`], reportNextStep);
 
+        InteractionManager.runAfterInteractions(() => {
+            clearSelectedTransactions();
+        });
+
+        Navigation.goBack();
+    };
+
+    const removeFromReport = () => {
+        if (!transactionsReports || selectedTransactionsKeys.length === 0) {
+            return;
+        }
+        changeTransactionsReport(selectedTransactionsKeys, CONST.REPORT.UNREPORTED_REPORT_ID);
+        clearSelectedTransactions();
         Navigation.goBack();
     };
 
@@ -44,7 +61,10 @@ function SearchTransactionsChangeReport() {
         <IOURequestEditReportCommon
             backTo={undefined}
             transactionsReports={transactionsReports}
+            transactionIds={selectedTransactionsKeys}
             selectReport={selectReport}
+            removeFromReport={removeFromReport}
+            isEditing
         />
     );
 }
