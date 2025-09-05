@@ -49,7 +49,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const getFormattedDate = () => {
         switch (reservation.type) {
             case CONST.RESERVATION_TYPE.FLIGHT:
-                return DateUtils.getFormattedTransportDate(new Date(reservation.start.date));
+                return DateUtils.getFormattedTransportDate(new Date(reservation.start.date), preferredLocale);
             case CONST.RESERVATION_TYPE.HOTEL:
             case CONST.RESERVATION_TYPE.CAR:
                 return DateUtils.getFormattedReservationRangeDate(new Date(reservation.start.date), new Date(reservation.end.date), preferredLocale);
