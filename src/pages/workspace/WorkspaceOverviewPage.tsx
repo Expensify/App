@@ -14,10 +14,12 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -71,8 +73,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
-    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policy?.id}`, {canBeMissing: true});
-    const isBankAccountVerified = !cardOnWaitlist;
+    const defaultFundID = useDefaultFundID(policy?.id);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
+    const isBankAccountVerified = !!cardSettings?.paymentBankAccountID;
 
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const outputCurrency = policy?.outputCurrency ?? '';
@@ -142,6 +145,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const shouldShowAddress = !readOnly || !!formattedAddress;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const {isBetaEnabled} = usePermissions();
 
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
@@ -214,6 +218,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (isComingFromGlobalReimbursementsFlow) {
             setIsComingFromGlobalReimbursementsFlow(false);
             Navigation.goBack();
+            return;
         }
 
         if (backTo) {
@@ -452,6 +457,27 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             </OfflineWithFeedback>
                         )}
                     </Section>
+                    {isBetaEnabled(CONST.BETAS.CUSTOM_RULES) ? (
+                        <Section
+                            isCentralPane
+                            title={translate('workspace.editor.policy')}
+                            titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb0]}
+                            subtitle={translate('workspace.rules.customRules.cardSubtitle')}
+                            subtitleStyles={[styles.mb6]}
+                            subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5]}
+                            containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
+                        >
+                            <MenuItemWithTopDescription
+                                title={policy?.customRules ?? ''}
+                                description={translate('workspace.editor.policy')}
+                                shouldShowRightIcon={!readOnly}
+                                interactive={!readOnly}
+                                wrapperStyle={styles.sectionMenuItemTopDescription}
+                                onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID))}
+                                shouldRenderAsHTML
+                            />
+                        </Section>
+                    ) : null}
                     <ConfirmModal
                         title={translate('workspace.common.delete')}
                         isVisible={isDeleteModalOpen}
