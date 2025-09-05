@@ -653,19 +653,10 @@ const ROUTES = {
             isReporting?: boolean;
             shouldSubmitExpense?: boolean;
         }) => {
-            const {
-                action,
-                iouType,
-                transactionID,
-                reportID,
-                backTo = '',
-                isCategorizing = false,
-                isReporting = false,
-                shouldSubmitExpense = false,
-            } = params;
+            const {action, iouType, transactionID, reportID, backTo = '', isCategorizing = false, isReporting = false, shouldSubmitExpense = false} = params;
 
             const baseURL = `${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}` as const;
-            
+
             const queryParams: Record<string, string> = {};
             if (isCategorizing) {
                 queryParams.isCategorizing = 'true';
@@ -676,11 +667,14 @@ const ROUTES = {
             if (shouldSubmitExpense) {
                 queryParams.shouldSubmitExpense = 'true';
             }
-            
-            const queryString = Object.keys(queryParams).length > 0 
-                ? Object.entries(queryParams).map(([key, value]) => `${key}=${value}`).join('&')
-                : '';
-            
+
+            const queryString =
+                Object.keys(queryParams).length > 0
+                    ? Object.entries(queryParams)
+                          .map(([key, value]) => `${key}=${value}`)
+                          .join('&')
+                    : '';
+
             if (queryString) {
                 return getUrlWithBackToParam(`${baseURL}?${queryString}` as const, backTo);
             }
