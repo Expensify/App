@@ -1,4 +1,5 @@
-import type {FlashList, FlashListProps} from '@shopify/flash-list';
+import type {FlashListProps} from '@shopify/flash-list';
+import type FlashListType from '@shopify/flash-list/dist/FlashList';
 import type {ForwardedRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {SearchColumnType} from '@components/Search/types';
@@ -36,7 +37,7 @@ type BaseSearchListProps = Pick<
     isFocused?: boolean;
 
     /** The ref to the list */
-    ref: ForwardedRef<FlashList<SearchListItem>>;
+    ref: ForwardedRef<FlashListType<SearchListItem>>;
 
     /** The function to scroll to an index */
     scrollToIndex?: (index: number, animated?: boolean) => void;

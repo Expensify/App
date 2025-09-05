@@ -1,5 +1,6 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import type {FlashList, FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
+import type {FlashListProps, ViewToken} from '@shopify/flash-list';
+import type FlashListType from '@shopify/flash-list/dist/FlashList';
 import React, {forwardRef, useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
@@ -159,7 +160,7 @@ function SearchList(
     );
 
     const {translate} = useLocalize();
-    const listRef = useRef<FlashList<SearchListItem>>(null);
+    const listRef = useRef<FlashListType<SearchListItem>>(null);
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const prevDataLength = usePrevious(data.length);
