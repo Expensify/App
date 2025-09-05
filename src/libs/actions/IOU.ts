@@ -12533,6 +12533,8 @@ function assignReportToMe(report: OnyxEntry<OnyxTypes.Report>, accountID: number
                 value: {
                     [takeControlReportAction.reportActionID]: {
                         pendingAction: null,
+                        isOptimisticAction: null,
+                        errors: null,
                     },
                 },
             },
@@ -12543,15 +12545,6 @@ function assignReportToMe(report: OnyxEntry<OnyxTypes.Report>, accountID: number
                 key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
                 value: {
                     managerID: report.managerID,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-                value: {
-                    [takeControlReportAction.reportActionID]: {
-                        pendingAction: null,
-                    },
                 },
             },
             {
