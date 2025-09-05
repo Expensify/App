@@ -221,9 +221,9 @@ function IOURequestStepParticipants({
                 });
             }
 
-            // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
+            // When multiple valid participants are selected, the reportID is generated at the end of the confirmation step.
             // So we are resetting selectedReportID ref to the reportID coming from params.
-            if (val.length !== 1 && !isInvoice) {
+            if (val.filter((item) => !!item.login).length !== 1 && !isInvoice) {
                 selectedReportID.current = reportID;
                 return;
             }
