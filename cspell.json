@@ -744,7 +744,9 @@
         "zxldvw",
         "inputmethod",
         "copyable",
-        "مثال"
+        "مثال",
+        "Humpty",
+        "Dumpty"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

@@ -1614,6 +1614,18 @@ const translations = {
             recordTroubleshootData: 'Registrar datos de resolución de problemas',
             softKillTheApp: 'Desactivar la aplicación',
             kill: 'Matar',
+            biometrics: {
+                biometricsRegistered: 'Biometría (Registrada)',
+                biometricsNotRegistered: 'Biometría (No registrada)',
+                test: 'Prueba',
+                softPromptTitle: 'Verifica transacciones con tu cara o huella digital',
+                softPromptContent: 'Habilita una verificación rápida y segura usando tu cara o huella digital, sin necesidad de contraseñas ni códigos.',
+                notificationTitle: 'Autenticación exitosa',
+                notificationContent: 'Has autenticado correctamente usando Face ID.',
+                biometricsTest: 'Prueba de biometría',
+                errorPageTitle: '¡Ups! Ha ocurrido un error',
+                errorPageContent: 'Tu dispositivo no pudo ser registrado.',
+            },
         },
         debugConsole: {
             saveLog: 'Guardar registro',

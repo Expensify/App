@@ -2736,6 +2736,8 @@ const ROUTES = {
         route: 'test-tools',
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
     },
+
+    ENABLE_BIOMETRICS_ERROR_PAGE: 'errorpage/enable-biometrics-error-page',
 } as const;
 
 /**

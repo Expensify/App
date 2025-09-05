@@ -40,6 +40,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         },
 
         [SCREENS.NOT_FOUND]: '*',
+        [SCREENS.ENABLE_BIOMETRICS_ERROR_PAGE]: ROUTES.ENABLE_BIOMETRICS_ERROR_PAGE,
         [NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.PUBLIC_CONSOLE_DEBUG]: {
