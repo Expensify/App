@@ -145,6 +145,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
     return (
         <UserListItem
             pressableStyle={[styles.br2, styles.ph3]}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
