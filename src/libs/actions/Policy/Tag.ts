@@ -34,8 +34,9 @@ import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
+// `allPolicyTags` is only used in actions, so getting it using Onyx.connectWithoutView is correct.
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
     callback: (value) => {
