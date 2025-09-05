@@ -111,6 +111,14 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
 }
 
 const userFriendlyExpenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
+const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
+const userFriendlyStatusList = Object.values({
+    ...CONST.SEARCH.STATUS.EXPENSE,
+    ...CONST.SEARCH.STATUS.INVOICE,
+    ...CONST.SEARCH.STATUS.CHAT,
+    ...CONST.SEARCH.STATUS.TRIP,
+    ...CONST.SEARCH.STATUS.TASK,
+}).map((value) => getUserFriendlyValue(value));
 
 /**
  * @private
@@ -128,14 +136,8 @@ function filterOutRangesWithCorrectValue(
     const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
     const expenseTypeList = userFriendlyExpenseTypeList;
     const withdrawalTypeList = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE) as string[];
-    const statusList = Object.values({
-        ...CONST.SEARCH.STATUS.EXPENSE,
-        ...CONST.SEARCH.STATUS.INVOICE,
-        ...CONST.SEARCH.STATUS.CHAT,
-        ...CONST.SEARCH.STATUS.TRIP,
-        ...CONST.SEARCH.STATUS.TASK,
-    }) as string[];
-    const groupByList = Object.values(CONST.SEARCH.GROUP_BY) as string[];
+    const statusList = userFriendlyStatusList;
+    const groupByList = userFriendlyGroupByList;
     const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
@@ -157,6 +159,7 @@ function filterOutRangesWithCorrectValue(
 
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY:
             return currencyList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE:
             return typeList.includes(range.value);

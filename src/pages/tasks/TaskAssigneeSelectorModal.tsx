@@ -43,6 +43,7 @@ function useOptions() {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
     const session = useSession();
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const defaultOptions = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = memoizedGetValidOptions(
@@ -86,7 +87,7 @@ function useOptions() {
     }, [defaultOptions, session?.accountID]);
 
     const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(optionsWithoutCurrentUser, debouncedSearchValue.trim(), {
+        const filteredOptions = filterAndOrderOptions(optionsWithoutCurrentUser, debouncedSearchValue.trim(), countryCode, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
@@ -100,7 +101,7 @@ function useOptions() {
             ...filteredOptions,
             headerMessage,
         };
-    }, [debouncedSearchValue, optionsWithoutCurrentUser]);
+    }, [debouncedSearchValue, optionsWithoutCurrentUser, countryCode]);
 
     return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
 }
