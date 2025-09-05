@@ -2810,6 +2810,7 @@ const translations = {
             formLabel: 'Visualizza PDF',
         },
         attachmentNotFound: 'Allegato non trovato',
+        retry: 'Riprova',
     },
     messages: {
         errorMessageInvalidPhone: `Per favore, inserisci un numero di telefono valido senza parentesi o trattini. Se ti trovi al di fuori degli Stati Uniti, includi il tuo prefisso internazionale (ad es. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
