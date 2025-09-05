@@ -171,15 +171,10 @@ class TranslationGenerator {
             // Replace translated strings in the AST
             const transformer = this.createTransformer(translationsForLocale);
 
-            //     3. Parse the full existing AST for the target locale.
-            //     4. Merge the translated AST for the object from step one into the full existing translated ASTS from step 3.
-            //         - TODO: in order to do this, we need a new utility in TSCompilerUtils: objectMerge, which is effectively the same as _.merge from lodash, but for TS ASTs that are the roots of objects. For any other type of node it should throw an error. We will want to add unit tests for this function in TSCompilerUtilsTest
-            //         - TODO: first, add another utility in TSCompilerUtils: isObject, which returns true if the node is the root of an object, or false otherwise. Add unit tests for this function.
-            //     5. Prune the delete dot notation paths from the existing translated AST:
-            //         - TODO: in order to do this, we need a new utility in TSCompilerUtils: objectOmit, which is effectively the same as _.omit from lodash, but for TS ASTs that are the roots of objects. For any other type of node it should throw an error. We will want to add unit tests for this function in TSCompilerUtilsTest
-            //     6. Write the final translated AST to the target locale file.
+            // TODO: Prune the delete dot notation paths from the existing translated AST using objectOmit
+            // TODO: Write the final translated AST to the target locale file
 
-            // Step 2: For incremental mode, transform just the translations node; otherwise transform the full file
+            // For incremental mode, transform just the translations node; otherwise transform the full file
             let transformedSourceFile: ts.SourceFile;
             if (this.isIncremental) {
                 // Find the translations node in en.ts
@@ -197,11 +192,44 @@ class TranslationGenerator {
                     throw new Error('Transformation of translations node failed');
                 }
 
-                // TODO: Use transformedTranslationsNode in subsequent steps
-                // For now, fall back to full transformation to maintain existing behavior
-                const fullResult = ts.transform(this.sourceFile, [transformer]);
-                transformedSourceFile = (fullResult.transformed.at(0) ?? this.sourceFile) as ts.SourceFile;
-                fullResult.dispose();
+                // Parse the existing AST for the target locale
+                const targetPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
+
+                if (!fs.existsSync(targetPath)) {
+                    throw new Error(`Target file ${targetPath} does not exist for incremental translation`);
+                }
+
+                const existingContent = fs.readFileSync(targetPath, 'utf8');
+                const existingSourceFile = ts.createSourceFile(targetPath, existingContent, ts.ScriptTarget.Latest, true);
+                const existingTranslationsNode = this.findTranslationsNode(existingSourceFile);
+
+                if (!existingTranslationsNode) {
+                    throw new Error(`Could not find translations node in ${targetPath} for incremental transformation`);
+                }
+
+                // Merge translationsPatch into the existing translations node
+                const mergedTranslationsNode = TSCompilerUtils.objectMerge(existingTranslationsNode, translationsPatch);
+
+                // Transform the full existing source file, replacing the main translation node with our merged result
+                const replaceTransformer: ts.TransformerFactory<ts.SourceFile> = (context) => {
+                    const visit: ts.Visitor = (node) => {
+                        // If this is the main translation node, replace it with our merged result
+                        if (node === existingTranslationsNode) {
+                            return mergedTranslationsNode;
+                        }
+                        // Otherwise, return the node unchanged
+                        return ts.visitEachChild(node, visit, context);
+                    };
+
+                    return (sourceFile: ts.SourceFile) => {
+                        const visitResult = ts.visitNode(sourceFile, visit);
+                        return (visitResult as ts.SourceFile) ?? sourceFile;
+                    };
+                };
+
+                const finalResult = ts.transform(existingSourceFile, [replaceTransformer]);
+                transformedSourceFile = finalResult.transformed.at(0) ?? existingSourceFile;
+                finalResult.dispose();
             } else {
                 // Full transformation for non-incremental mode
                 const result = ts.transform(this.sourceFile, [transformer]);
