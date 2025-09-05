@@ -5,7 +5,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import enableCapabilities from './enableCapabilities/index';
 
-// The GroupIB SDK requires us to set both iOS and Android customer IDs whenn initializing the SDK, instead of just one that the App is running on.
+// The GroupIB SDK requires us to set both iOS and Android customer IDs when initializing the SDK, instead of just one that the App is running on.
 const cidIOSMap: Record<string, string> = {
     [CONST.ENVIRONMENT.PRODUCTION]: 'gib-i-expensify',
     [CONST.ENVIRONMENT.STAGING]: 'gib-i-expensify-stg',
