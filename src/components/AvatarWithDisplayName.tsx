@@ -182,7 +182,7 @@ function AvatarWithDisplayName({
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false, localeCompare);
     const avatarBorderColor = avatarBorderColorProp ?? (isAnonymous ? theme.highlightBG : theme.componentBG);
-    const statusText = shouldDisplayStatus && isExpenseReport(report) ? getReportStatusTranslation(report?.stateNum, report?.statusNum) : undefined;
+    const statusText = shouldDisplayStatus ? getReportStatusTranslation(report?.stateNum, report?.statusNum) : undefined;
 
     const actorAccountID = useRef<number | null>(null);
     useEffect(() => {
