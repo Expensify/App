@@ -164,7 +164,8 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
         });
     }
 
-    const availableMembers = policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC ? sortedApprovalWorkflows?.flatMap((workflow) => workflow.members) : (sortedApprovalWorkflows.at(0)?.members ?? []);
+    const availableMembers =
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC ? sortedApprovalWorkflows?.flatMap((workflow) => workflow.members) : (sortedApprovalWorkflows.at(0)?.members ?? []);
 
     return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers};
 }
