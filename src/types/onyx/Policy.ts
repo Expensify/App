@@ -166,6 +166,10 @@ type UberReceiptPartner = {
      */
     autoRemove?: boolean;
     /**
+     * Whether uber is enabled for user
+     */
+    enabled?: boolean;
+    /**
      * organization id for connected uber
      */
     organizationID?: string;
