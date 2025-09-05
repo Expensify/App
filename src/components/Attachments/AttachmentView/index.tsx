@@ -273,7 +273,7 @@ function AttachmentView({
                         <Text style={[styles.notFoundTextHeader]}>{translate('attachmentView.attachmentNotFound')}</Text>
                     </View>
                     <Button
-                        text={translate('attachmentView.tryAgain')}
+                        text={translate('attachmentView.retry')}
                         icon={Sync}
                         onPress={() => {
                             if (isOffline) {
