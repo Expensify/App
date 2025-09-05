@@ -42,7 +42,6 @@ function NewChatListItem<TItem extends ListItem>({
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {
         canBeMissing: true,
         selector: (report) => !!report,
