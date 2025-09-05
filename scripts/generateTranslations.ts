@@ -636,9 +636,14 @@ class TranslationGenerator {
             this.extractPathsFromChangedLines(translationsNode, changedLines.addedLines, changedLines.removedLines);
 
             // Handle the case where the same path has both additions and removals (treat as modified, not deleted)
+            // Also check if removed paths still exist in en.ts (partial removal within function)
             for (const removedPath of this.pathsToRemove) {
                 if (this.pathsToTranslate.has(removedPath)) {
                     this.pathsToRemove.delete(removedPath); // It's modified, not removed
+                } else if (get(en, removedPath) !== undefined) {
+                    // Path still exists in en.ts, so it's modified not removed
+                    this.pathsToRemove.delete(removedPath);
+                    this.pathsToTranslate.add(removedPath);
                 }
             }
 
