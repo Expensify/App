@@ -4,6 +4,7 @@ import type {View} from 'react-native';
 import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOriginalReportID from '@hooks/useOriginalReportID';
 import {openReport} from '@libs/actions/Report';
 import validateAttachmentFile from '@libs/AttachmentUtils';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
@@ -21,7 +22,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ModalType from '@src/types/utils/ModalType';
-import useOriginalReportID from '@hooks/useOriginalReportID';
 
 function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.ATTACHMENTS>) {
     const {
@@ -61,7 +61,6 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState<TranslationPaths | null>(null);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths | null>(null);
     const submitRef = useRef<View | HTMLElement>(null);
-
 
     const shouldFetchReport = useMemo(() => {
         return isEmptyObject(reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID]);

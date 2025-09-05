@@ -863,13 +863,29 @@ function PureReportActionItem({
             {
                 text: 'actionableMentionWhisperOptions.inviteToChat',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-                onPress: () => resolveActionableMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, formatPhoneNumber, policy, isOriginalReportArchived),
+                onPress: () =>
+                    resolveActionableMentionWhisper(
+                        reportActionReportID,
+                        action,
+                        CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE,
+                        formatPhoneNumber,
+                        policy,
+                        isOriginalReportArchived,
+                    ),
                 isMediumSized: true,
             },
             {
                 text: 'actionableMentionWhisperOptions.nothing',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-                onPress: () => resolveActionableMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, formatPhoneNumber, policy, isOriginalReportArchived),
+                onPress: () =>
+                    resolveActionableMentionWhisper(
+                        reportActionReportID,
+                        action,
+                        CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
+                        formatPhoneNumber,
+                        policy,
+                        isOriginalReportArchived,
+                    ),
                 isMediumSized: true,
             },
         );

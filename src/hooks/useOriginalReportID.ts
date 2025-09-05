@@ -14,7 +14,7 @@ import useTransactionsAndViolationsForReport from './useTransactionsAndViolation
  * - When viewing an expense report with a single transaction, the reportActions from the transaction thread and the expense report are merged, so in that case the
  * reportAction's report may be different from the report we are viewing.
  * - When viewing a thread report, the original reportID is the parent reportID, because the reportAction that created the thread belongs to the parent report.
- * 
+ *
  * @param reportID The reportID of the report we are viewing
  * @param reportAction The reportAction we want to find the original reportID for
  * @returns The original reportID for the given reportAction, or undefined if not found
@@ -28,15 +28,12 @@ function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
     const {transactions: allReportTransactions} = useTransactionsAndViolationsForReport(reportID);
 
     // This will only be found if the report with reportID is a report with a single transaction and we are merging reportActions
-    const uniqueTransactionThreadReportID = useMemo(
-        () => {
-            const visibleTransactionsIDs = getAllNonDeletedTransactions(allReportTransactions, Object.values(reportActions ?? {}))
-                .filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-                .map((transaction) => transaction.transactionID);
-            return getOneTransactionThreadReportID(report, chatReport, reportActions ?? ([] as ReportAction[]), isOffline, visibleTransactionsIDs);
-        },
-        [allReportTransactions, reportActions, report, chatReport, isOffline],
-    );
+    const uniqueTransactionThreadReportID = useMemo(() => {
+        const visibleTransactionsIDs = getAllNonDeletedTransactions(allReportTransactions, Object.values(reportActions ?? {}))
+            .filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .map((transaction) => transaction.transactionID);
+        return getOneTransactionThreadReportID(report, chatReport, reportActions ?? ([] as ReportAction[]), isOffline, visibleTransactionsIDs);
+    }, [allReportTransactions, reportActions, report, chatReport, isOffline]);
     // console.log('useOriginalReportID uniqueTransactionThreadReportID', uniqueTransactionThreadReportID);
     // console.log('useOriginalReportID reportID', reportID);
     const [uniqueTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${uniqueTransactionThreadReportID}`, {canBeMissing: true});
@@ -57,7 +54,7 @@ function useOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
         // This reportAction is the parent action of a thread report, so the original reportID is the parentReportID
         return report?.parentReportID;
     }
-    
+
     // If we have a uniqueTransactionThreadReportID, then we are viewing an expense report with a single transaction and merging reportActions
     // In that case, we need to check if the reportActionID belongs to the transaction thread.
     if (uniqueTransactionThreadReportID && reportActionID) {
