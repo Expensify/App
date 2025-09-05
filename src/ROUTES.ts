@@ -645,17 +645,22 @@ const ROUTES = {
         route: ':action/:iouType/upgrade/:transactionID/:reportID',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', isCategorizing = false, isReporting = false, shouldSubmitExpense = false) => {
             const baseURL = `${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}` as const;
-            const params = new URLSearchParams();
+            
+            const queryParams: Record<string, string> = {};
             if (isCategorizing) {
-                params.set('isCategorizing', 'true');
+                queryParams.isCategorizing = 'true';
             }
             if (isReporting) {
-                params.set('isReporting', 'true');
+                queryParams.isReporting = 'true';
             }
             if (shouldSubmitExpense) {
-                params.set('shouldSubmitExpense', 'true');
+                queryParams.shouldSubmitExpense = 'true';
             }
-            const queryString = params.toString();
+            
+            const queryString = Object.keys(queryParams).length > 0 
+                ? Object.entries(queryParams).map(([key, value]) => `${key}=${value}`).join('&')
+                : '';
+            
             if (queryString) {
                 return getUrlWithBackToParam(`${baseURL}?${queryString}` as const, backTo);
             }
