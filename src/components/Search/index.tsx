@@ -27,7 +27,7 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import Performance from '@libs/Performance';
 import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isArchivedReport} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     getColumnsToShow,
     getListItem,
@@ -102,6 +102,8 @@ function mapTransactionItemToSelectedEntry(
             reportID: item.reportID,
             policyID: item.policyID,
             amount: item.modifiedAmount ?? item.amount,
+            convertedAmount: item.convertedAmount,
+            convertedCurrency: item.convertedCurrency,
         },
     ];
 }
@@ -179,6 +181,8 @@ function prepareTransactionsList(
             reportID: item.reportID,
             policyID: item.policyID,
             amount: Math.abs(item.modifiedAmount || item.amount),
+            convertedAmount: item.convertedAmount,
+            convertedCurrency: item.convertedCurrency,
         },
     };
 }
@@ -212,6 +216,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
 
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
@@ -251,13 +256,16 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
 
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
-    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
 
+    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
     const shouldCalculateTotals = useMemo(() => {
         if (offset !== 0) {
             return false;
         }
-        if (!searchKey) {
+
+        const savedSearchValues = Object.values(savedSearches ?? {});
+
+        if (!savedSearchValues.length && !searchKey) {
             return false;
         }
 
@@ -271,8 +279,20 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
             CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
         ];
-        return eligibleSearchKeys.includes(searchKey);
-    }, [offset, searchKey]);
+
+        if (eligibleSearchKeys.includes(searchKey)) {
+            return true;
+        }
+
+        for (const savedSearch of savedSearchValues) {
+            const searchData = buildSearchQueryJSON(savedSearch.query);
+            if (searchData && searchData.similarSearchHash === similarSearchHash) {
+                return true;
+            }
+        }
+
+        return false;
+    }, [offset, savedSearches, searchKey, similarSearchHash]);
 
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(
@@ -433,6 +453,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         reportID: transaction.reportID,
                         policyID: transaction.policyID,
                         amount: transaction.modifiedAmount ?? transaction.amount,
+                        convertedAmount: transaction.convertedAmount,
+                        convertedCurrency: transaction.convertedCurrency,
                     };
                 });
             });
@@ -462,6 +484,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     reportID: transaction.reportID,
                     policyID: transaction.policyID,
                     amount: transaction.modifiedAmount ?? transaction.amount,
+                    convertedAmount: transaction.convertedAmount,
+                    convertedCurrency: transaction.convertedCurrency,
                 };
             });
         }
