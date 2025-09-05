@@ -658,6 +658,7 @@ const translations = {
         merge: 'Mesclar',
         unstableInternetConnection: 'Conexão de internet instável. Verifique sua rede e tente novamente.',
         enableGlobalReimbursements: 'Ativar reembolsos globais',
+        purchaseAmount: 'Valor da compra',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -4879,7 +4880,8 @@ const translations = {
             existingTagError: 'Uma tag com este nome já existe',
             invalidTagNameError: 'O nome da tag não pode ser 0. Por favor, escolha um valor diferente.',
             genericFailureMessage: 'Ocorreu um erro ao atualizar a tag, por favor, tente novamente.',
-            importedFromAccountingSoftware: 'As tags abaixo são importadas do seu',
+            importedFromAccountingSoftware: 'As tags são gerenciadas no seu',
+            employeesSeeTagsAs: 'Os funcionários veem as tags como ',
             glCode: 'Código GL',
             updateGLCodeFailureMessage: 'Ocorreu um erro ao atualizar o código GL, por favor, tente novamente.',
             tagRules: 'Regras de tag',
@@ -5408,6 +5410,7 @@ const translations = {
             genericFailureMessage: 'Ocorreu um erro ao atualizar o espaço de trabalho. Por favor, tente novamente.',
             avatarUploadFailureMessage: 'Ocorreu um erro ao enviar o avatar. Por favor, tente novamente.',
             addressContext: 'Um Endereço de Espaço de Trabalho é necessário para habilitar o Expensify Travel. Por favor, insira um endereço associado ao seu negócio.',
+            policy: 'Política de despesas',
         },
         bankAccount: {
             continueWithSetup: 'Continuar configuração',
@@ -5744,8 +5747,7 @@ const translations = {
             },
             customRules: {
                 title: 'Regras personalizadas',
-                subtitle: 'Descrição',
-                description: 'Insira regras personalizadas para relatórios de despesas',
+                cardSubtitle: 'Aqui está a política de despesas da sua equipe, para que todos saibam o que está incluso.',
             },
         },
         planTypePage: {
@@ -6174,6 +6176,7 @@ const translations = {
             withdrawn: 'Retirado',
             billable: 'Faturável',
             reimbursable: 'Reembolsável',
+            purchaseCurrency: 'Moeda da compra',
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.REPORTS]: 'Relatório',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
@@ -6184,6 +6187,12 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
+            },
+            action: {
+                [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Enviar',
+                [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Aprovar',
+                [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pagar',
+                [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
         },
         groupBy: 'Agrupar por',
@@ -6343,7 +6352,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `iniciou a exportação deste relatório para ${label}...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `falha ao exportar este relatório para ${label} ("${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
+                    `falha ao exportar este relatório para ${label} ("${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}")`,
                 managerAttachReceipt: `adicionou um recibo`,
                 managerDetachReceipt: `removeu um recibo`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pago ${currency}${amount} em outro lugar`,
