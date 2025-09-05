@@ -1,6 +1,7 @@
 import {getEnvironment, getOldDotEnvironmentURL} from '@libs/Environment/Environment';
 import CONST from '@src/CONST';
 import cidMap from './cidMap';
+import getScriptURL from './getScriptURL';
 
 type GibSdk = {
     init: (opts: {cid: string; backUrl: string; gafUrl: string}) => void;
@@ -13,18 +14,6 @@ type GibSdk = {
 };
 
 type WindowWithGib = typeof window & {gib?: GibSdk};
-
-function getScriptURL(): string {
-    if (typeof window === 'undefined' || typeof window.location === 'undefined') {
-        return 'gib.js';
-    }
-    // On web, ensure we load from the origin root so deep links like /r/123 don't request /r/123/gib.js
-    if (window.location.protocol !== 'file:') {
-        return `${window.location.origin}/gib.js`;
-    }
-    // In desktop (file://) keep it relative to index.html
-    return 'gib.js';
-}
 
 function loadGroupIBScript(): Promise<void> {
     return new Promise((resolve, reject) => {
