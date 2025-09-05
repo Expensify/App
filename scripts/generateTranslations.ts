@@ -189,11 +189,11 @@ class TranslationGenerator {
                 }
 
                 // Transform just the translations node directly - this will filter to only pathsToTranslate
-                const nodeResult = ts.transform(translationsNode, [transformer]); // Type assertion needed for Node vs SourceFile
-                const transformedTranslationsNode = nodeResult.transformed.at(0);
-                nodeResult.dispose();
+                const result = ts.transform(translationsNode, [transformer]); // Type assertion needed for Node vs SourceFile
+                const translationsPatch = result.transformed.at(0);
+                result.dispose();
 
-                if (!transformedTranslationsNode) {
+                if (!translationsPatch) {
                     throw new Error('Transformation of translations node failed');
                 }
 
