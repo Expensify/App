@@ -917,6 +917,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
+    [SCREENS.SETTINGS.DELEGATE.VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: undefined;
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE]: {
         login: string;
@@ -1856,6 +1857,9 @@ type TravelNavigatorParamList = {
     };
     [SCREENS.TRAVEL.DOMAIN_SELECTOR]: {
         backTo?: Routes;
+    };
+    [SCREENS.TRAVEL.VERIFY_ACCOUNT]: {
+        domain: string;
     };
 };
 

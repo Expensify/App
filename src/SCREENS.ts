@@ -36,6 +36,7 @@ const SCREENS = {
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
         WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
         TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
+        VERIFY_ACCOUNT: 'Travel_VerifyAccount',
     },
     SEARCH: {
         ROOT: 'Search_Root',
@@ -151,6 +152,7 @@ const SCREENS = {
         },
 
         DELEGATE: {
+            VERIFY_ACCOUNT: 'Settings_Delegate_VerifyAccount',
             ADD_DELEGATE: 'Settings_Delegate_Add',
             DELEGATE_ROLE: 'Settings_Delegate_Role',
             DELEGATE_CONFIRM: 'Settings_Delegate_Confirm',
