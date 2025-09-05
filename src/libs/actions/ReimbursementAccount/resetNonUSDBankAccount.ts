@@ -1,24 +1,15 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {ACHAccount} from '@src/types/onyx/Policy';
 
-let allPolicies: OnyxCollection<OnyxTypes.Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
-
-function resetNonUSDBankAccount(policyID: string | undefined) {
+function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEntry<ACHAccount>) {
     if (!policyID) {
-        throw new Error('Missing Policy ID when attempting to reset');
+        throw new Error('Missing policy when attempting to reset');
     }
-
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as OnyxTypes.Policy);
 
     API.write(
         WRITE_COMMANDS.RESET_BANK_ACCOUNT_SETUP,
@@ -65,7 +56,7 @@ function resetNonUSDBankAccount(policyID: string | undefined) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     value: {
-                        achAccount: policy?.achAccount,
+                        achAccount,
                     },
                 },
             ],

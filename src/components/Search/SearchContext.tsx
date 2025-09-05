@@ -5,11 +5,12 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {SearchContext, SearchContextData, SelectedTransactions} from './types';
+import type {SearchContext, SearchContextData, SearchQueryJSON, SelectedTransactions} from './types';
 
 const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
     currentSearchKey: undefined,
+    currentSearchQueryJSON: undefined,
     selectedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
@@ -26,6 +27,7 @@ const defaultSearchContext: SearchContext = {
     shouldShowFiltersBarLoading: false,
     setLastSearchType: () => {},
     setCurrentSearchHashAndKey: () => {},
+    setCurrentSearchQueryJSON: () => {},
     setSelectedTransactions: () => {},
     removeTransaction: () => {},
     clearSelectedTransactions: () => {},
@@ -59,6 +61,19 @@ function SearchContextProvider({children}: ChildrenProps) {
         });
     }, []);
 
+    const setCurrentSearchQueryJSON = useCallback((searchQueryJSON: SearchQueryJSON | undefined) => {
+        setSearchContextData((prevState) => {
+            if (searchQueryJSON === prevState.currentSearchQueryJSON) {
+                return prevState;
+            }
+
+            return {
+                ...prevState,
+                currentSearchQueryJSON: searchQueryJSON,
+            };
+        });
+    }, []);
+
     const setSelectedTransactions: SearchContext['setSelectedTransactions'] = useCallback((selectedTransactions, data = []) => {
         if (selectedTransactions instanceof Array) {
             if (!selectedTransactions.length && areTransactionsEmpty.current) {
@@ -78,11 +93,23 @@ function SearchContextProvider({children}: ChildrenProps) {
         if (data.length && data.every(isTransactionReportGroupListItemType)) {
             selectedReports = data
                 .filter((item) => isMoneyRequestReport(item) && item.transactions.length > 0 && item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected))
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
+                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action]}) => ({
+                    reportID,
+                    action,
+                    total,
+                    policyID,
+                    allActions,
+                }));
         } else if (data.length && data.every(isTransactionListItemType)) {
             selectedReports = data
                 .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
+                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action]}) => ({
+                    reportID,
+                    action,
+                    total,
+                    policyID,
+                    allActions,
+                }));
         }
 
         setSearchContextData((prevState) => ({
@@ -171,6 +198,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             ...searchContextData,
             removeTransaction,
             setCurrentSearchHashAndKey,
+            setCurrentSearchQueryJSON,
             setSelectedTransactions,
             clearSelectedTransactions,
             shouldShowFiltersBarLoading,
@@ -187,6 +215,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             searchContextData,
             removeTransaction,
             setCurrentSearchHashAndKey,
+            setCurrentSearchQueryJSON,
             setSelectedTransactions,
             clearSelectedTransactions,
             shouldShowFiltersBarLoading,

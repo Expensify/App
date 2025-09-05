@@ -5,13 +5,13 @@
  */
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
-import type {SearchQueryString} from './components/Search/types';
+import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
+import type {RootNavigatorParamList} from './libs/Navigation/types';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
-import type {AttachmentModalScreenParams} from './pages/media/AttachmentModalScreen/types';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
@@ -59,75 +59,30 @@ const ROUTES = {
         route: 'search/saved-search/rename',
         getRoute: ({name, jsonQuery}: {name: string; jsonQuery: SearchQueryString}) => `search/saved-search/rename?name=${name}&q=${jsonQuery}` as const,
     },
-    SEARCH_ADVANCED_FILTERS: 'search/filters',
-    SEARCH_ADVANCED_FILTERS_TYPE: 'search/filters/type',
-    SEARCH_ADVANCED_FILTERS_GROUP_BY: 'search/filters/groupBy',
-    SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
-    SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
-    SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
-    SEARCH_ADVANCED_FILTERS_GROUP_CURRENCY: 'search/filters/group-currency',
-    SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
-    SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
-    SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/reportID',
-    SEARCH_ADVANCED_FILTERS_AMOUNT: 'search/filters/amount',
-    SEARCH_ADVANCED_FILTERS_CATEGORY: 'search/filters/category',
-    SEARCH_ADVANCED_FILTERS_KEYWORD: 'search/filters/keyword',
-    SEARCH_ADVANCED_FILTERS_CARD: 'search/filters/card',
-    SEARCH_ADVANCED_FILTERS_TAX_RATE: 'search/filters/taxRate',
-    SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE: 'search/filters/expenseType',
-    SEARCH_ADVANCED_FILTERS_WITHDRAWAL_TYPE: 'search/filters/withdrawal-type',
-    SEARCH_ADVANCED_FILTERS_TAG: 'search/filters/tag',
-    SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
-    SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
-    SEARCH_ADVANCED_FILTERS_IN: 'search/filters/in',
-    SEARCH_ADVANCED_FILTERS_SUBMITTED: 'search/filters/submitted',
-    SEARCH_ADVANCED_FILTERS_APPROVED: 'search/filters/approved',
-    SEARCH_ADVANCED_FILTERS_PAID: 'search/filters/paid',
-    SEARCH_ADVANCED_FILTERS_EXPORTED: 'search/filters/exported',
-    SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
-    SEARCH_ADVANCED_FILTERS_WITHDRAWN: 'search/filters/withdrawn',
-    SEARCH_ADVANCED_FILTERS_TITLE: 'search/filters/title',
-    SEARCH_ADVANCED_FILTERS_ASSIGNEE: 'search/filters/assignee',
-    SEARCH_ADVANCED_FILTERS_REIMBURSABLE: 'search/filters/reimbursable',
-    SEARCH_ADVANCED_FILTERS_BILLABLE: 'search/filters/billable',
-    SEARCH_ADVANCED_FILTERS_WORKSPACE: 'search/filters/workspace',
+    SEARCH_ADVANCED_FILTERS: {
+        route: 'search/filters/:filterKey?',
+        getRoute: (filterKey?: SearchFilterKey | UserFriendlyKey) => {
+            return `search/filters/${filterKey ?? ''}` as const;
+        },
+    },
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
-        getRoute: ({
-            reportID,
-            reportActionID,
-            backTo,
-            moneyRequestReportActionID,
-            transactionID,
-        }: {
-            reportID: string | undefined;
-            reportActionID?: string;
-            backTo?: string;
-            moneyRequestReportActionID?: string;
-            transactionID?: string;
-        }) => {
+        getRoute: ({reportID, reportActionID, backTo}: {reportID: string | undefined; reportActionID?: string; backTo?: string}) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
             }
+
             const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
 
-            const queryParams = [];
-
-            // When we are opening a transaction thread but don't have the transaction thread report created yet we need to pass the moneyRequestReportActionID and transactionID so we can send those to the OpenReport call and create the transaction report
-            if (transactionID) {
-                queryParams.push(`transactionID=${transactionID}`);
-            }
-            if (moneyRequestReportActionID) {
-                queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
-            }
-
-            const queryString = queryParams.length > 0 ? (`${baseRoute}?${queryParams.join('&')}` as const) : baseRoute;
-            return getUrlWithBackToParam(queryString, backTo);
+            return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
     SEARCH_MONEY_REQUEST_REPORT: {
         route: 'search/r/:reportID',
-        getRoute: ({reportID}: {reportID: string}) => `search/r/${reportID}` as const,
+        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
+            const baseRoute = `search/r/${reportID}` as const;
+            return getUrlWithBackToParam(baseRoute, backTo);
+        },
     },
     SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: {
         route: 'search/r/:reportID/hold',
@@ -179,6 +134,15 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the BANK_ACCOUNT_WITH_STEP_TO_OPEN route');
             }
             return getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo);
+        },
+    },
+    BANK_ACCOUNT_ENTER_SIGNER_INFO: {
+        route: 'bank-account/enter-signer-info',
+        getRoute: (policyID: string | undefined, bankAccountID: string | undefined, isCompleted: boolean) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the BANK_ACCOUNT_ENTER_SIGNER_INFO route');
+            }
+            return `bank-account/enter-signer-info?policyID=${policyID}&bankAccountID=${bankAccountID}&isCompleted=${isCompleted}` as const;
         },
     },
     PUBLIC_CONSOLE_DEBUG: {
@@ -282,6 +246,10 @@ const ROUTES = {
     },
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
+    SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS: {
+        route: 'settings/wallet/:bankAccountID/enable-global-reimbursements',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/enable-global-reimbursements` as const,
+    },
     SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
         route: 'settings/wallet/card/:domain/digital-details/update-address',
         getRoute: (domain: string) => `settings/wallet/card/${domain}/digital-details/update-address` as const,
@@ -384,7 +352,10 @@ const ROUTES = {
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
 
-    KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
+    KEYBOARD_SHORTCUTS: {
+        route: 'keyboard-shortcuts',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('keyboard-shortcuts', backTo),
+    },
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',
@@ -396,7 +367,7 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, moneyRequestReportActionID?: string, transactionID?: string, backTo?: string) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
             }
@@ -405,12 +376,6 @@ const ROUTES = {
             const queryParams: string[] = [];
             if (referrer) {
                 queryParams.push(`referrer=${encodeURIComponent(referrer)}`);
-            }
-
-            // When we are opening a transaction thread but don't have the transaction report created yet we need to pass the moneyRequestReportActionID and transactionID so we can send those to the OpenReport call and create the transaction report
-            if (moneyRequestReportActionID && transactionID) {
-                queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
-                queryParams.push(`transactionID=${transactionID}`);
             }
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
@@ -426,6 +391,10 @@ const ROUTES = {
             }
             return `r/${reportID}/avatar` as const;
         },
+    },
+    ATTACHMENTS: {
+        route: 'attachment',
+        getRoute: (params?: ReportAttachmentsRouteParams) => getAttachmentModalScreenRoute('attachment', params),
     },
     EDIT_CURRENCY_REQUEST: {
         route: 'r/:threadReportID/edit/currency',
@@ -451,10 +420,6 @@ const ROUTES = {
             }
             return getUrlWithBackToParam(`r/${reportID}/details/shareCode` as const, backTo);
         },
-    },
-    ATTACHMENTS: {
-        route: 'attachment',
-        getRoute: (params?: AttachmentRouteParams) => getAttachmentModalScreenRoute('attachment', params),
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
@@ -508,6 +473,10 @@ const ROUTES = {
     REPORT_SETTINGS_VISIBILITY: {
         route: 'r/:reportID/settings/visibility',
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/visibility` as const, backTo),
+    },
+    REPORT_CHANGE_APPROVER: {
+        route: 'r/:reportID/change-approver',
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/change-approver` as const, backTo),
     },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
@@ -954,14 +923,14 @@ const ROUTES = {
             `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/${backToReport ?? ''}` as const,
     },
     DISTANCE_REQUEST_CREATE_TAB_MAP: {
-        route: 'map/:backToReport?',
+        route: 'distance-map/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/map/${backToReport ?? ''}` as const,
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/distance-map/${backToReport ?? ''}` as const,
     },
     DISTANCE_REQUEST_CREATE_TAB_MANUAL: {
-        route: 'manual/:backToReport?',
+        route: 'distance-manual/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/manual/${backToReport ?? ''}` as const,
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/distance-manual/${backToReport ?? ''}` as const,
     },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
@@ -1872,6 +1841,14 @@ const ROUTES = {
             return getUrlWithBackToParam(`workspaces/${policyID}/per-diem`, backTo);
         },
     },
+    WORKSPACE_DUPLICATE: {
+        route: 'workspace/:policyID/duplicate',
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/duplicate`, backTo),
+    },
+    WORKSPACE_DUPLICATE_SELECT_FEATURES: {
+        route: 'workspace/:policyID/duplicate/select-features',
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/duplicate/select-features`, backTo),
+    },
     WORKSPACE_RECEIPT_PARTNERS: {
         route: 'workspaces/:policyID/receipt-partners',
         getRoute: (policyID: string | undefined, backTo?: string) => {
@@ -1881,6 +1858,28 @@ const ROUTES = {
             return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners`, backTo);
         },
     },
+    WORKSPACE_RECEIPT_PARTNERS_INVITE: {
+        route: 'workspaces/:policyID/receipt-partners/:integration/invite',
+        getRoute: (policyID: string | undefined, integration: string, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_RECEIPT_PARTNERS_INVITE route');
+            }
+            return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners/${integration}/invite`, backTo);
+        },
+    },
+    WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT: {
+        route: 'workspaces/:policyID/receipt-partners/:integration/invite/edit',
+        getRoute: (policyID: string | undefined, integration: string, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT route');
+            }
+            return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners/${integration}/invite/edit`, backTo);
+        },
+    },
+    WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_ALL: 'workspaces/:policyID/receipt-partners/:integration/invite/edit/ReceiptPartnersAllTab',
+    WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_LINKED: 'workspaces/:policyID/receipt-partners/:integration/invite/edit/ReceiptPartnersLinkedTab',
+    WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT_OUTSTANDING: 'workspaces/:policyID/receipt-partners/:integration/invite/edit/ReceiptPartnersOutstandingTab',
+
     WORKSPACE_PER_DIEM_IMPORT: {
         route: 'workspaces/:policyID/per-diem/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/per-diem/import` as const,
@@ -1954,8 +1953,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/prohibited` as const,
     },
     RULES_CUSTOM: {
-        route: 'workspaces/:policyID/rules/custom',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/custom` as const,
+        route: 'workspaces/:policyID/overview/policy',
+        getRoute: (policyID: string) => `workspaces/${policyID}/overview/policy` as const,
     },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
@@ -2613,7 +2612,30 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/sage-intacct/advanced/payment-account',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT route');
+            }
+            return `workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const;
+        },
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/advanced/autosync',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC route');
+            }
+            return `workspaces/${policyID}/accounting/sage-intacct/advanced/autosync` as const;
+        },
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/advanced/autosync/accounting-method',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD route');
+            }
+            return `workspaces/${policyID}/accounting/sage-intacct/advanced/autosync/accounting-method` as const;
+        },
     },
     ADD_UNREPORTED_EXPENSE: {
         route: 'search/r/:reportID/add-unreported-expense/:backToReport?',
@@ -2732,12 +2754,12 @@ const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
 export {getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS};
 export default ROUTES;
 
-type AttachmentsRoute = typeof ROUTES.ATTACHMENTS.route;
-type ReportAddAttachmentRoute = `r/${string}/attachment/add`;
-type AttachmentRoutes = AttachmentsRoute | ReportAddAttachmentRoute;
-type AttachmentRouteParams = AttachmentModalScreenParams;
+type ReportAttachmentsRoute = typeof ROUTES.ATTACHMENTS.route;
+type AttachmentRoutes = ReportAttachmentsRoute;
 
-function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: AttachmentRouteParams) {
+type ReportAttachmentsRouteParams = RootNavigatorParamList[typeof SCREENS.ATTACHMENTS];
+
+function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: ReportAttachmentsRouteParams) {
     if (!params?.source) {
         return url;
     }
