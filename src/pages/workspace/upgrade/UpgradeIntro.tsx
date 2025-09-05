@@ -30,8 +30,6 @@ type Props = {
     onUpgrade: () => void;
     /** Whether is categorizing the expense */
     isCategorizing?: boolean;
-    /** Whether is adding an unreported expense to a report */
-    isReporting?: boolean;
     policyID?: string;
     backTo?: Route;
 };
