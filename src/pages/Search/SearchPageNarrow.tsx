@@ -1,4 +1,5 @@
-import React, {useCallback, useState} from 'react';
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback, useContext, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {clamp, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -8,6 +9,7 @@ import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
@@ -61,6 +63,8 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
     const triggerScrollEvent = useScrollEventEmitter();
+    const route = useRoute();
+    const {saveScrollOffset} = useContext(ScrollOffsetContext);
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
@@ -93,6 +97,8 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
                 const currentOffset = contentOffset.y;
                 const isScrollingDown = currentOffset > scrollOffset.get();
                 const distanceScrolled = currentOffset - scrollOffset.get();
+
+                runOnJS(saveScrollOffset)(route, currentOffset);
 
                 if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
                     topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset));

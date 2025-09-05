@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -10,6 +10,7 @@ import DropZoneUI from '@components/DropZone/DropZoneUI';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
@@ -89,6 +90,7 @@ function SearchPage({route}: SearchPageProps) {
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
+    const {saveScrollOffset} = useContext(ScrollOffsetContext);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
@@ -258,11 +260,13 @@ function SearchPage({route}: SearchPageProps) {
                 }
             }
 
-            // Collate a list of the account level in-app export templates for the
-            const accountInAppTemplates = Object.entries(csvExportLayouts ?? {}).map(([templateName, layout]) => ({
-                ...layout,
-                templateName,
-            }));
+            // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
+            const accountInAppTemplates = Object.entries(csvExportLayouts ?? {})
+                .filter(([, layout]) => layout.name !== CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV)
+                .map(([templateName, layout]) => ({
+                    ...layout,
+                    templateName,
+                }));
 
             if (accountInAppTemplates && accountInAppTemplates.length > 0) {
                 for (const template of accountInAppTemplates) {
@@ -727,6 +731,7 @@ function SearchPage({route}: SearchPageProps) {
                                 setIsExportWithTemplateModalVisible(false);
                                 clearSelectedTransactions(undefined, true);
                             }}
+                            onCancel={() => setIsExportWithTemplateModalVisible(false)}
                             title={translate('export.exportInProgress')}
                             prompt={translate('export.conciergeWillSend')}
                             confirmText={translate('common.buttonConfirm')}
@@ -776,6 +781,13 @@ function SearchPage({route}: SearchPageProps) {
                                     searchResults={searchResults}
                                     handleSearch={handleSearchAction}
                                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                    onSearchListScroll={(e) => {
+                                        if (!e.nativeEvent.contentOffset.y) {
+                                            return;
+                                        }
+
+                                        saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+                                    }}
                                 />
                                 {shouldShowFooter && <SearchPageFooter metadata={metadata} />}
                                 <DragAndDropConsumer onDrop={initScanRequest}>
@@ -821,6 +833,7 @@ function SearchPage({route}: SearchPageProps) {
                         setIsExportWithTemplateModalVisible(false);
                         clearSelectedTransactions(undefined, true);
                     }}
+                    onCancel={() => setIsExportWithTemplateModalVisible(false)}
                     title={translate('export.exportInProgress')}
                     prompt={translate('export.conciergeWillSend')}
                     confirmText={translate('common.buttonConfirm')}

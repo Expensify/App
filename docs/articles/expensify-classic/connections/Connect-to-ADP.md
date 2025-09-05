@@ -4,7 +4,6 @@ description: Learn how to set up and use Expensify’s ADP integration to export
 keywords: [Expensify, ADP integration, payroll export, custom export format, expense reports, bulk update]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 Expensify’s API helps connect your account to third-party tools like NetSuite, Xero, and even internal systems like Workday. This guide includes tips, usage examples, and common troubleshooting questions — many sourced from customers who’ve done it before.
 
@@ -92,4 +91,3 @@ Yes. Convert your ADP employee data to match the column headings used in Expensi
 ## Can I add custom fields to my ADP Payroll Export?
 Yes! Your Expensify Account Manager can help customize your ADP Payroll export to fit your needs.
 
-</div>
