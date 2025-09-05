@@ -2531,6 +2531,11 @@ const translations = {
             title: 'Inviter des membres',
             subtitle: 'Gérez et partagez vos dépenses avec un comptable ou créez un groupe de voyage avec des amis.',
         },
+        domainWorkspaceRestriction: {
+            subtitle:
+                'La création d’un espace de travail est réservée aux administrateurs. Rejoignez l’un des espaces ci-dessous ou contactez votre administrateur pour plus d’informations.',
+            skipForNow: 'Ignorer pour le moment',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Ne plus me montrer ceci',
