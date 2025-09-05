@@ -396,7 +396,7 @@ function PaymentMethodList({
             if (path.includes(ROUTES.WORKSPACES_LIST.route) && policyID) {
                 Navigation.navigate(ROUTES.WORKSPACE_INVOICES_VERIFY_ACCOUNT.getRoute(policyID));
             } else {
-                Navigation.navigate(ROUTES.SETTINGS_ADD_NEW_BANK_ACCOUNT_VERIFY_ACCOUNT);
+                Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT);
             }
             return;
         }
