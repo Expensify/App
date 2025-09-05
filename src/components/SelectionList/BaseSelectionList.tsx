@@ -114,6 +114,7 @@ function BaseSelectionList<TItem extends ListItem>({
     listHeaderContent,
     onEndReached = () => {},
     onEndReachedThreshold,
+    shouldSkipShowMoreButton = false,
     windowSize = 5,
     updateCellsBatchingPeriod = 50,
     removeClippedSubviews = true,
@@ -148,6 +149,7 @@ function BaseSelectionList<TItem extends ListItem>({
     selectedItems = [],
     isSelected,
     canShowProductTrainingTooltip,
+    renderScrollComponent,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -296,6 +298,12 @@ function BaseSelectionList<TItem extends ListItem>({
     }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, itemHeights, getItemHeight]);
 
     const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
+        if (shouldSkipShowMoreButton) {
+            // When skipping the Show More button, return all sections without any slicing
+            const processedSections = getSectionsWithIndexOffset(sections as Array<SectionListDataType<TItem>>);
+            return [processedSections, null];
+        }
+
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
         const processedSections = getSectionsWithIndexOffset(
             sections.map((section) => {
@@ -322,7 +330,7 @@ function BaseSelectionList<TItem extends ListItem>({
         // we don't need to add styles here as they change
         // we don't need to add flattenedSections here as they will change along with sections
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [sections, currentPage]);
+    }, [sections, currentPage, shouldSkipShowMoreButton]);
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
     const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
@@ -374,6 +382,27 @@ function BaseSelectionList<TItem extends ListItem>({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [flattenedSections.allOptions, currentPage],
     );
+
+    // this function is used specifically for scrolling to the focused input to prevent it from appearing below opened keyboard
+    // and ensures the entire list item element is visible, not just the input field inside it
+    const scrollToFocusedInput = useCallback((index: number) => {
+        if (!listRef.current) {
+            return;
+        }
+
+        if (index < 0) {
+            return;
+        }
+
+        // Perform scroll to specific position in SectionList to show entire item
+        listRef.current.scrollToLocation({
+            sectionIndex: 0, // Scroll to first section (index 0) as this function is designed for specific SplitExpenseItem.tsx list
+            itemIndex: index + 2, // Scroll to item at index + 2 (because first two items is reserved for optional header and content above the selectionList)
+            animated: true,
+            viewOffset: 4, // scrollToLocation scrolls 4 pixels more than the specified list item, so we need to subtract this using viewOffset
+            viewPosition: 1.0, // Item position: 1.0 = bottom of screen
+        });
+    }, []);
 
     const [disabledArrowKeyIndexes, setDisabledArrowKeyIndexes] = useState(flattenedSections.disabledArrowKeyOptionsIndexes);
     useEffect(() => {
@@ -914,8 +943,17 @@ function BaseSelectionList<TItem extends ListItem>({
 
     useImperativeHandle(
         ref,
-        () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput}),
-        [scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput],
+        () => ({
+            scrollAndHighlightItem,
+            clearInputAfterSelect,
+            updateAndScrollToFocusedIndex,
+            updateExternalTextInputFocus,
+            scrollToIndex,
+            getFocusedOption,
+            focusTextInput,
+            scrollToFocusedInput,
+        }),
+        [scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput, scrollToFocusedInput],
     );
 
     /** Selects row when pressing Enter */
@@ -975,6 +1013,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 <>
                     {!listHeaderContent && header()}
                     <SectionList
+                        renderScrollComponent={renderScrollComponent}
                         removeClippedSubviews={removeClippedSubviews}
                         ref={listRef}
                         sections={slicedSections}
