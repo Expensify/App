@@ -152,7 +152,9 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
             const displayText: string[] = [];
             if (value.On) {
                 displayText.push(
-                    isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On, preferredLocale)}`,
+                    isSearchDatePreset(value.On)
+                        ? translate(`search.filters.date.presets.${value.On}`)
+                        : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On, preferredLocale)}`,
                 );
             }
             if (value.After) {

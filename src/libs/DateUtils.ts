@@ -110,13 +110,13 @@ function isDate(arg: unknown): arg is Date {
  */
 function getWeekStartsOn(preferredLocale: Locale | undefined): Day {
     const locale = new Intl.Locale(preferredLocale ?? '');
- 
+
     // `Intl.Locale.prototype.getWeekInfo` is not supported in all browsers (notably unavailable in Firefox)
     if (typeof locale.getWeekInfo === 'function') {
         const weekInfo = locale.getWeekInfo();
         return weekInfo.firstDay === 7 ? 0 : weekInfo.firstDay;
     }
- 
+
     return CONST.WEEK_STARTS_ON;
 }
 

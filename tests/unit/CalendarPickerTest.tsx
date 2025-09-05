@@ -3,7 +3,7 @@ import {fireEvent, render, screen, userEvent, within} from '@testing-library/rea
 import {addMonths, addYears, subMonths, subYears} from 'date-fns';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import DateUtils from '@libs/DateUtils';
-import CONST from '@src/CONST'; 
+import CONST from '@src/CONST';
 
 const LOCALE = CONST.LOCALES.DEFAULT;
 const monthNames = DateUtils.getMonthNames(LOCALE);
