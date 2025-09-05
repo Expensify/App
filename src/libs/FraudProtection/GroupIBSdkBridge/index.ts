@@ -1,4 +1,5 @@
 import {getEnvironment, getOldDotEnvironmentURL} from '@libs/Environment/Environment';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import cidMap from './cidMap';
 import getScriptURL from './getScriptURL';
@@ -25,7 +26,10 @@ function loadGroupIBScript(): Promise<void> {
         script.async = true;
         script.src = getScriptURL();
         script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load the gib.js script.'));
+        script.onerror = () => {
+            Log.warn('[Fraud Protection] Failed to load the gib.js script.');
+            reject(new Error('Failed to load the gib.js script.'));
+        };
         document.head.appendChild(script);
     });
 }
