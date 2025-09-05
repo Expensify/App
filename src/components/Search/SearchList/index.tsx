@@ -235,7 +235,7 @@ function SearchList(
                 return;
             }
 
-            listRef.current.scrollToIndex({index, animated, viewOffset: variables.contentHeaderHeight});
+            listRef.current.scrollToIndex({index, animated, viewOffset: -variables.contentHeaderHeight});
         },
         [data],
     );

@@ -106,7 +106,7 @@ function useSearchHighlightAndScroll({
             // We only want to highlight new items if the addition of transactions or report actions triggered the search.
             // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
             // We don't want to highlight these old items, even if they appear new in the current search results.
-            if (!hasNewItemsRef.current) {
+            if ((!isChat && hasTransactionsIDsChange) || (isChat && hasReportActionsIDsChange)) {
                 hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionsIDs.length;
             }
 
@@ -166,7 +166,6 @@ function useSearchHighlightAndScroll({
 
             setNewSearchResultKey(newReportActionKey);
             highlightedIDs.current.add(newReportActionID);
-            hasNewItemsRef.current = false;
         } else {
             const previousTransactionIDs = extractTransactionIDsFromSearchResults(previousSearchResults);
             const currentTransactionIDs = extractTransactionIDsFromSearchResults(searchResults.data);
@@ -183,7 +182,6 @@ function useSearchHighlightAndScroll({
 
             setNewSearchResultKey(newTransactionKey);
             highlightedIDs.current.add(newTransactionID);
-            hasNewItemsRef.current = false;
         }
     }, [searchResults?.data, previousSearchResults, isChat]);
 
@@ -204,7 +202,7 @@ function useSearchHighlightAndScroll({
      * Callback to handle scrolling to the new search result.
      */
     const handleSelectionListScroll = useCallback(
-        (data: SearchListItem[]) => (ref: SelectionListHandle | null) => {
+        (data: SearchListItem[], ref: SelectionListHandle | null) => {
             // Early return if there's no ref, new transaction wasn't brought in by this hook
             // or there's no new search result key
             if (!ref || !triggeredByHookRef.current || newSearchResultKey === null) {

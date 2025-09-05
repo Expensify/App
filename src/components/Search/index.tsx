@@ -1,12 +1,12 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionList/SearchTableHeader';
-import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useLocalize from '@hooks/useLocalize';
@@ -709,6 +709,16 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple, localeCompare, hash],
     );
 
+    const searchListRef = useRef<SelectionListHandle | null>(null);
+
+    useLayoutEffect(() => {
+        handleSelectionListScroll(sortedSelectedData, searchListRef.current);
+
+        // We only need to run the effect on change of newSearchResultKey to scroll to the new item.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [newSearchResultKey]);
+
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
 
     useEffect(() => {
@@ -833,7 +843,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         <SearchScopeProvider isOnSearch>
             <Animated.View style={[styles.flex1, animatedStyle]}>
                 <SearchList
-                    ref={handleSelectionListScroll(sortedSelectedData)}
+                    ref={searchListRef}
                     data={sortedSelectedData}
                     ListItem={ListItem}
                     onSelectRow={openReport}
