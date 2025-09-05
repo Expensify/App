@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import {InteractionManager} from 'react-native';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
@@ -39,7 +40,10 @@ function SearchTransactionsChangeReport() {
 
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.value}`];
         changeTransactionsReport(selectedTransactionsKeys, item.value, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`], reportNextStep);
-        clearSelectedTransactions();
+
+        InteractionManager.runAfterInteractions(() => {
+            clearSelectedTransactions();
+        });
 
         Navigation.goBack();
     };
