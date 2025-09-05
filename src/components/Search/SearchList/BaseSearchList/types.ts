@@ -1,5 +1,5 @@
-import {FlashList} from '@shopify/flash-list';
 import type {FlashListProps} from '@shopify/flash-list';
+import type {FlashList} from '@shopify/flash-list';
 import type {ForwardedRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {SearchColumnType} from '@components/Search/types';

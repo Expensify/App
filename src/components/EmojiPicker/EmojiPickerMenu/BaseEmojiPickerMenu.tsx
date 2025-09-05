@@ -1,5 +1,5 @@
-import {FlashList} from '@shopify/flash-list';
 import type {ListRenderItem} from '@shopify/flash-list';
+import {FlashList} from '@shopify/flash-list';
 import React from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
