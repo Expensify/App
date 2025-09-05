@@ -1,5 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
@@ -197,25 +197,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
         navigation.setParams({reportID: lastAccessedReportID});
     }, [isBetaEnabled, navigation, route]);
-
-    // This hook redirects to the correct report ID when the current report is not found. This happens, for example, after deleting an expense from the Reports tab and returning to Inbox.
-    useFocusEffect(
-        useCallback(() => {
-            if (firstRenderRef.current || isInNarrowPaneModal) {
-                return;
-            }
-
-            if (reportIDFromRoute && (!reportOnyx?.reportID || reportOnyx.errorFields?.notFound)) {
-                const lastAccessedReportID = findLastAccessedReport(false, !!route.params?.openOnAdminRoom, undefined, reportIDFromRoute)?.reportID;
-                if (lastAccessedReportID) {
-                    const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-                    Navigation.navigate(lastAccessedReportRoute, {forceReplace: true});
-                    return;
-                }
-                navigateToConciergeChat(false, () => true, {forceReplace: true});
-            }
-        }, [isInNarrowPaneModal, reportIDFromRoute, reportOnyx?.errorFields?.notFound, reportOnyx?.reportID, route.params?.openOnAdminRoom]),
-    );
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const chatWithAccountManagerText = useMemo(() => {
