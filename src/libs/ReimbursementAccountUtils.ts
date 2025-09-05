@@ -1,5 +1,4 @@
 import type {ValueOf} from 'type-fest';
-import BankAccount from '@libs/models/BankAccount';
 import CONST from '@src/CONST';
 import type {ACHDataReimbursementAccount, ReimbursementAccountStep} from '@src/types/onyx/ReimbursementAccount';
 
@@ -40,7 +39,7 @@ function getRouteForCurrentStep(currentStep: ReimbursementAccountStep): Reimburs
  * Returns true if a VBBA exists in any state other than OPEN or LOCKED
  */
 const hasInProgressUSDVBBA = (achData?: ACHDataReimbursementAccount): boolean => {
-    return !!achData?.bankAccountID && !!achData?.state && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED;
+    return !!achData?.bankAccountID && !!achData?.state && achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN && achData?.state !== CONST.BANK_ACCOUNT.STATE.LOCKED;
 };
 
 /** Returns true if user passed first step of flow for non USD VBBA */
