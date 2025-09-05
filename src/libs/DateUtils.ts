@@ -832,21 +832,23 @@ function getFormattedDateRange(date1: Date, date2: Date, locale: Locale | undefi
  * 3. When both dates refer to the current year: Sunday, Mar 17 to Wednesday, Mar 20
  * 4. When the dates are from different years or from a year which is not current: Wednesday, Mar 17, 2023 to Saturday, Jan 20, 2024
  */
-function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
+function getFormattedReservationRangeDate(date1: Date, date2: Date, locale: Locale | undefined): string {
+    const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric'});
+    const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'});
     if (isSameDay(date1, date2) && isThisYear(date1)) {
         // Dates are from the same day
-        return format(date1, 'EEEE, MMM d');
+        return monthDayWeekdayAbbrFormatter.format(date1);
     }
     if (isSameDay(date1, date2)) {
         // Dates are from the same day but not this year
-        return format(date1, 'EEEE, MMM d, yyyy');
+        return monthDayWeekdayYearAbbrFormatter.format(date1);
     }
     if (isSameYear(date1, date2) && isThisYear(date1)) {
         // Dates are in the current year, differ by months
-        return `${format(date1, 'EEEE, MMM d')} ${translateLocal('common.conjunctionTo')} ${format(date2, 'EEEE, MMM d')}`;
+        return `${monthDayWeekdayAbbrFormatter.format(date1)} ${translateLocal('common.conjunctionTo')} ${monthDayWeekdayAbbrFormatter.format(date2)}`;
     }
     // Dates differ by years, months, days or only by months but the year is not current
-    return `${format(date1, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionTo')} ${format(date2, 'EEEE, MMM d, yyyy')}`;
+    return `${monthDayWeekdayYearAbbrFormatter.format(date1)} ${translateLocal('common.conjunctionTo')} ${monthDayWeekdayYearAbbrFormatter.format(date2)}`;
 }
 
 /**
