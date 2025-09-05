@@ -8,7 +8,6 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -66,10 +65,9 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            const reportIdFromPath = new URL(currentUrl).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
-
-            if (!reportIdFromPath) {
-                return; // Don't trigger onboarding if we are in the middle of a redirect to a report
+            if (currentUrl.endsWith('/r')) {
+                // Don't trigger onboarding if we are in the middle of a redirect to a report
+                return;
             }
 
             if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)) {
