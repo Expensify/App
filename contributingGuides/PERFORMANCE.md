@@ -336,10 +336,29 @@ Once potential performance bottlenecks are identified, the next step is to optim
 *   Components performing heavy calculations or processing large datasets.
 *   Components subscribing directly to frequently changing data instead of receiving it as props from a parent.
 *   Incorrect or inefficient use of memoization techniques (`React.memo`, `useMemo`, `useCallback`).
-*   Rendering of unnecessary or duplicated child components.
+*   [Rendering of unnecessary or duplicated child components](#rendering-of-unnecessary-or-duplicated-child-components).
 
 After implementing optimizations, it's crucial to validate the changes. Manual comparison of performance metrics can be tedious and prone to bias. It's highly recommended to use tools that allow for objective comparison of traces or metrics before and after changes. This helps in confirming actual performance gains and avoiding regressions in other areas.
 
 The optimization process is often iterative. Small, incremental improvements can accumulate to significant overall gains. When proposing changes, aim for self-contained and predictable modifications to facilitate review and discussion.
 
 Finally, before concluding an investigation, always validate improvements against real-world scenarios. This includes testing on different platforms and with various build configurations (e.g., production builds) to ensure the optimizations hold up in diverse environments. Remember that performance maintenance is a continuous effort, encompassing not just profiling but also adherence to code conventions and real user monitoring.
+
+## Common performance bottlenecks
+### Rendering of unnecessary or duplicated child components
+Since our codebase is very complex, it results in a large DOM tree rendered for the user. This may become a potential performance issue if not handled carefully.
+
+One of the most common issues is related to modals, popovers, and tooltips — elements that may appear on the screen. The problem is that they are usually present in the DOM tree even when initially invisible. Because of this, the initial render time of a screen may increase, ultimately slowing down the app.
+
+The solution is better control of invisible elements, making sure they are not included in the first render. This can be done, e.g., by a simple `return null`, smart usage of `lazy loading`, the `useTransition` hook, or the `<Deferred />` component.
+
+Another issue worth mentioning is unnecessary code execution, especially for elements that are never shown on a specific platform. In theory, we separate the logic between platforms by using index.tsx/index.native.tsx files, but sometimes platform-specific logic may slip in, causing unnecessary execution. For example, this may happen when logic specific to a wide layout (applicable only for desktop/web) is included.
+
+The last common issue is related to the use of `return null`. Sometimes we already know in the parent component that a specific child should not be rendered. In such cases, we unnecessarily execute the child's internal logic (calling hooks, sending requests) only to find out that the whole process was redundant.
+
+Examples:
+- [Add shouldRender check in EducationalTooltip to avoid unnecessary calls](https://github.com/Expensify/App/pull/66052) - avoids rendering invisible components
+- [Remove shouldAdjustScrollView to avoid heavy rerender](https://github.com/Expensify/App/pull/66849) - removes hooks that were called only for Safari logic slowing down the `ReportScreen.tsx`
+- [PopoverWithMeasuredContent optimization for mobile](https://github.com/Expensify/App/pull/68223) - returns early to avoid unnecessary calculations
+- [Reduce confirm modal initial render count](https://github.com/Expensify/App/pull/67518) - returns early to reduce first load cost
+- [Do not render PopoverMenu until it gets opened](https://github.com/Expensify/App/pull/67877) - adds a wrapper to control if `PopoverMenu` should be rendered
