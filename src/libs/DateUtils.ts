@@ -977,9 +977,10 @@ const isCurrentTimeWithinRange = (startTime: string, endTime: string): boolean =
 /**
  * Converts a date to a string in the format MMMM d, yyyy
  */
-const formatToReadableString = (date: string): string => {
+const formatToReadableString = (date: string, locale: Locale | undefined): string => {
+    const dateFormatter = new Intl.DateTimeFormat(locale, {month: 'long', day: 'numeric', year: 'numeric'});
     const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
-    return format(parsedDate, 'MMMM d, yyyy');
+    return dateFormatter.format(parsedDate);
 };
 
 const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, formatStr, options?) => {

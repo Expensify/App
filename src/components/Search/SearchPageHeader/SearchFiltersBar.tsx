@@ -74,7 +74,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -152,19 +152,19 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
             const displayText: string[] = [];
             if (value.On) {
                 displayText.push(
-                    isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`,
+                    isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On, preferredLocale)}`,
                 );
             }
             if (value.After) {
-                displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
+                displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After, preferredLocale)}`);
             }
             if (value.Before) {
-                displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
+                displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before, preferredLocale)}`);
             }
 
             return [value, displayText];
         },
-        [translate],
+        [translate, preferredLocale],
     );
 
     const [date, displayDate] = useMemo(
