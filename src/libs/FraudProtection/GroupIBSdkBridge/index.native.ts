@@ -5,13 +5,13 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import enableCapabilities from './enableCapabilities/index';
 
+// The GroupIB SDK requires us to set both iOS and Android customer IDs whenn initializing the SDK, instead of just one that the App is running on.
 const cidIOSMap: Record<string, string> = {
     [CONST.ENVIRONMENT.PRODUCTION]: 'gib-i-expensify',
     [CONST.ENVIRONMENT.STAGING]: 'gib-i-expensify-stg',
     [CONST.ENVIRONMENT.DEV]: 'gib-i-expensify-uat',
     [CONST.ENVIRONMENT.ADHOC]: 'gib-i-expensify-uat',
 };
-
 const cidAndroidMap: Record<string, string> = {
     [CONST.ENVIRONMENT.PRODUCTION]: 'gib-a-expensify',
     [CONST.ENVIRONMENT.STAGING]: 'gib-a-expensify-stg',
@@ -24,6 +24,13 @@ const fpInstancePromise = new Promise<FP>((resolve) => {
     resolveFpInstancePromise = resolve;
 });
 
+/** Required configuration to initialize the FraudProtection SDK on native.
+ * This block must execute in the order below so the SDK has all identifiers and endpoints before it starts:
+ *  1) Set platform customer IDs (iOS/Android)
+ *  2) Set collection endpoints (target URL and GlobalId URL)
+ *  3) Enable platform capabilities
+ *  4) Start the SDK (run)
+ */
 function init(): Promise<void> {
     return Promise.all([getEnvironment(), getOldDotEnvironmentURL()]).then(([env, oldDotURL]) => {
         const iOSCustomerID = cidIOSMap[env] ?? cidIOSMap[CONST.ENVIRONMENT.DEV];
@@ -37,6 +44,7 @@ function init(): Promise<void> {
             fp.enableDebugLogs();
         }
 
+        // Set platform-specific customer IDs – It's weird but their documentation requires us to set both of them instead of just one that the App is running on.
         fp.setCustomerId(iOSCustomerID, androidCustomerID, (error: string) => {
             Log.warn(`[Fraud Protection] setCustomerId error: ${error}`);
         });

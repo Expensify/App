@@ -51,6 +51,7 @@ function init(): Promise<void> {
 function setAuthenticationData(identity: string, sessionID: string): void {
     fpInstancePromise.then((fp) => {
         const status = identity !== '' ? fp?.IS_AUTHORIZED : fp?.IS_GUEST;
+        // The order of these calls is important. Do not change it unless you check in the GroupIB SDK documentation.
         fp?.setAuthStatus?.(status ?? 0);
         fp?.setIdentity?.(identity);
         fp?.setSessionID?.(sessionID);
