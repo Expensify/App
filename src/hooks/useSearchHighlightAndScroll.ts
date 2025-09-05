@@ -106,7 +106,9 @@ function useSearchHighlightAndScroll({
             // We only want to highlight new items if the addition of transactions or report actions triggered the search.
             // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
             // We don't want to highlight these old items, even if they appear new in the current search results.
-            hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionsIDs.length;
+            if ((!isChat && hasTransactionsIDsChange) || (isChat && hasReportActionsIDsChange)) {
+                hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionsIDs.length;
+            }
 
             // Set the flag indicating the search is triggered by the hook
             triggeredByHookRef.current = true;
