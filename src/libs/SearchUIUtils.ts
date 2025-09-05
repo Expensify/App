@@ -1248,7 +1248,7 @@ function getTaskSections(
                     // eslint-disable-next-line deprecation/deprecation
                     const policy = getPolicy(parentReport.policyID);
                     const isParentReportArchived = archivedReportsIDList?.has(parentReport?.reportID);
-                    const parentReportName = getReportName(parentReport, policy, undefined, personalDetails, undefined, undefined, undefined, isParentReportArchived);
+                    const parentReportName = getReportName(parentReport, policy, undefined, undefined, undefined, undefined, undefined, isParentReportArchived);
                     const icons = getIcons(parentReport, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                     const parentReportIcon = icons?.at(0);
 
