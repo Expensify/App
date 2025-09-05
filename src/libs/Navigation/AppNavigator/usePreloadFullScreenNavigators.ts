@@ -23,6 +23,9 @@ import {getPreservedNavigatorState} from './createSplitNavigator/usePreserveNavi
 // This timing is used to call the preload function after a tab change, when the initial tab screen has already been rendered.
 const TIMING_TO_CALL_PRELOAD = 1000;
 
+// Currently, only the Account and Workspaces tabs are preloaded. The remaining tabs will be supported soon.
+const TABS_TO_PRELOAD = [NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES];
+
 function preloadWorkspacesTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
     const state = getWorkspacesTabStateFromSessionStorage() ?? navigation.getState();
     const lastWorkspacesSplitNavigator = state.routes.findLast((route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
@@ -141,15 +144,13 @@ function usePreloadFullScreenNavigators() {
             }
             hasPreloadedRef.current = true;
             setTimeout(() => {
-                Object.values(NAVIGATION_TABS)
-                    .filter((tabName) => {
-                        const isCurrentTab = TAB_TO_FULLSCREEN[tabName].includes(route.name as FullScreenName);
-                        const isRouteAlreadyPreloaded = preloadedRoutes.some((preloadedRoute) => TAB_TO_FULLSCREEN[tabName].includes(preloadedRoute.name as FullScreenName));
-                        return !isCurrentTab && !isRouteAlreadyPreloaded;
-                    })
-                    .forEach((tabName) => {
-                        preloadTab(tabName, navigation, subscriptionPlan);
-                    });
+                TABS_TO_PRELOAD.filter((tabName) => {
+                    const isCurrentTab = TAB_TO_FULLSCREEN[tabName].includes(route.name as FullScreenName);
+                    const isRouteAlreadyPreloaded = preloadedRoutes.some((preloadedRoute) => TAB_TO_FULLSCREEN[tabName].includes(preloadedRoute.name as FullScreenName));
+                    return !isCurrentTab && !isRouteAlreadyPreloaded;
+                }).forEach((tabName) => {
+                    preloadTab(tabName, navigation, subscriptionPlan);
+                });
             }, TIMING_TO_CALL_PRELOAD);
         }, [isAuthenticated, isSingleNewDotEntry, route.name, preloadedRoutes, navigation, subscriptionPlan]),
     );
