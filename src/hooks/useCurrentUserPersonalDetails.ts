@@ -1,14 +1,17 @@
 import {useMemo} from 'react';
-import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
+import {useSession} from '@components/OnyxListItemProvider';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
+import useOnyx from './useOnyx';
 
 function useCurrentUserPersonalDetails() {
     const session = useSession();
-    const personalDetails = usePersonalDetails();
+    const userAccountID = useMemo(() => session?.accountID ?? CONST.DEFAULT_NUMBER_ID, [session?.accountID]);
+    const [userPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (allPersonalDetails) => allPersonalDetails?.[userAccountID]});
+
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    const accountPersonalDetails = personalDetails?.[accountID];
-    const currentUserPersonalDetails: PersonalDetails = useMemo(() => ({...accountPersonalDetails, accountID}), [accountPersonalDetails, accountID]);
+    const currentUserPersonalDetails: PersonalDetails = useMemo(() => ({...userPersonalDetails, accountID}), [userPersonalDetails, accountID]);
 
     return currentUserPersonalDetails;
 }
