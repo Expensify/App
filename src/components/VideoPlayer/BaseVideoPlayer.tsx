@@ -94,8 +94,8 @@ function BaseVideoPlayer({
     const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: 'idle'} as StatusChangeEventPayload);
 
     const isLoading = useMemo(() => {
-        return status === 'loading' || (status === 'idle' && !isEnded);
-    }, [isEnded, status]);
+        return status === 'loading';
+    }, [status]);
 
     const isBuffering = useMemo(() => {
         return bufferedPosition <= 0;
