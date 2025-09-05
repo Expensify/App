@@ -48,8 +48,9 @@ Onyx.connect({
     },
 });
 
+// `allRecentlyUsedTags` is only used in actions, so getting it using Onyx.connectWithoutView is correct.
 let allRecentlyUsedTags: OnyxCollection<RecentlyUsedTags> = {};
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
     waitForCollectionCallback: true,
     callback: (val) => (allRecentlyUsedTags = val),
