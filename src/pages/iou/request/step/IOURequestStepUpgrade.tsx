@@ -114,6 +114,7 @@ function IOURequestStepUpgrade({
                         policyOwnerEmail={session?.email ?? ''}
                         onSubmit={onWorkspaceConfirmationSubmit}
                         onBackButtonPress={() => setShowConfirmationForm(false)}
+                        addBottomSafeAreaPadding={false}
                     />
                 )}
             </ScrollView>
