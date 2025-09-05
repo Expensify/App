@@ -2272,28 +2272,28 @@ const translations = {
         },
         tasks: {
             testDriveAdminTask: {
-                title: ({testDriveURL}) => `\u8fdb\u884c\u3010\u8bd5\u9a7e\u3011(${testDriveURL})`,
+                title: ({testDriveURL}) => `\u8fdb\u884c[\u8bd5\u9a7e](${testDriveURL})`,
                 description: ({testDriveURL}) =>
-                    `\u3010\u5feb\u901f\u4ea7\u54c1\u6f14\u793a\u3011(${testDriveURL})\u4ee5\u4e86\u89e3 Expensify \u4e3a\u4f55\u662f\u6700\u5feb\u7684\u62a5\u9500\u65b9\u5f0f\u3002`,
+                    `[\u5feb\u901f\u4ea7\u54c1\u6f14\u793a](${testDriveURL})\u4ee5\u4e86\u89e3 Expensify \u4e3a\u4f55\u662f\u6700\u5feb\u7684\u62a5\u9500\u65b9\u5f0f\u3002`,
             },
             testDriveEmployeeTask: {
-                title: ({testDriveURL}) => `\u8fdb\u884c\u3010\u8bd5\u9a7e\u3011(${testDriveURL})`,
+                title: ({testDriveURL}) => `\u8fdb\u884c[\u8bd5\u9a7e](${testDriveURL})`,
                 description: ({testDriveURL}) =>
-                    `\u8fdb\u884c\u3010\u8bd5\u9a7e\u3011(${testDriveURL})\u5373\u53ef\u83b7\u5f97\u56e2\u961f *3 \u4e2a\u6708\u7684 Expensify \u514d\u8d39\u4f7f\u7528\u6743\uff01*`,
+                    `\u8fdb\u884c[\u8bd5\u9a7e](${testDriveURL})\u5373\u53ef\u83b7\u5f97\u56e2\u961f *3 \u4e2a\u6708\u7684 Expensify \u514d\u8d39\u4f7f\u7528\u6743\uff01*`,
             },
             createTestDriveAdminWorkspaceTask: {
-                title: ({workspaceConfirmationLink}) => `\u3010\u521b\u5efa\u3011(${workspaceConfirmationLink})\u4e00\u4e2a\u5de5\u4f5c\u533a`,
+                title: ({workspaceConfirmationLink}) => `[\u521b\u5efa](${workspaceConfirmationLink})\u4e00\u4e2a\u5de5\u4f5c\u533a`,
                 description:
                     '\u521b\u5efa\u4e00\u4e2a\u5de5\u4f5c\u533a\uff0c\u5e76\u5728\u60a8\u7684\u8bbe\u7f6e\u4e13\u5bb6\u7684\u5e2e\u52a9\u4e0b\u914d\u7f6e\u5404\u9879\u8bbe\u7f6e\uff01',
             },
             createWorkspaceTask: {
-                title: ({workspaceSettingsLink}) => `\u521b\u5efa\u4e00\u4e2a\u3010\u5de5\u4f5c\u533a\u3011(${workspaceSettingsLink})`,
+                title: ({workspaceSettingsLink}) => `\u521b\u5efa\u4e00\u4e2a[\u5de5\u4f5c\u533a](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
-                    `*\u521b\u5efa\u4e00\u4e2a\u5de5\u4f5c\u533a*\u4ee5\u8ddf\u8e2a\u652f\u6301\u3001\u626b\u63cf\u6536\u636e\u3001\u804a\u5929\u7b49\u3002\n\n1. \u70b9\u51fb *\u5de5\u4f5c\u533a* > *\u65b0\u5efa\u5de5\u4f5c\u533a*\u3002\n\n*\u60a8\u7684\u65b0\u5de5\u4f5c\u533a\u5df2\u51c6\u5907\u5c31\u7eea\uff01* \u3010\u67e5\u770b\u3011(${workspaceSettingsLink})\u3002`,
+                    `*\u521b\u5efa\u4e00\u4e2a\u5de5\u4f5c\u533a*\u4ee5\u8ddf\u8e2a\u652f\u6301\u3001\u626b\u63cf\u6536\u636e\u3001\u804a\u5929\u7b49\u3002\n\n1. \u70b9\u51fb *\u5de5\u4f5c\u533a* > *\u65b0\u5efa\u5de5\u4f5c\u533a*\u3002\n\n*\u60a8\u7684\u65b0\u5de5\u4f5c\u533a\u5df2\u51c6\u5907\u5c31\u7eea\uff01* [\u67e5\u770b](${workspaceSettingsLink})\u3002`,
             },
 
             setupCategoriesTask: {
-                title: ({workspaceCategoriesLink}) => `\u8bbe\u7f6e\u3010\u5206\u7c7b\u3011(${workspaceCategoriesLink})`,
+                title: ({workspaceCategoriesLink}) => `\u8bbe\u7f6e[\u5206\u7c7b](${workspaceCategoriesLink})`,
                 description: ({workspaceCategoriesLink}) =>
                     '*\u8bbe\u7f6e\u5206\u7c7b*\uff0c\u4ee5\u4fbf\u60a8\u7684\u56e2\u961f\u53ef\u4ee5\u5bf9\u652f\u51fa\u8fdb\u884c\u7f16\u7801\uff0c\u4ee5\u4fbf\u4e8e\u62a5\u544a\u3002\n' +
                     '\n' +
@@ -2303,7 +2303,7 @@ const translations = {
                     '5. \u7981\u7528\u6240\u6709\u4e0d\u9700\u8981\u7684\u5206\u7c7b\u3002\n' +
                     '6. \u5728\u53f3\u4e0a\u89d2\u6dfb\u52a0\u81ea\u5df1\u7684\u5206\u7c7b\u3002\n' +
                     '\n' +
-                    `\u3010\u5e26\u6211\u5230\u5de5\u4f5c\u533a\u5206\u7c7b\u8bbe\u7f6e\u3011(${workspaceCategoriesLink})\u3002\n` +
+                    `[\u5e26\u6211\u5230\u5de5\u4f5c\u533a\u5206\u7c7b\u8bbe\u7f6e](${workspaceCategoriesLink})\u3002\n` +
                     '\n' +
                     `![Set up categories](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
             },
@@ -2366,7 +2366,7 @@ const translations = {
                     }`,
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `\u8fde\u63a5\u3010\u60a8\u7684\u516c\u53f8\u5361\u3011(${corporateCardLink})`,
+                title: ({corporateCardLink}) => `\u8fde\u63a5[\u60a8\u7684\u516c\u53f8\u5361](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     `\u8fde\u63a5\u60a8\u7684\u516c\u53f8\u5361\u4ee5\u81ea\u52a8\u5bfc\u5165\u548c\u7f16\u7801\u652f\u51fa\u3002\n` +
                     '\n' +
@@ -2375,10 +2375,10 @@ const translations = {
                     '3. \u70b9\u51fb *\u516c\u53f8\u5361*\u3002\n' +
                     '4. \u6309\u7167\u63d0\u793a\u8fde\u63a5\u60a8\u7684\u5361\u3002\n' +
                     '\n' +
-                    `\u3010\u5e26\u6211\u53bb\u8fde\u63a5\u6211\u7684\u516c\u53f8\u5361\u3011(${corporateCardLink})\u3002`,
+                    `[\u5e26\u6211\u53bb\u8fde\u63a5\u6211\u7684\u516c\u53f8\u5361](${corporateCardLink})\u3002`,
             },
             inviteTeamTask: {
-                title: ({workspaceMembersLink}) => `\u9080\u8bf7\u3010\u60a8\u7684\u56e2\u961f\u3011(${workspaceMembersLink})`,
+                title: ({workspaceMembersLink}) => `\u9080\u8bf7[\u60a8\u7684\u56e2\u961f](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
                     '*\u9080\u8bf7\u60a8\u7684\u56e2\u961f*\u5230 Expensify\uff0c\u4f7f\u4ed6\u4eec\u53ef\u4ee5\u4ece\u4eca\u5929\u5f00\u59cb\u8ddf\u8e2a\u652f\u51fa\u3002\n' +
                     '\n' +
@@ -2388,20 +2388,19 @@ const translations = {
                     '5. \u8f93\u5165\u7535\u5b50\u90ae\u4ef6\u6216\u7535\u8bdd\u53f7\u7801\u3002 \n' +
                     '6. \u5982\u6709\u9700\u8981\uff0c\u53ef\u6dfb\u52a0\u81ea\u5b9a\u4e49\u9080\u8bf7\u4fe1\u606f\uff01\n' +
                     '\n' +
-                    `\u3010\u5e26\u6211\u5230\u5de5\u4f5c\u533a\u6210\u5458\u3011(${workspaceMembersLink})\u3002\n` +
+                    `[\u5e26\u6211\u5230\u5de5\u4f5c\u533a\u6210\u5458](${workspaceMembersLink})\u3002\n` +
                     '\n' +
                     `![Invite your team](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
             },
             setupCategoriesAndTags: {
-                title: ({workspaceCategoriesLink, workspaceTagsLink}) =>
-                    `\u8bbe\u7f6e\u3010\u5206\u7c7b\u3011(${workspaceCategoriesLink})\u548c\u3010\u6807\u7b7e\u3011(${workspaceTagsLink})`,
+                title: ({workspaceCategoriesLink, workspaceTagsLink}) => `\u8bbe\u7f6e[\u5206\u7c7b](${workspaceCategoriesLink})\u548c[\u6807\u7b7e](${workspaceTagsLink})`,
                 description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
                     '*\u8bbe\u7f6e\u5206\u7c7b\u548c\u6807\u7b7e*\uff0c\u4ee5\u4fbf\u60a8\u7684\u56e2\u961f\u53ef\u4ee5\u5bf9\u652f\u51fa\u8fdb\u884c\u7f16\u7801\uff0c\u4ee5\u4fbf\u4e8e\u62a5\u544a\u3002\n' +
                     '\n' +
-                    `\u901a\u8fc7\u3010\u8fde\u63a5\u60a8\u7684\u4f1a\u8ba1\u8f6f\u4ef6\u3011(${workspaceAccountingLink})\u81ea\u52a8\u5bfc\u5165\u5b83\u4eec\uff0c\u6216\u5728\u60a8\u7684\u3010\u5de5\u4f5c\u533a\u8bbe\u7f6e\u3011(${workspaceCategoriesLink})\u4e2d\u624b\u52a8\u8bbe\u7f6e\u3002`,
+                    `\u901a\u8fc7[\u8fde\u63a5\u60a8\u7684\u4f1a\u8ba1\u8f6f\u4ef6](${workspaceAccountingLink})\u81ea\u52a8\u5bfc\u5165\u5b83\u4eec\uff0c\u6216\u5728\u60a8\u7684[\u5de5\u4f5c\u533a\u8bbe\u7f6e](${workspaceCategoriesLink})\u4e2d\u624b\u52a8\u8bbe\u7f6e\u3002`,
             },
             setupTagsTask: {
-                title: ({workspaceTagsLink}) => `\u8bbe\u7f6e\u3010\u6807\u7b7e\u3011(${workspaceTagsLink})`,
+                title: ({workspaceTagsLink}) => `\u8bbe\u7f6e[\u6807\u7b7e](${workspaceTagsLink})`,
                 description: ({workspaceMoreFeaturesLink}) =>
                     '\u4f7f\u7528\u6807\u7b7e\u6dfb\u52a0\u989d\u5916\u7684\u652f\u51fa\u8be6\u60c5\uff0c\u4f8b\u5982\u9879\u76ee\u3001\u5ba2\u6237\u3001\u5730\u70b9\u548c\u90e8\u95e8\u3002\u5982\u679c\u60a8\u9700\u8981\u591a\u7ea7\u6807\u7b7e\uff0c\u53ef\u4ee5\u5347\u7ea7\u5230 Control \u8ba1\u5212\u3002\n' +
                     '\n' +
@@ -2412,7 +2411,7 @@ const translations = {
                     '6. \u5bfc\u822a\u5230\u5de5\u4f5c\u533a\u7f16\u8f91\u5668\u4e2d\u7684 *\u6807\u7b7e*\u3002\n' +
                     '7. \u70b9\u51fb *+\u6dfb\u52a0\u6807\u7b7e*\u4ee5\u521b\u5efa\u81ea\u5df1\u7684\u6807\u7b7e\u3002\n' +
                     '\n' +
-                    `\u3010\u5e26\u6211\u5230\u66f4\u591a\u529f\u80fd\u3011(${workspaceMoreFeaturesLink})\u3002\n` +
+                    `[\u5e26\u6211\u5230\u66f4\u591a\u529f\u80fd](${workspaceMoreFeaturesLink})\u3002\n` +
                     '\n' +
                     `![Set up tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
             },
@@ -2457,12 +2456,12 @@ const translations = {
                     '\u5982\u6709\u9700\u8981\uff0c\u968f\u610f\u6dfb\u52a0\u66f4\u591a\u8be6\u60c5\uff0c\u6216\u76f4\u63a5\u53d1\u9001\u3002\u8ba9\u6211\u4eec\u8ba9\u60a8\u83b7\u5f97\u62a5\u9500\uff01',
             },
             reviewWorkspaceSettingsTask: {
-                title: ({workspaceSettingsLink}) => `\u67e5\u770b\u60a8\u7684\u3010\u5de5\u4f5c\u533a\u8bbe\u7f6e\u3011(${workspaceSettingsLink})`,
+                title: ({workspaceSettingsLink}) => `\u67e5\u770b\u60a8\u7684[\u5de5\u4f5c\u533a\u8bbe\u7f6e](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
                     '\u4ee5\u4e0b\u662f\u67e5\u770b\u548c\u66f4\u65b0\u60a8\u5de5\u4f5c\u533a\u8bbe\u7f6e\u7684\u65b9\u6cd5\uff1a\n' +
                     '1. \u70b9\u51fb\u8bbe\u7f6e\u9009\u9879\u5361\u3002\n' +
                     '2. \u70b9\u51fb *\u5de5\u4f5c\u533a* > [\u60a8\u7684\u5de5\u4f5c\u533a]\u3002\n' +
-                    `\u3010\u524d\u5f80\u60a8\u7684\u5de5\u4f5c\u533a\u3011(${workspaceSettingsLink})\u3002\u6211\u4eec\u5c06\u5728 #admins \u804a\u5929\u5ba4\u4e2d\u8ddf\u8e2a\u5b83\u4eec\u3002`,
+                    `[\u524d\u5f80\u60a8\u7684\u5de5\u4f5c\u533a](${workspaceSettingsLink})\u3002\u6211\u4eec\u5c06\u5728 #admins \u804a\u5929\u5ba4\u4e2d\u8ddf\u8e2a\u5b83\u4eec\u3002`,
             },
             createReportTask: {
                 title: '\u521b\u5efa\u60a8\u7684\u7b2c\u4e00\u4efd\u62a5\u544a',
@@ -2478,7 +2477,7 @@ const translations = {
             },
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
-            name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `\u8fdb\u884c\u3010\u8bd5\u9a7e\u3011(${testDriveURL})` : '\u8fdb\u884c\u8bd5\u9a7e'),
+            name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `\u8fdb\u884c[\u8bd5\u9a7e](${testDriveURL})` : '\u8fdb\u884c\u8bd5\u9a7e'),
             embeddedDemoIframeTitle: '\u8bd5\u9a7e',
             employeeFakeReceipt: {
                 description: '\u6211\u7684\u8bd5\u9a7e\u6536\u636e\uff01',
