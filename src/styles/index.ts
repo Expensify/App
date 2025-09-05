@@ -5802,10 +5802,6 @@ const styles = (theme: ThemeColors) =>
             minHeight: '100%',
         },
 
-        smallMoreButton: {
-            marginRight: 12,
-        },
-
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
             flex: 1,
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
