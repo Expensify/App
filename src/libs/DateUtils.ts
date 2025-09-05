@@ -368,13 +368,13 @@ function getMonthNames(locale: Locale | undefined): string[] {
 /**
  * @returns [Monday, Tuesday, Wednesday, ...]
  */
-function getDaysOfWeek(): string[] {
-    const weekStartsOn = getWeekStartsOn();
+function getDaysOfWeek(locale: Locale | undefined): string[] {
+    const weekdayFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long'});
     const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
     const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
     const daysOfWeek = eachDayOfInterval({start: startOfCurrentWeek, end: endOfCurrentWeek});
 
-    return daysOfWeek.map((date) => format(date, 'eeee'));
+    return daysOfWeek.map((date) => weekdayFormatter.format(date));
 }
 
 // Used to throttle updates to the timezone when necessary. Initialize outside the throttle window so it's updated the first time.

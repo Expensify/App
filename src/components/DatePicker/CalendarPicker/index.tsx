@@ -151,7 +151,7 @@ function CalendarPicker({
     };
 
     const monthNames = DateUtils.getMonthNames(preferredLocale).map((month) => Str.recapitalize(month));
-    const daysOfWeek = DateUtils.getDaysOfWeek().map((day) => day.toUpperCase());
+    const daysOfWeek = DateUtils.getDaysOfWeek(preferredLocale).map((day) => day.toUpperCase());
     const hasAvailableDatesNextMonth = startOfDay(new Date(maxDate)) > endOfMonth(new Date(currentDateView));
     const hasAvailableDatesPrevMonth = endOfDay(new Date(minDate)) < startOfMonth(new Date(currentDateView));
 
