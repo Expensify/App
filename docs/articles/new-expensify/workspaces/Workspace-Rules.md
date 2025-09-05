@@ -1,7 +1,7 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses]
+keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, compliance]
 ---
 
 Workspace Rules let Admins enforce expense policies by setting custom requirements for receipts, spending limits, category behavior, auto-approvals, and more. These rules help ensure compliance and streamline the approval process.
@@ -31,7 +31,13 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
 - **Max Expense Amount** – Set a per-expense spending cap (supports decimals).
 - **Max Expense Age (Days)** – Define how old an expense can be (whole numbers only).
 - **Billable Default** – Choose whether expenses are billable by default.
-- **eReceipts** – Enable automatic receipt generation for most USD card transactions (requires USD as default currency).
+   - Choose the best setting:
+      - Disabled – Expenses cannot be marked as billable.
+      - Default to billable – Expenses are billable by default but can be marked as non-billable.
+      - Default to non-billable – Expenses are non-billable by default but can be marked as billable. 
+- **eReceipts** – Enable automatic receipt generation for most USD card transactions (requires USD as default currency), which are digital replacements for receipts of $75 or less for credit card transactions.
+   - Enabled – Expensify will generate eReceipts for all US-based card transactions up to $75.
+   - Disabled – No eReceipts will be generated.
 
 ---
 
@@ -121,7 +127,7 @@ You can set workspace-wide defaults to automate categorization and tagging.
 
 Only Workspace Admins on the **Control** plan can enable and configure workspace rules.
 
-## What happens if I turn the rules off?
+## What happens if I disable workspace rules?
 
 Turning off workspace rules removes any active warnings or violations from draft or outstanding expenses that relied on those rules.
 
