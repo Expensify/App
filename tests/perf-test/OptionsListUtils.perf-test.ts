@@ -110,7 +110,6 @@ describe('OptionsListUtils', () => {
         await measureFunction(() => getSearchOptions(options, mockedBetas));
     });
 
-
     /* Testing getShareLogOptions */
     test('[OptionsListUtils] getShareLogOptions', async () => {
         await waitForBatchedUpdates();
