@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {
     ListItem,
@@ -25,6 +26,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getReportAction} from '@libs/ReportActionsUtils';
+import {createAndOpenSearchTransactionThread} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
@@ -53,6 +56,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {currentSearchHash} = useSearchContext();
     const isEmpty = groupItem.transactions.length === 0;
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayEmptyView = isEmpty && groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
@@ -88,6 +92,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
         setActiveTransactionThreadIDs(siblingTransactionThreadIDs).then(() => {
+            // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
+            if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                const iouAction = getReportAction(transactionItem.report.reportID, transactionItem.moneyRequestReportActionID);
+                createAndOpenSearchTransactionThread(transactionItem, iouAction, currentSearchHash, backTo);
+                return;
+            }
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         });
     };
