@@ -51,7 +51,7 @@ function UserInfoAndActionButtonRow({
                     policyID={item.policyID}
                     reportID={item.reportID}
                     hash={item.hash}
-                    amount={(item as TransactionListItemType)?.amount}
+                    amount={(item as TransactionListItemType)?.amount ?? (item as TransactionReportGroupListItemType)?.total}
                 />
             </View>
         </View>

@@ -649,6 +649,7 @@ const translations = {
         merge: 'Merge',
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
         enableGlobalReimbursements: 'Enable Global Reimbursements',
+        purchaseAmount: 'Purchase amount',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -864,17 +865,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `This chat room is for anything <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> related.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `This chat is for invoices between <strong>${invoicePayer}</strong> and <strong>${invoiceReceiver}</strong>. Use the + button to send an invoice.`,
+            `This chat is for invoices between <strong>${invoicePayer}</strong> and <strong>${invoiceReceiver}</strong>. Use the <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> button to send an invoice.`,
         beginningOfChatHistory: 'This chat is with ',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `This is where <strong>${submitterDisplayName}</strong> will submit expenses to <strong>${workspaceName}</strong>. Just use the + button.`,
+            `This is where <strong>${submitterDisplayName}</strong> will submit expenses to <strong>${workspaceName}</strong>. Just use the <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> button.`,
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
         beginningOfChatHistorySystemDM: "Welcome! Let's get you set up.",
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         yourSpace: 'Your space',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use the + button to ${additionalText} an expense.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button to ${additionalText} an expense.`,
         askConcierge: ' Ask questions and get 24/7 realtime support.',
         conciergeSupport: '24/7 support',
         create: 'create',
@@ -4850,7 +4851,8 @@ const translations = {
             existingTagError: 'A tag with this name already exists',
             invalidTagNameError: 'Tag name cannot be 0. Please choose a different value.',
             genericFailureMessage: 'An error occurred while updating the tag, please try again',
-            importedFromAccountingSoftware: 'The tags below are imported from your',
+            importedFromAccountingSoftware: 'Tags are managed in your',
+            employeesSeeTagsAs: 'Employees see tags as ',
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again',
             tagRules: 'Tag rules',
@@ -5378,6 +5380,7 @@ const translations = {
             genericFailureMessage: 'An error occurred while updating the workspace. Please try again.',
             avatarUploadFailureMessage: 'An error occurred uploading the avatar. Please try again.',
             addressContext: 'A Workspace Address is required to enable Expensify Travel. Please enter an address associated with your business.',
+            policy: 'Expense policy',
         },
         bankAccount: {
             continueWithSetup: 'Continue setup',
@@ -5708,9 +5711,8 @@ const translations = {
                     `Go to [More features](${moreFeaturesLink}) and enable workflows, then add approvals to unlock this feature.`,
             },
             customRules: {
-                title: 'Custom rules',
-                subtitle: 'Description',
-                description: 'Input custom rules for expense reports',
+                title: 'Expense policy',
+                cardSubtitle: "Here's where your team's expense policy lives, so everyone's on the same page about what's covered.",
             },
         },
         planTypePage: {
@@ -6029,7 +6031,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Nothing to show',
-                subtitle: 'Try adjusting your search criteria or creating something with the green + button.',
+                subtitle: `Try adjusting your search criteria or creating something with the green ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} button.`,
             },
             emptyExpenseResults: {
                 title: "You haven't created any expenses yet",
@@ -6140,6 +6142,7 @@ const translations = {
             withdrawn: 'Withdrawn',
             billable: 'Billable',
             reimbursable: 'Reimbursable',
+            purchaseCurrency: 'Purchase currency',
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.REPORTS]: 'Report',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'From',
@@ -6150,6 +6153,12 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reimbursement',
+            },
+            action: {
+                [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Submit',
+                [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approve',
+                [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pay',
+                [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
         },
         groupBy: 'Group by',
@@ -6307,7 +6316,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `failed to export this report to ${label} ("${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
+                    `failed to export this report to ${label} ("${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}")`,
                 managerAttachReceipt: `added a receipt`,
                 managerDetachReceipt: `removed a receipt`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `paid ${currency}${amount} elsewhere`,
