@@ -61,10 +61,7 @@ function SearchFiltersHasPage() {
     }, []);
 
     const applyChanges = useCallback(() => {
-        const newHas = selectedItems.length ? selectedItems : [CONST.SEARCH.HAS_VALUES.RECEIPT];
-        updateAdvancedFilters({
-            has: newHas,
-        });
+        updateAdvancedFilters({has: selectedItems});
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, [selectedItems]);
 
