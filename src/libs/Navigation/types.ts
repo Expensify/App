@@ -505,15 +505,18 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
         policyID: string;
         accountID: number;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: {
         policyID: string;
         accountID: number;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
         policyID: string;
         accountID: number;
         error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
         policyID: string;
