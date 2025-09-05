@@ -171,25 +171,10 @@ class TranslationGenerator {
             // Replace translated strings in the AST
             const transformer = this.createTransformer(translationsForLocale);
 
-            // For incremental mode, transform just the translations node; otherwise transform the full file
+            // For incremental mode, transform the target file directly; otherwise transform en.ts
             let transformedSourceFile: ts.SourceFile;
             if (this.isIncremental) {
-                // Find the translations node in en.ts
-                const translationsNode = this.findTranslationsNode(this.sourceFile);
-                if (!translationsNode) {
-                    throw new Error('Could not find translations node in en.ts for incremental transformation');
-                }
-
-                // Transform just the translations node directly - this will filter to only pathsToTranslate
-                const result = ts.transform(translationsNode, [transformer]); // Type assertion needed for Node vs SourceFile
-                const translationsPatch = result.transformed.at(0);
-                result.dispose();
-
-                if (!translationsPatch) {
-                    throw new Error('Transformation of translations node failed');
-                }
-
-                // Parse the existing AST for the target locale
+                // Parse the existing target file
                 const targetPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
 
                 if (!fs.existsSync(targetPath)) {
@@ -198,49 +183,15 @@ class TranslationGenerator {
 
                 const existingContent = fs.readFileSync(targetPath, 'utf8');
                 const existingSourceFile = ts.createSourceFile(targetPath, existingContent, ts.ScriptTarget.Latest, true);
-                const existingTranslationsNode = this.findTranslationsNode(existingSourceFile);
 
-                if (!existingTranslationsNode) {
-                    throw new Error(`Could not find translations node in ${targetPath} for incremental transformation`);
-                }
-
-                // Merge translationsPatch into the existing translations node
-                let mergedTranslationsNode = TSCompilerUtils.objectMerge(existingTranslationsNode, translationsPatch);
-
-                // Prune deleted paths from the merged translations node
-                if (this.pathsToRemove.size > 0) {
-                    const pathsToRemoveArray = Array.from(this.pathsToRemove);
-                    mergedTranslationsNode = TSCompilerUtils.objectOmit(mergedTranslationsNode, pathsToRemoveArray);
-
-                    if (this.verbose) {
-                        console.log(`🗑️ Removed paths: ${pathsToRemoveArray.join(', ')}`);
-                    }
-                }
-
-                // Transform the full existing source file, replacing the main translation node with our merged result
-                const replaceTransformer: ts.TransformerFactory<ts.SourceFile> = (context) => {
-                    const visit: ts.Visitor = (node) => {
-                        // If this is the main translation node, replace it with our merged result
-                        if (node === existingTranslationsNode) {
-                            return mergedTranslationsNode;
-                        }
-                        // Otherwise, return the node unchanged
-                        return ts.visitEachChild(node, visit, context);
-                    };
-
-                    return (sourceFile: ts.SourceFile) => {
-                        const visitResult = ts.visitNode(sourceFile, visit);
-                        return (visitResult as ts.SourceFile) ?? sourceFile;
-                    };
-                };
-
-                const finalResult = ts.transform(existingSourceFile, [replaceTransformer]);
-                transformedSourceFile = finalResult.transformed.at(0) ?? existingSourceFile;
-                finalResult.dispose();
+                // Transform the existing target file directly with path-aware filtering
+                const result = ts.transform(existingSourceFile, [transformer]);
+                transformedSourceFile = result.transformed.at(0) ?? existingSourceFile;
+                result.dispose();
             } else {
-                // Full transformation for non-incremental mode
+                // Full transformation for non-incremental mode - transform en.ts
                 const result = ts.transform(this.sourceFile, [transformer]);
-                transformedSourceFile = (result.transformed.at(0) ?? this.sourceFile) as ts.SourceFile;
+                transformedSourceFile = result.transformed.at(0) ?? this.sourceFile;
                 result.dispose();
             }
 
@@ -731,14 +682,22 @@ class TranslationGenerator {
     /**
      * Generate an AST transformer for the given set of translations.
      */
-    private createTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.Node> {
+    private createTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
         return (context: ts.TransformationContext) => {
             const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
                 if (this.shouldNodeBeTranslated(node)) {
-                    // For incremental mode, check if this node's path is included
-                    if (this.isIncremental && !this.shouldTranslatePath(currentPath)) {
-                        return undefined; // Remove this node from the transformed AST
+                    // For incremental mode, handle path filtering
+                    if (this.isIncremental) {
+                        // Check if this path should be removed
+                        if (currentPath && this.pathsToRemove.has(currentPath as TranslationPaths)) {
+                            return undefined; // Remove this node
+                        }
+                        // Only translate nodes with paths in pathsToTranslate
+                        if (!this.shouldTranslatePath(currentPath)) {
+                            return node; // Keep unchanged
+                        }
                     }
+
                     if (ts.isStringLiteral(node)) {
                         const translatedText = translations.get(this.getTranslationKey(node));
                         return translatedText ? ts.factory.createStringLiteral(translatedText) : node;
@@ -795,9 +754,8 @@ class TranslationGenerator {
                 );
             };
 
-            return (node: ts.Node) => {
-                const transformedNode = ts.visitNode(node, visitWithPath) ?? node; // Use path-aware visitor
-                return transformedNode;
+            return (sourceFile: ts.SourceFile) => {
+                return (ts.visitNode(sourceFile, visitWithPath) as ts.SourceFile) ?? sourceFile;
             };
         };
     }
