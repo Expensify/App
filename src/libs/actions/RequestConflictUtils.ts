@@ -36,7 +36,7 @@ const enablePolicyFeatureCommand = [
     WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
 ] as const;
 
-const availableRemoveDuplicateEnableFeatureConflicts: string[] = [
+const availableRemoveDuplicateEnableFeatureConflicts = [
     WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
     WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
     WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
@@ -209,7 +209,7 @@ function resolveEnableFeatureConflicts(
 ): ConflictActionData {
     const deleteRequestIndex = persistedRequests.findIndex(
         (request) =>
-            availableRemoveDuplicateEnableFeatureConflicts.includes(command) &&
+            (availableRemoveDuplicateEnableFeatureConflicts as string[]).includes(command) &&
             request.command === command &&
             request.data?.policyID === parameters.policyID &&
             request.data?.enabled !== parameters.enabled,
@@ -239,7 +239,7 @@ export {
     resolveEditCommentWithNewAddCommentRequest,
     createUpdateCommentMatcher,
     resolveEnableFeatureConflicts,
-    enablePolicyFeatureCommand,
+    availableRemoveDuplicateEnableFeatureConflicts,
 };
 
 export type {EnablePolicyFeatureCommand, RequestMatcher};
