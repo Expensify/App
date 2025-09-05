@@ -12,7 +12,6 @@ import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspacePara
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
-import {isExpenseUnreported} from '@libs/TransactionUtils';
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
 import {setMoneyRequestParticipants} from '@userActions/IOU';
@@ -26,7 +25,7 @@ type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigator
 
 function IOURequestStepUpgrade({
     route: {
-        params: {transactionID, action, reportID, isCategorizing, isReporting},
+        params: {transactionID, action, reportID, isCategorizing, isReporting, shouldSubmitExpense},
     },
 }: IOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
@@ -39,10 +38,7 @@ function IOURequestStepUpgrade({
     const [createdPolicyName, setCreatedPolicyName] = useState('');
     const policyDataRef = useRef<CreateWorkspaceParams | null>(null);
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-
-    const isExpenseUnreportedValue = transaction ? isExpenseUnreported(transaction) : false;
 
     const onWorkspaceConfirmationSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyData = Policy.createWorkspace({
@@ -59,22 +55,26 @@ function IOURequestStepUpgrade({
         setIsUpgraded(true);
     };
 
+    // TODO: remove this after all the changes are applied
+    // eslint-disable-next-line rulesdir/prefer-early-return
     const onConfirmUpgrade = () => {
-        if (isCategorizing && isExpenseUnreportedValue) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
-        } else {
-            setMoneyRequestParticipants(transactionID, [
-                {
-                    selected: true,
-                    accountID: 0,
-                    isPolicyExpenseChat: true,
-                    reportID: policyDataRef.current?.expenseChatReportID,
-                    policyID: policyDataRef.current?.policyID,
-                    searchText: policyDataRef.current?.policyName,
-                },
-            ]);
-            Navigation.goBack();
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, policyDataRef.current?.expenseChatReportID));
+        if (isCategorizing) {
+            if (shouldSubmitExpense) {
+                setMoneyRequestParticipants(transactionID, [
+                    {
+                        selected: true,
+                        accountID: 0,
+                        isPolicyExpenseChat: true,
+                        reportID: policyDataRef.current?.expenseChatReportID,
+                        policyID: policyDataRef.current?.policyID,
+                        searchText: policyDataRef.current?.policyName,
+                    },
+                ]);
+                Navigation.goBack();
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, policyDataRef.current?.expenseChatReportID));
+            } else {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+            }
         }
     };
 
