@@ -223,6 +223,8 @@ function datetimeToCalendarTime(
     currentSelectedTimezone: SelectedTimezone = timezone.selected,
     isLowercase = false,
 ): string {
+    const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short', hour12: true});
+    const dateFormatter = new Intl.DateTimeFormat(locale, {month: 'short', day: 'numeric', year: 'numeric'});
     const date = getLocalDateFromDatetime(locale, datetime, fallbackToSupportedTimezone(currentSelectedTimezone));
     const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = translate(locale, 'common.todayAt');
@@ -241,18 +243,18 @@ function datetimeToCalendarTime(
     }
 
     if (isToday(date, currentSelectedTimezone)) {
-        return `${todayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+        return `${todayAt} ${timeFormatter.format(date)}${tz}`;
     }
     if (isTomorrow(date, currentSelectedTimezone)) {
-        return `${tomorrowAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+        return `${tomorrowAt} ${timeFormatter.format(date)}${tz}`;
     }
     if (isYesterday(date, currentSelectedTimezone)) {
-        return `${yesterdayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+        return `${yesterdayAt} ${timeFormatter.format(date)}${tz}`;
     }
     if (date >= startOfCurrentWeek && date <= endOfCurrentWeek) {
-        return `${format(date, CONST.DATE.MONTH_DAY_ABBR_FORMAT)} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+        return `${dateFormatter.format(date)} ${at} ${timeFormatter.format(date)}${tz}`;
     }
-    return `${format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT)} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT)}${tz}`;
+    return `${dateFormatter.format(date)} ${at} ${timeFormatter.format(date)}${tz}`;
 }
 
 /**
