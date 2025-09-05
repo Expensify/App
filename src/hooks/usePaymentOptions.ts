@@ -175,7 +175,7 @@ function usePaymentOptions({
                             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                             onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
                         },
-                        ...(isInvoiceReport && !isCurrencySupported
+                        ...(!isCurrencySupported
                             ? []
                             : [
                                   {
@@ -198,7 +198,7 @@ function usePaymentOptions({
                 backButtonText: translate('iou.business'),
                 subMenuItems: [
                     ...(isCurrencySupported ? getPaymentSubitems(true) : []),
-                    ...(isInvoiceReport && !isCurrencySupported
+                    ...(!isCurrencySupported
                         ? []
                         : [
                               {
