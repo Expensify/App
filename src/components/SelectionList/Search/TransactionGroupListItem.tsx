@@ -28,6 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
@@ -48,6 +49,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     columns,
     groupBy,
     areAllOptionalColumnsHidden,
+    violations,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
@@ -192,6 +194,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 key={transaction.transactionID}
                                 report={transaction.report}
                                 transactionItem={transaction}
+                                violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
                                 isSelected={!!transaction.isSelected}
                                 dateColumnSize={dateColumnSize}
                                 amountColumnSize={amountColumnSize}
