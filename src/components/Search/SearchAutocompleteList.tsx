@@ -228,6 +228,7 @@ function SearchAutocompleteList(
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
     const withdrawalTypes = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
     const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
+    const actionTypes = Object.values(CONST.SEARCH.ACTION_FILTERS);
 
     const cardAutocompleteList = useMemo(() => Object.values(allCards), [allCards]);
     const feedAutoCompleteList = useMemo(() => {
@@ -475,9 +476,9 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION: {
-                return Object.values(CONST.SEARCH.ACTION_FILTERS).map((status) => ({
+                return actionTypes.map((action) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ACTION,
-                    text: status,
+                    text: action,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
