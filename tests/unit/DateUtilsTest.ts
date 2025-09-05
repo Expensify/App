@@ -66,7 +66,7 @@ describe('DateUtils', () => {
         expect(weekDay).toBe('Monday');
     });
     it('formatToLocalTime should return a date in a local format', () => {
-        const localTime = DateUtils.formatToLocalTime(datetime);
+        const localTime = DateUtils.formatToLocalTime(datetime, LOCALE);
         expect(localTime).toBe('12:00 AM');
     });
 

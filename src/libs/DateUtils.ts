@@ -318,8 +318,9 @@ function formatToDayOfWeek(datetime: Date, locale: Locale | undefined): string {
  *
  * @returns 2:30 PM
  */
-function formatToLocalTime(datetime: string | Date): string {
-    return format(new Date(datetime), CONST.DATE.LOCAL_TIME_FORMAT);
+function formatToLocalTime(datetime: string | Date, locale: Locale | undefined): string {
+    const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short', hour12: true});
+    return timeFormatter.format(new Date(datetime));
 }
 
 const THREE_HOURS = 1000 * 60 * 60 * 3;
