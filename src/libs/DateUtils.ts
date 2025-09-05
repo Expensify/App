@@ -30,6 +30,7 @@ import {
     subMilliseconds,
     subMinutes,
 } from 'date-fns';
+import type {Day} from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
@@ -48,7 +49,6 @@ import Log from './Log';
 import memoize from './memoize';
 
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
-type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
 
@@ -108,17 +108,24 @@ function isDate(arg: unknown): arg is Date {
 /**
  * Get the day of the week that the week starts on
  */
-function getWeekStartsOn(): WeekDay {
+function getWeekStartsOn(preferredLocale: Locale | undefined): Day {
+    const locale = new Intl.Locale(preferredLocale ?? '');
+ 
+    // `Intl.Locale.prototype.getWeekInfo` is not supported in all browsers (notably unavailable in Firefox)
+    if (typeof locale.getWeekInfo === 'function') {
+        const weekInfo = locale.getWeekInfo();
+        return weekInfo.firstDay === 7 ? 0 : weekInfo.firstDay;
+    }
+ 
     return CONST.WEEK_STARTS_ON;
 }
 
 /**
  * Get the day of the week that the week ends on
  */
-function getWeekEndsOn(): WeekDay {
-    const weekStartsOn = getWeekStartsOn();
-
-    return weekStartsOn === 0 ? 6 : ((weekStartsOn - 1) as WeekDay);
+function getWeekEndsOn(locale: Locale | undefined): Day {
+    const weekStartsOn = getWeekStartsOn(locale);
+    return weekStartsOn === 0 ? 6 : ((weekStartsOn - 1) as Day);
 }
 
 /**
@@ -231,7 +238,7 @@ function datetimeToCalendarTime(
     let tomorrowAt = translate(locale, 'common.tomorrowAt');
     let yesterdayAt = translate(locale, 'common.yesterdayAt');
     const at = translate(locale, 'common.conjunctionAt');
-    const weekStartsOn = getWeekStartsOn();
+    const weekStartsOn = getWeekStartsOn(locale);
 
     const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
     const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
@@ -370,6 +377,7 @@ function getMonthNames(locale: Locale | undefined): string[] {
  */
 function getDaysOfWeek(locale: Locale | undefined): string[] {
     const weekdayFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long'});
+    const weekStartsOn = getWeekStartsOn(locale);
     const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
     const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
     const daysOfWeek = eachDayOfInterval({start: startOfCurrentWeek, end: endOfCurrentWeek});
