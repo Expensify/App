@@ -630,7 +630,7 @@ function SearchPage({route}: SearchPageProps) {
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
 
-    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults.current;
+    const searchResults = currentSearchResults?.data ? currentSearchResults : undefined;
     const metadata = searchResults?.search;
     const shouldShowOfflineIndicator = !!searchResults?.data;
     const shouldShowFooter = !!metadata?.count;
