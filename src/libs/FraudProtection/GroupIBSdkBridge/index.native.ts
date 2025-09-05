@@ -31,8 +31,9 @@ function init(): Promise<void> {
 
         const fp = FP.getInstance();
 
+        let targetBaseURL;
         if (env === CONST.ENVIRONMENT.DEV) {
-            oldDotURL = CONFIG.EXPENSIFY.DEFAULT_API_ROOT;
+            targetBaseURL = CONFIG.EXPENSIFY.DEFAULT_API_ROOT;
             fp.enableDebugLogs();
         }
 
@@ -40,11 +41,11 @@ function init(): Promise<void> {
             Log.warn(`[Fraud Protection] setCustomerId error: ${error}`);
         });
 
-        oldDotURL = oldDotURL.endsWith('/') ? oldDotURL.slice(0, -1) : oldDotURL;
-        fp.setTargetURL(`${oldDotURL}/api/fl`, (error: string) => {
+        targetBaseURL = oldDotURL.endsWith('/') ? oldDotURL.slice(0, -1) : oldDotURL;
+        fp.setTargetURL(`${targetBaseURL}/api/fl`, (error: string) => {
             Log.warn(`[Fraud Protection] setTargetURL error: ${error}`);
         });
-        fp.setGlobalIdURL(`${oldDotURL}/api/fl/id.html`, (error: string) => {
+        fp.setGlobalIdURL(`${targetBaseURL}/api/fl/id.html`, (error: string) => {
             Log.warn(`[Fraud Protection] setGlobalIdURL error: ${error}`);
         });
 
@@ -60,10 +61,10 @@ function init(): Promise<void> {
 
 function setAuthenticationData(identity: string, sessionID: string): void {
     fpInstancePromise.then((fp) => {
-        fp.setAttributeTitle('user_id', identity, FPAttributeFormat.ClearText, (e: any) => {
+        fp.setAttributeTitle('user_id', identity, FPAttributeFormat.ClearText, (e: string) => {
             Log.warn(`[Fraud Protection] setAttributeTitle error: ${e}`);
         });
-        fp.setSessionId(sessionID, (e: any) => {
+        fp.setSessionId(sessionID, (e: string) => {
             Log.warn(`[Fraud Protection] setSessionId error: ${e}`);
         });
     });

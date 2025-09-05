@@ -7,7 +7,7 @@ class FP {
     }
 
     enableDebugLogs() {}
-    
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     enableCapability(..._a: unknown[]) {}
 
@@ -19,6 +19,9 @@ class FP {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setTargetURL(..._a: unknown[]) {}
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setGlobalIdURL(..._a: unknown[]) {}
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setSessionId(..._a: unknown[]) {}

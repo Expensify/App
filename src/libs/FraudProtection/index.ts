@@ -4,12 +4,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {init, sendEvent, setAttribute, setAuthenticationData} from './GroupIBSdkBridge';
 
 let sessionID: string = Str.guid();
-let identity: string | undefined = undefined;
+let identity: string | undefined;
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
         const isAuthenticated = !!(session?.authToken ?? null);
-        let newIdentity = isAuthenticated ? (session?.accountID?.toString() ?? '') : '';
+        const newIdentity = isAuthenticated ? (session?.accountID?.toString() ?? '') : '';
         if (newIdentity !== identity) {
             identity = newIdentity;
             sessionID = typeof identity === 'string' && identity.length > 0 ? Str.guid() : '';
