@@ -41,7 +41,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const reservationIcon = getTripReservationIcon(reservation.type);
@@ -54,7 +54,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
             case CONST.RESERVATION_TYPE.CAR:
                 return DateUtils.getFormattedReservationRangeDate(new Date(reservation.start.date), new Date(reservation.end.date));
             default:
-                return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date));
+                return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date), preferredLocale);
         }
     };
 

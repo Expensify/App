@@ -57,7 +57,7 @@ describe('DateUtils', () => {
     });
 
     it('formatToLongDateWithWeekday should return a long date with a weekday', () => {
-        const formattedDate = DateUtils.formatToLongDateWithWeekday(datetime);
+        const formattedDate = DateUtils.formatToLongDateWithWeekday(datetime, LOCALE);
         expect(formattedDate).toBe('Monday, November 7, 2022');
     });
 
