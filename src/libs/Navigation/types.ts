@@ -1960,6 +1960,9 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.INVOICES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.MEMBERS]: {
         policyID: string;
     };

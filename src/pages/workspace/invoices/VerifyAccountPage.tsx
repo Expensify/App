@@ -5,8 +5,8 @@ import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type WorkspaceInvoicesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES>;
-function VerifyAccountPage({route}: WorkspaceInvoicesPageProps) {
+type WorkspaceInvoicesVerifyAccountPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT>;
+function VerifyAccountPage({route}: WorkspaceInvoicesVerifyAccountPageProps) {
     const workspaceInvoicePath = ROUTES.WORKSPACE_INVOICES.getRoute(route.params.policyID);
     return (
         <VerifyAccountPageBase
