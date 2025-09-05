@@ -199,7 +199,7 @@
     "react-native-screens": "4.15.4",
     "react-native-share": "11.0.2",
     "react-native-sound": "^0.11.2",
-    "react-native-svg": "15.9.0",
+    "react-native-svg": "15.12.1",
     "react-native-tab-view": "^4.1.0",
     "react-native-url-polyfill": "^2.0.0",
     "react-native-view-shot": "4.0.0",
