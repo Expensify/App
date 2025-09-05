@@ -15,7 +15,7 @@ import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {addTrailingForwardSlash} from '@libs/Url';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 import type {WalletStatementNavigatorParamList} from '@navigation/types';
 import {generateStatementPDF} from '@userActions/User';
 import CONST from '@src/CONST';

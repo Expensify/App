@@ -70,7 +70,7 @@ type NumberWithSymbolFormProps = {
     allowFlippingAmount?: boolean;
 
     /** Reference to the outer element */
-    forwardedRef?: ForwardedRef<BaseTextInputRef>;
+    ref?: ForwardedRef<BaseTextInputRef>;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -131,6 +131,7 @@ function NumberWithSymbolForm({
     allowFlippingAmount = false,
     toggleNegative,
     clearNegative,
+    ref,
     ...props
 }: NumberWithSymbolFormProps) {
     const styles = useThemeStyles();
@@ -358,12 +359,12 @@ function NumberWithSymbolForm({
                 accessibilityLabel={label}
                 value={formattedNumber}
                 onChangeText={setFormattedNumber}
-                ref={(ref: BaseTextInputRef | null) => {
-                    if (typeof forwardedRef === 'function') {
-                        forwardedRef(ref);
-                    } else if (forwardedRef && 'current' in forwardedRef) {
-                        // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
-                        forwardedRef.current = ref;
+                ref={(newRef: BaseTextInputRef | null) => {
+                    if (typeof ref === 'function') {
+                        ref(newRef);
+                    } else if (ref && 'current' in ref) {
+                        // eslint-disable-next-line no-param-reassign
+                        ref.current = newRef;
                     }
                 }}
                 prefixCharacter={symbol}
@@ -388,14 +389,14 @@ function NumberWithSymbolForm({
             onChangeAmount={setNewNumber}
             onSymbolButtonPress={onSymbolButtonPress}
             placeholder={numberFormat(0)}
-            ref={(ref: BaseTextInputRef | null) => {
-                if (typeof forwardedRef === 'function') {
-                    forwardedRef(ref);
-                } else if (forwardedRef && 'current' in forwardedRef) {
+            ref={(newRef: BaseTextInputRef | null) => {
+                if (typeof ref === 'function') {
+                    ref(newRef);
+                } else if (ref && 'current' in ref) {
                     // eslint-disable-next-line no-param-reassign
-                    forwardedRef.current = ref;
+                    ref.current = newRef;
                 }
-                textInput.current = ref;
+                textInput.current = newRef;
             }}
             symbol={symbol}
             hideSymbol={hideSymbol}
