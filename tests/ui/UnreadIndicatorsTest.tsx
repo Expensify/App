@@ -39,6 +39,7 @@ jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
+jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
 
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
@@ -187,10 +188,12 @@ describe('Unread Indicators', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        Onyx.clear();
 
+        global.fetch = TestHelper.getGlobalFetchMock();
         // Unsubscribe to pusher channels
         PusherHelper.teardown();
+
+        return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     it('Display bold in the LHN for unread chat and new line indicator above the chat message when we navigate to it', () =>
@@ -340,7 +343,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify notification was created
-                expect(LocalNotification.showCommentNotification).toBeCalled();
+                expect(LocalNotification.showCommentNotification).toHaveBeenCalled();
             })
             .then(() => {
                 // // Verify the new report option appears in the LHN

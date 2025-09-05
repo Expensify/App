@@ -12,9 +12,10 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {shouldShowReceiptEmptyState} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
-import {canSendInvoice, getPerDiemCustomUnit, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {
@@ -112,6 +113,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Flag indicating if it is a distance request */
     isDistanceRequest: boolean;
+
+    /** Flag indicating if it is a manual distance request */
+    isManualDistanceRequest: boolean;
 
     /** Flag indicating if it is a per diem request */
     isPerDiemRequest: boolean;
@@ -226,6 +230,7 @@ function MoneyRequestConfirmationListFooter({
     iouType,
     isCategoryRequired,
     isDistanceRequest,
+    isManualDistanceRequest,
     isPerDiemRequest,
     isMerchantEmpty,
     isMerchantRequired,
@@ -272,7 +277,7 @@ function MoneyRequestConfirmationListFooter({
     const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowMap = isDistanceRequest && !!(hasErrors || hasPendingWaypoints || iouType !== CONST.IOU.TYPE.SPLIT || !isReadOnly);
+    const shouldShowMap = isDistanceRequest && !isManualDistanceRequest && !!(hasErrors || hasPendingWaypoints || iouType !== CONST.IOU.TYPE.SPLIT || !isReadOnly);
 
     const senderWorkspace = useMemo(() => {
         const senderWorkspaceParticipant = selectedParticipants.find((participant) => participant.isSender);
@@ -331,8 +336,7 @@ function MoneyRequestConfirmationListFooter({
     // Determine if the merchant error should be displayed
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
-    // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
-    const shouldShowReceiptEmptyState = iouType === CONST.IOU.TYPE.SUBMIT && isPaidGroupPolicy(policy) && !isPerDiemRequest;
+    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest, isManualDistanceRequest);
     // The per diem custom unit
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const {
@@ -936,10 +940,10 @@ function MoneyRequestConfirmationListFooter({
                 </>
             )}
             {!shouldShowMap && (
-                <View style={!hasReceiptImageOrThumbnail && !shouldShowReceiptEmptyState ? undefined : styles.mv3}>
+                <View style={!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3}>
                     {hasReceiptImageOrThumbnail
                         ? receiptThumbnailContent
-                        : shouldShowReceiptEmptyState && (
+                        : showReceiptEmptyState && (
                               <ReceiptEmptyState
                                   onPress={() => {
                                       if (!transactionID) {

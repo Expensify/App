@@ -9,6 +9,7 @@ import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -604,20 +605,24 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const headerContent = (
         <>
             <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : undefined]}>
-                {!hasSyncError && isConnectionVerified ? (
-                    <Text>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
-                        <TextLink
-                            style={[styles.textNormal, styles.link]}
-                            href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                        >
-                            {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                        </TextLink>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
-                    </Text>
+                {!hasSyncError && isConnectionVerified && currentConnectionName ? (
+                    <ImportedFromAccountingSoftware
+                        policyID={policyID}
+                        currentConnectionName={currentConnectionName}
+                        connectedIntegration={connectedIntegration}
+                        translatedText={translate('workspace.tags.importedFromAccountingSoftware')}
+                        customTagName={policyTagLists.at(0)?.name ?? ''}
+                        isDisplayingTags
+                    />
                 ) : (
                     <Text style={[styles.textNormal, styles.colorMuted]}>
-                        {translate('workspace.tags.subtitle')}
+                        {!hasDependentTags && !!policyTagLists.at(0)?.name && (
+                            <>
+                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.employeesSeeTagsAs')}</Text>
+                                <Text style={[styles.textBold, styles.colorMuted]}>{policyTagLists.at(0)?.name}</Text>
+                                <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+                            </>
+                        )}
                         {hasDependentTags && (
                             <>
                                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.dependentMultiLevelTagsSubtitle.phrase1')}</Text>

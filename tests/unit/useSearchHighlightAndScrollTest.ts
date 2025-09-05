@@ -36,7 +36,6 @@ describe('useSearchHighlightAndScroll', () => {
                 personalDetailsList: {},
             },
             search: {
-                columnsToShow: {shouldShowCategoryColumn: true, shouldShowTagColumn: true, shouldShowTaxColumn: true, shouldShowFromColumn: true, shouldShowToColumn: true},
                 hasMoreResults: false,
                 hasResults: true,
                 offset: 0,
