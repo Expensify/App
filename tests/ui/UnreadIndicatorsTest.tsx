@@ -343,7 +343,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify notification was created
-                expect(LocalNotification.showCommentNotification).toBeCalled();
+                expect(LocalNotification.showCommentNotification).toHaveBeenCalled();
             })
             .then(() => {
                 // // Verify the new report option appears in the LHN
