@@ -8,14 +8,14 @@ import tokenizedSearch from './tokenizedSearch';
  *
  * @param reportFieldOptions - an initial report field options array
  */
-function getReportFieldOptions(reportFieldOptions: string[], isSelected: boolean = false): Option[] {
+function getReportFieldOptions(reportFieldOptions: string[], isSelected = false): Option[] {
     return reportFieldOptions.map((name) => ({
         text: name,
         keyForList: name,
         searchText: name,
         tooltipText: name,
         isDisabled: false,
-        isSelected: isSelected,
+        isSelected,
     }));
 }
 
