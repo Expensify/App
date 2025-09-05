@@ -289,8 +289,6 @@ type FormattedMaxLengthParams = {formattedMaxLength: string};
 
 type WalletProgramParams = {walletProgram: string};
 
-type ViolationsAutoReportedRejectedExpenseParams = {rejectedBy: string; rejectReason: string};
-
 type ViolationsCashExpenseWithNoReceiptParams = {formattedLimit?: string} | undefined;
 
 type ViolationsConversionSurchargeParams = {surcharge: number};
@@ -1069,7 +1067,6 @@ export type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
-    ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsInvoiceMarkupParams,

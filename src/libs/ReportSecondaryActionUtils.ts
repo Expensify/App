@@ -26,6 +26,7 @@ import {
     canAddTransaction,
     canEditReportPolicy,
     canHoldUnholdReportAction,
+    canRejectReportAction,
     getTransactionDetails,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
@@ -698,6 +699,10 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
+    if (canRejectReportAction(report, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
+    }
+
     return options;
 }
 
@@ -765,6 +770,10 @@ function getSecondaryTransactionThreadActions(
 
     if (isDeleteAction(parentReport, [reportTransaction], reportActions ?? [])) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
+    }
+
+    if (canRejectReportAction(parentReport, policy)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
     return options;

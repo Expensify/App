@@ -259,7 +259,6 @@ import type {
     UserIsAlreadyMemberParams,
     UserSplitParams,
     VacationDelegateParams,
-    ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsCustomRulesParams,
@@ -380,6 +379,7 @@ const translations = {
         contacts: 'Contactos',
         recents: 'Recientes',
         close: 'Cerrar',
+        comment: 'Comentario',
         download: 'Descargar',
         downloading: 'Descargando',
         uploading: 'Subiendo',
@@ -474,6 +474,7 @@ const translations = {
         join: 'Unirse',
         leave: 'Salir',
         decline: 'Rechazar',
+        reject: 'Rechazar',
         transferBalance: 'Transferencia de saldo',
         cantFindAddress: '¿No encuentras tu dirección? ',
         enterManually: 'Introducir manualmente',
@@ -1375,6 +1376,25 @@ const translations = {
         dates: 'Fechas',
         rates: 'Tasas',
         submitsTo: ({name}: SubmitsToParams) => `Se envía a ${name}`,
+
+        reject: {
+            educationalTitle: '¿Debes retener o rechazar?',
+            educationalText: 'Si no estás listo para aprobar o pagar un gasto, puedes retenerlo o rechazarlo.',
+            holdExpenseTitle: 'Retén un gasto para pedir más detalles antes de aprobarlo o pagarlo.',
+            heldExpenseLeftBehindTitle: 'Los gastos retenidos se dejan atrás cuando apruebas un informe completo.',
+            rejectExpenseTitle: 'Rechaza un gasto que no tengos intención de aprobar o pagar.',
+            reasonPageTitle: 'Rechazar gasto',
+            reasonPageDescription1: 'Rechaza un gasto si no tienes intención de aprobarlo o pagarlo. De lo contrario, usa "retener" para pausar el gasto y pedir más contexto.',
+            reasonPageDescription2: 'Si vas a rechazar el gasto, por favor añade un comentario para explicar el motivo:',
+            rejectReason: 'Motivo del rechazo',
+            markAsResolved: 'Marcar como resuelto',
+            rejectedStatus: 'Este gasto fue rechazado. Estamos esperando que soluciones el/los problema(s) y lo marques como resuelto para poder enviarlo.',
+            reportActions: {
+                rejectedExpense: 'rechazó este gasto',
+                markedAsResolved: 'marcó el motivo del rechazo como resuelto',
+            },
+        },
+
         moveExpenses: () => ({one: 'Mover gasto', other: 'Mover gastos'}),
         changeApprover: {
             title: 'Cambiar aprobador',
@@ -7054,7 +7074,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',
-        autoReportedRejectedExpense: ({rejectedBy, rejectReason}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rechazó la solicitud y comentó "${rejectReason}"`,
+        autoReportedRejectedExpense: 'Este gasto fue rechazado.',
         billableExpense: 'La opción facturable ya no es válida',
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Recibo obligatorio para cantidades mayores de ${formattedLimit}`,
         categoryOutOfPolicy: 'La categoría ya no es válida',
