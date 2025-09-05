@@ -2285,11 +2285,6 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        emojiHeaderContainerWidth: (isSmallScreenWidth: boolean, windowWidth: number) =>
-            ({
-                width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
-            }) satisfies ViewStyle,
-
         emojiSkinToneTitle: {
             ...spacing.pv1,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
@@ -4007,10 +4002,12 @@ const styles = (theme: ThemeColors) =>
             verticalAlign: 'middle',
         },
 
-        stickyHeaderEmoji: {
-            position: 'absolute',
-            ...spacing.mh4,
-        } satisfies ViewStyle,
+        stickyHeaderEmoji: (isSmallScreenWidth: boolean, windowWidth: number) =>
+            ({
+                position: 'absolute',
+                width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
+                ...spacing.mh4,
+            }) satisfies ViewStyle,
 
         reactionCounterText: {
             fontSize: 13,
