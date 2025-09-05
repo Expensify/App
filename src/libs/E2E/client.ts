@@ -1,7 +1,7 @@
 import Config from '../../../tests/e2e/config';
 import Routes from '../../../tests/e2e/server/routes';
 import type {NetworkCacheMap, TestConfig, TestResult} from './types';
-import {waitForActiveRequestsToBeEmpty} from './utils/NetworkInterceptor';
+import {originalFetch, waitForActiveRequestsToBeEmpty} from './utils/NetworkInterceptor';
 
 type NativeCommandPayload = {
     text: string;
@@ -24,7 +24,7 @@ const defaultRequestInit: RequestInit = {
 };
 
 const sendRequest = (url: string, data: Record<string, unknown>): Promise<Response> => {
-    return fetch(url, {
+    return originalFetch(url, {
         method: 'POST',
         headers: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -59,12 +59,12 @@ const submitTestResults = (testResult: TestResult): Promise<void> => {
     });
 };
 
-const submitTestDone = () => waitForActiveRequestsToBeEmpty().then(() => fetch(`${SERVER_ADDRESS}${Routes.testDone}`, defaultRequestInit));
+const submitTestDone = () => waitForActiveRequestsToBeEmpty().then(() => originalFetch(`${SERVER_ADDRESS}${Routes.testDone}`, defaultRequestInit));
 
 let currentActiveTestConfig: TestConfig | null = null;
 
 const getTestConfig = (): Promise<TestConfig> =>
-    fetch(`${SERVER_ADDRESS}${Routes.testConfig}`, defaultRequestInit)
+    originalFetch(`${SERVER_ADDRESS}${Routes.testConfig}`, defaultRequestInit)
         .then((res: Response): Promise<TestConfig> => res.json())
         .then((config: TestConfig) => {
             currentActiveTestConfig = config;
