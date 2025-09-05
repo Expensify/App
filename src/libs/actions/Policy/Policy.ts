@@ -638,7 +638,6 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
 
 function setWorkspaceAutoReportingMonthlyOffset(policyID: string | undefined, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
     if (!policyID) {
-        Log.warn('Invalid policyID used to setWorkspaceAutoReportingMonthlyOffset');
         return;
     }
     const value = JSON.stringify({autoReportingOffset});
