@@ -343,7 +343,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify notification was created
-                expect(LocalNotification.showCommentNotification).toHaveBeenCalled();
+                expect(LocalNotification.showCommentNotification).toBeCalled();
             })
             .then(() => {
                 // // Verify the new report option appears in the LHN
@@ -355,11 +355,11 @@ describe('Unread Indicators', () => {
                 expect(displayNameTexts).toHaveLength(2);
                 const firstReportOption = displayNameTexts.at(0);
                 expect((firstReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(screen.getByText('B User')).toBeOnTheScreen();
+                expect(screen.getByText('C User')).toBeOnTheScreen();
 
                 const secondReportOption = displayNameTexts.at(1);
                 expect((secondReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(screen.getByText('C User')).toBeOnTheScreen();
+                expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 // Tap the new report option and navigate back to the sidebar again via the back button
                 return navigateToSidebarOption(0);
@@ -372,9 +372,9 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
                 expect(displayNameTexts).toHaveLength(2);
                 expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.normal);
-                expect(screen.getAllByText('B User').at(0)).toBeOnTheScreen();
+                expect(screen.getAllByText('C User').at(0)).toBeOnTheScreen();
                 expect((displayNameTexts.at(1)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
-                expect(screen.getByText('C User', {includeHiddenElements: true})).toBeOnTheScreen();
+                expect(screen.getByText('B User', {includeHiddenElements: true})).toBeOnTheScreen();
             }));
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
