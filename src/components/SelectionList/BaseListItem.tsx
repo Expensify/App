@@ -41,7 +41,7 @@ function BaseListItem<TItem extends ListItem>({
     onLongPressRow,
     testID,
     shouldUseDefaultRightHandSideCheckmark = true,
-    contentFSClass,
+    forwardedFSClass,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -124,7 +124,7 @@ function BaseListItem<TItem extends ListItem>({
                         wrapperStyle,
                         isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                     ]}
-                    fsClass={contentFSClass}
+                    fsClass={forwardedFSClass}
                 >
                     {typeof children === 'function' ? children(hovered) : children}
 

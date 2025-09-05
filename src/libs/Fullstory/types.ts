@@ -80,24 +80,50 @@ type Fullstory = {
  *
  * @example
  * ```tsx
- * type CustomComponentProps = DescriptiveFSClassProps<'contentFSClass'> & {
+ * type CustomComponentProps = ForwardedFSClassProps & {
  *     title: string;
  * };
  *
- * function CustomComponent({title, contentFSClass}: CustomComponentProps) {
+ * function CustomComponent({title, forwardedFSClass}: CustomComponentProps) {
  *     return (
- *         <View fsClass={contentFSClass}>
+ *         <View fsClass={forwardedFSClass}>
  *             <Text>{title}</Text>
  *         </View>
  *     );
  * }
- * ```
  *
- * You can also specify multiple fsClass-like props if you need more granularity in the component.
+ * // ...
+ *
+ * function Page() {
+ *     return (
+ *         <CustomComponent
+ *             title={title}
+ *             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+ *         />
+ *     );
+ * }
+ * ```
+ */
+type ForwardedFSClassProps = {
+    /**
+     * Used to pass down `fsClass` prop to inner components that will need it for Fullstory masking.
+     */
+    forwardedFSClass?: FSClass;
+};
+
+/**
+ * Use this type when you want your component to be able to be supplied multiple `fsClass`-like props that are going
+ * to be used in its inner components.
+ *
+ * TS allows the `fsClass` prop to be used in any components, but the prop is only effective when passed directly to
+ * core React Native components like `View`, `Text`, `Pressable`, etc.
+ *
+ * To solve this we have an ESLint rule that forbids the use of `fsClass` prop in all components expect those listed here,
+ * and instructs the developer to use this type instead.
  *
  * @example
  * ```tsx
- * type CustomComponentProps = DescriptiveFSClassProps<'headerFSClass' | 'contentFSClass'> & {
+ * type CustomComponentProps = MultipleFSClassProps<'headerFSClass' | 'contentFSClass'> & {
  *     title: string;
  * };
  *
@@ -113,13 +139,25 @@ type Fullstory = {
  *         </View>
  *     );
  * }
+ *
+ * // ...
+ *
+ * function Page() {
+ *     return (
+ *         <CustomComponent
+ *             title={title}
+ *             headerFSClass={shouldMaskHeader()}
+ *             contentFSClass={CONST.FULLSTORY.CLASS.MASK}
+ *         />
+ *     );
+ * }
  * ```
  */
-type DescriptiveFSClassProps<T extends `${string}FSClass`> = {
+type MultipleFSClassProps<T extends `${string}FSClass`> = {
     /**
-     * Used to pass down `fsClass` prop to inner components that will need it for Fullstory masking.
+     * Used to pass down multiple `fsClass` props to inner components that will need them for Fullstory masking.
      */
     [key in T]?: FSClass;
 };
 
-export type {FSPageLike, FSPageLikeConstructor, Fullstory, GetChatFSClass, PropertiesWithoutPageName, DescriptiveFSClassProps};
+export type {FSPageLike, FSPageLikeConstructor, Fullstory, GetChatFSClass, PropertiesWithoutPageName, ForwardedFSClassProps, MultipleFSClassProps};

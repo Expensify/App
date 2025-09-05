@@ -15,7 +15,7 @@ function DisplayNames({
     shouldUseFullTitle,
     displayNamesWithTooltips,
     renderAdditionalText,
-    titleFSClass,
+    forwardedFSClass,
 }: DisplayNamesProps) {
     const {translate} = useLocalize();
     const title = StringUtils.lineBreaksToSpaces(Parser.htmlToText(fullTitle)) || translate('common.hidden');
@@ -27,7 +27,7 @@ function DisplayNames({
                 numberOfLines={numberOfLines}
                 fullTitle={title}
                 renderAdditionalText={renderAdditionalText}
-                titleFSClass={titleFSClass}
+                forwardedFSClass={forwardedFSClass}
             />
         );
     }
@@ -40,7 +40,7 @@ function DisplayNames({
                 textStyles={textStyles}
                 numberOfLines={numberOfLines}
                 renderAdditionalText={renderAdditionalText}
-                titleFSClass={titleFSClass}
+                forwardedFSClass={forwardedFSClass}
             />
         );
     }
@@ -53,7 +53,7 @@ function DisplayNames({
             shouldAddEllipsis={shouldAddEllipsis}
             numberOfLines={numberOfLines}
             renderAdditionalText={renderAdditionalText}
-            titleFSClass={titleFSClass}
+            forwardedFSClass={forwardedFSClass}
         />
     );
 }

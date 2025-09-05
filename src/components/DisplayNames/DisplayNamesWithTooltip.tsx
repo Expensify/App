@@ -19,7 +19,7 @@ function DisplayNamesWithToolTip({
     textStyles = [],
     numberOfLines = 1,
     renderAdditionalText,
-    titleFSClass,
+    forwardedFSClass,
 }: DisplayNamesProps) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElementWithText>(null);
@@ -64,7 +64,7 @@ function DisplayNamesWithToolTip({
             numberOfLines={numberOfLines || undefined}
             ref={containerRef}
             testID={DisplayNamesWithToolTip.displayName}
-            fsClass={titleFSClass}
+            fsClass={forwardedFSClass}
         >
             {shouldUseFullTitle
                 ? formatReportLastMessageText(fullTitle)
@@ -80,7 +80,7 @@ function DisplayNamesWithToolTip({
                               avatar={avatar}
                               textStyles={textStyles}
                               childRefs={childRefs}
-                              contentFSClass={titleFSClass}
+                              forwardedFSClass={forwardedFSClass}
                           />
                           {index < displayNamesWithTooltips.length - 1 && <Text style={textStyles}>,&nbsp;</Text>}
                           {shouldAddEllipsis && index === displayNamesWithTooltips.length - 1 && <Text style={textStyles}>...</Text>}

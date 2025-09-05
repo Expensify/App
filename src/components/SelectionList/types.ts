@@ -16,7 +16,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
-import type {DescriptiveFSClassProps} from '@libs/Fullstory/types';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import type SpendCategorySelectorListItem from '@pages/workspace/categories/SpendCategorySelectorListItem';
@@ -393,7 +393,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
-    DescriptiveFSClassProps<'contentFSClass'> & {
+    ForwardedFSClassProps & {
         item: TItem;
         shouldPreventDefaultFocusOnSelectRow?: boolean;
         shouldPreventEnterKeySubmit?: boolean;
@@ -414,7 +414,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
     };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
-    DescriptiveFSClassProps<'alternateTextFSClass'> & {
+    ForwardedFSClassProps & {
         /** Errors that this user may contain */
         errors?: Errors | ReceiptErrors | null;
 

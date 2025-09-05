@@ -48,7 +48,8 @@ function ChatListItem<TItem extends ListItem>({
         styles.mh0,
         item.cursorStyle,
     ];
-    const contentFSClass = FS.getChatFSClass(personalDetails, report);
+
+    const fsClass = FS.getChatFSClass(personalDetails, report);
 
     return (
         <BaseListItem
@@ -69,7 +70,7 @@ function ChatListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            contentFSClass={contentFSClass}
+            forwardedFSClass={fsClass}
         >
             <ReportActionItem
                 allReports={allReports}

@@ -6,7 +6,7 @@ import type RoomNameInputProps from '@components/RoomNameInput/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import type {DescriptiveFSClassProps} from '@libs/Fullstory/types';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import FormContext from './FormContext';
 import type {InputComponentBaseProps, InputComponentValueProps, ValidInputs, ValueTypeKey} from './types';
 
@@ -61,7 +61,7 @@ function computeComponentSpecificRegistrationParams({
 
 type InputWrapperProps<TInput extends ValidInputs, TValue extends ValueTypeKey = ValueTypeKey> = ComponentPropsWithoutRef<TInput> &
     InputComponentValueProps<TValue> &
-    DescriptiveFSClassProps<'inputFSClass'> & {
+    ForwardedFSClassProps & {
         InputComponent: TInput;
         inputID: string;
         isFocused?: boolean;
@@ -76,7 +76,7 @@ type InputWrapperProps<TInput extends ValidInputs, TValue extends ValueTypeKey =
         ref?: ForwardedRef<AnimatedTextInputRef>;
     };
 
-function InputWrapper<TInput extends ValidInputs, TValue extends ValueTypeKey>({ref, inputFSClass, ...props}: InputWrapperProps<TInput, TValue>) {
+function InputWrapper<TInput extends ValidInputs, TValue extends ValueTypeKey>({ref, forwardedFSClass, ...props}: InputWrapperProps<TInput, TValue>) {
     const {InputComponent, inputID, valueType = 'string', shouldSubmitForm: propShouldSubmitForm, ...rest} = props as InputComponentBaseProps;
     const {registerInput} = useContext(FormContext);
 
@@ -88,7 +88,7 @@ function InputWrapper<TInput extends ValidInputs, TValue extends ValueTypeKey>({
         <InputComponent
             key={key}
             // eslint-disable-next-line react/forbid-component-props
-            fsClass={inputFSClass}
+            fsClass={forwardedFSClass}
             // TODO: Sometimes we return too many props with register input, so we need to consider if it's better to make the returned type more general and disregard the issue, or we would like to omit the unused props somehow.
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...registerInputProps}

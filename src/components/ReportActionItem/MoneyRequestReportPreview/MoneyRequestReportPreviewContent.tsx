@@ -107,7 +107,7 @@ function MoneyRequestReportPreviewContent({
     isInvoice,
     shouldShowBorder = false,
     onPress,
-    wrapperFSClass,
+    forwardedFSClass,
 }: MoneyRequestReportPreviewContentProps) {
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {canBeMissing: true, allowStaleData: true});
     const shouldShowLoading = !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
@@ -600,7 +600,7 @@ function MoneyRequestReportPreviewContent({
         <View
             onLayout={onWrapperLayout}
             testID="MoneyRequestReportPreviewContent-wrapper"
-            fsClass={wrapperFSClass}
+            fsClass={forwardedFSClass}
         >
             <OfflineWithFeedback
                 pendingAction={iouReport?.pendingFields?.preview}

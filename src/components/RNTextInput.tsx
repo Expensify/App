@@ -4,7 +4,7 @@ import type {TextInputProps} from 'react-native';
 import {TextInput} from 'react-native';
 import Animated from 'react-native-reanimated';
 import useTheme from '@hooks/useTheme';
-import type {DescriptiveFSClassProps} from '@libs/Fullstory/types';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import CONST from '@src/CONST';
 
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet
@@ -13,11 +13,11 @@ const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 type AnimatedTextInputRef = typeof AnimatedTextInput & TextInput & HTMLInputElement;
 
 type RNTextInputWithRefProps = TextInputProps &
-    DescriptiveFSClassProps<'inputFSClass'> & {
+    ForwardedFSClassProps & {
         ref?: ForwardedRef<AnimatedTextInputRef>;
     };
 
-function RNTextInputWithRef({ref, inputFSClass = CONST.FULLSTORY.CLASS.MASK, ...props}: RNTextInputWithRefProps) {
+function RNTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS.MASK, ...props}: RNTextInputWithRefProps) {
     const theme = useTheme();
 
     return (
@@ -32,7 +32,7 @@ function RNTextInputWithRef({ref, inputFSClass = CONST.FULLSTORY.CLASS.MASK, ...
                 ref(refHandle as AnimatedTextInputRef);
             }}
             // eslint-disable-next-line react/forbid-component-props
-            fsClass={inputFSClass}
+            fsClass={forwardedFSClass}
             // eslint-disable-next-line
             {...props}
         />

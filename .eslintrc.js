@@ -252,7 +252,7 @@ module.exports = {
                         propName: 'fsClass',
                         allowedFor: ['View', 'Animated.View', 'Text', 'Pressable'],
                         message:
-                            "The 'fsClass' prop doesn't work for custom components, only RN's View, Text and Pressable.\nPlease use the 'DescriptiveFSClassProps' type to pass down the desired 'fsClass' value to the allowed components.",
+                            "The 'fsClass' prop doesn't work for custom components, only RN's View, Text and Pressable.\nPlease use the 'ForwardedFSClassProps' or 'MultipleFSClassProps' types to pass down the desired 'fsClass' value to the allowed components.",
                     },
                 ],
             },

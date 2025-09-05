@@ -26,7 +26,7 @@ import type TextPicker from '@components/TextPicker';
 import type TimeModalPicker from '@components/TimeModalPicker';
 import type UploadFile from '@components/UploadFile';
 import type ValuePicker from '@components/ValuePicker';
-import type {DescriptiveFSClassProps} from '@libs/Fullstory/types';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type ConstantSelector from '@pages/Debug/ConstantSelector';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type OnboardingCurrencyPicker from '@pages/OnboardingWorkspaceConfirmation/OnboardingCurrencyPicker';
@@ -129,7 +129,7 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
 type FormOnyxValues<TFormID extends OnyxFormKey = OnyxFormKey> = Omit<OnyxValues[TFormID], keyof BaseForm>;
 type FormOnyxKeys<TFormID extends OnyxFormKey = OnyxFormKey> = keyof FormOnyxValues<TFormID>;
 
-type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = DescriptiveFSClassProps<'wrapperFSClass'> & {
+type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProps & {
     /** A unique Onyx key identifying the form */
     formID: TFormID;
 

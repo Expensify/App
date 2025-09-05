@@ -95,7 +95,7 @@ function FormWrapper({
     shouldSubmitButtonBlendOpacity = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
     onScroll = () => {},
-    wrapperFSClass,
+    forwardedFSClass,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
@@ -258,7 +258,7 @@ function FormWrapper({
     return (
         <View
             style={styles.flex1}
-            fsClass={wrapperFSClass}
+            fsClass={forwardedFSClass}
         >
             {scrollContextEnabled ? (
                 <ScrollViewWithContext

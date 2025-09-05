@@ -34,7 +34,7 @@ function UserListItem<TItem extends ListItem>({
     wrapperStyle,
     pressableStyle,
     shouldUseDefaultRightHandSideCheckmark,
-    alternateTextFSClass,
+    forwardedFSClass,
 }: UserListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -150,7 +150,7 @@ function UserListItem<TItem extends ListItem>({
                                 shouldShowTooltip={showTooltip}
                                 text={Str.removeSMSDomain(item.alternateText ?? '')}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                                contentFSClass={alternateTextFSClass}
+                                forwardedFSClass={forwardedFSClass}
                             />
                         )}
                     </View>

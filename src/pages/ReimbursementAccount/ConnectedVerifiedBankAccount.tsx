@@ -68,7 +68,7 @@ function ConnectedVerifiedBankAccount({
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             style={[styles.flex1, styles.justifyContentBetween, styles.mh2]}
-            contentFSClass={CONST.FULLSTORY.CLASS.MASK}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         >
             <HeaderWithBackButton
                 title={translate('bankAccount.addBankAccount')}

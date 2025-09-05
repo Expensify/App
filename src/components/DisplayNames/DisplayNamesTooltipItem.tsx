@@ -5,10 +5,10 @@ import type {Text as RNText, StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {DescriptiveFSClassProps} from '@libs/Fullstory/types';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {AvatarSource} from '@libs/UserUtils';
 
-type DisplayNamesTooltipItemProps = DescriptiveFSClassProps<'contentFSClass'> & {
+type DisplayNamesTooltipItemProps = ForwardedFSClassProps & {
     index?: number;
 
     /** The function to get a distance to shift the tooltip horizontally */
@@ -42,7 +42,7 @@ function DisplayNamesTooltipItem({
     displayName = '',
     textStyles = [],
     childRefs = {current: []},
-    contentFSClass,
+    forwardedFSClass,
 }: DisplayNamesTooltipItemProps) {
     const styles = useThemeStyles();
     const tooltipIndexBridge = useCallback(() => getTooltipShiftX(index), [getTooltipShiftX, index]);
@@ -68,7 +68,7 @@ function DisplayNamesTooltipItem({
                     childRefs.current[index] = el;
                 }}
                 style={[textStyles, styles.pre]}
-                fsClass={contentFSClass}
+                fsClass={forwardedFSClass}
             >
                 {displayName}
             </Text>

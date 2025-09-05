@@ -53,7 +53,7 @@ function TaskListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
-    const contentFSClass = FS.getChatFSClass(personalDetails, parentReport);
+    const fsClass = FS.getChatFSClass(personalDetails, parentReport);
 
     return (
         <BaseListItem
@@ -73,7 +73,7 @@ function TaskListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
-            contentFSClass={contentFSClass}
+            forwardedFSClass={fsClass}
         >
             <TaskListItemRow
                 item={taskItem}

@@ -332,7 +332,7 @@ function MoneyRequestReportTransactionList({
                             taxAmountColumnSize={taxAmountColumnSize}
                             // if we add few new transactions, then we need to scroll to the first one
                             scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
-                            itemFSClass={transactionItemFSClass}
+                            forwardedFSClass={transactionItemFSClass}
                         />
                     );
                 })}

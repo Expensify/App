@@ -6,7 +6,7 @@ import Animated, {useSharedValue} from 'react-native-reanimated';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import useTheme from '@hooks/useTheme';
 import toggleSelectionFormat from '@libs/FormatSelectionUtils';
-import type {DescriptiveFSClassProps} from '@libs/Fullstory/types';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {parseExpensiMarkWithShortMentions} from '@libs/ParsingUtils';
 import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
 import CONST from '@src/CONST';
@@ -18,12 +18,12 @@ type AnimatedMarkdownTextInputRef = typeof AnimatedMarkdownTextInput & MarkdownT
 
 // Make the parser prop optional for this component because we are always defaulting to `parseExpensiMark`
 type RNMarkdownTextInputWithRefProps = Omit<MarkdownTextInputProps, 'parser'> &
-    DescriptiveFSClassProps<'inputFSClass'> & {
+    ForwardedFSClassProps & {
         parser?: MarkdownTextInputProps['parser'];
         ref?: ForwardedRef<AnimatedMarkdownTextInputRef>;
     };
 
-function RNMarkdownTextInputWithRef({maxLength, parser, ref, inputFSClass = CONST.FULLSTORY.CLASS.MASK, ...props}: RNMarkdownTextInputWithRefProps) {
+function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = CONST.FULLSTORY.CLASS.MASK, ...props}: RNMarkdownTextInputWithRefProps) {
     const theme = useTheme();
 
     const {availableLoginsList, currentUserMentions} = useShortMentionsList();
@@ -79,7 +79,7 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ref, inputFSClass = CONS
             ref={inputRef}
             formatSelection={toggleSelectionFormat}
             // eslint-disable-next-line react/forbid-component-props
-            fsClass={inputFSClass}
+            fsClass={forwardedFSClass}
             // eslint-disable-next-line
             {...props}
             /**

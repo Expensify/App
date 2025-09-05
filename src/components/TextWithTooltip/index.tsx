@@ -7,7 +7,7 @@ type LayoutChangeEvent = {
     target: HTMLElement;
 };
 
-function TextWithTooltip({text, shouldShowTooltip, style, numberOfLines = 1, contentFSClass}: TextWithTooltipProps) {
+function TextWithTooltip({text, shouldShowTooltip, style, numberOfLines = 1, forwardedFSClass}: TextWithTooltipProps) {
     const [showTooltip, setShowTooltip] = useState(false);
 
     return (
@@ -29,7 +29,7 @@ function TextWithTooltip({text, shouldShowTooltip, style, numberOfLines = 1, con
                     }
                     setShowTooltip(false);
                 }}
-                fsClass={contentFSClass}
+                fsClass={forwardedFSClass}
             >
                 {text}
             </Text>
