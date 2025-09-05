@@ -61,7 +61,7 @@ function CalendarPicker({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const themeStyles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const pressableRef = useRef<View>(null);
     const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
     const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
@@ -150,7 +150,7 @@ function CalendarPicker({
         });
     };
 
-    const monthNames = DateUtils.getMonthNames().map((month) => Str.recapitalize(month));
+    const monthNames = DateUtils.getMonthNames(preferredLocale).map((month) => Str.recapitalize(month));
     const daysOfWeek = DateUtils.getDaysOfWeek().map((day) => day.toUpperCase());
     const hasAvailableDatesNextMonth = startOfDay(new Date(maxDate)) > endOfMonth(new Date(currentDateView));
     const hasAvailableDatesPrevMonth = endOfDay(new Date(minDate)) < startOfMonth(new Date(currentDateView));

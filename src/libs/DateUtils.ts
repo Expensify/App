@@ -354,14 +354,15 @@ function getCurrentTimezone(): Required<Timezone> {
 /**
  * @returns [January, February, March, April, May, June, July, August, ...]
  */
-function getMonthNames(): string[] {
+function getMonthNames(locale: Locale | undefined): string[] {
+    const dateFormatter = new Intl.DateTimeFormat(locale, {month: 'long'});
     const fullYear = new Date().getFullYear();
     const monthsArray = eachMonthOfInterval({
         start: new Date(fullYear, 0, 1), // January 1st of the current year
         end: new Date(fullYear, 11, 31), // December 31st of the current year
     });
 
-    return monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT));
+    return monthsArray.map((monthDate) => dateFormatter.format(monthDate));
 }
 
 /**
