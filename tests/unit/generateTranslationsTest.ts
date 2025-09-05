@@ -4,9 +4,9 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import GitHubUtils from '@github/libs/GithubUtils';
 import dedent from '@libs/StringUtils/dedent';
 import generateTranslations, {GENERATED_FILE_PREFIX} from '@scripts/generateTranslations';
+import Git from '@scripts/utils/Git';
 import Translator from '@scripts/utils/Translator/Translator';
 
 let processExitSpy: jest.SpyInstance;
@@ -24,6 +24,17 @@ jest.mock('@src/languages/en', () => ({
     },
 }));
 jest.mock('openai');
+jest.mock('@scripts/utils/Git');
+
+// Mock Git methods
+const mockIsValidRef = jest.fn();
+const mockDiff = jest.fn();
+
+// Apply mocks to Git using jest.spyOn (ignore type errors for now)
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+jest.spyOn(Git as any, 'isValidRef').mockImplementation(mockIsValidRef);
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+jest.spyOn(Git as any, 'diff').mockImplementation(mockDiff);
 
 let tempDir: string;
 let LANGUAGES_DIR: string;
@@ -61,10 +72,11 @@ describe('generateTranslations', () => {
         jest.restoreAllMocks();
     });
 
-    it('translates nested structures', async () => {
-        fs.writeFileSync(
-            EN_PATH,
-            dedent(`
+    describe('full translations', () => {
+        it('translates nested structures', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
                 const strings = {
                     greeting: 'Hello',
                     farewell: 'Goodbye',
@@ -79,12 +91,12 @@ describe('generateTranslations', () => {
                 };
                 export default strings;
             `),
-            'utf8',
-        );
-        await generateTranslations();
-        const itContent = fs.readFileSync(IT_PATH, 'utf8');
-        expect(itContent).toStrictEqual(
-            `${GENERATED_FILE_PREFIX}${dedent(`
+                'utf8',
+            );
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+            expect(itContent).toStrictEqual(
+                `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -101,13 +113,13 @@ describe('generateTranslations', () => {
                 };
                 export default strings;
             `)}`,
-        );
-    });
+            );
+        });
 
-    it("doesn't translate strings or templates used in control flows", async () => {
-        fs.writeFileSync(
-            EN_PATH,
-            dedent(`
+        it("doesn't translate strings or templates used in control flows", async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
                 import Log from '@libs/Log';
                 import CONST from '@src/CONST';
 
@@ -136,12 +148,12 @@ describe('generateTranslations', () => {
                     [\`key\${strings.hello}\`]: 'more',
                 };
             `),
-            'utf8',
-        );
-        await generateTranslations();
-        const itContent = fs.readFileSync(IT_PATH, 'utf8');
-        expect(itContent).toStrictEqual(
-            `${GENERATED_FILE_PREFIX}${dedent(`
+                'utf8',
+            );
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+            expect(itContent).toStrictEqual(
+                `${GENERATED_FILE_PREFIX}${dedent(`
                 import Log from '@libs/Log';
                 import CONST from '@src/CONST';
                 import type en from './en';
@@ -171,13 +183,13 @@ describe('generateTranslations', () => {
                     [\`key\${strings.hello}\`]: '[it] more',
                 };
             `)}`,
-        );
-    });
+            );
+        });
 
-    it('handles nested template expressions', async () => {
-        fs.writeFileSync(
-            EN_PATH,
-            dedent(`
+        it('handles nested template expressions', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
                 const strings = {
                     simple: (name: string, greeting: string) => \`\${greeting} good sir \${name}!\`,
                     simpleWithDotNotation: (myParams: {name: string; greeting: string}) => \`\${myParams.greeting} good sir \${myParams.greeting}!\`,
@@ -212,12 +224,12 @@ describe('generateTranslations', () => {
                 };
                 export default strings;
             `),
-            'utf8',
-        );
-        await generateTranslations();
-        const itContent = fs.readFileSync(IT_PATH, 'utf8');
-        expect(itContent).toStrictEqual(
-            `${GENERATED_FILE_PREFIX}${dedent(`
+                'utf8',
+            );
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+            expect(itContent).toStrictEqual(
+                `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -254,13 +266,13 @@ describe('generateTranslations', () => {
                 };
                 export default strings;
             `)}`,
-        );
-    });
+            );
+        });
 
-    it('handles repeated ternaries in complex expressions', async () => {
-        fs.writeFileSync(
-            EN_PATH,
-            dedent(`
+        it('handles repeated ternaries in complex expressions', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
                 const strings = {
                     updateReportFieldAllOptionsDisabled: (count: number, enabled: boolean, option: string) => {
                         if (toggledOptionsCount > 1) {
@@ -271,12 +283,12 @@ describe('generateTranslations', () => {
                 };
                 export default strings;
             `),
-            'utf8',
-        );
-        await generateTranslations();
-        const itContent = fs.readFileSync(IT_PATH, 'utf8');
-        expect(itContent).toStrictEqual(
-            `${GENERATED_FILE_PREFIX}${dedent(`
+                'utf8',
+            );
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+            expect(itContent).toStrictEqual(
+                `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -289,13 +301,13 @@ describe('generateTranslations', () => {
                 };
                 export default strings;
             `)}`,
-        );
-    });
+            );
+        });
 
-    it('Handles context annotations', async () => {
-        fs.writeFileSync(
-            EN_PATH,
-            dedent(`
+        it('Handles context annotations', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
                 const strings = {
                     // @context As in a financial institution
                     bank: 'Bank',
@@ -327,12 +339,12 @@ describe('generateTranslations', () => {
                 };
                 export default strings;
             `),
-            'utf8',
-        );
-        await generateTranslations();
-        const itContent = fs.readFileSync(IT_PATH, 'utf8');
-        expect(itContent).toStrictEqual(
-            `${GENERATED_FILE_PREFIX}${dedent(`
+                'utf8',
+            );
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+            expect(itContent).toStrictEqual(
+                `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -366,13 +378,13 @@ describe('generateTranslations', () => {
                 };
                 export default strings;
             `)}`,
-        );
-    });
+            );
+        });
 
-    it("doesn't request duplicate translations", async () => {
-        fs.writeFileSync(
-            EN_PATH,
-            dedent(`
+        it("doesn't request duplicate translations", async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
                 const strings = {
                     greeting: 'Hello',
                     farewell: 'Goodbye',
@@ -386,13 +398,13 @@ describe('generateTranslations', () => {
                 };
                 export default strings;
             `),
-            'utf8',
-        );
-        const translateSpy = jest.spyOn(Translator.prototype, 'translate');
-        await generateTranslations();
-        const itContent = fs.readFileSync(IT_PATH, 'utf8');
-        expect(itContent).toStrictEqual(
-            `${GENERATED_FILE_PREFIX}${dedent(`
+                'utf8',
+            );
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+            expect(itContent).toStrictEqual(
+                `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -408,28 +420,28 @@ describe('generateTranslations', () => {
                 };
                 export default strings;
             `)}`,
-        );
-        expect(translateSpy).toHaveBeenCalledTimes(3);
-        expect(translateSpy).toHaveBeenNthCalledWith(1, 'it', 'Hello', undefined);
-        expect(translateSpy).toHaveBeenNthCalledWith(2, 'it', 'Goodbye', undefined);
-        expect(translateSpy).toHaveBeenNthCalledWith(3, 'it', 'Hello', 'diff');
-    });
+            );
+            expect(translateSpy).toHaveBeenCalledTimes(3);
+            expect(translateSpy).toHaveBeenNthCalledWith(1, 'it', 'Hello', undefined);
+            expect(translateSpy).toHaveBeenNthCalledWith(2, 'it', 'Goodbye', undefined);
+            expect(translateSpy).toHaveBeenNthCalledWith(3, 'it', 'Hello', 'diff');
+        });
 
-    it("doesn't translate type annotations", async () => {
-        fs.writeFileSync(
-            EN_PATH,
-            dedent(`
+        it("doesn't translate type annotations", async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
                 const strings = {
                     myFunc: ({brand}: {brand: 'Apple' | 'Google'}) => \`\${brand} Phone\`,
                 };
                 export default strings;
             `),
-            'utf8',
-        );
-        await generateTranslations();
-        const itContent = fs.readFileSync(IT_PATH, 'utf8');
-        expect(itContent).toStrictEqual(
-            `${GENERATED_FILE_PREFIX}${dedent(`
+                'utf8',
+            );
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+            expect(itContent).toStrictEqual(
+                `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -437,25 +449,25 @@ describe('generateTranslations', () => {
                 };
                 export default strings;
             `)}`,
-        );
-    });
+            );
+        });
 
-    it('unescapes unicode', async () => {
-        fs.writeFileSync(
-            EN_PATH,
-            dedent(`
+        it('unescapes unicode', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
                 const strings = {
                     hello: 'こんにちは',
                     world: 'world',
                 };
                 export default strings;
             `),
-            'utf8',
-        );
-        await generateTranslations();
-        const itContent = fs.readFileSync(IT_PATH, 'utf8');
-        expect(itContent).toStrictEqual(
-            `${GENERATED_FILE_PREFIX}${dedent(`
+                'utf8',
+            );
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+            expect(itContent).toStrictEqual(
+                `${GENERATED_FILE_PREFIX}${dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -464,259 +476,236 @@ describe('generateTranslations', () => {
                 };
                 export default strings;
             `)}`,
-        );
+            );
+        });
     });
 
-    it('reuses existing translations from --compare-ref', async () => {
-        // Step 1: simulate an old version with initial translations
-        const oldDir = fs.mkdtempSync(path.join(os.tmpdir(), 'translations-old-'));
-        const oldItPath = path.join(oldDir, 'src/languages/it.ts');
-        const oldEnPath = path.join(oldDir, 'src/languages/en.ts');
-        fs.mkdirSync(path.dirname(oldItPath), {recursive: true});
+    describe('incremental translations', () => {
+        it('reuses existing translations from --compare-ref with git diff', async () => {
+            // Create English source with one new string
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    greeting: 'Hello',
+                    unchanged: 'Unchanged',
+                    func: (name: string) => \`Hello \${name}\`,
+                    noSubstitutionTemplate: \`Salutations\`,
+                    complexFunc: (numScanning: number, numPending: number) => {
+                        const statusText: string[] = [];
+                        if (numScanning > 0) {
+                            statusText.push(\`\${numScanning} scanning\`);
+                        }
+                        if (numPending > 0) {
+                            statusText.push(\`\${numPending} pending\`);
+                        }
+                        return statusText.length > 0 ? \`1 expense (\${statusText.join(', ')})\` : '1 expense';
+                    },
+                    extraComplex: (payer: string) => \`\${payer ? \`\${payer} as payer \` : ''}paid elsewhere\`,
+                    newKey: 'New value!',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
 
-        fs.writeFileSync(
-            oldEnPath,
-            dedent(`
-            const strings = {
-                greeting: 'Hello',
-                unchanged: 'Unchanged',
-                func: (name: string) => \`Hello \${name}\`,
-                noSubstitutionTemplate: \`Salutations\`,
-                complexFunc: (numScanning: number, numPending: number) => {
-                    const statusText: string[] = [];
-                    if (numScanning > 0) {
-                        statusText.push(\`\${numScanning} scanning\`);
-                    }
-                    if (numPending > 0) {
-                        statusText.push(\`\${numPending} pending\`);
-                    }
-                    return statusText.length > 0 ? \`1 expense (\${statusText.join(', ')})\` : '1 expense';
-                },
-                extraComplex: (payer: string) => \`\${payer ? \`\${payer} as payer \` : ''}paid elsewhere\`,
-            };
-            export default strings;
-        `),
-            'utf8',
-        );
-        fs.writeFileSync(
-            oldItPath,
-            dedent(`
-            import type en from './en';
-            const strings = {
-                greeting: '[it] Hello',
-                unchanged: '[it] Unchanged',
-                func: (name: string) => \`[it] Hello \${name}\`,
-                noSubstitutionTemplate: \`[it] Salutations\`,
-                complexFunc: (numScanning: number, numPending: number) => {
-                    const statusText: string[] = [];
-                    if (numScanning > 0) {
-                        statusText.push(\`[it] \${numScanning} scanning\`);
-                    }
-                    if (numPending > 0) {
-                        statusText.push(\`[it] \${numPending} pending\`);
-                    }
-                    return statusText.length > 0 ? \`[it] 1 expense (\${statusText.join(', ')})\` : '[it] 1 expense';
-                },
-                extraComplex: (payer: string) => \`[it] \${payer ? \`[it] \${payer} as payer \` : ''}paid elsewhere\`,
-            };
-            export default strings;
-        `),
-            'utf8',
-        );
+            // Create existing Italian translation without the new key
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+                const strings = {
+                    greeting: '[it] Hello',
+                    unchanged: '[it] Unchanged',
+                    func: (name: string) => \`[it] Hello \${name}\`,
+                    noSubstitutionTemplate: \`[it] Salutations\`,
+                    complexFunc: (numScanning: number, numPending: number) => {
+                        const statusText: string[] = [];
+                        if (numScanning > 0) {
+                            statusText.push(\`[it] \${numScanning} scanning\`);
+                        }
+                        if (numPending > 0) {
+                            statusText.push(\`[it] \${numPending} pending\`);
+                        }
+                        return statusText.length > 0 ? \`[it] 1 expense (\${statusText.join(', ')})\` : '[it] 1 expense';
+                    },
+                    extraComplex: (payer: string) => \`[it] \${payer ? \`[it] \${payer} as payer \` : ''}paid elsewhere\`,
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
 
-        // Step 2: patch GitHubUtils.getFileContents to load from disk
-        jest.spyOn(GitHubUtils, 'getFileContents').mockImplementation((filePath: string) => {
-            if (filePath.endsWith('en.ts')) {
-                return Promise.resolve(fs.readFileSync(oldEnPath, 'utf8'));
-            }
-            if (filePath.endsWith('it.ts')) {
-                return Promise.resolve(fs.readFileSync(oldItPath, 'utf8'));
-            }
-            throw new Error(`Unexpected filePath: ${filePath}`);
+            // Mock Git.diff to show only the new key was added
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set([17]), // Line with newKey
+                        removedLines: new Set(),
+                        modifiedLines: new Set(),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'main'];
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Should preserve all existing translations
+            expect(itContent).toContain('[it] Hello');
+            expect(itContent).toContain('[it] Unchanged');
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(itContent).toContain('[it] Hello ${name}');
+            expect(itContent).toContain('[it] Salutations');
+
+            // Should add the new translation
+            expect(itContent).toContain('[it] New value!');
+
+            // Should only translate the new string
+            expect(translateSpy).toHaveBeenCalledTimes(1);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'New value!', undefined);
         });
 
-        // Step 3: create new source with one changed and one unchanged string
-        fs.writeFileSync(
-            EN_PATH,
-            dedent(`
+        it('translates only specified paths when --paths is provided', async () => {
             const strings = {
                 greeting: 'Hello',
-                unchanged: 'Unchanged',
-                func: (name: string) => \`Hello \${name}\`,
-                noSubstitutionTemplate: \`Salutations\`,
-                complexFunc: (numScanning: number, numPending: number) => {
-                    const statusText: string[] = [];
-                    if (numScanning > 0) {
-                        statusText.push(\`\${numScanning} scanning\`);
-                    }
-                    if (numPending > 0) {
-                        statusText.push(\`\${numPending} pending\`);
-                    }
-                    return statusText.length > 0 ? \`1 expense (\${statusText.join(', ')})\` : '1 expense';
+                farewell: 'Goodbye',
+                common: {
+                    save: 'Save',
+                    cancel: 'Cancel',
                 },
-                extraComplex: (payer: string) => \`\${payer ? \`\${payer} as payer \` : ''}paid elsewhere\`,
-                newKey: 'New value!',
+                errors: {
+                    generic: 'An error occurred',
+                    network: 'Network error',
+                },
             };
-            export default strings;
-        `),
-            'utf8',
-        );
+            mockEn = strings;
 
-        process.argv.push('--compare-ref=ref-does-not-matter-due-to-mock');
-        const translateSpy = jest.spyOn(Translator.prototype, 'translate');
-
-        await generateTranslations();
-        const itContent = fs.readFileSync(IT_PATH, 'utf8');
-
-        expect(itContent).toContain('[it] Hello');
-        expect(itContent).toContain('[it] Unchanged');
-        // eslint-disable-next-line no-template-curly-in-string
-        expect(itContent).toContain('[it] Hello ${name}');
-        expect(itContent).toContain('[it] Salutations');
-        expect(itContent).toContain('[it] New value!');
-        expect(translateSpy).toHaveBeenCalledTimes(1);
-        expect(translateSpy).toHaveBeenCalledWith('it', 'New value!', undefined);
-
-        fs.rmSync(oldDir, {recursive: true});
-    });
-
-    it('translates only specified paths when --paths is provided', async () => {
-        const strings = {
-            greeting: 'Hello',
-            farewell: 'Goodbye',
-            common: {
-                save: 'Save',
-                cancel: 'Cancel',
-            },
-            errors: {
-                generic: 'An error occurred',
-                network: 'Network error',
-            },
-        };
-        mockEn = strings;
-
-        fs.writeFileSync(
-            EN_PATH,
-            dedent(`
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
                 const strings = ${JSON.stringify(strings)};
                 export default strings;
             `),
-            'utf8',
-        );
+                'utf8',
+            );
 
-        // Override process.argv to specify only certain paths
-        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save,errors.generic'];
+            // Override process.argv to specify only certain paths
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save,errors.generic'];
 
-        const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
-        await generateTranslations();
-        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
 
-        // Only the specified paths should be translated
-        expect(itContent).toContain('[it] Save');
-        expect(itContent).toContain('[it] An error occurred');
+            // Only the specified paths should be translated
+            expect(itContent).toContain('[it] Save');
+            expect(itContent).toContain('[it] An error occurred');
 
-        // Other paths should not be translated
-        expect(itContent).not.toContain('[it] Hello');
-        expect(itContent).not.toContain('[it] Goodbye');
-        expect(itContent).not.toContain('[it] Cancel');
-        expect(itContent).not.toContain('[it] Network error');
+            // Other paths should not be translated
+            expect(itContent).not.toContain('[it] Hello');
+            expect(itContent).not.toContain('[it] Goodbye');
+            expect(itContent).not.toContain('[it] Cancel');
+            expect(itContent).not.toContain('[it] Network error');
 
-        expect(translateSpy).toHaveBeenCalledTimes(2);
-        expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
-        expect(translateSpy).toHaveBeenCalledWith('it', 'An error occurred', undefined);
-    });
+            expect(translateSpy).toHaveBeenCalledTimes(2);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'An error occurred', undefined);
+        });
 
-    it('translates nested paths when parent path is specified', async () => {
-        const strings = {
-            greeting: 'Hello',
-            common: {
-                save: 'Save',
-                cancel: 'Cancel',
-                nested: {
-                    deep: 'Deep value',
+        it('translates nested paths when parent path is specified', async () => {
+            const strings = {
+                greeting: 'Hello',
+                common: {
+                    save: 'Save',
+                    cancel: 'Cancel',
+                    nested: {
+                        deep: 'Deep value',
+                    },
                 },
-            },
-            errors: {
-                generic: 'An error occurred',
-            },
-        };
+                errors: {
+                    generic: 'An error occurred',
+                },
+            };
 
-        mockEn = strings;
+            mockEn = strings;
 
-        fs.writeFileSync(
-            EN_PATH,
-            dedent(`
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
                 const strings = ${JSON.stringify(strings)};
                 export default strings;
             `),
-            'utf8',
-        );
+                'utf8',
+            );
 
-        // Override process.argv to specify parent path
-        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common'];
+            // Override process.argv to specify parent path
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common'];
 
-        const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
-        await generateTranslations();
-        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
 
-        // All nested paths under 'common' should be translated
-        expect(itContent).toContain('[it] Save');
-        expect(itContent).toContain('[it] Cancel');
-        expect(itContent).toContain('[it] Deep value');
+            // All nested paths under 'common' should be translated
+            expect(itContent).toContain('[it] Save');
+            expect(itContent).toContain('[it] Cancel');
+            expect(itContent).toContain('[it] Deep value');
 
-        // Other paths should not be translated
-        expect(itContent).not.toContain('[it] Hello');
-        expect(itContent).not.toContain('[it] An error occurred');
+            // Other paths should not be translated
+            expect(itContent).not.toContain('[it] Hello');
+            expect(itContent).not.toContain('[it] An error occurred');
 
-        expect(translateSpy).toHaveBeenCalledTimes(3);
-        expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
-        expect(translateSpy).toHaveBeenCalledWith('it', 'Cancel', undefined);
-        expect(translateSpy).toHaveBeenCalledWith('it', 'Deep value', undefined);
-    });
+            expect(translateSpy).toHaveBeenCalledTimes(3);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Cancel', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Deep value', undefined);
+        });
 
-    it('ignores --compare-ref when --paths is provided', async () => {
-        const strings = {
-            greeting: 'Hello',
-            common: {
-                save: 'Save',
-            },
-        };
-        mockEn = strings;
+        it('ignores --compare-ref when --paths is provided', async () => {
+            const strings = {
+                greeting: 'Hello',
+                common: {
+                    save: 'Save',
+                },
+            };
+            mockEn = strings;
 
-        fs.writeFileSync(
-            EN_PATH,
-            dedent(`
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
                 const strings = ${JSON.stringify(strings)};
                 export default strings;
             `),
-            'utf8',
-        );
+                'utf8',
+            );
 
-        // Override process.argv to specify both paths and compare-ref
-        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save', '--compare-ref', 'main'];
+            // Override process.argv to specify both paths and compare-ref
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save', '--compare-ref', 'main'];
 
-        const translateSpy = jest.spyOn(Translator.prototype, 'translate');
-        const githubSpy = jest.spyOn(GitHubUtils, 'getFileContents');
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
-        await generateTranslations();
-        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
 
-        // Only the specified path should be translated
-        expect(itContent).toContain('[it] Save');
-        expect(itContent).not.toContain('[it] Hello');
+            // Only the specified path should be translated
+            expect(itContent).toContain('[it] Save');
+            expect(itContent).not.toContain('[it] Hello');
 
-        // GitHubUtils.getFileContents should not be called since --compare-ref is ignored
-        expect(githubSpy).not.toHaveBeenCalled();
-        expect(translateSpy).toHaveBeenCalledTimes(1);
-        expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
-    });
+            expect(translateSpy).toHaveBeenCalledTimes(1);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
+        });
 
-    it('throws error for invalid paths', async () => {
-        fs.writeFileSync(
-            EN_PATH,
-            dedent(`
+        it('throws error for invalid paths', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
                 const strings = {
                     greeting: 'Hello',
                     common: {
@@ -725,88 +714,88 @@ describe('generateTranslations', () => {
                 };
                 export default strings;
             `),
-            'utf8',
-        );
+                'utf8',
+            );
 
-        // Override process.argv to specify a non-existent path
-        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'nonexistent.path'];
+            // Override process.argv to specify a non-existent path
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'nonexistent.path'];
 
-        // Expect the script to throw an error during CLI parsing
-        await generateTranslations();
-        expect(consoleErrorSpy).toHaveBeenCalledWith('Invalid value for --paths: found the following invalid paths: ["nonexistent.path"]');
-        expect(processExitSpy).toHaveBeenCalledWith(1);
-    });
+            // Expect the script to throw an error during CLI parsing
+            await generateTranslations();
+            expect(consoleErrorSpy).toHaveBeenCalledWith('Invalid value for --paths: found the following invalid paths: ["nonexistent.path"]');
+            expect(processExitSpy).toHaveBeenCalledWith(1);
+        });
 
-    it('validates paths against actual translation structure', async () => {
-        const strings = {
-            greeting: 'Hello',
-            common: {
-                save: 'Save',
-            },
-            errors: {
-                generic: 'An error occurred',
-            },
-        };
-        mockEn = strings;
+        it('validates paths against actual translation structure', async () => {
+            const strings = {
+                greeting: 'Hello',
+                common: {
+                    save: 'Save',
+                },
+                errors: {
+                    generic: 'An error occurred',
+                },
+            };
+            mockEn = strings;
 
-        fs.writeFileSync(
-            EN_PATH,
-            dedent(`
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
                 const strings = ${JSON.stringify(strings)};
                 export default strings;
             `),
-            'utf8',
-        );
+                'utf8',
+            );
 
-        // Test that valid paths work
-        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'greeting,common.save'];
+            // Test that valid paths work
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'greeting,common.save'];
 
-        const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
-        await generateTranslations();
-        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
 
-        // Should translate the specified paths
-        expect(itContent).toContain('[it] Hello');
-        expect(itContent).toContain('[it] Save');
+            // Should translate the specified paths
+            expect(itContent).toContain('[it] Hello');
+            expect(itContent).toContain('[it] Save');
 
-        // Should not translate other paths
-        expect(itContent).not.toContain('[it] Cancel');
-        expect(itContent).not.toContain('[it] An error occurred');
+            // Should not translate other paths
+            expect(itContent).not.toContain('[it] Cancel');
+            expect(itContent).not.toContain('[it] An error occurred');
 
-        expect(translateSpy).toHaveBeenCalledTimes(2);
-    });
+            expect(translateSpy).toHaveBeenCalledTimes(2);
+        });
 
-    it('should preserve existing translations for paths not specified in --paths', async () => {
-        const strings = {
-            greeting: 'Hello',
-            farewell: 'Goodbye',
-            common: {
-                save: 'Save',
-                cancel: 'Cancel',
-            },
-            errors: {
-                generic: 'An error occurred',
-                network: 'Network error',
-            },
-            simpleTemplate: (name: string) => `Welcome ${name} to our app`,
-        };
-        mockEn = strings;
+        it('should preserve existing translations for paths not specified in --paths', async () => {
+            const strings = {
+                greeting: 'Hello',
+                farewell: 'Goodbye',
+                common: {
+                    save: 'Save',
+                    cancel: 'Cancel',
+                },
+                errors: {
+                    generic: 'An error occurred',
+                    network: 'Network error',
+                },
+                simpleTemplate: (name: string) => `Welcome ${name} to our app`,
+            };
+            mockEn = strings;
 
-        // Create English source file
-        fs.writeFileSync(
-            EN_PATH,
-            dedent(`
+            // Create English source file
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
                 const strings = ${JSON.stringify(strings)};
                 export default strings;
             `),
-            'utf8',
-        );
+                'utf8',
+            );
 
-        // Create an existing Italian translation file with all strings already translated
-        fs.writeFileSync(
-            IT_PATH,
-            dedent(`
+            // Create an existing Italian translation file with all strings already translated
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
                 import type en from './en';
 
                 const strings = {
@@ -825,210 +814,370 @@ describe('generateTranslations', () => {
                 };
                 export default strings;
             `),
-            'utf8',
-        );
+                'utf8',
+            );
 
-        // Only retranslate specific paths - the bug is that existing translations get lost
-        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save,errors.generic'];
+            // Only retranslate specific paths - the bug is that existing translations get lost
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save,errors.generic'];
 
-        await generateTranslations();
-        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
 
-        // Specified paths should be retranslated (lose the "(existing)" suffix)
-        expect(itContent).toContain('[it] Save');
-        expect(itContent).toContain('[it] An error occurred');
-        expect(itContent).not.toContain('[it] Save (existing)');
-        expect(itContent).not.toContain('[it] An error occurred (existing)');
+            // Specified paths should be retranslated (lose the "(existing)" suffix)
+            expect(itContent).toContain('[it] Save');
+            expect(itContent).toContain('[it] An error occurred');
+            expect(itContent).not.toContain('[it] Save (existing)');
+            expect(itContent).not.toContain('[it] An error occurred (existing)');
 
-        // BUG: Existing translations for paths NOT in filter should be preserved
-        expect(itContent).toContain('[it] Hello (existing)');
-        expect(itContent).toContain('[it] Goodbye (existing)');
-        expect(itContent).toContain('[it] Cancel (existing)');
-        expect(itContent).toContain('[it] Network error (existing)');
-        // eslint-disable-next-line no-template-curly-in-string
-        expect(itContent).toContain('[it] Welcome ${name} to our app (existing)');
+            // BUG: Existing translations for paths NOT in filter should be preserved
+            expect(itContent).toContain('[it] Hello (existing)');
+            expect(itContent).toContain('[it] Goodbye (existing)');
+            expect(itContent).toContain('[it] Cancel (existing)');
+            expect(itContent).toContain('[it] Network error (existing)');
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(itContent).toContain('[it] Welcome ${name} to our app (existing)');
 
-        // Should NOT contain English versions (which would indicate the bug)
-        expect(itContent).not.toContain("greeting: 'Hello'");
-        expect(itContent).not.toContain("farewell: 'Goodbye'");
-        expect(itContent).not.toContain("cancel: 'Cancel'");
-        expect(itContent).not.toContain("network: 'Network error'");
-        // eslint-disable-next-line no-template-curly-in-string
-        expect(itContent).not.toContain('Welcome ${name} to our app');
-    });
-
-    it('can handle structural differences between files for incremental translation', async () => {
-        // Step 1: Create old version with initial translations
-        const oldDir = fs.mkdtempSync(path.join(os.tmpdir(), 'translations-old-'));
-        const oldItPath = path.join(oldDir, 'src/languages/it.ts');
-        const oldEnPath = path.join(oldDir, 'src/languages/en.ts');
-        const oldFrPath = path.join(oldDir, 'src/languages/fr.ts');
-        fs.mkdirSync(path.dirname(oldItPath), {recursive: true});
-
-        // Old English version with specific structure
-        fs.writeFileSync(
-            oldEnPath,
-            dedent(`
-                import CONST from '@src/CONST';
-
-                const strings = {
-                    greeting: 'Hello',
-                    farewell: 'Goodbye',
-                    common: {
-                        save: 'Save',
-                        cancel: 'Cancel',
-                    },
-                };
-                export default strings;
-            `),
-            'utf8',
-        );
-
-        // Old Italian translation
-        fs.writeFileSync(
-            oldItPath,
-            dedent(`
-                import type en from './en';
-
-                const strings = {
-                    greeting: '[it] Hello',
-                    farewell: '[it] Goodbye', 
-                    common: {
-                        save: '[it] Save',
-                        cancel: '[it] Cancel',
-                    },
-                };
-                export default strings;
-            `),
-            'utf8',
-        );
-
-        // Old French translation with significantly different structure that breaks parallel traversal
-        fs.writeFileSync(
-            oldFrPath,
-            dedent(`
-                import type en from './en';
-                import {someHelper} from '@libs/SomeHelper';
-
-                // Extra comment that shifts the AST structure
-                const helperFunction = () => 'helper';
-
-                const strings = {
-                    greeting: '[fr] Hello',
-                    farewell: '[fr] Goodbye',
-                    // Extra property that doesn't exist in other files
-                    extraProp: '[fr] Extra',
-                    common: {
-                        save: '[fr] Save',
-                        cancel: '[fr] Cancel',
-                    },
-                };
-                export default strings;
-            `),
-            'utf8',
-        );
-
-        // Step 2: Mock GitHubUtils to return the old files
-        jest.spyOn(GitHubUtils, 'getFileContents').mockImplementation((filePath: string) => {
-            if (filePath.endsWith('en.ts')) {
-                return Promise.resolve(fs.readFileSync(oldEnPath, 'utf8'));
-            }
-            if (filePath.endsWith('it.ts')) {
-                return Promise.resolve(fs.readFileSync(oldItPath, 'utf8'));
-            }
-            if (filePath.endsWith('fr.ts')) {
-                return Promise.resolve(fs.readFileSync(oldFrPath, 'utf8'));
-            }
-            throw new Error(`Unexpected filePath: ${filePath}`);
+            // Should NOT contain English versions (which would indicate the bug)
+            expect(itContent).not.toContain("greeting: 'Hello'");
+            expect(itContent).not.toContain("farewell: 'Goodbye'");
+            expect(itContent).not.toContain("cancel: 'Cancel'");
+            expect(itContent).not.toContain("network: 'Network error'");
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(itContent).not.toContain('Welcome ${name} to our app');
         });
 
-        // Step 3: Create new English source with one new string
-        const newStrings = {
-            greeting: 'Hello',
-            farewell: 'Goodbye',
-            common: {
-                save: 'Save',
-                cancel: 'Cancel',
-            },
-            newKey: 'New value!',
-        };
-        mockEn = newStrings;
+        it('handles incremental translation with multiple target languages', async () => {
+            // Create English source
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                    import CONST from '@src/CONST';
 
-        fs.writeFileSync(
-            EN_PATH,
-            dedent(`
-                import CONST from '@src/CONST';
+                    const strings = {
+                        greeting: 'Hello',
+                        farewell: 'Goodbye',
+                        common: {
+                            save: 'Save',
+                            cancel: 'Cancel',
+                        },
+                        newKey: 'New value!',
+                    };
+                    export default strings;
+                `),
+                'utf8',
+            );
 
-                const strings = {
-                    greeting: 'Hello',
-                    farewell: 'Goodbye',
-                    common: {
-                        save: 'Save',
-                        cancel: 'Cancel',
+            // Create existing Italian translation
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                    import type en from './en';
+
+                    const strings = {
+                        greeting: '[it] Hello',
+                        farewell: '[it] Goodbye',
+                        common: {
+                            save: '[it] Save',
+                            cancel: '[it] Cancel',
+                        },
+                    };
+                    export default strings;
+                `),
+                'utf8',
+            );
+
+            // Create existing French translation
+            const FR_PATH = path.join(LANGUAGES_DIR, 'fr.ts');
+            fs.writeFileSync(
+                FR_PATH,
+                dedent(`
+                    import type en from './en';
+
+                    const strings = {
+                        greeting: '[fr] Hello',
+                        farewell: '[fr] Goodbye',
+                        common: {
+                            save: '[fr] Save',
+                            cancel: '[fr] Cancel',
+                        },
+                    };
+                    export default strings;
+                `),
+                'utf8',
+            );
+
+            // Mock Git.diff to show one new string added
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set([7]), // Line with newKey
+                        removedLines: new Set(),
+                        modifiedLines: new Set(),
                     },
-                    newKey: 'New value!',
-                };
-                export default strings;
-            `),
-            'utf8',
-        );
+                ],
+                hasChanges: true,
+            });
 
-        // Step 4: Run translation with compare-ref
-        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it,fr', '--compare-ref=ref-does-not-matter-due-to-mock'];
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it,fr', '--compare-ref', 'main'];
 
-        const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
 
-        await generateTranslations();
+            await generateTranslations();
 
-        const itContent = fs.readFileSync(IT_PATH, 'utf8');
-        const frContent = fs.readFileSync(path.join(LANGUAGES_DIR, 'fr.ts'), 'utf8');
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+            const frContent = fs.readFileSync(FR_PATH, 'utf8');
 
-        // BUG: Due to structural differences in the old files, parallel AST traversal gets out of sync
-        // This should result in inconsistent behavior between IT and FR files
+            // Both files should preserve existing translations
+            expect(itContent).toContain('[it] Hello');
+            expect(itContent).toContain('[it] Goodbye');
+            expect(itContent).toContain('[it] Save');
+            expect(itContent).toContain('[it] Cancel');
 
-        // Both files should preserve existing translations
-        expect(itContent).toContain('[it] Hello');
-        expect(itContent).toContain('[it] Goodbye');
-        expect(itContent).toContain('[it] Save');
-        expect(itContent).toContain('[it] Cancel');
+            expect(frContent).toContain('[fr] Hello');
+            expect(frContent).toContain('[fr] Goodbye');
+            expect(frContent).toContain('[fr] Save');
+            expect(frContent).toContain('[fr] Cancel');
 
-        expect(frContent).toContain('[fr] Hello');
-        expect(frContent).toContain('[fr] Goodbye');
-        expect(frContent).toContain('[fr] Save');
-        expect(frContent).toContain('[fr] Cancel');
+            // Both should have the new translation
+            expect(itContent).toContain('[it] New value!');
+            expect(frContent).toContain('[fr] New value!');
 
-        // Both should have the new translation
-        expect(itContent).toContain('[it] New value!');
-        expect(frContent).toContain('[fr] New value!');
+            // Only the new string should have been translated
+            expect(translateSpy).toHaveBeenCalledTimes(2); // Once for IT, once for FR
+            expect(translateSpy).toHaveBeenCalledWith('it', 'New value!', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('fr', 'New value!', undefined);
+        });
 
-        // Only the new string should have been translated
-        expect(translateSpy).toHaveBeenCalledTimes(2); // Once for IT, once for FR
-        expect(translateSpy).toHaveBeenCalledWith('it', 'New value!', undefined);
-        expect(translateSpy).toHaveBeenCalledWith('fr', 'New value!', undefined);
-
-        fs.rmSync(oldDir, {recursive: true});
-    });
-
-    it('validates compare-ref is a valid git reference', async () => {
-        fs.writeFileSync(
-            EN_PATH,
-            dedent(`
+        it('validates compare-ref is a valid git reference', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
                 const strings = {
                     greeting: 'Hello',
                 };
                 export default strings;
             `),
-            'utf8',
-        );
+                'utf8',
+            );
 
-        // Test with invalid git reference
-        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'invalid-ref-that-does-not-exist'];
+            // Test with invalid git reference
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--compare-ref', 'invalid-ref-that-does-not-exist'];
 
-        // Expect the script to throw an error during CLI parsing
-        await generateTranslations();
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
-            'Invalid value for --compare-ref: Invalid git reference: "invalid-ref-that-does-not-exist". Please provide a valid branch, tag, or commit hash.',
-        );
-        expect(processExitSpy).toHaveBeenCalledWith(1);
+            // Expect the script to throw an error during CLI parsing
+            await generateTranslations();
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                'Invalid value for --compare-ref: Invalid git reference: "invalid-ref-that-does-not-exist". Please provide a valid branch, tag, or commit hash.',
+            );
+            expect(processExitSpy).toHaveBeenCalledWith(1);
+        });
+
+        it('handles partial function modification with git diff', async () => {
+            // Create English source where a function has some lines removed but still exists
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    funcWithChanges: (count: number) => {
+                        if (count > 0) {
+                            return \`Positive: \${count}\`;
+                        }
+                        return 'Zero or negative';
+                    }
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing translation with extra logic that will be removed
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+                const strings = {
+                    funcWithChanges: (count: number) => {
+                        if (count > 0) {
+                            return \`[it] Positive: \${count} (existing)\`;
+                        }
+                        if (count === 0) {
+                            return '[it] Exactly zero (removed line)';
+                        }
+                        return '[it] Zero or negative (existing)';
+                    }
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock git diff showing lines removed from within the function
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set(),
+                        removedLines: new Set([6]), // Line where 'if (count === 0)' was removed
+                        modifiedLines: new Set(),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--locales', 'it', '--compare-ref', 'main'];
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Function should be retranslated (not removed) because it still exists in en.ts
+            expect(itContent).toContain('funcWithChanges:');
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(itContent).toContain('Positive: ${count}'); // New translation without "(existing)"
+            expect(itContent).toContain('Zero or negative'); // New translation
+            expect(itContent).not.toContain('Exactly zero'); // Removed line should be gone
+        });
+
+        it('handles complex nested templates and ternaries with git diff', async () => {
+            // Create English source with complex nested expressions
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    deepTemplate: (user: User, settings: Settings) => \`\${user.isAdmin ? 
+                        \`Admin \${user.name}: \${settings.theme === 'dark' ? 'Dark mode' : 'Light mode'}\` : 
+                        \`User \${user.name ?? 'Unknown'}: \${settings.notifications ? 'Notifications on' : 'Silent'}\`
+                    } - \${settings.language || 'English'}\`,
+                    unchanged: 'Keep this'
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing translation
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+                const strings = {
+                    deepTemplate: (user: User, settings: Settings) => \`[it] Old complex template\`,
+                    unchanged: '[it] Keep this (existing)'
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock git diff showing template changes
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set([2, 3, 4]), // Lines in the complex template
+                        removedLines: new Set(),
+                        modifiedLines: new Set(),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--locales', 'it', '--compare-ref', 'main'];
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Should preserve unchanged string
+            expect(itContent).toContain('[it] Keep this (existing)');
+
+            // Should retranslate complex template
+            expect(itContent).toContain('user.isAdmin ?');
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(itContent).toContain('Admin ${user.name}');
+            expect(itContent).toContain("settings.theme === 'dark'");
+            expect(itContent).toContain("user.name ?? 'Unknown'");
+            expect(itContent).toContain("settings.language || 'English'");
+            expect(itContent).not.toContain('[it] Old complex template');
+        });
+
+        it('handles path removal with nested object cleanup', async () => {
+            // Create English source with some sections removed
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    keep: {
+                        this: 'Keep this section'
+                    },
+                    modify: {
+                        update: 'Updated value'
+                    }
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing translation with extra sections that will be removed
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+                const strings = {
+                    keep: {
+                        this: '[it] Keep this section (existing)'
+                    },
+                    modify: {
+                        update: '[it] Updated value (old)',
+                        remove: '[it] Will be removed'
+                    },
+                    deleteEntire: {
+                        gone: '[it] Entire section removed',
+                        alsoGone: '[it] Also removed'
+                    }
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Mock git diff showing modifications and removals
+            mockIsValidRef.mockReturnValue(true);
+            mockDiff.mockReturnValue({
+                files: [
+                    {
+                        filePath: 'src/languages/en.ts',
+                        hunks: [],
+                        addedLines: new Set([6]), // Line with updated value
+                        removedLines: new Set([10, 15]), // Lines where sections were removed
+                        modifiedLines: new Set(),
+                    },
+                ],
+                hasChanges: true,
+            });
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--locales', 'it', '--compare-ref', 'main'];
+
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Should preserve unchanged sections
+            expect(itContent).toContain('[it] Keep this section (existing)');
+
+            // Should retranslate modified paths
+            expect(itContent).toContain('[it] Updated value');
+            expect(itContent).not.toContain('[it] Updated value (old)');
+
+            // Should remove deleted paths and clean up empty parent objects
+            expect(itContent).not.toContain('remove');
+            expect(itContent).not.toContain('deleteEntire');
+            expect(itContent).not.toContain('gone');
+            expect(itContent).not.toContain('alsoGone');
+        });
     });
 });
