@@ -133,6 +133,18 @@ jest.mock('@src/libs/actions/Report', () => {
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
+jest.mock('@src/libs/SearchQueryUtils', () => ({
+    getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
+        hash: 12345,
+        query: 'test',
+        type: 'invoice',
+        status: '',
+        flatFilters: [],
+    })),
+    buildQueryStringFromFilterFormValues: jest.fn().mockImplementation(() => 'type:expense'),
+    buildCannedSearchQuery: jest.fn(),
+    buildSearchQueryJSON: jest.fn(),
+}));
 const unapprovedCashHash = 565065994;
 jest.mock('@src/libs/SearchQueryUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
