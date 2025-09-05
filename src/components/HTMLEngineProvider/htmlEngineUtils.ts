@@ -111,4 +111,28 @@ function isChildOfMutedTextLabel(tnode: TNode): boolean {
     return isChildOfMutedTextLabel(tnode.parent);
 }
 
-export {computeEmbeddedMaxWidth, isChildOfComment, isChildOfH1, isDeletedNode, isChildOfTaskTitle, isChildOfRBR, isCommentTag, getFontSizeOfRBRChild, isChildOfMutedTextLabel};
+/**
+ * @returns Whether the node is a child of muted-micro-text
+ */
+function isChildOfMutedMicroText(tnode: TNode): boolean {
+    if (!tnode.parent) {
+        return false;
+    }
+    if (tnode.parent.tagName === 'muted-micro-text') {
+        return true;
+    }
+    return isChildOfMutedMicroText(tnode.parent);
+}
+
+export {
+    computeEmbeddedMaxWidth,
+    isChildOfComment,
+    isChildOfH1,
+    isDeletedNode,
+    isChildOfTaskTitle,
+    isChildOfRBR,
+    isCommentTag,
+    getFontSizeOfRBRChild,
+    isChildOfMutedTextLabel,
+    isChildOfMutedMicroText,
+};
