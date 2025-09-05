@@ -48,7 +48,7 @@ type WorkspaceConfirmationFormProps = {
     onBackButtonPress?: () => void;
 
     /** Whether bottom safe area padding should be added */
-    addBottomSafeAreaPadding?: boolean
+    addBottomSafeAreaPadding?: boolean;
 };
 
 function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButtonPress = () => Navigation.goBack(), addBottomSafeAreaPadding = true}: WorkspaceConfirmationFormProps) {
