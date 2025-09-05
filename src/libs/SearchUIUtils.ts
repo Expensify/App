@@ -8,6 +8,7 @@ import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import type {
+    SearchAction,
     SearchColumnType,
     SearchDateFilterKeys,
     SearchDatePreset,
@@ -1852,7 +1853,7 @@ function createTypeMenuSections(
                                               if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
                                                   const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
                                                   Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID}));
+                                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
                                                   });
                                                   return;
                                               }
@@ -2020,8 +2021,8 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
     const {status} = queryJSON ?? {};
 
     const sortedSearchResultStatus = !Array.isArray(searchResults?.search?.status)
-        ? searchResults?.search?.status.split(',').sort().join(',')
-        : searchResults?.search?.status.sort().join(',');
+        ? searchResults?.search?.status?.split(',').sort().join(',')
+        : searchResults?.search?.status?.sort().join(',');
     const sortedQueryJSONStatus = Array.isArray(status) ? status.sort().join(',') : status;
     const isDataLoaded = searchResults?.data !== undefined && searchResults?.search?.type === queryJSON?.type && sortedSearchResultStatus === sortedQueryJSONStatus;
 
@@ -2097,6 +2098,10 @@ function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): Sear
 
 function getWithdrawalTypeOptions(translate: LocaleContextProps['translate']) {
     return Object.values(CONST.SEARCH.WITHDRAWAL_TYPE).map<SingleSelectItem<SearchWithdrawalType>>((value) => ({text: translate(`search.filters.withdrawalType.${value}`), value}));
+}
+
+function getActionOptions(translate: LocaleContextProps['translate']) {
+    return Object.values(CONST.SEARCH.ACTION_FILTERS).map<SingleSelectItem<SearchAction>>((value) => ({text: translate(`search.filters.action.${value}`), value}));
 }
 
 /**
@@ -2249,6 +2254,7 @@ export {
     isTransactionTaxAmountTooLong,
     getDatePresets,
     getWithdrawalTypeOptions,
+    getActionOptions,
     getColumnsToShow,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};

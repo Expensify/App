@@ -165,7 +165,7 @@ import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {isOnHold} from '@libs/TransactionUtils';
-import {addTrailingForwardSlash} from '@libs/Url';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONFIG from '@src/CONFIG';
@@ -4237,6 +4237,7 @@ function completeOnboarding({
     companySize,
     userReportedIntegration,
     wasInvited,
+    selectedInterestedFeatures = [],
 }: {
     engagementChoice: OnboardingPurpose;
     onboardingMessage: OnboardingMessage;
@@ -4248,6 +4249,7 @@ function completeOnboarding({
     companySize?: OnboardingCompanySize;
     userReportedIntegration?: OnboardingAccounting;
     wasInvited?: boolean;
+    selectedInterestedFeatures?: string[];
 }) {
     const onboardingData = prepareOnboardingOnyxData(
         introSelected,
@@ -4258,6 +4260,7 @@ function completeOnboarding({
         userReportedIntegration,
         wasInvited,
         companySize,
+        selectedInterestedFeatures,
     );
     if (!onboardingData) {
         return;
