@@ -5399,6 +5399,7 @@ const translations = {
             genericFailureMessage: 'Beim Aktualisieren des Arbeitsbereichs ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
             avatarUploadFailureMessage: 'Beim Hochladen des Avatars ist ein Fehler aufgetreten. Bitte versuche es erneut.',
             addressContext: 'Eine Workspace-Adresse ist erforderlich, um Expensify Travel zu aktivieren. Bitte geben Sie eine Adresse ein, die mit Ihrem Unternehmen verbunden ist.',
+            policy: 'Ausgabenrichtlinie',
         },
         bankAccount: {
             continueWithSetup: 'Setup fortsetzen',
@@ -5739,8 +5740,7 @@ const translations = {
             },
             customRules: {
                 title: 'Benutzerdefinierte Regeln',
-                subtitle: 'Beschreibung',
-                description: 'Benutzerdefinierte Regeln für Spesenabrechnungen eingeben',
+                cardSubtitle: 'Hier befindet sich die Ausgabenrichtlinie deines Teams, damit alle genau wissen, was abgedeckt ist.',
             },
         },
         planTypePage: {
@@ -6180,6 +6180,12 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Erstattung',
+            },
+            action: {
+                [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Einreichen',
+                [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Genehmigen',
+                [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Bezahlen',
+                [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportieren',
             },
         },
         groupBy: 'Gruppe nach',
