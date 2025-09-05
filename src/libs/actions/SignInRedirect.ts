@@ -10,7 +10,7 @@ import {clearAllPolicies} from './Policy/Policy';
 
 let currentIsOffline: boolean | undefined;
 let currentShouldForceOffline: boolean | undefined;
-// We use connectWithoutView here because we only need to track network state for sign-in redirect logic, not for UI updates
+// We use connectWithoutView here because we only need to track network state for sign-in redirect logic, which is not connected to any changes on the UI layer
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
