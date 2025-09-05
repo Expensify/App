@@ -603,6 +603,8 @@ function getOptionData({
     lastAction,
     localeCompare,
     isReportArchived = false,
+    movedFromReport,
+    movedToReport,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -617,6 +619,8 @@ function getOptionData({
     lastAction: ReportAction | undefined;
     localeCompare: LocaleContextProps['localeCompare'];
     isReportArchived?: boolean;
+    movedFromReport?: OnyxEntry<Report>;
+    movedToReport?: OnyxEntry<Report>;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -737,7 +741,7 @@ function getOptionData({
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, policy, isReportArchived);
+        lastMessageTextFromReport = getLastMessageTextForReport({report, lastActorDetails, movedFromReport, movedToReport, policy, isReportArchived});
     }
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
