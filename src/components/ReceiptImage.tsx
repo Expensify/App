@@ -108,6 +108,9 @@ type ReceiptImageProps = (
 
     /** Whether the receipt empty state should extend to the full height of the container. */
     shouldUseFullHeight?: boolean;
+
+    /** Callback to be called when the image loads */
+    onLoad?: (event?: {nativeEvent: {width: number; height: number}}) => void;
 };
 
 function ReceiptImage({
@@ -134,6 +137,7 @@ function ReceiptImage({
     shouldUseFullHeight,
     loadingIndicatorStyles,
     thumbnailContainerStyles,
+    onLoad,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -144,6 +148,7 @@ function ReceiptImage({
                 onPress={onPress}
                 disabled={!onPress}
                 shouldUseFullHeight={shouldUseFullHeight}
+                onLoad={onLoad}
             />
         );
     }
@@ -153,6 +158,7 @@ function ReceiptImage({
             <PDFThumbnail
                 previewSourceURL={source ?? ''}
                 style={[styles.w100, styles.h100]}
+                onLoadSuccess={onLoad}
             />
         );
     }
@@ -162,6 +168,8 @@ function ReceiptImage({
             <EReceiptWithSizeCalculation
                 transactionID={transactionID}
                 transactionItem={transactionItem}
+                shouldUseAspectRatio={shouldUseFullHeight}
+                onLoad={onLoad}
             />
         );
     }
@@ -192,6 +200,9 @@ function ReceiptImage({
                 fallbackIconColor={fallbackIconColor}
                 fallbackIconBackground={fallbackIconBackground}
                 objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
+                loadingIconSize={loadingIconSize}
+                loadingIndicatorStyles={loadingIndicatorStyles}
+                onLoad={onLoad}
             />
         );
     }
@@ -204,6 +215,8 @@ function ReceiptImage({
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}
             shouldShowOfflineIndicator={false}
+            objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
+            onLoad={onLoad}
         />
     );
 }
