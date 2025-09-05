@@ -1953,8 +1953,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/prohibited` as const,
     },
     RULES_CUSTOM: {
-        route: 'workspaces/:policyID/rules/custom',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/custom` as const,
+        route: 'workspaces/:policyID/overview/policy',
+        getRoute: (policyID: string) => `workspaces/${policyID}/overview/policy` as const,
     },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
