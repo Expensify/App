@@ -25,7 +25,7 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
 
     let cancellationText = reservation.cancellationPolicy;
     if (reservation.cancellationDeadline) {
-        cancellationText = `${translate('travel.carDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(new Date(reservation.cancellationDeadline))}`;
+        cancellationText = `${translate('travel.carDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(new Date(reservation.cancellationDeadline), preferredLocale)}`;
     }
 
     if (reservation.cancellationPolicy === null && reservation.cancellationDeadline === null) {

@@ -895,11 +895,14 @@ function getFormattedTransportDateAndHour(date: Date, locale: Locale | undefined
  * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
  */
-function getFormattedCancellationDate(date: Date): string {
+function getFormattedCancellationDate(date: Date, locale: Locale | undefined): string {
+    const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short', hour12: true});
+    const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric'});
+    const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'});
     if (isThisYear(date)) {
-        return format(date, 'EEEE, MMM d h:mm a');
+        return `${monthDayWeekdayAbbrFormatter.format(date)} ${timeFormatter.format(date)}`;
     }
-    return format(date, 'EEEE, MMM d, yyyy h:mm a');
+    return `${monthDayWeekdayYearAbbrFormatter.format(date)} ${timeFormatter.format(date)}`;
 }
 
 /**
