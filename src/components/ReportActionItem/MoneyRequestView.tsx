@@ -841,7 +841,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={canEditReport}
-                            title={getReportName(actualParentReport) || actualParentReport?.reportName}
+                            title={isExpenseUnreported ? '' : (getReportName(actualParentReport) || actualParentReport?.reportName)}
                             description={translate('common.report')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
@@ -849,6 +849,13 @@ function MoneyRequestView({
                                 if (!canEditReport || !report?.reportID || !transaction?.transactionID) {
                                     return;
                                 }
+
+                                if (!policy) {
+                                    // TODO: fix it later
+                                    Navigation.navigate(ROUTES.MONEY_REQUEST_UPGRADE.getRoute());
+                                    return;
+                                }
+
                                 Navigation.navigate(
                                     ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report.reportID, getReportRHPActiveRoute()),
                                 );

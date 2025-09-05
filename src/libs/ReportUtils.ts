@@ -4375,12 +4375,10 @@ function canEditFieldOfMoneyRequest(
             return false;
         }
 
-        return (
-            Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
+        return Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
                 getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
             ).length > 1 ||
-            (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID))
-        );
+            (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID));
     }
 
     const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
