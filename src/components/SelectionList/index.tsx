@@ -77,6 +77,7 @@ function SelectionList<TItem extends ListItem>({onScroll, shouldHideKeyboardOnSc
         />
     );
 }
+
 // This component will be changed to SelectionListWithSections in the future.
 SelectionList.displayName = 'SelectionList';
 

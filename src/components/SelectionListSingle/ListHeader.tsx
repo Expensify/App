@@ -10,7 +10,7 @@ import type {ListItem} from './types';
 
 type HeaderProps<TItem extends ListItem> = {
     dataDetails: DataDetailsType<TItem>;
-    headerMessage?: string;
+    aboveListHeaderMessage?: string;
     customListHeader?: React.ReactNode;
     canSelectMultiple: boolean;
     onSelectAll?: () => void;
@@ -18,7 +18,7 @@ type HeaderProps<TItem extends ListItem> = {
 };
 
 type DataDetailsType<TItem extends ListItem> = {
-    allOptions: TItem[];
+    data: TItem[];
     selectedOptions: TItem[];
     allSelected: boolean;
     someSelected: boolean;
@@ -28,7 +28,7 @@ type DataDetailsType<TItem extends ListItem> = {
 
 function SelectionListHeader<TItem extends ListItem>({
     dataDetails,
-    headerMessage,
+    aboveListHeaderMessage,
     customListHeader,
     canSelectMultiple,
     onSelectAll,
@@ -37,19 +37,15 @@ function SelectionListHeader<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    if (headerMessage) {
+    if (aboveListHeaderMessage) {
         return null;
     }
 
-    if (!canSelectMultiple) {
+    if (!canSelectMultiple || !onSelectAll) {
         return customListHeader;
     }
 
-    if (!onSelectAll) {
-        return customListHeader;
-    }
-
-    const allDisabled = dataDetails.allOptions.length === dataDetails.disabledIndexes.length;
+    const allDisabled = dataDetails.data.length === dataDetails.disabledIndexes.length;
 
     const handleMouseDown: React.MouseEventHandler = (e) => {
         if (!shouldPreventDefaultFocusOnSelectRow) {

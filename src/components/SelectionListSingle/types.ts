@@ -482,12 +482,12 @@ type SelectionListProps<TItem extends ListItem> = {
     listEmptyContent?: React.JSX.Element | null | undefined;
     addBottomSafeAreaPadding?: boolean;
     footerContent?: React.ReactNode;
-    confirmButton?: {
-        showConfirmButton?: boolean;
+    confirmButtonConfig?: {
+        showButton?: boolean;
         onConfirm?: (e?: GestureResponderEvent | KeyboardEvent | undefined, option?: TItem) => void;
-        confirmButtonStyle?: StyleProp<ViewStyle>;
-        confirmButtonText?: string;
-        isConfirmButtonDisabled?: boolean;
+        style?: StyleProp<ViewStyle>;
+        text?: string;
+        isDisabled?: boolean;
     };
     listFooterContent?: React.JSX.Element | null | undefined;
     showScrollIndicator?: boolean;
@@ -518,14 +518,13 @@ type SelectionListProps<TItem extends ListItem> = {
     listItemWrapperStyle?: StyleProp<ViewStyle>;
     isRowMultilineSupported?: boolean;
     listItemTitleStyles?: StyleProp<TextStyle>;
-    headerMessage?: string;
+    aboveListHeaderMessage?: string;
     initiallyFocusedItemKey?: string;
     shouldScrollToFocusedIndex?: boolean;
     shouldDebounceScrolling?: boolean;
     isSmallScreenWidth?: boolean;
     shouldClearInputOnSelect?: boolean;
     shouldUpdateFocusedIndex?: boolean;
-    listHeaderContent?: React.ReactNode;
     customListHeader?: React.ReactNode;
     alternateNumberOfSupportedLines?: number;
     onScrollBeginDrag?: () => void;
@@ -533,11 +532,11 @@ type SelectionListProps<TItem extends ListItem> = {
 
 type SelectionListHandle = {
     scrollAndHighlightItem: (items: string[]) => void;
-    scrollToIndex: (index: number, animated?: boolean) => void;
+    scrollToIndex: (index: number) => void;
 };
 
 type DataDetailsType<TItem extends ListItem> = {
-    allOptions: TItem[];
+    data: TItem[];
     selectedOptions: TItem[];
     allSelected: boolean;
     someSelected: boolean;

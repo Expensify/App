@@ -5,21 +5,21 @@ import FixedFooter from '@components/FixedFooter';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type ConfirmButtonProps = {
-    showConfirmButton?: boolean;
+    showButton?: boolean;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onConfirm?: (e?: GestureResponderEvent | KeyboardEvent | undefined, option?: any) => void;
-    confirmButtonStyle?: StyleProp<ViewStyle>;
-    confirmButtonText?: string;
-    isConfirmButtonDisabled?: boolean;
+    style?: StyleProp<ViewStyle>;
+    text?: string;
+    isDisabled?: boolean;
 };
 
 type FooterProps = {
     footerContent?: React.ReactNode;
-    confirmButton?: ConfirmButtonProps;
+    confirmButtonConfig?: ConfirmButtonProps;
     addBottomSafeAreaPadding?: boolean;
 };
 
-function Footer({footerContent, confirmButton, addBottomSafeAreaPadding = false}: FooterProps) {
+function Footer({footerContent, confirmButtonConfig, addBottomSafeAreaPadding = false}: FooterProps) {
     const styles = useThemeStyles();
     if (footerContent) {
         return (
@@ -32,7 +32,7 @@ function Footer({footerContent, confirmButton, addBottomSafeAreaPadding = false}
         );
     }
 
-    if (confirmButton?.showConfirmButton) {
+    if (confirmButtonConfig?.showButton) {
         return (
             <FixedFooter
                 style={styles.mtAuto}
@@ -41,12 +41,12 @@ function Footer({footerContent, confirmButton, addBottomSafeAreaPadding = false}
                 <Button
                     success
                     large
-                    style={[styles.w100, confirmButton?.confirmButtonStyle]}
-                    text={confirmButton?.confirmButtonText}
-                    onPress={confirmButton?.onConfirm}
+                    style={[styles.w100, confirmButtonConfig?.style]}
+                    text={confirmButtonConfig?.text}
+                    onPress={confirmButtonConfig?.onConfirm}
                     pressOnEnter
                     enterKeyEventListenerPriority={1}
-                    isDisabled={confirmButton?.isConfirmButtonDisabled}
+                    isDisabled={confirmButtonConfig?.isDisabled}
                 />
             </FixedFooter>
         );

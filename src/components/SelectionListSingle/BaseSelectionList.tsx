@@ -1,7 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
-import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {TextInput as RNTextInput, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -10,6 +9,7 @@ import BaseSelectionListItemRenderer from '@components/SelectionList/BaseSelecti
 import ShowMoreButton from '@components/ShowMoreButton';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -34,65 +34,66 @@ function getStartingPage(index: number) {
     return index >= 0 ? Math.ceil((index + 1) / PAGE_SIZE) : 1;
 }
 
-function SelectionListSingle<TItem extends ListItem>({
+function BaseSelectionList<TItem extends ListItem>({
     data,
     ref,
     ListItem,
+    textInputOptions,
+    initiallyFocusedItemKey,
     onSelectRow,
     onSelectAll,
     onCheckboxPress,
-    confirmButton,
-    footerContent,
-    shouldUseUserSkeletonView,
-    showLoadingPlaceholder,
-    showListEmptyContent,
-    listEmptyContent,
-    addBottomSafeAreaPadding,
-    listFooterContent,
-    showScrollIndicator = true,
+    onScrollBeginDrag,
     onEndReached,
     onEndReachedThreshold,
-    listStyle,
-    isLoadingNewOptions,
-    textInputOptions,
-    shouldShowTextInput = !!textInputOptions?.textInputLabel,
-    listHeaderContent,
-    canSelectMultiple = false,
-    shouldShowTooltips = true,
-    selectedItems = [],
-    isSelected,
-    shouldSingleExecuteRowSelect = false,
-    shouldPreventDefaultFocusOnSelectRow = false,
+    confirmButtonConfig,
+    aboveListHeaderMessage,
+    customListHeader,
+    footerContent,
+    listEmptyContent,
+    listFooterContent,
     rightHandSideComponent,
-    shouldIgnoreFocus = false,
-    listItemWrapperStyle,
-    isRowMultilineSupported = false,
     alternateNumberOfSupportedLines,
+    selectedItems = [],
+    listStyle,
     listItemTitleStyles,
-    headerMessage,
-    initiallyFocusedItemKey,
+    listItemWrapperStyle,
+    isSelected,
+    isSmallScreenWidth,
+    isLoadingNewOptions,
+    isRowMultilineSupported = false,
+    addBottomSafeAreaPadding,
+    showListEmptyContent,
+    showLoadingPlaceholder,
+    showScrollIndicator = true,
+    canSelectMultiple = false,
+    shouldUseUserSkeletonView,
+    shouldClearInputOnSelect,
+    shouldShowTooltips = true,
+    shouldIgnoreFocus = false,
     shouldScrollToFocusedIndex = true,
     shouldDebounceScrolling = false,
-    isSmallScreenWidth,
-    shouldClearInputOnSelect,
     shouldUpdateFocusedIndex = false,
-    customListHeader,
-    onScrollBeginDrag,
+    shouldSingleExecuteRowSelect = false,
+    shouldPreventDefaultFocusOnSelectRow = false,
+    shouldShowTextInput = !!textInputOptions,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
-    const initialFocusedIndex = useMemo(() => data.findIndex((i) => i.keyForList === initiallyFocusedItemKey), [data, initiallyFocusedItemKey]);
-
-    const [currentPage, setCurrentPage] = useState(() => getStartingPage(initialFocusedIndex));
-    const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
-    const incrementPage = () => setCurrentPage((prev) => prev + 1);
     const scrollEnabled = useScrollEnabled();
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
+
     const innerTextInputRef = useRef<RNTextInput | null>(null);
     const hasKeyBeenPressed = useRef(false);
-    const listRef = useRef<FlashListRef<TItem>>(null);
+    const listRef = useRef<FlashListRef<TItem> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const initialFocusedIndex = useMemo(() => data.findIndex((i) => i.keyForList === initiallyFocusedItemKey), [data, initiallyFocusedItemKey]);
+    const [currentPage, setCurrentPage] = useState(() => getStartingPage(initialFocusedIndex));
+    const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
+    const incrementPage = () => setCurrentPage((prev) => prev + 1);
+    const hasMoreDataToShow = data.length > PAGE_SIZE * currentPage;
 
     const isItemSelected = useCallback(
         (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
@@ -110,13 +111,12 @@ function SelectionListSingle<TItem extends ListItem>({
             .map((item) => item.index)
             .filter((i): i is number => i !== undefined);
 
-        const allOptions = data;
-        const totalSelectable = allOptions.length - disabledIndexes.length;
+        const totalSelectable = data.length - disabledIndexes.length;
         const selectedOptions = data.filter(isItemSelected);
         const allSelected = selectedOptions.length > 0 && selectedOptions.length === totalSelectable;
         const someSelected = selectedOptions.length > 0 && selectedOptions.length < totalSelectable;
 
-        return {allOptions, allSelected, someSelected, selectedOptions, disabledIndexes, disabledArrowKeyIndexes};
+        return {data, allSelected, someSelected, selectedOptions, disabledIndexes, disabledArrowKeyIndexes};
     }, [data, isItemSelected]);
 
     function setHasKeyBeenPressed() {
@@ -127,17 +127,16 @@ function SelectionListSingle<TItem extends ListItem>({
     }
 
     const scrollToIndex = useCallback(
-        (index: number, animated = true) => {
+        (index: number) => {
             const item = data.at(index);
             if (!listRef.current || !item || index === -1) {
                 return;
             }
-            listRef.current.scrollToIndex({index, animated});
+            listRef.current.scrollToIndex({index});
         },
         [data],
     );
-
-    const debouncedScrollToIndex = useMemo(() => lodashDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true}), [scrollToIndex]);
+    const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: data.findIndex((item) => item.keyForList === initiallyFocusedItemKey),
@@ -149,7 +148,7 @@ function SelectionListSingle<TItem extends ListItem>({
                 return;
             }
 
-            (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, true);
+            (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index);
         },
         // eslint-disable-next-line react-compiler/react-compiler
         ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
@@ -195,13 +194,20 @@ function SelectionListSingle<TItem extends ListItem>({
         ],
     );
 
-    const headerMessageContent = () =>
-        (!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (data.length === 0 && !showLoadingPlaceholder)) &&
-        !!headerMessage && (
+    const aboveListHeader = () => {
+        const noResultsFound = aboveListHeaderMessage !== translate('common.noResultsFound');
+        const noData = data.length === 0 && !showLoadingPlaceholder;
+
+        if (!aboveListHeaderMessage || !isLoadingNewOptions || noResultsFound || noData) {
+            return null;
+        }
+
+        return (
             <View style={[styles.ph5, styles.pb5]}>
-                <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{aboveListHeaderMessage}</Text>
             </View>
         );
+    };
 
     const renderItem: ListRenderItem<TItem> = ({item, index}: ListRenderItemInfo<TItem>) => {
         const isDisabled = item.isDisabled;
@@ -240,18 +246,6 @@ function SelectionListSingle<TItem extends ListItem>({
     };
 
     const slicedData = useMemo(() => data.slice(0, PAGE_SIZE * currentPage), [data, currentPage]);
-    const ShowMoreButtonInstance = useMemo(
-        () =>
-            data.length > PAGE_SIZE * currentPage ? (
-                <ShowMoreButton
-                    containerStyle={[styles.mt2, styles.mb5]}
-                    currentCount={PAGE_SIZE * currentPage}
-                    totalCount={data.length}
-                    onPress={incrementPage}
-                />
-            ) : null,
-        [currentPage, data.length, styles.mb5, styles.mt2],
-    );
 
     const renderListEmptyContent = () => {
         if (showLoadingPlaceholder) {
@@ -286,32 +280,40 @@ function SelectionListSingle<TItem extends ListItem>({
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex}), [scrollAndHighlightItem, scrollToIndex]);
     return (
         <View style={styles.flex1}>
-            {headerMessageContent()}
+            {aboveListHeader()}
             {data.length === 0 ? (
                 renderListEmptyContent()
             ) : (
                 <>
-                    {!listHeaderContent && (
-                        <SelectionListHeader
-                            dataDetails={dataDetails}
-                            headerMessage={headerMessage}
-                            customListHeader={customListHeader}
-                            canSelectMultiple={canSelectMultiple}
-                            onSelectAll={() => {
-                                onSelectAll?.();
-                                if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
-                                    innerTextInputRef.current.focus();
-                                }
-                            }}
-                            shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                        />
-                    )}
+                    <SelectionListHeader
+                        dataDetails={dataDetails}
+                        aboveListHeaderMessage={aboveListHeaderMessage}
+                        customListHeader={customListHeader}
+                        canSelectMultiple={canSelectMultiple}
+                        onSelectAll={() => {
+                            onSelectAll?.();
+                            if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
+                                innerTextInputRef.current.focus();
+                            }
+                        }}
+                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                    />
                     <FlashList
                         data={slicedData}
                         renderItem={renderItem}
                         ref={listRef}
                         keyExtractor={(item, index) => `${item.keyForList}-${index}`}
-                        ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
+                        ListFooterComponent={
+                            listFooterContent ??
+                            (hasMoreDataToShow ? (
+                                <ShowMoreButton
+                                    containerStyle={[styles.mt2, styles.mb5]}
+                                    currentCount={PAGE_SIZE * currentPage}
+                                    totalCount={data.length}
+                                    onPress={incrementPage}
+                                />
+                            ) : null)
+                        }
                         scrollEnabled={scrollEnabled}
                         indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
@@ -327,13 +329,13 @@ function SelectionListSingle<TItem extends ListItem>({
 
             <Footer
                 footerContent={footerContent}
-                confirmButton={confirmButton}
+                confirmButtonConfig={confirmButtonConfig}
                 addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             />
         </View>
     );
 }
 
-SelectionListSingle.displayName = 'SelectionListSingle';
+BaseSelectionList.displayName = 'BaseSelectionList';
 
-export default SelectionListSingle;
+export default BaseSelectionList;

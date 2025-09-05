@@ -27,7 +27,7 @@ function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListPro
         };
     }, []);
 
-    const checkShouldDebounceScrolling = (event: KeyboardEvent) => {
+    const handleKeyboardScrollDebounce = (event: KeyboardEvent) => {
         if (!event) {
             return;
         }
@@ -42,12 +42,12 @@ function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListPro
     };
 
     useEffect(() => {
-        document.addEventListener('keydown', checkShouldDebounceScrolling, {passive: true});
-        document.addEventListener('keyup', checkShouldDebounceScrolling, {passive: true});
+        document.addEventListener('keydown', handleKeyboardScrollDebounce, {passive: true});
+        document.addEventListener('keyup', handleKeyboardScrollDebounce, {passive: true});
 
         return () => {
-            document.removeEventListener('keydown', checkShouldDebounceScrolling);
-            document.removeEventListener('keyup', checkShouldDebounceScrolling);
+            document.removeEventListener('keydown', handleKeyboardScrollDebounce);
+            document.removeEventListener('keyup', handleKeyboardScrollDebounce);
         };
     }, []);
 
