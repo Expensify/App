@@ -4,7 +4,6 @@ description: How to set different rules for different members of your domain
 keywords: [Expensify Classic, domain groups, domain restrictions, additional permissions, rules]
 ---
 
-<div id="expensify-classic" markdown="1">
 
 To set different domain rules for different members, you can place them into groups. This allows organizations to customize permissions based on roles, such as employees and managers, ensuring they have the appropriate access and settings.  
 
@@ -45,4 +44,3 @@ If you have multiple workspaces across several teams, use this setting to assign
 
 ## Expensify Card Preferred Workspace
 Enable this if your team uses the Expensify Cards for business expenses. This will ensure that all transactions are posted directly to the correct workspace without additional setup.  
-</div>
