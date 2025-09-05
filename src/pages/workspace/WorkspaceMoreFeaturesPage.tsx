@@ -9,6 +9,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useIsPolicyConnectedToUberReceiptPartner from '@hooks/useIsPolicyConnectedToUberReceiptPartner';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -92,6 +93,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         selector: filterInactiveCards,
         canBeMissing: true,
     });
+    const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
     const [cardFeeds] = useCardFeeds(policyID);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
     const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState(false);
@@ -332,7 +334,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             isActive: policy?.areReceiptPartnersEnabled ?? false,
             pendingAction: policy?.pendingFields?.areReceiptPartnersEnabled,
             disabledAction: () => {
-                // TODO: When Uber integration is added, check if any integration exists if(!hasReceiptPartnersIntegration) return;
+                if (!isUberConnected) {
+                    return;
+                }
                 setIsReceiptPartnersWarningModalOpen(true);
             },
             action: (isEnabled: boolean) => {
@@ -341,7 +345,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 }
                 enablePolicyReceiptPartners(policyID, isEnabled);
             },
-            disabled: false, // TODO: When Uber integration is added, set to hasReceiptPartnersIntegration
+            disabled: isUberConnected,
             errors: getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED),
             onCloseError: () => {
                 if (!policyID) {
