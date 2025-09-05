@@ -1,0 +1,314 @@
+diff --git a/node_modules/@pusher/pusher-websocket-react-native/android/src/main/java/com/pusherwebsocketreactnative/PusherEventEmitter.kt b/node_modules/@pusher/pusher-websocket-react-native/android/src/main/java/com/pusherwebsocketreactnative/PusherEventEmitter.kt
+index d738b23..c3f03eb 100644
+--- a/node_modules/@pusher/pusher-websocket-react-native/android/src/main/java/com/pusherwebsocketreactnative/PusherEventEmitter.kt
++++ b/node_modules/@pusher/pusher-websocket-react-native/android/src/main/java/com/pusherwebsocketreactnative/PusherEventEmitter.kt
+@@ -4,21 +4,21 @@ import com.facebook.react.bridge.Arguments
+ import com.facebook.react.bridge.ReactApplicationContext
+ import com.facebook.react.modules.core.DeviceEventManagerModule
+ 
+-class PusherEventEmitter(private val context: ReactApplicationContext) {
++class PusherEventEmitter(var context: ReactApplicationContext?) {
+   companion object {
+     private const val EVENT_PREFIX = "PusherReactNative"
+   }
+ 
+   fun emit(eventName: String, params: Any?) {
+-    val jsModule = this.context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
++    val jsModule = this.context?.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+     val pusherEventName = "${EVENT_PREFIX}:${eventName}"
+ 
+     if (params is Map<*, *>) {
+-      jsModule.emit(pusherEventName, Arguments.makeNativeMap(params as Map<String, Any>))
++      jsModule?.emit(pusherEventName, Arguments.makeNativeMap(params as Map<String, Any>))
+     }
+ 
+     if (params is String) {
+-      jsModule.emit(pusherEventName, params)
++      jsModule?.emit(pusherEventName, params)
+     }
+   }
+ }
+diff --git a/node_modules/@pusher/pusher-websocket-react-native/android/src/main/java/com/pusherwebsocketreactnative/PusherWebsocketReactNativeModule.kt b/node_modules/@pusher/pusher-websocket-react-native/android/src/main/java/com/pusherwebsocketreactnative/PusherWebsocketReactNativeModule.kt
+index d189998..c7aca8a 100644
+--- a/node_modules/@pusher/pusher-websocket-react-native/android/src/main/java/com/pusherwebsocketreactnative/PusherWebsocketReactNativeModule.kt
++++ b/node_modules/@pusher/pusher-websocket-react-native/android/src/main/java/com/pusherwebsocketreactnative/PusherWebsocketReactNativeModule.kt
+@@ -16,22 +16,62 @@ import java.net.Proxy
+ import java.util.concurrent.Semaphore
+ 
+ class PusherWebsocketReactNativeModule(reactContext: ReactApplicationContext) :
+-  ReactContextBaseJavaModule(reactContext),
+-  ConnectionEventListener, ChannelEventListener, SubscriptionEventListener,
+-  PrivateChannelEventListener, PrivateEncryptedChannelEventListener, PresenceChannelEventListener,
+-  ChannelAuthorizer {
+-
+-  private var pusher: Pusher? = null
+-  private val TAG = "PusherReactNative"
+-  private val authorizerMutex = mutableMapOf<String, Semaphore>()
+-  private val authorizerResult = mutableMapOf<String, ReadableMap>()
+-
+-  private val pusherEventEmitter = PusherEventEmitter(reactContext)
++  ReactContextBaseJavaModule(reactContext) {
++  private val pusherWrapper = PusherWrapper(reactContext)
+ 
+   override fun getName(): String {
+     return "PusherWebsocketReactNative"
+   }
+ 
++  @ReactMethod
++  fun initialize(
++    arguments: ReadableMap,
++    promise: Promise
++  ) {
++    pusherWrapper.initialize(arguments, promise)
++  }
++
++  @ReactMethod
++  fun connect(promise: Promise) {
++    pusherWrapper.connect(promise)
++  }
++
++  @ReactMethod
++  fun disconnect(promise: Promise) {
++    pusherWrapper.disconnect(promise)
++  }
++
++  @ReactMethod
++  fun subscribe(channelName: String, promise: Promise) {
++    pusherWrapper.subscribe(channelName, promise)
++  }
++
++  @ReactMethod
++  fun unsubscribe(channelName: String, promise: Promise) {
++    pusherWrapper.unsubscribe(channelName, promise)
++  }
++
++  @ReactMethod
++  fun trigger(channelName: String, eventName: String, data: String, promise: Promise) {
++    pusherWrapper.trigger(channelName, eventName, data, promise)
++  }
++
++  @ReactMethod
++  fun getSocketId(promise: Promise) {
++    pusherWrapper.getSocketId(promise)
++  }
++
++  @ReactMethod
++  fun onAuthorizer(channelName: String, socketId: String, data: ReadableMap, promise: Promise) {
++    pusherWrapper.onAuthorizer(channelName, socketId, data, promise)
++  }
++
++  override fun invalidate() {
++    super.invalidate()
++    pusherWrapper.invalidate()
++  }
++
++
+   @ReactMethod
+   fun addListener(eventName: String?) {
+     // Keep: Required for RN built in Event Emitter Calls.
+@@ -42,7 +82,35 @@ class PusherWebsocketReactNativeModule(reactContext: ReactApplicationContext) :
+     // Keep: Required for RN built in Event Emitter Calls.
+   }
+ 
+-  @ReactMethod
++  private class PusherWrapper(reactContext: ReactApplicationContext) : ConnectionEventListener, ChannelEventListener, SubscriptionEventListener,
++  PrivateChannelEventListener, PrivateEncryptedChannelEventListener, PresenceChannelEventListener, ChannelAuthorizer {
++
++    private val TAG = "PusherReactNative"
++    private var pusher: Pusher? = null
++    private var authorizerMutex = mutableMapOf<String, Semaphore>()
++    private var authorizerResult = mutableMapOf<String, ReadableMap>()
++    private var pusherEventEmitter: PusherEventEmitter? = PusherEventEmitter(reactContext)
++
++    override fun authorize(channelName: String, socketId: String): String? {
++      if (pusherEventEmitter != null) {
++        pusherEventEmitter?.emit(
++          "onAuthorizer", mapOf(
++            "channelName" to channelName,
++            "socketId" to socketId
++          )
++        )
++        val key = channelName + socketId
++        authorizerMutex[key] = Semaphore(0)
++        authorizerMutex[key]!!.acquire()
++        val authParams = authorizerResult.remove(key)!!
++        val gson = Gson()
++        return gson.toJson(authParams.toHashMap())
++      } else {
++        return null
++      }
++    }
++
++
+   fun initialize(
+     arguments: ReadableMap,
+     promise: Promise
+@@ -65,8 +133,8 @@ class PusherWebsocketReactNativeModule(reactContext: ReactApplicationContext) :
+         arguments.getInt("maxReconnectGapInSeconds")
+       if (arguments.hasKey("authEndpoint")) options.channelAuthorizer =
+         HttpChannelAuthorizer(arguments.getString("authEndpoint"))
+-      if (arguments.hasKey("authorizer") && arguments.getBoolean("authorizer")) options.channelAuthorizer =
+-        this
++      if (arguments.hasKey("authorizer") && arguments.getBoolean("authorizer"))
++        options.channelAuthorizer = this
+       if (arguments.hasKey("proxy")) {
+         val (host, port) = arguments.getString("proxy")!!.split(':')
+         options.proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress(host, port.toInt()))
+@@ -79,19 +147,23 @@ class PusherWebsocketReactNativeModule(reactContext: ReactApplicationContext) :
+     }
+   }
+ 
+-  @ReactMethod
++  fun invalidate() {
++    pusher?.disconnect()
++    pusher = null
++//    pusherEventEmitter?.context = null
++    pusherEventEmitter = null
++  }
++
+   fun connect(promise: Promise) {
+     pusher!!.connect(this, ConnectionState.ALL)
+     promise.resolve(null)
+   }
+ 
+-  @ReactMethod
+   fun disconnect(promise: Promise) {
+     pusher!!.disconnect()
+     promise.resolve(null)
+   }
+ 
+-  @ReactMethod
+   fun subscribe(channelName: String, promise: Promise) {
+     try {
+       val channel = when {
+@@ -111,13 +183,11 @@ class PusherWebsocketReactNativeModule(reactContext: ReactApplicationContext) :
+     }
+   }
+ 
+-  @ReactMethod
+   fun unsubscribe(channelName: String, promise: Promise) {
+     pusher!!.unsubscribe(channelName)
+     promise.resolve(null)
+   }
+ 
+-  @ReactMethod
+   fun trigger(channelName: String, eventName: String, data: String, promise: Promise) {
+     try {
+       when {
+@@ -134,28 +204,11 @@ class PusherWebsocketReactNativeModule(reactContext: ReactApplicationContext) :
+     }
+   }
+ 
+-  @ReactMethod
+   fun getSocketId(promise: Promise) {
+     val socketId = pusher!!.connection.socketId
+     promise.resolve(socketId)
+   }
+ 
+-  override fun authorize(channelName: String, socketId: String): String? {
+-    pusherEventEmitter.emit(
+-      "onAuthorizer", mapOf(
+-        "channelName" to channelName,
+-        "socketId" to socketId
+-      )
+-    )
+-    val key = channelName + socketId
+-    authorizerMutex[key] = Semaphore(0)
+-    authorizerMutex[key]!!.acquire()
+-    val authParams = authorizerResult.remove(key)!!
+-    val gson = Gson()
+-    return gson.toJson(authParams.toHashMap())
+-  }
+-
+-  @ReactMethod
+   fun onAuthorizer(channelName: String, socketId: String, data: ReadableMap, promise: Promise) {
+     val key = channelName + socketId
+     authorizerResult[key] = data
+@@ -166,7 +219,7 @@ class PusherWebsocketReactNativeModule(reactContext: ReactApplicationContext) :
+ 
+   // Event handlers
+   override fun onConnectionStateChange(change: ConnectionStateChange) {
+-    pusherEventEmitter.emit(
++    pusherEventEmitter?.emit(
+       "onConnectionStateChange", mapOf(
+         "previousState" to change.previousState.toString(),
+         "currentState" to change.currentState.toString()
+@@ -177,7 +230,7 @@ class PusherWebsocketReactNativeModule(reactContext: ReactApplicationContext) :
+   override fun onSubscriptionSucceeded(channelName: String) {
+     // For presence channels we wait for the onUsersInformationReceived event.
+     if (!channelName.startsWith("presence-")) {
+-      pusherEventEmitter.emit(
++      pusherEventEmitter?.emit(
+         "onEvent", mapOf(
+           "channelName" to channelName,
+           "eventName" to "pusher_internal:subscription_succeeded",
+@@ -199,7 +252,7 @@ class PusherWebsocketReactNativeModule(reactContext: ReactApplicationContext) :
+     } else {
+       event
+     }
+-    pusherEventEmitter.emit(
++    pusherEventEmitter?.emit(
+       "onEvent", mapOf(
+         "channelName" to finalEvent.channelName,
+         "eventName" to finalEvent.eventName,
+@@ -210,7 +263,7 @@ class PusherWebsocketReactNativeModule(reactContext: ReactApplicationContext) :
+   }
+ 
+   override fun onAuthenticationFailure(message: String, e: Exception) {
+-    pusherEventEmitter.emit(
++    pusherEventEmitter?.emit(
+       "onSubscriptionError", mapOf(
+         "message" to message,
+         "error" to e.toString()
+@@ -233,7 +286,7 @@ class PusherWebsocketReactNativeModule(reactContext: ReactApplicationContext) :
+         "hash" to hash
+       )
+     )
+-    pusherEventEmitter.emit(
++    pusherEventEmitter?.emit(
+       "onEvent", mapOf(
+         "channelName" to channelName,
+         "eventName" to "pusher_internal:subscription_succeeded",
+@@ -244,7 +297,7 @@ class PusherWebsocketReactNativeModule(reactContext: ReactApplicationContext) :
+   }
+ 
+   override fun onDecryptionFailure(event: String?, reason: String?) {
+-    pusherEventEmitter.emit(
++    pusherEventEmitter?.emit(
+       "onDecryptionFailure", mapOf(
+         "event" to event,
+         "reason" to reason
+@@ -254,7 +307,7 @@ class PusherWebsocketReactNativeModule(reactContext: ReactApplicationContext) :
+ 
+   override fun userSubscribed(channelName: String, user: User) {
+     val gson = Gson()
+-    pusherEventEmitter.emit(
++    pusherEventEmitter?.emit(
+       "onMemberAdded", mapOf(
+         "channelName" to channelName,
+         "user" to mapOf(
+@@ -267,7 +320,7 @@ class PusherWebsocketReactNativeModule(reactContext: ReactApplicationContext) :
+ 
+   override fun userUnsubscribed(channelName: String, user: User) {
+     val gson = Gson()
+-    pusherEventEmitter.emit(
++    pusherEventEmitter?.emit(
+       "onMemberRemoved", mapOf(
+         "channelName" to channelName,
+         "user" to mapOf(
+@@ -279,7 +332,7 @@ class PusherWebsocketReactNativeModule(reactContext: ReactApplicationContext) :
+   } // Other ChannelEventListener methods
+ 
+   override fun onError(message: String, code: String?, e: Exception?) {
+-    pusherEventEmitter.emit(
++    pusherEventEmitter?.emit(
+       "onError", mapOf(
+         "message" to message,
+         "code" to code,
+@@ -291,4 +344,6 @@ class PusherWebsocketReactNativeModule(reactContext: ReactApplicationContext) :
+   override fun onError(message: String, e: Exception) {
+     onError(message, "", e)
+   }
++
++  }
+ }
