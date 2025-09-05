@@ -658,6 +658,7 @@ const translations = {
         merge: 'マージ',
         unstableInternetConnection: 'インターネット接続が不安定です。ネットワークを確認してもう一度お試しください。',
         enableGlobalReimbursements: 'グローバル払い戻しを有効にする',
+        purchaseAmount: '購入金額',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -874,17 +875,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `このチャットルームは、<strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>に関することなら何でもどうぞ。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `このチャットは、<strong>${invoicePayer}</strong>と<strong>${invoiceReceiver}</strong>間の請求書用です。請求書を送信するには、+ボタンを使用してください。`,
+            `このチャットは、<strong>${invoicePayer}</strong>と<strong>${invoiceReceiver}</strong>間の請求書用です。請求書を送信するには、<emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> ボタンを使用してください。`,
         beginningOfChatHistory: 'このチャットは',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `ここで<strong>${submitterDisplayName}</strong>が<strong>${workspaceName}</strong>に経費を提出します。ボタンをクリックしてください。`,
+            `ここで<strong>${submitterDisplayName}</strong>が<strong>${workspaceName}</strong>に経費を提出します。<emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>ボタンをクリックしてください。`,
         beginningOfChatHistorySelfDM: 'これはあなたの個人スペースです。メモ、タスク、下書き、リマインダーに使用してください。',
         beginningOfChatHistorySystemDM: 'ようこそ！セットアップを始めましょう。',
         chatWithAccountManager: 'こちらでアカウントマネージャーとチャットしてください',
         sayHello: 'こんにちは！',
         yourSpace: 'あなたのスペース',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `${roomName}へようこそ！`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `+ ボタンを使用して経費を${additionalText}します。`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンを使用して経費を${additionalText}します。`,
         askConcierge: '質問をして、24時間365日リアルタイムサポートを受けましょう。',
         conciergeSupport: '24時間年中無休サポート',
         create: '作成する',
@@ -3995,6 +3996,18 @@ const translations = {
             syncReimbursedReports: '払い戻されたレポートを同期する',
             syncReimbursedReportsDescription: 'Expensify ACHを使用してレポートが支払われるたびに、対応する請求書の支払いが以下のSage Intacctアカウントに作成されます。',
             paymentAccount: 'Sage Intacct支払いアカウント',
+            accountingMethods: {
+                label: 'エクスポートのタイミング',
+                description: '経費をエクスポートするタイミングを選択:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '発生主義',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自己負担の経費は最終承認時にエクスポートされます。',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自己負担の経費は支払われたときにエクスポートされます。',
+                },
+            },
         },
         netsuite: {
             subsidiary: '子会社',
@@ -4849,7 +4862,8 @@ const translations = {
             existingTagError: 'この名前のタグはすでに存在します',
             invalidTagNameError: 'タグ名は0にできません。別の値を選んでください。',
             genericFailureMessage: 'タグの更新中にエラーが発生しました。もう一度お試しください。',
-            importedFromAccountingSoftware: '以下のタグはあなたのからインポートされます',
+            importedFromAccountingSoftware: 'タグは次で管理されています:',
+            employeesSeeTagsAs: '従業員にはタグが次のように表示されます: ',
             glCode: 'GLコード',
             updateGLCodeFailureMessage: 'GLコードの更新中にエラーが発生しました。もう一度お試しください。',
             tagRules: 'Tag rules',
@@ -5371,6 +5385,7 @@ const translations = {
             genericFailureMessage: 'ワークスペースの更新中にエラーが発生しました。もう一度お試しください。',
             avatarUploadFailureMessage: 'アバターのアップロード中にエラーが発生しました。もう一度お試しください。',
             addressContext: 'Expensify Travelを有効にするには、ワークスペースの住所が必要です。ビジネスに関連する住所を入力してください。',
+            policy: '経費ポリシー',
         },
         bankAccount: {
             continueWithSetup: 'セットアップを続ける',
@@ -5703,8 +5718,7 @@ const translations = {
             },
             customRules: {
                 title: 'カスタムルール',
-                subtitle: '説明',
-                description: '経費報告書のカスタムルールを入力',
+                cardSubtitle: 'ここにチームの経費ポリシーがあり、何が対象になるのか全員が同じ理解を持てます。',
             },
         },
         planTypePage: {
@@ -6015,7 +6029,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: '表示するものがありません',
-                subtitle: '検索条件を調整するか、緑色の+ボタンで何かを作成してみてください。',
+                subtitle: `検索条件を調整するか、緑色の${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}ボタンで何かを作成してみてください。`,
             },
             emptyExpenseResults: {
                 title: 'まだ経費が作成されていません。',
@@ -6126,6 +6140,7 @@ const translations = {
             withdrawn: '取り消し',
             billable: 'ビラブル',
             reimbursable: '払い戻し可能',
+            purchaseCurrency: '購入通貨',
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.REPORTS]: '報告',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'から',
@@ -6136,6 +6151,12 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
+            },
+            action: {
+                [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '送信',
+                [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '承認',
+                [CONST.SEARCH.ACTION_FILTERS.PAY]: '支払う',
+                [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
         },
         groupBy: 'グループ',
@@ -6295,7 +6316,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `このレポートのエクスポートを${label}に開始しました...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `このレポートを${label}にエクスポートできませんでした（"${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}"）`,
+                    `このレポートを${label}にエクスポートできませんでした（"${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}"）`,
                 managerAttachReceipt: `領収書を追加しました`,
                 managerDetachReceipt: `領収書を削除しました`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `他の場所で${currency}${amount}を支払いました。`,
@@ -6651,7 +6672,7 @@ const translations = {
         isTransactionBillable: '取引が請求可能か選択',
         keepThisOne: 'このままにしておく',
         confirmDetails: `保持している詳細を確認してください。`,
-        confirmDuplicatesInfo: `保持しない重複リクエストは、メンバーが削除するために保持されます。`,
+        confirmDuplicatesInfo: `保持しなかった重複は、提出者が削除できるように保留されます。`,
         hold: 'この経費は保留されました',
         resolvedDuplicates: '重複を解決しました',
     },
