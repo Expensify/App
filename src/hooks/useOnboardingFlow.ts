@@ -8,6 +8,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -63,6 +64,12 @@ function useOnboardingFlowRouter() {
 
             if (CONFIG.IS_HYBRID_APP && isLoadingOnyxValue(isSingleNewDotEntryMetadata)) {
                 return;
+            }
+
+            const reportIdFromPath = new URL(currentUrl).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
+
+            if (!reportIdFromPath) {
+                return; // Don't trigger onboarding if we are in the middle of a redirect to a report
             }
 
             if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)) {
@@ -142,6 +149,7 @@ function useOnboardingFlowRouter() {
         currentOnboardingPurposeSelected,
         onboardingInitialPath,
         isOnboardingInitialPathLoading,
+        typeMenuSections,
     ]);
 
     return {isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues), isHybridAppOnboardingCompleted};
