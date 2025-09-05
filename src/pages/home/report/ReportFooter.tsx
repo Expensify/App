@@ -1,10 +1,10 @@
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Animated, {useAnimatedStyle} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
@@ -12,21 +12,16 @@ import BlockedReportFooter from '@components/BlockedReportFooter';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import useKeyboardDismissibleFlatListValues from '@hooks/useKeyboardDismissibleFlatListValues';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useShortMentionsList from '@hooks/useShortMentionsList';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addComment} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
-import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
@@ -48,6 +43,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
+import useReportFooterStyles from './useReportFooterStyles';
 
 type ReportFooterProps = {
     /** Report object for the current report */
@@ -102,15 +98,12 @@ function ReportFooter({
     headerHeight,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {unmodifiedPaddings} = useSafeAreaPaddings();
-    const {isKeyboardActive} = useKeyboardState();
     const [composerHeight, setComposerHeight] = useState<number>(CONST.CHAT_FOOTER_MIN_HEIGHT);
-    const {keyboardHeight} = useKeyboardDismissibleFlatListValues();
+    const reportFooterStyles = useReportFooterStyles({composerHeight, headerHeight, isComposerFullSize});
 
     const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
@@ -210,24 +203,6 @@ function ReportFooter({
         setDidHideComposerInput(true);
     }, [shouldShowComposeInput, didHideComposerInput]);
 
-    const unmodifiedPaddingBottom = useMemo(() => unmodifiedPaddings?.bottom ?? 0, [unmodifiedPaddings.bottom]);
-
-    const platform = getPlatform();
-
-    const animatedStyle = useAnimatedStyle(() =>
-        StyleUtils.getReportFooterStyles({
-            platform,
-            composerHeight,
-            headerHeight,
-            isKeyboardActive,
-            keyboardHeight,
-            windowHeight,
-            isComposerFullSize,
-            paddingBottom: unmodifiedPaddingBottom,
-            paddingTop: unmodifiedPaddings.top,
-        }),
-    );
-
     const onLayoutInternal = useCallback(
         (event: LayoutChangeEvent) => {
             const {height} = event.nativeEvent.layout;
@@ -271,7 +246,7 @@ function ReportFooter({
                 </View>
             )}
             {!shouldHideComposer && (!!shouldShowComposeInput || !shouldUseNarrowLayout) && (
-                <Animated.View style={[chatFooterStyles, animatedStyle]}>
+                <Animated.View style={[chatFooterStyles, reportFooterStyles]}>
                     <ReportActionCompose
                         onSubmit={onSubmitComment}
                         onComposerFocus={onComposerFocus}
