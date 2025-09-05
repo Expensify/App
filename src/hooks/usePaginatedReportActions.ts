@@ -5,6 +5,7 @@ import {getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
+import useReportIsArchived from './useReportIsArchived';
 
 /**
  * Get the longest continuous chunk of reportActions including the linked reportAction. If not linking to a specific action, returns the continuous chunk of newest reportActions.
@@ -12,7 +13,8 @@ import useOnyx from './useOnyx';
 function usePaginatedReportActions(reportID: string | undefined, reportActionID?: string) {
     const nonEmptyStringReportID = getNonEmptyStringOnyxID(reportID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nonEmptyStringReportID}`, {canBeMissing: true});
-    const hasWriteAccess = canUserPerformWriteAction(report);
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const hasWriteAccess = canUserPerformWriteAction(report, isReportArchived);
 
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringReportID}`, {
         canEvict: false,

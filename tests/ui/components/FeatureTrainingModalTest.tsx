@@ -22,7 +22,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => '/'),
 }));
 
-jest.mock('@libs/Fullstory');
 jest.mock('expo-av', () => {
     const {View} = require<typeof ReactNative>('react-native');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return

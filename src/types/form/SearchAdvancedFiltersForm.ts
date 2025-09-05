@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {SearchDateFilterKeys, SearchGroupBy} from '@components/Search/types';
+import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchGroupBy, SearchWithdrawalType} from '@components/Search/types';
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type Form from './Form';
@@ -13,6 +13,8 @@ const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
 ];
+
+const AMOUNT_FILTER_KEYS: SearchAmountFilterKeys[] = [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT];
 
 const FILTER_KEYS = {
     GROUP_BY: 'groupBy',
@@ -36,10 +38,12 @@ const FILTER_KEYS = {
     POSTED_ON: 'postedOn',
     POSTED_AFTER: 'postedAfter',
     POSTED_BEFORE: 'postedBefore',
+    WITHDRAWAL_TYPE: 'withdrawalType',
     WITHDRAWN_ON: 'withdrawnOn',
     WITHDRAWN_AFTER: 'withdrawnAfter',
     WITHDRAWN_BEFORE: 'withdrawnBefore',
     CURRENCY: 'currency',
+    GROUP_CURRENCY: 'groupCurrency',
     CATEGORY: 'category',
     POLICY_ID: 'policyID',
     CARD_ID: 'cardID',
@@ -47,8 +51,10 @@ const FILTER_KEYS = {
     MERCHANT: 'merchant',
     DESCRIPTION: 'description',
     REPORT_ID: 'reportID',
-    LESS_THAN: 'lessThan',
-    GREATER_THAN: 'greaterThan',
+    AMOUNT_LESS_THAN: 'amountLessThan',
+    AMOUNT_GREATER_THAN: 'amountGreaterThan',
+    TOTAL_LESS_THAN: 'totalLessThan',
+    TOTAL_GREATER_THAN: 'totalGreaterThan',
     TAX_RATE: 'taxRate',
     EXPENSE_TYPE: 'expenseType',
     TAG: 'tag',
@@ -63,6 +69,10 @@ const FILTER_KEYS = {
     REIMBURSABLE: 'reimbursable',
     BILLABLE: 'billable',
     ACTION: 'action',
+    PURCHASE_AMOUNT_LESS_THAN: 'purchaseAmountLessThan',
+    PURCHASE_AMOUNT_GREATER_THAN: 'purchaseAmountGreaterThan',
+    PURCHASE_CURRENCY: 'purchaseCurrency',
+    WITHDRAWAL_ID: 'withdrawalID',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -78,9 +88,12 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.DATE_ON,
         FILTER_KEYS.DATE_AFTER,
         FILTER_KEYS.DATE_BEFORE,
-        FILTER_KEYS.GREATER_THAN,
-        FILTER_KEYS.LESS_THAN,
+        FILTER_KEYS.AMOUNT_GREATER_THAN,
+        FILTER_KEYS.AMOUNT_LESS_THAN,
+        FILTER_KEYS.TOTAL_GREATER_THAN,
+        FILTER_KEYS.TOTAL_LESS_THAN,
         FILTER_KEYS.CURRENCY,
+        FILTER_KEYS.GROUP_CURRENCY,
         FILTER_KEYS.CATEGORY,
         FILTER_KEYS.TAG,
         FILTER_KEYS.PAYER,
@@ -90,6 +103,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.POSTED_AFTER,
         FILTER_KEYS.POSTED_BEFORE,
         FILTER_KEYS.POSTED_ON,
+        FILTER_KEYS.WITHDRAWAL_TYPE,
         FILTER_KEYS.WITHDRAWN_AFTER,
         FILTER_KEYS.WITHDRAWN_BEFORE,
         FILTER_KEYS.WITHDRAWN_ON,
@@ -113,6 +127,10 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.GROUP_BY,
         FILTER_KEYS.FEED,
         FILTER_KEYS.ACTION,
+        FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN,
+        FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN,
+        FILTER_KEYS.PURCHASE_CURRENCY,
+        FILTER_KEYS.WITHDRAWAL_ID,
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
         FILTER_KEYS.TYPE,
@@ -125,8 +143,10 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.DATE_ON,
         FILTER_KEYS.DATE_AFTER,
         FILTER_KEYS.DATE_BEFORE,
-        FILTER_KEYS.GREATER_THAN,
-        FILTER_KEYS.LESS_THAN,
+        FILTER_KEYS.AMOUNT_GREATER_THAN,
+        FILTER_KEYS.AMOUNT_LESS_THAN,
+        FILTER_KEYS.TOTAL_GREATER_THAN,
+        FILTER_KEYS.TOTAL_LESS_THAN,
         FILTER_KEYS.CURRENCY,
         FILTER_KEYS.CATEGORY,
         FILTER_KEYS.TAG,
@@ -137,6 +157,7 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.POSTED_AFTER,
         FILTER_KEYS.POSTED_BEFORE,
         FILTER_KEYS.POSTED_ON,
+        FILTER_KEYS.WITHDRAWAL_TYPE,
         FILTER_KEYS.WITHDRAWN_AFTER,
         FILTER_KEYS.WITHDRAWN_BEFORE,
         FILTER_KEYS.WITHDRAWN_ON,
@@ -156,6 +177,10 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_ON,
         FILTER_KEYS.EXPORTER,
         FILTER_KEYS.ACTION,
+        FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN,
+        FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN,
+        FILTER_KEYS.PURCHASE_CURRENCY,
+        FILTER_KEYS.WITHDRAWAL_ID,
     ],
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
         FILTER_KEYS.TYPE,
@@ -168,9 +193,12 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.DATE_ON,
         FILTER_KEYS.DATE_AFTER,
         FILTER_KEYS.DATE_BEFORE,
-        FILTER_KEYS.GREATER_THAN,
-        FILTER_KEYS.LESS_THAN,
+        FILTER_KEYS.AMOUNT_GREATER_THAN,
+        FILTER_KEYS.AMOUNT_LESS_THAN,
+        FILTER_KEYS.TOTAL_GREATER_THAN,
+        FILTER_KEYS.TOTAL_LESS_THAN,
         FILTER_KEYS.CURRENCY,
+        FILTER_KEYS.GROUP_CURRENCY,
         FILTER_KEYS.CATEGORY,
         FILTER_KEYS.TAG,
         FILTER_KEYS.PAYER,
@@ -198,6 +226,9 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.GROUP_BY,
         FILTER_KEYS.FEED,
         FILTER_KEYS.ACTION,
+        FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN,
+        FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN,
+        FILTER_KEYS.PURCHASE_CURRENCY,
     ],
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
         FILTER_KEYS.TYPE,
@@ -251,10 +282,12 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.POSTED_ON]: string;
         [FILTER_KEYS.POSTED_AFTER]: string;
         [FILTER_KEYS.POSTED_BEFORE]: string;
+        [FILTER_KEYS.WITHDRAWAL_TYPE]: SearchWithdrawalType;
         [FILTER_KEYS.WITHDRAWN_ON]: string;
         [FILTER_KEYS.WITHDRAWN_AFTER]: string;
         [FILTER_KEYS.WITHDRAWN_BEFORE]: string;
         [FILTER_KEYS.CURRENCY]: string[];
+        [FILTER_KEYS.GROUP_CURRENCY]: string;
         [FILTER_KEYS.CATEGORY]: string[];
         [FILTER_KEYS.POLICY_ID]: string[];
         [FILTER_KEYS.CARD_ID]: string[];
@@ -262,8 +295,10 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.MERCHANT]: string;
         [FILTER_KEYS.DESCRIPTION]: string;
         [FILTER_KEYS.REPORT_ID]: string;
-        [FILTER_KEYS.LESS_THAN]: string;
-        [FILTER_KEYS.GREATER_THAN]: string;
+        [FILTER_KEYS.AMOUNT_LESS_THAN]: string;
+        [FILTER_KEYS.AMOUNT_GREATER_THAN]: string;
+        [FILTER_KEYS.TOTAL_LESS_THAN]: string;
+        [FILTER_KEYS.TOTAL_GREATER_THAN]: string;
         [FILTER_KEYS.KEYWORD]: string;
         [FILTER_KEYS.TAX_RATE]: string[];
         [FILTER_KEYS.EXPENSE_TYPE]: string[];
@@ -278,9 +313,13 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.REIMBURSABLE]: string;
         [FILTER_KEYS.BILLABLE]: string;
         [FILTER_KEYS.ACTION]: string;
+        [FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN]: string;
+        [FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN]: string;
+        [FILTER_KEYS.PURCHASE_CURRENCY]: string[];
+        [FILTER_KEYS.WITHDRAWAL_ID]: string;
     }
 >;
 
 export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey};
 export default FILTER_KEYS;
-export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, FILTER_KEYS};
+export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, FILTER_KEYS, AMOUNT_FILTER_KEYS};
