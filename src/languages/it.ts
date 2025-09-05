@@ -4883,7 +4883,8 @@ const translations = {
             existingTagError: 'Un tag con questo nome esiste già',
             invalidTagNameError: 'Il nome del tag non può essere 0. Si prega di scegliere un valore diverso.',
             genericFailureMessage: "Si è verificato un errore durante l'aggiornamento del tag, riprova.",
-            importedFromAccountingSoftware: 'I tag qui sotto sono importati dal tuo',
+            importedFromAccountingSoftware: 'I tag sono gestiti nel tuo',
+            employeesSeeTagsAs: 'I dipendenti vedono i tag come ',
             glCode: 'Codice GL',
             updateGLCodeFailureMessage: "Si è verificato un errore durante l'aggiornamento del codice GL, riprova.",
             tagRules: 'Regole dei tag',
@@ -6352,7 +6353,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `iniziato a esportare questo report su ${label}...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `impossibile esportare questo report su ${label} ("${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
+                    `impossibile esportare questo report su ${label} ("${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}")`,
                 managerAttachReceipt: `ha aggiunto una ricevuta`,
                 managerDetachReceipt: `rimosso una ricevuta`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pagato ${currency}${amount} altrove`,
