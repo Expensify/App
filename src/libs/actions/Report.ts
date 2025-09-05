@@ -3466,7 +3466,7 @@ function openReportFromDeepLink(
                                     return;
                                 }
 
-                                // If the last route is a RHP, we want to replace it so it won't be covered by the full-screen navigator.
+                                // If the last route is an RHP, we want to replace it so it won't be covered by the full-screen navigator.
                                 const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
                                 Navigation.navigate(route as Route, {forceReplace});
                             };
