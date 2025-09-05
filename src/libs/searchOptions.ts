@@ -14,12 +14,13 @@ type Option = {
  * @returns An array of options with selected items at the top
  */
 function moveSelectedOptionsToTop<T extends {isSelected?: boolean}>(options: T[]): T[] {
-    const selected: T[] = [];
-    const unselected: T[] = [];
-    for (const option of options) {
-        (option.isSelected ? selected : unselected).push(option);
+    const result = [...options];
+    const index = result.findIndex((option) => option.isSelected);
+    if (index > 0) {
+        const [item] = result.splice(index, 1);
+        result.unshift(item);
     }
-    return [...selected, ...unselected];
+    return result;
 }
 
 /**

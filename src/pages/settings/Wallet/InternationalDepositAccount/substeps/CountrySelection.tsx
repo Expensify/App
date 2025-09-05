@@ -69,7 +69,7 @@ function CountrySelection({isEditing, onNext, formValues, resetScreenIndex, fiel
         [translate, currentCountry],
     );
 
-    const searchResults = searchOptions(debouncedSearchValue, countries, !hasUserInteracted);
+    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, countries, !hasUserInteracted), [countries, debouncedSearchValue, hasUserInteracted]);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     return (

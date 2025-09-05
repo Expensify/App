@@ -53,7 +53,7 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
         [translate, currentCountry],
     );
 
-    const searchResults = searchOptions(debouncedSearchValue, countries, !hasUserInteracted);
+    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, countries, !hasUserInteracted), [countries, debouncedSearchValue, hasUserInteracted]);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const onSelectionChange = useCallback(
