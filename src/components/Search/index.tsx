@@ -213,37 +213,41 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
 
+    const archivedReportsSelector = useCallback((all: Record<string, unknown>): ArchivedReportsIDSet => {
+        const ids = new Set<string>();
+        if (!all) {
+            return ids;
+        }
+
+        const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
+        for (const [key, value] of Object.entries(all)) {
+            if (isArchivedReport(value)) {
+                const reportID = key.slice(prefixLength);
+                ids.add(reportID);
+            }
+        }
+        return ids;
+    }, []);
+
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
-        selector: (all): ArchivedReportsIDSet => {
-            const ids = new Set<string>();
-            if (!all) {
-                return ids;
-            }
-
-            const prefixLength = ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS.length;
-            for (const [key, value] of Object.entries(all)) {
-                if (isArchivedReport(value)) {
-                    const reportID = key.slice(prefixLength);
-                    ids.add(reportID);
-                }
-            }
-            return ids;
-        },
+        selector: archivedReportsSelector,
     });
 
     // Create a selector for only the reportActions needed to determine if a report has been exported or not, grouped by report
+    const exportReportActionsSelector = useCallback((allReportActions: Record<string, unknown>) => {
+        return Object.fromEntries(
+            Object.entries(allReportActions ?? {}).map(([reportID, reportActionsGroup]) => {
+                const filteredReportActions = Object.values(reportActionsGroup ?? {}).filter((action) => isExportIntegrationAction(action as ReportAction) || isIntegrationMessageAction(action as ReportAction));
+                return [reportID, filteredReportActions];
+            }),
+        );
+    }, []);
+
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
         canBeMissing: true,
-        selector: (allReportActions) => {
-            return Object.fromEntries(
-                Object.entries(allReportActions ?? {}).map(([reportID, reportActionsGroup]) => {
-                    const filteredReportActions = Object.values(reportActionsGroup ?? {}).filter((action) => isExportIntegrationAction(action) || isIntegrationMessageAction(action));
-                    return [reportID, filteredReportActions];
-                }),
-            );
-        },
+        selector: exportReportActionsSelector,
     });
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
