@@ -121,7 +121,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                     // This overlay is necessary to cover the gap under the narrow format RHP screen
                     <Overlay
                         progress={secondOverlayProgress}
-                        marginLeft
+                        hasMarginLeft
                     />
                 ) : null}
             </View>

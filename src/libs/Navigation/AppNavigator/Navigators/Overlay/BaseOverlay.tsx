@@ -13,16 +13,16 @@ type BaseOverlayProps = {
     onPress?: () => void;
 
     /* Whether there should be a gap on the right side. Necessary for the overlay that covers wider part of RHP. */
-    marginRight?: boolean;
+    hasMarginRight?: boolean;
 
     /* Whether there should be a gap on the left. Necessary for the overlay in modal stack navigator. */
-    marginLeft?: boolean;
+    hasMarginLeft?: boolean;
 
     /* Override the progress from useCardAnimation. Necessary for the secondary overlay */
     progress?: OverlayStylesParams;
 };
 
-function BaseOverlay({onPress, marginRight = false, progress, marginLeft = false}: BaseOverlayProps) {
+function BaseOverlay({onPress, hasMarginRight = false, progress, hasMarginLeft = false}: BaseOverlayProps) {
     const styles = useThemeStyles();
     const {current} = useCardAnimation();
     const {translate} = useLocalize();
@@ -30,7 +30,7 @@ function BaseOverlay({onPress, marginRight = false, progress, marginLeft = false
     return (
         <Animated.View
             id="BaseOverlay"
-            style={styles.overlayStyles({progress: progress ?? current.progress, marginRight, marginLeft})}
+            style={styles.overlayStyles({progress: progress ?? current.progress, hasMarginRight, hasMarginLeft})}
         >
             <View style={[styles.flex1, styles.flexColumn]}>
                 {/* In the latest Electron version buttons can't be both clickable and draggable.

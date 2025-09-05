@@ -2040,14 +2040,14 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
         },
 
-        overlayStyles: ({progress, marginRight = false, marginLeft = false}: {progress: OverlayStylesParams; marginRight?: boolean; marginLeft?: boolean}) =>
+        overlayStyles: ({progress, hasMarginRight = false, hasMarginLeft = false}: {progress: OverlayStylesParams; hasMarginRight?: boolean; hasMarginLeft?: boolean}) =>
             ({
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: marginLeft ? variables.receiptPaneRHPMaxWidth : -2 * variables.sideBarWidth,
+                left: hasMarginLeft ? variables.receiptPaneRHPMaxWidth : -2 * variables.sideBarWidth,
                 top: 0,
                 bottom: 0,
-                right: marginRight ? variables.sideBarWidth : 0,
+                right: hasMarginRight ? variables.sideBarWidth : 0,
                 backgroundColor: theme.overlay,
                 opacity: progress.interpolate({
                     inputRange: [0, 1],

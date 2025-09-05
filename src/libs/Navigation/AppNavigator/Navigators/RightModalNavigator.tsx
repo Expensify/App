@@ -255,7 +255,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {/* It has a gap on the right to make the last rhp route (narrow) visible and pressable */}
                 {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && (
                     <Overlay
-                        marginRight
+                        hasMarginRight
                         progress={secondOverlayProgress}
                         onPress={dismissToWideReport}
                     />

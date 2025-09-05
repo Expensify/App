@@ -8,7 +8,7 @@ import type {NavigationRoute} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import getDefaultWideRHPContextValue from './default';
+import defaultWideRHPContextValue from './default';
 import type {WideRHPContextType} from './types';
 
 const expandedRHPProgress = new Animated.Value(0);
@@ -26,7 +26,7 @@ const calculateReceiptPaneRHPWidth = (windowWidth: number) => {
 // This animated value is necessary to have a responsive rhp width for the range 800px to 840px.
 const receiptPaneRHPWidth = new Animated.Value(calculateReceiptPaneRHPWidth(Dimensions.get('window').width));
 
-const WideRHPContext = createContext<WideRHPContextType>(getDefaultWideRHPContextValue());
+const WideRHPContext = createContext<WideRHPContextType>(defaultWideRHPContextValue);
 
 function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [wideRHPRouteKeys, setWideRHPRouteKeys] = useState<string[]>([]);

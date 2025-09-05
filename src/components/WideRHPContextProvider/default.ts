@@ -2,7 +2,7 @@
 import {Animated} from 'react-native';
 import type {WideRHPContextType} from './types';
 
-const getDefaultWideRHPContextValue: () => WideRHPContextType = () => ({
+const defaultWideRHPContextValue: WideRHPContextType = {
     wideRHPRouteKeys: [],
     expandedRHPProgress: new Animated.Value(0),
     secondOverlayProgress: new Animated.Value(0),
@@ -12,6 +12,6 @@ const getDefaultWideRHPContextValue: () => WideRHPContextType = () => ({
     markReportIDAsExpense: () => {},
     isReportIDMarkedAsExpense: () => false,
     dismissToWideReport: () => {},
-});
+};
 
-export default getDefaultWideRHPContextValue;
+export default defaultWideRHPContextValue;
