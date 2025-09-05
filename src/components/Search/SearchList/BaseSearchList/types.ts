@@ -15,6 +15,7 @@ type BaseSearchListProps = Pick<
     | 'keyExtractor'
     | 'showsVerticalScrollIndicator'
     | 'onLayout'
+    | 'estimatedItemSize'
 > & {
     /** The data to display in the list */
     data: SearchListItem[];

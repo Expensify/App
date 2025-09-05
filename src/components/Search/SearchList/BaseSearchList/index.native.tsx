@@ -18,6 +18,7 @@ function BaseSearchList({
     onViewableItemsChanged,
     onLayout,
     contentContainerStyle,
+    estimatedItemSize,
 }: BaseSearchListProps) {
     const renderItemWithoutKeyboardFocus = useCallback(
         ({item}: {item: SearchListItem; index: number}) => {
@@ -42,7 +43,8 @@ function BaseSearchList({
             removeClippedSubviews
             drawDistance={1000}
             contentContainerStyle={contentContainerStyle}
-            maintainVisibleContentPosition={{disabled: true}}
+            maintainVisibleContentPosition={null}
+            estimatedItemSize={estimatedItemSize}
         />
     );
 }

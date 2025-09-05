@@ -30,6 +30,7 @@ function BaseSearchList({
     onLayout,
     contentContainerStyle,
     flattenedItemsLength,
+    estimatedItemSize = variables.optionRowHeight,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
 
@@ -120,8 +121,8 @@ function BaseSearchList({
             removeClippedSubviews
             drawDistance={1000}
             contentContainerStyle={contentContainerStyle}
-            maintainVisibleContentPosition={{disabled: true}}
-            estimatedItemSize={variables.optionRowHeight}
+            maintainVisibleContentPosition={null}
+            estimatedItemSize={estimatedItemSize}
         />
     );
 }
