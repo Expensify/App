@@ -2,6 +2,7 @@ import AddReaction from '@assets/images/add-reaction.svg';
 import All from '@assets/images/all.svg';
 import Android from '@assets/images/android.svg';
 import Apple from '@assets/images/apple.svg';
+import ArrowCircleClockwise from '@assets/images/arrow-circle-clockwise.svg';
 import ArrowCollapse from '@assets/images/arrow-collapse.svg';
 import ArrowDownLong from '@assets/images/arrow-down-long.svg';
 import ArrowRightLong from '@assets/images/arrow-right-long.svg';
@@ -244,7 +245,6 @@ import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
-import ArrowCircleClockwise from '@assets/images/arrow-circle-clockwise.svg';
 
 export {
     ReceiptBody,
@@ -493,5 +493,5 @@ export {
     SageIntacctExport,
     SapExport,
     XeroExport,
-    ArrowCircleClockwise
+    ArrowCircleClockwise,
 };
