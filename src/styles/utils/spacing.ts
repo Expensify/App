@@ -663,6 +663,10 @@ export default {
         paddingTop: 80,
     },
 
+    pt40: {
+        paddingTop: 160,
+    },
+
     pb0: {
         paddingBottom: 0,
     },
