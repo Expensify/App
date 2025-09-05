@@ -86,16 +86,13 @@ type ReportActionItemParentActionProps = {
     /** User billing fund ID */
     userBillingFundID: number | undefined;
 
-<<<<<<< HEAD
     /** Whether the flatlist is reverted */
     isReverted?: boolean;
-=======
     /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
     isTryNewDotNVPDismissed: boolean | undefined;
 
     /** Whether the report is archived */
     isReportArchived: boolean;
->>>>>>> main
 };
 
 function ReportActionItemParentAction({
@@ -117,12 +114,9 @@ function ReportActionItemParentAction({
     allEmojiReactions,
     linkedTransactionRouteError,
     userBillingFundID,
-<<<<<<< HEAD
     isReverted,
-=======
     isTryNewDotNVPDismissed = false,
     isReportArchived = false,
->>>>>>> main
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));

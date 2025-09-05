@@ -395,17 +395,17 @@ function ReportActionItemMessageEdit(
     );
 
     const scrollToIndex = useCallback(
-        (index: number, isEditing?: boolean, viewPosition?: number, shouldDelay = false) => {
+        (i: number, isEditing?: boolean, viewPosition?: number, shouldDelay = false) => {
             if (shouldDelay) {
                 setTimeout(() => {
                     requestAnimationFrame(() => {
-                        reportScrollManager.scrollToIndex(index, isEditing, viewPosition);
+                        reportScrollManager.scrollToIndex(i, isEditing, viewPosition);
                     });
                 }, 400);
             } else {
                 InteractionManager.runAfterInteractions(() => {
                     requestAnimationFrame(() => {
-                        reportScrollManager.scrollToIndex(index, isEditing, viewPosition);
+                        reportScrollManager.scrollToIndex(i, isEditing, viewPosition);
                     });
                 });
             }
