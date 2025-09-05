@@ -34,7 +34,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getPlatform from '@libs/getPlatform';
+import includeSafeAreaBottom from '@libs/includeSafeAreaBottom';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -74,6 +74,7 @@ import {
     isTaskReport,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
+import shouldEnableKeyboardAvoidingView from '@libs/shouldEnableKeyboardAvoidingView';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
@@ -797,16 +798,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const onComposerLayout = useCallback((height: number) => setComposerHeight(height), []);
 
-    const platform = getPlatform();
-    const isIOS = platform === CONST.PLATFORM.IOS;
-
-    const shouldEnableKeyboardAvoidingView = useMemo(() => {
-        if (isIOS) {
-            return isComposerFullSize;
-        }
-
-        return isTopMostReportId || isInNarrowPaneModal;
-    }, [isComposerFullSize, isTopMostReportId, isInNarrowPaneModal, isIOS]);
+    const shouldEnableKeyboardAvoidingViewResult = shouldEnableKeyboardAvoidingView({isComposerFullSize, isInNarrowPaneModal, isTopMostReportId});
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
@@ -832,9 +824,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                     <ScreenWrapper
                         navigation={navigation}
                         style={screenWrapperStyle}
-                        shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
+                        shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingViewResult}
                         testID={`report-screen-${reportID}`}
-                        includeSafeAreaPaddingBottom={!isIOS}
+                        includeSafeAreaPaddingBottom={includeSafeAreaBottom}
                     >
                         <FullPageNotFoundView
                             shouldShow={shouldShowNotFoundPage}
