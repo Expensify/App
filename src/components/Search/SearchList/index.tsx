@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
+import type {FlashList, FlashListProps, ViewToken} from '@shopify/flash-list';
 import React, {forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
@@ -83,7 +83,7 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     isFocused: boolean;
 
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
-    onViewableItemsChanged?: (info: {changed: Array<ViewToken<SearchListItem>>; viewableItems: Array<ViewToken<SearchListItem>>}) => void;
+    onViewableItemsChanged?: (info: {changed: Array<ViewToken>; viewableItems: Array<ViewToken>}) => void;
 
     /** Invoked on mount and layout changes */
     onLayout?: () => void;
@@ -158,7 +158,7 @@ function SearchList(
     );
 
     const {translate} = useLocalize();
-    const listRef = useRef<FlashListRef<SearchListItem>>(null);
+    const listRef = useRef<FlashList<SearchListItem>>(null);
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const prevDataLength = usePrevious(data.length);

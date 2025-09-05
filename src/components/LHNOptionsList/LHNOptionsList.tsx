@@ -1,5 +1,5 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
+import type {FlashListProps} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
@@ -41,7 +41,7 @@ const keyExtractor = (item: Report) => `report_${item.reportID}`;
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
-    const flashListRef = useRef<FlashListRef<Report>>(null);
+    const flashListRef = useRef<FlashList<Report>>(null);
     const route = useRoute();
     const isScreenFocused = useIsFocused();
 
@@ -402,7 +402,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     onLayout={onLayout}
                     onScroll={onScroll}
                     initialScrollIndex={isWebOrDesktop ? getScrollIndex(route) : undefined}
-                    maintainVisibleContentPosition={{disabled: true}}
+                    maintainVisibleContentPosition={undefined}
                     drawDistance={1000}
                     removeClippedSubviews
                     estimatedItemSize={estimatedItemSize}

@@ -44,7 +44,7 @@ function BaseSearchList({
             removeClippedSubviews
             drawDistance={1000}
             contentContainerStyle={contentContainerStyle}
-            maintainVisibleContentPosition={null}
+            maintainVisibleContentPosition={undefined}
             estimatedItemSize={estimatedItemSize}
         />
     );

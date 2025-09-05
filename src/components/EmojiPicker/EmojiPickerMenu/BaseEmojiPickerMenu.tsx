@@ -1,5 +1,5 @@
 import {FlashList} from '@shopify/flash-list';
-import type {FlashListRef, ListRenderItem} from '@shopify/flash-list';
+import type {ListRenderItem} from '@shopify/flash-list';
 import React from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
@@ -79,7 +79,7 @@ function ListEmptyComponent() {
 
 function BaseEmojiPickerMenu(
     {headerEmojis, scrollToHeader, isFiltered, listWrapperStyle = [], data, renderItem, stickyHeaderIndices = [], extraData = [], alwaysBounceVertical = false}: BaseEmojiPickerMenuProps,
-    ref: ForwardedRef<FlashListRef<EmojiPickerListItem>>,
+    ref: ForwardedRef<FlashList<EmojiPickerListItem>>,
 ) {
     const styles = useThemeStyles();
     return (
