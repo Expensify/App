@@ -18,10 +18,10 @@ type CarTripDetailsProps = {
 
 function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
 
-    const pickUpDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
-    const dropOffDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
+    const pickUpDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), preferredLocale);
+    const dropOffDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), preferredLocale);
 
     let cancellationText = reservation.cancellationPolicy;
     if (reservation.cancellationDeadline) {

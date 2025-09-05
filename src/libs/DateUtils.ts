@@ -873,16 +873,19 @@ function getFormattedTransportDate(date: Date, locale: Locale | undefined): stri
  * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
  */
-function getFormattedTransportDateAndHour(date: Date): {date: string; hour: string} {
+function getFormattedTransportDateAndHour(date: Date, locale: Locale | undefined): {date: string; hour: string} {
+    const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short', hour12: true});
+    const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric'});
+    const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'});
     if (isThisYear(date)) {
         return {
-            date: format(date, 'EEEE, MMM d'),
-            hour: format(date, 'h:mm a'),
+            date: monthDayWeekdayAbbrFormatter.format(date),
+            hour: timeFormatter.format(date),
         };
     }
     return {
-        date: format(date, 'EEEE, MMM d, yyyy'),
-        hour: format(date, 'h:mm a'),
+        date: monthDayWeekdayYearAbbrFormatter.format(date),
+        hour: timeFormatter.format(date),
     };
 }
 
