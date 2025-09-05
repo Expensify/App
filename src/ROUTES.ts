@@ -643,8 +643,43 @@ const ROUTES = {
     },
     MONEY_REQUEST_UPGRADE: {
         route: ':action/:iouType/upgrade/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}`, backTo),
+        getRoute: (params: {
+            action: IOUAction;
+            iouType: IOUType;
+            transactionID: string;
+            reportID: string;
+            backTo?: string;
+            isCategorizing?: boolean;
+            isReporting?: boolean;
+            shouldSubmitExpense?: boolean;
+        }) => {
+            const {action, iouType, transactionID, reportID, backTo = '', isCategorizing = false, isReporting = false, shouldSubmitExpense = false} = params;
+
+            const baseURL = `${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}` as const;
+
+            const queryParams: Record<string, string> = {};
+            if (isCategorizing) {
+                queryParams.isCategorizing = 'true';
+            }
+            if (isReporting) {
+                queryParams.isReporting = 'true';
+            }
+            if (shouldSubmitExpense) {
+                queryParams.shouldSubmitExpense = 'true';
+            }
+
+            const queryString =
+                Object.keys(queryParams).length > 0
+                    ? Object.entries(queryParams)
+                          .map(([key, value]) => `${key}=${value}`)
+                          .join('&')
+                    : '';
+
+            if (queryString) {
+                return getUrlWithBackToParam(`${baseURL}?${queryString}` as const, backTo);
+            }
+            return getUrlWithBackToParam(baseURL, backTo);
+        },
     },
     MONEY_REQUEST_STEP_DESTINATION: {
         route: ':action/:iouType/destination/:transactionID/:reportID',
