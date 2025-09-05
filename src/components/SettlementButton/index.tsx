@@ -280,6 +280,15 @@ function SettlementButton({
                     iconWidth: formattedPaymentMethod?.iconSize,
                 }));
 
+            const addBankAccountItem = {
+                text: translate('bankAccount.addBankAccount'),
+                icon: Expensicons.Bank,
+                onSelected: () => {
+                    const bankAccountRoute = getBankAccountRoute(chatReport);
+                    Navigation.navigate(bankAccountRoute);
+                },
+            };
+
             if (isIndividualInvoiceRoomUtil(chatReport)) {
                 buttonOptions.push({
                     text: translate('iou.settlePersonal', {formattedAmount}),
@@ -294,18 +303,7 @@ function SettlementButton({
                             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                             onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
                         },
-                        ...(!isCurrencySupported
-                            ? []
-                            : [
-                                  {
-                                      text: translate('bankAccount.addBankAccount'),
-                                      icon: Expensicons.Bank,
-                                      onSelected: () => {
-                                          const bankAccountRoute = getBankAccountRoute(chatReport);
-                                          Navigation.navigate(bankAccountRoute);
-                                      },
-                                  },
-                              ]),
+                        ...(isCurrencySupported ? [addBankAccountItem] : []),
                     ],
                 });
             }
@@ -317,18 +315,7 @@ function SettlementButton({
                 backButtonText: translate('iou.business'),
                 subMenuItems: [
                     ...(isCurrencySupported ? getPaymentSubitems(true) : []),
-                    ...(!isCurrencySupported
-                        ? []
-                        : [
-                              {
-                                  text: translate('bankAccount.addBankAccount'),
-                                  icon: Expensicons.Bank,
-                                  onSelected: () => {
-                                      const bankAccountRoute = getBankAccountRoute(chatReport);
-                                      Navigation.navigate(bankAccountRoute);
-                                  },
-                              },
-                          ]),
+                    ...(isCurrencySupported ? [addBankAccountItem] : []),
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
                         icon: Expensicons.Cash,
