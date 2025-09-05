@@ -1604,6 +1604,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         shouldSeparateWorkspaceChat,
         isPerDiemRequest = false,
         showRBR = true,
+        includeSelectedOptions = false,
     } = config;
 
     const validReportOptions: SearchOptionData[] = [];
@@ -1622,6 +1623,9 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
          */
         const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview});
         const isSelected = isReportSelected(option, selectedOptions);
+        if (isSelected && !includeSelectedOptions) {
+            continue;
+        }
         const isBold = shouldBoldTitleByDefault || shouldUseBoldText(option);
         let lastIOUCreationDate;
 

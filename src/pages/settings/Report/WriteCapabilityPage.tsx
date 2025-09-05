@@ -5,7 +5,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {updateWriteCapability as updateWriteCapabilityUtil} from '@libs/actions/Report';
@@ -58,7 +58,7 @@ function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
                 />
                 <SelectionList
                     sections={[{data: writeCapabilityOptions}]}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={(option) => updateWriteCapability(option.value)}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={writeCapabilityOptions.find((locale) => locale.isSelected)?.keyForList}

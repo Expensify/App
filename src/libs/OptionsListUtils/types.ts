@@ -150,6 +150,7 @@ type GetValidReportsConfig = {
     excludeNonAdminWorkspaces?: boolean;
     isPerDiemRequest?: boolean;
     showRBR?: boolean;
+    includeSelectedOptions?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type GetValidReportsReturnTypeCombined = {
@@ -162,7 +163,6 @@ type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
     includeCurrentUser?: boolean;
     includeRecentReports?: boolean;
-    includeSelectedOptions?: boolean;
     recentAttendees?: Option[];
     excludeHiddenThreads?: boolean;
     canShowManagerMcTest?: boolean;
