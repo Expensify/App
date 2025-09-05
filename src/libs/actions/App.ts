@@ -33,12 +33,13 @@ type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
 };
 
+// `currentSessionData` is only used in actions, not during render. So `Onyx.connectWithoutView` is appropriate.
+// If React components need this value in the future, use `useOnyx` instead.
 let currentSessionData: {accountID?: number; email: string} = {
     accountID: undefined,
     email: '',
 };
-
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         currentSessionData = {
