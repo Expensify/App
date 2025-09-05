@@ -5,19 +5,37 @@ import type {NativeSyntheticEvent} from 'react-native';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionList/types';
 
-type BaseSearchListProps = Pick<
-    FlashListProps<SearchListItem>,
-    | 'onScroll'
-    | 'contentContainerStyle'
-    | 'onEndReached'
-    | 'onEndReachedThreshold'
-    | 'ListFooterComponent'
-    | 'onViewableItemsChanged'
-    | 'keyExtractor'
-    | 'showsVerticalScrollIndicator'
-    | 'onLayout'
-    | 'estimatedItemSize'
-> & {
+type BaseSearchListProps = {
+    /** Scroll event handler */
+    onScroll?: FlashListProps<SearchListItem>['onScroll'];
+    
+    /** Style for the content container */
+    contentContainerStyle?: FlashListProps<SearchListItem>['contentContainerStyle'];
+    
+    /** Called when the list reaches the end */
+    onEndReached?: FlashListProps<SearchListItem>['onEndReached'];
+    
+    /** Threshold for onEndReached */
+    onEndReachedThreshold?: FlashListProps<SearchListItem>['onEndReachedThreshold'];
+    
+    /** Component to render at the bottom */
+    ListFooterComponent?: FlashListProps<SearchListItem>['ListFooterComponent'];
+    
+    /** Viewability change callback */
+    onViewableItemsChanged?: FlashListProps<SearchListItem>['onViewableItemsChanged'];
+    
+    /** Key extractor function */
+    keyExtractor?: FlashListProps<SearchListItem>['keyExtractor'];
+    
+    /** Whether to show vertical scroll indicator */
+    showsVerticalScrollIndicator?: FlashListProps<SearchListItem>['showsVerticalScrollIndicator'];
+    
+    /** Layout callback */
+    onLayout?: FlashListProps<SearchListItem>['onLayout'];
+    
+    /** Estimated item size for performance */
+    estimatedItemSize?: number;
+} & {
     /** The data to display in the list */
     data: SearchListItem[];
 
@@ -37,7 +55,7 @@ type BaseSearchListProps = Pick<
     isFocused?: boolean;
 
     /** The ref to the list */
-    ref: ForwardedRef<FlashList<SearchListItem>>;
+    ref: ForwardedRef<InstanceType<typeof FlashList<SearchListItem>>>;
 
     /** The function to scroll to an index */
     scrollToIndex?: (index: number, animated?: boolean) => void;

@@ -12,7 +12,7 @@ import {getHeaderEmojis, getSpacersIndexes, mergeEmojisWithFrequentlyUsedEmojis,
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const useEmojiPickerMenu = () => {
-    const emojiListRef = useRef<FlashList<EmojiPickerListItem>>(null);
+    const emojiListRef = useRef<InstanceType<typeof FlashList<EmojiPickerListItem>>>(null);
     const [frequentlyUsedEmojis] = useOnyx(ONYXKEYS.FREQUENTLY_USED_EMOJIS, {canBeMissing: true});
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     const allEmojis = useMemo(() => mergeEmojisWithFrequentlyUsedEmojis(emojis, processFrequentlyUsedEmojis(frequentlyUsedEmojis)), [frequentlyUsedEmojis]);

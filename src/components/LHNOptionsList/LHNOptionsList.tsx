@@ -41,7 +41,7 @@ const keyExtractor = (item: Report) => `report_${item.reportID}`;
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
-    const flashListRef = useRef<FlashList<Report>>(null);
+    const flashListRef = useRef<InstanceType<typeof FlashList<Report>>>(null);
     const route = useRoute();
     const isScreenFocused = useIsFocused();
 
