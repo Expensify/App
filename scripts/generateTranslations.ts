@@ -171,9 +171,6 @@ class TranslationGenerator {
             // Replace translated strings in the AST
             const transformer = this.createTransformer(translationsForLocale);
 
-            // TODO: Prune the delete dot notation paths from the existing translated AST using objectOmit
-            // TODO: Write the final translated AST to the target locale file
-
             // For incremental mode, transform just the translations node; otherwise transform the full file
             let transformedSourceFile: ts.SourceFile;
             if (this.isIncremental) {
@@ -208,7 +205,17 @@ class TranslationGenerator {
                 }
 
                 // Merge translationsPatch into the existing translations node
-                const mergedTranslationsNode = TSCompilerUtils.objectMerge(existingTranslationsNode, translationsPatch);
+                let mergedTranslationsNode = TSCompilerUtils.objectMerge(existingTranslationsNode, translationsPatch);
+
+                // Prune deleted paths from the merged translations node
+                if (this.pathsToRemove.size > 0) {
+                    const pathsToRemoveArray = Array.from(this.pathsToRemove);
+                    mergedTranslationsNode = TSCompilerUtils.objectOmit(mergedTranslationsNode, pathsToRemoveArray);
+
+                    if (this.verbose) {
+                        console.log(`🗑️ Removed paths: ${pathsToRemoveArray.join(', ')}`);
+                    }
+                }
 
                 // Transform the full existing source file, replacing the main translation node with our merged result
                 const replaceTransformer: ts.TransformerFactory<ts.SourceFile> = (context) => {
