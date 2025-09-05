@@ -2,28 +2,30 @@ import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import {PressableWithFeedback} from '@components/Pressable';
-import type {ListItem} from '@components/SelectionListSingle/types';
+import type {DataDetailsType, ListItem} from '@components/SelectionListSingle/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type HeaderProps<TItem extends ListItem> = {
+    /** Data details containing selection state and items info */
     dataDetails: DataDetailsType<TItem>;
-    aboveListHeaderMessage?: string;
-    customListHeader?: React.ReactNode;
-    canSelectMultiple: boolean;
-    onSelectAll?: () => void;
-    shouldPreventDefaultFocusOnSelectRow?: boolean;
-};
 
-type DataDetailsType<TItem extends ListItem> = {
-    data: TItem[];
-    selectedOptions: TItem[];
-    allSelected: boolean;
-    someSelected: boolean;
-    disabledIndexes: number[];
-    disabledArrowKeyIndexes: number[];
+    /** Message to display above the list */
+    aboveListHeaderMessage?: string;
+
+    /** Custom header content to render instead of the default select all header */
+    customListHeader?: React.ReactNode;
+
+    /** Whether multiple items can be selected */
+    canSelectMultiple: boolean;
+
+    /** Function called when the select all button is pressed */
+    onSelectAll?: () => void;
+
+    /** Whether to prevent default focus when selecting rows */
+    shouldPreventDefaultFocusOnSelectRow?: boolean;
 };
 
 function SelectionListHeader<TItem extends ListItem>({

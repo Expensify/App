@@ -1,25 +1,16 @@
 import React from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
+import type {ConfirmButtonOptions, ListItem} from '@components/SelectionListSingle/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-type ConfirmButtonProps = {
-    showButton?: boolean;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onConfirm?: (e?: GestureResponderEvent | KeyboardEvent | undefined, option?: any) => void;
-    style?: StyleProp<ViewStyle>;
-    text?: string;
-    isDisabled?: boolean;
-};
-
-type FooterProps = {
+type FooterProps<TItem extends ListItem> = {
     footerContent?: React.ReactNode;
-    confirmButtonConfig?: ConfirmButtonProps;
+    confirmButtonConfig?: ConfirmButtonOptions<TItem>;
     addBottomSafeAreaPadding?: boolean;
 };
 
-function Footer({footerContent, confirmButtonConfig, addBottomSafeAreaPadding = false}: FooterProps) {
+function Footer<TItem extends ListItem>({footerContent, confirmButtonConfig, addBottomSafeAreaPadding = false}: FooterProps<TItem>) {
     const styles = useThemeStyles();
     if (footerContent) {
         return (

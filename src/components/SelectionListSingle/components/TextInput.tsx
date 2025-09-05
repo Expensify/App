@@ -1,37 +1,40 @@
 import React from 'react';
-import type {InputModeOptions, NativeSyntheticEvent, TextInputKeyPressEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInputKeyPressEventData} from 'react-native';
 import {View} from 'react-native';
-import TextInput from '@components/TextInput';
+import type {TextInputOptions} from '@components/SelectionListSingle/types';
+import BaseTextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-type SelectionListTextInputOptions = {
-    onChangeText?: (text: string) => void;
-    textInputLabel?: string;
-    textInputValue?: string;
-    textInputHint?: string;
-    textInputPlaceholder?: string;
-    textInputMaxLength?: number;
-    inputMode?: InputModeOptions;
-    textInputErrorText?: string;
-};
-
-type SelectionListTextInputProps = {
+type TextInputProps = {
+    /** Reference to the BaseTextInput component */
     ref?: React.Ref<BaseTextInputRef> | null;
-    options?: SelectionListTextInputOptions;
+
+    /** Configuration options for the text input including label, placeholder, validation, etc. */
+    options?: TextInputOptions;
+
+    /** Whether the text input is loading */
     isLoading?: boolean;
+
+    /** The number of items in the data array, used to determine submit behavior */
     dataLength: number;
+
+    /** Callback function called when the text input is submitted */
     onSubmit: () => void;
+
+    /** Function called when a key is pressed in the text input */
     onKeyPress?: (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => void;
+
+    /** Function called when the text input focus changes */
     onFocusChange?: (focused: boolean) => void;
 };
 
-function SelectionListTextInput({ref, options, isLoading = false, dataLength, onSubmit, onKeyPress, onFocusChange}: SelectionListTextInputProps) {
+function TextInput({ref, options, isLoading = false, dataLength, onSubmit, onKeyPress, onFocusChange}: TextInputProps) {
     const styles = useThemeStyles();
     return (
         <View style={[styles.ph5, styles.pb3]}>
-            <TextInput
+            <BaseTextInput
                 ref={ref}
                 onKeyPress={onKeyPress}
                 onFocus={() => onFocusChange?.(true)}
@@ -58,6 +61,6 @@ function SelectionListTextInput({ref, options, isLoading = false, dataLength, on
     );
 }
 
-SelectionListTextInput.displayName = 'SelectionListTextInput';
+TextInput.displayName = 'TextInput';
 
-export default SelectionListTextInput;
+export default TextInput;
