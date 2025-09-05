@@ -1,4 +1,5 @@
 import {getForReportAction, getMovedFromOrToReportMessage, getMovedReportID} from '@libs/ModifiedExpenseMessage';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
