@@ -160,7 +160,7 @@ function SearchList(
     );
 
     const {translate} = useLocalize();
-    const listRef = useRef<InstanceType<typeof FlashList<SearchListItem>>>(null);
+    const listRef = useRef<FlashList<SearchListItem>>(null);
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const prevDataLength = usePrevious(data.length);

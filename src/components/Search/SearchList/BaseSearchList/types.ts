@@ -55,7 +55,7 @@ type BaseSearchListProps = {
     isFocused?: boolean;
 
     /** The ref to the list */
-    ref: ForwardedRef<InstanceType<typeof FlashList<SearchListItem>>>;
+    ref: ForwardedRef<FlashList<SearchListItem>>;
 
     /** The function to scroll to an index */
     scrollToIndex?: (index: number, animated?: boolean) => void;

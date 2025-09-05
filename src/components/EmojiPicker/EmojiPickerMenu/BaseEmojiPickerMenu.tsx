@@ -79,7 +79,7 @@ function ListEmptyComponent() {
 
 function BaseEmojiPickerMenu(
     {headerEmojis, scrollToHeader, isFiltered, listWrapperStyle = [], data, renderItem, stickyHeaderIndices = [], extraData = [], alwaysBounceVertical = false}: BaseEmojiPickerMenuProps,
-    ref: ForwardedRef<InstanceType<typeof FlashList<EmojiPickerListItem>>>,
+    ref: ForwardedRef<FlashList<EmojiPickerListItem>>,
 ) {
     const styles = useThemeStyles();
     return (

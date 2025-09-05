@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type BaseSearchListProps from './types';
 
-const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
+const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList) as typeof FlashList;
 
 function BaseSearchList({
     data,
