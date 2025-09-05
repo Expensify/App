@@ -91,6 +91,7 @@ function BaseRecordTroubleshootDataToolMenu({
     const [isProfilingInProgress] = useOnyx(ONYXKEYS.APP_PROFILING_IN_PROGRESS, {canBeMissing: true});
     const [shareUrls, setShareUrls] = useState<string[]>();
     const [isDisabled, setIsDisabled] = useState<boolean>(false);
+    const [profileTracePath, setProfileTracePath] = useState<string>();
 
     const shouldShowProfileTool = useMemo(() => shouldShowProfileToolUtil(), []);
 
@@ -124,6 +125,8 @@ function BaseRecordTroubleshootDataToolMenu({
         });
     }, [shouldShowProfileTool]);
 
+    const onStopProfiling = useMemo(() => (shouldShowProfileTool ? stopProfiling : () => Promise.resolve()), [shouldShowProfileTool]);
+
     const onToggle = () => {
         if (shouldShowProfileTool) {
             onToggleProfiling();
@@ -152,57 +155,21 @@ function BaseRecordTroubleshootDataToolMenu({
         const logsWithParsedMessages = parseStringifiedMessages(logs);
 
         const infoFileName = `App_Info_${pkg.version}.json`;
-        getAppInfo().then((appInfo) => {
-            zipRef.current?.file(infoFileName, appInfo);
 
-            onDisableLogging(logsWithParsedMessages).then(() => {
-                disableLoggingAndFlushLogs();
-                setShouldRecordTroubleshootData(false);
-                setIsDisabled(false);
-            });
-        });
-    };
-
-    const onStopProfiling = useMemo(() => (shouldShowProfileTool ? stopProfiling : () => Promise.resolve()), [shouldShowProfileTool]);
-
-    const onDisableSwitch = useCallback(() => {
         if (getPlatform() === CONST.PLATFORM.WEB) {
             onStopProfiling(true, newFileName).then(() => {
-                onDownloadZip?.();
-            });
-        } else if (getPlatform() === CONST.PLATFORM.DESKTOP) {
-            onDownloadZip?.();
-        } else if (getPlatform() === CONST.PLATFORM.ANDROID) {
-            onStopProfiling(true, newFileName).then((path) => {
-                if (!path) {
-                    return;
-                }
+                getAppInfo().then((appInfo) => {
+                    zipRef.current?.file(infoFileName, appInfo);
 
-                const getRealpathPromises = [];
-                getRealpathPromises.push(
-                    RNFetchBlob.fs
-                        // Check if it is an internal path of `DownloadManager` then append content://media to create a valid url
-                        .stat(!path.startsWith('content://media/') && path.match(/\/downloads\/\d+$/) ? `content://media/${path}` : path)
-                        .then(({path: realPath}) => realPath)
-                        .catch(() => ''),
-                );
-                if (file?.path) {
-                    getRealpathPromises.push(
-                        RNFetchBlob.fs
-                            .stat(file.path)
-                            .then(({path: realPath}) => realPath)
-                            .catch(() => ''),
-                    );
-                }
-
-                Promise.all(getRealpathPromises).then((realpaths) => {
-                    const urls = realpaths.filter((p) => p).map((p) => `file://${p}`);
-                    if (urls.length > 0) {
-                        setShareUrls(urls);
-                    }
+                    onDisableLogging(logsWithParsedMessages).then(() => {
+                        disableLoggingAndFlushLogs();
+                        setShouldRecordTroubleshootData(false);
+                        setIsDisabled(false);
+                        onDownloadZip?.();
+                    });
                 });
             });
-        } else {
+        } else if (getPlatform() === CONST.PLATFORM.IOS) {
             onStopProfiling(true, newFileName).then((path) => {
                 if (!path) {
                     return;
@@ -227,8 +194,19 @@ function BaseRecordTroubleshootDataToolMenu({
                     .then(() => {
                         RNFS.copyFile(path, newFilePath)
                             .then(() => {
+                                getAppInfo().then((appInfo) => {
+                                    zipRef.current?.file(infoFileName, appInfo);
+
+                                    onDisableLogging(logsWithParsedMessages).then(() => {
+                                        disableLoggingAndFlushLogs();
+                                        setShouldRecordTroubleshootData(false);
+                                        setIsDisabled(false);
+                                        onDownloadZip?.();
+                                    });
+                                });
                                 Log.hmmm('[ProfilingToolMenu] file copied successfully');
-                                setShareUrls([`file://${newFilePath}`, `file://${file?.path}`]);
+
+                                setProfileTracePath(newFilePath);
                             })
                             .catch((err) => {
                                 console.error('[ProfilingToolMenu] error copying file: ', err);
@@ -239,25 +217,52 @@ function BaseRecordTroubleshootDataToolMenu({
                         Log.hmmm('[ProfilingToolMenu] error copying file: ', error);
                     });
             });
+        } else if (getPlatform() === CONST.PLATFORM.ANDROID) {
+            onStopProfiling(true, newFileName).then((path) => {
+                if (!path) {
+                    return;
+                }
+
+                setProfileTracePath(path);
+
+                getAppInfo().then((appInfo) => {
+                    zipRef.current?.file(infoFileName, appInfo);
+
+                    onDisableLogging(logsWithParsedMessages).then(() => {
+                        disableLoggingAndFlushLogs();
+                        setShouldRecordTroubleshootData(false);
+                        setIsDisabled(false);
+                    });
+                });
+            });
+        } else {
+            // Desktop
+            onStopProfiling(true, newFileName).then(() => {
+                getAppInfo().then((appInfo) => {
+                    zipRef.current?.file(infoFileName, appInfo);
+
+                    onDisableLogging(logsWithParsedMessages).then(() => {
+                        disableLoggingAndFlushLogs();
+                        setShouldRecordTroubleshootData(false);
+                        setIsDisabled(false);
+                    });
+                });
+            });
         }
-    }, [file?.path, onDownloadZip, onStopProfiling, pathToBeUsed]);
+    };
 
     useEffect(() => {
-        if (!file) {
+        if (!profileTracePath || !file) {
             return;
         }
 
-        onDisableSwitch();
-    }, [file, onDisableSwitch]);
+        setShareUrls([`file://${profileTracePath}`, `file://${file?.path}`]);
+    }, [profileTracePath, file]);
 
     const onShare = () => {
         Share.open({
             urls: shareUrls,
         });
-    };
-
-    const onDownloadProfiling = () => {
-        onStopProfiling(true, newFileName);
     };
 
     return (
@@ -287,7 +292,7 @@ function BaseRecordTroubleshootDataToolMenu({
                     <Button
                         small
                         text={translate('common.download')}
-                        onPress={onDownloadProfiling}
+                        onPress={onDownloadZip}
                     />
                 </TestToolRow>
             )}

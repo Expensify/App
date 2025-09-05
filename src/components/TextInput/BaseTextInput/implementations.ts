@@ -6,9 +6,9 @@ import type {BaseTextInputProps, InputType} from './types';
 type InputComponentType = React.ComponentType<BaseTextInputProps>;
 
 const InputComponentMap = new Map<InputType, InputComponentType>([
-    ['default', RNTextInput],
+    ['default', RNTextInput as InputComponentType],
     ['mask', RNMaskedTextInput as InputComponentType],
-    ['markdown', RNMarkdownTextInput],
+    ['markdown', RNMarkdownTextInput as InputComponentType],
 ]);
 
 export default InputComponentMap;

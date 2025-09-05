@@ -13,10 +13,11 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
-import {setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -100,6 +101,8 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         return translate('workspace.rules.individualExpenseRules.maxExpenseAgeDays', {count: policy?.maxExpenseAge ?? 0});
     }, [policy?.maxExpenseAge, translate]);
 
+    const reimbursableMode = getCashExpenseReimbursableMode(policyID) ?? CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT;
+    const reimbursableModeText = translate(`workspace.rules.individualExpenseRules.${reimbursableMode}`);
     const billableModeText = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);
 
     const prohibitedExpenses = useMemo(() => {
@@ -153,6 +156,12 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             pendingAction: policy?.pendingFields?.maxExpenseAge,
         },
         {
+            title: reimbursableModeText,
+            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.cashExpenseDefault',
+            action: () => Navigation.navigate(ROUTES.RULES_REIMBURSABLE_DEFAULT.getRoute(policyID)),
+            pendingAction: policy?.pendingFields?.defaultReimbursable,
+        },
+        {
             title: billableModeText,
             descriptionTranslationKey: 'workspace.rules.individualExpenseRules.billableDefault',
             action: () => Navigation.navigate(ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID)),
@@ -187,7 +196,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             )}
             titleStyles={styles.accountSettingsSectionTitle}
         >
-            <View style={[styles.mt3, styles.gap3]}>
+            <View style={[styles.mt3]}>
                 {individualExpenseRulesItems.map((item) => (
                     <OfflineWithFeedback
                         pendingAction={item.pendingAction}
@@ -206,7 +215,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
 
                 <View style={[styles.mt3]}>
                     <OfflineWithFeedback pendingAction={policy?.pendingFields?.eReceipts}>
-                        <View style={[styles.flexRow, styles.mb1, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, {minHeight: variables.h40}]}>
                             <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.eReceipts')}</Text>
                             <Switch
                                 isOn={areEReceiptsEnabled}
@@ -216,7 +225,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                             />
                         </View>
                     </OfflineWithFeedback>
-                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
+                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.pt1]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.eReceiptsHint')}</Text>{' '}
                         <TextLink
                             style={[styles.textLabel, styles.link]}
@@ -229,7 +238,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                 </View>
                 <View style={[styles.mt3]}>
                     <OfflineWithFeedback pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}>
-                        <View style={[styles.flexRow, styles.mb1, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, {minHeight: variables.h40}]}>
                             <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.attendeeTracking')}</Text>
                             <Switch
                                 isOn={isAttendeeTrackingEnabled}
@@ -238,7 +247,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                             />
                         </View>
                     </OfflineWithFeedback>
-                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
+                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.pt1]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}</Text>
                     </Text>
                 </View>
