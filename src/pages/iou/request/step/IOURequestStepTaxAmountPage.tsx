@@ -152,7 +152,7 @@ function IOURequestStepTaxAmountPage({
                 currency={currency}
                 amount={Math.abs(transactionDetails?.taxAmount ?? 0)}
                 taxAmount={getTaxAmount(currentTransaction, policy, currency, !!(backTo || isEditing))}
-                forwardedRef={(e) => {
+                ref={(e) => {
                     textInput.current = e;
                 }}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
