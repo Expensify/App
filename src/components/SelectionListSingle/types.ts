@@ -574,7 +574,6 @@ export type {
     DataDetailsType,
     SelectionListHandle,
     SelectionListProps,
-    //
     BaseListItemProps,
     ButtonOrCheckBoxRoles,
     ExtendedTargetedEvent,

@@ -2,11 +2,11 @@ import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import {PressableWithFeedback} from '@components/Pressable';
+import type {ListItem} from '@components/SelectionListSingle/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type {ListItem} from './types';
 
 type HeaderProps<TItem extends ListItem> = {
     dataDetails: DataDetailsType<TItem>;

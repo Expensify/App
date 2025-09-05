@@ -32,7 +32,7 @@ function SelectionListTextInput({ref, options, isLoading = false, dataLength, on
     return (
         <View style={[styles.ph5, styles.pb3]}>
             <TextInput
-                ref={ref as React.Ref<BaseTextInputRef>}
+                ref={ref}
                 onKeyPress={onKeyPress}
                 onFocus={() => onFocusChange?.(true)}
                 onBlur={() => onFocusChange?.(false)}

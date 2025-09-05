@@ -1,6 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
+import {deepEqual} from 'fast-equals';
 import React, {useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {TextInput as RNTextInput, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -15,9 +16,8 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import areSetsEqual from '@src/utils/setsEqual';
-import Footer from './Footer';
-import SelectionListHeader from './ListHeader';
+import Footer from './components/Footer';
+import SelectionListHeader from './components/ListHeader';
 import type {DataDetailsType, ListItem, SelectionListProps} from './types';
 
 const ANIMATED_HIGHLIGHT_DURATION =
@@ -54,7 +54,7 @@ function BaseSelectionList<TItem extends ListItem>({
     listFooterContent,
     rightHandSideComponent,
     alternateNumberOfSupportedLines,
-    selectedItems = [],
+    selectedItems = CONST.EMPTY_ARRAY,
     listStyle,
     listItemTitleStyles,
     listItemWrapperStyle,
@@ -260,7 +260,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const scrollAndHighlightItem = useCallback(
         (items: string[]) => {
             const newItemsToHighlight = new Set<string>(items);
-            if (areSetsEqual(itemsToHighlight, newItemsToHighlight)) {
+            if (deepEqual(itemsToHighlight, newItemsToHighlight)) {
                 return;
             }
             const index = data.findIndex((option) => newItemsToHighlight.has(option.keyForList ?? ''));
