@@ -389,7 +389,7 @@ function BaseVideoPlayer({
                                             allowsFullscreen
                                             player={videoPlayerRef.current}
                                             style={[styles.w100, styles.h100, videoPlayerStyle]}
-                                            nativeControls={false}
+                                            nativeControls={isFullScreenRef.current}
                                             playsInline
                                             testID={CONST.VIDEO_PLAYER_TEST_ID}
                                             ref={videoViewRef}

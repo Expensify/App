@@ -9,7 +9,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {convertSecondsToTime} from '@components/VideoPlayer/utils';
-import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -70,7 +69,6 @@ function VideoPlayerControls({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID} = usePlaybackContext();
-    const {isFullScreenRef} = useFullScreenContext();
     const [shouldShowTime, setShouldShowTime] = useState(false);
     const iconSpacing = small ? styles.mr3 : styles.mr4;
 
@@ -80,10 +78,8 @@ function VideoPlayerControls({
 
     const enterFullScreenMode = useCallback(() => {
         updateCurrentURLAndReportID(url, reportID);
-        const result = videoViewRef.current?.enterFullscreen();
-        // eslint-disable-next-line react-compiler/react-compiler
-        result?.then(() => (isFullScreenRef.current = true)).catch(() => {});
-    }, [isFullScreenRef, reportID, updateCurrentURLAndReportID, url, videoViewRef]);
+        videoViewRef.current?.enterFullscreen();
+    }, [reportID, updateCurrentURLAndReportID, url, videoViewRef]);
 
     const seekPosition = useCallback(
         (newPosition: number) => {
