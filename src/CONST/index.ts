@@ -1557,7 +1557,6 @@ const CONST = {
         APPLY_HTTPS_UPDATES: 'apply_https_updates',
         COMPUTE_REPORT_NAME: 'compute_report_name',
         COMPUTE_REPORT_NAME_FOR_NEW_REPORT: 'compute_report_name_for_new_report',
-        UPDATE_OPTIMISTIC_REPORT_NAMES: 'update_optimistic_report_names',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
