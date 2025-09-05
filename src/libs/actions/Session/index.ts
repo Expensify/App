@@ -68,6 +68,7 @@ import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
+import FraudProtection, { EVENTS } from '@libs/FraudProtection';
 
 const INVALID_TOKEN = 'pizza';
 
@@ -208,6 +209,7 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false) {
 function signInWithSupportAuthToken(authToken: string) {
     const {optimisticData, finallyData} = getShortLivedLoginParams(true);
     API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, {authToken}, {optimisticData, finallyData});
+    FraudProtection.sendEvent(EVENTS.START_SUPPORT_SESSION);
 }
 
 /**
@@ -339,6 +341,9 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
         Log.info('No stashed session found, clearing the session');
     }
 
+    if (isSupportal) {
+        FraudProtection.sendEvent(EVENTS.STOP_SUPPORT_SESSION);
+    }
     // Wait for signOut (if called), then redirect and update Onyx.
     return signOutPromise
         .then((response) => {
