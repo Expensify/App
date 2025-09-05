@@ -1130,7 +1130,7 @@ function MoneyReportHeader({
                         }
                         const reportID = moneyRequestReport?.reportID;
                         if (reportID) {
-                            deleteAppReport(reportID, transactions);
+                            deleteAppReport(reportID);
                         }
                     });
                 }

@@ -96,7 +96,6 @@ import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {isDeleteAction} from '@libs/ReportSecondaryActionUtils';
 import type {OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
@@ -4817,7 +4816,7 @@ function clearDeleteTransactionNavigateBackUrl() {
 }
 
 /** Deletes a report and un-reports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
-function deleteAppReport(reportID: string | undefined, reportTransactions?: Transaction[]) {
+function deleteAppReport(reportID: string | undefined) {
     if (!reportID) {
         Log.warn('[Report] deleteReport called with no reportID');
         return;
@@ -4904,7 +4903,7 @@ function deleteAppReport(reportID: string | undefined, reportTransactions?: Tran
             return;
         }
 
-        if (!!report && !!reportTransactions && isDeleteAction(report, reportTransactions, [reportAction])) {
+        if (ReportActionsUtils.isDeletedAction(reportAction)) {
             return;
         }
 
