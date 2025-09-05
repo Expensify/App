@@ -1843,11 +1843,11 @@ const ROUTES = {
     },
     WORKSPACE_DUPLICATE: {
         route: 'workspace/:policyID/duplicate',
-        getRoute: (policyID: string) => `workspace/${policyID}/duplicate`,
+        getRoute: (policyID: string) => `workspace/${policyID}/duplicate` as const,
     },
     WORKSPACE_DUPLICATE_SELECT_FEATURES: {
         route: 'workspace/:policyID/duplicate/select-features',
-        getRoute: (policyID: string) => `workspace/${policyID}/duplicate/select-features`,
+        getRoute: (policyID: string) => `workspace/${policyID}/duplicate/select-features` as const,
     },
     WORKSPACE_RECEIPT_PARTNERS: {
         route: 'workspaces/:policyID/receipt-partners',
