@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React from 'react';
-import type {TextInput} from 'react-native';
+import {TextInput} from 'react-native';
 import type {MaskedTextInputProps} from 'react-native-advanced-input-mask';
 import {MaskedTextInput} from 'react-native-advanced-input-mask';
 import Animated from 'react-native-reanimated';
@@ -9,7 +9,7 @@ import type {DescriptiveFSClassProps} from '@libs/Fullstory/types';
 import CONST from '@src/CONST';
 
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet
-const AnimatedTextInput = Animated.createAnimatedComponent(MaskedTextInput);
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 type AnimatedTextInputRef = typeof AnimatedTextInput & TextInput & HTMLInputElement;
 
@@ -22,7 +22,8 @@ function RNMaskedTextInputWithRef({ref, inputFSClass = CONST.FULLSTORY.CLASS.MAS
     const theme = useTheme();
 
     return (
-        <AnimatedTextInput
+        <MaskedTextInput
+            renderTextInputComponent={AnimatedTextInput}
             // disable autocomplete to prevent part of mask to be present on Android when value is empty
             autocomplete={false}
             allowFontScaling={false}
@@ -32,7 +33,7 @@ function RNMaskedTextInputWithRef({ref, inputFSClass = CONST.FULLSTORY.CLASS.MAS
                 if (typeof ref !== 'function') {
                     return;
                 }
-                ref(refHandle as AnimatedTextInputRef);
+                ref(refHandle as AnimatedTextInputRef | null);
             }}
             // eslint-disable-next-line react/forbid-component-props
             fsClass={inputFSClass}
