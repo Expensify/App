@@ -308,8 +308,9 @@ function formatToLongDateWithWeekday(datetime: string | Date, locale: Locale | u
  *
  * @returns Sunday
  */
-function formatToDayOfWeek(datetime: Date): string {
-    return format(datetime, CONST.DATE.WEEKDAY_TIME_FORMAT);
+function formatToDayOfWeek(datetime: Date, locale: Locale | undefined): string {
+    const dateFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long'});
+    return dateFormatter.format(datetime);
 }
 
 /**
