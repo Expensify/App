@@ -4274,7 +4274,11 @@ function canEditFieldOfMoneyRequest(
         // Unreported transaction from OldDot can have the reportID as an empty string
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
-        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID) && !isUnreportedExpense) {
+        if (isUnreportedExpense) {
+            return true;
+        }
+
+        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
             return false;
         }
 
@@ -4284,7 +4288,7 @@ function canEditFieldOfMoneyRequest(
         }
         const isOwner = moneyRequestReport?.ownerAccountID === currentUserAccountID;
 
-        if (isInvoiceReport(moneyRequestReport) && !isUnreportedExpense) {
+        if (isInvoiceReport(moneyRequestReport)) {
             return (
                 getOutstandingReportsForUser(
                     moneyRequestReport?.policyID,
@@ -4297,15 +4301,11 @@ function canEditFieldOfMoneyRequest(
 
         // If the report is Open, then only submitters, admins can move expenses
         const isOpen = isOpenExpenseReport(moneyRequestReport);
-        if (!isUnreportedExpense && isOpen && !isSubmitter && !isAdmin) {
+        if (isOpen && !isSubmitter && !isAdmin) {
             return false;
         }
 
-        return isUnreportedExpense
-            ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                  getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-              ).length > 0
-            : Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
+        return Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
                   getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
               ).length > 1 ||
                   (isOwner && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID));
