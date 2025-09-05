@@ -1,13 +1,14 @@
 import React, {useState} from 'react';
-import useLastAccessedReport from '@hooks/useLastAccessedReport';
 import usePermissions from '@hooks/usePermissions';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
+import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -24,7 +25,6 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
     const {isBetaEnabled} = usePermissions();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
-    const {lastAccessReportID} = useLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), shouldOpenOnAdminRoom());
 
     const [initialReportID] = useState(() => {
         const currentURL = getCurrentUrl();
@@ -33,9 +33,13 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
             return reportIdFromPath;
         }
 
+        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), shouldOpenOnAdminRoom());
         // eslint-disable-next-line rulesdir/no-default-id-values
-        return lastAccessReportID ?? '';
+        return initialReport?.reportID ?? '';
     });
+
+    // This hook preloads the screens of adjacent tabs to make changing tabs faster.
+    usePreloadFullScreenNavigators();
 
     return (
         <FreezeWrapper>

@@ -60,14 +60,6 @@ Onyx.connect({
     callback: (value) => (allPersonalDetails = value),
 });
 
-let quickAction: OnyxEntry<OnyxTypes.QuickAction> = {};
-Onyx.connect({
-    key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-    callback: (value) => {
-        quickAction = value;
-    },
-});
-
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -143,6 +135,7 @@ function createTaskAndNavigate(
     assigneeChatReport?: OnyxEntry<OnyxTypes.Report>,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
     isCreatedUsingMarkdown = false,
+    quickAction: OnyxEntry<OnyxTypes.QuickAction> = {},
 ) {
     if (!parentReportID) {
         return;
@@ -307,7 +300,7 @@ function createTaskAndNavigate(
     });
 
     // If needed, update optimistic data for parent report action of the parent report.
-    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(parentReportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(parentReport, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     optimisticParentReportData.forEach((parentReportData) => {
         if (isEmptyObject(parentReportData)) {
             return;
@@ -1045,7 +1038,7 @@ function getParentReport(report: OnyxEntry<OnyxTypes.Report>): OnyxEntry<OnyxTyp
  * @param report - The task report being deleted
  * @returns The URL to navigate to
  */
-function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, lastAccessedReportID: string | undefined): string | undefined {
+function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>): string | undefined {
     if (!report) {
         return undefined;
     }
@@ -1062,7 +1055,7 @@ function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, lastA
     }
 
     // If no parent report, try to navigate to most recent report
-    const mostRecentReportID = getMostRecentReportID(lastAccessedReportID);
+    const mostRecentReportID = getMostRecentReportID(report);
     if (mostRecentReportID) {
         return ROUTES.REPORT_WITH_ID.getRoute(mostRecentReportID);
     }
@@ -1073,7 +1066,7 @@ function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, lastA
 /**
  * Cancels a task by setting the report state to SUBMITTED and status to CLOSED
  */
-function deleteTask(report: OnyxEntry<OnyxTypes.Report>, lastAccessedReportID: string | undefined) {
+function deleteTask(report: OnyxEntry<OnyxTypes.Report>, isReportArchived: boolean) {
     if (!report) {
         return;
     }
@@ -1082,7 +1075,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>, lastAccessedReportID: s
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
     const parentReportAction = getParentReportAction(report);
     const parentReport = getParentReport(report);
-    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
+    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report, isReportArchived);
 
     // If the task report is the last visible action in the parent report, we should navigate back to the parent report
     const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID, canUserPerformWriteAction);
@@ -1145,7 +1138,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>, lastAccessedReportID: s
     const childVisibleActionCount = parentReportAction?.childVisibleActionCount ?? 0;
     if (childVisibleActionCount === 0) {
         const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(
-            parentReport?.reportID,
+            parentReport,
             parentReport?.lastVisibleActionCreated ?? '',
             CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
@@ -1212,7 +1205,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>, lastAccessedReportID: s
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
     notifyNewAction(report.reportID, currentUserAccountID);
 
-    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, lastAccessedReportID);
+    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report);
     if (urlToNavigateBack) {
         Navigation.goBack();
         return urlToNavigateBack;

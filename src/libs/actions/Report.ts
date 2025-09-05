@@ -91,7 +91,7 @@ import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {getDefaultApprover, getMemberAccountIDsForWorkspace, getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyMember} from '@libs/PolicyUtils';
+import {getDefaultApprover, getMemberAccountIDsForWorkspace, getPolicy, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyMember} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
@@ -112,9 +112,11 @@ import {
     buildOptimisticReportPreview,
     buildOptimisticRoomDescriptionUpdatedReportAction,
     buildOptimisticSelfDMReport,
+    buildOptimisticUnHoldReportAction,
     buildOptimisticUnreportedTransactionAction,
+    buildTransactionThread,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    findLastAccessedReportWithoutView,
+    findLastAccessedReport,
     findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
@@ -132,6 +134,7 @@ import {
     getPendingChatMembers,
     getPolicyExpenseChat,
     getReportFieldKey,
+    getReportFieldsByPolicyID,
     getReportIDFromLink,
     getReportLastMessage,
     getReportLastVisibleActionCreated,
@@ -141,6 +144,7 @@ import {
     getReportTransactions,
     getReportViolations,
     getRouteFromLink,
+    getTitleReportField,
     isChatThread as isChatThreadReportUtils,
     isConciergeChatReport,
     isExpenseReport,
@@ -154,11 +158,14 @@ import {
     isSelfDM,
     isUnread,
     isValidReportIDFromPath,
+    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
 } from '@libs/ReportUtils';
+import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {addTrailingForwardSlash} from '@libs/Url';
+import {isOnHold} from '@libs/TransactionUtils';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONFIG from '@src/CONFIG';
@@ -797,7 +804,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     ];
 
     // Update optimistic data for parent report action if the report is a child report
-    const optimisticParentReportData = getOptimisticDataForParentReportAction(reportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    const optimisticParentReportData = getOptimisticDataForParentReportAction(report, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     optimisticParentReportData.forEach((parentReportData) => {
         if (isEmptyObject(parentReportData)) {
             return;
@@ -1319,6 +1326,17 @@ function getOptimisticChatReport(accountID: number): OptimisticChatReport {
     });
 }
 
+function createTransactionThreadReport(iouReport: OnyxEntry<Report>, iouReportAction: OnyxEntry<ReportAction>): OptimisticChatReport | undefined {
+    if (!iouReport || !iouReportAction) {
+        Log.warn('Cannot build transaction thread report without iouReport and iouReportAction parameters');
+        return;
+    }
+    const optimisticTransactionThreadReportID = generateReportID();
+    const optimisticTransactionThread = buildTransactionThread(iouReportAction, iouReport, undefined, optimisticTransactionThreadReportID);
+    openReport(optimisticTransactionThreadReportID, undefined, currentUserEmail ? [currentUserEmail] : [], optimisticTransactionThread, iouReportAction?.reportActionID);
+    return optimisticTransactionThread;
+}
+
 /**
  * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
  *
@@ -1409,7 +1427,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
 function navigateToAndOpenChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string) {
     const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
     if (childReport?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, Navigation.getActiveRoute()));
     } else {
         const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
         const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
@@ -1435,7 +1453,7 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
         }
 
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID, undefined, undefined, Navigation.getActiveRoute()));
     }
 }
 
@@ -1848,7 +1866,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
 }
 
 /** Deletes a comment from the report, basically sets it as empty string */
-function deleteReportComment(reportID: string | undefined, reportAction: ReportAction) {
+function deleteReportComment(reportID: string | undefined, reportAction: ReportAction, isReportArchived = false) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
     const reportActionID = reportAction.reportActionID;
 
@@ -1883,7 +1901,7 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    const {lastMessageText = ''} = getLastVisibleMessage(originalReportID, optimisticReportActions as ReportActions);
+    const {lastMessageText = ''} = getLastVisibleMessage(originalReportID, optimisticReportActions as ReportActions, isReportArchived);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
     if (lastMessageText) {
@@ -1952,8 +1970,9 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
     // Update optimistic data for parent report action if the report is a child report and the reportAction has no visible child
     const childVisibleActionCount = reportAction.childVisibleActionCount ?? 0;
     if (childVisibleActionCount === 0) {
+        const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
         const optimisticParentReportData = getOptimisticDataForParentReportAction(
-            originalReportID,
+            originalReport,
             optimisticReport?.lastVisibleActionCreated ?? '',
             CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
@@ -2753,15 +2772,6 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
             value: optimisticNextStep,
         },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value: {
-                action: CONST.QUICK_ACTIONS.CREATE_REPORT,
-                chatReportID: parentReport?.reportID,
-                isFirstQuickAction: isEmptyObject(quickAction),
-            },
-        },
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -2774,11 +2784,6 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {[reportActionID]: {errorFields: {createReport: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}},
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value: quickAction ?? null,
         },
 
         {
@@ -3194,12 +3199,6 @@ function shouldShowReportActionNotification(reportID: string, action: ReportActi
         return false;
     }
 
-    // Only show notifications for supported types of report actions
-    if (action && !ReportActionsUtils.isNotifiableReportAction(action)) {
-        Log.info(`${tag} No notification because this action type is not supported`, false, {actionName: action?.actionName});
-        return false;
-    }
-
     return true;
 }
 
@@ -3289,8 +3288,6 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
         emojiCode: emoji.name,
         reportActionID,
         createdAt,
-        // This will be removed as part of https://github.com/Expensify/App/issues/19535
-        useEmojiReactions: true,
     };
 
     API.write(WRITE_COMMANDS.ADD_EMOJI_REACTION, parameters, {optimisticData, successData, failureData});
@@ -3319,8 +3316,6 @@ function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Em
         reportID,
         reportActionID,
         emojiCode: emoji.name,
-        // This will be removed as part of https://github.com/Expensify/App/issues/19535
-        useEmojiReactions: true,
     };
 
     API.write(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, parameters, {optimisticData});
@@ -3375,6 +3370,7 @@ function openReportFromDeepLink(
     currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>,
     currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>,
     onboardingInitialPath: OnyxEntry<string>,
+    reports: OnyxCollection<Report>,
 ) {
     const reportID = getReportIDFromLink(url);
     const isAuthenticated = hasAuthToken();
@@ -3412,7 +3408,7 @@ function openReportFromDeepLink(
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
-            const connection = Onyx.connectWithoutView({
+            const connection = Onyx.connect({
                 key: ONYXKEYS.NVP_ONBOARDING,
                 callback: (val) => {
                     if (!val && !isAnonymousUser()) {
@@ -3454,21 +3450,44 @@ function openReportFromDeepLink(
                                 return;
                             }
 
-                            // Check if the report exists in the collection
-                            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                            // If the report does not exist, navigate to the last accessed report or Concierge chat
-                            if (reportID && !report) {
-                                const lastAccessedReportID = findLastAccessedReportWithoutView(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
-                                if (lastAccessedReportID) {
-                                    const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-                                    Navigation.navigate(lastAccessedReportRoute);
+                            const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
+                                // Check if the report exists in the collection
+                                const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                                // If the report does not exist, navigate to the last accessed report or Concierge chat
+                                if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
+                                    const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
+                                    if (lastAccessedReportID) {
+                                        const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
+                                        Navigation.navigate(lastAccessedReportRoute);
+                                        return;
+                                    }
+                                    navigateToConciergeChat(false, () => true);
                                     return;
                                 }
-                                navigateToConciergeChat(false, () => true);
-                                return;
-                            }
 
-                            Navigation.navigate(route as Route);
+                                Navigation.navigate(route as Route);
+                            };
+                            // If we log with deeplink with reportID and data for this report is not available yet,
+                            // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
+                            if (
+                                reportID &&
+                                !isAuthenticated &&
+                                (!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID)
+                            ) {
+                                const reportConnection = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                                    // eslint-disable-next-line rulesdir/prefer-early-return
+                                    callback: (report) => {
+                                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                        if (report?.errorFields?.notFound || report?.reportID) {
+                                            Onyx.disconnect(reportConnection);
+                                            navigateHandler(report);
+                                        }
+                                    },
+                                });
+                            } else {
+                                navigateHandler();
+                            }
                         };
 
                         if (isAnonymousUser()) {
@@ -3504,7 +3523,9 @@ function getCurrentUserEmail(): string | undefined {
     return currentUserEmail;
 }
 
-function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, lastAccessedReportID: string | undefined) {
+function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
+    const lastAccessedReportID = findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
+
     if (lastAccessedReportID) {
         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
         Navigation.goBack(lastAccessedReportRoute);
@@ -3520,7 +3541,8 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, lastAccess
     }
 }
 
-function getMostRecentReportID(lastAccessedReportID: string | undefined) {
+function getMostRecentReportID(currentReport: OnyxEntry<Report>) {
+    const lastAccessedReportID = findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
     return lastAccessedReportID ?? conciergeReportID;
 }
 
@@ -3537,7 +3559,7 @@ function joinRoom(report: OnyxEntry<Report>) {
     );
 }
 
-function leaveGroupChat(reportID: string, lastAccessedReportID: string | undefined) {
+function leaveGroupChat(reportID: string) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report) {
         Log.warn('Attempting to leave Group Chat that does not existing locally');
@@ -3589,12 +3611,12 @@ function leaveGroupChat(reportID: string, lastAccessedReportID: string | undefin
         },
     ];
 
-    navigateToMostRecentReport(report, lastAccessedReportID);
+    navigateToMostRecentReport(report);
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
 
 /** Leave a report by setting the state to submitted and closed */
-function leaveRoom(reportID: string, lastAccessedReportID: string | undefined, isWorkspaceMemberLeavingWorkspaceRoom = false) {
+function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     if (!report) {
@@ -3701,7 +3723,7 @@ function leaveRoom(reportID: string, lastAccessedReportID: string | undefined, i
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
-    navigateToMostRecentReport(report, lastAccessedReportID);
+    navigateToMostRecentReport(report);
 }
 
 function buildInviteToRoomOnyxData(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
@@ -4007,9 +4029,14 @@ function flagComment(reportID: string | undefined, reportAction: OnyxEntry<Repor
 
     const reportActionID = reportAction.reportActionID;
 
+    const shouldHideMessage = (
+        [CONST.MODERATION.FLAG_SEVERITY_HARASSMENT, CONST.MODERATION.FLAG_SEVERITY_ASSAULT, CONST.MODERATION.FLAG_SEVERITY_INTIMIDATION, CONST.MODERATION.FLAG_SEVERITY_BULLYING] as string[]
+    ).includes(severity);
+
     const updatedMessage: Message = {
         ...message,
         moderationDecision: updatedDecision,
+        ...(shouldHideMessage ? {translationKey: '', type: 'COMMENT', html: '', text: '', isEdited: true} : {}),
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -4025,6 +4052,39 @@ function flagComment(reportID: string | undefined, reportAction: OnyxEntry<Repor
         },
     ];
 
+    let optimisticReport: Partial<Report> = {
+        lastMessageText: '',
+        lastVisibleActionCreated: '',
+    };
+
+    const {lastMessageText = ''} = getLastVisibleMessage(originalReportID, {
+        [reportActionID]: {...reportAction, message: [updatedMessage], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+    } as ReportActions);
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
+    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
+    if (lastMessageText) {
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, {
+            [reportActionID]: {...reportAction, message: [updatedMessage], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        } as ReportActions);
+        const lastVisibleActionCreated = lastVisibleAction?.created;
+        const lastActorAccountID = lastVisibleAction?.actorAccountID;
+        optimisticReport = {
+            lastMessageText,
+            lastVisibleActionCreated,
+            lastActorAccountID,
+        };
+    }
+
+    if (shouldHideMessage) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`,
+            value: optimisticReport,
+        });
+    }
+
+    const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4037,6 +4097,14 @@ function flagComment(reportID: string | undefined, reportAction: OnyxEntry<Repor
             },
         },
     ];
+
+    if (shouldHideMessage) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`,
+            value: originalReport,
+        });
+    }
 
     const successData: OnyxUpdate[] = [
         {
@@ -4169,6 +4237,7 @@ function completeOnboarding({
     companySize,
     userReportedIntegration,
     wasInvited,
+    selectedInterestedFeatures = [],
 }: {
     engagementChoice: OnboardingPurpose;
     onboardingMessage: OnboardingMessage;
@@ -4180,6 +4249,7 @@ function completeOnboarding({
     companySize?: OnboardingCompanySize;
     userReportedIntegration?: OnboardingAccounting;
     wasInvited?: boolean;
+    selectedInterestedFeatures?: string[];
 }) {
     const onboardingData = prepareOnboardingOnyxData(
         introSelected,
@@ -4190,6 +4260,7 @@ function completeOnboarding({
         userReportedIntegration,
         wasInvited,
         companySize,
+        selectedInterestedFeatures,
     );
     if (!onboardingData) {
         return;
@@ -4215,19 +4286,19 @@ function completeOnboarding({
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
-            value: {isLoading: true, hasCompletedGuidedSetupFlow: false},
+            value: {isLoading: true},
         });
 
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
-            value: {isLoading: false, hasCompletedGuidedSetupFlow: true},
+            value: {isLoading: false},
         });
 
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
-            value: {isLoading: false, hasCompletedGuidedSetupFlow: false},
+            value: {isLoading: false},
         });
     }
 
@@ -4355,6 +4426,7 @@ function resolveActionableMentionWhisper(
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     policy?: OnyxEntry<Policy>,
+    isReportArchived = false,
 ) {
     if (!reportAction || !reportID) {
         return;
@@ -4402,7 +4474,7 @@ function resolveActionableMentionWhisper(
     };
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportID, optimisticReportActions as ReportActions);
+    const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportID, optimisticReportActions as ReportActions, isReportArchived);
 
     const reportUpdateDataWithCurrentLastMessage = {
         lastMessageText: report?.lastMessageText,
@@ -4463,8 +4535,9 @@ function resolveActionableMentionConfirmWhisper(
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    isReportArchived: boolean,
 ) {
-    resolveActionableMentionWhisper(reportID, reportAction, resolution, formatPhoneNumber);
+    resolveActionableMentionWhisper(reportID, reportAction, resolution, formatPhoneNumber, undefined, isReportArchived);
 }
 
 function resolveActionableReportMentionWhisper(
@@ -4851,7 +4924,7 @@ function deleteAppReport(reportID: string | undefined) {
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    value: {reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+                    value: {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, comment: {hold: null}},
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -4864,7 +4937,7 @@ function deleteAppReport(reportID: string | undefined) {
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                    value: {reportID: transaction?.reportID},
+                    value: {reportID: transaction?.reportID, comment: {hold: transaction?.comment?.hold}},
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -4872,6 +4945,32 @@ function deleteAppReport(reportID: string | undefined) {
                     value: transactionViolations,
                 },
             );
+
+            if (isOnHold(transaction)) {
+                const unHoldAction = buildOptimisticUnHoldReportAction();
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
+                    value: {[unHoldAction.reportActionID]: unHoldAction},
+                });
+
+                successData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
+                    value: {[unHoldAction.reportActionID]: {pendingAction: null}},
+                });
+
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
+                    value: {[unHoldAction.reportActionID]: null},
+                });
+
+                transactionIDToReportActionAndThreadData[transactionID] = {
+                    ...transactionIDToReportActionAndThreadData[transactionID],
+                    unholdReportActionID: unHoldAction.reportActionID,
+                };
+            }
         }
 
         // 2. Move the report action to self DM
@@ -4955,6 +5054,7 @@ function deleteAppReport(reportID: string | undefined) {
 
         if (transactionID) {
             transactionIDToReportActionAndThreadData[transactionID] = {
+                ...transactionIDToReportActionAndThreadData[transactionID],
                 moneyRequestPreviewReportActionID: newReportActionID,
                 movedReportActionID: unreportedAction?.reportActionID,
             };
@@ -5086,6 +5186,12 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
         type: CONST.REPORT.TYPE.EXPENSE,
         total: -(iouReport?.total ?? 0),
     };
+
+    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
+    if (!!titleReportField && isPaidGroupPolicy(policy)) {
+        expenseReport.reportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
+    }
+
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
@@ -5146,7 +5252,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportId}`,
-            value: {[reportPreview.reportActionID]: {...reportPreview, created: DateUtils.getDBTime()}},
+            value: {[reportPreview.reportActionID]: {...reportPreview, childReportName: expenseReport.reportName, created: DateUtils.getDBTime()}},
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5214,6 +5320,7 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
         policyID,
         changePolicyReportActionID: changePolicyReportAction.reportActionID,
         dmMovedReportActionID: movedReportAction.reportActionID,
+        optimisticReportID: expenseChatReportId,
     };
 
     API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_EXISTING_POLICY, parameters, {optimisticData, successData, failureData});
@@ -5245,7 +5352,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     const iouReportID = iouReport.reportID;
 
     // This flow only works for admins moving an IOU report to a policy where the submitter is NOT yet a member of the policy
-    if (!isPolicyAdmin || !isIOUReportUsingReport(iouReport) || !submitterAccountID || !submitterEmail || isPolicyMember(submitterLogin, policyID)) {
+    if (!isPolicyAdmin || !isIOUReportUsingReport(iouReport) || !submitterAccountID || !submitterEmail || isPolicyMember(policy, submitterLogin)) {
         return;
     }
 
@@ -5555,10 +5662,13 @@ function navigateToTrainingModal(dismissedProductTrainingNVP: OnyxEntry<Dismisse
     if (dismissedProductTrainingNVP?.[CONST.CHANGE_POLICY_TRAINING_MODAL]) {
         return;
     }
-    Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID)));
+
+    InteractionManager.runAfterInteractions(() => {
+        Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID)));
+    });
 }
 
-function buildOptimisticChangePolicyData(report: Report, policyID: string, reportNextStep?: ReportNextStep) {
+function buildOptimisticChangePolicyData(report: Report, policy: Policy, reportNextStep?: ReportNextStep, optimisticPolicyExpenseChatReport?: Report, isReportArchived = false) {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -5568,13 +5678,13 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, repor
     // 1.2 Recursively update the policyID of the report and all its child reports
     const reportID = report.reportID;
     const reportIDToThreadsReportIDsMap = buildReportIDToThreadsReportIDsMap();
-    updatePolicyIdForReportAndThreads(reportID, policyID, reportIDToThreadsReportIDsMap, optimisticData, failureData);
+    updatePolicyIdForReportAndThreads(reportID, policy.id, reportIDToThreadsReportIDsMap, optimisticData, failureData);
 
     // We reopen and reassign the report if the report is open/submitted and the manager is not a member of the new policy. This is to prevent the old manager from seeing a report that they can't action on.
     let newStatusNum = report?.statusNum;
     const isOpenOrSubmitted = isOpenExpenseReport(report) || isProcessingReport(report);
     const managerLogin = PersonalDetailsUtils.getLoginByAccountID(report.managerID ?? CONST.DEFAULT_NUMBER_ID);
-    if (isOpenOrSubmitted && managerLogin && !isPolicyMember(managerLogin, policyID)) {
+    if (isOpenOrSubmitted && managerLogin && !isPolicyMember(policy, managerLogin)) {
         newStatusNum = CONST.REPORT.STATUS_NUM.OPEN;
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5601,7 +5711,7 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, repor
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: buildNextStep({...report, policyID}, newStatusNum),
+            value: buildNextStep({...report, policyID: policy.id}, newStatusNum),
         });
 
         failureData.push({
@@ -5664,7 +5774,7 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, repor
 
         // Update the expense chat report
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldWorkspaceChatReportID}`];
-        const lastMessageText = getLastVisibleMessage(oldWorkspaceChatReportID, {[oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction})?.lastMessageText;
+        const lastMessageText = getLastVisibleMessage(oldWorkspaceChatReportID, {[oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction}, isReportArchived)?.lastMessageText;
         const lastVisibleActionCreated = getReportLastMessage(oldWorkspaceChatReportID, {[oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction})?.lastVisibleActionCreated;
 
         optimisticData.push({
@@ -5686,7 +5796,7 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, repor
 
     // 3. Optimistically create a new REPORT_PREVIEW reportAction with the newReportPreviewActionID
     // and set it as a parent of the moved report
-    const policyExpenseChat = getPolicyExpenseChat(currentUserAccountID, policyID);
+    const policyExpenseChat = optimisticPolicyExpenseChatReport ?? getPolicyExpenseChat(report.ownerAccountID, policy.id);
     const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report);
 
     const newPolicyExpenseChatReportID = policyExpenseChat?.reportID;
@@ -5737,7 +5847,7 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, repor
     });
 
     // 4. Optimistically create a CHANGE_POLICY reportAction on the report using the reportActionID
-    const optimisticMovedReportAction = buildOptimisticChangePolicyReportAction(report.policyID, policyID);
+    const optimisticMovedReportAction = buildOptimisticChangePolicyReportAction(report.policyID, policy.id);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -5763,6 +5873,19 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, repor
         },
     });
 
+    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
+
+    // Search data might not have the new policy data so we should add it optimistically.
+    if (policy && currentSearchQueryJSON) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+            value: {
+                data: {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy},
+            },
+        });
+    }
+
     // 5. Make sure the expense report is not archived
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -5785,16 +5908,22 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, repor
 /**
  * Changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat.
  */
-function changeReportPolicy(report: Report, policyID: string, reportNextStep?: ReportNextStep) {
-    if (!report || !policyID || report.policyID === policyID || !isExpenseReport(report)) {
+function changeReportPolicy(report: Report, policy: Policy, reportNextStep?: ReportNextStep, isReportArchived = false) {
+    if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report)) {
         return;
     }
 
-    const {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction} = buildOptimisticChangePolicyData(report, policyID, reportNextStep);
+    const {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction} = buildOptimisticChangePolicyData(
+        report,
+        policy,
+        reportNextStep,
+        undefined,
+        isReportArchived,
+    );
 
     const params = {
         reportID: report.reportID,
-        policyID,
+        policyID: policy.id,
         reportPreviewReportActionID: optimisticReportPreviewAction.reportActionID,
         changePolicyReportActionID: optimisticMovedReportAction.reportActionID,
     };
@@ -5808,8 +5937,14 @@ function changeReportPolicy(report: Report, policyID: string, reportNextStep?: R
 /**
  * Invites the submitter to the new report policy, changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat
  */
-function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, employeeList: PolicyEmployeeList | undefined, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
-    if (!report.reportID || !policyID || report.policyID === policyID || !isExpenseReport(report) || !report.ownerAccountID) {
+function changeReportPolicyAndInviteSubmitter(
+    report: Report,
+    policy: Policy,
+    employeeList: PolicyEmployeeList | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    isReportArchived = false,
+) {
+    if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID) {
         return;
     }
 
@@ -5821,10 +5956,11 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
     const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(employeeList, false, false));
     const {optimisticData, successData, failureData, membersChats} = buildAddMembersToWorkspaceOnyxData(
         {[submitterEmail]: report.ownerAccountID},
-        policyID,
+        policy.id,
         policyMemberAccountIDs,
         CONST.POLICY.ROLE.USER,
         formatPhoneNumber,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     );
     const optimisticPolicyExpenseChatReportID = membersChats.reportCreationData[submitterEmail].reportID;
     const optimisticPolicyExpenseChatCreatedReportActionID = membersChats.reportCreationData[submitterEmail].reportActionID;
@@ -5839,14 +5975,14 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
         failureData: failureChangePolicyData,
         optimisticReportPreviewAction,
         optimisticMovedReportAction,
-    } = buildOptimisticChangePolicyData(report, policyID);
+    } = buildOptimisticChangePolicyData(report, policy, undefined, membersChats.reportCreationData[submitterEmail], isReportArchived);
     optimisticData.push(...optimisticChangePolicyData);
     successData.push(...successChangePolicyData);
     failureData.push(...failureChangePolicyData);
 
     const params = {
         reportID: report.reportID,
-        policyID,
+        policyID: policy.id,
         reportPreviewReportActionID: optimisticReportPreviewAction.reportActionID,
         changePolicyReportActionID: optimisticMovedReportAction.reportActionID,
         policyExpenseChatReportID: optimisticPolicyExpenseChatReportID,
@@ -5994,5 +6130,6 @@ export {
     changeReportPolicy,
     changeReportPolicyAndInviteSubmitter,
     removeFailedReport,
+    createTransactionThreadReport,
     openUnreportedExpense,
 };

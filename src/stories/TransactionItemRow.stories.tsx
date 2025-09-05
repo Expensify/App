@@ -1,7 +1,7 @@
 import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
-import type {ValueOf} from 'type-fest';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {SearchColumnType} from '@components/Search/types';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
 import TransactionItemRow from '@components/TransactionItemRow';
@@ -30,8 +30,8 @@ type TransactionItemRowProps = {
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
-    shouldShowCheckbox: boolean;
-    columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
+    shouldShowCheckbox?: boolean;
+    columns?: SearchColumnType[];
 };
 
 const story: Meta<typeof TransactionItemRow> = {

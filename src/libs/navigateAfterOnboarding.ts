@@ -1,13 +1,12 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
 import {setDisableDismissOnEscape} from './actions/Modal';
+import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
-import {isConciergeChatReport} from './ReportUtils';
+import {findLastAccessedReport, isConciergeChatReport} from './ReportUtils';
 
 const navigateAfterOnboarding = (
     isSmallScreenWidth: boolean,
-    lastAccessedReport: OnyxEntry<Report>,
+    canUseDefaultRooms: boolean | undefined,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
@@ -25,6 +24,7 @@ const navigateAfterOnboarding = (
             reportID = onboardingAdminsChatReportID;
         }
     } else {
+        const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom);
         const lastAccessedReportID = lastAccessedReport?.reportID;
         // we don't want to navigate to newly created workspaces after onboarding is completed.
         if (lastAccessedReportID && lastAccessedReport.policyID !== onboardingPolicyID && !isConciergeChatReport(lastAccessedReport)) {
@@ -52,13 +52,13 @@ const navigateAfterOnboarding = (
 
 const navigateAfterOnboardingWithMicrotaskQueue = (
     isSmallScreenWidth: boolean,
-    lastAccessedReport: OnyxEntry<Report>,
+    canUseDefaultRooms: boolean | undefined,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
 ) => {
     Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateAfterOnboarding(isSmallScreenWidth, lastAccessedReport, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom);
+        navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom);
     });
 };
 

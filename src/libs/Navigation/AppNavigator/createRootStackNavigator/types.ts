@@ -4,6 +4,12 @@ import type CONST from '@src/CONST';
 
 type RootStackNavigatorActionType =
     | {
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY;
+          payload: {
+              isVisible: boolean;
+          };
+      }
+    | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
       }
     | {
@@ -18,6 +24,10 @@ type OpenWorkspaceSplitActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
 };
 
+type ToggleSidePanelWithHistoryActionType = RootStackNavigatorActionType & {
+    type: typeof CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY;
+};
+
 type PushActionType = StackActionType & {type: typeof CONST.NAVIGATION.ACTION_TYPE.PUSH};
 
 type ReplaceActionType = StackActionType & {type: typeof CONST.NAVIGATION.ACTION_TYPE.REPLACE};
@@ -30,4 +40,12 @@ type RootStackNavigatorRouterOptions = StackRouterOptions;
 
 type RootStackNavigatorAction = CommonActions.Action | StackActionType | RootStackNavigatorActionType;
 
-export type {OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, DismissModalActionType, RootStackNavigatorAction, RootStackNavigatorRouterOptions};
+export type {
+    OpenWorkspaceSplitActionType,
+    PushActionType,
+    ReplaceActionType,
+    DismissModalActionType,
+    RootStackNavigatorAction,
+    RootStackNavigatorRouterOptions,
+    ToggleSidePanelWithHistoryActionType,
+};

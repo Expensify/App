@@ -24,8 +24,8 @@ import {
 } from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
-import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
@@ -129,15 +129,15 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                         <RenderHTML html={welcomeMessage.messageHtml} />
                     </View>
                 )}
-                {isSystemChat && (
-                    <Text>
-                        <Text>{welcomeMessage.messageText}</Text>
-                    </Text>
-                )}
                 {isSelfDM && (
                     <Text>
                         <Text>{welcomeMessage.messageText}</Text>
                         {shouldShowUsePlusButtonText && <TextWithEmojiFragment message={translate('reportActionsView.usePlusButton', {additionalText})} />}
+                    </Text>
+                )}
+                {isSystemChat && (
+                    <Text>
+                        <Text>{welcomeMessage.messageText}</Text>
                     </Text>
                 )}
                 {isDefault && displayNamesWithTooltips.length > 0 && (

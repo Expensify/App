@@ -12,7 +12,6 @@ import type {Section} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
-import useLastAccessedReport from '@hooks/useLastAccessedReport';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
@@ -27,7 +26,6 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
-import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
@@ -60,13 +58,10 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const session = useSession();
     const {isBetaEnabled} = usePermissions();
-
-    const shouldPreventOpenAdminRoom = (session?.email ?? '').includes('+');
-    const {lastAccessReport} = useLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom);
-
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -99,7 +94,10 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         return {...inviteOptions, recentReports: [], currentUserOption: null};
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
 
-    const inviteOptions = useMemo(() => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}), [debouncedSearchTerm, defaultOptions, excludedUsers]);
+    const inviteOptions = useMemo(
+        () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {excludeLogins: excludedUsers}),
+        [debouncedSearchTerm, defaultOptions, excludedUsers, countryCode],
+    );
 
     useEffect(() => {
         if (!areOptionsInitialized) {
@@ -170,7 +168,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                 const accountID = option.accountID;
                 const isOptionInPersonalDetails = Object.values(personalDetails).some((personalDetail) => personalDetail.accountID === accountID);
 
-                const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
+                const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
 
                 const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
@@ -208,7 +206,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         });
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite]);
+    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite, countryCode]);
 
     const toggleOption = (option: MemberForList) => {
         const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
@@ -238,22 +236,22 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
 
         navigateAfterOnboardingWithMicrotaskQueue(
             isSmallScreenWidth,
-            lastAccessReport,
+            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
             onboardingPolicyID,
             onboardingAdminsChatReportID,
             // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
             // See https://github.com/Expensify/App/issues/57167 for more details
-            shouldPreventOpenAdminRoom,
+            (session?.email ?? '').includes('+'),
         );
     }, [
-        onboardingMessages,
         currentUserPersonalDetails.firstName,
+        onboardingMessages,
         currentUserPersonalDetails.lastName,
         onboardingAdminsChatReportID,
         onboardingPolicyID,
         isSmallScreenWidth,
-        lastAccessReport,
-        shouldPreventOpenAdminRoom,
+        isBetaEnabled,
+        session?.email,
     ]);
 
     const inviteUser = useCallback(() => {

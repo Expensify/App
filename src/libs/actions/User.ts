@@ -3,6 +3,7 @@ import {isBefore} from 'date-fns';
 import debounce from 'lodash/debounce';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {OnyxKey} from 'react-native-onyx/dist/types';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
@@ -117,6 +118,11 @@ function closeAccount(reason: string) {
         optimisticData,
         failureData,
     });
+
+    // On HybridApp, we need to sign out from the oldDot app as well to keep state of both apps in sync
+    if (CONFIG.IS_HYBRID_APP) {
+        HybridAppModule.signOutFromOldDot();
+    }
 }
 
 /**
@@ -663,7 +669,7 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
         const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
 
-        reportActions.forEach((action) => action && ReportActionsUtils.isNotifiableReportAction(action) && showReportActionNotification(reportID, action));
+        reportActions.forEach((action) => action && showReportActionNotification(reportID, action));
     });
 }
 
@@ -1358,22 +1364,31 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     );
 }
 
-function dismissTrackTrainingModal() {
+function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value']) {
     const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
-        value: true,
+        name,
+        value,
     };
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
-            value: true,
+            key: name,
+            value,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: name,
+            value: revertedValue,
         },
     ];
 
     API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
         optimisticData,
+        failureData,
     });
 }
 
@@ -1391,6 +1406,10 @@ function requestRefund() {
 
 function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {isDebugModeEnabled});
+}
+
+function setShouldBlockTransactionThreadReportCreation(shouldBlockTransactionThreadReportCreation: boolean) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {shouldBlockTransactionThreadReportCreation});
 }
 
 function lockAccount() {
@@ -1443,7 +1462,6 @@ function lockAccount() {
 export {
     closeAccount,
     dismissReferralBanner,
-    dismissTrackTrainingModal,
     dismissASAPSubmitExplanation,
     resendValidateCode,
     requestContactMethodValidateCode,
@@ -1470,12 +1488,14 @@ export {
     updateDraftCustomStatus,
     clearDraftCustomStatus,
     requestRefund,
+    setNameValuePair,
     clearUnvalidatedNewContactMethodAction,
     clearPendingContactActionErrors,
     requestValidateCodeAction,
     addPendingContactMethod,
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
+    setShouldBlockTransactionThreadReportCreation,
     resetValidateActionCodeSent,
     lockAccount,
 };

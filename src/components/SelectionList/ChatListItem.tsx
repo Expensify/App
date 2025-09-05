@@ -22,7 +22,6 @@ function ChatListItem<TItem extends ListItem>({
     shouldSyncFocus,
     policies,
     allReports,
-    shouldAnimateInHighlight,
     userWalletTierName,
     isUserValidated,
     personalDetails,
@@ -35,7 +34,7 @@ function ChatListItem<TItem extends ListItem>({
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
-        shouldHighlight: shouldAnimateInHighlight ?? false,
+        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });
