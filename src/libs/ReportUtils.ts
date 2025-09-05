@@ -10104,7 +10104,16 @@ function createDraftTransactionAndNavigateToParticipantSelector(
         }
         if (filteredPolicies.length === 0 || filteredPolicies.length > 1) {
             Navigation.navigate(
-                ROUTES.MONEY_REQUEST_UPGRADE.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, '', actionName === CONST.IOU.ACTION.CATEGORIZE, false, true),
+                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                    action: actionName,
+                    iouType: CONST.IOU.TYPE.SUBMIT,
+                    transactionID,
+                    reportID,
+                    backTo: '',
+                    isCategorizing: actionName === CONST.IOU.ACTION.CATEGORIZE,
+                    isReporting: false,
+                    shouldSubmitExpense: true,
+                }),
             );
             return;
         }

@@ -684,7 +684,14 @@ function MoneyRequestView({
                                 }
                                 if (!policy) {
                                     Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute(), true),
+                                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                            action: CONST.IOU.ACTION.EDIT,
+                                            iouType,
+                                            transactionID: transaction.transactionID,
+                                            reportID: report.reportID,
+                                            backTo: getReportRHPActiveRoute(),
+                                            isCategorizing: true,
+                                        }),
                                     );
                                 } else {
                                     Navigation.navigate(

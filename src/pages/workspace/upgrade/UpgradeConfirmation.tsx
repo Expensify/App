@@ -12,7 +12,9 @@ import ROUTES from '@src/ROUTES';
 type Props = {
     policyName: string;
     onConfirmUpgrade: () => void;
+    /** Whether is categorizing the expense */
     isCategorizing?: boolean;
+    /** Whether is adding an unreported expense to a report */
     isReporting?: boolean;
     isTravelUpgrade?: boolean;
 };
@@ -49,7 +51,7 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isRe
     }, [isCategorizing, isReporting, isTravelUpgrade, policyName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
 
     const heading = useMemo(() => {
-        if (isCategorizing || isReporting) {
+        if (isCategorizing ?? isReporting) {
             return translate('workspace.upgrade.completed.createdWorkspace');
         }
         return translate('workspace.upgrade.completed.headline');

@@ -643,7 +643,27 @@ const ROUTES = {
     },
     MONEY_REQUEST_UPGRADE: {
         route: ':action/:iouType/upgrade/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', isCategorizing = false, isReporting = false, shouldSubmitExpense = false) => {
+        getRoute: (params: {
+            action: IOUAction;
+            iouType: IOUType;
+            transactionID: string;
+            reportID: string;
+            backTo?: string;
+            isCategorizing?: boolean;
+            isReporting?: boolean;
+            shouldSubmitExpense?: boolean;
+        }) => {
+            const {
+                action,
+                iouType,
+                transactionID,
+                reportID,
+                backTo = '',
+                isCategorizing = false,
+                isReporting = false,
+                shouldSubmitExpense = false,
+            } = params;
+
             const baseURL = `${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}` as const;
             
             const queryParams: Record<string, string> = {};
