@@ -146,7 +146,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             );
         }
 
-        if (shouldOpenLastVisitedPath(lastVisitedPath) && !CONFIG.IS_HYBRID_APP && authenticated) {
+        if (shouldOpenLastVisitedPath(lastVisitedPath) && authenticated) {
             // Only skip restoration if there's a specific deep link that's not the root
             // This allows restoration when app is killed and reopened without a deep link
             const isRootPath = !path || path === '' || path === '/';

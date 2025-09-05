@@ -235,7 +235,6 @@ let appState: AppStateStatus;
 AppState.addEventListener('change', (nextAppState) => {
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
         Log.info('Flushing logs as app is going inactive', true, {}, true);
-        // Save current navigation path before going to background
         saveCurrentPathBeforeBackground();
     }
     appState = nextAppState;
