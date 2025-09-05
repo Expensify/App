@@ -657,6 +657,7 @@ const translations = {
         merge: '合并',
         unstableInternetConnection: '互联网连接不稳定。请检查你的网络，然后重试。',
         enableGlobalReimbursements: '启用全球报销',
+        purchaseAmount: '购买金额',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -4795,7 +4796,8 @@ const translations = {
             existingTagError: '具有此名称的标签已存在',
             invalidTagNameError: '标签名称不能为0。请选择其他值。',
             genericFailureMessage: '更新标签时发生错误，请重试。',
-            importedFromAccountingSoftware: '以下标签是从您的...导入的',
+            importedFromAccountingSoftware: '标签在您的系统中管理',
+            employeesSeeTagsAs: '员工看到的标签为 ',
             glCode: 'GL代码',
             updateGLCodeFailureMessage: '更新总账代码时发生错误，请重试。',
             tagRules: '标签规则',
@@ -5316,6 +5318,7 @@ const translations = {
             genericFailureMessage: '更新工作区时发生错误。请再试一次。',
             avatarUploadFailureMessage: '上传头像时发生错误。请再试一次。',
             addressContext: '启用 Expensify Travel 需要一个工作区地址。请输入与您的业务相关的地址。',
+            policy: '费用政策',
         },
         bankAccount: {
             continueWithSetup: '继续设置',
@@ -5640,8 +5643,7 @@ const translations = {
             },
             customRules: {
                 title: '自定义规则',
-                subtitle: '描述',
-                description: '输入自定义费用报告规则',
+                cardSubtitle: '这里是你团队的报销政策，让所有人都清楚哪些费用涵盖在内。',
             },
         },
         planTypePage: {
@@ -6056,6 +6058,7 @@ const translations = {
             withdrawn: '撤回',
             billable: '可计费的',
             reimbursable: '可报销的',
+            purchaseCurrency: '购买货币',
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.REPORTS]: '报告',
                 [CONST.SEARCH.GROUP_BY.FROM]: '从',
@@ -6066,6 +6069,12 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '报销',
+            },
+            action: {
+                [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '提交',
+                [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '批准',
+                [CONST.SEARCH.ACTION_FILTERS.PAY]: '支付',
+                [CONST.SEARCH.ACTION_FILTERS.EXPORT]: '导出',
             },
         },
         groupBy: '组别',
@@ -6223,7 +6232,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `开始将此报告导出到${label}...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `无法将此报告导出到${label}（"${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}"）`,
+                    `无法将此报告导出到${label}（"${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}"）`,
                 managerAttachReceipt: `添加了一张收据`,
                 managerDetachReceipt: `已删除收据`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `在其他地方支付了${currency}${amount}`,

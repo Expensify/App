@@ -1,4 +1,4 @@
-import type {ForwardedRef, MutableRefObject, ReactElement, ReactNode} from 'react';
+import type {ForwardedRef, JSXElementConstructor, MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {
     AccessibilityState,
     GestureResponderEvent,
@@ -6,10 +6,12 @@ import type {
     LayoutChangeEvent,
     NativeScrollEvent,
     NativeSyntheticEvent,
+    ScrollViewProps,
     SectionListData,
     StyleProp,
     TargetedEvent,
     TextInput,
+    TextInputFocusEventData,
     TextStyle,
     ViewStyle,
 } from 'react-native';
@@ -393,6 +395,15 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+    /** Index of the item in the list */
+    index?: number;
+
+    /** Callback when the input inside the item is focused (if input exists) */
+    onInputFocus?: (index: number) => void;
+
+    /** Callback when the input inside the item is blurred (if input exists) */
+    onInputBlur?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -881,6 +892,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListHandle>;
+
+    /** Custom scroll component to use instead of the default ScrollView */
+    renderScrollComponent?: (props: ScrollViewProps) => ReactElement<ScrollViewProps, string | JSXElementConstructor<unknown>>;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -891,6 +905,7 @@ type SelectionListHandle = {
     updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
     getFocusedOption: () => ListItem | undefined;
     focusTextInput: () => void;
+    scrollToFocusedInput: (index: number) => void;
 };
 
 type ItemLayout = {
