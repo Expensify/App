@@ -1,4 +1,5 @@
 import {getForReportAction, getMovedFromOrToReportMessage, getMovedReportID} from '@libs/ModifiedExpenseMessage';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {translate} from '@src/libs/Localize';
@@ -13,6 +14,15 @@ describe('ModifiedExpenseMessage', () => {
     beforeAll(() => {
         IntlStore.load(CONST.LOCALES.EN);
         return waitForBatchedUpdates();
+    });
+
+    beforeEach(() => {
+        // The `getReportName` method is quite complex, and we don't need to test it here
+        jest.spyOn(ReportUtils, 'getReportName').mockImplementation((report) => report?.reportName ?? '');
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     describe('getMovedReportID', () => {
