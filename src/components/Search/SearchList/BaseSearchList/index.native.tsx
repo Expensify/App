@@ -2,6 +2,7 @@ import {FlashList} from '@shopify/flash-list';
 import React, {useCallback} from 'react';
 import Animated from 'react-native-reanimated';
 import type {SearchListItem} from '@components/SelectionList/types';
+import variables from '@styles/variables';
 import type BaseSearchListProps from './types';
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
@@ -18,7 +19,7 @@ function BaseSearchList({
     onViewableItemsChanged,
     onLayout,
     contentContainerStyle,
-    estimatedItemSize,
+    estimatedItemSize = variables.optionRowHeight,
 }: BaseSearchListProps) {
     const renderItemWithoutKeyboardFocus = useCallback(
         ({item}: {item: SearchListItem; index: number}) => {
