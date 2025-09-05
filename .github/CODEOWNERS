@@ -2,5 +2,5 @@
 * @Expensify/pullerbear
 
 # PRs that touch the front end style or assets, get an additional review from the Design team
-src/styles/ @Expensify/design @Expensify/product-pr @Expensify/pullerbear
-assets/ @Expensify/design @Expensify/product-pr @Expensify/pullerbear
+src/styles/ @Expensify/design @Expensify/pullerbear
+assets/ @Expensify/design @Expensify/pullerbear
