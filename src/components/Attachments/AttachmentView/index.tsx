@@ -8,7 +8,7 @@ import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
-import {Gallery, Sync} from '@components/Icon/Expensicons';
+import {ArrowCircleClockwise, Gallery} from '@components/Icon/Expensicons';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -274,7 +274,7 @@ function AttachmentView({
                     </View>
                     <Button
                         text={translate('attachmentView.retry')}
-                        icon={Sync}
+                        icon={ArrowCircleClockwise}
                         onPress={() => {
                             if (isOffline) {
                                 return;

@@ -244,6 +244,7 @@ import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
+import ArrowCircleClockwise from '@assets/images/arrow-circle-clockwise.svg';
 
 export {
     ReceiptBody,
@@ -492,4 +493,5 @@ export {
     SageIntacctExport,
     SapExport,
     XeroExport,
+    ArrowCircleClockwise
 };
