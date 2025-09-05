@@ -49,6 +49,7 @@ const getDefaultItemHeight = (ListItem: any) => {
     switch (ListItem?.displayName) {
         case 'SingleSelectListItem':
         case 'MultiSelectListItem':
+        case 'UserSelectionListItem':
             return variables.optionRowHeightCompact;
         case 'UserListItem':
         case 'NewChatListItem':
