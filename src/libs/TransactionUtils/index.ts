@@ -149,14 +149,12 @@ Onyx.connect({
     },
 });
 
-/*
- * Code moved from src/libs/actions/Policy/Tag.ts to remove dependency
- * that violated proper actions usage patterns.
- *
- * Moving this code doesn't solve the non-reactive data access issue.
- * compareDuplicateTransactionFields() should receive policy tags from useOnyx,
- * and this code should then be removed.
- */
+// Code moved from src/libs/actions/Policy/Tag.ts to remove dependency
+// that violated proper actions usage patterns.
+//
+// Moving this code doesn't solve the non-reactive data access issue.
+// compareDuplicateTransactionFields() should receive policy tags from useOnyx,
+// and this code should then be removed.
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
