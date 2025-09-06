@@ -93,6 +93,8 @@ type ReportActionsListItemRendererProps = {
     /** All emoji reactions collection */
     allEmojiReactions?: OnyxCollection<ReportActionReactions>;
 
+    /** Whether the flatlist is reverted */
+    isReverted?: boolean;
     /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
     isTryNewDotNVPDismissed: boolean | undefined;
     /** Whether the report is archived */
@@ -128,6 +130,7 @@ function ReportActionsListItemRenderer({
     personalDetails,
     allDraftMessages,
     allEmojiReactions,
+    isReverted,
     isTryNewDotNVPDismissed = false,
     isReportArchived = false,
 }: ReportActionsListItemRendererProps) {
@@ -226,6 +229,7 @@ function ReportActionsListItemRenderer({
                 allEmojiReactions={allEmojiReactions}
                 linkedTransactionRouteError={linkedTransactionRouteError}
                 userBillingFundID={userBillingFundID}
+                isReverted={isReverted}
                 isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                 isReportArchived={isReportArchived}
             />
@@ -259,6 +263,7 @@ function ReportActionsListItemRenderer({
             emojiReactions={emojiReactions}
             linkedTransactionRouteError={linkedTransactionRouteError}
             userBillingFundID={userBillingFundID}
+            isReverted={isReverted}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
         />
     );

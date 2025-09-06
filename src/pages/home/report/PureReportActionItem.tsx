@@ -373,6 +373,9 @@ type PureReportActionItemProps = {
 
     /** Current user's account id */
     currentUserAccountID?: number;
+
+    /** Whether the flatlist is reverted */
+    isReverted?: boolean;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -439,6 +442,7 @@ function PureReportActionItem({
     shouldHighlight = false,
     isTryNewDotNVPDismissed = false,
     currentUserAccountID,
+    isReverted,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, datetimeToCalendarTime, formatPhoneNumber, localeCompare} = useLocalize();
@@ -1342,6 +1346,7 @@ function PureReportActionItem({
                                         (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)
                                     }
                                     isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
+                                    isReverted={isReverted}
                                 />
                             )}
                         </AttachmentContext.Provider>
