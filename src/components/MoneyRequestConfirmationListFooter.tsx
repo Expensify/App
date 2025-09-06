@@ -306,13 +306,19 @@ function MoneyRequestConfirmationListFooter({
         localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''),
     );
     const iouReportID = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.iouReportID;
-    const outstandingReportID = isPolicyExpenseChat && iouReportID ? iouReportID : (availableOutstandingReports.at(0)?.reportID ?? reportID);
+    const outstandingReportID = isPolicyExpenseChat ? (iouReportID ?? availableOutstandingReports.at(0)?.reportID) : reportID;
     const selectedReportID = shouldUseTransactionReport ? transactionReport.reportID : outstandingReportID;
-    let reportName = getReportName(shouldUseTransactionReport ? transactionReport : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${outstandingReportID}`], selectedPolicy);
+    const selectedReport = useMemo(() => {
+        if (!selectedReportID) {
+            return;
+        }
+        return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`];
+    }, [selectedReportID]);
+    let reportName = getReportName(selectedReport, selectedPolicy);
 
     if (!reportName) {
-        const optimisticReport = buildOptimisticExpenseReport(reportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
-        reportName = populateOptimisticReportFormula(policy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, policy);
+        const optimisticReport = buildOptimisticExpenseReport(reportID, selectedPolicy?.id, selectedPolicy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
+        reportName = populateOptimisticReportFormula(selectedPolicy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, selectedPolicy);
     }
 
     // When creating an expense in an individual report, the report field becomes read-only
@@ -706,7 +712,7 @@ function MoneyRequestConfirmationListFooter({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        if (!transactionID) {
+                        if (!transactionID || !selectedReportID) {
                             return;
                         }
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, selectedReportID, Navigation.getActiveRoute(), reportActionID));
