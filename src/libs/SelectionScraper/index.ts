@@ -1,5 +1,5 @@
 import render from 'dom-serializer';
-import type {Node} from 'domhandler';
+import type {ChildNode} from 'domhandler';
 import {DataNode, Element} from 'domhandler';
 import {Str} from 'expensify-common';
 import {parseDocument} from 'htmlparser2';
@@ -103,9 +103,9 @@ const getHTMLOfSelection = (): string => {
  * Clears all attributes from dom elements
  * @param dom - dom htmlparser2 dom representation
  */
-const replaceNodes = (dom: Node, isChildOfEditorElement: boolean): Node => {
+const replaceNodes = (dom: ChildNode, isChildOfEditorElement: boolean): ChildNode => {
     let domName;
-    let domChildren: Node[] = [];
+    let domChildren: ChildNode[] = [];
     const domAttribs: Element['attribs'] = {};
     let data = '';
 
