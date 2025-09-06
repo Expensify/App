@@ -93,20 +93,29 @@ function Composer(
 
     const pasteFile = useCallback(
         (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
-            const clipboardContent = e.nativeEvent.items.at(0);
-            if (clipboardContent?.type === 'text/plain') {
-                return;
-            }
-            const mimeType = clipboardContent?.type ?? '';
-            const fileURI = clipboardContent?.data;
-            const baseFileName = fileURI?.split('/').pop() ?? 'file';
-            const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
-            const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
-            const fileName = `${stem}.${fileExtension}`;
-            let file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
-            getFileSize(file.uri ?? '')
-                .then((size) => (file = {...file, size}))
-                .finally(() => onPasteFile(file));
+            const filePromises: Array<Promise<FileObject | undefined>> = e.nativeEvent.items.map((item) => {
+                const clipboardContent = item;
+                if (clipboardContent?.type === 'text/plain') {
+                    return Promise.resolve(undefined);
+                }
+
+                const mimeType = clipboardContent?.type ?? '';
+                const fileURI = clipboardContent?.data;
+                const baseFileName = fileURI?.split('/').pop() ?? 'file';
+                const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
+                const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
+                const fileName = `${stem}.${fileExtension}`;
+                let file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
+
+                return getFileSize(file.uri ?? '')
+                    .then((size) => (file = {...file, size} as FileObject))
+                    .finally(() => file);
+            });
+
+            Promise.all(filePromises).then((files) => {
+                const validFiles = files.filter((file) => file !== undefined) as FileObject[];
+                onPasteFile(validFiles);
+            });
         },
         [onPasteFile],
     );

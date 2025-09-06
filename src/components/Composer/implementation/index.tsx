@@ -21,6 +21,7 @@ import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import Parser from '@libs/Parser';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
@@ -163,7 +164,8 @@ function Composer(
             // If paste contains files, then trigger file management
             if (event.clipboardData?.files.length && event.clipboardData.files.length > 0) {
                 // Prevent the default so we do not post the file name into the text box
-                onPasteFile(event.clipboardData.files[0]);
+                const files = Array.from(event.clipboardData.files) as FileObject[];
+                onPasteFile(files);
                 return true;
             }
 
@@ -173,12 +175,9 @@ function Composer(
                 const pastedHTML = clipboardDataHtml;
                 const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML)?.images;
 
-                if (embeddedImages.length > 0 && embeddedImages[0].src) {
-                    const src = embeddedImages[0].src;
-                    const file = base64ToFile(src, 'image.png');
-                    onPasteFile(file);
-                    return true;
-                }
+                const files = Array.from(embeddedImages).map((image) => base64ToFile(image.src, 'image.png')) as FileObject[];
+                onPasteFile(files);
+                return true;
             }
 
             // If paste contains image from Google Workspaces ex: Sheets, Docs, Slide, etc
@@ -187,19 +186,25 @@ function Composer(
                 const pastedHTML = clipboardDataHtml;
                 const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
 
-                if (embeddedImages.length > 0 && embeddedImages[0]?.src) {
-                    const src = embeddedImages[0].src;
-                    if (src.includes(CONST.GOOGLE_DOC_IMAGE_LINK_MATCH)) {
-                        fetch(src)
+                const filePromises = Array.from(embeddedImages).map((image) => {
+                    if (image.src.includes(CONST.GOOGLE_DOC_IMAGE_LINK_MATCH)) {
+                        return fetch(image.src)
                             .then((response) => response.blob())
                             .then((blob) => {
                                 const file = new File([blob], 'image.jpg', {type: 'image/jpeg'});
-                                onPasteFile(file);
+                                return file;
                             });
-                        return true;
                     }
-                }
+                    return Promise.resolve(undefined);
+                });
+
+                Promise.all(filePromises).then((files) => {
+                    const validFiles = files.filter((file) => file !== undefined) as FileObject[];
+                    onPasteFile(validFiles);
+                });
+                return true;
             }
+
             return false;
         },
         [onPasteFile, checkComposerVisibility],
