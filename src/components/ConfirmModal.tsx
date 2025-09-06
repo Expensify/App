@@ -214,4 +214,3 @@ function ConfirmModal({
 ConfirmModal.displayName = 'ConfirmModal';
 
 export default ConfirmModal;
-export type {ConfirmModalProps};
