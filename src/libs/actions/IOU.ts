@@ -11366,6 +11366,7 @@ function bulkHold(
             };
         }
 
+
         if (transaction?.currency === report?.currency) {
             const transactionAmount = getAmount(transaction, isExpenseReport) * coefficient;
             optimisticUnheldTotal = (optimisticUnheldTotal ?? 0) - transactionAmount;
@@ -11392,6 +11393,7 @@ function bulkHold(
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
                     value: {[createdTransactionThreadReportAction.reportActionID]: createdTransactionThreadReportAction},
                 },
+
             );
 
             successData.push(
@@ -11453,7 +11455,7 @@ function bulkHold(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
                 value: {
-                    lastVisibleActionCreated: holdReportActionComment.created,
+                    lastVisibleActionCreated: holdReportActionCommentCreatedTime,
                 },
             },
             {
@@ -11513,6 +11515,7 @@ function bulkHold(
                         hold: null,
                     },
                     errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericHoldExpenseFailureMessage'),
+
                 },
             },
 
