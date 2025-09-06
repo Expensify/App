@@ -6450,6 +6450,9 @@ const CONST = {
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
         },
+        HAS_VALUES: {
+            RECEIPT: 'receipt',
+        },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
             APPROVE: 'approve',
@@ -6594,6 +6597,7 @@ const CONST = {
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
             ACTION: 'action',
+            HAS: 'has',
             PURCHASE_AMOUNT: 'purchaseAmount',
             PURCHASE_CURRENCY: 'purchaseCurrency',
             WITHDRAWAL_ID: 'withdrawalID',
@@ -6644,6 +6648,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             ACTION: 'action',
+            HAS: 'has',
             PURCHASE_AMOUNT: 'purchase-amount',
             PURCHASE_CURRENCY: 'purchase-currency',
             WITHDRAWAL_ID: 'withdrawal-id',
