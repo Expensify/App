@@ -1648,12 +1648,7 @@ const translations = {
         restoreStashed: 'Ripristina accesso nascosto',
         signOutConfirmationText: 'Perderai tutte le modifiche offline se esci.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: 'Leggi il',
-            phrase2: 'Termini di Servizio',
-            phrase3: 'e',
-            phrase4: 'Privacy',
-        },
+        readTheTermsAndPrivacy: `<muted-text-micro>Leggete i <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termini di servizioe</a> e la <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.</muted-text-micro>`,
         help: 'Aiuto',
         whatIsNew: 'Novità',
         accountSettings: 'Impostazioni account',

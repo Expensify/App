@@ -1630,12 +1630,7 @@ const translations = {
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: 'Leer los',
-            phrase2: 'Términos de Servicio',
-            phrase3: 'y',
-            phrase4: 'Privacidad',
-        },
+        readTheTermsAndPrivacy: `<muted-text-micro>Leer los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a>.</muted-text-micro>`,
         help: 'Ayuda',
         whatIsNew: 'Qué hay de nuevo',
         accountSettings: 'Configuración de la cuenta',

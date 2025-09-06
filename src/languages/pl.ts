@@ -1645,12 +1645,7 @@ const translations = {
         restoreStashed: 'Przywróć zapisane logowanie',
         signOutConfirmationText: 'Utracisz wszystkie zmiany offline, jeśli się wylogujesz.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: 'Przeczytaj',
-            phrase2: 'Warunki korzystania z usługi',
-            phrase3: 'i',
-            phrase4: 'Prywatność',
-        },
+        readTheTermsAndPrivacy: `<muted-text-micro>Zapoznaj się z <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Warunkami korzystania z usługi</a> i <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Polityką prywatności</a>.</muted-text-micro>`,
         help: 'Pomoc',
         whatIsNew: 'Co nowego',
         accountSettings: 'Ustawienia konta',

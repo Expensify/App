@@ -1649,12 +1649,7 @@ const translations = {
         restoreStashed: 'Herstel opgeslagen login',
         signOutConfirmationText: 'U verliest alle offline wijzigingen als u zich afmeldt.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: 'Lees de',
-            phrase2: 'Servicevoorwaarden',
-            phrase3: 'en',
-            phrase4: 'Privacy',
-        },
+        readTheTermsAndPrivacy: `<muted-text-micro>Lees de <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Servicevoorwaarden</a> en <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacy</a>.</muted-text-micro>`,
         help: 'Help',
         whatIsNew: 'Wat is nieuw',
         accountSettings: 'Accountinstellingen',
