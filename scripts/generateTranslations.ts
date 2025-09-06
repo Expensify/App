@@ -10,22 +10,21 @@ import get from 'lodash/get';
 import path from 'path';
 import type {TemplateExpression} from 'typescript';
 import ts from 'typescript';
-import GitHubUtils from '@github/libs/GithubUtils';
 import decodeUnicode from '@libs/StringUtils/decodeUnicode';
 import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
 import {isTranslationTargetLocale, LOCALES, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
-import type {Locale, TranslationTargetLocale} from '@src/CONST/LOCALES';
+import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import en from '@src/languages/en';
 import type {TranslationPaths} from '@src/languages/types';
 import CLI from './utils/CLI';
+import Git from './utils/Git';
 import Prettier from './utils/Prettier';
 import PromisePool from './utils/PromisePool';
 import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
 import DummyTranslator from './utils/Translator/DummyTranslator';
 import type Translator from './utils/Translator/Translator';
 import TSCompilerUtils from './utils/TSCompilerUtils';
-import type {LabeledNode} from './utils/TSCompilerUtils';
 
 /**
  * This represents a string to translate. In the context of translation, two strings are considered equal only if their contexts are also equal.
@@ -92,14 +91,24 @@ class TranslationGenerator {
     private readonly compareRef: string;
 
     /**
-     * Specific paths to retranslate (supersedes compareRef).
+     * Specific paths to retranslate.
      */
-    private readonly paths: TranslationPaths[] | undefined;
+    private readonly pathsToTranslate: Set<TranslationPaths>;
+
+    /**
+     * Paths to remove (only populated when using compareRef).
+     */
+    private readonly pathsToRemove: Set<TranslationPaths>;
 
     /**
      * Should we print verbose logs?
      */
     private readonly verbose: boolean;
+
+    /**
+     * Is this an incremental translation run, or a full translation run?
+     */
+    private readonly isIncremental: boolean;
 
     /**
      * If a complex template expression comes from an existing translation file rather than ChatGPT, then the hashes of its spans will be serialized from the translated version of those spans.
@@ -114,7 +123,7 @@ class TranslationGenerator {
         sourceFile: string;
         translator: Translator;
         compareRef: string;
-        paths?: TranslationPaths[];
+        paths?: Set<TranslationPaths>;
         verbose: boolean;
     }) {
         this.targetLanguages = config.targetLanguages;
@@ -123,8 +132,10 @@ class TranslationGenerator {
         this.sourceFile = ts.createSourceFile(config.sourceFile, sourceCode, ts.ScriptTarget.Latest, true);
         this.translator = config.translator;
         this.compareRef = config.compareRef;
-        this.paths = config.paths;
+        this.pathsToTranslate = config.paths ?? new Set<TranslationPaths>();
+        this.pathsToRemove = new Set<TranslationPaths>();
         this.verbose = config.verbose;
+        this.isIncremental = this.pathsToTranslate.size > 0 || !!this.compareRef;
     }
 
     public async generateTranslations(): Promise<void> {
@@ -133,81 +144,10 @@ class TranslationGenerator {
         // map of translations for each locale
         const translations = new Map<TranslationTargetLocale, Map<number, string>>();
 
-        // If paths are specified, we only retranslate those paths and skip comparing with existing translations
-        const shouldUseExistingTranslations = !this.paths && this.compareRef;
-
-        // If a compareRef is provided and we're not filtering by paths, fetch the old version of the files, and traverse the ASTs in parallel to extract existing translations
-        if (shouldUseExistingTranslations) {
-            const allLocales: Locale[] = [LOCALES.EN, ...this.targetLanguages];
-
-            // An array of labeled "translation nodes", where "translations node" refers to the main object in en.ts and
-            // other locale files that contains all the translations.
-            const oldTranslationNodes: Array<LabeledNode<Locale>> = [];
-            const downloadPromises = [];
-            for (const targetLanguage of allLocales) {
-                const targetPath = `src/languages/${targetLanguage}.ts`;
-                downloadPromises.push(
-                    promisePool.add(() =>
-                        // Download the file from GitHub
-                        GitHubUtils.getFileContents(targetPath, this.compareRef).then((content) => {
-                            // Parse the file contents and find the translations node, save it in the oldTranslationsNodes map
-                            const parsed = ts.createSourceFile(targetPath, content, ts.ScriptTarget.Latest, true);
-                            const oldTranslationNode = this.findTranslationsNode(parsed);
-                            if (!oldTranslationNode) {
-                                throw new Error(`Could not find translation node in ${targetPath}`);
-                            }
-                            oldTranslationNodes.push({label: targetLanguage, node: oldTranslationNode});
-                        }),
-                    ),
-                );
-            }
-            await Promise.all(downloadPromises);
-
-            // Traverse ASTs of all downloaded files in parallel, building a map of {locale => {translationKey => translation}}
-            // Note: traversing in parallel is not just a performance optimization. We need the translation key
-            // from en.ts to map to translations in other files, but we can't rely on dot-notation style paths alone
-            // because sometimes there are strings defined elsewhere, such as in functions or nested templates.
-            // So instead, we rely on the fact that the AST structure of en.ts will very nearly match the AST structure of other locales.
-            // We walk through the AST of en.ts in parallel with all the other ASTs, and take the translation key from
-            // en.ts and the translated value from the target locale.
-            TSCompilerUtils.traverseASTsInParallel(oldTranslationNodes, (nodes: Record<Locale, ts.Node>) => {
-                const enNode = nodes[LOCALES.EN];
-                if (!this.shouldNodeBeTranslated(enNode)) {
-                    return;
-                }
-
-                // Use English for the translation key
-                const translationKey = this.getTranslationKey(enNode);
-
-                for (const targetLanguage of this.targetLanguages) {
-                    const translatedNode = nodes[targetLanguage];
-                    if (!this.shouldNodeBeTranslated(translatedNode)) {
-                        if (this.verbose) {
-                            console.warn('😕 found translated node that should not be translated while English node should be translated', {enNode, translatedNode});
-                            console.trace();
-                        }
-                        continue;
-                    }
-                    const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
-                    const serializedNode =
-                        ts.isStringLiteral(translatedNode) || ts.isNoSubstitutionTemplateLiteral(translatedNode)
-                            ? translatedNode.getText().slice(1, -1)
-                            : this.templateExpressionToString(translatedNode);
-                    translationsForLocale.set(translationKey, serializedNode);
-                    translations.set(targetLanguage, translationsForLocale);
-
-                    // For complex template expressions, we need a way to look up the English span hash for each translated span hash, so we track those here
-                    if (ts.isTemplateExpression(enNode) && ts.isTemplateExpression(translatedNode) && !this.isSimpleTemplateExpression(enNode)) {
-                        for (let i = 0; i < enNode.templateSpans.length; i++) {
-                            const enSpan = enNode.templateSpans[i];
-                            const translatedSpan = translatedNode.templateSpans[i];
-                            this.translatedSpanHashToEnglishSpanHash.set(hashStr(translatedSpan.expression.getText()), hashStr(enSpan.expression.getText()));
-                        }
-                    }
-                }
-            });
+        if (this.pathsToTranslate.size === 0 && this.compareRef) {
+            // If compareRef is provided (and no specific paths), use git diff to find changed lines and build dot-notation paths
+            this.buildPathsFromGitDiff();
         }
-
         for (const targetLanguage of this.targetLanguages) {
             // Map of translations
             const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
@@ -230,9 +170,30 @@ class TranslationGenerator {
 
             // Replace translated strings in the AST
             const transformer = this.createTransformer(translationsForLocale);
-            const result = ts.transform(this.sourceFile, [transformer]);
-            let transformedSourceFile = result.transformed.at(0) ?? this.sourceFile; // Ensure we always have a valid SourceFile
-            result.dispose();
+
+            // For incremental mode, transform the target file directly; otherwise transform en.ts
+            let transformedSourceFile: ts.SourceFile;
+            if (this.isIncremental) {
+                // Parse the existing target file
+                const targetPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
+
+                if (!fs.existsSync(targetPath)) {
+                    throw new Error(`Target file ${targetPath} does not exist for incremental translation`);
+                }
+
+                const existingContent = fs.readFileSync(targetPath, 'utf8');
+                const existingSourceFile = ts.createSourceFile(targetPath, existingContent, ts.ScriptTarget.Latest, true);
+
+                // Transform the existing target file directly with path-aware filtering
+                const result = ts.transform(existingSourceFile, [transformer]);
+                transformedSourceFile = result.transformed.at(0) ?? existingSourceFile;
+                result.dispose();
+            } else {
+                // Full transformation for non-incremental mode - transform en.ts
+                const result = ts.transform(this.sourceFile, [transformer]);
+                transformedSourceFile = result.transformed.at(0) ?? this.sourceFile;
+                result.dispose();
+            }
 
             // Import en.ts
             transformedSourceFile = TSCompilerUtils.addImport(transformedSourceFile, 'en', './en', true);
@@ -434,11 +395,11 @@ class TranslationGenerator {
      * If paths are specified, only paths that match exactly or are nested under a specified path should be translated.
      */
     private shouldTranslatePath(currentPath: string): boolean {
-        if (!this.paths || this.paths.length === 0) {
+        if (this.pathsToTranslate.size === 0) {
             return true;
         }
 
-        for (const targetPath of this.paths) {
+        for (const targetPath of this.pathsToTranslate) {
             // Exact match
             if (currentPath === targetPath) {
                 return true;
@@ -589,12 +550,154 @@ class TranslationGenerator {
     }
 
     /**
+     * Build dot-notation paths from git diff by analyzing changed lines.
+     */
+    private buildPathsFromGitDiff(): void {
+        try {
+            // Get the relative path from the git repo root
+            const relativePath = path.relative(process.cwd(), path.join(this.languagesDir, 'en.ts'));
+
+            // Run git diff to find changed lines
+            const diffResult = Git.diff(this.compareRef, undefined, relativePath);
+
+            if (!diffResult.hasChanges) {
+                if (this.verbose) {
+                    console.log('🔍 No changes detected in git diff');
+                }
+                return;
+            }
+
+            // Find the main translation object in en.ts
+            const translationsNode = this.findTranslationsNode(this.sourceFile);
+            if (!translationsNode) {
+                throw new Error('Could not find translation node in en.ts');
+            }
+
+            // Get changed lines from the diff
+            const changedLines = diffResult.files.at(0);
+            if (!changedLines) {
+                return;
+            }
+
+            if (this.verbose) {
+                console.log(`🔍 Found ${changedLines.addedLines.size} added lines, ${changedLines.removedLines.size} removed lines`);
+            }
+
+            // Traverse the AST and build dot-notation paths for nodes on changed lines
+            this.extractPathsFromChangedLines(translationsNode, changedLines.addedLines, changedLines.removedLines);
+
+            // Handle the case where the same path has both additions and removals (treat as modified, not deleted)
+            // Also check if removed paths still exist in en.ts (partial removal within function)
+            for (const removedPath of this.pathsToRemove) {
+                if (this.pathsToTranslate.has(removedPath)) {
+                    this.pathsToRemove.delete(removedPath); // It's modified, not removed
+                } else if (get(en, removedPath) !== undefined) {
+                    // Path still exists in en.ts, so it's modified not removed
+                    this.pathsToRemove.delete(removedPath);
+                    this.pathsToTranslate.add(removedPath);
+                }
+            }
+
+            if (this.verbose) {
+                console.log(`📝 Paths to retranslate: ${Array.from(this.pathsToTranslate).join(', ')}`);
+                console.log(`🗑️ Paths to remove: ${Array.from(this.pathsToRemove).join(', ')}`);
+            }
+        } catch (error) {
+            if (this.verbose) {
+                console.warn('⚠️ Error building paths from git diff, falling back to full translation:', error);
+            }
+            // On error, don't populate any paths (will fall back to full translation)
+        }
+    }
+
+    /**
+     * Extract dot-notation paths from nodes that are on changed lines.
+     */
+    private extractPathsFromChangedLines(node: ts.Node, addedLines: Set<number>, removedLines: Set<number>, currentPath = ''): void {
+        // Check if this node is on a changed line
+        const sourceFile = node.getSourceFile();
+        const start = sourceFile.getLineAndCharacterOfPosition(node.getStart());
+        const end = sourceFile.getLineAndCharacterOfPosition(node.getEnd());
+
+        // Check if any line of this node is in the changed lines
+        const nodeLines = Array.from({length: end.line - start.line + 1}, (_, i) => start.line + i + 1);
+        const isOnAddedLine = nodeLines.some((lineNumber) => addedLines.has(lineNumber));
+        const isOnRemovedLine = nodeLines.some((lineNumber) => removedLines.has(lineNumber));
+
+        if ((isOnAddedLine || isOnRemovedLine) && this.shouldNodeBeTranslated(node)) {
+            // This node is on a changed line and should be translated
+            // Traverse up the tree to build the dot notation path
+            const dotPath = this.buildDotNotationPathFromNode(node);
+            if (dotPath) {
+                if (isOnAddedLine) {
+                    this.pathsToTranslate.add(dotPath as TranslationPaths);
+                }
+                if (isOnRemovedLine) {
+                    this.pathsToRemove.add(dotPath as TranslationPaths);
+                }
+
+                if (this.verbose) {
+                    console.log(`🔄 Found changed path: ${dotPath} (added: ${isOnAddedLine}, removed: ${isOnRemovedLine})`);
+                }
+            }
+        }
+
+        // Continue traversing children
+        node.forEachChild((child) => {
+            let childPath = currentPath;
+
+            // If the child is a property assignment, update the path
+            if (ts.isPropertyAssignment(child)) {
+                const propName = TSCompilerUtils.extractKeyFromPropertyNode(child);
+                if (propName) {
+                    childPath = currentPath ? `${currentPath}.${propName}` : propName;
+                }
+            }
+
+            this.extractPathsFromChangedLines(child, addedLines, removedLines, childPath);
+        });
+    }
+
+    /**
+     * Build a dot notation path from a node by traversing up the AST to the translations root.
+     */
+    private buildDotNotationPathFromNode(node: ts.Node): string | null {
+        const pathParts: string[] = [];
+        let current: ts.Node | undefined = node;
+
+        // Traverse up the tree until we reach the translations object or source file
+        while (current && current !== this.sourceFile) {
+            if (ts.isPropertyAssignment(current)) {
+                const key = TSCompilerUtils.extractKeyFromPropertyNode(current);
+                if (key) {
+                    pathParts.unshift(key);
+                }
+            }
+            current = current.parent;
+        }
+
+        return pathParts.length > 0 ? pathParts.join('.') : null;
+    }
+
+    /**
      * Generate an AST transformer for the given set of translations.
      */
     private createTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
         return (context: ts.TransformationContext) => {
-            const visit: ts.Visitor = (node) => {
+            const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
                 if (this.shouldNodeBeTranslated(node)) {
+                    // For incremental mode, handle path filtering
+                    if (this.isIncremental) {
+                        // Check if this path should be removed
+                        if (currentPath && this.pathsToRemove.has(currentPath as TranslationPaths)) {
+                            return undefined; // Remove this node
+                        }
+                        // Only translate nodes with paths in pathsToTranslate
+                        if (!this.shouldTranslatePath(currentPath)) {
+                            return node; // Keep unchanged
+                        }
+                    }
+
                     if (ts.isStringLiteral(node)) {
                         const translatedText = translations.get(this.getTranslationKey(node));
                         return translatedText ? ts.factory.createStringLiteral(translatedText) : node;
@@ -622,7 +725,7 @@ class TranslationGenerator {
                                 continue;
                             }
                             const hash = hashStr(expression.getText());
-                            const translatedExpression = ts.visitNode(expression, visit);
+                            const translatedExpression = visitWithPath(expression, currentPath);
                             translatedComplexExpressions.set(hash, translatedExpression as ts.Expression);
                         }
 
@@ -630,12 +733,29 @@ class TranslationGenerator {
                         return this.stringToTemplateExpression(translatedTemplate, translatedComplexExpressions);
                     }
                 }
-                return ts.visitEachChild(node, visit, context);
+
+                // Continue traversing children, updating path for property assignments
+                return ts.visitEachChild(
+                    node,
+                    (child) => {
+                        let childPath = currentPath;
+
+                        // If the child is a property assignment, update the path
+                        if (ts.isPropertyAssignment(child)) {
+                            const propName = TSCompilerUtils.extractKeyFromPropertyNode(child);
+                            if (propName) {
+                                childPath = currentPath ? `${currentPath}.${propName}` : propName;
+                            }
+                        }
+
+                        return visitWithPath(child, childPath);
+                    },
+                    context,
+                );
             };
 
-            return (node: ts.SourceFile) => {
-                const transformedNode = ts.visitNode(node, visit) ?? node; // Ensure we always return a valid node
-                return transformedNode as ts.SourceFile; // Safe cast since we always pass in a SourceFile
+            return (sourceFile: ts.SourceFile) => {
+                return (ts.visitNode(sourceFile, visitWithPath) as ts.SourceFile) ?? sourceFile;
             };
         };
     }
@@ -679,17 +799,29 @@ async function main(): Promise<void> {
                 description:
                     'For incremental translations, this ref is the previous version of the codebase to compare to. Only strings that changed or had their context changed since this ref will be retranslated.',
                 default: '',
+                parse: (val: string): string => {
+                    if (!val.trim()) {
+                        return val; // Empty string is valid (means no comparison)
+                    }
+
+                    // Validate that the ref exists using our Git utility
+                    if (!Git.isValidRef(val)) {
+                        throw new Error(`Invalid git reference: "${val}". Please provide a valid branch, tag, or commit hash.`);
+                    }
+
+                    return val;
+                },
             },
             paths: {
                 description: 'Comma-separated list of specific translation paths to retranslate (e.g., "common.save,errors.generic").',
-                parse: (val: string): TranslationPaths[] => {
+                parse: (val: string): Set<TranslationPaths> => {
                     const rawPaths = val.split(',').map((translationPath) => translationPath.trim());
-                    const validatedPaths: TranslationPaths[] = [];
+                    const validatedPaths = new Set<TranslationPaths>();
                     const invalidPaths: string[] = [];
 
                     for (const rawPath of rawPaths) {
                         if (get(en, rawPath)) {
-                            validatedPaths.push(rawPath as TranslationPaths);
+                            validatedPaths.add(rawPath as TranslationPaths);
                         } else {
                             invalidPaths.push(rawPath);
                         }
