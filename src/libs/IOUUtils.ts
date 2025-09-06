@@ -208,19 +208,14 @@ function shouldUseTransactionDraft(action: IOUAction | undefined, type?: IOUType
     return action === CONST.IOU.ACTION.CREATE || type === CONST.IOU.TYPE.SPLIT_EXPENSE || isMovingTransactionFromTrackExpense(action);
 }
 
-function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: string) {
+function formatCurrentUserToAttendee(currentUser?: PersonalDetails) {
     if (!currentUser) {
         return;
     }
     const initialAttendee: Attendee = {
         email: currentUser?.login ?? '',
-        login: currentUser?.login ?? '',
         displayName: currentUser.displayName ?? '',
         avatarUrl: currentUser.avatar?.toString() ?? '',
-        accountID: currentUser.accountID,
-        text: currentUser.login,
-        selected: true,
-        reportID,
     };
 
     return [initialAttendee];

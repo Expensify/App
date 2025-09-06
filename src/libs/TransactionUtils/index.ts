@@ -780,13 +780,8 @@ function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
             if (creatorEmail) {
                 attendees.push({
                     email: creatorEmail,
-                    login: creatorEmail,
                     displayName: creatorDisplayName,
-                    accountID: creatorAccountID,
-                    text: creatorDisplayName,
-                    searchText: creatorDisplayName,
                     avatarUrl: creatorDetails?.avatarThumbnail ?? '',
-                    selected: true,
                 });
             }
         }
@@ -800,7 +795,7 @@ function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
 function getFormattedAttendees(modifiedAttendees?: Attendee[], attendees?: Attendee[]): [string, string] {
     const oldAttendees = modifiedAttendees ?? [];
     const newAttendees = attendees ?? [];
-    return [oldAttendees.map((item) => item.displayName ?? item.login).join(', '), newAttendees.map((item) => item.displayName ?? item.login).join(', ')];
+    return [oldAttendees.map((item) => item.displayName).join(', '), newAttendees.map((item) => item.displayName).join(', ')];
 }
 
 /**

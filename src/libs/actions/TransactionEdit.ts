@@ -154,7 +154,7 @@ function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUs
         amount: 0,
         created: format(new Date(), 'yyyy-MM-dd'),
         currency,
-        comment: {attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID)},
+        comment: {attendees: formatCurrentUserToAttendee(currentUserPersonalDetails)},
         iouRequestType,
         reportID,
         transactionID: newTransactionID,

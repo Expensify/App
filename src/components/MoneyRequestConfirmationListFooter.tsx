@@ -638,7 +638,7 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key="attendees"
                     shouldShowRightIcon
-                    title={iouAttendees?.map((item) => item?.displayName ?? item?.login).join(', ')}
+                    title={iouAttendees?.map((item) => item.displayName).join(', ')}
                     description={`${translate('iou.attendees')} ${
                         iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee ? `\u00B7 ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
                     }`}
