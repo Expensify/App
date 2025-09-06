@@ -63,6 +63,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const {isOffline} = useNetwork();
     const isLoading = onboarding?.isLoading;
     const prevIsLoading = usePrevious(isLoading);
+    const [width, setWidth] = useState(0);
 
     const features: Feature[] = useMemo(() => {
         return [
@@ -288,6 +289,8 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         });
     }, []);
 
+    const gap = styles.gap3.gap;
+
     const renderItem = useCallback(
         (item: Feature) => {
             const isSelected = selectedFeatures.includes(item.id);
@@ -300,7 +303,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     accessibilityLabel={item.title}
                     accessible={false}
                     hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
-                    style={[styles.onboardingInterestedFeaturesItem, isSmallScreenWidth && styles.flexBasis100, isSelected && styles.activeComponentBG]}
+                    style={[styles.onboardingInterestedFeaturesItem, isSmallScreenWidth ? styles.flexBasis100 : {maxWidth: (width - gap) / 2}, isSelected && styles.activeComponentBG]}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                         <Icon
@@ -320,7 +323,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 </PressableWithoutFeedback>
             );
         },
-        [styles, isSmallScreenWidth, selectedFeatures, handleFeatureSelect],
+        [styles, isSmallScreenWidth, selectedFeatures, handleFeatureSelect, width, gap],
     );
 
     const renderSection = useCallback(
@@ -353,7 +356,14 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('onboarding.interestedFeatures.title')}</Text>
             </View>
 
-            <ScrollView style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>{sections.map(renderSection)}</ScrollView>
+            <ScrollView
+                onLayout={(e) => {
+                    setWidth(e.nativeEvent.layout.width);
+                }}
+                style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
+            >
+                {sections.map(renderSection)}
+            </ScrollView>
 
             <FixedFooter style={[styles.pt3, styles.ph5]}>
                 <Button
