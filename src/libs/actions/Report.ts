@@ -1904,7 +1904,7 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
     };
     const {lastMessageText = ''} = getLastVisibleMessage(originalReportID, optimisticReportActions as ReportActions, isReportArchived);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
+    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
     if (lastMessageText) {
         const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, optimisticReportActions as ReportActions);
         const lastVisibleActionCreated = lastVisibleAction?.created;
@@ -2056,13 +2056,19 @@ function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMar
 }
 
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
-function editReportComment(reportID: string | undefined, originalReportAction: OnyxEntry<ReportAction>, textForNewComment: string, videoAttributeCache?: Record<string, string>) {
+function editReportComment(
+    reportID: string | undefined,
+    originalReportAction: OnyxEntry<ReportAction>,
+    textForNewComment: string,
+    videoAttributeCache?: Record<string, string>,
+    isReportArchived = false,
+) {
     const originalReportID = getOriginalReportID(reportID, originalReportAction);
     if (!originalReportID || !originalReportAction) {
         return;
     }
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
-    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
+    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
 
     // Do not autolink if someone explicitly tries to remove a link from message.
     // https://github.com/Expensify/App/issues/9090
@@ -4003,7 +4009,7 @@ function openLastOpenedPublicRoom(lastOpenedPublicRoomID: string) {
 }
 
 /** Flag a comment as offensive */
-function flagComment(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>, severity: string) {
+function flagComment(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>, severity: string, isReportArchived = false) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
     const message = ReportActionsUtils.getReportActionMessage(reportAction);
 
@@ -4064,7 +4070,7 @@ function flagComment(reportID: string | undefined, reportAction: OnyxEntry<Repor
         [reportActionID]: {...reportAction, message: [updatedMessage], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
     } as ReportActions);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
-    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
+    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
     if (lastMessageText) {
         const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, {
             [reportActionID]: {...reportAction, message: [updatedMessage], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
@@ -4547,6 +4553,7 @@ function resolveActionableReportMentionWhisper(
     reportId: string | undefined,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
+    isReportArchived?: boolean,
 ) {
     if (!reportAction || !reportId) {
         return;
@@ -4561,7 +4568,7 @@ function resolveActionableReportMentionWhisper(
     };
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportId}`];
-    const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportId, optimisticReportActions as ReportActions);
+    const reportUpdateDataWithPreviousLastMessage = getReportLastMessage(reportId, optimisticReportActions as ReportActions, isReportArchived);
 
     const reportUpdateDataWithCurrentLastMessage = {
         lastMessageText: report?.lastMessageText,
@@ -5778,7 +5785,11 @@ function buildOptimisticChangePolicyData(report: Report, policy: Policy, reportN
         // Update the expense chat report
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldWorkspaceChatReportID}`];
         const lastMessageText = getLastVisibleMessage(oldWorkspaceChatReportID, {[oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction}, isReportArchived)?.lastMessageText;
-        const lastVisibleActionCreated = getReportLastMessage(oldWorkspaceChatReportID, {[oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction})?.lastVisibleActionCreated;
+        const lastVisibleActionCreated = getReportLastMessage(
+            oldWorkspaceChatReportID,
+            {[oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction},
+            isReportArchived,
+        )?.lastVisibleActionCreated;
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,

@@ -11,6 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {GpsPoint} from '@libs/actions/IOU';
 import {getIOURequestPolicyID, getMoneyRequestParticipantsFromReport, initMoneyRequest, requestMoney, trackExpense, updateLastLocationPermissionPrompt} from '@libs/actions/IOU';
@@ -56,6 +57,7 @@ function SubmitDetailsPage({
     const [validFilesToUpload] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
+    const isLinkedTrackedExpenseReportArchived = useReportIsArchived(transaction?.linkedTrackedExpenseReportID);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -128,6 +130,7 @@ function SubmitDetailsPage({
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                    isLinkedTrackedExpenseReportArchived,
                 },
             });
         } else {
@@ -154,6 +157,7 @@ function SubmitDetailsPage({
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                    isLinkedTrackedExpenseReportArchived,
                 },
                 shouldGenerateTransactionThreadReport,
             });

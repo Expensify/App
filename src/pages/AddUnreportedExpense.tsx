@@ -13,12 +13,13 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {isIOUReport} from '@libs/ReportUtils';
+import {findSelfDMReportID, isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {createUnreportedExpenseSections, isPerDiemRequest} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
@@ -49,6 +50,8 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const policy = usePolicy(report?.policyID);
     const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS, {canBeMissing: true});
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
+    const selfDMReportID = findSelfDMReportID();
+    const isSelfDMReportArchived = useReportIsArchived(selfDMReportID);
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
     function getUnreportedTransactions(transactions: OnyxCollection<Transaction>) {
@@ -204,7 +207,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     Navigation.dismissModal();
                     InteractionManager.runAfterInteractions(() => {
                         if (report && isIOUReport(report)) {
-                            convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
+                            convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID, isSelfDMReportArchived);
                         } else {
                             changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID, policy, reportNextStep);
                         }

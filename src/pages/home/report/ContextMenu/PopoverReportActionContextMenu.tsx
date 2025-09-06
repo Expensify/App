@@ -297,7 +297,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         if (isMoneyRequestAction(reportAction)) {
             const originalMessage = getOriginalMessage(reportAction);
             if (isTrackExpenseAction(reportAction)) {
-                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations);
+                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations, isReportArchived);
             } else {
                 deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations);
             }
