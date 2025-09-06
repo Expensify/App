@@ -86,6 +86,7 @@ import {getEnvironment, getEnvironmentURL} from './Environment/Environment';
 import type EnvironmentType from './Environment/getEnvironment/types';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
+import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import localeCompareLibs from './LocaleCompare';
 import {formatPhoneNumber} from './LocalePhoneNumber';
@@ -5992,7 +5993,8 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
         // We don't translate because the server response is always in English
         .replaceAll(/\{report:type\}/gi, 'Expense Report')
         .replaceAll(/\{report:startdate\}/gi, createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
-        .replaceAll(/\{report:total\}/gi, report.total !== undefined ? convertToDisplayString(Math.abs(report.total), report.currency).toString() : '')
+        .replaceAll(/\{report:id\}/gi, getBase62ReportID(Number(report.reportID)))
+        .replaceAll(/\{report:total\}/gi, report.total !== undefined && !Number.isNaN(report.total) ? convertToDisplayString(Math.abs(report.total), report.currency).toString() : '')
         .replaceAll(/\{report:currency\}/gi, report.currency ?? '')
         .replaceAll(/\{report:policyname\}/gi, policy?.name ?? '')
         .replaceAll(/\{report:workspacename\}/gi, policy?.name ?? '')
