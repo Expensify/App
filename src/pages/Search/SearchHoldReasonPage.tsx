@@ -30,8 +30,7 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
     const {report, ancestorReportsAndReportActions} = useAncestorReportsAndReportActions(reportID);
     const allReportTransactionsAndViolations = useAllReportsTransactionsAndViolations();
 
-    // Get all transactions and violations for the current reportID
-
+    // Get the selected transactions and violations for the current reportID
     const [selectedTransactions, selectedTransactionViolations] = useMemo(() => {
         if (!allReportTransactionsAndViolations || Object.keys(context.selectedTransactionIDs).length === 0) {
             return [{}, {}];
@@ -49,7 +48,7 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
         const violations: Record<string, TransactionViolations> = {};
 
         for (const transactionID of context.selectedTransactionIDs) {
-            const transaction = reportTransactions[transactionID];
+            const transaction = reportTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             if (!transaction) {
                 Log.warn(`[SearchHoldReasonPage] Selected transactionID not found in report transactions`, {transactionID});
                 continue;
@@ -57,13 +56,13 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
 
             const pendingAction = transaction?.pendingAction;
 
-            if (pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 Log.warn(`[SearchHoldReasonPage] Selected transactionID is not eligible for hold`, {transactionID, pendingAction});
                 continue;
             }
 
             transactions[transactionID] = transaction;
-            violations[transactionID] = reportViolations?.[transactionID] ?? [];
+            violations[transactionID] = reportViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         }
 
         return [transactions, violations];
