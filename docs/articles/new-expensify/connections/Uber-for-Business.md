@@ -20,7 +20,7 @@ Connect your Expensify workspace to Uber for Business to automatically import Ub
 3. Click **Connect** next to Uber for Business.
 4. Authorize or create your Uber for Business (U4B) account in the new browser tab that opens.
 5. When complete, the tab will close, and a list of workspace members not yet invited to U4B will appear.
-6. Confirm which workspace members should be invited to U4B (they’ll all be selected by default).
+6. Confirm which workspace members should be invited to U4B (they’ll all be selected by default), which will trigger an invite from Uber that each member must accept.
 
 If your connection fails or expires, a warning will appear under **Workspaces > Receipt partners > Uber for Business**. To resolve the error, click the three-dot menu and choose **Enter credentials** to reconnect.
 
