@@ -36,7 +36,6 @@ function AddDelegatePage() {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options, areOptionsInitialized} = usePersonalDetailsOptionsList();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const existingDelegates = useMemo(
         () =>
             account?.delegatedAccess?.delegates?.reduce(

@@ -52,7 +52,6 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [searchTerm, setSearchTerm] = useState('');
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const getInitialSelectedIDs = useCallback(() => {
