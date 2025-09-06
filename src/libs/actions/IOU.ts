@@ -8,6 +8,7 @@ import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SearchQueryJSON} from '@components/Search/types';
+import type {ReportsAndReportActions} from '@hooks/useAncestorReportsAndReportActions';
 import * as API from '@libs/API';
 import type {
     ApproveMoneyRequestParams,
@@ -183,6 +184,7 @@ import {
     isTrackExpenseReport,
     prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
+    updateOptimisticParentReportAction,
     updateReportPreview,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -3369,7 +3371,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const {
         attendees,
         amount,
-        distance,
         comment = '',
         currency,
         source = '',
@@ -11055,11 +11056,11 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
 /**
  * Put expense on HOLD
  */
-function putOnHold(transactionID: string, comment: string, initialReportID: string | undefined, searchHash?: number) {
+function putOnHold(transactionID: string, comment: string, ancestorReportsAndReportActions: ReportsAndReportActions, initialReportID: string | undefined, searchHash?: number) {
     const currentTime = DateUtils.getDBTime();
     const reportID = initialReportID ?? generateReportID();
     const createdReportAction = buildOptimisticHoldReportAction(currentTime);
-    const createdReportActionComment = buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
+    const holdReportAction = buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
     const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
     const updatedViolations = [...transactionViolations, newViolation];
@@ -11078,7 +11079,6 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     }
 
     const optimisticCreatedAction = buildOptimisticCreatedReportAction(currentUserEmail);
-    const parentReportActionOptimistic = getOptimisticDataForParentReportAction(transactionThreadReport, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -11086,7 +11086,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [createdReportAction.reportActionID]: createdReportAction as ReportAction,
-                [createdReportActionComment.reportActionID]: createdReportActionComment as ReportAction,
+                [holdReportAction.reportActionID]: holdReportAction as ReportAction,
             },
         },
         {
@@ -11108,7 +11108,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                lastVisibleActionCreated: createdReportActionComment.created,
+                lastVisibleActionCreated: holdReportAction.created,
             },
         },
     ];
@@ -11126,13 +11126,6 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
             },
         });
     }
-
-    parentReportActionOptimistic.forEach((parentActionData) => {
-        if (!parentActionData) {
-            return;
-        }
-        optimisticData.push(parentActionData);
-    });
 
     const successData: OnyxUpdate[] = [
         {
@@ -11161,7 +11154,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [createdReportAction.reportActionID]: null,
-                [createdReportActionComment.reportActionID]: null,
+                [holdReportAction.reportActionID]: null,
             },
         },
         {
@@ -11199,11 +11192,13 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
         );
 
         if (iouAction?.reportActionID) {
+            const iouActionParentUpdate = updateOptimisticParentReportAction(iouAction, holdReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
             // We link the IOU action to the new transaction thread by setting childReportID optimistically
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.parentReportID}`,
-                value: {[iouAction?.reportActionID]: {childReportID: reportID, childType: CONST.REPORT.TYPE.CHAT}},
+                value: {[iouAction?.reportActionID]: {childReportID: reportID, childType: CONST.REPORT.TYPE.CHAT, ...iouActionParentUpdate}},
             });
             // We reset the childReportID if the request fails
             failureData.push({
@@ -11211,6 +11206,18 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.parentReportID}`,
                 value: {[iouAction?.reportActionID]: {childReportID: null, childType: null}},
             });
+        }
+
+        for (const {report: ancestorReport, reportAction: ancestorReportAction} of ancestorReportsAndReportActions) {
+            if (ancestorReportAction?.reportActionID && ancestorReport.reportID) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`,
+                    value: {
+                        [ancestorReportAction.reportActionID]: updateOptimisticParentReportAction(ancestorReportAction, holdReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
+                    },
+                });
+            }
         }
 
         successData.push(
@@ -11279,7 +11286,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
         transactionID,
         comment,
         reportActionID: createdReportAction.reportActionID,
-        commentReportActionID: createdReportActionComment.reportActionID,
+        commentReportActionID: holdReportAction.reportActionID,
     };
 
     if (!initialReportID) {
@@ -11301,6 +11308,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
 function bulkHold(
     comment: string,
     report: OnyxEntry<OnyxTypes.Report>,
+    ancestorReportsAndReportActions: ReportsAndReportActions,
     transactions: OnyxCollection<OnyxTypes.Transaction>,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
     transactionsIOUActions: Record<string, ReportAction>,
@@ -11309,13 +11317,15 @@ function bulkHold(
         return;
     }
 
-    let optimisticUnheldNonReimbursableTotal: number | undefined = undefined;
-    let optimisticUnheldTotal: number | undefined = undefined;
-    
+    let optimisticUnheldNonReimbursableTotal: number | undefined;
+    let optimisticUnheldTotal: number | undefined;
+
     const isExpenseReport = isExpenseReportUtils(report);
     const coefficient = isExpenseReport ? -1 : 1;
+    const createdTime = DateUtils.getDBTime();
     const reportID = report.reportID;
 
+    const ancestorReportActionsOptimisticData: Record<string, PartialDeep<OnyxTypes.ReportActions>> = {};
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -11323,16 +11333,39 @@ function bulkHold(
 
     Object.entries(transactionsIOUActions).forEach(([transactionID, iouAction]) => {
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction || !transaction.reportID || !iouAction) {
+            Log.warn(`[IOU] Trying to hold transaction without all necessary data. TransactionID: ${transactionID}, reportID: ${transaction?.reportID}, iouAction: ${!!iouAction}`);
+            return;
+        }
+
         const transactionThreadReport = buildTransactionThread(iouAction, report, reportID, iouAction?.childReportID);
 
-        const createdTime = DateUtils.getDBTime();
-        const createdReportAction = buildOptimisticHoldReportAction(DateUtils.addMillisecondsFromDateTime(createdTime, 1));
-        const createdReportActionComment = buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(createdTime, 2));
+        const holdReportActionCreatedTime = DateUtils.addMillisecondsFromDateTime(createdTime, 1);
+        const holdReportActionCommentCreatedTime = DateUtils.addMillisecondsFromDateTime(createdTime, 2);
+
+        const holdReportAction = buildOptimisticHoldReportAction(holdReportActionCreatedTime);
+        const holdReportActionComment = buildOptimisticHoldReportActionComment(comment, holdReportActionCommentCreatedTime);
 
         holdData[transactionID] = {
-            holdReportActionID: createdReportAction.reportActionID,
-            commentReportActionID: createdReportActionComment.reportActionID,
+            holdReportActionID: holdReportAction.reportActionID,
+            commentReportActionID: holdReportActionComment.reportActionID,
         };
+
+        for (const {report: ancestorReport, reportAction: ancestorReportAction} of ancestorReportsAndReportActions) {
+            if (!ancestorReportAction || !ancestorReport.reportID) {
+                continue;
+            }
+
+            const optimisticReportActions: PartialDeep<OnyxTypes.ReportActions> = ancestorReportActionsOptimisticData[ancestorReport.reportID] ?? {};
+            const optimisticReportAction: OnyxTypes.ReportAction = (optimisticReportActions?.[ancestorReportAction.reportActionID] as OnyxTypes.ReportAction) ?? {};
+            const reportAction: OnyxTypes.ReportAction = {...ancestorReportAction, ...optimisticReportAction};
+
+            ancestorReportActionsOptimisticData[ancestorReport.reportID] = {
+                ...optimisticReportActions,
+                [ancestorReportAction.reportActionID]: updateOptimisticParentReportAction(reportAction, holdReportActionCommentCreatedTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
+            };
+        }
+
 
         if (transaction?.currency === report?.currency) {
             const transactionAmount = getAmount(transaction, isExpenseReport) * coefficient;
@@ -11360,11 +11393,7 @@ function bulkHold(
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
                     value: {[createdTransactionThreadReportAction.reportActionID]: createdTransactionThreadReportAction},
                 },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                    value: {[iouAction.reportActionID]: {childReportID: transactionThreadReport.reportID}},
-                },
+
             );
 
             successData.push(
@@ -11391,31 +11420,42 @@ function bulkHold(
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
                     value: {[createdTransactionThreadReportAction.reportActionID]: null},
                 },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                    value: {[iouAction.reportActionID]: {childReportID: null}},
-                },
             );
         }
 
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingAction: null,
+            },
+        });
+
         optimisticData.push(
-            ...getOptimisticDataForParentReportAction(transactionThreadReport, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD).filter(
-                (parentActionData): parentActionData is OnyxUpdate => parentActionData !== null,
-            ),
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {
+                    [iouAction.reportActionID]: {
+                        ...updateOptimisticParentReportAction(iouAction, holdReportActionCommentCreatedTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
+                        childReportID: transactionThreadReport.reportID,
+                        childType: CONST.REPORT.TYPE.CHAT,
+                    },
+                },
+            },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
                 value: {
-                    [createdReportAction.reportActionID]: createdReportAction as ReportAction,
-                    [createdReportActionComment.reportActionID]: createdReportActionComment as ReportAction,
+                    [holdReportAction.reportActionID]: holdReportAction as ReportAction,
+                    [holdReportActionComment.reportActionID]: holdReportActionComment as ReportAction,
                 },
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
                 value: {
-                    lastVisibleActionCreated: createdReportActionComment.created,
+                    lastVisibleActionCreated: holdReportActionCommentCreatedTime,
                 },
             },
             {
@@ -11424,7 +11464,7 @@ function bulkHold(
                 value: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     comment: {
-                        hold: createdReportAction.reportActionID,
+                        hold: holdReportAction.reportActionID,
                     },
                 },
             },
@@ -11445,17 +11485,6 @@ function bulkHold(
         failureData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                value: {
-                    pendingAction: null,
-                    comment: {
-                        hold: null,
-                    },
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericHoldExpenseFailureMessage'),
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
                 value: {
                     lastVisibleActionCreated: transactionThreadReport?.lastVisibleActionCreated,
@@ -11464,10 +11493,29 @@ function bulkHold(
 
             {
                 onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {[iouAction.reportActionID]: {childReportID: null, childType: null}},
+            },
+
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
                 value: {
-                    [createdReportAction.reportActionID]: null,
-                    [createdReportActionComment.reportActionID]: null,
+                    [holdReportAction.reportActionID]: null,
+                    [holdReportActionComment.reportActionID]: null,
+                },
+            },
+
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {
+                    pendingAction: null,
+                    comment: {
+                        hold: null,
+                    },
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericHoldExpenseFailureMessage'),
+
                 },
             },
 
@@ -11477,15 +11525,32 @@ function bulkHold(
                 value: transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? null,
             },
         );
-
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                pendingAction: null,
-            },
-        });
     });
+
+    // Pushing final ancestery report actions optimistic data
+    for (const {report: ancestorReport, reportAction: ancestorReportAction} of ancestorReportsAndReportActions) {
+        if (!ancestorReportAction || !ancestorReport.reportID) {
+            continue;
+        }
+
+        const ancestorReportActionOptimisticData = ancestorReportActionsOptimisticData[ancestorReport.reportID]?.[ancestorReportAction.reportActionID];
+
+        if (!ancestorReportActionOptimisticData) {
+            continue;
+        }
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`,
+            value: ancestorReportActionOptimisticData,
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`,
+            value: ancestorReportAction,
+        });
+    }
 
     if (optimisticUnheldTotal !== report?.unheldTotal || optimisticUnheldNonReimbursableTotal !== report?.unheldNonReimbursableTotal) {
         optimisticData.push({

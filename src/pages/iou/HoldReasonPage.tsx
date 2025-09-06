@@ -15,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 import HoldReasonFormView from './HoldReasonFormView';
+import useAncestorReportAndReportActions from '@hooks/useAncestorReportsAndReportActions';
 
 type HoldReasonPageProps =
     | PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.HOLD>
@@ -25,12 +26,12 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
 
     const {transactionID, reportID, backTo, searchHash} = route.params;
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`);
+    const {report, ancestorReportsAndReportActions} = useAncestorReportAndReportActions(reportID);
 
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
     // For personal requests, we need to allow both users to put the request on hold
     const isWorkspaceRequest = ReportUtils.isReportInGroupPolicy(report);
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
+    const parentReportAction = ancestorReportsAndReportActions.at(-1)?.reportAction;
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
@@ -40,7 +41,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             return;
         }
 
-        IOU.putOnHold(transactionID, values.comment, reportID, searchHash);
+        IOU.putOnHold(transactionID, values.comment, ancestorReportsAndReportActions, reportID, searchHash);
         Navigation.goBack(backTo);
     };
 
