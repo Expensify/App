@@ -68,6 +68,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
             },
         ];
 
+        // Only show the bypass option if current approver is not a policy admin
         if (!isMemberPolicyAdmin(policy, getLoginByAccountID(report.managerID ?? CONST.DEFAULT_NUMBER_ID))) {
             data.push({
                 text: translate('iou.changeApprover.actions.bypassApprovers'),

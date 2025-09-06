@@ -1509,6 +1509,9 @@ function isCurrentUserMemberOfAnyPolicy(): boolean {
     return Object.values(allPolicies ?? {}).some((policy) => policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE);
 }
 
+/**
+ * Whether the given policy member is an admin of the given policy
+ */
 function isMemberPolicyAdmin(policy: OnyxEntry<Policy>, memberEmail: string | undefined): boolean {
     if (!policy || !memberEmail) {
         return false;
