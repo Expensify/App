@@ -1,6 +1,8 @@
+import type {Receipt} from '@src/types/onyx/Transaction';
+
 type ReplaceReceiptParams = {
     transactionID: string;
-    receipt: File;
+    receipt: Receipt;
 };
 
 export default ReplaceReceiptParams;
