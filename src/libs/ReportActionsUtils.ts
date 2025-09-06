@@ -2989,8 +2989,12 @@ function getRoomChangeLogMessage(reportAction: ReportAction) {
     return `${actionText} ${targetAccountIDs.length} ${userText}`;
 }
 
-function getReportActions(report: Report) {
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
+function getReportActions(reportOrReportID: Report | string | undefined) {
+    if (!reportOrReportID) {
+        return;
+    }
+    const reportID = typeof reportOrReportID === 'string' ? reportOrReportID : reportOrReportID.reportID;
+    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
 }
 
 /**
