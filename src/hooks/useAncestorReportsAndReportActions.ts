@@ -53,48 +53,36 @@ function useAncestorReportAndReportActions(reportID: string, includeTransactionT
                 return [];
             }
 
-            const reportsAndReportActions: ReportAndReportAction[] = [];
+            
             let reportParentReportID = ancestorReports[reportID]?.parentReportID;
             let parentReportActionID = ancestorReports[reportID]?.parentReportActionID;
+            const reportsAndReportActions: ReportsAndReportActions = [];
 
             while (reportParentReportID) {
                 const parentReport = ancestorReports[reportParentReportID];
                 if (!parentReport) {
                     break;
                 }
-                if (!parentReportActionID) {
-                    reportsAndReportActions.unshift({report: parentReport, reportAction: undefined});
-                    reportParentReportID = parentReport?.parentReportID;
-                    parentReportActionID = parentReport?.parentReportActionID;
-                    continue;
-                }
 
-                const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportParentReportID}`]?.[parentReportActionID];
-                if (!parentReportAction) {
-                    reportsAndReportActions.unshift({report: parentReport, reportAction: undefined});
-                    reportParentReportID = parentReport.parentReportID;
-                    parentReportActionID = parentReport.parentReportActionID;
-                    continue;
-                }
+                const parentReportAction = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportParentReportID}`]?.[`${parentReportActionID}`];
 
                 // We need to reassign reportParentReportID and parentReportActionID here to avoid infinite loop in case of malformed data
-                reportParentReportID = parentReport.parentReportID;
                 parentReportActionID = parentReport.parentReportActionID;
+                reportParentReportID = parentReport?.parentReportID;
 
+                if (includeTransactionThread || !parentReportAction) {
+                    reportsAndReportActions.unshift({report: parentReport, reportAction: parentReportAction});
+                    continue;
+                }
+
+                // Exclude transaction thread actions unless they are "report preview" or "sent money" actions
                 const isTransactionThread = isTransactionThreadUtils(parentReportAction);
                 const isReportPreviewAction = isReportPreviewActionUtils(parentReportAction);
                 const isSentMoneyReportAction = isSentMoneyReportActionUtils(parentReportAction);
 
-                if (!includeTransactionThread && ((isTransactionThread && !isSentMoneyReportAction) || isReportPreviewAction)) {
-                    continue;
+                if ((isTransactionThread && !isSentMoneyReportAction) || isReportPreviewAction) {
+                    reportsAndReportActions.unshift({report: parentReport, reportAction: parentReportAction});
                 }
-
-                const reportAndReportAction: ReportAndReportAction = {
-                    report: parentReport,
-                    reportAction: parentReportAction,
-                };
-
-                reportsAndReportActions.unshift(reportAndReportAction);
             }
 
             return reportsAndReportActions;
