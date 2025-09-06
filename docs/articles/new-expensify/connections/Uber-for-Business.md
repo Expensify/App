@@ -28,7 +28,7 @@ If your connection fails or expires, a warning will appear under **Workspaces > 
 
 ## Manage invites
 
-When you first connect to Uber for Business, all workspace members will be invited by default. To manually invite members later:
+To manually invite members to Uber for Business later:
 
 1. Go to **Workspaces > [Workspace Name] > Receipt partners**
 2. Click **Manage invites**.
