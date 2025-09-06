@@ -27,6 +27,7 @@ type SelectionListApprover = {
     login: string;
     rightElement?: React.ReactNode;
     icons: Icon[];
+    value?: string;
 };
 type ApproverSection = SectionListData<SelectionListApprover, Section<SelectionListApprover>>;
 
