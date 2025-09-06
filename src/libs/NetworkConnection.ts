@@ -109,7 +109,10 @@ Onyx.connectWithoutView({
 });
 
 let accountID = 0;
-Onyx.connect({
+
+// We do not depend on updates on the UI to determine the account ID
+// so we can use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
         if (!session?.accountID) {
