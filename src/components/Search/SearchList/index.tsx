@@ -1,6 +1,6 @@
-import {useRoute} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import type {FlashList, FlashListProps, ViewToken} from '@shopify/flash-list';
-import React, {forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -11,6 +11,7 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {createItemHeightCalculator} from '@components/Search/itemHeightCalculator';
 import ITEM_HEIGHTS from '@components/Search/itemHeights';
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
@@ -192,6 +193,7 @@ function SearchList(
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
 
     const route = useRoute();
+    const {getScrollOffset} = useContext(ScrollOffsetContext);
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
@@ -244,6 +246,19 @@ function SearchList(
             listRef.current.scrollToIndex({index, animated, viewOffset: variables.contentHeaderHeight});
         },
         [data],
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            const offset = getScrollOffset(route);
+            requestAnimationFrame(() => {
+                if (!offset || !listRef.current) {
+                    return;
+                }
+
+                listRef.current.scrollToOffset({offset, animated: false});
+            });
+        }, [getScrollOffset, route]),
     );
 
     useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
@@ -389,7 +404,6 @@ function SearchList(
                     )}
                 </View>
             )}
-
             <BaseSearchList
                 data={data}
                 renderItem={renderItem}
