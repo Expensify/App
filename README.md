@@ -344,7 +344,7 @@ This is a persistent storage solution wrapped in a Pub/Sub library. In general t
 - Onyx allows other code to subscribe to changes in data, and then publishes change events whenever data is changed
 - Anything needing to read Onyx data needs to:
     1. Know what key the data is stored in (for web, you can find this by looking in the JS console > Application > IndexedDB > OnyxDB > keyvaluepairs)
-    2. Subscribe to changes of the data for a particular key or set of keys. React components use `withOnyx()` and non-React libs use `Onyx.connect()`
+    2. Subscribe to changes of the data for a particular key or set of keys. React components use `useOnyx()` and non-React libs use `Onyx.connect()`
     3. Get initialized with the current value of that key from persistent storage (Onyx does this by calling `setState()` or triggering the `callback` with the values currently on disk as part of the connection process)
 - Subscribing to Onyx keys is done using a constant defined in `ONYXKEYS`. Each Onyx key represents either a collection of items or a specific entry in storage. For example, since all reports are stored as individual keys like `report_1234`, if code needs to know about all the reports (eg. display a list of them in the nav menu), then it would subscribe to the key `ONYXKEYS.COLLECTION.REPORT`.
 
@@ -358,7 +358,7 @@ Actions are responsible for managing what is on disk. This is usually:
 ## The UI layer
 This layer is solely responsible for:
 
-- Reflecting exactly the data that is in persistent storage by using `withOnyx()` to bind to Onyx data.
+- Reflecting exactly the data that is in persistent storage by using `useOnyx()` to bind to Onyx data.
 - Taking user input and passing it to an action
 
 As a convention, the UI layer should never interact with device storage directly or call `Onyx.set()` or `Onyx.merge()`. Use an action! For example, check out this action that is signing in the user [here](https://github.com/Expensify/App/blob/919c890cc391ad38b670ca1b266c114c8b3c3285/src/pages/signin/PasswordForm.js#L78-L78).
@@ -392,7 +392,7 @@ function signIn(password, twoFactorAuthCode) {
 }
 ```
 
-Keeping our `Onyx.merge()` out of the view layer and in actions helps organize things as all interactions with device storage and API handling happen in the same place. In addition, actions that are called from inside views should not ever use the `.then()` method to set loading/error states, navigate or do any additional data processing. All of this stuff should ideally go into `Onyx` and be fed back to the component via `withOnyx()`. Design your actions so they clearly describe what they will do and encapsulate all their logic in that action.
+Keeping our `Onyx.merge()` out of the view layer and in actions helps organize things as all interactions with device storage and API handling happen in the same place. In addition, actions that are called from inside views should not ever use the `.then()` method to set loading/error states, navigate or do any additional data processing. All of this stuff should ideally go into `Onyx` and be fed back to the component via `useOnyx()`. Design your actions so they clearly describe what they will do and encapsulate all their logic in that action.
 
 ```javascript
 // Bad
@@ -471,12 +471,7 @@ Onyx.init({
 ```
 
 ```js
-export default withOnyx({
-    reportActions: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        canEvict: props => !props.isActiveReport,
-    },
-})(ReportActionsView);
+const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canEvict: true});
 ```
 
 ## Things to know or brush up on before jumping into the code
@@ -615,7 +610,7 @@ This application is built with the following principles.
 1. **Data Flow** - Ideally, this is how data flows through the app:
     1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Onyx).
     >**Note:** Currently the code only does this with report comments. Until we make more server changes, this step is actually done by the client requesting data from the server via XHR and then storing the response in Onyx.
-    2. Disk pushes data to the UI (Onyx -> withOnyx() -> React component).
+    2. Disk pushes data to the UI (Onyx -> useOnyx() -> React component).
     3. UI pushes data to people's brains (React component -> device screen).
     4. Brain pushes data into UI inputs (Device input -> React component).
     5. UI inputs push data to the server (React component -> Action -> XHR to server).
@@ -627,7 +622,7 @@ This application is built with the following principles.
     - All data that is displayed, comes from persistent storage.
 1. **UI Binds to data on disk**
     - Onyx is a Pub/Sub library to connect the application to the data stored on disk.
-    - UI components subscribe to Onyx (using `withOnyx()`) and any change to the Onyx data is published to the component by calling `setState()` with the changed data.
+    - UI components subscribe to Onyx (using `useOnyx()`) and any change to the Onyx data is published to the component by calling `setState()` with the changed data.
     - Libraries subscribe to Onyx (with `Onyx.connect()`) and any change to the Onyx data is published to the callback with the changed data.
     - The UI should never call any Onyx methods except for `Onyx.connect()`. That is the job of Actions (see next section).
     - The UI always triggers an Action when something needs to happen (eg. a person inputs data, the UI triggers an Action with this data).
