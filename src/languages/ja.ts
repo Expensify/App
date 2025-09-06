@@ -324,6 +324,7 @@ const translations = {
         count: 'カウント',
         cancel: 'キャンセル',
         dismiss: '却下する',
+        proceed: 'Proceed',
         yes: 'はい',
         no: 'いいえ',
         ok: 'OK',
@@ -658,6 +659,7 @@ const translations = {
         merge: 'マージ',
         unstableInternetConnection: 'インターネット接続が不安定です。ネットワークを確認してもう一度お試しください。',
         enableGlobalReimbursements: 'グローバル払い戻しを有効にする',
+        purchaseAmount: '購入金額',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -874,17 +876,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `このチャットルームは、<strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>に関することなら何でもどうぞ。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `このチャットは、<strong>${invoicePayer}</strong>と<strong>${invoiceReceiver}</strong>間の請求書用です。請求書を送信するには、+ボタンを使用してください。`,
+            `このチャットは、<strong>${invoicePayer}</strong>と<strong>${invoiceReceiver}</strong>間の請求書用です。請求書を送信するには、<emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> ボタンを使用してください。`,
         beginningOfChatHistory: 'このチャットは',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `ここで<strong>${submitterDisplayName}</strong>が<strong>${workspaceName}</strong>に経費を提出します。ボタンをクリックしてください。`,
+            `ここで<strong>${submitterDisplayName}</strong>が<strong>${workspaceName}</strong>に経費を提出します。<emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>ボタンをクリックしてください。`,
         beginningOfChatHistorySelfDM: 'これはあなたの個人スペースです。メモ、タスク、下書き、リマインダーに使用してください。',
         beginningOfChatHistorySystemDM: 'ようこそ！セットアップを始めましょう。',
         chatWithAccountManager: 'こちらでアカウントマネージャーとチャットしてください',
         sayHello: 'こんにちは！',
         yourSpace: 'あなたのスペース',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `${roomName}へようこそ！`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `+ ボタンを使用して経費を${additionalText}します。`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} ボタンを使用して経費を${additionalText}します。`,
         askConcierge: '質問をして、24時間365日リアルタイムサポートを受けましょう。',
         conciergeSupport: '24時間年中無休サポート',
         create: '作成する',
@@ -998,6 +1000,7 @@ const translations = {
         sizeNotMet: 'ファイルサイズは0バイトより大きくなければなりません',
         invalidFileMessage:
             'アップロードしたファイルは空であるか、無効なデータが含まれています。ファイルが正しくフォーマットされ、必要な情報が含まれていることを確認してから、再度アップロードしてください。',
+        importSpreadsheetLibraryError: 'スプレッドシートモジュールの読み込みに失敗しました。インターネット接続を確認して、もう一度お試しください。',
         importSpreadsheet: 'スプレッドシートをインポート',
         downloadCSV: 'CSVをダウンロード',
         importMemberConfirmation: () => ({
@@ -1929,6 +1932,7 @@ const translations = {
         reportTravelFraud: 'トラベルカード詐欺を報告する',
         reviewTransaction: '取引を確認する',
         suspiciousBannerTitle: '不審な取引',
+        physicalCardPin: 'PIN',
         suspiciousBannerDescription: 'あなたのカードで不審な取引が検出されました。確認するには下をタップしてください。',
         cardLocked: 'お客様のカードは、当社のチームが貴社のアカウントを確認している間、一時的にロックされています。',
         cardDetails: {
@@ -2290,22 +2294,22 @@ const translations = {
         },
         tasks: {
             testDriveAdminTask: {
-                title: ({testDriveURL}) => `\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6](${testDriveURL})\u3092\u884C\u3046`,
+                title: ({testDriveURL}) => `[\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6](${testDriveURL})\u3092\u884C\u3046`,
                 description: ({testDriveURL}) =>
-                    `Expensify\u304C\u6700\u3082\u5B89\u3044\u65B9\u6CD5\u3067\u3042\u308B\u7406\u7531\u3092\u78BA\u304B\u3081\u308B\u305F\u3081\u306B\u3001\u30D7\u30ED\u30C0\u30AF\u30C8\u30C4\u30A2\u30FC\u3092\u7D76\u597D\u306A\u3008\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6\u3092\u884C\u3046\u3009(${testDriveURL})\u305F\u3081\u306B\u3001\u30D7\u30ED\u30C0\u30AF\u30C8\u30C4\u30A2\u30FC\u3092\u7D76\u597D\u306A\u3008\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6\u3092\u884C\u3046\u3009(${testDriveURL})\u3092\u3057\u307E\u3059\u3002`,
+                    `Expensify\u304C\u6700\u3082\u5B89\u3044\u65B9\u6CD5\u3067\u3042\u308B\u7406\u7531\u3092\u78BA\u304B\u3081\u308B\u305F\u3081\u306B\u3001[\u30AF\u30A4\u30C3\u30AF\u30D7\u30ED\u30C0\u30AF\u30C8\u30C4\u30A2\u30FC](${testDriveURL})\u3092\u3057\u307E\u3059\u3002`,
             },
             testDriveEmployeeTask: {
-                title: ({testDriveURL}) => `\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6](${testDriveURL})\u3092\u884C\u3046`,
+                title: ({testDriveURL}) => `[\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6](${testDriveURL})\u3092\u884C\u3046`,
                 description: ({testDriveURL}) =>
-                    `\u5F7C\u3089\u306B](${testDriveURL})\u3092\u884C\u3044\u3001Expensify\u306E*\u30AF\u30FC\u30DD\u30F3\u3092\u6700\u521D\u306E3\u304B\u6708\u3067\u5165\u624B\u3057\u307E\u305B\u3093\u304B*`,
+                    `[\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6](${testDriveURL})\u3092\u884C\u3044\u3001\u30C1\u30FC\u30E0\u306B *3 \u304B\u6708\u9593\u306E Expensify \u7121\u6599\u30AF\u30FC\u30DD\u30F3*\u3092\u624B\u306B\u5165\u308C\u307E\u3057\u3087\u3046\uff01`,
             },
             createTestDriveAdminWorkspaceTask: {
-                title: ({workspaceConfirmationLink}) => `\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u306E\u4F5C\u6210](${workspaceConfirmationLink})`,
+                title: ({workspaceConfirmationLink}) => `[\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u306E\u4F5C\u6210](${workspaceConfirmationLink})`,
                 description:
                     '\u30BB\u30C3\u30C8\u30A2\u30C3\u30D7\u30B9\u30DA\u30B7\u30E3\u30EA\u30B9\u30C8\u3068\u5171\u306B\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u3092\u4F5C\u6210\u3057\u3001\u8A2D\u5B9A\u3092\u69CB\u6210\u3057\u307E\u3059\uFF01',
             },
             createWorkspaceTask: {
-                title: ({workspaceSettingsLink}) => `\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u306E\u4F5C\u6210](${workspaceSettingsLink})`,
+                title: ({workspaceSettingsLink}) => `[\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u306E\u4F5C\u6210](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
                     '*\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u3092\u4F5C\u6210\u3057\u307E\u3059* \u306B\u306F\u3001\u7D4C\u8CBB\u3092\u8FFD\u8DE1\u3057\u3001\u9818\u53CE\u66F8\u3092\u30B9\u30AD\u30E3\u30F3\u3057\u3001\u30C1\u30E3\u30C3\u30C8\u306A\u3069\u3092\u884C\u3044\u307E\u3059\u3002\n' +
                     '\n' +
@@ -2314,7 +2318,7 @@ const translations = {
                     `*\u65B0\u3057\u3044\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u306E\u6E96\u5099\u304C\u3067\u304D\u307E\u3057\u305F\uFF01* [\u78BA\u8A8D\u3059\u308B](${workspaceSettingsLink})\u3002`,
             },
             setupCategoriesTask: {
-                title: ({workspaceCategoriesLink}) => `\u30AB\u30C6\u30B4\u30EA\u30FC\u306E\u8A2D\u5B9A](${workspaceCategoriesLink})`,
+                title: ({workspaceCategoriesLink}) => `[\u30AB\u30C6\u30B4\u30EA\u30FC\u306E\u8A2D\u5B9A](${workspaceCategoriesLink})`,
                 description: ({workspaceCategoriesLink}) =>
                     '*\u30AB\u30C6\u30B4\u30EA\u30FC\u3092\u8A2D\u5B9A\u3057\u307E\u3059* \u3068\u3001\u30C1\u30FC\u30E0\u306F\u7C21\u5358\u306A\u5831\u544A\u306E\u305F\u3081\u306B\u7D4C\u8CBB\u3092\u30B3\u30FC\u30C9\u5316\u3067\u304D\u307E\u3059\u3002\n' +
                     '\n' +
@@ -2505,7 +2509,7 @@ const translations = {
         } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
         testDrive: {
             name: ({testDriveURL}: {testDriveURL?: string}) =>
-                testDriveURL ? `\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6](${testDriveURL})\u3092\u884C\u3046` : '\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6\u3092\u884C\u3046',
+                testDriveURL ? `[\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6](${testDriveURL})\u3092\u884C\u3046` : '\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6\u3092\u884C\u3046',
             embeddedDemoIframeTitle: '\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6',
             employeeFakeReceipt: {
                 description: '\u79C1\u306E\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6\u306E\u9818\u53CE\u66F8\uFF01',
@@ -2813,6 +2817,7 @@ const translations = {
             formLabel: 'PDFを表示',
         },
         attachmentNotFound: '添付ファイルが見つかりません',
+        retry: '再試行',
     },
     messages: {
         errorMessageInvalidPhone: `有効な電話番号を括弧やダッシュなしで入力してください。米国外の場合は、国コードを含めてください（例: ${CONST.EXAMPLE_PHONE_NUMBER}）。`,
@@ -3477,12 +3482,14 @@ const translations = {
             customField1: 'カスタムフィールド1',
             customField2: 'カスタムフィールド2',
             customFieldHint: 'このメンバーのすべての支出に適用されるカスタムコーディングを追加します。',
+            reports: 'レポート',
             reportFields: 'レポートフィールド',
             reportTitle: 'レポートタイトル',
             reportField: 'レポートフィールド',
             taxes: '税金',
             bills: '請求書',
             invoices: '請求書',
+            perDiem: 'Per diem',
             travel: '旅行',
             members: 'メンバー',
             accounting: '会計',
@@ -3495,6 +3502,7 @@ const translations = {
             testTransactions: 'トランザクションをテストする',
             issueAndManageCards: 'カードの発行と管理',
             reconcileCards: 'カードを照合する',
+            selectAll: 'すべて選択',
             selected: () => ({
                 one: '1 件選択済み',
                 other: (count: number) => `${count} 件選択済み`,
@@ -3508,6 +3516,8 @@ const translations = {
             memberNotFound: 'メンバーが見つかりません。新しいメンバーをワークスペースに招待するには、上の招待ボタンを使用してください。',
             notAuthorized: `このページにアクセスする権限がありません。このワークスペースに参加しようとしている場合は、ワークスペースのオーナーにメンバーとして追加してもらってください。他に何かお困りですか？${CONST.EMAIL.CONCIERGE}にお問い合わせください。`,
             goToWorkspace: 'ワークスペースに移動',
+            duplicateWorkspace: 'ワークスペースの複製',
+            duplicateWorkspacePrefix: '重複',
             goToWorkspaces: 'ワークスペースに移動',
             clearFilter: 'フィルターをクリア',
             workspaceName: 'ワークスペース名',
@@ -3988,6 +3998,18 @@ const translations = {
             syncReimbursedReports: '払い戻されたレポートを同期する',
             syncReimbursedReportsDescription: 'Expensify ACHを使用してレポートが支払われるたびに、対応する請求書の支払いが以下のSage Intacctアカウントに作成されます。',
             paymentAccount: 'Sage Intacct支払いアカウント',
+            accountingMethods: {
+                label: 'エクスポートのタイミング',
+                description: '経費をエクスポートするタイミングを選択:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '発生主義',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自己負担の経費は最終承認時にエクスポートされます。',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自己負担の経費は支払われたときにエクスポートされます。',
+                },
+            },
         },
         netsuite: {
             subsidiary: '子会社',
@@ -4456,6 +4478,8 @@ const translations = {
             disclaimer:
                 'The Expensify Visa® Commercial Cardは、Visa U.S.A. Inc.からのライセンスに基づき、FDICメンバーであるThe Bancorp Bank, N.A.によって発行されており、Visaカードを受け付けるすべての加盟店で使用できるわけではありません。Apple®およびAppleロゴ®は、米国およびその他の国で登録されたApple Inc.の商標です。App StoreはApple Inc.のサービスマークです。Google PlayおよびGoogle Playロゴは、Google LLCの商標です。',
             issueCard: 'カードを発行',
+            euUkDisclaimer:
+                'EEA居住者に提供されるカードはTransact Payments Malta Limitedによって発行され、英国居住者に提供されるカードはVisa Europe Limitedのライセンスに基づきTransact Payments Limitedによって発行されます。Transact Payments Malta Limitedは、1994年金融機関法に基づき、マルタ金融サービス機構（Malta Financial Services Authority）により金融機関として正式に認可および規制されています。登録番号はC 91879です。Transact Payments Limitedは、ジブラルタル金融サービス委員会（Gibraltar Financial Service Commission）により認可および規制されています。',
             findCard: 'カードを探す',
             newCard: '新しいカード',
             name: '名前',
@@ -4840,7 +4864,8 @@ const translations = {
             existingTagError: 'この名前のタグはすでに存在します',
             invalidTagNameError: 'タグ名は0にできません。別の値を選んでください。',
             genericFailureMessage: 'タグの更新中にエラーが発生しました。もう一度お試しください。',
-            importedFromAccountingSoftware: '以下のタグはあなたのからインポートされます',
+            importedFromAccountingSoftware: 'タグは次で管理されています:',
+            employeesSeeTagsAs: '従業員にはタグが次のように表示されます: ',
             glCode: 'GLコード',
             updateGLCodeFailureMessage: 'GLコードの更新中にエラーが発生しました。もう一度お試しください。',
             tagRules: 'Tag rules',
@@ -4921,6 +4946,18 @@ const translations = {
             importedFromAccountingSoftware: '以下の税金はあなたのからインポートされています',
             taxCode: '税コード',
             updateTaxCodeFailureMessage: '税コードの更新中にエラーが発生しました。もう一度お試しください。',
+        },
+        duplicateWorkspace: {
+            title: '新しいワークスペースに名前を付けてください',
+            selectFeatures: 'コピーする機能を選択してください',
+            whichFeatures: '新しいワークスペースにコピーする機能はどれですか？',
+            confirmDuplicate: '\n\n続行しますか?',
+            categories: 'カテゴリと自動分類ルール',
+            reimbursementAccount: '払い戻し口座',
+            delayedSubmission: '遅延送信',
+            welcomeNote: '新しいワークスペースの使用を開始してください',
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `${newWorkspaceName ?? ''} を作成し、元のワークスペースの ${totalMembers ?? 0} 人のメンバーと共有しようとしています。`,
         },
         emptyWorkspace: {
             title: 'ワークスペースがありません',
@@ -5351,6 +5388,7 @@ const translations = {
             genericFailureMessage: 'ワークスペースの更新中にエラーが発生しました。もう一度お試しください。',
             avatarUploadFailureMessage: 'アバターのアップロード中にエラーが発生しました。もう一度お試しください。',
             addressContext: 'Expensify Travelを有効にするには、ワークスペースの住所が必要です。ビジネスに関連する住所を入力してください。',
+            policy: '経費ポリシー',
         },
         bankAccount: {
             continueWithSetup: 'セットアップを続ける',
@@ -5683,8 +5721,7 @@ const translations = {
             },
             customRules: {
                 title: 'カスタムルール',
-                subtitle: '説明',
-                description: '経費報告書のカスタムルールを入力',
+                cardSubtitle: 'ここにチームの経費ポリシーがあり、何が対象になるのか全員が同じ理解を持てます。',
             },
         },
         planTypePage: {
@@ -5995,7 +6032,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: '表示するものがありません',
-                subtitle: '検索条件を調整するか、緑色の+ボタンで何かを作成してみてください。',
+                subtitle: `検索条件を調整するか、緑色の${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}ボタンで何かを作成してみてください。`,
             },
             emptyExpenseResults: {
                 title: 'まだ経費が作成されていません。',
@@ -6106,6 +6143,7 @@ const translations = {
             withdrawn: '取り消し',
             billable: 'ビラブル',
             reimbursable: '払い戻し可能',
+            purchaseCurrency: '購入通貨',
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.REPORTS]: '報告',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'から',
@@ -6116,6 +6154,12 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
+            },
+            action: {
+                [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '送信',
+                [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '承認',
+                [CONST.SEARCH.ACTION_FILTERS.PAY]: '支払う',
+                [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
         },
         groupBy: 'グループ',
@@ -6275,7 +6319,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `このレポートのエクスポートを${label}に開始しました...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `このレポートを${label}にエクスポートできませんでした（"${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}"）`,
+                    `このレポートを${label}にエクスポートできませんでした（"${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}"）`,
                 managerAttachReceipt: `領収書を追加しました`,
                 managerDetachReceipt: `領収書を削除しました`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `他の場所で${currency}${amount}を支払いました。`,
@@ -6631,7 +6675,7 @@ const translations = {
         isTransactionBillable: '取引が請求可能か選択',
         keepThisOne: 'このままにしておく',
         confirmDetails: `保持している詳細を確認してください。`,
-        confirmDuplicatesInfo: `保持しない重複リクエストは、メンバーが削除するために保持されます。`,
+        confirmDuplicatesInfo: `保持しなかった重複は、提出者が削除できるように保留されます。`,
         hold: 'この経費は保留されました',
         resolvedDuplicates: '重複を解決しました',
     },
