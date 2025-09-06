@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import {EmptyShelves} from '@components/Icon/Illustrations';
 import RenderHTML from '@components/RenderHTML';
+import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import MergeExpensesSkeleton from '@components/Skeletons/MergeExpensesSkeleton';
@@ -101,11 +102,11 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
 
     const subTitleContent = useMemo(() => {
         return (
-            <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
+            <View style={[styles.renderHTML, styles.textNormal]}>
                 <RenderHTML html={translate('transactionMerge.listPage.noEligibleExpenseFoundSubtitle')} />
-            </Text>
+            </View>
         );
-    }, [translate, styles.textAlignCenter, styles.textSupporting, styles.textNormal]);
+    }, [translate, styles.renderHTML, styles.textNormal]);
 
     const handleConfirm = useCallback(() => {
         const sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction);
@@ -150,16 +151,18 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
 
     if (eligibleTransactions?.length === 0) {
         return (
-            <EmptyStateComponent
-                cardStyles={[styles.appBG]}
-                cardContentStyles={[styles.p0]}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                headerMedia={EmptyShelves}
-                title={translate('transactionMerge.listPage.noEligibleExpenseFound')}
-                subtitleText={subTitleContent}
-                headerStyles={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
-                headerContentStyles={styles.emptyStateCardIllustration}
-            />
+            <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                <EmptyStateComponent
+                    cardStyles={[styles.appBG]}
+                    cardContentStyles={[styles.p0]}
+                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+                    headerMedia={EmptyShelves}
+                    title={translate('transactionMerge.listPage.noEligibleExpenseFound')}
+                    subtitleText={subTitleContent}
+                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
+                    headerContentStyles={styles.emptyStateCardIllustration}
+                />
+            </ScrollView>
         );
     }
 

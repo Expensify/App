@@ -1397,7 +1397,7 @@ const translations = {
         listPage: {
             header: '合并费用',
             noEligibleExpenseFound: '未找到可合并的费用',
-            noEligibleExpenseFoundSubtitle: `您没有可与此合并的费用。<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">了解更多</a>关于可合并费用的信息。`,
+            noEligibleExpenseFoundSubtitle: `<muted-text><centered-text>您没有可与此合并的费用。<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">了解更多</a>关于可合并费用的信息。</centered-text></muted-text>`,
             selectTransactionToMerge: ({reportName}: {reportName: string}) => `选择一个<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">可合并的费用</a> <strong>${reportName}</strong>.`,
         },
         receiptPage: {
