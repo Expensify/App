@@ -259,13 +259,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
 
             if ('header' in item && item.header) {
                 return (
-                    <View
-                        style={[
-                            styles.emojiHeaderContainer,
-                            styles.emojiHeaderContainerWidth(shouldUseNarrowLayout, windowWidth),
-                            target === 'StickyHeader' ? styles.stickyHeaderEmoji : undefined,
-                        ]}
-                    >
+                    <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.stickyHeaderEmoji(shouldUseNarrowLayout, windowWidth) : undefined]}>
                         <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}` as TranslationPaths)}</Text>
                     </View>
                 );

@@ -64,6 +64,7 @@ function RoomInvitePage({
     const {translate, formatPhoneNumber} = useLocalize();
     const {login: currentLogin} = useCurrentUserPersonalDetails();
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [selectedLogins, setSelectedLogins] = useState<Set<string>>(new Set());

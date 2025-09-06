@@ -2225,8 +2225,8 @@ function filterSelfDMChat(report: SearchOptionData, searchTerms: string[]): Sear
     return isMatch ? report : undefined;
 }
 
-function filterOptions(options: Options, searchInputValue: string, config?: FilterUserToInviteConfig): Options {
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(searchInputValue)));
+function filterOptions(options: Options, searchInputValue: string, countryCode: OnyxEntry<number>, config?: FilterUserToInviteConfig): Options {
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCodeWithCountryCode(Str.removeSMSDomain(searchInputValue), countryCode ?? 1));
     const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
@@ -2294,10 +2294,10 @@ function combineOrderingOfReportsAndPersonalDetails(
  * Filters and orders the options based on the search input value.
  * Note that personal details that are part of the recent reports will always be shown as part of the recent reports (ie. DMs).
  */
-function filterAndOrderOptions(options: Options, searchInputValue: string, config: FilterAndOrderConfig = {}): Options {
+function filterAndOrderOptions(options: Options, searchInputValue: string, countryCode: OnyxEntry<number>, config: FilterAndOrderConfig = {}): Options {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
-        filterResult = filterOptions(options, searchInputValue, config);
+        filterResult = filterOptions(options, searchInputValue, countryCode, config);
     }
 
     const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, config);
