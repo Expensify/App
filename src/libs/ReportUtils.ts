@@ -254,7 +254,7 @@ import {
     isDistanceRequest,
     isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
-    isManualDistanceRequest,
+    isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense,
     isPending,
@@ -709,6 +709,7 @@ type TransactionDetails = {
     originalAmount: number;
     originalCurrency: string;
     postedDate: string;
+    distance?: number;
 };
 
 type OptimisticIOUReport = Pick<
@@ -3990,6 +3991,8 @@ function getTransactionDetails(
         return;
     }
     const report = getReportOrDraftReport(transaction?.reportID);
+    const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
+
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
         amount: getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID),
@@ -4011,6 +4014,7 @@ function getTransactionDetails(
         originalAmount: getOriginalAmount(transaction),
         originalCurrency: getOriginalCurrency(transaction),
         postedDate: getFormattedPostedDate(transaction),
+        ...(isManualDistanceRequest && {distance: transaction.comment?.customUnit?.quantity ?? undefined}),
     };
 }
 
@@ -4259,7 +4263,7 @@ function canEditFieldOfMoneyRequest(
             !isInvoiceReport(moneyRequestReport) &&
             !isReceiptBeingScanned(transaction) &&
             !isPerDiemRequest(transaction) &&
-            (!isDistanceRequest(transaction) || isManualDistanceRequest(transaction)) &&
+            (!isDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction)) &&
             (isAdmin || isManager || isRequestor) &&
             (isDeleteAction ? isRequestor : true)
         );
@@ -4827,15 +4831,19 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.billable = transactionChanges?.billable ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
     }
 
-    if ('customUnitRateID' in transactionChanges && updatedTransaction?.comment?.customUnit?.customUnitRateID) {
+    if (
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        ('customUnitRateID' in transactionChanges && updatedTransaction?.comment?.customUnit?.customUnitRateID) ||
+        ('distance' in transactionChanges && updatedTransaction?.comment?.customUnit?.quantity)
+    ) {
         originalMessage.oldAmount = getTransactionAmount(oldTransaction, isFromExpenseReport);
         originalMessage.oldCurrency = getCurrency(oldTransaction);
         originalMessage.oldMerchant = getMerchant(oldTransaction);
 
         // For the originalMessage, we should use the non-negative amount, similar to what getAmount does for oldAmount
-        originalMessage.amount = Math.abs(updatedTransaction.modifiedAmount ?? 0);
-        originalMessage.currency = updatedTransaction.modifiedCurrency ?? CONST.CURRENCY.USD;
-        originalMessage.merchant = updatedTransaction.modifiedMerchant;
+        originalMessage.amount = Math.abs(updatedTransaction?.modifiedAmount ?? 0);
+        originalMessage.currency = updatedTransaction?.modifiedCurrency ?? CONST.CURRENCY.USD;
+        originalMessage.merchant = updatedTransaction?.modifiedMerchant;
     }
 
     return originalMessage;
