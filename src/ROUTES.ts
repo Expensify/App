@@ -642,9 +642,9 @@ const ROUTES = {
         },
     },
     MONEY_REQUEST_UPGRADE: {
-        route: ':action/:iouType/upgrade/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/upgrade/:transactionID/:reportID/:featureName?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, featureName?: string, backTo = '') =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/upgrade/${transactionID}/${reportID}/${encodeURIComponent(featureName ?? '')}`, backTo),
     },
     MONEY_REQUEST_STEP_DESTINATION: {
         route: ':action/:iouType/destination/:transactionID/:reportID',
@@ -1806,7 +1806,8 @@ const ROUTES = {
     },
     WORKSPACE_CREATE_DISTANCE_RATE: {
         route: 'workspaces/:policyID/distance-rates/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/new` as const,
+        getRoute: (policyID: string, transactionID?: string, reportID?: string, backTo?: string) =>
+            getUrlWithBackToParam(`workspaces/${policyID}/distance-rates/new${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}`, backTo),
     },
     WORKSPACE_DISTANCE_RATES_SETTINGS: {
         route: 'workspaces/:policyID/distance-rates/settings',

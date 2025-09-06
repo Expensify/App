@@ -517,6 +517,9 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
         policyID: string;
+        transactionID?: string;
+        reportID?: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
         policyID: string;
@@ -1496,6 +1499,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
+        featureName?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_DESTINATION]: {
         action: IOUAction;

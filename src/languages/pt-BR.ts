@@ -5562,6 +5562,11 @@ const translations = {
                     'As Tags de Múltiplos Níveis ajudam você a rastrear despesas com maior precisão. Atribua várias tags a cada item de linha — como departamento, cliente ou centro de custo — para capturar o contexto completo de cada despesa. Isso permite relatórios mais detalhados, fluxos de trabalho de aprovação e exportações contábeis.',
                 onlyAvailableOnPlan: 'As tags de múltiplos níveis estão disponíveis apenas no plano Control, a partir de',
             },
+            distanceRates: {
+                title: 'Taxas de distância',
+                description: 'Crie e gerencie suas próprias tarifas, acompanhe em milhas ou quilômetros e defina categorias padrão para despesas de distância.',
+                onlyAvailableOnPlan: 'As tarifas de distância estão disponíveis no plano Collect, começando em',
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id]: {
                 title: 'Vários níveis de aprovação',
                 description:
@@ -5579,8 +5584,9 @@ const translations = {
                 headline: `Você atualizou seu espaço de trabalho!`,
                 successMessage: ({policyName, subscriptionLink}: UpgradeSuccessMessageParams) =>
                     `<centered-text>Você atualizou com sucesso o ${policyName} para o plano Controle! <a href="${subscriptionLink}">Veja sua assinatura</a> para mais detalhes.</centered-text>`,
-                categorizeMessage: `Você atualizou com sucesso para um workspace no plano Collect. Agora você pode categorizar suas despesas!`,
-                travelMessage: `Você atualizou com sucesso para um espaço de trabalho no plano Collect. Agora você pode começar a reservar e gerenciar viagens!`,
+                categorizeMessage: `Você atualizou com sucesso para o plano Collect. Agora você pode categorizar suas despesas!`,
+                travelMessage: `Você atualizou com sucesso para o plano Collect. Agora você pode começar a reservar e gerenciar viagens!`,
+                distanceRateMessage: `Você atualizou com sucesso para o plano Collect. Agora você pode alterar a taxa de distância!`,
                 gotIt: 'Entendi, obrigado',
             },
             commonFeatures: {

@@ -8,6 +8,7 @@ import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -268,6 +269,8 @@ function MoneyRequestConfirmationListFooter({
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const {isBetaEnabled} = usePermissions();
+    const isManualDistanceEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
 
@@ -463,7 +466,7 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
-                    shouldShowRightIcon={!!rate && !isReadOnly && isPolicyExpenseChat}
+                    shouldShowRightIcon={!!rate && !isReadOnly && (isPolicyExpenseChat || isManualDistanceEnabled)}
                     title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
@@ -473,11 +476,24 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
+                        if (isManualDistanceEnabled && !isPolicyExpenseChat) {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute(
+                                    action,
+                                    iouType,
+                                    transactionID,
+                                    reportID,
+                                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.distanceRates.alias,
+                                    Navigation.getActiveRoute(),
+                                ),
+                            );
+                            return;
+                        }
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     disabled={didConfirm}
-                    interactive={!!rate && !isReadOnly && isPolicyExpenseChat}
+                    interactive={!!rate && !isReadOnly && (isPolicyExpenseChat || isManualDistanceEnabled)}
                 />
             ),
             shouldShow: isDistanceRequest,
