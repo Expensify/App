@@ -2798,6 +2798,7 @@ const translations = {
             formLabel: 'View PDF',
         },
         attachmentNotFound: 'Attachment not found',
+        retry: 'Retry',
     },
     messages: {
         errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US, please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
@@ -5380,6 +5381,7 @@ const translations = {
             genericFailureMessage: 'An error occurred while updating the workspace. Please try again.',
             avatarUploadFailureMessage: 'An error occurred uploading the avatar. Please try again.',
             addressContext: 'A Workspace Address is required to enable Expensify Travel. Please enter an address associated with your business.',
+            policy: 'Expense policy',
         },
         bankAccount: {
             continueWithSetup: 'Continue setup',
@@ -5710,9 +5712,8 @@ const translations = {
                     `Go to [More features](${moreFeaturesLink}) and enable workflows, then add approvals to unlock this feature.`,
             },
             customRules: {
-                title: 'Custom rules',
-                subtitle: 'Description',
-                description: 'Input custom rules for expense reports',
+                title: 'Expense policy',
+                cardSubtitle: "Here's where your team's expense policy lives, so everyone's on the same page about what's covered.",
             },
         },
         planTypePage: {
@@ -6154,6 +6155,12 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reimbursement',
             },
+            action: {
+                [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Submit',
+                [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approve',
+                [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pay',
+                [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
+            },
         },
         groupBy: 'Group by',
         moneyRequestReport: {
@@ -6310,7 +6317,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `failed to export this report to ${label} ("${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
+                    `failed to export this report to ${label} ("${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}")`,
                 managerAttachReceipt: `added a receipt`,
                 managerDetachReceipt: `removed a receipt`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `paid ${currency}${amount} elsewhere`,

@@ -2783,6 +2783,7 @@ const translations = {
             formLabel: 'Ver PDF',
         },
         attachmentNotFound: 'Archivo adjunto no encontrado',
+        retry: 'Reintentar',
     },
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
@@ -5391,6 +5392,7 @@ const translations = {
             genericFailureMessage: 'Se ha producido un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
             addressContext: 'Se requiere una dirección para habilitar Expensify Travel. Por favor, introduce una dirección asociada con tu negocio.',
+            policy: 'Política de gastos',
         },
         bankAccount: {
             continueWithSetup: 'Continuar con la configuración',
@@ -5747,8 +5749,7 @@ const translations = {
             },
             customRules: {
                 title: 'Reglas personalizadas',
-                subtitle: 'Descripción',
-                description: 'Introduzca reglas personalizadas para los informes de gastos',
+                cardSubtitle: 'Aquí es donde se definen las reglas de tu equipo, para que todos sepan lo que esta cubierto.',
             },
         },
     },
@@ -6175,6 +6176,12 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
             },
+            action: {
+                [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Enviar',
+                [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Aprobar',
+                [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pagar',
+                [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
+            },
         },
         groupBy: 'Agrupar por',
         moneyRequestReport: {
@@ -6333,7 +6340,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `comenzó a exportar este informe a ${label}...`,
                 },
                 integrationsMessage: ({label, errorMessage, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `no se pudo exportar este informe a ${label} ("${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
+                    `no se pudo exportar este informe a ${label} ("${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}")`,
                 managerAttachReceipt: `agregó un recibo`,
                 managerDetachReceipt: `quitó un recibo`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pagó ${currency}${amount} en otro lugar`,
