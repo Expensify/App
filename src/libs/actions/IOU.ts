@@ -12494,11 +12494,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
     });
 }
 
-function assignReportToMe(report: OnyxEntry<OnyxTypes.Report>, accountID: number) {
-    if (!report?.reportID) {
-        return;
-    }
-
+function assignReportToMe(report: OnyxTypes.Report, accountID: number) {
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID);
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`] ?? null;
     const optimisticNextStep = buildNextStep({...report, managerID: accountID}, report.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED, false, true);
@@ -12569,11 +12565,7 @@ function assignReportToMe(report: OnyxEntry<OnyxTypes.Report>, accountID: number
     API.write(WRITE_COMMANDS.ASSIGN_REPORT_TO_ME, params, onyxData);
 }
 
-function addReportApprover(report: OnyxEntry<OnyxTypes.Report>, newApproverEmail: string, newApproverAccountID: number, accountID: number) {
-    if (!report?.reportID) {
-        return;
-    }
-
+function addReportApprover(report: OnyxTypes.Report, newApproverEmail: string, newApproverAccountID: number, accountID: number) {
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID);
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`] ?? null;
     const optimisticNextStep = buildNextStep({...report, managerID: newApproverAccountID}, report.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED, false, true);

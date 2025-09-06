@@ -55,7 +55,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
         const approvers: SelectionListApprover[] = [];
 
         if (employeeList) {
-            const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
+            const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
             const availableApprovers = Object.values(employeeList)
                 .map((employee): SelectionListApprover | null => {
                     const isAdmin = employee?.role === CONST.REPORT.ROLE.ADMIN;
