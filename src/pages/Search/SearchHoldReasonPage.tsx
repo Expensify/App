@@ -21,7 +21,6 @@ import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 import type {ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 
-
 function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>>) {
     const {backTo = '', reportID} = route.params;
 

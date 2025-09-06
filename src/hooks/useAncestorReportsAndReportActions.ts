@@ -53,7 +53,6 @@ function useAncestorReportAndReportActions(reportID: string, includeTransactionT
                 return [];
             }
 
-            
             let reportParentReportID = ancestorReports[reportID]?.parentReportID;
             let parentReportActionID = ancestorReports[reportID]?.parentReportActionID;
             const reportsAndReportActions: ReportsAndReportActions = [];

@@ -146,7 +146,6 @@ import {
     getInvoiceChatByParticipants,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
-    getOptimisticDataForParentReportAction,
     getOutstandingChildRequest,
     getParsedComment,
     getPersonalDetailsForAccountID,
@@ -11366,7 +11365,6 @@ function bulkHold(
             };
         }
 
-
         if (transaction?.currency === report?.currency) {
             const transactionAmount = getAmount(transaction, isExpenseReport) * coefficient;
             optimisticUnheldTotal = (optimisticUnheldTotal ?? 0) - transactionAmount;
@@ -11393,7 +11391,6 @@ function bulkHold(
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
                     value: {[createdTransactionThreadReportAction.reportActionID]: createdTransactionThreadReportAction},
                 },
-
             );
 
             successData.push(
@@ -11515,7 +11512,6 @@ function bulkHold(
                         hold: null,
                     },
                     errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericHoldExpenseFailureMessage'),
-
                 },
             },
 
@@ -11527,7 +11523,7 @@ function bulkHold(
         );
     });
 
-    // Pushing final ancestery report actions optimistic data
+    // Pushing ancestors report actions optimistic data
     for (const {report: ancestorReport, reportAction: ancestorReportAction} of ancestorReportsAndReportActions) {
         if (!ancestorReportAction || !ancestorReport.reportID) {
             continue;
