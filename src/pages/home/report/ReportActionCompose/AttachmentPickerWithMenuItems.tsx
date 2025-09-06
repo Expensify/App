@@ -15,6 +15,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePreferredWorkspace from '@hooks/usePreferredWorkspace';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -24,7 +25,17 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
-import {canCreateTaskInReport, getPayeeName, isPaidGroupPolicy, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
+import {
+    canCreateTaskInReport,
+    getPayeeName,
+    isGroupChat,
+    isOneOnOneChat,
+    isPaidGroupPolicy,
+    isPolicyExpenseChat,
+    isReportOwner,
+    isUserCreatedPolicyRoom,
+    temporary_getMoneyRequestOptions,
+} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU';
@@ -132,6 +143,7 @@ function AttachmentPickerWithMenuItems({
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
+    const {isRestrictedToPreferredWorkspace} = usePreferredWorkspace();
     const {setIsLoaderVisible} = useFullScreenLoader();
     const isReportArchived = useReportIsArchived(report?.reportID);
 
@@ -156,22 +168,38 @@ function AttachmentPickerWithMenuItems({
      * Returns the list of IOU Options
      */
     const moneyRequestOptions = useMemo(() => {
+        // Apply restrictions when user has preferred workspace enabled and is in contexts where
+        // expense creation should be redirected to preferred workspace instead
+        const shouldRestrictSplit = isRestrictedToPreferredWorkspace && (isUserCreatedPolicyRoom(report) || isGroupChat(report) || (report && isOneOnOneChat(report)));
+        const shouldRestrictCreate = isRestrictedToPreferredWorkspace && (isUserCreatedPolicyRoom(report) || isGroupChat(report) || (report && isOneOnOneChat(report)));
+        const shouldRestrictPay = isRestrictedToPreferredWorkspace && (isUserCreatedPolicyRoom(report) || isGroupChat(report) || (report && isOneOnOneChat(report)));
+
         const options: MoneyRequestOptions = {
             [CONST.IOU.TYPE.SPLIT]: [
-                {
-                    icon: Expensicons.Transfer,
-                    text: translate('iou.splitExpense'),
-                    shouldCallAfterModalHide: shouldUseNarrowLayout,
-                    onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
-                },
+                // Hide "Split expense" in specific contexts when user has preferred workspace restriction
+                ...(shouldRestrictSplit
+                    ? []
+                    : [
+                          {
+                              icon: Expensicons.Transfer,
+                              text: translate('iou.splitExpense'),
+                              shouldCallAfterModalHide: shouldUseNarrowLayout,
+                              onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
+                          },
+                      ]),
             ],
             [CONST.IOU.TYPE.SUBMIT]: [
-                {
-                    icon: getIconForAction(CONST.IOU.TYPE.CREATE),
-                    text: translate('iou.createExpense'),
-                    shouldCallAfterModalHide: shouldUseNarrowLayout,
-                    onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
-                },
+                // Hide "Create expense" in specific contexts when user has preferred workspace restriction
+                ...(shouldRestrictCreate
+                    ? []
+                    : [
+                          {
+                              icon: getIconForAction(CONST.IOU.TYPE.CREATE),
+                              text: translate('iou.createExpense'),
+                              shouldCallAfterModalHide: shouldUseNarrowLayout,
+                              onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
+                          },
+                      ]),
                 ...(isManualDistanceTrackingEnabled
                     ? [
                           {
@@ -185,20 +213,25 @@ function AttachmentPickerWithMenuItems({
                     : []),
             ],
             [CONST.IOU.TYPE.PAY]: [
-                {
-                    icon: getIconForAction(CONST.IOU.TYPE.SEND),
-                    text: translate('iou.paySomeone', {name: getPayeeName(report)}),
-                    shouldCallAfterModalHide: shouldUseNarrowLayout,
-                    onSelected: () => {
-                        if (isDelegateAccessRestricted) {
-                            close(() => {
-                                showDelegateNoAccessModal();
-                            });
-                            return;
-                        }
-                        selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), false);
-                    },
-                },
+                // Hide "Pay" option in specific contexts when user has preferred workspace restriction
+                ...(shouldRestrictPay
+                    ? []
+                    : [
+                          {
+                              icon: getIconForAction(CONST.IOU.TYPE.SEND),
+                              text: translate('iou.paySomeone', {name: getPayeeName(report)}),
+                              shouldCallAfterModalHide: shouldUseNarrowLayout,
+                              onSelected: () => {
+                                  if (isDelegateAccessRestricted) {
+                                      close(() => {
+                                          showDelegateNoAccessModal();
+                                      });
+                                      return;
+                                  }
+                                  selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), false);
+                              },
+                          },
+                      ]),
             ],
             [CONST.IOU.TYPE.TRACK]: [
                 {
@@ -244,6 +277,7 @@ function AttachmentPickerWithMenuItems({
         isManualDistanceTrackingEnabled,
         isReportArchived,
         lastDistanceExpenseType,
+        isRestrictedToPreferredWorkspace,
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
