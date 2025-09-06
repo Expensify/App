@@ -10,6 +10,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {isSettled} from '@libs/ReportUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,7 +45,14 @@ function TransactionItemRowRBRWithOnyx({transaction, report, containerStyles, mi
         canBeMissing: true,
     });
 
-    const RBRMessages = ViolationsUtils.getRBRMessages(transaction, transactionViolations, translate, missingFieldError, Object.values(transactionThreadActions ?? {}), policyTags);
+    const RBRMessages = ViolationsUtils.getRBRMessages(
+        transaction,
+        isSettled(report) ? [] : transactionViolations,
+        translate,
+        missingFieldError,
+        Object.values(transactionThreadActions ?? {}),
+        policyTags,
+    );
 
     return (
         RBRMessages.length > 0 && (
