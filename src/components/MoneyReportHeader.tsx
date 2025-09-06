@@ -271,6 +271,7 @@ function MoneyReportHeader({
         return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     }, [transactions]);
     const transactionIDs = useMemo(() => transactions?.map((t) => t.transactionID) ?? [], [transactions]);
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactions.at(0)?.comment?.originalTransactionID)}`, {canBeMissing: true});
 
     const messagePDF = useMemo(() => {
         if (!reportPDFFilename) {
@@ -861,6 +862,7 @@ function MoneyReportHeader({
             report: moneyRequestReport,
             chatReport,
             reportTransactions: transactions,
+            originalTransaction,
             violations,
             policy,
             reportNameValuePairs,
@@ -868,7 +870,7 @@ function MoneyReportHeader({
             policies,
             isChatReportArchived,
         });
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, chatReport, isChatReportArchived]);
+    }, [moneyRequestReport, chatReport, transactions, originalTransaction, violations, policy, reportNameValuePairs, reportActions, policies, isChatReportArchived]);
 
     const secondaryExportActions = useMemo(() => {
         if (!moneyRequestReport) {
