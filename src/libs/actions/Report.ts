@@ -171,6 +171,7 @@ import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -3517,7 +3518,9 @@ function openReportFromDeepLink(
                                     return;
                                 }
 
-                                Navigation.navigate(route as Route);
+                                // If the last route is an RHP, we want to replace it so it won't be covered by the full-screen navigator.
+                                const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+                                Navigation.navigate(route as Route, {forceReplace});
                             };
                             // If we log with deeplink with reportID and data for this report is not available yet,
                             // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens

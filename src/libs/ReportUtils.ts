@@ -747,7 +747,7 @@ type OptimisticIOUReport = Pick<
 
 type OptimisticChangedApproverReportAction = Pick<
     ReportAction,
-    'actionName' | 'actorAccountID' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'
+    'actionName' | 'actorAccountID' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction' | 'isOptimisticAction'
 >;
 
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
@@ -7649,6 +7649,7 @@ function buildOptimisticChangeApproverReportAction(managerID: number, actorAccou
         },
         shouldShow: false,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        isOptimisticAction: true,
         reportActionID: rand64(),
     };
 }
