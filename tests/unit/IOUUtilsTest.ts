@@ -3,14 +3,15 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
-import {canSubmitReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
+import {canSubmitReportInSearch} from '@src/libs/SearchUIUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
@@ -261,7 +262,7 @@ describe('hasRTERWithoutViolation', () => {
     });
 });
 
-describe('canSubmitReport', () => {
+describe('canSubmitReportInSearch', () => {
     test('Return true if report can be submitted', async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
         const fakePolicy: Policy = {
@@ -286,20 +287,20 @@ describe('canSubmitReport', () => {
 
         const transactionIDWithViolation = 1;
         const transactionIDWithoutViolation = 2;
-        const transactionWithViolation: Transaction = {
+        const transactionWithViolation: SearchTransaction = {
             ...createRandomTransaction(transactionIDWithViolation),
             category: '',
             tag: '',
             created: testDate,
             reportID: expenseReport?.reportID,
-        };
-        const transactionWithoutViolation: Transaction = {
+        } as SearchTransaction;
+        const transactionWithoutViolation: SearchTransaction = {
             ...createRandomTransaction(transactionIDWithoutViolation),
             category: '',
             tag: '',
             created: testDate,
             reportID: expenseReport?.reportID,
-        };
+        } as SearchTransaction;
         const transactionViolations = `transactionViolations_${transactionIDWithViolation}`;
         const violations: OnyxCollection<TransactionViolations> = {
             [transactionViolations]: [
@@ -317,7 +318,7 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
+        expect(canSubmitReportInSearch(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation] as SearchTransaction[], violations, [], false)).toBe(false);
     });
 
     test('Return true if report can be submitted after being reopened', async () => {
@@ -381,7 +382,7 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
+        expect(canSubmitReportInSearch(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation] as SearchTransaction[], violations, [], false)).toBe(false);
     });
 
     test('Return false if report can not be submitted', async () => {
@@ -400,7 +401,7 @@ describe('canSubmitReport', () => {
             policyID: fakePolicy.id,
         };
 
-        expect(canSubmitReport(expenseReport, fakePolicy, [], undefined, false)).toBe(false);
+        expect(canSubmitReportInSearch(expenseReport, fakePolicy, [], {}, [], false)).toBe(false);
     });
 
     it('returns false if the report is archived', async () => {
@@ -425,7 +426,7 @@ describe('canSubmitReport', () => {
 
         // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-        expect(canSubmitReport(report, policy, [], undefined, isReportArchived.current)).toBe(false);
+        expect(canSubmitReportInSearch(report, policy, [], undefined, [], isReportArchived.current)).toBe(false);
     });
 });
 
