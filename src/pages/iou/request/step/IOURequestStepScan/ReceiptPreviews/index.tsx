@@ -74,6 +74,14 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
     }, [isMultiScanEnabled, isPreviewsVisible]);
 
     useEffect(() => {
+        const hasRemovedReceipt = receiptsPhotosLength < previousReceiptsPhotosLength;
+
+        if (hasRemovedReceipt) {
+            flatListRef.current?.scrollToOffset({offset: 0, animated: true});
+        }
+    }, [receiptsPhotosLength, previousReceiptsPhotosLength]);
+
+    useEffect(() => {
         const shouldScrollToReceipt = receiptsPhotosLength && receiptsPhotosLength > previousReceiptsPhotosLength && receiptsPhotosLength > Math.floor(initialReceiptsAmount);
         if (!shouldScrollToReceipt) {
             return;
