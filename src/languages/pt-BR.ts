@@ -2816,6 +2816,7 @@ const translations = {
             formLabel: 'Ver PDF',
         },
         attachmentNotFound: 'Anexo não encontrado',
+        retry: 'Tentar novamente',
     },
     messages: {
         errorMessageInvalidPhone: `Por favor, insira um número de telefone válido sem parênteses ou traços. Se você estiver fora dos EUA, inclua o código do seu país (ex.: ${CONST.EXAMPLE_PHONE_NUMBER}).`,
@@ -5410,6 +5411,7 @@ const translations = {
             genericFailureMessage: 'Ocorreu um erro ao atualizar o espaço de trabalho. Por favor, tente novamente.',
             avatarUploadFailureMessage: 'Ocorreu um erro ao enviar o avatar. Por favor, tente novamente.',
             addressContext: 'Um Endereço de Espaço de Trabalho é necessário para habilitar o Expensify Travel. Por favor, insira um endereço associado ao seu negócio.',
+            policy: 'Política de despesas',
         },
         bankAccount: {
             continueWithSetup: 'Continuar configuração',
@@ -5746,8 +5748,7 @@ const translations = {
             },
             customRules: {
                 title: 'Regras personalizadas',
-                subtitle: 'Descrição',
-                description: 'Insira regras personalizadas para relatórios de despesas',
+                cardSubtitle: 'Aqui está a política de despesas da sua equipe, para que todos saibam o que está incluso.',
             },
         },
         planTypePage: {

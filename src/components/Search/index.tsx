@@ -1,6 +1,7 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import type {ContentStyle} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
@@ -69,7 +70,7 @@ import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactio
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    contentContainerStyle?: StyleProp<ViewStyle>;
+    contentContainerStyle?: ContentStyle;
     searchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
     isMobileSelectionModeEnabled: boolean;
@@ -101,6 +102,8 @@ function mapTransactionItemToSelectedEntry(
             reportID: item.reportID,
             policyID: item.policyID,
             amount: item.modifiedAmount ?? item.amount,
+            convertedAmount: item.convertedAmount,
+            convertedCurrency: item.convertedCurrency,
         },
     ];
 }
@@ -178,6 +181,8 @@ function prepareTransactionsList(
             reportID: item.reportID,
             policyID: item.policyID,
             amount: Math.abs(item.modifiedAmount || item.amount),
+            convertedAmount: item.convertedAmount,
+            convertedCurrency: item.convertedCurrency,
         },
     };
 }
@@ -211,6 +216,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
 
     const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
@@ -250,13 +256,16 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
 
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
-    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
 
+    const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
     const shouldCalculateTotals = useMemo(() => {
         if (offset !== 0) {
             return false;
         }
-        if (!searchKey) {
+
+        const savedSearchValues = Object.values(savedSearches ?? {});
+
+        if (!savedSearchValues.length && !searchKey) {
             return false;
         }
 
@@ -270,8 +279,20 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
             CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
         ];
-        return eligibleSearchKeys.includes(searchKey);
-    }, [offset, searchKey]);
+
+        if (eligibleSearchKeys.includes(searchKey)) {
+            return true;
+        }
+
+        for (const savedSearch of savedSearchValues) {
+            const searchData = buildSearchQueryJSON(savedSearch.query);
+            if (searchData && searchData.similarSearchHash === similarSearchHash) {
+                return true;
+            }
+        }
+
+        return false;
+    }, [offset, savedSearches, searchKey, similarSearchHash]);
 
     const previousReportActions = usePrevious(reportActions);
     const reportActionsArray = useMemo(
@@ -432,6 +453,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                         reportID: transaction.reportID,
                         policyID: transaction.policyID,
                         amount: transaction.modifiedAmount ?? transaction.amount,
+                        convertedAmount: transaction.convertedAmount,
+                        convertedCurrency: transaction.convertedCurrency,
                     };
                 });
             });
@@ -461,6 +484,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     reportID: transaction.reportID,
                     policyID: transaction.policyID,
                     amount: transaction.modifiedAmount ?? transaction.amount,
+                    convertedAmount: transaction.convertedAmount,
+                    convertedCurrency: transaction.convertedCurrency,
                 };
             });
         }
@@ -733,13 +758,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [hasErrors, queryJSON, searchResults, shouldResetSearchQuery, setShouldResetSearchQuery]);
 
     const fetchMoreResults = useCallback(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems || offset > data.length - CONST.SEARCH.RESULTS_PAGE_SIZE) {
+        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
         }
-
-        setOffset((prev) => prev + CONST.SEARCH.RESULTS_PAGE_SIZE);
-    }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState, offset, data.length]);
+        setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
+    }, [isFocused, offset, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState]);
 
     const toggleAllTransactions = useCallback(() => {
         const areItemsGrouped = !!groupBy;
@@ -871,7 +894,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                             />
                         )
                     }
-                    contentContainerStyle={[styles.pb3, contentContainerStyle]}
+                    contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
                     containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     onScroll={onSearchListScroll}
