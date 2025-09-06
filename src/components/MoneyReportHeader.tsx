@@ -1220,6 +1220,7 @@ function MoneyReportHeader({
         <View style={[styles.pt0, styles.borderBottom]}>
             <HeaderWithBackButton
                 shouldShowReportAvatarWithDisplay
+                shouldDisplayStatus
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
                 shouldShowBackButton={shouldShowBackButton}
