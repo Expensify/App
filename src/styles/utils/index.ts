@@ -8,7 +8,6 @@ import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
 import {isMobile, isMobileChrome} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
-import type Platform from '@libs/getPlatform/types';
 import {hashText} from '@libs/UserUtils';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
@@ -31,6 +30,7 @@ import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperSty
 import getMoneyRequestReportPreviewStyle from './getMoneyRequestReportPreviewStyle';
 import getNavigationBarType from './getNavigationBarType/index';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
+import getReportPaddingBottom from './getReportPaddingBottom';
 import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
 import getSuccessReportCardLostIllustrationStyle from './getSuccessReportCardLostIllustrationStyle';
@@ -1344,6 +1344,7 @@ const staticStyleUtils = {
     getNavigationBarType,
     getSuccessReportCardLostIllustrationStyle,
     getOptionMargin,
+    getReportPaddingBottom,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1905,8 +1906,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             containerStyle: {paddingBottom},
         };
     },
-    getReportFooterStyles: ({
-        platform,
+    getReportFooterIOSStyles: ({
         headerHeight,
         isKeyboardActive,
         keyboardHeight,
@@ -1918,11 +1918,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     }: ReportFooterStyle): ViewStyle => {
         'worklet';
 
-        const isIOS = platform === CONST.PLATFORM.IOS;
+        const correctedHeaderHeight = paddingTop + headerHeight;
 
-        const correctedHeaderHeight = isIOS ? paddingTop + headerHeight : headerHeight;
-
-        const getSpacerHeight = () => {
+        const getSpacerHeight = (): number => {
             if (isComposerFullSize) {
                 if (isKeyboardActive) {
                     return windowHeight - keyboardHeight.get() - correctedHeaderHeight;
@@ -1931,47 +1929,28 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 return windowHeight - correctedHeaderHeight;
             }
 
-            return isIOS ? composerHeight : 'auto';
+            return composerHeight;
         };
 
         const transform = isComposerFullSize ? [] : [{translateY: keyboardHeight.get() > paddingBottom ? -keyboardHeight.get() : -paddingBottom}];
 
-        if (isIOS) {
-            return {
-                position: 'absolute',
-                bottom: 0,
-                width: '100%',
-                transform,
-                height: getSpacerHeight(),
-                paddingBottom: isComposerFullSize && !isKeyboardActive ? 16 : 0,
-            };
-        }
-
         return {
-            height: isComposerFullSize ? '100%' : 'auto',
+            position: 'absolute',
+            bottom: 0,
+            width: '100%',
+            transform,
+            height: getSpacerHeight(),
+            paddingBottom: isComposerFullSize && !isKeyboardActive ? 16 : 0,
         };
     },
-    getOfflineIndicatorStyles: (platform: Platform, keyboardHeight: SharedValue<number>, paddingBottom: number): ViewStyle => {
+    getOfflineIndicatorStyles: (keyboardHeight: SharedValue<number>, paddingBottom: number): ViewStyle => {
         'worklet';
-
-        const isIOS = platform === CONST.PLATFORM.IOS;
-
-        if (!isIOS) {
-            return {};
-        }
 
         return {
             position: 'absolute',
             bottom: 0,
             transform: [{translateY: keyboardHeight.get() > paddingBottom ? -keyboardHeight.get() + paddingBottom : 0}],
         };
-    },
-    getReportPaddingBottom: (isKeyboardActive: boolean, composerHeight: number, paddingBottom = 0, isComposerFullSize?: boolean): number => {
-        const isIOS = getPlatform() === CONST.PLATFORM.IOS;
-
-        const safeAreaBottom = !isIOS || isKeyboardActive ? 0 : paddingBottom;
-
-        return isIOS && !isComposerFullSize ? composerHeight + safeAreaBottom : safeAreaBottom;
     },
 });
 
