@@ -5,11 +5,13 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type Navigation from '@libs/Navigation/Navigation';
 import DebugReportActions from '@pages/Debug/Report/DebugReportActions';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => {
@@ -32,6 +34,8 @@ describe('DebugReportActions', () => {
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
         Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+        IntlStore.load(CONST.LOCALES.DEFAULT);
+        return waitForBatchedUpdates();
     });
 
     afterEach(async () => {

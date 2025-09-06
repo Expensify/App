@@ -13,12 +13,14 @@ import {translateLocal} from '@libs/Localize';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import PureReportActionItem from '@pages/home/report/PureReportActionItem';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -50,8 +52,10 @@ describe('PureReportActionItem', () => {
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+        IntlStore.load(CONST.LOCALES.DEFAULT);
         jest.spyOn(NativeNavigation, 'useRoute').mockReturnValue({key: '', name: ''});
         jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(getIOUActionForReportID);
+        return waitForBatchedUpdates();
     });
 
     beforeEach(() => {
