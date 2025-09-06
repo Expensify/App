@@ -58,8 +58,6 @@ type GetOptionsConfig = {
     recentMaxElements?: number;
     includeUserToInvite?: boolean;
     includeDomainEmail?: boolean;
-    /** Note - This is a temporary optimization measure */
-    removeRecentsDuplicates?: boolean;
     extraOptions?: OptionData[];
     shouldAcceptName?: boolean;
 };
@@ -88,7 +86,7 @@ function createOption(
     reportAttributesDerived?: ReportAttributes,
     isReportArchived?: string,
 ): OptionData {
-    const {selected, isSelected, isDisabled} = config ?? {};
+    const {selected = false, isSelected = false, isDisabled = false} = config ?? {};
     const result: OptionData = {
         text: '',
         alternateText: undefined,
@@ -110,7 +108,7 @@ function createOption(
         isDisabled,
     };
 
-    result.isOptimisticPersonalDetail = personalDetail.isOptimisticPersonalDetail;
+    result.isOptimisticPersonalDetail = personalDetail.isOptimisticPersonalDetail ?? false;
     if (report) {
         result.private_isArchived = isReportArchived;
         result.allReportErrors = reportAttributesDerived?.reportErrors ?? {};
@@ -164,12 +162,14 @@ function getUserToInviteOption({searchValue, loginsToExclude = {}, shouldAcceptN
         return null;
     }
 
+    const inviteLogin = isValidPhoneNumber && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : searchValue.toLowerCase();
+
     // Generates an optimistic account ID for new users not yet saved in Onyx
-    const optimisticAccountID = generateAccountID(searchValue);
+    const optimisticAccountID = generateAccountID(inviteLogin);
     return createOption(
         {
             accountID: optimisticAccountID,
-            login: searchValue,
+            login: inviteLogin,
             isOptimisticPersonalDetail: true,
         },
         undefined,
@@ -290,10 +290,6 @@ function optionsOrderBy<T = OptionData>(options: T[], comparator: (option: T) =>
     return [...heap].reverse();
 }
 
-function getPersonalDetailSearchTerms(item: Partial<OptionData>) {
-    return [item.text ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? ''];
-}
-
 /**
  * Process a search string into normalized search terms
  * @param searchString - The raw search string to process
@@ -322,7 +318,7 @@ function canCreateOptimisticPersonalDetailOption({
     if (recentOptions.length + selectedOptions.length + personalDetailsOptions.length > 0) {
         return false;
     }
-    return currentUserLogin !== addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() && currentUserLogin !== searchValue?.toLowerCase();
+    return currentUserLogin !== addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)).toLowerCase() && currentUserLogin !== searchValue.toLowerCase();
 }
 
 function filterUserToInvite(options: Omit<Options, 'userToInvite'>, currentUserLogin: string, config: GetUserToInviteConfig): OptionData | null {
@@ -387,7 +383,6 @@ function getValidOptions(
         includeUserToInvite = false,
         includeCurrentUser = false,
         includeDomainEmail = false,
-        removeRecentsDuplicates = true,
         extraOptions = [],
         shouldAcceptName = false,
     }: GetOptionsConfig = {},
@@ -505,7 +500,7 @@ function getValidOptions(
             // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
             personalDetail.login === CONST.SETUP_SPECIALIST_LOGIN ||
             // Exclude any recent options from the personal details
-            (removeRecentsDuplicates && recentOptionsByAccountID.has(personalDetail.accountID))
+            recentOptionsByAccountID.has(personalDetail.accountID)
         ) {
             return false;
         }
@@ -615,9 +610,9 @@ function getHeaderMessage(translate: LocaleContextProps['translate'], searchValu
 }
 
 export {
+    createOption,
     getUserToInviteOption,
     getContactOption,
-    getPersonalDetailSearchTerms,
     canCreateOptimisticPersonalDetailOption,
     filterOption,
     getValidOptions,
