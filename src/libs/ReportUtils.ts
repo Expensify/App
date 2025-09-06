@@ -5226,7 +5226,7 @@ function getReportNameInternal({
         return getPolicyChangeMessage(parentReportAction);
     }
 
-    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.ACTION_REROUTE)) {
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
         return getChangedApproverActionMessage(parentReportAction);
     }
 
@@ -7607,7 +7607,7 @@ function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedVio
 function buildOptimisticChangeApproverReportAction(managerID: number, actorAccountID: number): OptimisticChangedApproverReportAction {
     const created = DateUtils.getDBTime();
     return {
-        actionName: managerID === actorAccountID ? CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL : CONST.REPORT.ACTIONS.TYPE.ACTION_REROUTE,
+        actionName: managerID === actorAccountID ? CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL : CONST.REPORT.ACTIONS.TYPE.REROUTE,
         actorAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),

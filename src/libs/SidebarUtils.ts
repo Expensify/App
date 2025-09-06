@@ -878,7 +878,7 @@ function getOptionData({
             result.alternateText = getReopenedMessage();
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
             result.alternateText = getTravelUpdateMessage(lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTION_REROUTE)) {
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
             result.alternateText = getChangedApproverActionMessage(lastAction);
         } else {
             result.alternateText =
