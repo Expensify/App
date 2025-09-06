@@ -27,6 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import type {MemberForList} from '@libs/OptionsListUtils';
+import type {TranslationPaths} from '@src/languages/types';
 import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions} from '@libs/OptionsListUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
@@ -235,6 +236,11 @@ function RoomInvitePage({
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
+    let subtitleKey: '' | TranslationPaths | undefined;
+    if (!isEmptyObject(report)) {
+        subtitleKey = isReportArchived ? 'roomMembersPage.roomArchived' : 'roomMembersPage.notAuthorized';
+    }
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -243,7 +249,7 @@ function RoomInvitePage({
         >
             <FullPageNotFoundView
                 shouldShow={isEmptyObject(report) || isReportArchived}
-                subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
+                subtitleKey={subtitleKey}
                 onBackButtonPress={goBack}
             >
                 <HeaderWithBackButton

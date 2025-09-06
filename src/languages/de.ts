@@ -5978,6 +5978,7 @@ const translations = {
         memberNotFound: 'Mitglied nicht gefunden.',
         useInviteButton: 'Um ein neues Mitglied zum Chat einzuladen, verwenden Sie bitte die Einladungs-Schaltfläche oben.',
         notAuthorized: `Sie haben keinen Zugriff auf diese Seite. Wenn Sie versuchen, diesem Raum beizutreten, bitten Sie einfach ein Mitglied des Raums, Sie hinzuzufügen. Etwas anderes? Wenden Sie sich an ${CONST.EMAIL.CONCIERGE}`,
+        roomArchived: `Es sieht so aus, als wäre dieser Raum archiviert worden. Bei Fragen wenden Sie sich bitte an ${CONST.EMAIL.CONCIERGE}.`,
         removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `Möchten Sie ${memberName} wirklich aus dem Raum entfernen?`,
             other: 'Möchten Sie die ausgewählten Mitglieder wirklich aus dem Raum entfernen?',

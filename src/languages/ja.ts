@@ -5950,6 +5950,7 @@ const translations = {
         memberNotFound: 'メンバーが見つかりません。',
         useInviteButton: '新しいメンバーをチャットに招待するには、上の招待ボタンを使用してください。',
         notAuthorized: `このページにアクセスする権限がありません。このルームに参加しようとしている場合は、ルームメンバーに追加してもらってください。他に何かお困りですか？${CONST.EMAIL.CONCIERGE}にお問い合わせください。`,
+        roomArchived: `このルームはアーカイブされました。ご不明な点があれば、${CONST.EMAIL.CONCIERGE} までご連絡ください。`,
         removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `このルームから${memberName}を削除してもよろしいですか？`,
             other: '選択したメンバーをルームから削除してもよろしいですか？',

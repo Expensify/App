@@ -31,6 +31,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
+import type {TranslationPaths} from '@src/languages/types';
 import {isPersonalDetailsReady, isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtils, isUserPolicyAdmin} from '@libs/PolicyUtils';
@@ -378,6 +379,11 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pb5, styles.mt3]}>{header}</View>;
     }, [styles, translate, canSelectMultiple]);
 
+    let subtitleKey: '' | TranslationPaths | undefined;
+    if (!isEmptyObject(report)) {
+        subtitleKey = isReportArchived ? 'roomMembersPage.roomArchived' : 'roomMembersPage.notAuthorized';
+    }
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -386,7 +392,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         >
             <FullPageNotFoundView
                 shouldShow={isEmptyObject(report) || isReportArchived || (!isChatThread(report) && ((isUserCreatedPolicyRoom(report) && !isPolicyEmployee) || isDefaultRoom(report)))}
-                subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
+                subtitleKey={subtitleKey}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                 }}
