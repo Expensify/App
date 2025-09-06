@@ -7,7 +7,7 @@ import {deepEqual} from 'fast-equals';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import useAncestorReportActions from '@hooks/useAncestorReportActions';
+import useAncestorReportActions from '@hooks/useAncestorReportsAndReportActions';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import type {PerDiemExpenseTransactionParams, RequestMoneyParticipantParams} from '@libs/actions/IOU';
 import {
@@ -4707,16 +4707,10 @@ describe('actions/IOU', () => {
             const {result} = renderHook(() => useAncestorReportActions(iouReport.reportID));
             await waitForBatchedUpdates();
 
-            bulkHold(
-                comment,
-                iouReport,
-                result.current.map((v) => v.reportAction),
-                transactionCollection,
-                {},
-                transactionsIOUActions,
-            );
+            bulkHold(comment, result.current.report, result.current.ancestorReportsAndReportActions, transactionCollection, {}, transactionsIOUActions);
 
             await waitForBatchedUpdates();
+            await waitForNetworkPromises();
             await new Promise<void>((resolve) => {
                 const violationsConnection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
@@ -4847,15 +4841,10 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             const {result} = renderHook(() => useAncestorReportActions(iouReport.reportID));
-            bulkHold(
-                comment,
-                iouReport,
-                result.current.map((v) => v.reportAction),
-                transactionCollection,
-                {},
-                transactionsIOUActions,
-            );
             await waitForBatchedUpdates();
+            bulkHold(comment, result.current.report, result.current.ancestorReportsAndReportActions, transactionCollection, {}, transactionsIOUActions);
+            await waitForBatchedUpdates();
+            await waitForNetworkPromises();
 
             await new Promise<void>((resolve) => {
                 const violationsConnection = Onyx.connect({
