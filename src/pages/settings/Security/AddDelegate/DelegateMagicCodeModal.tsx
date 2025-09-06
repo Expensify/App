@@ -38,10 +38,6 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
         Navigation.goBack(ROUTES.SETTINGS_SECURITY);
     }, [login, currentDelegate, role, addDelegateErrors]);
 
-    const onBackButtonPress = () => {
-        onClose?.();
-    };
-
     const clearError = () => {
         if (isEmptyObject(validateLoginError) && isEmptyObject(validateCodeAction?.errorFields)) {
             return;
@@ -54,7 +50,7 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
             disableAnimation={disableAnimation}
             shouldHandleNavigationBack={shouldHandleNavigationBack}
             clearError={clearError}
-            onClose={onBackButtonPress}
+            onClose={onClose}
             validateCodeActionErrorField="addDelegate"
             validateError={validateLoginError}
             isVisible={isValidateCodeActionModalVisible}
