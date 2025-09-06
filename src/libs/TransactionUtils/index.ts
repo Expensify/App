@@ -234,6 +234,32 @@ function getRequestType(transaction: OnyxEntry<Transaction>, isManualDistanceEna
 }
 
 /**
+ * Determines the appropriate receipt state based on request type and receipt properties.
+ * This function encapsulates the business logic for setting receipt states:
+ * - Test receipts: SCAN_COMPLETE (already processed)
+ * - Manual requests: OPEN (receipt can be added later)
+ * - Scan requests: SCAN_READY (waiting for SmartScan processing)
+ */
+function getReceiptState(
+    requestType: IOURequestType,
+    isTestReceipt?: boolean,
+    isTestDriveReceipt?: boolean,
+): ValueOf<typeof CONST.IOU.RECEIPT_STATE> {
+    // Test receipts should always be SCAN_COMPLETE
+    if (isTestReceipt || isTestDriveReceipt) {
+        return CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
+    }
+    
+    // Manual requests should be OPEN (receipt can be added later)
+    if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
+        return CONST.IOU.RECEIPT_STATE.OPEN;
+    }
+    
+    // All other request types (primarily SCAN) should be SCAN_READY
+    return CONST.IOU.RECEIPT_STATE.SCAN_READY;
+}
+
+/**
  * Determines the expense type of a given transaction.
  */
 function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CONST.IOU.EXPENSE_TYPE> | undefined {
@@ -2026,6 +2052,7 @@ export {
     getOriginalTransactionWithSplitInfo,
     getTransactionPendingAction,
     isTransactionPendingDelete,
+    getReceiptState,
     createUnreportedExpenseSections,
     isDemoTransaction,
     shouldShowViolation,

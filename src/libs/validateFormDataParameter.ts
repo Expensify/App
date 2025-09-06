@@ -5,7 +5,7 @@ import isFileUploadable from './isFileUploadable';
  * Otherwise, it will be incorrectly serialized as `[object Object]` and cause an error on Android.
  * See https://github.com/Expensify/App/issues/45086
  */
-function validateFormDataParameter(command: string, key: string, value: unknown) {
+function validateFormDataParameter(command: string, key: string, value: unknown, validationFn?: (file: any) => boolean) {
     // eslint-disable-next-line @typescript-eslint/no-shadow
     const isValid = (value: unknown, isTopLevel: boolean): boolean => {
         if (value === null || typeof value !== 'object') {
@@ -15,7 +15,8 @@ function validateFormDataParameter(command: string, key: string, value: unknown)
             return value.every((element) => isValid(element, false));
         }
         if (isTopLevel) {
-            return isFileUploadable(value);
+            // Use provided validation function or default to isFileUploadable for backward compatibility
+            return validationFn ? validationFn(value) : isFileUploadable(value);
         }
         return false;
     };

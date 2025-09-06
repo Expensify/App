@@ -54,7 +54,7 @@ import {
     navigateToStartMoneyRequestStep,
     updateIOUOwnerAndTotal,
 } from '@libs/IOUUtils';
-import isFileUploadable from '@libs/isFileUploadable';
+import isReceiptUploadable from '@libs/isReceiptUploadable';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
@@ -5651,7 +5651,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
             const workspaceParams =
                 isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID
                     ? {
-                          receipt: isFileUploadable(receipt) ? receipt : undefined,
+                          receipt: isReceiptUploadable(receipt) ? receipt : undefined,
                           category,
                           tag,
                           taxCode,
@@ -5722,7 +5722,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 createdChatReportActionID,
                 createdIOUReportActionID,
                 reportPreviewReportActionID: reportPreviewAction.reportActionID,
-                receipt: isFileUploadable(receipt) ? receipt : undefined,
+                receipt: isReceiptUploadable(receipt) ? receipt : undefined,
                 receiptState: receipt?.state,
                 category,
                 tag,
@@ -6102,7 +6102,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 tag,
                 billable,
                 reimbursable,
-                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                receipt: isReceiptUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
@@ -6151,7 +6151,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 tag,
                 billable,
                 reimbursable,
-                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                receipt: isReceiptUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
                 attendees,
@@ -6196,7 +6196,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 createdChatReportActionID,
                 createdIOUReportActionID,
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
-                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                receipt: isReceiptUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 receiptState: trackedReceipt?.state,
                 category,
                 tag,
@@ -10889,9 +10889,16 @@ function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
         });
     }
 
+    // Create Receipt object for consistency with other receipt APIs
+    const receiptObject: Receipt = {
+        source: source || file.uri || '', 
+        name: file.name || '',
+        state: CONST.IOU.RECEIPT_STATE.OPEN,
+    };
+
     const parameters: ReplaceReceiptParams = {
         transactionID,
-        receipt: file,
+        receipt: receiptObject,
     };
 
     API.write(WRITE_COMMANDS.REPLACE_RECEIPT, parameters, {optimisticData, successData, failureData});

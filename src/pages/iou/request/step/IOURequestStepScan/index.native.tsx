@@ -34,7 +34,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {readFileAsync, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import {getFileName, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
@@ -578,7 +578,13 @@ function IOURequestStepScan({
                       });
 
             const transactionID = transaction.transactionID ?? initialTransactionID;
-            newReceiptFiles.push({file, source: file.uri ?? '', transactionID});
+            // Create clean Receipt object
+            const receiptObject: Receipt = {
+                source: file.uri ?? '',
+                name: file.name ?? '',
+                state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
+            };
+            newReceiptFiles.push({file: receiptObject, source: file.uri ?? '', transactionID});
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             setMoneyRequestReceipt(transactionID, file.uri ?? '', file.name || '', true);
         });
@@ -681,31 +687,27 @@ function IOURequestStepScan({
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height).then(({filename, source}) => {
                             setMoneyRequestReceipt(transactionID, source, filename, !isEditing);
 
-                            readFileAsync(
+                            // Create clean Receipt object
+                            const receiptForTracking: Receipt = {
                                 source,
-                                filename,
-                                (file) => {
-                                    if (isEditing) {
-                                        updateScanAndNavigate(file, source);
-                                        return;
-                                    }
+                                name: getFileName(filename),
+                                state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                            };
 
-                                    const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
-                                    setReceiptFiles(newReceiptFiles);
+                            if (isEditing) {
+                                updateScanAndNavigate(receiptForTracking, source);
+                                return;
+                            }
 
-                                    if (isMultiScanEnabled) {
-                                        setDidCapturePhoto(false);
-                                        return;
-                                    }
+                            const newReceiptFiles = [...receiptFiles, {file: receiptForTracking, source, transactionID}];
+                            setReceiptFiles(newReceiptFiles);
 
-                                    submitReceipts(newReceiptFiles);
-                                },
-                                () => {
-                                    setDidCapturePhoto(false);
-                                    showCameraAlert();
-                                    Log.warn('Error reading photo');
-                                },
-                            );
+                            if (isMultiScanEnabled) {
+                                setDidCapturePhoto(false);
+                                return;
+                            }
+
+                            submitReceipts(newReceiptFiles);
                         });
                     })
                     .catch((error: string) => {

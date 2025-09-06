@@ -25,7 +25,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
+import checkFileExists from '@libs/fileDownload/checkFileExists';
+import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
@@ -42,11 +43,10 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
-import {getAttendees, getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints, hasReceipt, isScanRequest} from '@libs/TransactionUtils';
+import {getAttendees, getDefaultTaxCode, getRateID, getReceiptState, getRequestType, getValidWaypoints, hasReceipt, isScanRequest} from '@libs/TransactionUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {GpsPoint} from '@userActions/IOU';
 import {
-    checkIfScanFileCanBeRead,
     createDistanceRequest as createDistanceRequestIOUActions,
     getIOURequestPolicyID,
     requestMoney as requestMoneyIOUActions,
@@ -378,65 +378,59 @@ function IOURequestStepConfirmation({
         backTo,
     ]);
 
-    // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
-    // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
-    // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
-    // skip this in case user is moving the transaction as the receipt path will be valid in that case
+    // Populate receiptFiles with validation but without memory-loading
     useEffect(() => {
-        let newReceiptFiles: Record<string, Receipt> = {};
-        let isScanFilesCanBeRead = true;
-
-        Promise.all(
-            transactions.map((item) => {
-                const itemReceiptFilename = item.filename;
-                const itemReceiptPath = item.receipt?.source;
-                const itemReceiptType = item.receipt?.type;
-                const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
-
-                if (!isLocalFile) {
-                    if (item.receipt) {
-                        newReceiptFiles = {...newReceiptFiles, [item.transactionID]: item.receipt};
+        const validateAndSetReceipts = async () => {
+            const newReceiptFiles: Record<string, Receipt> = {};
+            const invalidReceiptTransactionIDs: string[] = [];
+            
+            // Check each receipt file exists without loading into memory
+            await Promise.all(
+                transactions.map(async (item) => {
+                    if (!item.receipt?.source) {
+                        return;
                     }
-                    return;
-                }
-
-                const onSuccess = (file: File) => {
-                    const receipt: Receipt = file;
-                    if (item?.receipt?.isTestReceipt) {
-                        receipt.isTestReceipt = true;
-                        receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
-                    } else if (item?.receipt?.isTestDriveReceipt) {
-                        receipt.isTestDriveReceipt = true;
-                        receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
+                    
+                    // Skip validation for remote files (already uploaded)
+                    if (!isLocalFile(item.receipt.source)) {
+                        newReceiptFiles[item.transactionID] = item.receipt;
+                        return;
+                    }
+                    
+                    // Check if local file exists without loading it
+                    const fileExists = await checkFileExists(item.receipt.source);
+                    
+                    if (fileExists) {
+                        newReceiptFiles[item.transactionID] = item.receipt;
                     } else {
-                        receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
+                        invalidReceiptTransactionIDs.push(item.transactionID);
+                        // Clear invalid receipt
+                        if (item.transactionID === initialTransactionID) {
+                            setMoneyRequestReceipt(item.transactionID, '', '', true);
+                        }
                     }
-
-                    newReceiptFiles = {...newReceiptFiles, [item.transactionID]: receipt};
-                };
-
-                const onFailure = () => {
-                    isScanFilesCanBeRead = false;
-                    if (initialTransactionID === item.transactionID) {
-                        setMoneyRequestReceipt(item.transactionID, '', '', true);
-                    }
-                };
-
-                return checkIfScanFileCanBeRead(itemReceiptFilename, itemReceiptPath, itemReceiptType, onSuccess, onFailure);
-            }),
-        ).then(() => {
-            if (isScanFilesCanBeRead) {
+                })
+            );
+            
+            // If all receipts are valid, use them
+            if (invalidReceiptTransactionIDs.length === 0) {
                 setReceiptFiles(newReceiptFiles);
                 return;
             }
+            
+            // Handle invalid receipts with navigation fallback
             if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
+                // For manual requests, navigate to scan step to re-add receipts
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, initialTransactionID, reportID, Navigation.getActiveRouteWithoutParams()));
-                return;
+            } else {
+                // For scan requests, clear drafts and restart the flow
+                removeDraftTransactions(true);
+                navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID);
             }
-            removeDraftTransactions(true);
-            navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID);
-        });
-    }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
+        };
+        
+        validateAndSetReceipts();
+    }, [transactions, requestType, iouType, initialTransactionID, reportID, action]);
 
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], gpsPoints?: GpsPoint) => {
@@ -455,7 +449,25 @@ function IOURequestStepConfirmation({
             const optimisticReportPreviewActionID = rand64();
 
             transactions.forEach((item, index) => {
-                const receipt = receiptFiles[item.transactionID];
+                const transactionReceipt = receiptFiles[item.transactionID];
+                
+                // Use utility function to determine the correct receipt state
+                const receiptState = getReceiptState(
+                    requestType,
+                    transactionReceipt?.isTestReceipt,
+                    transactionReceipt?.isTestDriveReceipt,
+                );
+                
+                // Create proper Receipt object from transaction data with correct state
+                const receipt: Receipt | undefined = transactionReceipt ? {
+                    source: transactionReceipt.source,
+                    filename: item.filename, // filename is stored at transaction level
+                    state: receiptState,
+                    type: transactionReceipt.type,
+                    isTestReceipt: transactionReceipt.isTestReceipt,
+                    isTestDriveReceipt: transactionReceipt.isTestDriveReceipt,
+                } : undefined;
+                
                 const isTestReceipt = receipt?.isTestReceipt ?? false;
                 const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
 
@@ -580,6 +592,25 @@ function IOURequestStepConfirmation({
                 return;
             }
             transactions.forEach((item, index) => {
+                const transactionReceipt = receiptFiles[item.transactionID];
+                
+                // Use utility function to determine the correct receipt state
+                const receiptState = getReceiptState(
+                    requestType,
+                    transactionReceipt?.isTestReceipt,
+                    transactionReceipt?.isTestDriveReceipt,
+                );
+                
+                // Create proper Receipt object from transaction data for trackExpense
+                const receipt: Receipt | undefined = transactionReceipt ? {
+                    source: transactionReceipt.source,
+                    filename: item.filename, // filename is stored at transaction level
+                    state: receiptState,
+                    type: transactionReceipt.type,
+                    isTestReceipt: transactionReceipt.isTestReceipt,
+                    isTestDriveReceipt: transactionReceipt.isTestDriveReceipt,
+                } : undefined;
+                
                 trackExpenseIOUActions({
                     report,
                     isDraftPolicy,
@@ -601,7 +632,7 @@ function IOURequestStepConfirmation({
                         created: item.created,
                         merchant: item.merchant,
                         comment: item?.comment?.comment?.trim() ?? '',
-                        receipt: receiptFiles[item.transactionID],
+                        receipt,
                         category: item.category,
                         tag: item.tag,
                         taxCode: transactionTaxCode,
