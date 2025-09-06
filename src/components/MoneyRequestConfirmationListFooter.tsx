@@ -313,7 +313,7 @@ function MoneyRequestConfirmationListFooter({
             return;
         }
         return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`];
-    }, [selectedReportID]);
+    }, [allReports, selectedReportID]);
     let reportName = getReportName(selectedReport, selectedPolicy);
 
     if (!reportName) {
