@@ -199,6 +199,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     }, [isValidReport, quickActionAvatars, personalDetails, quickAction?.action]);
 
     const quickActionSubtitle = useMemo(() => {
+        if (quickAction?.action === CONST.QUICK_ACTIONS.CREATE_REPORT) {
+            return quickActionPolicy?.name;
+        }
         return !hideQABSubtitle ? (getReportName(quickActionReport) ?? translate('quickAction.updateDestination')) : '';
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -341,7 +344,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                         showDelegateNoAccessModal();
                         return;
                     }
-                    navigateToQuickAction(isValidReport, quickAction, selectOption, isManualDistanceTrackingEnabled);
+                    navigateToQuickAction(isValidReport, quickAction, selectOption, currentUserPersonalDetails, quickActionPolicy?.id, isManualDistanceTrackingEnabled);
                 });
             };
             return [
@@ -388,20 +391,21 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         translate,
         styles.pt3,
         styles.pb2,
-        quickActionAvatars,
         quickAction,
         policyChatForActivePolicy,
-        quickActionTitle,
-        quickActionSubtitle,
-        quickActionPolicy,
         quickActionReport,
-        isValidReport,
-        selectOption,
+        quickActionPolicy,
+        isReportArchived,
+        quickActionTitle,
+        quickActionAvatars,
+        quickActionSubtitle,
         shouldUseNarrowLayout,
         isDelegateAccessRestricted,
-        showDelegateNoAccessModal,
-        isReportArchived,
+        isValidReport,
+        selectOption,
+        currentUserPersonalDetails,
         isManualDistanceTrackingEnabled,
+        showDelegateNoAccessModal,
     ]);
 
     const isTravelEnabled = useMemo(() => {
