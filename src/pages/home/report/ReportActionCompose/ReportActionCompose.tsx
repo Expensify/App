@@ -40,6 +40,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Performance from '@libs/Performance';
 import {getLinkedTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
+    canRequestMoney as canRequestMoneyReportUtils,
     canShowReportRecipientLocalTime,
     chatIncludesChronos,
     chatIncludesConcierge,
@@ -48,6 +49,7 @@ import {
     getReportRecipientAccountIDs,
     isReportApproved,
     isReportTransactionThread,
+    isSelfDM,
     isSettled,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
@@ -239,9 +241,10 @@ function ReportActionCompose({
     );
     const shouldDisplayDualDropZone = useMemo(() => {
         const parentReport = getParentReport(report);
+        const canRequestMoney = canRequestMoneyReportUtils(report, policy, reportParticipantIDs) || isSelfDM(report);
         const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
-        return (shouldAddOrReplaceReceipt && !isSettledOrApproved) || !!scannableIouType;
-    }, [shouldAddOrReplaceReceipt, report, scannableIouType]);
+        return ((shouldAddOrReplaceReceipt && !isSettledOrApproved) || !!scannableIouType) && canRequestMoney;
+    }, [shouldAddOrReplaceReceipt, report, scannableIouType, reportParticipantIDs, policy]);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
