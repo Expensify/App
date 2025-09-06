@@ -115,6 +115,7 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import useAncestorReportAndReportActions from '@hooks/useAncestorReportsAndReportActions';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('@libs/Permissions');
@@ -2144,7 +2145,9 @@ describe('ReportUtils', () => {
 
             expect(canHoldUnholdReportAction(expenseCreatedAction)).toEqual({canHoldRequest: true, canUnholdRequest: false});
 
-            putOnHold(expenseTransaction.transactionID, 'hold', transactionThreadReport.reportID);
+            const {result} = renderHook(() => useAncestorReportAndReportActions(expenseReport.reportID));
+            
+            putOnHold(expenseTransaction.transactionID, 'hold', result.current.ancestorReportsAndReportActions, transactionThreadReport.reportID);
             await waitForBatchedUpdates();
 
             // canUnholdRequest should be true after the transaction is held.

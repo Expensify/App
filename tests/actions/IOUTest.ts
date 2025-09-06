@@ -4641,6 +4641,26 @@ describe('actions/IOU', () => {
     });
 
     describe('bulkHold', () => {
+        let writeSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+            global.fetch = getGlobalFetchMock();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
+                // Apply optimistic data for testing
+                Onyx.update(options?.optimisticData ?? []);
+                console.log(options);
+                return waitForBatchedUpdates();
+            });
+            Onyx.clear();
+            return waitForBatchedUpdates();
+        });
+
+        afterEach(() => {
+            writeSpy.mockRestore();
+        });
+
         test('Bulk hold transactions with optimistic transaction threads', () => {
             const iouReport = buildOptimisticIOUReport(1, 2, 200, '1', 'USD');
             const transaction1 = buildOptimisticTransaction({
@@ -4717,6 +4737,7 @@ describe('actions/IOU', () => {
                             key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
                             waitForCollectionCallback: true,
                             callback: (allTransactionsViolations) => {
+                                expect(Object.keys(allTransactionsViolations)).toHaveLength(2);
                                 Onyx.disconnect(connection);
                                 resolve();
 
@@ -4745,6 +4766,7 @@ describe('actions/IOU', () => {
                 })
                 .then(() => {
                     return new Promise<void>((resolve) => {
+                        expect(writeSpy).toHaveBeenCalledTimes(1);
                         const connection = Onyx.connect({
                             key: ONYXKEYS.COLLECTION.REPORT,
                             waitForCollectionCallback: true,

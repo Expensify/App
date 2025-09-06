@@ -50,19 +50,14 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
         for (const transactionID of context.selectedTransactionIDs) {
             const transaction = reportTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             if (!transaction) {
-                Log.warn(`[SearchHoldReasonPage] Selected transactionID not found in report transactions`, {transactionID});
+                Log.warn(`[SearchHoldReasonPage] Selected transactionID: ${transactionID} not found in derived report transactions`);
                 continue;
             }
 
-            const pendingAction = transaction?.pendingAction;
-
-            if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                Log.warn(`[SearchHoldReasonPage] Selected transactionID is not eligible for hold`, {transactionID, pendingAction});
-                continue;
+            if (transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = transaction;
+                violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = reportViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
             }
-
-            transactions[transactionID] = transaction;
-            violations[transactionID] = reportViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         }
 
         return [transactions, violations];
@@ -81,7 +76,7 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
             for (const transactionID of Object.keys(selectedTransactions)) {
                 const iouAction = getIOUActionForTransactionID(actions, transactionID);
                 if (!iouAction) {
-                    Log.warn(`[SearchHoldReasonPage] No IOU action found for selected transactionID`, {transactionID, reportID});
+                    Log.warn(`[SearchHoldReasonPage] No IOU action found for selected transactionID: ${transactionID}`);
                     continue;
                 }
                 transactionsIOUActions[transactionID] = iouAction;
