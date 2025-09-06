@@ -4,7 +4,6 @@ import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMem
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useAnimatedReaction} from 'react-native-reanimated';
 import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
 import FlatList from '@components/FlatList';
 import InvertedFlatList from '@components/InvertedFlatList';
@@ -27,7 +26,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import FS from '@libs/Fullstory';
-import getPlatform from '@libs/getPlatform';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -73,6 +71,7 @@ import ListBoundaryLoader from './ListBoundaryLoader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import shouldDisplayNewMarkerOnReportAction from './shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
+import useScrollingVerticalOffsetRef from './useScrollingVerticalOffsetRef/index.ios';
 
 type ReportActionsListProps = {
     /** The report currently being looked at */
@@ -207,7 +206,6 @@ function ReportActionsList({
     const readActionSkipped = useRef(false);
     const hasHeaderRendered = useRef(false);
     const linkedReportActionID = route?.params?.reportActionID;
-    const scrollingVerticalOffsetRef = useRef(0);
 
     const onEndReached = useCallback(() => {
         loadOlderChats(false);
@@ -222,32 +220,9 @@ function ReportActionsList({
         InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
     }, [loadNewerChats]);
 
-    const platform = getPlatform();
     const isTransactionThreadResult = isTransactionThread(parentReportAction);
 
-    // The previous scroll tracking implementation was made via ref. This is
-    // to ensure it will behave the same as before.
-    useAnimatedReaction(
-        () => {
-            return {
-                offsetY: scrollY.get(),
-                kHeight: keyboardHeight.get(),
-                csHeight: contentSizeHeight.get(),
-                lmHeight: layoutMeasurementHeight.get(),
-            };
-        },
-        ({offsetY, kHeight, csHeight, lmHeight}) => {
-            const correctedOffsetY = platform === CONST.PLATFORM.IOS ? kHeight + offsetY : offsetY;
-
-            if (isTransactionThreadResult) {
-                // For transaction threads, calculate distance from bottom like MoneyRequestReportActionsList
-                scrollingVerticalOffsetRef.current = csHeight - lmHeight - correctedOffsetY;
-            } else {
-                // For regular reports (InvertedFlatList), use raw contentOffset.y
-                scrollingVerticalOffsetRef.current = correctedOffsetY;
-            }
-        },
-    );
+    const scrollingVerticalOffsetRef = useScrollingVerticalOffsetRef({contentSizeHeight, isTransactionThreadResult, keyboardHeight, layoutMeasurementHeight, scrollY});
 
     // FlatList displays items from top to bottom, so we need the oldest actions first.
     // Since sortedReportActions and sortedVisibleReportActions are ordered from newest to oldest,
@@ -338,7 +313,7 @@ function ReportActionsList({
         }
 
         return [null, -1];
-    }, [accountID, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, sortedVisibleReportActions, unreadMarkerTime]);
+    }, [accountID, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, sortedVisibleReportActions, unreadMarkerTime, scrollingVerticalOffsetRef]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     /**
@@ -434,6 +409,7 @@ function ReportActionsList({
         setIsFloatingMessageCounterVisible,
         parentReportAction,
         scrollToBottom,
+        scrollingVerticalOffsetRef,
     ]);
 
     useEffect(() => {
