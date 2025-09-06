@@ -57,7 +57,7 @@ function SubmitDetailsPage({
     const [validFilesToUpload] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
-    const isReportArchived = useReportIsArchived(report?.reportID);
+    const isLinkedTrackedExpenseReportArchived = useReportIsArchived(transaction?.linkedTrackedExpenseReportID);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -130,8 +130,8 @@ function SubmitDetailsPage({
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                    isLinkedTrackedExpenseReportArchived,
                 },
-                isReportArchived,
             });
         } else {
             requestMoney({
@@ -157,9 +157,9 @@ function SubmitDetailsPage({
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                    isLinkedTrackedExpenseReportArchived,
                 },
                 shouldGenerateTransactionThreadReport,
-                isReportArchived,
             });
         }
     };

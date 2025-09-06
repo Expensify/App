@@ -218,7 +218,6 @@ function IOURequestStepAmount({
                         },
                         backToReport,
                         shouldGenerateTransactionThreadReport,
-                        isReportArchived,
                     });
                     return;
                 }

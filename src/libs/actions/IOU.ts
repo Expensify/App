@@ -329,6 +329,7 @@ type TrackedExpenseReportInformation = {
     transactionThreadReportID: string | undefined;
     reportPreviewReportActionID: string | undefined;
     chatReportID: string | undefined;
+    isLinkedTrackedExpenseReportArchived: boolean | undefined;
 };
 type TrackedExpenseParams = {
     onyxData?: OnyxData;
@@ -337,7 +338,6 @@ type TrackedExpenseParams = {
     policyParams: TrackedExpensePolicyParams;
     createdWorkspaceParams?: CreateWorkspaceParams;
     accountantParams?: TrackExpenseAccountantParams;
-    isReportArchived?: boolean;
 };
 
 type SendInvoiceInformation = {
@@ -406,6 +406,7 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     isTestDrive?: boolean;
     source?: string;
     distance?: number;
+    isLinkedTrackedExpenseReportArchived?: boolean;
 };
 
 type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
@@ -464,7 +465,6 @@ type RequestMoneyInformation = {
     optimisticIOUReportID?: string;
     optimisticReportPreviewActionID?: string;
     shouldGenerateTransactionThreadReport: boolean;
-    isReportArchived?: boolean;
 };
 
 type MoneyRequestInformationParams = {
@@ -578,6 +578,7 @@ type TrackExpenseTransactionParams = {
     linkedTrackedExpenseReportID?: string;
     customUnitRateID?: string;
     attendees?: Attendee[];
+    isLinkedTrackedExpenseReportArchived?: boolean;
 };
 
 type TrackExpenseAccountantParams = {
@@ -2954,7 +2955,7 @@ function getDeleteTrackExpenseInformation(
     actionableWhisperReportActionID = '',
     resolution = '',
     shouldRemoveIOUTransaction = true,
-    isReportArchived = false,
+    isChatReportArchived = false,
 ) {
     // STEP 1: Get all collections we're updating
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
@@ -2996,7 +2997,7 @@ function getDeleteTrackExpenseInformation(
     } as OnyxTypes.ReportActions;
     let canUserPerformWriteAction = true;
     if (chatReport) {
-        canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isReportArchived);
+        canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isChatReportArchived);
     }
     const lastVisibleAction = getLastVisibleAction(chatReportID, canUserPerformWriteAction, updatedReportAction);
     const {lastMessageText = '', lastMessageHtml = ''} = getLastVisibleMessage(chatReportID, canUserPerformWriteAction, updatedReportAction);
@@ -5032,7 +5033,7 @@ const getConvertTrackedExpenseInformation = (
     linkedTrackedExpenseReportID: string,
     transactionThreadReportID: string | undefined,
     resolution: IOUAction,
-    isReportArchived = false,
+    isLinkedTrackedExpenseReportArchived = false,
 ) => {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -5052,7 +5053,7 @@ const getConvertTrackedExpenseInformation = (
         actionableWhisperReportActionID,
         resolution,
         true,
-        isReportArchived,
+        isLinkedTrackedExpenseReportArchived,
     );
 
     optimisticData?.push(...deleteOptimisticData);
@@ -5139,12 +5140,12 @@ type ConvertTrackedExpenseToRequestParams = {
         attendees?: Attendee[];
         transactionThreadReportID?: string;
         distance?: number;
+        isLinkedTrackedExpenseReportArchived?: boolean;
     };
     chatParams: {
         reportID: string;
         createdReportActionID: string | undefined;
         reportPreviewReportActionID: string;
-        isReportArchived: boolean | undefined;
     };
     iouParams: {
         reportID: string;
@@ -5186,7 +5187,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
         CONST.IOU.ACTION.SUBMIT,
-        chatParams.isReportArchived,
+        transactionParams.isLinkedTrackedExpenseReportArchived,
     );
 
     optimisticData?.push(...convertTransactionOptimisticData);
@@ -5243,7 +5244,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
 /**
  * Move multiple tracked expenses from self-DM to an IOU report
  */
-function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportID: string, isReportArchived = false) {
+function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportID: string, isSelfDMReportArchived = false) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`];
 
     if (!iouReport || !isMoneyRequestReportReportUtils(iouReport)) {
@@ -5377,12 +5378,12 @@ function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportI
                 linkedTrackedExpenseReportAction,
                 linkedTrackedExpenseReportID: selfDMReportID,
                 transactionThreadReportID: moneyRequestTransactionThreadReportID,
+                isLinkedTrackedExpenseReportArchived: isSelfDMReportArchived,
             },
             chatParams: {
                 reportID: moneyRequestChatReport.reportID,
                 createdReportActionID: createdChatReportActionID,
                 reportPreviewReportActionID: reportPreviewAction.reportActionID,
-                isReportArchived,
             },
             iouParams: {
                 reportID: moneyRequestIOUReport.reportID,
@@ -5397,11 +5398,18 @@ function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportI
 }
 
 function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, isReportArchived} = trackedExpenseParams;
+    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams} = trackedExpenseParams;
     const {optimisticData, successData, failureData} = onyxData ?? {};
     const {transactionID} = transactionParams;
     const {isDraftPolicy} = policyParams;
-    const {actionableWhisperReportActionID, moneyRequestReportID, linkedTrackedExpenseReportAction, linkedTrackedExpenseReportID, transactionThreadReportID} = reportInformation;
+    const {
+        actionableWhisperReportActionID,
+        moneyRequestReportID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        transactionThreadReportID,
+        isLinkedTrackedExpenseReportArchived,
+    } = reportInformation;
     const {
         optimisticData: moveTransactionOptimisticData,
         successData: moveTransactionSuccessData,
@@ -5415,7 +5423,7 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
         CONST.IOU.ACTION.CATEGORIZE,
-        isReportArchived,
+        isLinkedTrackedExpenseReportArchived,
     );
 
     optimisticData?.push(...moveTransactionOptimisticData);
@@ -5452,7 +5460,7 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 }
 
 function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams, isReportArchived} = trackedExpenseParams;
+    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams} = trackedExpenseParams;
 
     const policyID = policyParams?.policyID;
     const chatReportID = reportInformation?.chatReportID;
@@ -5475,6 +5483,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
+        isLinkedTrackedExpenseReportArchived,
     } = reportInformation;
 
     const {optimisticData, successData, failureData, modifiedExpenseReportActionID} = getConvertTrackedExpenseInformation(
@@ -5485,7 +5494,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
         CONST.IOU.ACTION.SHARE,
-        isReportArchived,
+        isLinkedTrackedExpenseReportArchived,
     );
 
     optimisticData?.push(...shareTrackedExpenseOptimisticData);
@@ -5571,7 +5580,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport,
-        isReportArchived = false,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -5596,6 +5604,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         waypoints,
         customUnitRateID,
         isTestDrive,
+        isLinkedTrackedExpenseReportArchived,
     } = transactionParams;
 
     const testDriveCommentReportActionID = isTestDrive ? NumberUtils.rand64() : undefined;
@@ -5701,12 +5710,12 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                     linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID,
                     transactionThreadReportID,
+                    isLinkedTrackedExpenseReportArchived,
                 },
                 chatParams: {
                     reportID: chatReport.reportID,
                     createdReportActionID: createdChatReportActionID,
                     reportPreviewReportActionID: reportPreviewAction.reportActionID,
-                    isReportArchived,
                 },
                 iouParams: {
                     reportID: iouReport.reportID,
@@ -5973,7 +5982,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         accountantParams,
         shouldHandleNavigation = true,
         shouldPlaySound = true,
-        isReportArchived = false,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -6143,6 +6151,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 transactionThreadReportID,
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
                 chatReportID: chatReport?.reportID,
+                isLinkedTrackedExpenseReportArchived: transactionData.isLinkedTrackedExpenseReportArchived,
             };
             const trackedExpenseParams: TrackedExpenseParams = {
                 onyxData,
@@ -6150,7 +6159,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 transactionParams,
                 policyParams,
                 createdWorkspaceParams,
-                isReportArchived,
             };
 
             categorizeTrackedExpense(trackedExpenseParams);
@@ -6192,6 +6200,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 transactionThreadReportID,
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
                 chatReportID: chatReport?.reportID,
+                isLinkedTrackedExpenseReportArchived: transactionData.isLinkedTrackedExpenseReportArchived,
             };
             const trackedExpenseParams: TrackedExpenseParams = {
                 onyxData,
@@ -6200,7 +6209,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 policyParams,
                 createdWorkspaceParams,
                 accountantParams,
-                isReportArchived,
             };
             shareTrackedExpense(trackedExpenseParams);
             break;
@@ -8496,7 +8504,7 @@ function deleteTrackExpense(
     transactions: OnyxCollection<OnyxTypes.Transaction>,
     violations: OnyxCollection<OnyxTypes.TransactionViolations>,
     isSingleTransactionView = false,
-    isReportArchived = false,
+    isChatReportArchived = false,
 ) {
     if (!chatReportID || !transactionID) {
         return;
@@ -8522,7 +8530,7 @@ function deleteTrackExpense(
         actionableWhisperReportActionID,
         CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
         false,
-        isReportArchived,
+        isChatReportArchived,
     );
 
     // STEP 6: Make the API request

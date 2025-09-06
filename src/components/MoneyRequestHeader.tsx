@@ -99,7 +99,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
-    const isReportArchived = useReportIsArchived(reportID);
+    const isChatReportArchived = useReportIsArchived(report?.parentReportID);
 
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
 
@@ -369,7 +369,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             duplicateTransactions,
                             duplicateTransactionViolations,
                             true,
-                            isReportArchived,
+                            isChatReportArchived,
                         );
                     } else {
                         deleteMoneyRequest(transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true);

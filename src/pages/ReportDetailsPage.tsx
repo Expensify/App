@@ -783,7 +783,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 duplicateTransactions,
                 duplicateTransactionViolations,
                 isSingleTransactionView,
-                isReportArchived,
+                isMoneyRequestReportArchived,
             );
         } else {
             deleteMoneyRequest(iouTransactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations, isSingleTransactionView);
@@ -800,6 +800,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         report,
         requestParentReportAction,
         isReportArchived,
+        isMoneyRequestReportArchived,
     ]);
 
     // A flag to indicate whether the user chose to delete the transaction or not
