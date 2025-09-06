@@ -1782,6 +1782,7 @@ describe('actions/Report', () => {
                 reportActionID: '1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 created: DateUtils.getDBTime(),
+                message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
                 originalMessage: {
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -1792,6 +1793,7 @@ describe('actions/Report', () => {
                 reportActionID: '2',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 created: DateUtils.getDBTime(),
+                message: [{type: 'COMMENT', html: 'Comment 2', text: 'Comment 2'}],
                 originalMessage: {
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -1802,6 +1804,7 @@ describe('actions/Report', () => {
                 reportActionID: '3',
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 created: DateUtils.getDBTime(),
+                message: [{type: 'COMMENT', html: 'Comment 3', text: 'Comment 3'}],
                 originalMessage: {
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
