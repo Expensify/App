@@ -34,6 +34,7 @@ import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnecti
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import variables from '@styles/variables';
 import {openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -277,6 +278,7 @@ function WorkspaceReportFieldsPage({
                                                 <FlashList
                                                     data={reportFieldsSections}
                                                     renderItem={renderItem}
+                                                    estimatedItemSize={variables.optionRowHeight}
                                                     keyExtractor={keyExtractor}
                                                 />
                                             </View>
