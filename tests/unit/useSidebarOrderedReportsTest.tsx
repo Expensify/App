@@ -58,7 +58,6 @@ describe('useSidebarOrderedReports', () => {
             [ONYXKEYS.COLLECTION.TRANSACTION]: {},
             [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: {},
             [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: {},
-            [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: {},
             [ONYXKEYS.BETAS]: [],
             [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: {reports: {}},
         } as unknown as OnyxMultiSetInput);
@@ -184,7 +183,6 @@ describe('useSidebarOrderedReports', () => {
             expect.any(Function), // localeCompare
             expect.any(Object), // reportNameValuePairs
             expect.any(Object), // reportAttributes
-            expect.any(Object), // drafts
         );
     });
 

@@ -2,6 +2,7 @@ import AddReaction from '@assets/images/add-reaction.svg';
 import All from '@assets/images/all.svg';
 import Android from '@assets/images/android.svg';
 import Apple from '@assets/images/apple.svg';
+import ArrowCircleClockwise from '@assets/images/arrow-circle-clockwise.svg';
 import ArrowCollapse from '@assets/images/arrow-collapse.svg';
 import ArrowDownLong from '@assets/images/arrow-down-long.svg';
 import ArrowRightLong from '@assets/images/arrow-right-long.svg';
@@ -154,6 +155,7 @@ import MagnifyingGlassSpyMouthClosed from '@assets/images/magnifying-glass-spy-m
 import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
 import Mail from '@assets/images/mail.svg';
 import MakeAdmin from '@assets/images/make-admin.svg';
+import Map from '@assets/images/map.svg';
 import Megaphone from '@assets/images/megaphone.svg';
 import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
@@ -363,6 +365,7 @@ export {
     MagnifyingGlass,
     Mail,
     MakeAdmin,
+    Map,
     Menu,
     Meter,
     Megaphone,
@@ -490,4 +493,5 @@ export {
     SageIntacctExport,
     SapExport,
     XeroExport,
+    ArrowCircleClockwise,
 };
