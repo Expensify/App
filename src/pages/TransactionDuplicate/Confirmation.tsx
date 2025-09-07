@@ -153,7 +153,7 @@ function Confirmation() {
                             <MoneyRequestView
                                 allReports={allReports}
                                 report={report}
-                                expensePolicy={policy}
+                                policy={policy}
                                 shouldShowAnimatedBackground={false}
                                 readonly
                                 isFromReviewDuplicates
