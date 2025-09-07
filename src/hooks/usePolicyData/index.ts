@@ -6,7 +6,7 @@ import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import useOnyx from '../useOnyx';
 import usePolicy from '../usePolicy';
-import { PolicyData } from './types';
+import {PolicyData} from './types';
 
 /**
  * Retrieves policy-related data such as tags, categories, reports, and transactions/violations.
@@ -33,18 +33,22 @@ function usePolicyData(policyID?: string): PolicyData {
         },
     });
 
-    const transactionsAndViolations = useMemo(() => (reports ?? []).reduce<ReportTransactionsAndViolationsDerivedValue>((acc, report) => {
-        if (report?.reportID && allReportsTransactionsAndViolations?.[report.reportID]) {
-            acc[report.reportID] = allReportsTransactionsAndViolations[report.reportID];
-        }
-        return acc;
-    }, {}), [reports, allReportsTransactionsAndViolations]);
+    const transactionsAndViolations = useMemo(
+        () =>
+            (reports ?? []).reduce<ReportTransactionsAndViolationsDerivedValue>((acc, report) => {
+                if (report?.reportID && allReportsTransactionsAndViolations?.[report.reportID]) {
+                    acc[report.reportID] = allReportsTransactionsAndViolations[report.reportID];
+                }
+                return acc;
+            }, {}),
+        [reports, allReportsTransactionsAndViolations],
+    );
 
     return {
         reports: reports as Array<OnyxValueWithOfflineFeedback<Report>>,
         policy: policy as OnyxValueWithOfflineFeedback<Policy>,
-        categories: categories as PolicyCategories,
-        tags: tagsLists as PolicyTagLists,
+        categories: categories ?? {},
+        tags: tagsLists ?? {},
         transactionsAndViolations,
     };
 }
