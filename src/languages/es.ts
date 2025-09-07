@@ -80,6 +80,7 @@ import type {
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
+    DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
@@ -4840,13 +4841,8 @@ const translations = {
             editTags: 'Editar etiquetas',
             findTag: 'Encontrar etiquetas',
             subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
-            dependentMultiLevelTagsSubtitle: {
-                phrase1: ' Estás usando ',
-                phrase2: 'etiquetas dependientes',
-                phrase3: '. Puedes ',
-                phrase4: 'reimportar una hoja de cálculo',
-                phrase5: ' para actualizar tus etiquetas.',
-            },
+            dependentMultiLevelTagsSubtitle: ({importSpreadsheetLink}: DependentMultiLevelTagsSubtitleParams) =>
+                `<muted-text>Estás usando <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">etiquetas dependientes</a>. Puedes <a href="${importSpreadsheetLink}">reimportar una hoja de cálculo</a> para actualizar tus etiquetas.</muted-text>`,
             emptyTags: {
                 title: 'No has creado ninguna etiqueta',
                 subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',

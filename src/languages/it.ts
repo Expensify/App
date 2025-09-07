@@ -93,6 +93,7 @@ import type {
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
+    DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
@@ -4862,13 +4863,8 @@ const translations = {
             editTags: 'Modifica tag',
             findTag: 'Trova tag',
             subtitle: 'I tag aggiungono modi più dettagliati per classificare i costi.',
-            dependentMultiLevelTagsSubtitle: {
-                phrase1: 'Stai usando',
-                phrase2: 'tag dipendenti',
-                phrase3: 'Puoi',
-                phrase4: 'reimporta un foglio di calcolo',
-                phrase5: 'aggiornare i tuoi tag.',
-            },
+            dependentMultiLevelTagsSubtitle: ({importSpreadsheetLink}: DependentMultiLevelTagsSubtitleParams) =>
+                `<muted-text>Si stanno utilizzando <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tag dipendenti</a>. È possibile <a href="${importSpreadsheetLink}">reimportare un foglio di calcolo</a> per aggiornare i tag.</muted-text>`,
             emptyTags: {
                 title: 'Non hai creato alcun tag',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta

@@ -82,6 +82,7 @@ import type {
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
+    DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
@@ -4830,13 +4831,9 @@ const translations = {
             editTags: 'Edit tags',
             findTag: 'Find tag',
             subtitle: 'Tags add more detailed ways to classify costs.',
-            dependentMultiLevelTagsSubtitle: {
-                phrase1: ' You are using ',
-                phrase2: 'dependent tags',
-                phrase3: '. You can ',
-                phrase4: 'reimport a spreadsheet',
-                phrase5: ' to update your tags.',
-            },
+            // TODO: Add a actual link to the help article https://github.com/Expensify/App/issues/63612
+            dependentMultiLevelTagsSubtitle: ({importSpreadsheetLink}: DependentMultiLevelTagsSubtitleParams) =>
+                `<muted-text>You are using <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">dependent tags</a>. You can <a href="${importSpreadsheetLink}">reimport a spreadsheet</a> to update your tags.</muted-text>`,
             emptyTags: {
                 title: "You haven't created any tags",
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta

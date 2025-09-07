@@ -93,6 +93,7 @@ import type {
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
+    DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
@@ -4841,13 +4842,8 @@ const translations = {
             editTags: 'タグを編集',
             findTag: 'タグを見つける',
             subtitle: 'タグは、コストをより詳細に分類する方法を追加します。',
-            dependentMultiLevelTagsSubtitle: {
-                phrase1: '使用中です',
-                phrase2: '依存タグ',
-                phrase3: '. You can',
-                phrase4: 'スプレッドシートを再インポートする',
-                phrase5: 'タグを更新するために。',
-            },
+            dependentMultiLevelTagsSubtitle: ({importSpreadsheetLink}: DependentMultiLevelTagsSubtitleParams) =>
+                `<muted-text><a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">依存タグ</a>を使用しています。<a href="${importSpreadsheetLink}">スプレッドシートを再インポート</a>してタグを更新できます。</muted-text>`,
             emptyTags: {
                 title: 'タグが作成されていません',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta

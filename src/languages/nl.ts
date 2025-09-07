@@ -93,6 +93,7 @@ import type {
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
+    DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
@@ -4864,13 +4865,8 @@ const translations = {
             editTags: 'Bewerk tags',
             findTag: 'Tag vinden',
             subtitle: 'Tags voegen meer gedetailleerde manieren toe om kosten te classificeren.',
-            dependentMultiLevelTagsSubtitle: {
-                phrase1: 'U gebruikt',
-                phrase2: 'afhankelijke tags',
-                phrase3: '. Je kunt',
-                phrase4: 'een spreadsheet opnieuw importeren',
-                phrase5: 'om je tags bij te werken.',
-            },
+            dependentMultiLevelTagsSubtitle: ({importSpreadsheetLink}: DependentMultiLevelTagsSubtitleParams) =>
+                `<muted-text>U gebruikt <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">afhankelijke tags</a>. U kunt een <a href="${importSpreadsheetLink}">spreadsheet opnieuw importeren</a> om uw tags bij te werken.</muted-text>`,
             emptyTags: {
                 title: 'Je hebt nog geen tags aangemaakt',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
