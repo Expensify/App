@@ -51,7 +51,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
     useEffect(() => {
         updateDelegateRoleOptimistically({email: login ?? '', role: currentRole as DelegateRole, delegatedAccess: account?.delegatedAccess});
-        return () => clearDelegateRolePendingAction({email: login, delegatedAccess: account?.delegatedAccess});
+        return () => clearDelegateRolePendingAction({email: login ?? '', delegatedAccess: account?.delegatedAccess});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [login]);
 
