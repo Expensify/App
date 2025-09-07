@@ -219,7 +219,7 @@ describe('actions/Delegate', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.ACCOUNT,
                     callback: (account) => {
-                        expect(isConnectedAsDelegate({delegatedAccess: account?.delegatedAccess})).toBeDefined();
+                        expect(isConnectedAsDelegate({delegatedAccess: account?.delegatedAccess})).toBe(false);
                         Onyx.disconnect(connection);
                         resolve();
                     },
