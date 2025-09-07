@@ -187,7 +187,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
             <FixedFooter>
                 <OfflineWithFeedback>
                     <Button
-                        isDisabled={isOffline}
+                        isDisabled={isOffline || !!account?.delegatedAccess}
                         text={translate('common.verify')}
                         onPress={validateAndSubmitForm}
                         style={[styles.mt4]}
