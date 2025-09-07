@@ -3,6 +3,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -25,13 +26,15 @@ const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.UPGRADE, initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.UPGRADE]) => {
     return render(
         <NavigationContainer>
-            <Stack.Navigator initialRouteName={initialRouteName}>
-                <Stack.Screen
-                    name={SCREENS.WORKSPACE.UPGRADE}
-                    component={WorkspaceUpgradePage}
-                    initialParams={initialParams}
-                />
-            </Stack.Navigator>
+            <HTMLEngineProvider>
+                <Stack.Navigator initialRouteName={initialRouteName}>
+                    <Stack.Screen
+                        name={SCREENS.WORKSPACE.UPGRADE}
+                        component={WorkspaceUpgradePage}
+                        initialParams={initialParams}
+                    />
+                </Stack.Navigator>
+            </HTMLEngineProvider>
         </NavigationContainer>,
     );
 };

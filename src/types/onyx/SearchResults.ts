@@ -6,6 +6,7 @@ import type TransactionListItem from '@components/SelectionList/Search/Transacti
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 import type {ACHAccount, ApprovalRule, ExpenseRule} from './Policy';
 import type {PolicyEmployeeList} from './PolicyEmployee';
@@ -33,27 +34,6 @@ type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C ext
         ? TransactionListItemType[]
         : TransactionGroupListItemType[];
 
-/** Model of columns to show for search results */
-type ColumnsToShow = {
-    /** Whether the From column should be shown */
-    shouldShowFromColumn: boolean;
-
-    /** Whether the To column should be shown */
-    shouldShowToColumn: boolean;
-
-    /** Whether the category column should be shown */
-    shouldShowCategoryColumn: boolean;
-
-    /** Whether the tag column should be shown */
-    shouldShowTagColumn: boolean;
-
-    /** Whether the tax column should be shown */
-    shouldShowTaxColumn: boolean;
-
-    /** Whether the description column should be shown */
-    shouldShowDescriptionColumn: boolean;
-};
-
 /** Model of search result state */
 type SearchResultsInfo = {
     /** Current search results offset/cursor */
@@ -74,9 +54,6 @@ type SearchResultsInfo = {
 
     /** Whether the search results are currently loading */
     isLoading: boolean;
-
-    /** The optional columns that should be shown according to policy settings */
-    columnsToShow: ColumnsToShow;
 
     /** The number of results */
     count?: number;
@@ -138,8 +115,11 @@ type SearchReport = {
     /** The date the report was created */
     created?: string;
 
-    /** The action that can be performed for the report */
+    /** The main action that can be performed for the report */
     action?: SearchTransactionAction;
+
+    /** The available actions that can be performed for the report */
+    allActions?: SearchTransactionAction[];
 
     /** The type of chat if this is a chat report */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -415,8 +395,11 @@ type SearchTransaction = {
     /** The report ID of the transaction thread associated with the transaction */
     transactionThreadReportID: string;
 
-    /** The action that can be performed for the transaction */
+    /** The main action that can be performed for the transaction */
     action: SearchTransactionAction;
+
+    /** The available actions that can be performed for the transaction */
+    allActions: SearchTransactionAction[];
 
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
@@ -444,6 +427,12 @@ type SearchTransaction = {
 
     /** The display name of the purchaser card, if any */
     cardName?: string;
+
+    /** The converted amount of the transaction, defaults to the active policies currency, or the converted currency if a currency conversion is used */
+    convertedAmount: number;
+
+    /** The currency that the converted amount is in */
+    convertedCurrency: string;
 };
 
 /** Model of tasks search result */
@@ -479,20 +468,70 @@ type SearchTask = {
     statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 };
 
-/** Model of card search result */
-// s77rt sync with BE
-type SearchCard = {
+/** Model of member grouped search result */
+type SearchMemberGroup = {
+    /** Account ID */
+    accountID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
+/** Model of card grouped search result */
+type SearchCardGroup = {
+    /** Cardholder account ID */
+    accountID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+
     /** Bank name */
     bank: string;
-
-    /** Last four Primary Account Number digits */
-    lastFourPAN: string;
 
     /** Card name */
     cardName: string;
 
-    /** Cardholder account ID */
-    accountID: number;
+    /** Card ID */
+    cardID: number;
+
+    /** Last four Primary Account Number digits */
+    lastFourPAN: string;
+};
+
+/** Model of withdrawal ID grouped search result */
+type SearchWithdrawalIDGroup = {
+    /** Withdrawal ID */
+    entryID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+
+    /** Masked account number */
+    accountNumber: string;
+
+    /** Bank name */
+    bankName: BankName;
+
+    /** When the withdrawal completed */
+    debitPosted: string;
 };
 
 /** Types of searchable transactions */
@@ -516,9 +555,9 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, SearchCard> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>;
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
+        PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup>;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -541,6 +580,8 @@ export type {
     SearchReport,
     SearchReportAction,
     SearchPolicy,
-    SearchCard,
     SearchResultsInfo,
+    SearchMemberGroup,
+    SearchCardGroup,
+    SearchWithdrawalIDGroup,
 };

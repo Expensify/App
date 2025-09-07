@@ -65,12 +65,13 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
                                 source={thumbnailSource}
                                 shouldUseThumbnailImage
                                 shouldUseInitialObjectPosition
+                                isAuthTokenRequired
                             />
                         )}
                     </View>
                     <View style={[styles.mb10, styles.gap5, styles.ph2, styles.flexColumn, styles.alignItemsCenter]}>
                         {transactionAmount !== null && transactionAmount !== undefined && <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>}
-                        <Text style={styles.eReceiptMerchant}>{transactionMerchant}</Text>
+                        <Text style={styles.eReceiptMerchant}>{transactionMerchant !== translate('iou.fieldPending') ? transactionMerchant : transaction.merchant}</Text>
                     </View>
                     <View style={[styles.mb10, styles.gap5, styles.ph2]}>
                         {Object.entries(sortedWaypoints).map(([key, waypoint]) => {

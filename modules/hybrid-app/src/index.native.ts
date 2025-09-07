@@ -8,8 +8,8 @@ const HybridAppModule: HybridAppModuleType = {
     shouldUseStaging(isStaging) {
         ReactNativeHybridApp.shouldUseStaging(isStaging);
     },
-    closeReactNativeApp({shouldSignOut, shouldSetNVP}) {
-        ReactNativeHybridApp.closeReactNativeApp(shouldSignOut, shouldSetNVP);
+    closeReactNativeApp({shouldSetNVP}) {
+        ReactNativeHybridApp.closeReactNativeApp(shouldSetNVP);
     },
     completeOnboarding({status}) {
         ReactNativeHybridApp.completeOnboarding(status);

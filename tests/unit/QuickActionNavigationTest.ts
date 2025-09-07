@@ -1,6 +1,5 @@
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
-import {createNewReport} from '@libs/actions/Report';
 import {startOutCreateTaskQuickAction} from '@libs/actions/Task';
 import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -22,7 +21,7 @@ describe('IOU Utils', () => {
 
         it('should be navigated to Manual Submit Expense', () => {
             // When the quick action is REQUEST_MANUAL
-            navigateToQuickAction(true, {action: CONST.QUICK_ACTIONS.REQUEST_MANUAL, chatReportID: reportID}, {accountID: 1234}, undefined, (onSelected: () => void) => {
+            navigateToQuickAction(true, {action: CONST.QUICK_ACTIONS.REQUEST_MANUAL, chatReportID: reportID}, (onSelected: () => void) => {
                 onSelected();
             });
             // Then we should start manual submit request flow
@@ -31,7 +30,7 @@ describe('IOU Utils', () => {
 
         it('should be navigated to Scan receipt Split Expense', () => {
             // When the quick action is SPLIT_SCAN
-            navigateToQuickAction(true, {action: CONST.QUICK_ACTIONS.SPLIT_SCAN, chatReportID: reportID}, {accountID: 1234}, undefined, (onSelected: () => void) => {
+            navigateToQuickAction(true, {action: CONST.QUICK_ACTIONS.SPLIT_SCAN, chatReportID: reportID}, (onSelected: () => void) => {
                 onSelected();
             });
             // Then we should start scan split request flow
@@ -40,7 +39,7 @@ describe('IOU Utils', () => {
 
         it('should be navigated to Track distance Expense', () => {
             // When the quick action is TRACK_DISTANCE
-            navigateToQuickAction(true, {action: CONST.QUICK_ACTIONS.TRACK_DISTANCE, chatReportID: reportID}, {accountID: 1234}, undefined, (onSelected: () => void) => {
+            navigateToQuickAction(true, {action: CONST.QUICK_ACTIONS.TRACK_DISTANCE, chatReportID: reportID}, (onSelected: () => void) => {
                 onSelected();
             });
             // Then we should start distance track request flow
@@ -49,7 +48,7 @@ describe('IOU Utils', () => {
 
         it('should be navigated to Per Diem Expense', () => {
             // When the quick action is PER_DIEM
-            navigateToQuickAction(true, {action: CONST.QUICK_ACTIONS.PER_DIEM, chatReportID: reportID}, {accountID: 1234}, undefined, (onSelected: () => void) => {
+            navigateToQuickAction(true, {action: CONST.QUICK_ACTIONS.PER_DIEM, chatReportID: reportID}, (onSelected: () => void) => {
                 onSelected();
             });
             // Then we should start per diem request flow
@@ -59,17 +58,9 @@ describe('IOU Utils', () => {
 });
 
 describe('Non IOU quickActions test:', () => {
-    const reportID = generateReportID();
-
     describe('navigateToQuickAction', () => {
-        it('creates new report for "createReport" quick action', () => {
-            navigateToQuickAction(true, {action: CONST.QUICK_ACTIONS.CREATE_REPORT, chatReportID: reportID}, {accountID: 1234}, undefined, (onSelected: () => void) => {
-                onSelected();
-            });
-            expect(createNewReport).toHaveBeenCalled();
-        });
         it('starts create task flow for "assignTask" quick action', () => {
-            navigateToQuickAction(true, {action: CONST.QUICK_ACTIONS.ASSIGN_TASK, targetAccountID: 123}, {accountID: 1234}, undefined, (onSelected: () => void) => {
+            navigateToQuickAction(true, {action: CONST.QUICK_ACTIONS.ASSIGN_TASK, targetAccountID: 123}, (onSelected: () => void) => {
                 onSelected();
             });
             expect(startOutCreateTaskQuickAction).toHaveBeenCalled();

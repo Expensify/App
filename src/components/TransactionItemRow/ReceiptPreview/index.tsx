@@ -1,22 +1,21 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import type {LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
+import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import DistanceEReceipt from '@components/DistanceEReceipt';
-import EReceipt from '@components/EReceipt';
-import BaseImage from '@components/Image/BaseImage';
+import EReceiptWithSizeCalculation from '@components/EReceiptWithSizeCalculation';
 import type {ImageOnLoadEvent} from '@components/Image/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {isDistanceRequest} from '@libs/TransactionUtils';
+import {isDistanceRequest, isManualDistanceRequest} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
+import Image from '@src/components/Image';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
-
-const eReceiptAspectRatio = variables.eReceiptBGHWidth / variables.eReceiptBGHeight;
 
 type ReceiptPreviewProps = {
     /** Path to the image to be opened in the preview */
@@ -33,8 +32,9 @@ type ReceiptPreviewProps = {
 };
 
 function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: ReceiptPreviewProps) {
-    const isDistanceEReceipt = isDistanceRequest(transactionItem);
+    const isDistanceEReceipt = isDistanceRequest(transactionItem) && !isManualDistanceRequest(transactionItem);
     const styles = useThemeStyles();
+    const theme = useTheme();
     const [eReceiptScaleFactor, setEReceiptScaleFactor] = useState(0);
     const [imageAspectRatio, setImageAspectRatio] = useState<string | number | undefined>(undefined);
     const [distanceEReceiptAspectRatio, setDistanceEReceiptAspectRatio] = useState<string | number | undefined>(undefined);
@@ -42,6 +42,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const hasMeasured = useRef(false);
     const {windowHeight} = useWindowDimensions();
+    const [isLoading, setIsLoading] = useState(true);
 
     const handleDistanceEReceiptLayout = (e: LayoutChangeEvent) => {
         if (hasMeasured.current) {
@@ -75,17 +76,16 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
     );
 
     const handleLoad = useCallback(
-        (event: ImageOnLoadEvent) => {
-            const {width, height} = event.nativeEvent;
-
+        (e: ImageOnLoadEvent) => {
+            const {width, height} = e.nativeEvent;
             updateImageAspectRatio(width, height);
+            setIsLoading(false);
         },
         [updateImageAspectRatio],
     );
 
-    const handleEReceiptLayout = (e: LayoutChangeEvent) => {
-        const {width} = e.nativeEvent.layout;
-        setEReceiptScaleFactor(width / variables.eReceiptBGHWidth);
+    const handleError = () => {
+        setIsLoading(false);
     };
 
     useEffect(() => {
@@ -107,10 +107,31 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
         >
             {shouldShowImage ? (
                 <View style={[styles.w100]}>
-                    <BaseImage
+                    {isLoading && (
+                        <View style={[StyleSheet.absoluteFillObject, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                            <ActivityIndicator
+                                color={theme.spinner}
+                                size="large"
+                            />
+                        </View>
+                    )}
+
+                    <Image
                         source={{uri: source}}
-                        style={[styles.w100, {aspectRatio: imageAspectRatio}]}
+                        style={[
+                            styles.w100,
+                            {aspectRatio: imageAspectRatio ?? 1},
+                            isLoading && {opacity: 0}, // hide until loaded
+                        ]}
+                        onLoadStart={() => {
+                            if (isLoading) {
+                                return;
+                            }
+                            setIsLoading(true);
+                        }}
+                        onError={handleError}
                         onLoad={handleLoad}
+                        isAuthTokenRequired
                     />
                 </View>
             ) : (
@@ -118,7 +139,13 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                     {shouldShowDistanceEReceipt ? (
                         <View
                             onLayout={handleDistanceEReceiptLayout}
-                            style={[{transformOrigin: 'center', scale: eReceiptScaleFactor, aspectRatio: distanceEReceiptAspectRatio}]}
+                            style={[
+                                {
+                                    transformOrigin: 'center',
+                                    scale: eReceiptScaleFactor,
+                                    aspectRatio: distanceEReceiptAspectRatio,
+                                },
+                            ]}
                         >
                             <DistanceEReceipt
                                 transaction={transactionItem}
@@ -126,15 +153,11 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                             />
                         </View>
                     ) : (
-                        <View
-                            onLayout={handleEReceiptLayout}
-                            style={[styles.receiptPreviewEReceipt, {aspectRatio: eReceiptAspectRatio, scale: eReceiptScaleFactor}]}
-                        >
-                            <EReceipt
-                                transactionID={transactionItem.transactionID}
-                                transactionItem={transactionItem}
-                            />
-                        </View>
+                        <EReceiptWithSizeCalculation
+                            transactionID={transactionItem.transactionID}
+                            transactionItem={transactionItem}
+                            shouldUseAspectRatio
+                        />
                     )}
                 </View>
             )}
@@ -143,4 +166,5 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
     );
 }
 
+ReceiptPreview.displayName = 'HoverReceiptPreview';
 export default ReceiptPreview;

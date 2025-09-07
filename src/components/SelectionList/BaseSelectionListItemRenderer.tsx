@@ -50,7 +50,6 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     singleExecution,
     titleContainerStyles,
     shouldUseDefaultRightHandSideCheckmark,
-    shouldAnimateInHighlight,
     canShowProductTrainingTooltip = true,
     userWalletTierName,
     isUserValidated,
@@ -107,11 +106,11 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 titleContainerStyles={titleContainerStyles}
                 shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                 canShowProductTrainingTooltip={canShowProductTrainingTooltip}
-                shouldAnimateInHighlight={shouldAnimateInHighlight}
                 userWalletTierName={userWalletTierName}
                 isUserValidated={isUserValidated}
                 personalDetails={personalDetails}
                 userBillingFundID={userBillingFundID}
+                index={index}
             />
             {item.footerContent && item.footerContent}
         </>

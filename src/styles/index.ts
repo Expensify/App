@@ -2018,6 +2018,12 @@ const styles = (theme: ThemeColors) =>
             marginBottom: -20,
         },
 
+        emptyWorkspaceListIllustrationStyle: {
+            marginTop: 12,
+            marginBottom: -20,
+            height: '100%',
+        },
+
         overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
             ({
                 ...positioning.pFixed,
@@ -2561,6 +2567,9 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 0,
             borderBottomWidth: 0,
         },
+        borderTransparent: {
+            borderColor: 'transparent',
+        },
 
         borderRight: {
             borderRightWidth: 1,
@@ -2656,8 +2665,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.heading,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
-            marginTop: 20,
-            marginBottom: 8,
+            marginVertical: 20,
             textAlign: 'center',
         },
 
@@ -2686,8 +2694,6 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.componentBG,
             borderColor: theme.transparent,
         },
-
-        modalContainer: {height: '100%'},
 
         modalAnimatedContainer: {width: '100%'},
 
@@ -3089,10 +3095,6 @@ const styles = (theme: ThemeColors) =>
             transform: `rotate(180deg)`,
         },
 
-        mirror: {
-            transform: `scaleX(-1)`,
-        },
-
         navigationScreenCardStyle: {
             backgroundColor: theme.appBG,
             height: '100%',
@@ -3175,6 +3177,17 @@ const styles = (theme: ThemeColors) =>
             width: 28,
             borderColor: theme.border,
             borderWidth: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
+        newRadioButtonContainer: {
+            backgroundColor: theme.componentBG,
+            borderRadius: variables.componentBorderRadiusRounded,
+            height: variables.iconSizeNormal,
+            width: variables.iconSizeNormal,
+            borderColor: theme.border,
+            borderWidth: 2,
             justifyContent: 'center',
             alignItems: 'center',
         },
@@ -3636,6 +3649,7 @@ const styles = (theme: ThemeColors) =>
         searchAutocompleteInputResults: {
             borderWidth: 1,
             borderColor: theme.border,
+            height: 54,
         },
 
         searchAutocompleteInputResultsFocused: {
@@ -3672,36 +3686,6 @@ const styles = (theme: ThemeColors) =>
             zIndex: variables.searchTopBarZIndex,
             backgroundColor: theme.appBG,
         },
-
-        threeDotsPopoverOffset: (windowWidth: number) =>
-            ({
-                ...getPopOverVerticalOffset(60),
-                horizontal: windowWidth - 60,
-            }) satisfies AnchorPosition,
-
-        threeDotsPopoverOffsetNoCloseButton: (windowWidth: number) =>
-            ({
-                ...getPopOverVerticalOffset(60),
-                horizontal: windowWidth - 10,
-            }) satisfies AnchorPosition,
-
-        threeDotsPopoverOffsetAttachmentModal: (windowWidth: number) =>
-            ({
-                ...getPopOverVerticalOffset(80),
-                horizontal: windowWidth - 140,
-            }) satisfies AnchorPosition,
-
-        popoverMenuOffset: (windowWidth: number) =>
-            ({
-                ...getPopOverVerticalOffset(180),
-                horizontal: windowWidth - 355,
-            }) satisfies AnchorPosition,
-
-        popoverButtonDropdownMenuOffset: (windowWidth: number) =>
-            ({
-                ...getPopOverVerticalOffset(70),
-                horizontal: windowWidth - 20,
-            }) satisfies AnchorPosition,
 
         iPhoneXSafeArea: {
             backgroundColor: theme.appBG,
@@ -4452,9 +4436,9 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: 12,
         },
 
-        tabText: (isSelected: boolean) =>
+        tabText: (isSelected: boolean, hasIcon = false) =>
             ({
-                marginLeft: 8,
+                marginLeft: hasIcon ? 8 : 0,
                 ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
                 color: isSelected ? theme.text : theme.textSupporting,
                 lineHeight: variables.lineHeightLarge,
@@ -4760,6 +4744,16 @@ const styles = (theme: ThemeColors) =>
             height: 'auto',
         },
 
+        mergeTransactionReceiptImage: {
+            overflow: 'hidden',
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusNormal,
+            aspectRatio: 16 / 9,
+            height: 180,
+            maxWidth: '100%',
+        },
+
         pdfErrorPlaceholder: {
             overflow: 'hidden',
             borderWidth: 2,
@@ -4791,6 +4785,12 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.highlightBG,
             borderWidth: 2,
             borderRadius: '50%',
+        },
+
+        mergeTransactionReceiptThumbnail: {
+            backgroundColor: theme.highlightBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            padding: 20,
         },
 
         mapViewContainer: {
@@ -5110,6 +5110,7 @@ const styles = (theme: ThemeColors) =>
             flexBasis: '35%',
             marginTop: 12,
         },
+
         onboardingAccountingItem: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,
@@ -5385,6 +5386,11 @@ const styles = (theme: ThemeColors) =>
             height: 220,
         },
 
+        uberConfirmationIllustrationContainer: {
+            width: 260,
+            height: 172,
+        },
+
         emptyStateCardIllustrationContainer: {
             height: 220,
             ...flex.alignItemsCenter,
@@ -5612,10 +5618,22 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 20,
         }),
 
-        getSelectionListPopoverHeight: (itemCount: number) => ({
-            height: itemCount * variables.optionRowHeightCompact,
-            ...sizing.mh65vh,
-        }),
+        getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean) => {
+            const SEARCHBAR_HEIGHT = isSearchable ? 52 : 0;
+            const SEARCHBAR_PADDING = isSearchable ? 12 : 0;
+            const PADDING = 32;
+            const GAP = 8;
+            const BUTTON_HEIGHT = 40;
+            const ESTIMATED_LIST_HEIGHT = itemCount * variables.optionRowHeightCompact + SEARCHBAR_HEIGHT + SEARCHBAR_PADDING;
+            const MAX_HEIGHT = CONST.POPOVER_DROPDOWN_MAX_HEIGHT - (PADDING + GAP + BUTTON_HEIGHT);
+
+            // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
+            // the listHeight, the max height of the popover, or 90% of the window height, such that we never overflow the screen
+            // and never expand over the max height
+            const height = Math.min(ESTIMATED_LIST_HEIGHT, MAX_HEIGHT, windowHeight * 0.9);
+
+            return {height};
+        },
 
         getUserSelectionListPopoverHeight: (itemCount: number, windowHeight: number, shouldUseNarrowLayout: boolean) => {
             const BUTTON_HEIGHT = 40;
@@ -5707,12 +5725,6 @@ const styles = (theme: ThemeColors) =>
             ...sizing.w100,
             ...sizing.h100,
             backgroundColor: colors.green800,
-        },
-
-        receiptPreviewEReceipt: {
-            ...flex.flexColumn,
-            ...flex.justifyContentCenter,
-            ...flex.alignItemsCenter,
         },
 
         topBarWrapper: {

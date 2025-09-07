@@ -9,10 +9,6 @@ Learn how URLs are constructed and used to route users through all parts of the 
 - Object Route - A route pointing to a specific object (eg. report, transaction, workspace, etc.)
 - Page Route - A route for a specific page (eg. settings, add bank account, etc.)
 
-This guide is based on [[PSR-1]] and [[PSR-2]].
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and
-"OPTIONAL" in this document are to be interpreted as described in [[RFC 2119]].
-
 ## Rules
 When adding new routes, or refactoring existing routes, follow these rules:
 

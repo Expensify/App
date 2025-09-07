@@ -1,23 +1,36 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
+import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridApp} from '@src/types/onyx';
 import type HybridAppSettings from './types';
 
-function closeReactNativeApp({shouldSignOut, shouldSetNVP}: {shouldSignOut: boolean; shouldSetNVP: boolean}) {
+/*
+ * Parses initial settings passed from OldDot app
+ */
+function parseHybridAppSettings(hybridAppSettings: string | null): HybridAppSettings | null {
+    if (!hybridAppSettings) {
+        return null;
+    }
+
+    return JSON.parse(hybridAppSettings) as HybridAppSettings;
+}
+
+function getHybridAppSettings(): Promise<HybridAppSettings | null> {
+    return HybridAppModule.getHybridAppSettings().then((hybridAppSettings) => {
+        return parseHybridAppSettings(hybridAppSettings);
+    });
+}
+
+function closeReactNativeApp({shouldSetNVP}: {shouldSetNVP: boolean}) {
+    Navigation.clearPreloadedRoutes();
     if (CONFIG.IS_HYBRID_APP) {
         Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp: true});
     }
     // eslint-disable-next-line no-restricted-properties
-    HybridAppModule.closeReactNativeApp({shouldSignOut, shouldSetNVP});
-}
-
-/*
- * Parses initial settings passed from OldDot app
- */
-function parseHybridAppSettings(hybridAppSettings: string): HybridAppSettings {
-    return JSON.parse(hybridAppSettings) as HybridAppSettings;
+    HybridAppModule.closeReactNativeApp({shouldSetNVP});
 }
 
 /*
@@ -53,10 +66,10 @@ function setClosingReactNativeApp(closingReactNativeApp: boolean) {
 function resetSignInFlow() {
     // This value is only relevant for HybridApp, so we can skip it in other environments.
     if (!CONFIG.IS_HYBRID_APP) {
-        return;
+        return Promise.resolve();
     }
 
-    Onyx.merge(ONYXKEYS.HYBRID_APP, {
+    return Onyx.merge(ONYXKEYS.HYBRID_APP, {
         readyToShowAuthScreens: false,
         useNewDotSignInPage: true,
     });
@@ -80,4 +93,24 @@ function prepareHybridAppAfterTransitionToNewDot(hybridApp: HybridApp) {
     });
 }
 
-export {parseHybridAppSettings, setReadyToShowAuthScreens, resetSignInFlow, prepareHybridAppAfterTransitionToNewDot, setUseNewDotSignInPage, setClosingReactNativeApp, closeReactNativeApp};
+function migrateHybridAppToNewPartnerName() {
+    if (!CONFIG.IS_HYBRID_APP) {
+        return;
+    }
+
+    Log.info('[HybridApp] Migrating to new partner name');
+    Onyx.merge(ONYXKEYS.HYBRID_APP, {
+        shouldUseNewPartnerName: true,
+    });
+}
+
+export {
+    getHybridAppSettings,
+    setReadyToShowAuthScreens,
+    resetSignInFlow,
+    prepareHybridAppAfterTransitionToNewDot,
+    setUseNewDotSignInPage,
+    setClosingReactNativeApp,
+    closeReactNativeApp,
+    migrateHybridAppToNewPartnerName,
+};
