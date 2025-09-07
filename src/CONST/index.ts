@@ -56,8 +56,6 @@ const keyInputSpace = ' ';
 // describes if a shortcut key can cause navigation
 const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
 
-const SETUP_STATE = 'SETUP';
-
 const chatTypes = {
     POLICY_ANNOUNCE: 'policyAnnounce',
     POLICY_ADMINS: 'policyAdmins',
@@ -5643,15 +5641,6 @@ const CONST = {
             RESULT: 'RESULT',
             DEBUG: 'DEBUG',
         },
-    },
-
-    BANK_ACCOUNT_STATE: {
-        PENDING: 'PENDING',
-        OPEN: 'OPEN',
-        DELETED: 'DELETED',
-        LOCKED: 'LOCKED',
-        SETUP: SETUP_STATE,
-        VERIFYING: 'VERIFYING',
     },
 
     // We need to store this server side error in order to not show the blocking screen when the error is for invalid code
