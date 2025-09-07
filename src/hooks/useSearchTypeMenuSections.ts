@@ -42,7 +42,17 @@ const useSearchTypeMenuSections = () => {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
 
     const typeMenuSections = useMemo(
-        () => createTypeMenuSections(currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, cardFeedsByPolicy, defaultCardFeed, allPolicies, activePolicyID, savedSearches, isOffline),
+        () =>
+            createTypeMenuSections(
+                currentUserLoginAndAccountID?.email,
+                currentUserLoginAndAccountID?.accountID,
+                cardFeedsByPolicy,
+                defaultCardFeed,
+                allPolicies,
+                activePolicyID,
+                savedSearches,
+                isOffline,
+            ),
         [currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, cardFeedsByPolicy, defaultCardFeed, allPolicies, activePolicyID, savedSearches, isOffline],
     );
 
