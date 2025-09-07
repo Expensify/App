@@ -3,7 +3,7 @@ import lodashUnion from 'lodash/union';
 import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
-import type {PolicyData} from '@hooks/usePolicyData';
+import type {PolicyData} from '@hooks/usePolicyData/types';
 import * as API from '@libs/API';
 import type {
     EnablePolicyCategoriesParams,
