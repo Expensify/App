@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 import type BankAccountJSON from '@src/types/onyx/BankAccount';
 
-type State = ValueOf<typeof CONST.BANK_ACCOUNT_STATE>;
+type State = ValueOf<typeof CONST.BANK_ACCOUNT.STATE>;
 
 type ACHData = {
     routingNumber: string;
@@ -66,7 +66,7 @@ class BankAccount {
     }
 
     isOpen() {
-        return this.getState() === CONST.BANK_ACCOUNT_STATE.OPEN;
+        return this.getState() === CONST.BANK_ACCOUNT.STATE.OPEN;
     }
 
     /**
@@ -80,25 +80,25 @@ class BankAccount {
      * If the user still needs to enter the 3 micro deposit amounts.
      */
     isPending() {
-        return this.getState() === CONST.BANK_ACCOUNT_STATE.PENDING;
+        return this.getState() === CONST.BANK_ACCOUNT.STATE.PENDING;
     }
 
     /**
      * If success team is currently verifying the bank account data provided by the user.
      */
     isVerifying() {
-        return this.getState() === CONST.BANK_ACCOUNT_STATE.VERIFYING;
+        return this.getState() === CONST.BANK_ACCOUNT.STATE.VERIFYING;
     }
 
     /**
      * If the user didn't finish entering all their info.
      */
     isInSetup() {
-        return this.getState() === CONST.BANK_ACCOUNT_STATE.SETUP;
+        return this.getState() === CONST.BANK_ACCOUNT.STATE.SETUP;
     }
 
     isLocked() {
-        return this.getState() === CONST.BANK_ACCOUNT_STATE.LOCKED;
+        return this.getState() === CONST.BANK_ACCOUNT.STATE.LOCKED;
     }
 
     /**

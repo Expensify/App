@@ -17,7 +17,7 @@ const STEP_FIELDS = [COMPANY_TAX_ID_KEY];
 function TaxIdBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
 
     // This is default value for the input to be display
@@ -28,7 +28,8 @@ function TaxIdBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const shouldDisableCompanyTaxID = !!(
         bankAccountID &&
         defaultCompanyTaxID &&
-        ![CONST.BANK_ACCOUNT_STATE.SETUP, CONST.BANK_ACCOUNT_STATE.VERIFYING].includes(bankAccountState as typeof CONST.BANK_ACCOUNT_STATE.SETUP)
+        bankAccountState !== CONST.BANK_ACCOUNT.STATE.SETUP &&
+        bankAccountState !== CONST.BANK_ACCOUNT.STATE.VERIFYING
     );
 
     const validate = useCallback(

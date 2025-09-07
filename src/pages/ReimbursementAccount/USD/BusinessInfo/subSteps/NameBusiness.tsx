@@ -16,7 +16,7 @@ const STEP_FIELDS = [COMPANY_NAME_KEY];
 function NameBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
 
     const defaultCompanyName = reimbursementAccount?.achData?.companyName ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID;
@@ -25,7 +25,8 @@ function NameBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const shouldDisableCompanyName = !!(
         bankAccountID &&
         defaultCompanyName &&
-        ![CONST.BANK_ACCOUNT_STATE.SETUP, CONST.BANK_ACCOUNT_STATE.VERIFYING].includes(bankAccountState as typeof CONST.BANK_ACCOUNT_STATE.SETUP)
+        bankAccountState !== CONST.BANK_ACCOUNT.STATE.SETUP &&
+        bankAccountState !== CONST.BANK_ACCOUNT.STATE.VERIFYING
     );
 
     const validate = useCallback(

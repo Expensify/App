@@ -80,7 +80,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
         [reimbursementAccount, values, getBankAccountFields, policyID],
     );
 
-    const isBankAccountVerifying = reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT_STATE.VERIFYING;
+    const isBankAccountVerifying = reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING;
     const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForBusinessInfo(values)), [values, isBankAccountVerifying]);
 
     const {

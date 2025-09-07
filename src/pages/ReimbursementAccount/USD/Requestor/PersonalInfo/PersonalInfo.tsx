@@ -40,7 +40,7 @@ function PersonalInfo({onBackButtonPress}: PersonalInfoProps, ref: React.Forward
         },
         [values, bankAccountID, policyID],
     );
-    const isBankAccountVerifying = reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT_STATE.VERIFYING;
+    const isBankAccountVerifying = reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING;
     const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForPersonalInfo(values)), [values, isBankAccountVerifying]);
 
     const {

@@ -34,7 +34,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
@@ -63,7 +63,6 @@ import {
     navigateOnDeleteExpense,
     navigateToDetailsPage,
 } from '@libs/ReportUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
@@ -326,18 +325,6 @@ function MoneyReportHeader({
         },
         [moneyRequestReport],
     );
-
-    const handleGoBackAfterDeleteExpenses = useCallback(() => {
-        if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
-            if (navigationRef.canGoBack()) {
-                Navigation.goBack();
-            } else {
-                Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({groupBy: 'reports'})}));
-            }
-            return;
-        }
-        Navigation.goBack(route.params?.backTo);
-    }, [route]);
 
     const {
         options: selectedTransactionsOptions,
@@ -1191,10 +1178,13 @@ function MoneyReportHeader({
         </KYCWall>
     );
 
+    const hasOtherItems =
+        (shouldShowNextStep && !!optimisticNextStep?.message?.length) || (shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline) || !!statusBarProps;
+
     const moreContentUnfiltered = [
         shouldShowSelectedTransactionsButton && shouldDisplayNarrowVersion && (
             <View
-                style={[styles.dFlex, styles.w100, styles.pb3]}
+                style={[styles.dFlex, styles.w100, !hasOtherItems && styles.pb3]}
                 key="1"
             >
                 <ButtonWithDropdownMenu
@@ -1346,7 +1336,7 @@ function MoneyReportHeader({
                 isVisible={hookDeleteModalVisible}
                 onConfirm={() => {
                     if (transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length) {
-                        handleGoBackAfterDeleteExpenses();
+                        Navigation.goBack(route.params?.backTo);
                     }
                     handleDeleteTransactions();
                 }}

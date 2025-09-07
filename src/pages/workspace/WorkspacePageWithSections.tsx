@@ -139,7 +139,7 @@ function WorkspacePageWithSections({
     const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
     const achState = policy?.achAccount?.state ?? reimbursementAccount?.achData?.state;
     const isUsingECard = account?.isUsingExpensifyCard ?? false;
-    const hasVBA = achState === CONST.BANK_ACCOUNT_STATE.OPEN;
+    const hasVBA = achState === CONST.BANK_ACCOUNT.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const firstRender = useRef(showLoadingAsFirstRender);

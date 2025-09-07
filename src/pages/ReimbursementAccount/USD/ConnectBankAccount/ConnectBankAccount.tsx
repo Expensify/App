@@ -37,7 +37,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
     const bankAccountState = reimbursementAccount?.achData?.state ?? '';
 
     // If a user tries to navigate directly to the validate page we'll show them the EnableStep
-    if (bankAccountState === CONST.BANK_ACCOUNT_STATE.OPEN) {
+    if (bankAccountState === CONST.BANK_ACCOUNT.STATE.OPEN) {
         return (
             <ConnectedVerifiedBankAccount
                 reimbursementAccount={reimbursementAccount}
@@ -50,8 +50,8 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
     }
 
     const maxAttemptsReached = reimbursementAccount?.maxAttemptsReached ?? false;
-    const isBankAccountVerifying = !maxAttemptsReached && bankAccountState === CONST.BANK_ACCOUNT_STATE.VERIFYING;
-    const isBankAccountPending = bankAccountState === CONST.BANK_ACCOUNT_STATE.PENDING;
+    const isBankAccountVerifying = !maxAttemptsReached && bankAccountState === CONST.BANK_ACCOUNT.STATE.VERIFYING;
+    const isBankAccountPending = bankAccountState === CONST.BANK_ACCOUNT.STATE.PENDING;
     const requiresTwoFactorAuth = account?.requiresTwoFactorAuth ?? false;
 
     return (

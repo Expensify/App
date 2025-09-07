@@ -44,7 +44,7 @@ function WorkspaceResetBankAccountModal({
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const achData = reimbursementAccount?.achData;
-    const isInOpenState = achData?.state === CONST.BANK_ACCOUNT_STATE.OPEN;
+    const isInOpenState = achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
     const bankAccountID = achData?.bankAccountID;
     const bankShortName = `${achData?.addressName ?? ''} ${(achData?.accountNumber ?? '').slice(-4)}`;
 
