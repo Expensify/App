@@ -168,7 +168,7 @@ function Expensify() {
         ActiveClientManager.init();
 
         // Used for the offline indicator appearing when someone is offline
-        const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo();
+        const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo(session?.accountID);
 
         return unsubscribeNetInfo;
     }, []);
