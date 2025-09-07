@@ -650,6 +650,7 @@ type DemotedFromWorkspaceParams = {
 type IntegrationExportParams = {
     integration: string;
     type?: string;
+    exportPageLink?: string;
 };
 
 type ConnectionParams = {

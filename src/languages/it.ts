@@ -4672,10 +4672,9 @@ const translations = {
                 cardName: 'Nome della carta',
                 integrationExport: ({integration, type}: IntegrationExportParams) =>
                     integration && type ? `${integration} ${type.toLowerCase()} esportazione` : `Esportazione ${integration}`,
-                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Scegli l'account ${integration} in cui esportare le transazioni.`,
-                integrationExportTitlePart: 'Seleziona un diverso',
-                integrationExportTitleLinkPart: 'opzione di esportazione',
-                integrationExportTitleSecondPart: 'per cambiare gli account disponibili.',
+                integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Scegli l'account ${integration} in cui esportare le transazioni.`,
+                integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
+                    `Scegli l'account ${integration} in cui esportare le transazioni. Selezionare un'altra <a href="${exportPageLink}">opzione di esportazione</a> per cambiare i conti disponibili.`,
                 lastUpdated: 'Ultimo aggiornamento',
                 transactionStartDate: 'Data di inizio transazione',
                 updateCard: 'Aggiorna carta',

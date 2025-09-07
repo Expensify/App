@@ -4588,10 +4588,9 @@ const translations = {
                 cardholder: '持卡人',
                 cardName: '卡片名称',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} 导出` : `${integration} 导出`),
-                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `选择应导出交易的${integration}账户。`,
-                integrationExportTitlePart: '选择不同的',
-                integrationExportTitleLinkPart: '导出选项',
-                integrationExportTitleSecondPart: '更改可用账户。',
+                integrationExportTitleXero: ({integration}: IntegrationExportParams) => `选择应导出交易的${integration}账户。`,
+                integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
+                    `选择应导出交易的${integration}账户。选择不同的<a href="${exportPageLink}">导出选项</a>，更改可用账户。`,
                 lastUpdated: '最后更新',
                 transactionStartDate: '交易开始日期',
                 updateCard: '更新卡片',
