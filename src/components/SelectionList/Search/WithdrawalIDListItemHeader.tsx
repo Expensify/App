@@ -43,7 +43,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
-    const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.bankName];
+    const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,

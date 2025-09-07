@@ -1,8 +1,9 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
+import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {memo, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -78,18 +79,8 @@ import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
+import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
-
-type AuthScreensProps = {
-    /** Session of currently logged in user */
-    session: OnyxEntry<OnyxTypes.Session>;
-
-    /** The report ID of the last opened public room as anonymous user */
-    lastOpenedPublicRoomID: OnyxEntry<string>;
-
-    /** The last Onyx update ID was applied to the client */
-    initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
-};
 
 const loadAttachmentModalScreen = () => require<ReactComponentModule>('../../../pages/media/AttachmentModalScreen').default;
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
@@ -119,7 +110,6 @@ function initializePusher() {
 }
 let timezone: Timezone | null;
 let currentAccountID = -1;
-let isLoadingApp = false;
 let lastUpdateIDAppliedToClient: OnyxEntry<number>;
 
 Onyx.connect({
@@ -163,20 +153,13 @@ Onyx.connect({
 });
 
 Onyx.connect({
-    key: ONYXKEYS.IS_LOADING_APP,
-    callback: (value) => {
-        isLoadingApp = !!value;
-    },
-});
-
-Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (value) => {
         lastUpdateIDAppliedToClient = value;
     },
 });
 
-function handleNetworkReconnect() {
+function handleNetworkReconnect(isLoadingApp: boolean) {
     if (isLoadingApp) {
         App.openApp();
     } else {
@@ -222,12 +205,13 @@ const modalScreenListenersWithCancelSearch = {
     },
 };
 
-function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
+function AuthScreens() {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {toggleSearch} = useSearchRouterContext();
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
@@ -243,9 +227,14 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const [shouldShowRequire2FAPage, setShouldShowRequire2FAPage] = useState(!!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth);
     const navigation = useNavigation();
     const {initialURL, isAuthenticatedAtStartup, setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
+    const modalCardStyleInterpolator = useModalCardStyleInterpolator();
 
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
+
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [lastOpenedPublicRoomID] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, {canBeMissing: true});
+    const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
 
     // On HybridApp we need to prevent flickering during transition to OldDot
     const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
@@ -300,7 +289,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         }
 
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(handleNetworkReconnect);
+        NetworkConnection.onReconnect(() => handleNetworkReconnect(!!isLoadingApp));
         PusherConnectionManager.init();
         initializePusher();
         // Sometimes when we transition from old dot to new dot, the client is not the leader
@@ -309,32 +298,29 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             init();
         }
 
-        // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
-        if (!CONFIG.IS_HYBRID_APP) {
-            // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
-            // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
-            if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
-                if (delegatorEmail) {
-                    connect(delegatorEmail, true)
-                        ?.then((success) => {
-                            App.setAppLoading(!!success);
-                        })
-                        .finally(() => {
-                            setIsDelegatorFromOldDotIsReady(true);
-                        });
-                } else {
-                    const reportID = getReportIDFromLink(initialURL ?? null);
-                    if (reportID && !isAuthenticatedAtStartup) {
-                        Report.openReport(reportID);
-                        // Don't want to call `openReport` again when logging out and then logging in
-                        setIsAuthenticatedAtStartup(true);
-                    }
-                    App.openApp();
-                }
+        // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
+        // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
+        if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
+            if (delegatorEmail) {
+                connect(delegatorEmail, true)
+                    ?.then((success) => {
+                        App.setAppLoading(!!success);
+                    })
+                    .finally(() => {
+                        setIsDelegatorFromOldDotIsReady(true);
+                    });
             } else {
-                Log.info('[AuthScreens] Sending ReconnectApp');
-                App.reconnectApp(initialLastUpdateIDAppliedToClient);
+                const reportID = getReportIDFromLink(initialURL ?? null);
+                if (reportID && !isAuthenticatedAtStartup) {
+                    Report.openReport(reportID);
+                    // Don't want to call `openReport` again when logging out and then logging in
+                    setIsAuthenticatedAtStartup(true);
+                }
+                App.openApp();
             }
+        } else {
+            Log.info('[AuthScreens] Sending ReconnectApp');
+            App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
         App.setUpPoliciesAndNavigate(session);
@@ -388,10 +374,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         return;
                     }
 
-                    if (Navigation.isActiveRoute(ROUTES.KEYBOARD_SHORTCUTS)) {
+                    if (Navigation.isActiveRoute(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()))) {
                         return;
                     }
-                    return Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS);
+                    return Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()));
                 });
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
@@ -467,10 +453,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
         return {
             ...rootNavigatorScreenOptions.splitNavigator,
-
-            // Allow swipe to go back from this split navigator to the settings navigator.
-            gestureEnabled: true,
             animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+            web: {
+                ...rootNavigatorScreenOptions.splitNavigator.web,
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled}),
+            },
         };
     };
 
@@ -486,6 +473,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         return {
             ...rootNavigatorScreenOptions.splitNavigator,
             animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+            web: {
+                ...rootNavigatorScreenOptions.splitNavigator.web,
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled}),
+            },
         };
     };
 
@@ -552,7 +543,17 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     return (
         <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, LockedAccountModalProvider, DelegateNoAccessModalProvider]}>
-            <RootStack.Navigator persistentScreens={[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
+            <RootStack.Navigator
+                persistentScreens={[
+                    NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                    NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                    NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                    NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                    NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
+                    SCREENS.WORKSPACES_LIST,
+                    SCREENS.SEARCH.ROOT,
+                ]}
+            >
                 {/* This has to be the first navigator in auth screens. */}
                 <RootStack.Screen
                     name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
@@ -795,18 +796,4 @@ AuthScreens.displayName = 'AuthScreens';
 
 const AuthScreensMemoized = memo(AuthScreens, () => true);
 
-// Migration to useOnyx cause re-login if logout from deeplinked report in desktop app
-// Further analysis required and more details can be seen here:
-// https://github.com/Expensify/App/issues/50560
-// eslint-disable-next-line
-export default withOnyx<AuthScreensProps, AuthScreensProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    lastOpenedPublicRoomID: {
-        key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
-    },
-    initialLastUpdateIDAppliedToClient: {
-        key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    },
-})(AuthScreensMemoized);
+export default AuthScreensMemoized;

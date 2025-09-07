@@ -35,6 +35,7 @@ import {
 } from '@libs/actions/Policy/DistanceRate';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
@@ -239,7 +240,7 @@ function PolicyDistanceRatesPage({
         const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase());
         return rateText.includes(normalizedSearchInput);
     }, []);
-    const sortRates = useCallback((rates: RateForList[]) => rates, []);
+    const sortRates = useCallback((rates: RateForList[]) => rates.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')), []);
     const [inputValue, setInputValue, filteredDistanceRatesList] = useSearchResults(distanceRatesList, filterRate, sortRates);
 
     const addRate = () => {
