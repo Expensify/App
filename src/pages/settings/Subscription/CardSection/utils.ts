@@ -1,4 +1,4 @@
-import {addMonths, format, fromUnixTime, startOfMonth} from 'date-fns';
+import {addMonths, fromUnixTime, startOfMonth} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -9,6 +9,7 @@ import {getAmountOwed, getOverdueGracePeriodDate, getSubscriptionStatus, PAYMENT
 import CONST from '@src/CONST';
 import type {StripeCustomerID} from '@src/types/onyx';
 import type {AccountData} from '@src/types/onyx/Fund';
+import type Locale from '@src/types/onyx/Locale';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -29,9 +30,10 @@ type GetBillingStatusProps = {
     stripeCustomerId: OnyxEntry<StripeCustomerID>;
     accountData?: AccountData;
     purchase?: Purchase;
+    locale?: Locale;
 };
 
-function getBillingStatus({translate, stripeCustomerId, accountData, purchase}: GetBillingStatusProps): BillingStatusResult | undefined {
+function getBillingStatus({translate, stripeCustomerId, accountData, purchase, locale}: GetBillingStatusProps): BillingStatusResult | undefined {
     const cardEnding = (accountData?.cardNumber ?? '')?.slice(-4);
 
     const amountOwed = getAmountOwed();
@@ -40,7 +42,7 @@ function getBillingStatus({translate, stripeCustomerId, accountData, purchase}: 
 
     const endDate = getOverdueGracePeriodDate();
 
-    const endDateFormatted = endDate ? DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toUTCString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT) : null;
+    const endDateFormatted = endDate ? DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toUTCString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, locale) : null;
 
     const isCurrentCardExpired = DateUtils.isCardExpired(accountData?.cardMonth ?? 0, accountData?.cardYear ?? 0);
 
@@ -48,7 +50,7 @@ function getBillingStatus({translate, stripeCustomerId, accountData, purchase}: 
     const purchaseCurrency = purchase?.currency;
     const purchaseDate = purchase?.created;
     const isBillingFailed = purchase?.message.billingType === CONST.BILLING.TYPE_FAILED_2018;
-    const purchaseDateFormatted = purchaseDate ? DateUtils.formatWithUTCTimeZone(purchaseDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT) : undefined;
+    const purchaseDateFormatted = purchaseDate ? DateUtils.formatWithUTCTimeZone(purchaseDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, locale) : undefined;
     const purchaseAmountWithCurrency = convertAmountToDisplayString(purchaseAmount, purchaseCurrency);
 
     switch (subscriptionStatus?.status) {

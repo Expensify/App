@@ -120,7 +120,7 @@ function MoneyRequestView({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, preferredLocale} = useLocalize();
     const {getReportRHPActiveRoute} = useActiveRoute();
 
     const parentReportID = report?.parentReportID;
@@ -180,7 +180,7 @@ function MoneyRequestView({
         originalAmount: transactionOriginalAmount,
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
-    } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
+    } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, CONST.DATE.FNS_FORMAT_STRING, undefined, preferredLocale) ?? {}, [preferredLocale, transaction]);
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);

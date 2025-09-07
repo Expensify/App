@@ -752,11 +752,29 @@ const getTimeValidationErrorKey = (inputTime: Date): string => {
  * param dateFormat
  * returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
  */
-function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING) {
-    const date = toDate(datetime, {timeZone: 'UTC'});
+function formatWithUTCTimeZone(datetime: string, dateFormat?: string, locale?: Locale) {
+    const dateFormatString = dateFormat ?? CONST.DATE.FNS_FORMAT_STRING;
+    const timeZone = 'UTC';
+    const date = toDate(datetime, {timeZone});
 
     if (isValid(date)) {
-        return tzFormat(toZonedTime(date, 'UTC'), dateFormat);
+        if (locale) {
+            const formatOptions: Record<string, Intl.DateTimeFormatOptions> = {
+                [CONST.DATE.LOCAL_TIME_FORMAT]: {timeZone, timeStyle: 'short', hour12: true},
+                [CONST.DATE.MONTH_FORMAT]: {timeZone, month: 'long'},
+                [CONST.DATE.WEEKDAY_TIME_FORMAT]: {timeZone, weekday: 'long'},
+                [CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT]: {timeZone, month: 'short', day: 'numeric', year: 'numeric'},
+                [CONST.DATE.MONTH_DAY_YEAR_FORMAT]: {timeZone, month: 'long', day: 'numeric', year: 'numeric'},
+                [CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY]: {timeZone, month: 'long', day: 'numeric', year: 'numeric', weekday: 'long'},
+            };
+
+            if (dateFormatString in formatOptions) {
+                const options = formatOptions[dateFormatString];
+                const formatter = new Intl.DateTimeFormat(locale, options);
+                return formatter.format(date);
+            }
+        }
+        return tzFormat(toZonedTime(date, 'UTC'), dateFormatString);
     }
 
     return '';

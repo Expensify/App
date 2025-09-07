@@ -76,7 +76,13 @@ function CardSection() {
     }, []);
 
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
-        CardSectionUtils.getBillingStatus({translate, stripeCustomerId: privateStripeCustomerID, accountData: defaultCard?.accountData ?? {}, purchase: purchaseList?.[0]}),
+        CardSectionUtils.getBillingStatus({
+            translate,
+            stripeCustomerId: privateStripeCustomerID,
+            accountData: defaultCard?.accountData ?? {},
+            purchase: purchaseList?.[0],
+            locale: preferredLocale,
+        }),
     );
 
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
@@ -90,6 +96,7 @@ function CardSection() {
                 stripeCustomerId: privateStripeCustomerID,
                 accountData: defaultCard?.accountData ?? {},
                 purchase: purchaseList?.[0],
+                locale: preferredLocale,
             }),
         );
     }, [
@@ -100,6 +107,7 @@ function CardSection() {
         defaultCard?.accountData,
         privateStripeCustomerID,
         purchaseList,
+        preferredLocale,
     ]);
 
     const handleRetryPayment = () => {
