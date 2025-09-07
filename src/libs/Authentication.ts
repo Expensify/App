@@ -45,16 +45,6 @@ Onyx.connectWithoutView({
     },
 });
 
-let account: OnyxEntry<Account>;
-// Authentication lib is not connected to any changes on the UI
-// So it is okay to use connectWithoutView here.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        account = value;
-    },
-});
-
 function Authenticate(parameters: Parameters): Promise<Response | void> {
     const commandName = 'Authenticate';
 
