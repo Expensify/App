@@ -8,6 +8,6 @@
     This patch fixes a build error on iOS on HybridApp.
     ```
   
-- Upstream PR/issue: NA
-- E/App issue: NA
+- Upstream PR/issue: 🛑
+- E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/45875

@@ -8,6 +8,6 @@
     This is patch disables view recycling.
     ```
   
-- Upstream PR/issue: NA
+- Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/8503
 - PR introducing patch: https://github.com/Expensify/App/pull/13767

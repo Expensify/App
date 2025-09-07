@@ -5,10 +5,10 @@
 - Reason:
   
     ```
-    This patch fixes wrong animation when navigating between settings screens
+    This patch fixes wrong animation when navigating between settings screens.
     ```
   
-- Upstream PR/issue: 
+- Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/8503
 - PR introducing patch: https://github.com/Expensify/App/pull/13767
 
@@ -20,7 +20,7 @@
     This patch supports RN 77 upgrade.
     ```
   
-- Upstream PR/issue: NA
+- Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/54903
 - PR introducing patch: https://github.com/Expensify/App/pull/55861
 
@@ -33,6 +33,6 @@
     This patch supports RN 77 upgrade.
     ```
   
-- Upstream PR/issue: NA
+- Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/54903
 - PR introducing patch: https://github.com/Expensify/App/pull/55861

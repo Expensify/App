@@ -8,7 +8,7 @@
     This patch includes live markdown hpp files and removes including of boost headers.
     ```
   
-- Upstream PR/issue: NA
+- Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/8503
 - PR introducing patch: https://github.com/Expensify/App/pull/13767
 
@@ -18,7 +18,7 @@
 - Reason:
   
     ```
-    This patch fixes onStartReached not called
+    This patch fixes onStartReached not called.
     ```
   
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/46250

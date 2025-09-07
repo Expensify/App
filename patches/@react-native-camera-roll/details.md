@@ -5,9 +5,9 @@
 - Reason:
   
     ```
-    This patch fixes displaying error message when image has been downloaded
+    This patch fixes displaying error message when image has been downloaded.
     ```
   
-- Upstream PR/issue: NA
+- Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/36870
 - PR introducing patch: https://github.com/Expensify/App/pull/37316

@@ -8,7 +8,7 @@
     This patch handles process id has changed.
     ```
   
-- Upstream PR/issue: NA
+- Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/46129
 - PR introducing patch: https://github.com/Expensify/App/pull/46279
 
@@ -20,6 +20,6 @@
     This patch handles process id has changed.
     ```
   
-- Upstream PR/issue: NA
+- Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/46129
 - PR introducing patch: https://github.com/Expensify/App/pull/46279

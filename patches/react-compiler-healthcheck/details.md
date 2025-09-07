@@ -21,7 +21,7 @@
     ```
   
 - Upstream PR/issue: https://github.com/facebook/react/pull/29916
-- E/App issue: NA
+- E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/45464
 
 
@@ -33,6 +33,6 @@
     This patch adds --json option to healthcheck CLI.
     ```
   
-- Upstream PR/issue: NA
+- Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/pull/45464
 - PR introducing patch: https://github.com/Expensify/App/pull/45915

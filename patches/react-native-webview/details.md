@@ -8,6 +8,6 @@
     This patch fixes dataDetectorTypes.
     ```
   
-- Upstream PR/issue: NA
+- Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/43177
 - PR introducing patch: https://github.com/Expensify/App/pull/45289
