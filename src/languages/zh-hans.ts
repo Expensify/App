@@ -2147,12 +2147,8 @@ const translations = {
         chooseThemeBelowOrSync: '选择下面的主题，或与您的设备设置同步。',
     },
     termsOfUse: {
-        phrase1: '通过登录，您同意',
-        phrase2: '服务条款',
-        phrase3: '和',
-        phrase4: '隐私',
-        phrase5: `资金传输由${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）根据其提供`,
-        phrase6: '许可证',
+        terms: `<muted-text-xs>登录后，即表示您同意<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">服务条款</a>和<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私条款</a>。</muted-text-xs>`,
+        license: `<muted-text-xs>${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) 根据其<a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">许可</a>证提供汇款服务。</muted-text-xs>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: '没有收到魔法代码？',

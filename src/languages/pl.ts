@@ -2171,12 +2171,8 @@ const translations = {
         chooseThemeBelowOrSync: 'Wybierz motyw poniżej lub zsynchronizuj z ustawieniami urządzenia.',
     },
     termsOfUse: {
-        phrase1: 'Logując się, zgadzasz się na',
-        phrase2: 'Warunki korzystania z usługi',
-        phrase3: 'i',
-        phrase4: 'Prywatność',
-        phrase5: `Przekazy pieniężne są świadczone przez ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) zgodnie z jego`,
-        phrase6: 'licencje',
+        terms: `<muted-text-xs>Logując się, użytkownik wyraża zgodę na <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Warunki korzystania z usługi</a> i <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Politykę prywatności</a>.</muted-text-xs>`,
+        license: `<muted-text-xs>Transmisja pieniędzy jest świadczona przez ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) zgodnie z jej <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licencjami</a>.</muted-text-xs>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Nie otrzymałeś magicznego kodu?',

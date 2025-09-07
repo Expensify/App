@@ -76,6 +76,11 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             linkStyle = [styles.mutedNormalTextLabel, styles.link];
         }
 
+        // Special handling for links to maintain consistent font size
+        if (HTMLEngineUtils.isChildOfMutedTextXS(tnode)) {
+            linkStyle = [styles.textExtraSmallSupporting, styles.link];
+        }
+
         if (tnode.classes.includes('no-style-link')) {
             // If the link has a class of a no-style-link, we don't apply any styles
             linkStyle = {...(style as TextStyle)};

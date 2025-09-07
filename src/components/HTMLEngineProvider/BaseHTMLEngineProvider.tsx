@@ -73,6 +73,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {...styles.mutedNormalTextLabel, ...styles.mb0},
                 contentModel: HTMLContentModel.block,
             }),
+            'muted-text-xs': HTMLElementModel.fromCustomModel({
+                tagName: 'muted-text-xs',
+                mixedUAStyles: {...styles.textExtraSmallSupporting, ...styles.mb0},
+                contentModel: HTMLContentModel.block,
+            }),
             'centered-text': HTMLElementModel.fromCustomModel({
                 tagName: 'centered-text',
                 mixedUAStyles: {...styles.textAlignCenter},
@@ -181,6 +186,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.subTextFileUpload,
             styles.textAlignCenter,
             styles.textSuccess,
+            styles.textExtraSmallSupporting,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
