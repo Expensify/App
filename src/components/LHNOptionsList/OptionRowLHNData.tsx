@@ -73,7 +73,9 @@ function OptionRowLHNData({
             lastMessageTextFromReport,
             invoiceReceiverPolicy,
             card,
+            lastAction,
             localeCompare,
+            isReportArchived,
         });
         // eslint-disable-next-line react-compiler/react-compiler
         if (deepEqual(item, optionItemRef.current)) {
@@ -108,6 +110,7 @@ function OptionRowLHNData({
         reportAttributes,
         card,
         localeCompare,
+        isReportArchived,
     ]);
 
     return (

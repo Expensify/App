@@ -119,3 +119,14 @@
 - Upstream PR/issue: The patch isn't something we can apply to upstream because we are specifically allowing custom props used by Fullstory to be forwarded to their respective DOM elements.
 - E/App issue: As explained above the current solution can't be applied to upstream because it's tailored to Fullstory needs.
 - PR introducing patch: https://github.com/Expensify/App/pull/67552
+
+### [react-native-web+0.20.0+011+fix-memory-leak.patch](react-native-web+0.20.0+011+fix-memory-leak.patch)
+- Reason:
+  
+    ```
+    Fixes memory leak on web caused by Animated API used in @react-navigation package
+    ```
+  
+- Upstream PR/issue: https://github.com/necolas/react-native-web/pull/2800
+- E/App issue: https://github.com/Expensify/App/issues/65820
+- PR introducing patch: https://github.com/Expensify/App/pull/68834
