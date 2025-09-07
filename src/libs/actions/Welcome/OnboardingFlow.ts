@@ -143,7 +143,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     return onboardingInitialPath;
 }
 
-const getOnboardingMessages = (locale?: Locale) => {
+const getOnboardingMessages = (hasIntroSelected = false, locale?: Locale) => {
     const resolvedLocale = locale ?? IntlStore.getCurrentLocale();
     const testDrive = {
         ONBOARDING_TASK_NAME: translate(resolvedLocale, 'onboarding.testDrive.name', {}),
@@ -328,7 +328,7 @@ const getOnboardingMessages = (locale?: Locale) => {
     };
 
     const onboardingManageTeamMessage: OnboardingMessage = {
-        message: translate(resolvedLocale, 'onboarding.messages.onboardingManageTeamMessage'),
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingManageTeamMessage', {hasIntroSelected}),
         tasks: [createWorkspaceTask, testDriveAdminTask, addAccountingIntegrationTask, connectCorporateCardTask, inviteTeamTask, setupCategoriesAndTags, setupCategoriesTask, setupTagsTask],
     };
 

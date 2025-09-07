@@ -1,6 +1,6 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
-import {FlatList, View} from 'react-native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {FlatList, InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -29,16 +29,18 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {calculateBillNewDot, clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
+import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -48,6 +50,7 @@ import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/Su
 import type {AvatarSource} from '@libs/UserUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -97,7 +100,9 @@ function WorkspacesListPage() {
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
@@ -107,6 +112,11 @@ function WorkspacesListPage() {
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
+    const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: false});
+    const isDuplicatedWorkspaceEnabled = isBetaEnabled(CONST.BETAS.DUPLICATE_WORKSPACE);
+
+    // This hook preloads the screens of adjacent tabs to make changing tabs faster.
+    usePreloadFullScreenNavigators();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
@@ -126,6 +136,7 @@ function WorkspacesListPage() {
         selector: filterInactiveCards,
         canBeMissing: true,
     });
+    const flatlistRef = useRef<FlatList | null>(null);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -166,6 +177,8 @@ function WorkspacesListPage() {
             const isAdmin = isPolicyAdmin(item as unknown as PolicyType, session?.email);
             const isOwner = item.ownerAccountID === session?.accountID;
             const isDefault = activePolicyID === item.policyID;
+            const shouldAnimateInHighlight = duplicateWorkspace?.policyID === item.policyID;
+
             const threeDotsMenuItems: PopoverMenuItem[] = [
                 {
                     icon: Expensicons.Building,
@@ -174,6 +187,35 @@ function WorkspacesListPage() {
                 },
             ];
 
+            const defaultApprover = getDefaultApprover(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]);
+            if (!(isAdmin || isOwner) && defaultApprover !== session?.email) {
+                threeDotsMenuItems.push({
+                    icon: Expensicons.Exit,
+                    text: translate('common.leave'),
+                    onSelected: callFunctionIfActionIsAllowed(() => leaveWorkspace(item.policyID)),
+                });
+            }
+
+            if (isAdmin && isDuplicatedWorkspaceEnabled) {
+                threeDotsMenuItems.push({
+                    icon: Expensicons.Copy,
+                    text: translate('workspace.common.duplicateWorkspace'),
+                    onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID, ROUTES.WORKSPACES_LIST.route)) : undefined),
+                });
+            }
+
+            if (!isDefault && !item?.isJoinRequestPending) {
+                threeDotsMenuItems.push({
+                    icon: Expensicons.Star,
+                    text: translate('workspace.common.setAsDefault'),
+                    onSelected: () => {
+                        if (!item.policyID || !activePolicyID) {
+                            return;
+                        }
+                        setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, item.policyID, activePolicyID);
+                    },
+                });
+            }
             if (isOwner) {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Trashcan,
@@ -205,22 +247,6 @@ function WorkspacesListPage() {
                     shouldCallAfterModalHide: !shouldCalculateBillNewDot,
                 });
             }
-            const defaultApprover = getDefaultApprover(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]);
-            if (!(isAdmin || isOwner) && defaultApprover !== session?.email) {
-                threeDotsMenuItems.push({
-                    icon: Expensicons.Exit,
-                    text: translate('common.leave'),
-                    onSelected: callFunctionIfActionIsAllowed(() => leaveWorkspace(item.policyID)),
-                });
-            }
-
-            if (!isDefault && !item?.isJoinRequestPending) {
-                threeDotsMenuItems.push({
-                    icon: Expensicons.Star,
-                    text: translate('workspace.common.setAsDefault'),
-                    onSelected: () => updateDefaultPolicy(item.policyID, activePolicyID),
-                });
-            }
 
             return (
                 <OfflineWithFeedback
@@ -246,6 +272,7 @@ function WorkspacesListPage() {
                                 workspaceIcon={item.icon}
                                 ownerAccountID={item.ownerAccountID}
                                 workspaceType={item.type}
+                                shouldAnimateInHighlight={shouldAnimateInHighlight}
                                 isJoinRequestPending={item?.isJoinRequestPending}
                                 rowStyles={hovered && styles.hoveredComponentBG}
                                 layoutWidth={isLessThanMediumScreen ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
@@ -266,6 +293,7 @@ function WorkspacesListPage() {
             styles.mb2,
             styles.mh5,
             styles.ph5,
+            duplicateWorkspace?.policyID,
             styles.hoveredComponentBG,
             translate,
             styles.offlineFeedback.deleted,
@@ -273,6 +301,7 @@ function WorkspacesListPage() {
             session?.email,
             activePolicyID,
             isSupportalAction,
+            isDuplicatedWorkspaceEnabled,
             setIsDeletingPaidWorkspace,
             isLoadingBill,
             shouldCalculateBillNewDot,
@@ -357,6 +386,19 @@ function WorkspacesListPage() {
     const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title)), [localeCompare]);
     const [inputValue, setInputValue, filteredWorkspaces] = useSearchResults(workspaces, filterWorkspace, sortWorkspace);
 
+    useEffect(() => {
+        if (isEmptyObject(duplicateWorkspace) || !filteredWorkspaces.length || !isFocused) {
+            return;
+        }
+        const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicateWorkspace.policyID);
+        if (duplicateWorkspaceIndex > 0) {
+            flatlistRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
+            InteractionManager.runAfterInteractions(() => {
+                clearDuplicateWorkspace();
+            });
+        }
+    }, [duplicateWorkspace, isFocused, filteredWorkspaces]);
+
     const listHeaderComponent = (
         <>
             {isLessThanMediumScreen && <View style={styles.mt3} />}
@@ -435,10 +477,7 @@ function WorkspacesListPage() {
                         <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                     </View>
                 ) : (
-                    <ScrollView
-                        contentContainerStyle={[styles.pt2, styles.flexGrow1, styles.flexShrink0]}
-                        addBottomSafeAreaPadding
-                    >
+                    <ScrollView contentContainerStyle={[styles.pt2, styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
                             SkeletonComponent={WorkspaceRowSkeleton}
                             headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
@@ -476,7 +515,14 @@ function WorkspacesListPage() {
                 <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
                 {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
                 <FlatList
+                    ref={flatlistRef}
                     data={filteredWorkspaces}
+                    onScrollToIndexFailed={(info) => {
+                        flatlistRef.current?.scrollToOffset({
+                            offset: info.averageItemLength * info.index,
+                            animated: true,
+                        });
+                    }}
                     renderItem={getMenuItem}
                     ListHeaderComponent={listHeaderComponent}
                     keyboardShouldPersistTaps="handled"
