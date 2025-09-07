@@ -23,6 +23,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -106,6 +107,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
+    const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
 
     const shouldLogout = useRef(false);
 
@@ -119,6 +121,19 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
+    const hasAccountBeenSwitched = useMemo(
+        () => currentUserPersonalDetails.accountID !== previousUserPersonalDetails.accountID,
+        [currentUserPersonalDetails.accountID, previousUserPersonalDetails.accountID],
+    );
+
+    useEffect(() => {
+        if (!hasAccountBeenSwitched) {
+            return;
+        }
+
+        Navigation.clearPreloadedRoutes();
+    }, [hasAccountBeenSwitched]);
+
     useEffect(() => {
         openInitialSettingsPage();
         confirmReadyToOpenApp();
@@ -131,8 +146,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const signOut = useCallback(
         (shouldForceSignout = false) => {
             if (!network.isOffline || shouldForceSignout) {
-                signOutAndRedirectToSignIn();
-                return;
+                return signOutAndRedirectToSignIn();
             }
 
             // When offline, warn the user that any actions they took while offline will be lost if they sign out
@@ -263,9 +277,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {
                     translationKey: signOutTranslationKey,
                     icon: Expensicons.Exit,
-                    action: () => {
-                        signOut(false);
-                    },
+                    action: () => signOut(false),
                 },
             ],
         };
@@ -317,9 +329,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                 icon={item.icon}
                                 iconType={item.iconType}
                                 disabled={isExecuting}
-                                onPress={singleExecution(() => {
-                                    item.action();
-                                })}
+                                onPress={singleExecution(item.action)}
                                 iconStyles={item.iconStyles}
                                 badgeText={item.badgeText}
                                 badgeStyle={item.badgeStyle}

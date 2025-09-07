@@ -53,7 +53,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.accountID});
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
-
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [searchTerm, setSearchTerm] = useState('');
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const initialSelectedOptions = useMemo(() => {
@@ -94,12 +94,12 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     }, [options.reports, options.personalDetails]);
 
     const filteredOptions = useMemo(() => {
-        return filterAndOrderOptions(optionsList, cleanSearchTerm, {
+        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
         });
-    }, [optionsList, cleanSearchTerm]);
+    }, [optionsList, cleanSearchTerm, countryCode]);
 
     const listData = useMemo(() => {
         const personalDetailList = filteredOptions.personalDetails.map((participant) => ({
@@ -109,7 +109,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 
         const recentReportsList = filteredOptions.recentReports.map((report) => ({
             ...report,
-            isSelected: selectedOptions.some((opt) => opt.reportID === report.reportID),
+            isSelected: selectedAccountIDs.has(report.accountID),
         }));
 
         const combined = [...personalDetailList, ...recentReportsList];
@@ -134,7 +134,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         });
 
         return combined;
-    }, [filteredOptions, selectedOptions, accountID, selectedAccountIDs]);
+    }, [filteredOptions, accountID, selectedAccountIDs]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [
