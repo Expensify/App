@@ -12522,16 +12522,11 @@ function markRejectViolationAsResolved(transactionID: string, reportID?: string)
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: updatedViolations,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [optimisticMarkedAsResolvedReportAction.reportActionID]: {
+                    ...optimisticMarkedAsResolvedReportAction,
                     pendingAction: null,
-                    errors: null,
                 },
             },
         },
