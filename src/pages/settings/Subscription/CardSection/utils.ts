@@ -160,12 +160,13 @@ function getBillingStatus({translate, stripeCustomerId, accountData, purchase, l
  *
  * @returns - The next billing date in 'yyyy-MM-dd' format.
  */
-function getNextBillingDate(): string {
+function getNextBillingDate(locale: Locale | undefined): string {
+    const formatter = new Intl.DateTimeFormat(locale, {month: 'long', day: 'numeric', year: 'numeric'});
     const today = new Date();
 
     const nextBillingDate = startOfMonth(addMonths(today, 1));
 
-    return format(nextBillingDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+    return formatter.format(nextBillingDate);
 }
 
 export default {getBillingStatus, getNextBillingDate};
