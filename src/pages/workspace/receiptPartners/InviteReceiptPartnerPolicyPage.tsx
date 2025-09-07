@@ -126,7 +126,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                 shouldShow: true,
             },
         ];
-    }, [countryCode, workspaceMembers, debouncedSearchTerm, selectedOptions]);
+    }, [workspaceMembers, debouncedSearchTerm, selectedOptions]);
 
     // Pre-select all members only once on first load.
     useEffect(() => {
