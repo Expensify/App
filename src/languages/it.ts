@@ -814,9 +814,6 @@ const translations = {
         goBackMessage: ({provider}: GoBackMessageParams) => `Non vuoi accedere con ${provider}?`,
         continueWithMyCurrentSession: 'Continua con la mia sessione attuale',
         redirectToDesktopMessage: "Ti reindirizzeremo all'app desktop una volta completato l'accesso.",
-        signInAgreementMessage: 'Accedendo, accetti i',
-        termsOfService: 'Termini di Servizio',
-        privacy: 'Privacy',
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Continua ad accedere con single sign-on:',

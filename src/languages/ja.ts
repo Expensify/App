@@ -815,9 +815,6 @@ const translations = {
         goBackMessage: ({provider}: GoBackMessageParams) => `${provider}でサインインしたくないですか？`,
         continueWithMyCurrentSession: '現在のセッションを続ける',
         redirectToDesktopMessage: 'サインインが完了すると、デスクトップアプリにリダイレクトします。',
-        signInAgreementMessage: 'ログインすることにより、あなたは以下に同意したことになります',
-        termsOfService: '利用規約',
-        privacy: 'プライバシー',
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'シングルサインオンでログインを続ける：',

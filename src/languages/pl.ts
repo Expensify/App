@@ -814,9 +814,6 @@ const translations = {
         goBackMessage: ({provider}: GoBackMessageParams) => `Nie chcesz logować się za pomocą ${provider}?`,
         continueWithMyCurrentSession: 'Kontynuuj moją obecną sesję',
         redirectToDesktopMessage: 'Przekierujemy Cię do aplikacji desktopowej po zakończeniu logowania.',
-        signInAgreementMessage: 'Logując się, zgadzasz się na',
-        termsOfService: 'Warunki korzystania z usługi',
-        privacy: 'Prywatność',
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Kontynuuj logowanie za pomocą jednokrotnego logowania:',

@@ -813,9 +813,6 @@ const translations = {
         goBackMessage: ({provider}: GoBackMessageParams) => `不想使用${provider}登录？`,
         continueWithMyCurrentSession: '继续我的当前会话',
         redirectToDesktopMessage: '完成登录后，我们会将您重定向到桌面应用程序。',
-        signInAgreementMessage: '通过登录，您同意',
-        termsOfService: '服务条款',
-        privacy: '隐私',
     },
     samlSignIn: {
         welcomeSAMLEnabled: '继续使用单点登录登录：',

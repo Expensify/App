@@ -805,9 +805,6 @@ const translations = {
         goBackMessage: ({provider}: GoBackMessageParams) => `Don't want to sign in with ${provider}?`,
         continueWithMyCurrentSession: 'Continue with my current session',
         redirectToDesktopMessage: "We'll redirect you to the desktop app once you finish signing in.",
-        signInAgreementMessage: 'By logging in, you agree to the',
-        termsOfService: 'Terms of Service',
-        privacy: 'Privacy',
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Continue logging in with single sign-on:',

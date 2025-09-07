@@ -796,9 +796,6 @@ const translations = {
         goBackMessage: ({provider}: GoBackMessageParams) => `No quieres iniciar sesión con ${provider}?`,
         continueWithMyCurrentSession: 'Continuar con mi sesión actual',
         redirectToDesktopMessage: 'Lo redirigiremos a la aplicación de escritorio una vez que termine de iniciar sesión.',
-        signInAgreementMessage: 'Al iniciar sesión, aceptas las',
-        termsOfService: 'Términos de servicio',
-        privacy: 'Privacidad',
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Continua iniciando sesión con el inicio de sesión único:',

@@ -813,9 +813,6 @@ const translations = {
         goBackMessage: ({provider}: GoBackMessageParams) => `Wil je niet inloggen met ${provider}?`,
         continueWithMyCurrentSession: 'Doorgaan met mijn huidige sessie',
         redirectToDesktopMessage: 'We leiden je naar de desktop-app zodra je bent ingelogd.',
-        signInAgreementMessage: 'Door in te loggen, ga je akkoord met de',
-        termsOfService: 'Servicevoorwaarden',
-        privacy: 'Privacy',
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Doorgaan met inloggen via single sign-on:',

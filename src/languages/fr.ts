@@ -817,9 +817,6 @@ const translations = {
         goBackMessage: ({provider}: GoBackMessageParams) => `Vous ne voulez pas vous connecter avec ${provider} ?`,
         continueWithMyCurrentSession: 'Continuer avec ma session actuelle',
         redirectToDesktopMessage: "Nous vous redirigerons vers l'application de bureau une fois que vous aurez terminé de vous connecter.",
-        signInAgreementMessage: 'En vous connectant, vous acceptez les',
-        termsOfService: "Conditions d'utilisation",
-        privacy: 'Confidentialité',
     },
     samlSignIn: {
         welcomeSAMLEnabled: "Continuez à vous connecter avec l'authentification unique :",
