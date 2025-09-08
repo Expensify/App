@@ -2549,6 +2549,9 @@ function isMoneyRequestReportEligibleForMerge(reportID: string, isAdmin: boolean
 
 function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry<Report> | string) {
     const reportActions = getAllReportActions(chatReport.reportID);
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
+    const policy = getPolicy(chatReport.policyID);
     return Object.values(reportActions).some((action) => {
         const iouReportID = getIOUReportIDFromReportActionPreview(action);
         if (
@@ -2560,9 +2563,6 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
             return false;
         }
 
-        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        // eslint-disable-next-line deprecation/deprecation
-        const policy = getPolicy(chatReport.policyID);
         const iouReport = typeof iouReportOrID !== 'string' && iouReportOrID?.reportID === iouReportID ? iouReportOrID : getReportOrDraftReport(iouReportID);
         const transactions = getReportTransactions(iouReportID);
         return (
