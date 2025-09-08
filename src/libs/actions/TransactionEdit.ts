@@ -109,7 +109,7 @@ function removeDraftTransactions(shouldExcludeInitialTransaction = false, allTra
         },
         {} as Record<string, null>,
     );
-    return Onyx.multiSet(draftTransactionsSet);
+    Onyx.multiSet(draftTransactionsSet);
 }
 
 function replaceDefaultDraftTransaction(transaction: OnyxEntry<Transaction>) {
