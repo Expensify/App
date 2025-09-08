@@ -4,26 +4,23 @@ import type {OnyxEntry} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import {useBetas} from '@components/OnyxListItemProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftInviteAccountID} from '@libs/actions/Card';
 import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
-import memoize from '@libs/memoize';
-import {filterAndOrderOptions, getHeaderMessage, getSearchValueForPhoneOrEmail, getValidOptions, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import useOptions from '@libs/UseOptionsUtils';
 import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
@@ -38,65 +35,6 @@ type AssigneeStepProps = {
     /** Selected feed */
     feed: OnyxTypes.CompanyCardFeed;
 };
-
-const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'AssigneeStep.getValidOptions'});
-
-function useOptions() {
-    const betas = useBetas();
-    const [isLoading, setIsLoading] = useState(true);
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const {options: optionsList, areOptionsInitialized} = useOptionsList();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const existingDelegates = useMemo(() => Object.fromEntries((account?.delegatedAccess?.delegates ?? []).map(({email}) => [email, true])), [account?.delegatedAccess?.delegates]);
-
-    const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = memoizedGetValidOptions(
-            {
-                reports: optionsList.reports,
-                personalDetails: optionsList.personalDetails,
-            },
-            {
-                betas,
-                excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
-            },
-        );
-
-        const headerMessage = getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0, !!userToInvite, '');
-
-        if (isLoading) {
-            // eslint-disable-next-line react-compiler/react-compiler
-            setIsLoading(false);
-        }
-
-        return {
-            userToInvite,
-            recentReports,
-            personalDetails,
-            currentUserOption,
-            headerMessage,
-        };
-    }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, isLoading]);
-
-    const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), countryCode, {
-            excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        });
-        const headerMessage = getHeaderMessage(
-            (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
-            !!filteredOptions.userToInvite,
-            debouncedSearchValue,
-        );
-
-        return {
-            ...filteredOptions,
-            headerMessage,
-        };
-    }, [debouncedSearchValue, defaultOptions, existingDelegates, countryCode]);
-
-    return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
-}
 
 function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
