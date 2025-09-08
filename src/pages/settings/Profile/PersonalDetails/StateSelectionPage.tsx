@@ -48,7 +48,7 @@ function StateSelectionPage() {
         [translate, currentState],
     );
 
-    const searchResults = searchOptions(searchValue, countryStates);
+    const searchResults = searchOptions(searchValue, countryStates, true);
     const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const selectCountryState = useCallback(
