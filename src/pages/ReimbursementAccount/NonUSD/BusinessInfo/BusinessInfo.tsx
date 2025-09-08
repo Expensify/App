@@ -1,8 +1,11 @@
+import {Str} from 'expensify-common';
 import type {ComponentType} from 'react';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getInitialSubStepForBusinessInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBusinessInfoStep';
@@ -71,6 +74,8 @@ const INPUT_KEYS = {
 
 function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProps) {
     const {translate} = useLocalize();
+    const {isProduction} = useEnvironment();
+    const {isBetaEnabled} = usePermissions();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
@@ -93,6 +98,11 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
         saveCorpayOnboardingCompanyDetails(
             {
                 ...businessInfoStepValues,
+                // Corpay does not accept emails with a "+" character and will not let us connect account at the end of whole flow
+                businessConfirmationEmail:
+                    !isProduction && isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND)
+                        ? Str.replaceAll(businessInfoStepValues.businessConfirmationEmail, '+', '')
+                        : businessInfoStepValues.businessConfirmationEmail,
                 fundSourceCountries: country,
                 fundDestinationCountries: country,
                 currencyNeeded: currency,
@@ -100,7 +110,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
             },
             bankAccountID,
         );
-    }, [country, currency, bankAccountID, businessInfoStepValues]);
+    }, [businessInfoStepValues, isProduction, isBetaEnabled, country, currency, bankAccountID]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

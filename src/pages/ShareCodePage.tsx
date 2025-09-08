@@ -33,7 +33,7 @@ import {
     isMoneyRequestReport,
 } from '@libs/ReportUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
-import {addTrailingForwardSlash} from '@libs/Url';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 import {getAvatarUrl} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -74,9 +74,9 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
-    const isReport = !!report?.reportID;
+    const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const isReport = !!report?.reportID;
 
     const subtitle = useMemo(() => {
         if (isReport) {
@@ -90,11 +90,11 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                     .join(' & ');
             }
 
-            return getParentNavigationSubtitle(report, isReportArchived).workspaceName ?? getChatRoomSubtitle(report);
+            return getParentNavigationSubtitle(report, isParentReportArchived).workspaceName ?? getChatRoomSubtitle(report, false, isReportArchived);
         }
 
         return currentUserPersonalDetails.login;
-    }, [isReport, currentUserPersonalDetails.login, report, isReportArchived]);
+    }, [report, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived]);
 
     const title = isReport ? getReportName(report) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
@@ -150,8 +150,8 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                         onPress={() => Clipboard.setString(url)}
                         shouldLimitWidth={false}
                     />
-                    {/* Remove this platform specific condition once https://github.com/Expensify/App/issues/19834 is done. 
-                    We shouldn't introduce platform specific code in our codebase. 
+                    {/* Remove this platform specific condition once https://github.com/Expensify/App/issues/19834 is done.
+                    We shouldn't introduce platform specific code in our codebase.
                     This is a temporary solution while Web is not supported for the QR code download feature */}
                     {shouldAllowDownloadQRCode && (
                         <MenuItem

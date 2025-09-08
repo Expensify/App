@@ -1,3 +1,4 @@
+import type {FileObject} from '@components/AttachmentModal';
 import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
 import type Account from './Account';
 import type AccountData from './AccountData';
@@ -6,6 +7,7 @@ import type {AssignCard} from './AssignCard';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
+import type BetaConfiguration from './BetaConfiguration';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingReceiptDetails from './BillingReceiptDetails';
 import type BillingStatus from './BillingStatus';
@@ -27,7 +29,7 @@ import type {OutstandingReportsByPolicyIDDerivedValue, ReportAttributesDerivedVa
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
-import type DraftReportComments from './DraftReportComments';
+import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type ExportTemplate from './ExportTemplate';
@@ -88,7 +90,6 @@ import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
-import type LastSearchParams from './ReportNavigation';
 import type ReportNextStep from './ReportNextStep';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type {ReportFieldsViolations, ReportViolationName} from './ReportViolation';
@@ -127,6 +128,7 @@ import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 
 export type {
+    FileObject,
     TryNewDot,
     Account,
     AccountData,
@@ -134,6 +136,7 @@ export type {
     BankAccount,
     BankAccountList,
     Beta,
+    BetaConfiguration,
     BlockedFromConcierge,
     Card,
     CardList,
@@ -145,6 +148,7 @@ export type {
     CurrencyList,
     CustomStatusDraft,
     DismissedReferralBanners,
+    DuplicateWorkspace,
     Download,
     WorkspaceCardsList,
     ExpensifyCardSettings,
@@ -266,7 +270,6 @@ export type {
     TravelProvisioning,
     SidePanel,
     LastPaymentMethodType,
-    LastSearchParams,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
@@ -276,5 +279,4 @@ export type {
     BillingReceiptDetails,
     ExportTemplate,
     HybridApp,
-    DraftReportComments,
 };

@@ -1,6 +1,6 @@
-import {useRoute} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import type {FlashList, FlashListProps, ViewToken} from '@shopify/flash-list';
-import React, {forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -11,9 +11,10 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {createItemHeightCalculator} from '@components/Search/itemHeightCalculator';
 import ITEM_HEIGHTS from '@components/Search/itemHeights';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
@@ -79,6 +80,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** The search query */
     queryJSON: SearchQueryJSON;
 
+    /** Columns to show */
+    columns: SearchColumnType[];
+
     /** Whether the screen is focused */
     isFocused: boolean;
 
@@ -96,6 +100,8 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Whether mobile selection mode is enabled */
     isMobileSelectionModeEnabled: boolean;
+
+    areAllOptionalColumnsHidden: boolean;
 };
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
@@ -126,12 +132,14 @@ function SearchList(
         shouldPreventDefaultFocusOnSelectRow,
         shouldPreventLongPressRow,
         queryJSON,
+        columns,
         isFocused,
         onViewableItemsChanged,
         onLayout,
         shouldAnimate,
         estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
         isMobileSelectionModeEnabled,
+        areAllOptionalColumnsHidden,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -185,6 +193,7 @@ function SearchList(
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
 
     const route = useRoute();
+    const {getScrollOffset} = useContext(ScrollOffsetContext);
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
@@ -239,6 +248,19 @@ function SearchList(
         [data],
     );
 
+    useFocusEffect(
+        useCallback(() => {
+            const offset = getScrollOffset(route);
+            requestAnimationFrame(() => {
+                if (!offset || !listRef.current) {
+                    return;
+                }
+
+                listRef.current.scrollToOffset({offset, animated: false});
+            });
+        }, [getScrollOffset, route]),
+    );
+
     useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
 
     const renderItem = useCallback(
@@ -247,10 +269,10 @@ function SearchList(
 
             return (
                 <Animated.View
-                    exiting={shouldAnimate ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
+                    exiting={shouldAnimate && isFocused ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
                     entering={undefined}
                     style={styles.overflowHidden}
-                    layout={shouldAnimate && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
+                    layout={shouldAnimate && hasItemsBeingRemoved && isFocused ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
                 >
                     <ListItem
                         showTooltip
@@ -262,6 +284,8 @@ function SearchList(
                         item={item}
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                         queryJSONHash={hash}
+                        columns={columns}
+                        areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                         policies={policies}
                         isDisabled={isDisabled}
                         allReports={allReports}
@@ -277,11 +301,13 @@ function SearchList(
         },
         [
             shouldAnimate,
+            isFocused,
             styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
             onSelectRow,
             handleLongPressRow,
+            columns,
             onCheckboxPress,
             canSelectMultiple,
             shouldPreventDefaultFocusOnSelectRow,
@@ -293,6 +319,7 @@ function SearchList(
             isUserValidated,
             personalDetails,
             userBillingFundID,
+            areAllOptionalColumnsHidden,
         ],
     );
 
@@ -377,7 +404,6 @@ function SearchList(
                     )}
                 </View>
             )}
-
             <BaseSearchList
                 data={data}
                 renderItem={renderItem}
@@ -386,6 +412,7 @@ function SearchList(
                 onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
+                columns={columns}
                 scrollToIndex={scrollToIndex}
                 isFocused={isFocused}
                 flattenedItemsLength={flattenedItems.length}

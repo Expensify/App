@@ -3,7 +3,6 @@ title: receipts-breakdown.md
 description: This article explains how to read your Expensify receipt, including billing charges, discounts, and activity by workspace.
 keywords: billing receipt, receipt breakdown, billing history, expensify invoice, billing owner, discounts, expensify card, activity breakdown
 ---
-<div id="expensify-classic" markdown="1">
 
 This article explains how to understand your monthly Expensify receipt as a billing owner—including what you’re being charged for, where discounts are applied, and how to identify savings.
 
@@ -67,4 +66,34 @@ This section lists each **workspace name** with its **unique ID**, along with bi
 - Plan type (Collect or Control)
 - Any applied discounts
 
-</div>
+---
+
+# Billable Activity
+
+This section explains **what is considered billable activity** and how active members are defined.
+
+- **Billable activity** is defined by **active members**.  
+- An **active member** is anyone who takes actions on a report, including when you:
+
+  - Create  
+  - Edit (such as adding expenses, updating expenses, or switching policy)  
+  - Delete  
+  - Submit  
+  - Retract  
+  - Approve or Unapprove  
+  - Forward  
+  - Share or Unshare  
+  - Reject  
+  - Comment on  
+  - Close  
+  - Reopen  
+  - Reimburse/Pay  
+  - Export  
+
+**Important:** If you are acting as a **Copilot**, both you and the person you are acting on behalf of will count as active members when performing any of the actions listed above.  
+
+In addition, you’ll also be considered an **active member** if you send more than **2 total messages** in a given month:  
+
+- To **Concierge** or your **Account Manager**  
+- Within your **workspace rooms**
+
