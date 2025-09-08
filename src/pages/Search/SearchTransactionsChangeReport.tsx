@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
-import {useSession} from '@components/OnyxListItemProvider';
 import {InteractionManager} from 'react-native';
+import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
