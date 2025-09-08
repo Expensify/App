@@ -142,16 +142,31 @@ function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>, 
  * Returns amount filter value for QueryString.
  */
 function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues: Partial<SearchAdvancedFiltersForm>) {
-    const lessThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`];
-    const greaterThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
+    const equalTo = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as keyof SearchAdvancedFiltersForm];
+    const lessThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as keyof SearchAdvancedFiltersForm];
+    const greaterThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as keyof SearchAdvancedFiltersForm];
 
     let amountFilter = '';
+    
+    if (equalTo) {
+        amountFilter += `${filterKey}:${equalTo}`;
+    }
+    
     if (greaterThan) {
+        if (amountFilter) {
+            amountFilter += ' ';
+        }
         amountFilter += `${filterKey}>${greaterThan}`;
     }
+    
     if (lessThan && greaterThan) {
         amountFilter += ' ';
+    } else if (lessThan && (equalTo || (!greaterThan && !equalTo))) {
+        if (amountFilter) {
+            amountFilter += ' ';
+        }
     }
+    
     if (lessThan) {
         amountFilter += `${filterKey}<${lessThan}`;
     }
@@ -718,10 +733,14 @@ function buildFilterFormValuesFromQuery(
         }
 
         if (AMOUNT_FILTER_KEYS.includes(filterKey as SearchAmountFilterKeys)) {
+            const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
             const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
             const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
 
             // backend amount is an integer and is 2 digits longer than frontend amount
+            filtersForm[equalToKey] =
+                filterList.find((filter) => filter.operator === 'eq' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
+                filtersForm[equalToKey];
             filtersForm[lessThanKey] =
                 filterList.find((filter) => filter.operator === 'lt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
                 filtersForm[lessThanKey];
