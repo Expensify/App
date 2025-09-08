@@ -1081,7 +1081,9 @@ function MoneyReportHeader({
             icon: Expensicons.Trashcan,
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
             onSelected: () => {
-                if (Object.keys(transactions).length === 1) {
+                const transactionCount = Object.keys(transactions).length;
+
+                if (transactionCount === 1) {
                     showConfirmModal({
                         title: translate('iou.deleteExpense', {count: 1}),
                         prompt: translate('iou.deleteConfirmation', {count: 1}),
@@ -1107,10 +1109,13 @@ function MoneyReportHeader({
                             Navigation.setNavigationActionToMicrotaskQueue(() => navigateOnDeleteExpense(goBackRoute));
                         }
                     });
-                } else {
+                    return;
+                }
+
+                if (transactionCount === 0) {
                     showConfirmModal({
-                        title: translate('iou.deleteExpense', {count: Object.keys(transactions).length}),
-                        prompt: translate('iou.deleteConfirmation', {count: Object.keys(transactions).length}),
+                        title: translate('iou.deleteReport'),
+                        prompt: translate('iou.deleteReportConfirmation'),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
                         danger: true,
@@ -1123,7 +1128,24 @@ function MoneyReportHeader({
                             deleteAppReport(reportID);
                         }
                     });
+                    return;
                 }
+
+                showConfirmModal({
+                    title: translate('iou.deleteExpense', {count: transactionCount}),
+                    prompt: translate('iou.deleteConfirmation', {count: transactionCount}),
+                    confirmText: translate('common.delete'),
+                    cancelText: translate('common.cancel'),
+                    danger: true,
+                }).then((result) => {
+                    if (result.action !== 'CONFIRM') {
+                        return;
+                    }
+                    const reportID = moneyRequestReport?.reportID;
+                    if (reportID) {
+                        deleteAppReport(reportID);
+                    }
+                });
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.RETRACT]: {
