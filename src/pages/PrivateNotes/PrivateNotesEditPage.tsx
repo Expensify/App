@@ -43,7 +43,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
     const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
 
     // We need to edit the note in markdown format, but display it in HTML format
     const [privateNote, setPrivateNote] = useState(
@@ -167,7 +167,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
                             debouncedSavePrivateNote(text);
                             setPrivateNote(text);
                         }}
-                        ref={(el: AnimatedTextInputRef) => {
+                        ref={(el: AnimatedTextInputRef | null) => {
                             if (!el) {
                                 return;
                             }

@@ -13,6 +13,7 @@ type StartSplitBillParams = {
     isFromGroupDM: boolean;
     createdReportActionID?: string;
     billable: boolean;
+    reimbursable: boolean;
     chatType?: string;
     taxCode?: string;
     taxAmount?: number;
