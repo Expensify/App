@@ -272,6 +272,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT,
                             exact: true,
@@ -338,6 +342,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PROFILE.ADDRESS_STATE]: {
                             path: ROUTES.SETTINGS_ADDRESS_STATE.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.DELEGATE.VERIFY_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: {
@@ -640,6 +648,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: {
                             path: ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.route,
+                        },
+                        [SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT]: {
+                            path: ROUTES.WORKSPACE_INVOICES_VERIFY_ACCOUNT.route,
+                            exact: true,
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.route,
