@@ -1,15 +1,15 @@
 import {useMemo} from 'react';
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
+import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
-import useOnyx from '../useOnyx';
-import usePolicy from '../usePolicy';
-import {PolicyData} from './types';
+import type PolicyData from './types';
 
 /**
- * Retrieves policy-related data such as tags, categories, reports, and transactions/violations.
+ * Retrieves policy tags, categories, reports and their associated transactions and violations.
  * @param policyID The ID of the policy to retrieve data for.
  * @returns An object containing policy data
  */
@@ -18,38 +18,46 @@ function usePolicyData(policyID?: string): PolicyData {
     const policy = usePolicy(policyID);
     const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
 
-    const [tagsLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [tags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [categories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         canBeMissing: true,
         selector: (allReports) => {
-            if (!allReports) {
-                return [];
+            if (!policyID || !allReports || !allReportsTransactionsAndViolations) {
+                return {};
             }
             // Filter reports to only include those that belong to the specified policy and have associated transactions
-            const reportIDsWithTransactionsAndViolations = Object.keys(allReportsTransactionsAndViolations ?? {});
-            return Object.values(allReports).filter((report) => !!report && report?.policyID === policyID && reportIDsWithTransactionsAndViolations.includes(report.reportID));
+            return Object.keys(allReportsTransactionsAndViolations).reduce<Record<string, Report>>((acc, reportID) => {
+                const policyReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                if (policyReport?.policyID === policyID) {
+                    acc[reportID] = policyReport;
+                }
+                return acc;
+            }, {});
         },
     });
 
-    const transactionsAndViolations = useMemo(
-        () =>
-            (reports ?? []).reduce<ReportTransactionsAndViolationsDerivedValue>((acc, report) => {
-                if (report?.reportID && allReportsTransactionsAndViolations?.[report.reportID]) {
-                    acc[report.reportID] = allReportsTransactionsAndViolations[report.reportID];
-                }
-                return acc;
-            }, {}),
-        [reports, allReportsTransactionsAndViolations],
-    );
+    const transactionsAndViolations = useMemo(() => {
+        if (!reports || !allReportsTransactionsAndViolations) {
+            return {};
+        }
+
+        return Object.keys(reports).reduce<ReportTransactionsAndViolationsDerivedValue>((acc, reportID) => {
+            if (allReportsTransactionsAndViolations[reportID]) {
+                acc[reportID] = allReportsTransactionsAndViolations[reportID];
+            }
+            return acc;
+        }, {});
+    }, [reports, allReportsTransactionsAndViolations]);
 
     return {
-        reports: reports as Array<OnyxValueWithOfflineFeedback<Report>>,
-        policy: policy as OnyxValueWithOfflineFeedback<Policy>,
-        categories: categories ?? {},
-        tags: tagsLists ?? {},
         transactionsAndViolations,
+
+        tags: tags ?? {},
+        categories: categories ?? {},
+        policy: policy as OnyxValueWithOfflineFeedback<Policy>,
+        reports: Object.values(reports ?? {}) as Array<OnyxValueWithOfflineFeedback<Report>>,
     };
 }
 

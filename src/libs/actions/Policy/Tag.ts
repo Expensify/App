@@ -1,7 +1,7 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {PolicyData} from '@hooks/usePolicyData/types';
+import type PolicyData from '@hooks/usePolicyData/types';
 import * as API from '@libs/API';
 import type {
     EnablePolicyTagsParams,

@@ -10,4 +10,4 @@ type PolicyData = {
     transactionsAndViolations: ReportTransactionsAndViolationsDerivedValue;
 };
 
-export type {PolicyData};
+export default PolicyData;
