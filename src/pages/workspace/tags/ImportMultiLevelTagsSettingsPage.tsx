@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -48,6 +49,8 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
     const [isImportingTags, setIsImportingTags] = useState(false);
     const {setIsClosing} = useCloseImportPage();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+
+    const isFocused = useIsFocused();
 
     useEffect(() => {
         setImportedSpreadsheetIsFirstLineHeader(true);
@@ -144,7 +147,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         />
                     </FixedFooter>
                     <ConfirmModal
-                        isVisible={spreadsheet?.shouldFinalModalBeOpened ?? false}
+                        isVisible={isFocused && (spreadsheet?.shouldFinalModalBeOpened ?? false)}
                         title={spreadsheet?.importFinalModal?.title ?? ''}
                         prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
                         onConfirm={closeImportPageAndModal}
