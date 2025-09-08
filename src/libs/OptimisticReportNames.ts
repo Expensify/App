@@ -280,15 +280,10 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
  * This is the main middleware function that processes optimistic data
  */
 function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: UpdateContext): OnyxUpdate[] {
-    Performance.markStart(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
-    Timing.start(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
-
     const {betas, allReports, betaConfiguration} = context;
 
     // Check if the feature is enabled
     if (!Permissions.isBetaEnabled(CONST.BETAS.AUTH_AUTO_REPORT_TITLE, betas, betaConfiguration)) {
-        Performance.markEnd(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
-        Timing.end(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
         return updates;
     }
 
@@ -374,9 +369,6 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
         additionalUpdatesCount: additionalUpdates.length,
         totalUpdatesReturned: updates.length + additionalUpdates.length,
     });
-
-    Performance.markEnd(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
-    Timing.end(CONST.TIMING.UPDATE_OPTIMISTIC_REPORT_NAMES);
 
     return updates.concat(additionalUpdates);
 }

@@ -11,7 +11,7 @@ import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import usePopoverPosition from '@hooks/usePopoverPosition';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -56,7 +56,6 @@ function ThreeDotsMenu({
     const {translate} = useLocalize();
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const showPopoverMenu = () => {
         setPopupMenuVisible(true);
     };
@@ -80,19 +79,10 @@ function ThreeDotsMenu({
         hidePopoverMenu();
     }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible]);
 
-    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
-        if (shouldUseNarrowLayout) {
-            return Promise.resolve({horizontal: 0, vertical: 0});
-        }
-        return new Promise<AnchorPosition>((resolve) => {
-            buttonRef.current?.measureInWindow((x, y, width, height) => {
-                resolve({
-                    horizontal: x + width,
-                    vertical: y + height,
-                });
-            });
-        });
-    }, [shouldUseNarrowLayout]);
+    const {calculatePopoverPosition} = usePopoverPosition();
+
+    const calculateAndSetThreeDotsMenuPosition = useCallback(() => calculatePopoverPosition(buttonRef, anchorAlignment), [anchorAlignment, calculatePopoverPosition]);
+
     const getMenuPosition = shouldSelfPosition ? calculateAndSetThreeDotsMenuPosition : getAnchorPosition;
 
     useLayoutEffect(() => {

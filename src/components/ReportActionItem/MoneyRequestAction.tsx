@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {createTransactionThreadReport} from '@libs/actions/Report';
 import {isIOUReportPendingCurrencyConversion} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -22,7 +23,6 @@ import {
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
-import {generateReportID} from '@libs/ReportUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
@@ -118,12 +118,12 @@ function MoneyRequestAction({
         // so we need to send the parentReportActionID and the transactionID to the route so we can call OpenReport correctly
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
         if (!action?.childReportID && transactionID && action.reportActionID) {
-            const optimisticReportID = generateReportID();
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, action.reportActionID, transactionID, Navigation.getActiveRoute()));
+            const transactionThreadReport = createTransactionThreadReport(iouReport, action);
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(transactionThreadReport?.reportID, undefined, undefined, Navigation.getActiveRoute()));
             return;
         }
 
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action?.childReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action?.childReportID, undefined, undefined, Navigation.getActiveRoute()));
     };
 
     let shouldShowPendingConversionMessage = false;
