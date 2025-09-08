@@ -443,6 +443,7 @@ function NumberWithSymbolForm({
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             isNegative={isNegative}
             toggleNegative={toggleNegative}
+            onFocus={props.onFocus}
         />
     );
 
