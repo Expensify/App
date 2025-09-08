@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {PermissionStatus} from 'react-native-permissions';
 import {RESULTS} from 'react-native-permissions';
