@@ -599,7 +599,7 @@ const translations = {
         chooseFiles: 'Bestanden kiezen',
         dropTitle: 'Laat het gaan',
         dropMessage: 'Sleep hier je bestand in.',
-        ignore: 'Ignore',
+        ignore: 'negeren',
         enabled: 'Ingeschakeld',
         disabled: 'Uitgeschakeld',
         import: 'Importeren',

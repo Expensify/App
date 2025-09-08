@@ -599,7 +599,7 @@ const translations = {
         chooseFiles: 'Dateien auswählen',
         dropTitle: 'Lass es los',
         dropMessage: 'Datei hier ablegen',
-        ignore: 'Ignore',
+        ignore: 'ignorieren',
         enabled: 'Aktiviert',
         disabled: 'Deaktiviert',
         import: 'Importieren',

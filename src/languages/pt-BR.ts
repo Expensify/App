@@ -600,7 +600,7 @@ const translations = {
         chooseFiles: 'Escolher arquivos',
         dropTitle: 'Deixe ir',
         dropMessage: 'Solte seu arquivo aqui',
-        ignore: 'Ignore',
+        ignore: 'ignorar',
         enabled: 'Ativado',
         disabled: 'Desativado',
         import: 'Importar',
