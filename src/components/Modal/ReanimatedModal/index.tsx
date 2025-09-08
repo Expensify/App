@@ -7,6 +7,7 @@ import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -115,6 +116,7 @@ function ReanimatedModal({
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillHide();
 
+            blurActiveElement();
             setIsVisibleState(false);
             setIsTransitioning(true);
         }
@@ -140,7 +142,10 @@ function ReanimatedModal({
         if (handleRef.current) {
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
-        if (getPlatform() !== CONST.PLATFORM.IOS) {
+        // Because on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
+        // https://stackoverflow.com/questions/58937956/react-native-modal-ondismiss-not-invoked
+        // Therefore, we manually call onModalHide() here for Android.
+        if (getPlatform() === CONST.PLATFORM.ANDROID) {
             onModalHide();
         }
     }, [onModalHide]);
@@ -202,7 +207,7 @@ function ReanimatedModal({
                 testID={testID}
                 onDismiss={() => {
                     onDismiss?.();
-                    if (getPlatform() === CONST.PLATFORM.IOS) {
+                    if (getPlatform() !== CONST.PLATFORM.ANDROID) {
                         onModalHide();
                     }
                 }}

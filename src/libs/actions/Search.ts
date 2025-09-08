@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
@@ -13,6 +13,7 @@ import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration} from '@libs/PolicyUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {buildOptimisticExportIntegrationAction, hasHeldExpenses, isExpenseReport, isInvoiceReport, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
@@ -22,20 +23,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {LastPaymentMethod, LastPaymentMethodType, Policy} from '@src/types/onyx';
+import type {LastPaymentMethod, LastPaymentMethodType, Policy, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
-import saveLastSearchParams from './ReportNavigation';
-
-type OnyxSearchResponse = {
-    data: [];
-    search: {
-        offset: number;
-        hasMoreResults: boolean;
-    };
-};
 
 function handleActionButtonPress(
     hash: number,
@@ -297,15 +289,6 @@ function deleteSavedSearch(hash: number) {
     API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
 }
 
-function openSearchFiltersCardPage() {
-    const optimisticData: OnyxUpdate[] = [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, value: null}];
-
-    const successData: OnyxUpdate[] = [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, value: null}];
-
-    const failureData: OnyxUpdate[] = [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, value: null}];
-    API.read(READ_COMMANDS.OPEN_SEARCH_FILTERS_CARD_PAGE, null, {optimisticData, successData, failureData});
-}
-
 function openSearchPage() {
     API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, null);
 }
@@ -315,13 +298,11 @@ function search({
     searchKey,
     offset,
     shouldCalculateTotals = false,
-    prevReports,
 }: {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
     offset?: number;
     shouldCalculateTotals?: boolean;
-    prevReports?: Array<string | undefined>;
 }) {
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
@@ -329,46 +310,11 @@ function search({
         ...queryJSONWithoutFlatFilters,
         searchKey,
         offset,
-        filters: queryJSONWithoutFlatFilters.filters ?? null,
         shouldCalculateTotals,
     };
     const jsonQuery = JSON.stringify(query);
 
-    saveLastSearchParams({
-        queryJSON,
-        offset,
-        allowPostSearchRecount: false,
-    });
-
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData}).then((result) => {
-        const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
-        const reports = Object.keys(response?.data ?? {})
-            .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
-            .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
-        if (response?.search?.offset) {
-            // Indicates that search results are extended from the Report view (with navigation between reports),
-            // using previous results to enable correct counter behavior.
-            if (prevReports) {
-                saveLastSearchParams({
-                    queryJSON,
-                    offset,
-                    hasMoreResults: !!response?.search?.hasMoreResults,
-                    previousLengthOfResults: prevReports.length,
-                    allowPostSearchRecount: false,
-                });
-            }
-        } else {
-            // Applies to all searches from the Search View
-            saveLastSearchParams({
-                queryJSON,
-                offset,
-                hasMoreResults: !!response?.search?.hasMoreResults,
-                previousLengthOfResults: reports.length,
-                allowPostSearchRecount: true,
-            });
-        }
-    });
+    API.read(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData});
 }
 
 /**
@@ -386,8 +332,24 @@ function updateSearchResultsWithTransactionThreadReportID(hash: number, transact
     Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, onyxUpdate);
 }
 
-function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string) {
+function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string, allTransactions: OnyxCollection<Transaction>, allReportActions: OnyxCollection<ReportActions>) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+    transactionIDList.forEach((transactionID) => {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {};
+        const iouReportAction = getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID);
+        if (iouReportAction) {
+            optimisticData.push({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    [iouReportAction.reportActionID]: {
+                        childVisibleActionCount: (iouReportAction?.childVisibleActionCount ?? 0) + 1,
+                    },
+                },
+            });
+        }
+    });
 
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
@@ -632,7 +594,6 @@ export {
     approveMoneyRequestOnSearch,
     handleActionButtonPress,
     submitMoneyRequestOnSearch,
-    openSearchFiltersCardPage,
     openSearchPage as openSearch,
     getLastPolicyPaymentMethod,
     getLastPolicyBankAccountID,
