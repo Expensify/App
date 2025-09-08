@@ -424,9 +424,7 @@ function AuthScreens() {
             true,
         );
         return () => unsubscribeEscapeKey();
-        // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [modal?.disableDismissOnEscape, modal?.willAlertModalBecomeVisible]);
 
     // Animation is disabled when navigating to the sidebar screen
     const getWorkspaceSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
