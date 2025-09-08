@@ -1,6 +1,6 @@
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
-import type {Connection, OnyxEntry} from 'react-native-onyx';
+import type {Connection, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {formatCurrentUserToAttendee} from '@libs/IOUUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -97,8 +97,9 @@ function removeDraftSplitTransaction(transactionID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
-function removeDraftTransactions(shouldExcludeInitialTransaction = false) {
-    const draftTransactions = getDraftTransactions();
+function removeDraftTransactions(shouldExcludeInitialTransaction = false, allTransactionDrafts?: OnyxCollection<Transaction>) {
+    const draftTransactions = getDraftTransactions(allTransactionDrafts);
+
     if (!draftTransactions || draftTransactions.length === 0) {
         return new Promise<void>((resolve) => {
             // We do not depend on updates on the UI to remove draft transactions
@@ -129,6 +130,7 @@ function removeDraftTransactions(shouldExcludeInitialTransaction = false) {
             });
         });
     }
+
     const draftTransactionsSet = draftTransactions.reduce(
         (acc, item) => {
             if (shouldExcludeInitialTransaction && item.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {

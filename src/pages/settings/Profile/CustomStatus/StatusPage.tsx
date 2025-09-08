@@ -21,8 +21,10 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobileChrome} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import focusAfterModalClose from '@libs/focusAfterModalClose';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -189,7 +191,7 @@ function StatusPage() {
             <FormProvider
                 formID={ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM}
                 style={[styles.flexGrow1, styles.flex1]}
-                forwardedRef={formRef}
+                ref={formRef}
                 submitButtonText={translate('statusPage.save')}
                 submitButtonStyles={[styles.mh5, styles.flexGrow1]}
                 onSubmit={updateStatus}
@@ -209,7 +211,15 @@ function StatusPage() {
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={defaultEmoji}
                             style={styles.mb3}
-                            onModalHide={() => focusAfterModalClose(inputRef.current)}
+                            onModalHide={() => {
+                                // On mobile Chrome, the input will blur immediately upon focus if the focus function is called right after the modal closes, even though the modal has fully closed.
+                                // Therefore, use the `focusComposerWithDelay` helper as used in `ComposerWithSuggestions` for this case.
+                                if (isMobileChrome()) {
+                                    focusComposerWithDelay(inputRef.current)(true);
+                                } else {
+                                    focusAfterModalClose(inputRef.current);
+                                }
+                            }}
                             // eslint-disable-next-line @typescript-eslint/no-unused-vars
                             onInputChange={(emoji: string): void => {}}
                         />
