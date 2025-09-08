@@ -5076,11 +5076,11 @@ const buildReportNameFromParticipantNames = ({report, personalDetails: personalD
             return formattedNames ? `${formattedNames}, ${name}` : name;
         }, '');
 
-function generateReportName(report: OnyxEntry<Report>): string {
+function generateReportName(report: OnyxEntry<Report>, isReportArchived: boolean): string {
     if (!report) {
         return '';
     }
-    return getReportNameInternal({report});
+    return getReportNameInternal({report, isReportArchived});
 }
 
 /**
@@ -5094,7 +5094,7 @@ function getReportName(
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
     transactions?: SearchTransaction[],
-    isReportArchived = false,
+    isReportArchived?: boolean,
 ): string {
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue =

@@ -1012,7 +1012,7 @@ function getWelcomeMessage(
 function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = false, reportDetailsLink = ''): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
-    const reportName = getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived);
+    const reportName = getReportName(report);
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);
