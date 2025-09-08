@@ -19,13 +19,12 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Account} from '@src/types/onyx';
 
 type ImageRendererWithOnyxProps = {
-    /** Current user account */
+    /** Whether we should use the staging version of the secure API server */
     // Following line is disabled because the onyx prop is only being used on the memo HOC
     // eslint-disable-next-line react/no-unused-prop-types
-    account: OnyxEntry<Account>;
+    shouldUseStagingServer: OnyxEntry<boolean>;
 };
 
 type ImageRendererProps = ImageRendererWithOnyxProps & CustomRendererProps<TBlock>;
@@ -150,16 +149,16 @@ ImageRenderer.displayName = 'ImageRenderer';
 
 const ImageRendererMemorize = memo(
     ImageRenderer,
-    (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes && prevProps.account?.shouldUseStagingServer === nextProps.account?.shouldUseStagingServer,
+    (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes && prevProps.shouldUseStagingServer === nextProps.shouldUseStagingServer,
 );
 
 function ImageRendererWrapper(props: CustomRendererProps<TBlock>) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [shouldUseStagingServer] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER, {canBeMissing: true});
     return (
         <ImageRendererMemorize
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            account={account}
+            shouldUseStagingServer={shouldUseStagingServer}
         />
     );
 }
