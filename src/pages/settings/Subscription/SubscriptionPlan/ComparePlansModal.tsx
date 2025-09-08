@@ -3,10 +3,9 @@ import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import type {AnimationOut} from '@components/Modal/ReanimatedModal/types';
+import RenderHTML from '@components/RenderHTML';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,13 +39,13 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
         setIsModalVisible(false);
     };
 
+    const onClose = () => setIsModalVisible(false);
+
     const renderPlans = () => (
         <View style={isSmallScreenWidth ? [styles.ph4, styles.pb8] : [styles.ph8, styles.pb8]}>
-            <Text style={[styles.textLabelSupporting, styles.textNormal]}>
-                {translate('subscription.compareModal.unlockTheFeatures')}
-                <TextLink href={CONST.PRICING}>{translate('subscription.compareModal.viewOurPricing')}</TextLink>
-                {translate('subscription.compareModal.forACompleteFeatureBreakdown')}
-            </Text>
+            <View style={[styles.renderHTML]}>
+                <RenderHTML html={translate('subscription.compareModal.subtitle')} />
+            </View>
             <View style={isSmallScreenWidth ? styles.flexColumn : [styles.flexRow, styles.gap3]}>
                 <SubscriptionPlanCard
                     subscriptionPlan={CONST.POLICY.TYPE.TEAM}
@@ -70,15 +69,16 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
                 <Modal
                     isVisible={isModalVisible}
                     type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED : CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
-                    onClose={() => setIsModalVisible(false)}
+                    onClose={onClose}
                     animationOut={isSmallScreenWidth ? animationOut : undefined}
                     innerContainerStyle={isSmallScreenWidth ? {...safeAreaPaddingBottomStyle, maxHeight} : {...styles.workspaceSection, ...safeAreaPaddingBottomStyle, maxHeight}}
                 >
                     <HeaderWithBackButton
                         title={translate('subscription.compareModal.comparePlans')}
-                        shouldShowCloseButton
-                        onCloseButtonPress={() => setIsModalVisible(false)}
-                        shouldShowBackButton={false}
+                        shouldShowCloseButton={!isSmallScreenWidth}
+                        onCloseButtonPress={onClose}
+                        shouldShowBackButton={isSmallScreenWidth}
+                        onBackButtonPress={onClose}
                         style={isSmallScreenWidth ? styles.pl4 : [styles.pr3, styles.pl8]}
                         shouldDisplayHelpButton={false}
                     />

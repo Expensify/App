@@ -144,6 +144,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the expense is a distance expense */
     isDistanceRequest: boolean;
 
+    /** Whether the expense is a manual distance expense */
+    isManualDistanceRequest: boolean;
+
     /** Whether the expense is a per diem expense */
     isPerDiemRequest?: boolean;
 
@@ -183,6 +186,12 @@ type MoneyRequestConfirmationListProps = {
     /** The PDF password callback */
     onPDFPassword?: () => void;
 
+    /** Function to toggle reimbursable */
+    onToggleReimbursable?: (isOn: boolean) => void;
+
+    /** Flag indicating if the IOU is reimbursable */
+    iouIsReimbursable?: boolean;
+
     /** Show remove expense confirmation modal */
     showRemoveExpenseConfirmModal?: () => void;
 };
@@ -196,6 +205,7 @@ function MoneyRequestConfirmationList({
     iouType = CONST.IOU.TYPE.SUBMIT,
     iouAmount,
     isDistanceRequest,
+    isManualDistanceRequest,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     iouCategory = '',
@@ -225,6 +235,8 @@ function MoneyRequestConfirmationList({
     isConfirming,
     onPDFLoadError,
     onPDFPassword,
+    iouIsReimbursable = true,
+    onToggleReimbursable,
     showRemoveExpenseConfirmModal,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
@@ -702,6 +714,7 @@ function MoneyRequestConfirmationList({
                     contentWidth={(formattedTotalAmount.length + 1) * 8}
                     shouldApplyPaddingToContainer
                     shouldUseDefaultLineHeightForPrefix={false}
+                    shouldWrapInputInContainer={false}
                 />
             ),
         }));
@@ -865,7 +878,7 @@ function MoneyRequestConfirmationList({
             if (enabledTags.length !== 1 || getTag(transaction, index)) {
                 return;
             }
-            updatedTagsString = insertTagIntoTransactionTagsString(updatedTagsString, enabledTags.at(0)?.name ?? '', index);
+            updatedTagsString = insertTagIntoTransactionTagsString(updatedTagsString, enabledTags.at(0)?.name ?? '', index, policy?.hasMultipleTagLists ?? false);
         });
         if (updatedTagsString !== getTag(transaction) && updatedTagsString) {
             setMoneyRequestTag(transactionID, updatedTagsString);
@@ -1125,6 +1138,7 @@ function MoneyRequestConfirmationList({
             iouType={iouType}
             isCategoryRequired={isCategoryRequired}
             isDistanceRequest={isDistanceRequest}
+            isManualDistanceRequest={isManualDistanceRequest}
             isPerDiemRequest={isPerDiemRequest}
             isMerchantEmpty={isMerchantEmpty}
             isMerchantRequired={isMerchantRequired}
@@ -1153,6 +1167,8 @@ function MoneyRequestConfirmationList({
             unit={unit}
             onPDFLoadError={onPDFLoadError}
             onPDFPassword={onPDFPassword}
+            iouIsReimbursable={iouIsReimbursable}
+            onToggleReimbursable={onToggleReimbursable}
             isReceiptEditable={isReceiptEditable}
         />
     );

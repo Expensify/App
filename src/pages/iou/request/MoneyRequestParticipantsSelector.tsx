@@ -110,6 +110,7 @@ function MoneyRequestParticipantsSelector(
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
@@ -216,7 +217,7 @@ function MoneyRequestParticipantsSelector(
             };
         }
 
-        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {
             canInviteUser: !isCategorizeOrShareAction && !isPerDiemRequest,
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -225,7 +226,7 @@ function MoneyRequestParticipantsSelector(
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action, isPerDiemRequest]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action, isPerDiemRequest, countryCode]);
 
     const inputHelperText = useMemo(
         () =>
@@ -346,7 +347,7 @@ function MoneyRequestParticipantsSelector(
         (option: Participant & Option) => {
             const newParticipants: Participant[] = [
                 {
-                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber'),
+                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber', 'displayName'),
                     selected: true,
                     iouType,
                 },

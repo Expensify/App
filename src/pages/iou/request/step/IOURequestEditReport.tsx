@@ -26,6 +26,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const currentUserEmail = session?.email ?? '';
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
+    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     const selectReport = (item: TransactionGroupListItem) => {
         if (selectedTransactionIDs.length === 0 || item.value === reportID) {
@@ -33,7 +35,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             return;
         }
 
-        changeTransactionsReport(selectedTransactionIDs, item.value, currentUserEmail);
+        changeTransactionsReport(selectedTransactionIDs, item.value, currentUserEmail, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`], reportNextStep);
         turnOffMobileSelectionMode();
         clearSelectedTransactions(true);
         Navigation.dismissModal();
@@ -55,6 +57,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         <IOURequestEditReportCommon
             backTo={backTo}
             transactionsReports={transactionReport ? [transactionReport] : []}
+            transactionIds={selectedTransactionIDs}
             selectReport={selectReport}
             removeFromReport={removeFromReport}
             isEditing={action === CONST.IOU.ACTION.EDIT}

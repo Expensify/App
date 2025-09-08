@@ -35,6 +35,7 @@ export default {
     avatarSizeLargeBordered: 88,
     avatarSizeXLarge: 100,
     avatarSizeLarge: 80,
+    avatarSizeMediumLarge: 60,
     avatarSizeMedium: 52,
     avatarSizeHeader: 40,
     avatarSizeNormal: 40,
@@ -304,6 +305,9 @@ export default {
     searchRouterInputMargin: 52,
 
     scrollToNewTransactionOffset: 300,
+
+    searchAutocompleteInputSkeletonHeight: 8,
+    searchAutocompleteInputSkeletonWidth: 145,
 
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,

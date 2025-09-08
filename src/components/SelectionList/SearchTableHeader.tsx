@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
-import type {SearchColumnType, SortOrder} from '@components/Search/types';
+import type {ValueOf} from 'type-fest';
+import type {SearchColumnType, SearchGroupBy, SortOrder} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -12,9 +13,10 @@ type SearchColumnConfig = {
     columnName: SearchColumnType;
     translationKey: TranslationPaths;
     isColumnSortable?: boolean;
+    canBeMissing?: boolean;
 };
 
-const expenseHeaders: SearchColumnConfig[] = [
+const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
         translationKey: 'common.receipt',
@@ -32,35 +34,50 @@ const expenseHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
         translationKey: 'common.merchant',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
         translationKey: 'common.description',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
         translationKey: 'common.from',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TO,
         translationKey: 'common.to',
+        canBeMissing: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.CARD,
+        translationKey: 'common.card',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
         translationKey: 'common.category',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG,
         translationKey: 'common.tag',
+        canBeMissing: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
+        translationKey: 'common.withdrawalID',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
         translationKey: 'common.tax',
         isColumnSortable: false,
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-        translationKey: 'common.total',
+        translationKey: groupBy ? 'common.total' : 'iou.amount',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -73,44 +90,60 @@ const taskHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
         translationKey: 'common.date',
+        canBeMissing: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
         translationKey: 'common.title',
+        canBeMissing: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
         translationKey: 'common.description',
+        canBeMissing: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
         translationKey: 'common.from',
+        canBeMissing: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.IN,
         translationKey: 'common.sharedIn',
         isColumnSortable: false,
+        canBeMissing: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE,
         translationKey: 'common.assignee',
+        canBeMissing: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
         translationKey: 'common.action',
         isColumnSortable: false,
+        canBeMissing: false,
     },
 ];
 
-const SearchColumns = {
-    [CONST.SEARCH.DATA_TYPES.EXPENSE]: expenseHeaders,
-    [CONST.SEARCH.DATA_TYPES.INVOICE]: expenseHeaders,
-    [CONST.SEARCH.DATA_TYPES.TRIP]: expenseHeaders,
-    [CONST.SEARCH.DATA_TYPES.TASK]: taskHeaders,
-    [CONST.SEARCH.DATA_TYPES.CHAT]: null,
-};
+function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy?: SearchGroupBy) {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            return getExpenseHeaders(groupBy);
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            return getExpenseHeaders(groupBy);
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return getExpenseHeaders(groupBy);
+        case CONST.SEARCH.DATA_TYPES.TASK:
+            return taskHeaders;
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+        default:
+            return null;
+    }
+}
 
 type SearchTableHeaderProps = {
+    columns: SortableColumnName[];
     metadata: OnyxTypes.SearchResults['search'];
     sortBy?: SearchColumnType;
     sortOrder?: SortOrder;
@@ -120,10 +153,12 @@ type SearchTableHeaderProps = {
     isTaxAmountColumnWide: boolean;
     shouldShowSorting: boolean;
     canSelectMultiple: boolean;
-    columns: SortableColumnName[];
+    groupBy: SearchGroupBy | undefined;
+    areAllOptionalColumnsHidden: boolean;
 };
 
 function SearchTableHeader({
+    columns,
     metadata,
     sortBy,
     sortOrder,
@@ -133,7 +168,8 @@ function SearchTableHeader({
     canSelectMultiple,
     isAmountColumnWide,
     isTaxAmountColumnWide,
-    columns,
+    groupBy,
+    areAllOptionalColumnsHidden,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -142,16 +178,26 @@ function SearchTableHeader({
 
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
+            if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
+                return columnName === CONST.SEARCH.TABLE_COLUMNS.FROM || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
+            }
+            if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
+                return columnName === CONST.SEARCH.TABLE_COLUMNS.CARD || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
+            }
+            if (groupBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID) {
+                return columnName === CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
+            }
+
             return columns.includes(columnName);
         },
-        [columns],
+        [columns, groupBy],
     );
 
     if (displayNarrowVersion) {
         return;
     }
 
-    const columnConfig = SearchColumns[metadata.type];
+    const columnConfig = getSearchColumns(metadata.type, groupBy);
 
     if (!columnConfig) {
         return;
@@ -160,6 +206,7 @@ function SearchTableHeader({
     return (
         <SortableTableHeader
             columns={columnConfig}
+            areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
             shouldShowColumn={shouldShowColumn}
             dateColumnSize={shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             amountColumnSize={isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
@@ -180,5 +227,5 @@ function SearchTableHeader({
 }
 
 SearchTableHeader.displayName = 'SearchTableHeader';
-
+export {getExpenseHeaders};
 export default SearchTableHeader;

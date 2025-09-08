@@ -1,10 +1,11 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
-import type {TableColumnSize} from '@components/Search/types';
+import RadioButton from '@components/RadioButton';
+import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import ActionCell from '@components/SelectionList/Search/ActionCell';
 import DateCell from '@components/SelectionList/Search/DateCell';
 import UserInfoCell from '@components/SelectionList/Search/UserInfoCell';
@@ -26,7 +27,7 @@ import {
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {TransactionViolation} from '@src/types/onyx';
+import type {Report, TransactionViolation} from '@src/types/onyx';
 import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
@@ -75,25 +76,34 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** Precomputed violations */
     violations?: TransactionViolation[];
+
+    /** Used to initiate payment from search page */
+    hash?: number;
 };
 
 type TransactionItemRowProps = {
     transactionItem: TransactionWithOptionalSearchFields;
+    report?: Report;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
-    onCheckboxPress: (transactionID: string) => void;
-    shouldShowCheckbox: boolean;
-    columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
+    onCheckboxPress?: (transactionID: string) => void;
+    shouldShowCheckbox?: boolean;
+    columns?: SearchColumnType[];
     onButtonPress?: () => void;
-    columnWrapperStyles?: ViewStyle[];
+    style?: StyleProp<ViewStyle>;
     isReportItemChild?: boolean;
     isActionLoading?: boolean;
     isInSingleTransactionReport?: boolean;
+    shouldShowRadioButton?: boolean;
+    onRadioButtonPress?: (transactionID: string) => void;
+    shouldShowErrors?: boolean;
+    shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
+    areAllOptionalColumnsHidden?: boolean;
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -111,21 +121,27 @@ function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, t
 
 function TransactionItemRow({
     transactionItem,
+    report,
     shouldUseNarrowLayout,
     isSelected,
     shouldShowTooltip,
     dateColumnSize,
     amountColumnSize,
     taxAmountColumnSize,
-    onCheckboxPress,
+    onCheckboxPress = () => {},
     shouldShowCheckbox = false,
     columns,
     onButtonPress = () => {},
-    columnWrapperStyles,
+    style,
     isReportItemChild = false,
     isActionLoading,
     isInSingleTransactionReport = false,
+    shouldShowRadioButton = false,
+    onRadioButtonPress = () => {},
+    shouldShowErrors = true,
+    shouldHighlightItemWhenSelected = true,
     isDisabled = false,
+    areAllOptionalColumnsHidden = false,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -139,11 +155,11 @@ function TransactionItemRow({
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
 
     const bgActiveStyles = useMemo(() => {
-        if (!isSelected) {
+        if (!isSelected || !shouldHighlightItemWhenSelected) {
             return [];
         }
         return styles.activeComponentBG;
-    }, [isSelected, styles.activeComponentBG]);
+    }, [isSelected, styles.activeComponentBG, shouldHighlightItemWhenSelected]);
 
     const merchant = useMemo(() => getMerchantName(transactionItem, translate), [transactionItem, translate]);
     const description = getDescription(transactionItem);
@@ -213,7 +229,7 @@ function TransactionItemRow({
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE]: (
                 <View
                     key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide)]}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false, areAllOptionalColumnsHidden)]}
                 >
                     <DateCell
                         created={createdAt}
@@ -247,6 +263,10 @@ function TransactionItemRow({
                             parentAction={transactionItem.parentTransactionID}
                             goToItem={onButtonPress}
                             isLoading={isActionLoading}
+                            reportID={transactionItem.reportID}
+                            policyID={report?.policyID}
+                            hash={transactionItem?.hash}
+                            amount={report?.total}
                         />
                     )}
                 </View>
@@ -275,6 +295,7 @@ function TransactionItemRow({
                             merchantOrDescription={description}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
+                            isDescription
                         />
                     )}
                 </View>
@@ -358,16 +379,18 @@ function TransactionItemRow({
             shouldShowTooltip,
             shouldUseNarrowLayout,
             transactionItem,
+            report?.policyID,
+            report?.total,
+            areAllOptionalColumnsHidden,
         ],
     );
-    const safeColumnWrapperStyle = columnWrapperStyles ?? [styles.p3, styles.expenseWidgetRadius];
     const shouldRenderChatBubbleCell = useMemo(() => {
         return columns?.includes(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) ?? false;
     }, [columns]);
 
     if (shouldUseNarrowLayout) {
         return (
-            <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.p3, styles.pt2, bgActiveStyles]}>
+            <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, bgActiveStyles, style, styles.overflowHidden]}>
                 <View style={[styles.flexRow]}>
                     {shouldShowCheckbox && (
                         <Checkbox
@@ -415,6 +438,7 @@ function TransactionItemRow({
                                     merchantOrDescription={merchantOrDescription}
                                     shouldShowTooltip={shouldShowTooltip}
                                     shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    isDescription={!merchant}
                                 />
                                 <TotalCell
                                     transactionItem={transactionItem}
@@ -424,6 +448,17 @@ function TransactionItemRow({
                             </View>
                         )}
                     </View>
+                    {shouldShowRadioButton && (
+                        <View style={[styles.ml3, styles.justifyContentCenter]}>
+                            <RadioButton
+                                isChecked={isSelected}
+                                disabled={isDisabled}
+                                onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
+                                accessibilityLabel={CONST.ROLE.RADIO}
+                                shouldUseNewStyle
+                            />
+                        </View>
+                    )}
                 </View>
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
                     <View style={[styles.flexColumn, styles.flex1]}>
@@ -441,11 +476,14 @@ function TransactionItemRow({
                                 />
                             </View>
                         )}
-                        <TransactionItemRowRBRWithOnyx
-                            transaction={transactionItem}
-                            containerStyles={[styles.mt2, styles.minHeight4]}
-                            missingFieldError={missingFieldError}
-                        />
+                        {shouldShowErrors && (
+                            <TransactionItemRowRBRWithOnyx
+                                transaction={transactionItem}
+                                report={report}
+                                containerStyles={[styles.mt2, styles.minHeight4]}
+                                missingFieldError={missingFieldError}
+                            />
+                        )}
                     </View>
                     {shouldRenderChatBubbleCell && (
                         <ChatBubbleCell
@@ -460,24 +498,40 @@ function TransactionItemRow({
     }
 
     return (
-        <View style={[...safeColumnWrapperStyle, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100]}>
+        <View style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100, style]}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                <Checkbox
-                    disabled={isDisabled}
-                    onPress={() => {
-                        onCheckboxPress(transactionItem.transactionID);
-                    }}
-                    accessibilityLabel={CONST.ROLE.CHECKBOX}
-                    isChecked={isSelected}
-                    style={styles.mr1}
-                    wrapperStyle={styles.justifyContentCenter}
-                />
-                {columns?.map((column) => columnComponent[column])}
+                {!shouldShowRadioButton && (
+                    <Checkbox
+                        disabled={isDisabled}
+                        onPress={() => {
+                            onCheckboxPress(transactionItem.transactionID);
+                        }}
+                        accessibilityLabel={CONST.ROLE.CHECKBOX}
+                        isChecked={isSelected}
+                        style={styles.mr1}
+                        wrapperStyle={styles.justifyContentCenter}
+                    />
+                )}
+                {columns?.map((column) => columnComponent[column as keyof ColumnComponents]).filter(Boolean)}
+                {shouldShowRadioButton && (
+                    <View style={[styles.ml1, styles.justifyContentCenter]}>
+                        <RadioButton
+                            isChecked={isSelected}
+                            disabled={isDisabled}
+                            onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
+                            accessibilityLabel={CONST.ROLE.RADIO}
+                            shouldUseNewStyle
+                        />
+                    </View>
+                )}
             </View>
-            <TransactionItemRowRBRWithOnyx
-                transaction={transactionItem}
-                missingFieldError={missingFieldError}
-            />
+            {shouldShowErrors && (
+                <TransactionItemRowRBRWithOnyx
+                    transaction={transactionItem}
+                    report={report}
+                    missingFieldError={missingFieldError}
+                />
+            )}
         </View>
     );
 }

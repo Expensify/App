@@ -1,6 +1,7 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {SortOrder, TableColumnSize} from '@components/Search/types';
+import type {SearchColumnType, SortOrder, TableColumnSize} from '@components/Search/types';
+import {getExpenseHeaders} from '@components/SelectionList/SearchTableHeader';
 import SortableTableHeader from '@components/SelectionList/SortableTableHeader';
 import type {SortableColumnName} from '@components/SelectionList/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,9 +9,10 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 type ColumnConfig = {
-    columnName: SortableColumnName;
+    columnName: SearchColumnType;
     translationKey: TranslationPaths | undefined;
     isColumnSortable?: boolean;
+    canBeMissing?: boolean;
 };
 
 const columnConfig: ColumnConfig[] = [
@@ -31,18 +33,23 @@ const columnConfig: ColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
         translationKey: 'common.merchant',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
         translationKey: 'common.description',
+        canBeMissing: true,
+        isColumnSortable: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
         translationKey: 'common.category',
+        canBeMissing: true,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG,
         translationKey: 'common.tag',
+        canBeMissing: true,
     },
     {
         columnName: CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS,
@@ -51,7 +58,7 @@ const columnConfig: ColumnConfig[] = [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-        translationKey: 'common.total',
+        translationKey: 'iou.amount',
     },
 ];
 
@@ -63,24 +70,32 @@ type SearchTableHeaderProps = {
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     shouldShowSorting: boolean;
-    columns: SortableColumnName[];
+    columns: SearchColumnType[];
 };
 
-function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting, amountColumnSize, taxAmountColumnSize, columns}: SearchTableHeaderProps) {
+const expenseHeaders = getExpenseHeaders();
+
+function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting, columns, amountColumnSize, taxAmountColumnSize}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
 
     const shouldShowColumn = useCallback(
-        (columnName: SortableColumnName) => {
+        (columnName: SearchColumnType) => {
             return columns.includes(columnName);
         },
         [columns],
     );
+
+    const areAllOptionalColumnsHidden = useMemo(() => {
+        const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
+        return canBeMissingColumns.every((column) => !columns.includes(column));
+    }, [columns]);
 
     return (
         <View style={[styles.dFlex, styles.flex5]}>
             <SortableTableHeader
                 columns={columnConfig}
                 shouldShowColumn={shouldShowColumn}
+                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                 dateColumnSize={dateColumnSize}
                 amountColumnSize={amountColumnSize}
                 taxAmountColumnSize={taxAmountColumnSize}

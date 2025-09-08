@@ -96,11 +96,12 @@ const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALLER]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
-    [CONST.AVATAR_SIZE.HEADER]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.HEADER]: variables.componentBorderRadiusNormal,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.componentBorderRadiusLarge,
+    [CONST.AVATAR_SIZE.MEDIUM_LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.componentBorderRadiusRounded,
     [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.componentBorderRadiusMedium,
 };
@@ -116,6 +117,7 @@ const avatarSizes: Record<AvatarSizeName, AvatarSizeValue> = {
     [CONST.AVATAR_SIZE.X_LARGE]: variables.avatarSizeXLarge,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
+    [CONST.AVATAR_SIZE.MEDIUM_LARGE]: variables.avatarSizeMediumLarge,
     [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
     [CONST.AVATAR_SIZE.MENTION_ICON]: variables.avatarSizeMentionIcon,
     [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.avatarSizeSmallNormal,
@@ -130,6 +132,7 @@ const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.SMALL]: variables.fontSizeSmall,
     [CONST.AVATAR_SIZE.SMALLER]: variables.fontSizeExtraSmall,
     [CONST.AVATAR_SIZE.LARGE]: variables.fontSizeXLarge,
+    [CONST.AVATAR_SIZE.MEDIUM_LARGE]: variables.fontSizeXLarge,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.fontSizeMedium,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.fontSizeXLarge,
 };
@@ -141,7 +144,9 @@ const avatarBorderWidths: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.SUBSCRIPT]: 2,
     [CONST.AVATAR_SIZE.SMALL]: 2,
     [CONST.AVATAR_SIZE.SMALLER]: 2,
+    [CONST.AVATAR_SIZE.HEADER]: 2,
     [CONST.AVATAR_SIZE.LARGE]: 4,
+    [CONST.AVATAR_SIZE.MEDIUM_LARGE]: 3,
     [CONST.AVATAR_SIZE.X_LARGE]: 4,
     [CONST.AVATAR_SIZE.MEDIUM]: 3,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: 4,
@@ -1240,11 +1245,11 @@ function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, is
  * the first last item to have spacing to create the effect of having more items in the list.
  */
 function getOptionMargin(itemIndex: number, itemsLen: number) {
-    if (itemIndex === itemsLen && itemsLen > 5) {
+    if (itemIndex === itemsLen && itemsLen >= 5) {
         return {marginBottom: 16};
     }
 
-    if (itemIndex === 0 && itemsLen > 5) {
+    if (itemIndex === 0 && itemsLen >= 5) {
         return {marginTop: 16};
     }
 
@@ -1709,7 +1714,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
-    getReportTableColumnStyles: (columnName: string, isDateColumnWide = false, isAmountColumnWide = false, isTaxAmountColumnWide = false): ViewStyle => {
+    getReportTableColumnStyles: (columnName: string, isDateColumnWide = false, isAmountColumnWide = false, isTaxAmountColumnWide = false, isDateColumnFullWidth = false): ViewStyle => {
         let columnWidth;
         switch (columnName) {
             case CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS:
@@ -1717,7 +1722,11 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
-                columnWidth = getWidthStyle(isDateColumnWide ? variables.w92 : variables.w52);
+                if (isDateColumnFullWidth) {
+                    columnWidth = styles.flex1;
+                    break;
+                }
+                columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w92 : variables.w52)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
@@ -1773,6 +1782,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.AVATAR_SIZE.LARGE:
                 containerStyles = [styles.emptyAvatarLarge, styles.mb2, styles.mr2];
+                break;
+            case CONST.AVATAR_SIZE.X_LARGE:
+                containerStyles = [styles.emptyAvatarXLarge, styles.mb3, styles.mr3];
                 break;
             default:
                 containerStyles = [styles.emptyAvatar, isInReportAction ? styles.emptyAvatarMarginChat : styles.emptyAvatarMargin];

@@ -307,7 +307,7 @@ const mainWindow = (): Promise<void> => {
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (__DEV__) {
-        app.dock.setIcon(`${__dirname}/../icon-dev.png`);
+        app?.dock?.setIcon(`${__dirname}/../icon-dev.png`);
         app.setName('New Expensify Dev');
     }
 
