@@ -133,19 +133,8 @@ jest.mock('@src/libs/actions/Report', () => {
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
-jest.mock('@src/libs/SearchQueryUtils', () => ({
-    getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
-        hash: 12345,
-        query: 'test',
-        type: 'invoice',
-        status: '',
-        flatFilters: [],
-    })),
-    buildQueryStringFromFilterFormValues: jest.fn().mockImplementation(() => 'type:expense'),
-    buildCannedSearchQuery: jest.fn(),
-    buildSearchQueryJSON: jest.fn(),
-}));
 const unapprovedCashHash = 565065994;
+const unapprovedCashSimilarSearchHashh = 236417221;
 jest.mock('@src/libs/SearchQueryUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@src/libs/SearchQueryUtils');
@@ -161,10 +150,11 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
             flatFilters: [{key: 'reimbursable', filters: [{operator: 'eq', value: 'yes'}]}],
             inputQuery: '',
             recentSearchHash: 89,
-            similarSearchHash: 89,
+            similarSearchHash: unapprovedCashSimilarSearchHashh,
             sortBy: 'tag',
             sortOrder: 'asc',
         })),
+        buildCannedSearchQuery: jest.fn(),
     };
 });
 
