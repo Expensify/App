@@ -171,7 +171,7 @@ function Expensify() {
         const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo(session?.accountID);
 
         return unsubscribeNetInfo;
-    }, []);
+    }, [session?.accountID]);
 
     useEffect(() => {
         // Initialize Fullstory lib
