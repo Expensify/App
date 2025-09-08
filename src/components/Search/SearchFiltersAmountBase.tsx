@@ -2,12 +2,12 @@ import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import Button from '@components/Button';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import MenuItem from '@components/MenuItem';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
@@ -36,9 +36,19 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
     const lessThan = searchAdvancedFiltersForm?.[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as keyof typeof searchAdvancedFiltersForm];
     const lessThanFormattedAmount = lessThan ? convertToFrontendAmountAsString(Number(lessThan)) : undefined;
 
+    const goBack = () => {
+        if (selectedModifier) {
+            setSelectedModifier(null);
+        } else {
+            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+        }
+    };
+
     const updateAmountFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
-        if (!selectedModifier) return;
-        
+        if (!selectedModifier) {
+            return;
+        }
+
         const fieldKey = `${filterKey}${selectedModifier}` as keyof typeof searchAdvancedFiltersForm;
         const amount = values[fieldKey];
         const backendAmount = amount ? convertToBackendAmount(Number(amount)) : '';
@@ -77,18 +87,12 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
     };
 
     const getCurrentValue = () => {
-        if (!selectedModifier) return undefined;
+        if (!selectedModifier) {
+            return undefined;
+        }
         const fieldKey = `${filterKey}${selectedModifier}` as keyof typeof searchAdvancedFiltersForm;
         const value = searchAdvancedFiltersForm?.[fieldKey];
         return value ? convertToFrontendAmountAsString(Number(value)) : undefined;
-    };
-
-    const goBack = () => {
-        if (selectedModifier) {
-            setSelectedModifier(null);
-        } else {
-            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-        }
     };
 
     const handleModifierSelect = useCallback((modifier: string) => {
@@ -141,10 +145,13 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
 
     return (
         <ScreenWrapper testID={testID}>
-            <HeaderWithBackButton onBackButtonPress={goBack} title={getTitle()} />
-            <FormProvider 
-                formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM} 
-                onSubmit={updateAmountFilter as (values: any) => void}
+            <HeaderWithBackButton
+                onBackButtonPress={goBack}
+                title={getTitle()}
+            />
+            <FormProvider
+                formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
+                onSubmit={updateAmountFilter}
                 submitButtonText={translate('common.save')}
                 style={[styles.flexGrow1, styles.ph5]}
             >

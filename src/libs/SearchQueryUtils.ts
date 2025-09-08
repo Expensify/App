@@ -147,27 +147,27 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
     const greaterThan = filterValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as keyof SearchAdvancedFiltersForm];
 
     let amountFilter = '';
-    
-    if (equalTo) {
+
+    if (equalTo && typeof equalTo === 'string') {
         amountFilter += `${filterKey}:${equalTo}`;
     }
-    
-    if (greaterThan) {
+
+    if (greaterThan && typeof greaterThan === 'string') {
         if (amountFilter) {
             amountFilter += ' ';
         }
         amountFilter += `${filterKey}>${greaterThan}`;
     }
-    
+
     if (lessThan && greaterThan) {
         amountFilter += ' ';
-    } else if (lessThan && (equalTo || (!greaterThan && !equalTo))) {
+    } else if (lessThan && (equalTo ?? (!greaterThan && !equalTo))) {
         if (amountFilter) {
             amountFilter += ' ';
         }
     }
-    
-    if (lessThan) {
+
+    if (lessThan && typeof lessThan === 'string') {
         amountFilter += `${filterKey}<${lessThan}`;
     }
 
