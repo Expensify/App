@@ -5,8 +5,6 @@ import type { LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, Scroll
 import { DeviceEventEmitter, InteractionManager, View } from 'react-native';
 import type { OnyxEntry } from 'react-native-onyx';
 import { renderScrollComponent as renderActionSheetAwareScrollView } from '@components/ActionSheetAwareScrollView';
-import FlatList from '@components/FlatList';
-import { renderScrollComponent } from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/InvertedFlatList';
 import { PersonalDetailsContext, usePersonalDetails } from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
@@ -64,6 +62,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import { AUTOSCROLL_TO_TOP_THRESHOLD } from '@components/InvertedFlatList/BaseInvertedFlatList';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
@@ -768,9 +767,6 @@ function ReportActionsList({
         loadOlderChats(false);
     }, [loadOlderChats]);
 
-    // FlatList is used for transaction threads to keep the list scrolled at the top and display actions in chronological order.
-    // InvertedFlatList is used for regular reports, always scrolling to the bottom initially and showing the newest messages at the bottom.
-    const ListComponent = isTransactionThread(parentReportAction) ? FlatList : InvertedFlatList;
     const contentContainerStyle = useMemo(() => {
         const baseStyles: StyleProp<ViewStyle> = [styles.chatContentScrollView];
 
