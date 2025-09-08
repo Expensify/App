@@ -1856,10 +1856,14 @@ const ROUTES = {
     },
     WORKSPACE_OWNER_CHANGE_SUCCESS: {
         route: 'workspaces/:policyID/change-owner/:accountID/success',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/change-owner/${accountID}/success` as const, backTo),
     },
     WORKSPACE_OWNER_CHANGE_ERROR: {
         route: 'workspaces/:policyID/change-owner/:accountID/failure',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/change-owner/${accountID}/failure` as const, backTo),
     },
     WORKSPACE_OWNER_CHANGE_CHECK: {
@@ -1868,6 +1872,8 @@ const ROUTES = {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_OWNER_CHANGE_CHECK route');
             }
+
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`workspaces/${policyID}/change-owner/${accountID}/${error as string}` as const, backTo);
         },
     },
