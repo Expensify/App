@@ -1,5 +1,7 @@
 import React from 'react';
 import {InteractionManager} from 'react-native';
+import {useSession} from '@components/OnyxListItemProvider';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
@@ -7,6 +9,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,11 +34,15 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const reportID = isUnreported ? transaction?.participants?.at(0)?.reportID : transaction?.reportID;
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const {removeTransaction} = useSearchContext();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateReport = action === CONST.IOU.ACTION.CREATE;
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
     const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const session = useSession();
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
 
     const handleGoBack = () => {
@@ -95,7 +102,15 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             );
 
             if (isEditing) {
-                changeTransactionsReport([transaction.transactionID], item.value, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]);
+                changeTransactionsReport(
+                    [transaction.transactionID],
+                    item.value,
+                    isASAPSubmitBetaEnabled,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    session?.email ?? '',
+                    allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                );
+                removeTransaction(transaction.transactionID);
             }
         });
     };
@@ -128,7 +143,14 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
         Navigation.dismissModal();
         InteractionManager.runAfterInteractions(() => {
-            changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID);
+            changeTransactionsReport(
+                [transaction.transactionID],
+                CONST.REPORT.UNREPORTED_REPORT_ID,
+                isASAPSubmitBetaEnabled,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                session?.email ?? '',
+            );
+            removeTransaction(transaction.transactionID);
         });
     };
 

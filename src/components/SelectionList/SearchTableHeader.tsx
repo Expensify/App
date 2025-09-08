@@ -1,10 +1,11 @@
 import React, {useCallback} from 'react';
+import type {ValueOf} from 'type-fest';
 import type {SearchColumnType, SearchGroupBy, SortOrder} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import SortableTableHeader from './SortableTableHeader';
 import type {SortableColumnName} from './types';
 
@@ -15,7 +16,7 @@ type SearchColumnConfig = {
     canBeMissing?: boolean;
 };
 
-const expenseHeaders: SearchColumnConfig[] = [
+const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
         translationKey: 'common.receipt',
@@ -76,7 +77,7 @@ const expenseHeaders: SearchColumnConfig[] = [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-        translationKey: 'common.total',
+        translationKey: groupBy ? 'common.total' : 'iou.amount',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -125,17 +126,25 @@ const taskHeaders: SearchColumnConfig[] = [
     },
 ];
 
-const SearchColumns = {
-    [CONST.SEARCH.DATA_TYPES.EXPENSE]: expenseHeaders,
-    [CONST.SEARCH.DATA_TYPES.INVOICE]: expenseHeaders,
-    [CONST.SEARCH.DATA_TYPES.TRIP]: expenseHeaders,
-    [CONST.SEARCH.DATA_TYPES.TASK]: taskHeaders,
-    [CONST.SEARCH.DATA_TYPES.CHAT]: null,
-};
+function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy?: SearchGroupBy) {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            return getExpenseHeaders(groupBy);
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            return getExpenseHeaders(groupBy);
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return getExpenseHeaders(groupBy);
+        case CONST.SEARCH.DATA_TYPES.TASK:
+            return taskHeaders;
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+        default:
+            return null;
+    }
+}
 
 type SearchTableHeaderProps = {
     columns: SortableColumnName[];
-    metadata: OnyxTypes.SearchResults['search'];
+    type: SearchDataTypes;
     sortBy?: SearchColumnType;
     sortOrder?: SortOrder;
     onSortPress: (column: SearchColumnType, order: SortOrder) => void;
@@ -144,13 +153,13 @@ type SearchTableHeaderProps = {
     isTaxAmountColumnWide: boolean;
     shouldShowSorting: boolean;
     canSelectMultiple: boolean;
-    groupBy: SearchGroupBy | undefined;
     areAllOptionalColumnsHidden: boolean;
+    groupBy: SearchGroupBy | undefined;
 };
 
 function SearchTableHeader({
     columns,
-    metadata,
+    type,
     sortBy,
     sortOrder,
     onSortPress,
@@ -159,8 +168,8 @@ function SearchTableHeader({
     canSelectMultiple,
     isAmountColumnWide,
     isTaxAmountColumnWide,
-    groupBy,
     areAllOptionalColumnsHidden,
+    groupBy,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -169,26 +178,16 @@ function SearchTableHeader({
 
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
-            if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
-                return columnName === CONST.SEARCH.TABLE_COLUMNS.FROM || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
-            }
-            if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
-                return columnName === CONST.SEARCH.TABLE_COLUMNS.CARD || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
-            }
-            if (groupBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID) {
-                return columnName === CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID || columnName === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT || columnName === CONST.SEARCH.TABLE_COLUMNS.ACTION;
-            }
-
             return columns.includes(columnName);
         },
-        [columns, groupBy],
+        [columns],
     );
 
     if (displayNarrowVersion) {
         return;
     }
 
-    const columnConfig = SearchColumns[metadata.type];
+    const columnConfig = getSearchColumns(type, groupBy);
 
     if (!columnConfig) {
         return;
@@ -218,5 +217,5 @@ function SearchTableHeader({
 }
 
 SearchTableHeader.displayName = 'SearchTableHeader';
-export {expenseHeaders};
+export {getExpenseHeaders};
 export default SearchTableHeader;

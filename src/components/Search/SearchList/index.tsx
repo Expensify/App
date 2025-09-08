@@ -1,6 +1,6 @@
-import {useRoute} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import type {FlashList, FlashListProps, ViewToken} from '@shopify/flash-list';
-import React, {forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -11,6 +11,7 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {createItemHeightCalculator} from '@components/Search/itemHeightCalculator';
 import ITEM_HEIGHTS from '@components/Search/itemHeights';
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
@@ -23,6 +24,7 @@ import Text from '@components/Text';
 import useInitialWindowDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -59,7 +61,7 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     canSelectMultiple: boolean;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress: (item: SearchListItem) => void;
+    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
 
     /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
     onAllCheckboxPress: () => void;
@@ -166,6 +168,7 @@ function SearchList(
     );
 
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const listRef = useRef<FlashList<SearchListItem>>(null);
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
@@ -183,6 +186,7 @@ function SearchList(
     });
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (s) => s?.accountID});
 
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const personalDetails = usePersonalDetails();
@@ -192,6 +196,7 @@ function SearchList(
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
 
     const route = useRoute();
+    const {getScrollOffset} = useContext(ScrollOffsetContext);
 
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
@@ -246,6 +251,19 @@ function SearchList(
         [data],
     );
 
+    useFocusEffect(
+        useCallback(() => {
+            const offset = getScrollOffset(route);
+            requestAnimationFrame(() => {
+                if (!offset || !listRef.current) {
+                    return;
+                }
+
+                listRef.current.scrollToOffset({offset, animated: false});
+            });
+        }, [getScrollOffset, route]),
+    );
+
     useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
 
     const renderItem = useCallback(
@@ -279,6 +297,8 @@ function SearchList(
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
                         userBillingFundID={userBillingFundID}
+                        accountID={accountID}
+                        isOffline={isOffline}
                         onFocus={onFocus}
                     />
                 </Animated.View>
@@ -304,11 +324,13 @@ function SearchList(
             isUserValidated,
             personalDetails,
             userBillingFundID,
+            accountID,
+            isOffline,
             areAllOptionalColumnsHidden,
         ],
     );
 
-    const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
+    const tableHeaderVisible = (canSelectMultiple || !!SearchTableHeader) && (!groupBy || groupBy === CONST.SEARCH.GROUP_BY.REPORTS);
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length;
 
@@ -389,7 +411,6 @@ function SearchList(
                     )}
                 </View>
             )}
-
             <BaseSearchList
                 data={data}
                 renderItem={renderItem}
