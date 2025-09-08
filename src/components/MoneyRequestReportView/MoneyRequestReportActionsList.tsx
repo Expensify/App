@@ -646,7 +646,7 @@ function MoneyRequestReportActionsList({
     // Wrapped into useCallback to stabilize children re-renders
     const keyExtractor = useCallback((item: OnyxTypes.ReportAction) => item.reportActionID, []);
 
-    const paddingBottom = StyleUtils.getReportPaddingBottom(isKeyboardActive, composerHeight, unmodifiedPaddings.bottom, isComposerFullSize);
+    const paddingBottom = StyleUtils.getReportPaddingBottom({composerHeight, isKeyboardActive, safePaddingBottom: unmodifiedPaddings.bottom ?? 0, isComposerFullSize});
 
     return (
         <View
