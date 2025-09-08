@@ -11945,7 +11945,7 @@ function shouldOptimisticallyUpdateSearch(
     const submitQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT].searchQueryJSON;
     const approveQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE].searchQueryJSON;
 
-    const unapprovedCashQueryHash = getSuggestedSearches()?.[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH].hash;
+    const unapprovedCashQueryHash = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH].similarSearchHash;
 
     const validSearchTypes =
         (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) || (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE);
@@ -11954,8 +11954,8 @@ function shouldOptimisticallyUpdateSearch(
         shouldOptimisticallyUpdateByStatus &&
         validSearchTypes &&
         (currentSearchQueryJSON.flatFilters.length === 0 ||
-            [submitQueryJSON?.hash, approveQueryJSON?.hash].includes(currentSearchQueryJSON.hash) ||
-            (unapprovedCashQueryHash === currentSearchQueryJSON.hash && isExpenseReport(iouReport) && transaction?.reimbursable))
+            [submitQueryJSON?.similarSearchHash, approveQueryJSON?.similarSearchHash].includes(currentSearchQueryJSON.similarSearchHash) ||
+            (unapprovedCashQueryHash === currentSearchQueryJSON.similarSearchHash && isExpenseReport(iouReport) && transaction?.reimbursable))
     );
 }
 
