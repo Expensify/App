@@ -47,9 +47,14 @@ type SearchPageNarrowProps = {
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     searchResults?: SearchResults;
     isMobileSelectionModeEnabled: boolean;
+    footerData: {
+        count: number | undefined;
+        total: number | undefined;
+        currency: string | undefined;
+    };
 };
 
-function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMobileSelectionModeEnabled}: SearchPageNarrowProps) {
+function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMobileSelectionModeEnabled, footerData}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -142,10 +147,9 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
         );
     }
 
+    const shouldShowFooter = !!footerData?.count;
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!currentSearchResults?.search?.isLoading);
-    const metadata = searchResults?.search;
-    const shouldShowFooter = !!metadata?.count;
 
     return (
         <ScreenWrapper
@@ -228,7 +232,13 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
                         />
                     </View>
                 )}
-                {shouldShowFooter && <SearchPageFooter metadata={metadata} />}
+                {shouldShowFooter && (
+                    <SearchPageFooter
+                        count={footerData.count}
+                        total={footerData.total}
+                        currency={footerData.currency}
+                    />
+                )}
             </View>
         </ScreenWrapper>
     );
