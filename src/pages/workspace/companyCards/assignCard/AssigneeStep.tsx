@@ -47,18 +47,8 @@ function useOptions() {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const existingDelegates = useMemo(
-        () =>
-            account?.delegatedAccess?.delegates?.reduce(
-                (prev, {email}) => {
-                    // eslint-disable-next-line no-param-reassign
-                    prev[email] = true;
-                    return prev;
-                },
-                {} as Record<string, boolean>,
-            ),
-        [account?.delegatedAccess?.delegates],
-    );
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const existingDelegates = useMemo(() => Object.fromEntries((account?.delegatedAccess?.delegates ?? []).map(({email}) => [email, true])), [account?.delegatedAccess?.delegates]);
 
     const defaultOptions = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = memoizedGetValidOptions(
@@ -89,7 +79,7 @@ function useOptions() {
     }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, isLoading]);
 
     const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), countryCode, {
             excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
@@ -103,7 +93,7 @@ function useOptions() {
             ...filteredOptions,
             headerMessage,
         };
-    }, [debouncedSearchValue, defaultOptions, existingDelegates]);
+    }, [debouncedSearchValue, defaultOptions, existingDelegates, countryCode]);
 
     return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
 }
@@ -254,7 +244,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             ];
         }
 
-        const searchValueForPhoneOrEmail = getSearchValueForPhoneOrEmail(debouncedSearchValue).toLowerCase();
+        const searchValueForPhoneOrEmail = getSearchValueForPhoneOrEmail(debouncedSearchValue, countryCode).toLowerCase();
         const filteredOptions = tokenizedSearch(membersDetails, searchValueForPhoneOrEmail, (option) => [option.text ?? '', option.alternateText ?? '']);
 
         return [
@@ -278,7 +268,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                   ]
                 : []),
         ];
-    }, [debouncedSearchValue, membersDetails, userToInvite, membersDetailsWithInviteNewMember, personalDetails]);
+    }, [debouncedSearchValue, membersDetails, userToInvite, membersDetailsWithInviteNewMember, personalDetails, countryCode]);
 
     return (
         <InteractiveStepWrapper

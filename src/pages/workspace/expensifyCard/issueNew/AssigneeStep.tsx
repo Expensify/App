@@ -45,18 +45,8 @@ function useOptions() {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const existingDelegates = useMemo(
-        () =>
-            account?.delegatedAccess?.delegates?.reduce(
-                (prev, {email}) => {
-                    // eslint-disable-next-line no-param-reassign
-                    prev[email] = true;
-                    return prev;
-                },
-                {} as Record<string, boolean>,
-            ),
-        [account?.delegatedAccess?.delegates],
-    );
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const existingDelegates = useMemo(() => Object.fromEntries((account?.delegatedAccess?.delegates ?? []).map(({email}) => [email, true])), [account?.delegatedAccess?.delegates]);
 
     const defaultOptions = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = memoizedGetValidOptions(
@@ -87,7 +77,7 @@ function useOptions() {
     }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, isLoading]);
 
     const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), countryCode, {
             excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
@@ -101,7 +91,7 @@ function useOptions() {
             ...filteredOptions,
             headerMessage,
         };
-    }, [debouncedSearchValue, defaultOptions, existingDelegates]);
+    }, [debouncedSearchValue, defaultOptions, existingDelegates, countryCode]);
 
     return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
 }
@@ -112,8 +102,8 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
     const {isOffline} = useNetwork();
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
-    const {userToInvite, searchValue, personalDetails, debouncedSearchValue, setSearchValue, areOptionsInitialized, headerMessage} = useOptions();
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const {userToInvite, searchValue, personalDetails, debouncedSearchValue, setSearchValue, areOptionsInitialized, headerMessage} = useOptions();
     const currency = useCurrencyForExpensifyCard({policyID});
 
     const isEditing = issueNewCard?.isEditing;
@@ -204,7 +194,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
             ];
         }
 
-        const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchValue).toLowerCase();
+        const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchValue, countryCode).toLowerCase();
         const filteredOptions = tokenizedSearch(membersDetails, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
         return [
@@ -228,7 +218,7 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
                   ]
                 : []),
         ];
-    }, [debouncedSearchValue, membersDetails, userToInvite, personalDetails]);
+    }, [debouncedSearchValue, membersDetails, userToInvite, personalDetails, countryCode]);
 
     return (
         <InteractiveStepWrapper
