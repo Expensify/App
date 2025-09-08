@@ -1,6 +1,7 @@
 import type {NavigatorScreenParams} from '@react-navigation/native';
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
-// We use animated because it is used in the react-navigation
+// We use Animated for all functionality related to wide RHP to make it easier
+// to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated, InteractionManager} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';

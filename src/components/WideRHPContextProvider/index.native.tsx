@@ -1,4 +1,6 @@
 import React, {createContext} from 'react';
+// We use Animated for all functionality related to wide RHP to make it easier
+// to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import defaultWideRHPContextValue from './default';

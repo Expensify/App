@@ -1,5 +1,6 @@
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-// We use Animated from react-native because it is used in the react-navigation
+// We use Animated for all functionality related to wide RHP to make it easier
+// to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import {expandedRHPProgress} from '@components/WideRHPContextProvider';

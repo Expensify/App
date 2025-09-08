@@ -1,5 +1,7 @@
 import {findFocusedRoute, StackActions, useNavigation, useRoute} from '@react-navigation/native';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+// We use Animated for all functionality related to wide RHP to make it easier
+// to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated, Dimensions, InteractionManager} from 'react-native';
 import useRootNavigationState from '@hooks/useRootNavigationState';
@@ -23,7 +25,7 @@ const calculateReceiptPaneRHPWidth = (windowWidth: number) => {
     return Math.max(calculatedWidth, variables.mobileResponsiveWidthBreakpoint - variables.sideBarWidth);
 };
 
-// This animated value is necessary to have a responsive rhp width for the range 800px to 840px.
+// This animated value is necessary to have a responsive RHP width for the range 800px to 840px.
 const receiptPaneRHPWidth = new Animated.Value(calculateReceiptPaneRHPWidth(Dimensions.get('window').width));
 
 const WideRHPContext = createContext<WideRHPContextType>(defaultWideRHPContextValue);
@@ -185,7 +187,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     return <WideRHPContext.Provider value={value}>{children}</WideRHPContext.Provider>;
 }
 
-// Condition whether the screen where this hook is used should be displayed as wide. It's not always know from the beginning or can change after the screen is already mounted.
+// Condition whether the screen where this hook is used should be displayed as wide. It's not always known from the beginning or can change after the screen is already mounted.
 function useShowWideRHPVersion(condition: boolean) {
     const navigation = useNavigation();
     const route = useRoute();
