@@ -11,18 +11,38 @@ import type {
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionList/types';
+import Navigation from '@navigation/Navigation';
+// eslint-disable-next-line no-restricted-syntax
+import type * as ReportUserActions from '@userActions/Report';
+import {createTransactionThreadReport, openReport} from '@userActions/Report';
+// eslint-disable-next-line no-restricted-syntax
+import type * as SearchUtils from '@userActions/Search';
+import {updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {formatPhoneNumber, localeCompare} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+jest.mock('@src/libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+}));
+jest.mock('@userActions/Report', () => ({
+    ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
+    createTransactionThreadReport: jest.fn(),
+    openReport: jest.fn(),
+}));
+jest.mock('@userActions/Search', () => ({
+    ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
+    updateSearchResultsWithTransactionThreadReportID: jest.fn(),
+}));
 
 const adminAccountID = 18439984;
 const adminEmail = 'admin@policy.com';
@@ -2601,6 +2621,36 @@ describe('SearchUIUtils', () => {
 
             // Should not show tag column because it's the empty tag value
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(false);
+        });
+    });
+
+    describe('createAndOpenSearchTransactionThread', () => {
+        const threadReportID = 'thread-report-123';
+        const threadReport = {reportID: threadReportID};
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
+        const iouReportAction = {reportActionID: 'action-123'} as OnyxTypes.ReportAction;
+        const hash = 12345;
+        const backTo = '/search/all';
+
+        test('Should create transaction thread report and navigate to it', () => {
+            (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
+
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, iouReportAction, hash, backTo);
+
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, iouReportAction);
+            expect(updateSearchResultsWithTransactionThreadReportID).toHaveBeenCalledWith(hash, transactionID, threadReportID);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
+        });
+
+        test('Should not load iou report if iouReportAction was provided', () => {
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, iouReportAction, hash, backTo);
+            expect(openReport).not.toHaveBeenCalled();
+        });
+
+        test('Should load iou report if iouReportAction was not provided', () => {
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, hash, backTo);
+            expect(openReport).toHaveBeenCalled();
         });
     });
 });
