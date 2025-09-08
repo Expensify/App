@@ -5,7 +5,7 @@ import {RESULTS} from 'react-native-permissions';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import getPlatform from '@libs/getPlatform';
 import type {GetOptionsConfig, Options, SearchOption} from '@libs/OptionsListUtils';
-import {getEmptyOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
+import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -110,6 +110,7 @@ function useSearchSelector({
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
     const [maxResults, setMaxResults] = useState(maxResultsPerPage);
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     // Phone contacts logic
     const {contacts, contactPermissionState, importAndSaveContacts, setContactPermissionState} = useContactImport();
@@ -128,6 +129,10 @@ function useSearchSelector({
         setMaxResults((previous) => previous + maxResultsPerPage);
     }, [maxResultsPerPage]);
 
+    const computedSearchTerm = useMemo(() => {
+        return getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
+    }, [debouncedSearchTerm, countryCode]);
+
     // Get optimized options with heap filtering and mark selection state
     const searchOptions = useMemo(() => {
         if (!areOptionsInitialized || !shouldInitialize) {
@@ -145,7 +150,7 @@ function useSearchSelector({
         let baseOptions: Options;
         switch (searchContext) {
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SEARCH:
-                baseOptions = getSearchOptions(optionsWithContacts, betas ?? [], true, true, debouncedSearchTerm, maxResults, includeUserToInvite);
+                baseOptions = getSearchOptions(optionsWithContacts, betas ?? [], true, true, computedSearchTerm, maxResults, includeUserToInvite);
                 break;
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
                 baseOptions = getValidOptions(optionsWithContacts, {
@@ -155,14 +160,14 @@ function useSearchSelector({
                     excludeLogins,
                     includeRecentReports,
                     maxElements: maxResults,
-                    searchString: debouncedSearchTerm,
+                    searchString: computedSearchTerm,
                 });
                 break;
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 baseOptions = getValidOptions(optionsWithContacts, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
-                    searchString: debouncedSearchTerm,
+                    searchString: computedSearchTerm,
                     maxElements: maxResults,
                     includeUserToInvite,
                     loginsToExclude: excludeLogins,
@@ -202,7 +207,7 @@ function useSearchSelector({
         areOptionsInitialized,
         options,
         betas,
-        debouncedSearchTerm,
+        computedSearchTerm,
         maxResults,
         searchContext,
         includeUserToInvite,
