@@ -31,7 +31,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const reportID = isUnreported ? transaction?.participants?.at(0)?.reportID : transaction?.reportID;
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const currentUserEmail = session?.email ?? '';
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const {removeTransaction} = useSearchContext();
 
@@ -97,7 +96,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             );
 
             if (isEditing) {
-                changeTransactionsReport([transaction.transactionID], item.value, currentUserEmail, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]);
+                changeTransactionsReport([transaction.transactionID], item.value, session?.email, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]);
                 removeTransaction(transaction.transactionID);
             }
         });
@@ -131,7 +130,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
         Navigation.dismissModal();
         InteractionManager.runAfterInteractions(() => {
-            changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID, currentUserEmail);
+            changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID, session?.email);
             removeTransaction(transaction.transactionID);
         });
     };

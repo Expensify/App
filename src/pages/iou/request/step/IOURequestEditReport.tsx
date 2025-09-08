@@ -24,7 +24,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const currentUserEmail = session?.email ?? '';
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -35,7 +34,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             return;
         }
 
-        changeTransactionsReport(selectedTransactionIDs, item.value, currentUserEmail, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`], reportNextStep);
+        changeTransactionsReport(selectedTransactionIDs, item.value, session?.email, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`], reportNextStep);
         turnOffMobileSelectionMode();
         clearSelectedTransactions(true);
         Navigation.dismissModal();
@@ -45,7 +44,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         if (!transactionReport || selectedTransactionIDs.length === 0) {
             return;
         }
-        changeTransactionsReport(selectedTransactionIDs, CONST.REPORT.UNREPORTED_REPORT_ID, currentUserEmail);
+        changeTransactionsReport(selectedTransactionIDs, CONST.REPORT.UNREPORTED_REPORT_ID, session?.email);
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }

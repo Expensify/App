@@ -50,7 +50,6 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS, {canBeMissing: true});
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const currentUserEmail = session?.email ?? '';
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
     function getUnreportedTransactions(transactions: OnyxCollection<Transaction>) {
@@ -208,7 +207,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                         if (report && isIOUReport(report)) {
                             convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
                         } else {
-                            changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID, currentUserEmail, policy, reportNextStep);
+                            changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID, session?.email, policy, reportNextStep);
                         }
                     });
                     setErrorMessage('');

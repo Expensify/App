@@ -175,7 +175,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, undefined, mockReportNextStep);
+            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID, CURRENT_USER_EMAIL, undefined, mockReportNextStep);
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();
@@ -225,7 +225,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID, undefined, mockReportNextStep);
+            changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID, CURRENT_USER_EMAIL, undefined, mockReportNextStep);
             await waitForBatchedUpdates();
 
             expect(mockAPIWrite).toHaveBeenCalled();

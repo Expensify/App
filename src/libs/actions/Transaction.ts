@@ -604,7 +604,7 @@ function setTransactionReport(transactionID: string, transaction: Partial<Transa
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 }
 
-function changeTransactionsReport(transactionIDs: string[], reportID: string, currentUserEmail: string, policy?: OnyxEntry<Policy>, reportNextStep?: OnyxEntry<ReportNextStep>) {
+function changeTransactionsReport(transactionIDs: string[], reportID: string, currentUserEmail: string | undefined, policy?: OnyxEntry<Policy>, reportNextStep?: OnyxEntry<ReportNextStep>) {
     const newReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     const transactions = transactionIDs.map((id) => allTransactions?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined);

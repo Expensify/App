@@ -21,7 +21,6 @@ function SearchTransactionsChangeReport() {
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const currentUserEmail = session?.email ?? '';
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const transactionsReports = useMemo(() => {
@@ -41,7 +40,7 @@ function SearchTransactionsChangeReport() {
         }
 
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.value}`];
-        changeTransactionsReport(selectedTransactionsKeys, item.value, currentUserEmail, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`], reportNextStep);
+        changeTransactionsReport(selectedTransactionsKeys, item.value, session?.email, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`], reportNextStep);
 
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
@@ -54,7 +53,7 @@ function SearchTransactionsChangeReport() {
         if (!transactionsReports || selectedTransactionsKeys.length === 0) {
             return;
         }
-        changeTransactionsReport(selectedTransactionsKeys, CONST.REPORT.UNREPORTED_REPORT_ID, currentUserEmail);
+        changeTransactionsReport(selectedTransactionsKeys, CONST.REPORT.UNREPORTED_REPORT_ID, session?.email);
         clearSelectedTransactions();
         Navigation.goBack();
     };
