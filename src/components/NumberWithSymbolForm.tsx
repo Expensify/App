@@ -457,13 +457,6 @@ function NumberWithSymbolForm({
                         style={[styles.moneyRequestAmountContainer, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
                     >
                         {textInputComponent}
-                        {!!errorText && (
-                            <FormHelpMessage
-                                style={[styles.pAbsolute, styles.b0, shouldShowBigNumberPad ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
-                                isError
-                                message={errorText}
-                            />
-                        )}
                     </View>
 
                     {isSymbolPressable && !canUseTouchScreen && (
@@ -475,6 +468,14 @@ function NumberWithSymbolForm({
                             style={styles.minWidth18}
                             isContentCentered
                             text={currency}
+                        />
+                    )}
+
+                    {!!errorText && (
+                        <FormHelpMessage
+                            style={[styles.pAbsolute, styles.b0, shouldShowBigNumberPad ? styles.mb0 : styles.mb3, styles.ph5, styles.w100]}
+                            isError
+                            message={errorText}
                         />
                     )}
                 </View>
