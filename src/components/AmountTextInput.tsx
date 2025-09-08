@@ -1,10 +1,9 @@
 import React from 'react';
-import type {ForwardedRef} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
 import CONST from '@src/CONST';
 import type {TextSelection} from './Composer/types';
 import TextInput from './TextInput';
-import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
+import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
 
 type AmountTextInputProps = {
     /** Formatted amount in local currency  */
@@ -42,26 +41,24 @@ type AmountTextInputProps = {
 
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior' | 'ref' | 'onFocus' | 'onBlur'>;
 
-function AmountTextInput(
-    {
-        formattedAmount,
-        onChangeAmount,
-        placeholder,
-        selection,
-        onSelectionChange,
-        style,
-        touchableInputWrapperStyle,
-        onKeyPress,
-        containerStyle,
-        disableKeyboard = true,
-        hideFocusedState = true,
-        shouldApplyPaddingToContainer = false,
-        ...rest
-    }: AmountTextInputProps,
-    ref: ForwardedRef<BaseTextInputRef>,
-) {
+function AmountTextInput({
+    formattedAmount,
+    onChangeAmount,
+    placeholder,
+    selection,
+    onSelectionChange,
+    style,
+    touchableInputWrapperStyle,
+    onKeyPress,
+    containerStyle,
+    disableKeyboard = true,
+    hideFocusedState = true,
+    shouldApplyPaddingToContainer = false,
+    ref,
+    ...rest
+}: AmountTextInputProps) {
     return (
         <TextInput
             autoGrow
@@ -99,4 +96,4 @@ function AmountTextInput(
 
 AmountTextInput.displayName = 'AmountTextInput';
 
-export default React.forwardRef(AmountTextInput);
+export default AmountTextInput;

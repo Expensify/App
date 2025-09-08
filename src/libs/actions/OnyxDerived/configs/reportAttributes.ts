@@ -1,4 +1,4 @@
-import {generateIsEmptyReport, generateReportAttributes, generateReportName, isValidReport} from '@libs/ReportUtils';
+import {generateIsEmptyReport, generateReportAttributes, generateReportName, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
@@ -51,37 +51,41 @@ export default createOnyxDerivedValueConfig({
             isFullyComputed = false;
         }
 
+        // if we already computed the report attributes and there is no new reports data, return the current value
+        if ((isFullyComputed && !sourceValues) || !reports) {
+            return currentValue ?? {reports: {}, locale: null};
+        }
+
         const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT] ?? {};
         const reportMetadataUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_METADATA] ?? {};
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS] ?? {};
         const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS] ?? {};
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
-        // if we already computed the report attributes and there is no new reports data, return the current value
-        if ((isFullyComputed && !sourceValues) || !reports) {
-            return currentValue ?? {reports: {}, locale: null};
-        }
 
         let dataToIterate = Object.keys(reports);
         // check if there are any report-related updates
 
-        const reportUpdatesRelatedToReportActions: string[] = [];
+        const reportUpdatesRelatedToReportActions = new Set<string>();
 
-        Object.keys(reportActionsUpdates).forEach((reportKey) => {
-            Object.keys(reportActionsUpdates[reportKey] ?? {}).forEach((reportActionKey) => {
-                const reportAction = reportActions?.[reportKey]?.[reportActionKey];
+        for (const actions of Object.values(reportActionsUpdates)) {
+            if (!actions) {
+                continue;
+            }
+
+            for (const reportAction of Object.values(actions)) {
                 if (reportAction?.childReportID) {
-                    reportUpdatesRelatedToReportActions.push(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`);
+                    reportUpdatesRelatedToReportActions.add(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`);
                 }
-            });
-        });
+            }
+        }
 
         const updates = [
             ...Object.keys(reportUpdates),
             ...Object.keys(reportMetadataUpdates),
             ...Object.keys(reportActionsUpdates),
             ...Object.keys(reportNameValuePairsUpdates),
-            ...reportUpdatesRelatedToReportActions,
+            ...Array.from(reportUpdatesRelatedToReportActions),
         ];
 
         if (isFullyComputed) {
@@ -127,13 +131,15 @@ export default createOnyxDerivedValueConfig({
             }
 
             const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
+            const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
             const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
-            const {hasAnyViolations, requiresAttention, isReportArchived, reportErrors} = generateReportAttributes({
+            const isReportArchived = isArchivedReport(reportNameValuePair);
+            const {hasAnyViolations, requiresAttention, reportErrors} = generateReportAttributes({
                 report,
                 chatReport,
                 reportActions,
                 transactionViolations,
-                reportNameValuePairs,
+                isReportArchived,
             });
 
             let brickRoadStatus;
@@ -148,7 +154,7 @@ export default createOnyxDerivedValueConfig({
 
             acc[report.reportID] = {
                 reportName: generateReportName(report),
-                isEmpty: generateIsEmptyReport(report),
+                isEmpty: generateIsEmptyReport(report, isReportArchived),
                 brickRoadStatus,
                 requiresAttention,
                 reportErrors,
