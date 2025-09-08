@@ -2021,6 +2021,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                     description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    customRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
                 defaultBillable: false,
                 defaultReimbursable: true,
@@ -2296,7 +2297,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         engagementChoice &&
         shouldAddOnboardingTasks
     ) {
-        const {onboardingMessages} = getOnboardingMessages();
+        const {onboardingMessages} = getOnboardingMessages(true);
         const onboardingData = ReportUtils.prepareOnboardingOnyxData(introSelected, engagementChoice, onboardingMessages[engagementChoice], adminsChatReportID, policyID);
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
@@ -2804,7 +2805,7 @@ function removePolicyReceiptPartnersConnection(policyID: string, partnerName: st
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 receiptPartners: {
-                    [partnerName]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    [partnerName]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false},
                 },
             },
         },
@@ -2816,7 +2817,7 @@ function removePolicyReceiptPartnersConnection(policyID: string, partnerName: st
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 receiptPartners: {
-                    [partnerName]: {pendingAction: null},
+                    [partnerName]: null,
                 },
             },
         },
