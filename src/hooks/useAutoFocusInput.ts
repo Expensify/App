@@ -10,7 +10,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 import useOnyx from './useOnyx';
-import usePrevious from './usePrevious';
 import useSidePanel from './useSidePanel';
 
 type UseAutoFocusInput = {
@@ -63,14 +62,14 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
 
     // Trigger focus when Side Panel transition ends
     const {isSidePanelTransitionEnded, shouldHideSidePanel} = useSidePanel();
-    const prevShouldHideSidePanel = usePrevious(shouldHideSidePanel);
     useEffect(() => {
-        if (!shouldHideSidePanel || prevShouldHideSidePanel) {
+        // Ignore this effect when SidePanel is visible
+        if (!shouldHideSidePanel) {
             return;
         }
 
         Promise.all([ComposerFocusManager.isReadyToFocus(), isWindowReadyToFocus()]).then(() => setIsScreenTransitionEnded(isSidePanelTransitionEnded));
-    }, [isSidePanelTransitionEnded, shouldHideSidePanel, prevShouldHideSidePanel]);
+    }, [isSidePanelTransitionEnded, shouldHideSidePanel]);
 
     const inputCallbackRef = (ref: TextInput | null) => {
         inputRef.current = ref;
