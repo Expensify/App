@@ -35,13 +35,6 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Print RULES.md
-        run: |
-          echo "📋 RULES.md"
-          echo "======================================"
-          printf "%s\n" "${{ steps.read-rules.outputs.content }}"
-          echo "======================================"
-
       - uses: aldo-expensify/ai-reviewer-hackaton@c91b349b41efdf1eeaa290716628d76068148f0b
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
