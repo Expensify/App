@@ -5,6 +5,7 @@ import TransactionListItem from '@components/SelectionList/Search/TransactionLis
 import type {
     ReportActionListItemType,
     TransactionCardGroupListItemType,
+    TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
     TransactionReportGroupListItemType,
@@ -1223,6 +1224,7 @@ const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
         login: 'admin@policy.com',
         total: 70,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         accountID: 1111111,
@@ -1234,6 +1236,7 @@ const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
         login: 'approver@policy.com',
         total: 30,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1248,6 +1251,7 @@ const transactionMemberGroupListItemsSorted: TransactionMemberGroupListItemType[
         login: 'approver@policy.com',
         total: 30,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 
     {
@@ -1260,6 +1264,7 @@ const transactionMemberGroupListItemsSorted: TransactionMemberGroupListItemType[
         login: 'admin@policy.com',
         total: 70,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1278,6 +1283,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         login: 'admin@policy.com',
         total: 40,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         accountID: 1111111,
@@ -1293,6 +1299,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         login: 'approver@policy.com',
         total: 20,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1311,6 +1318,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         login: 'approver@policy.com',
         total: 20,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         accountID: 18439984,
@@ -1326,6 +1334,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         login: 'admin@policy.com',
         total: 40,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1340,6 +1349,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         total: 40,
         groupedBy: 'withdrawal-id',
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         bankName: CONST.BANK_NAMES.CITIBANK,
@@ -1351,6 +1361,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         total: 20,
         groupedBy: 'withdrawal-id',
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1365,6 +1376,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         total: 20,
         groupedBy: 'withdrawal-id',
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         bankName: CONST.BANK_NAMES.CHASE,
@@ -1376,6 +1388,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         total: 40,
         groupedBy: 'withdrawal-id',
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1653,7 +1666,67 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return getTransactionsSections result when groupBy is undefined', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber)).toStrictEqual(transactionsListItems);
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber)).toEqual(transactionsListItems);
+        });
+
+        it('should include iouRequestType property for distance transactions', () => {
+            const distanceTransactionID = 'distance_transaction_123';
+            const testSearchResults = {
+                ...searchResults,
+                data: {
+                    ...searchResults.data,
+                    [`transactions_${distanceTransactionID}`]: {
+                        ...searchResults.data[`transactions_${transactionID}`],
+                        transactionID: distanceTransactionID,
+                        transactionType: CONST.SEARCH.TRANSACTION_TYPE.DISTANCE,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    },
+                },
+            };
+
+            const result = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, testSearchResults.data, 2074551, formatPhoneNumber) as TransactionListItemType[];
+
+            const distanceTransaction = result.find((item) => item.transactionID === distanceTransactionID);
+
+            expect(distanceTransaction).toBeDefined();
+            expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
+
+            const expectedPropertyCount = 57;
+            expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
+        });
+
+        it('should include iouRequestType property for distance transactions in grouped results', () => {
+            const distanceTransactionID = 'distance_transaction_grouped_123';
+            const testSearchResults = {
+                ...searchResults,
+                data: {
+                    ...searchResults.data,
+                    [`transactions_${distanceTransactionID}`]: {
+                        ...searchResults.data[`transactions_${transactionID}`],
+                        transactionID: distanceTransactionID,
+                        transactionType: CONST.SEARCH.TRANSACTION_TYPE.DISTANCE,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    },
+                },
+            };
+
+            const result = SearchUIUtils.getSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                testSearchResults.data,
+                2074551,
+                formatPhoneNumber,
+                CONST.SEARCH.GROUP_BY.REPORTS,
+            ) as TransactionGroupListItemType[];
+
+            const reportGroup = result.find((group) => group.transactions?.some((transaction) => transaction.transactionID === distanceTransactionID));
+
+            const distanceTransaction = reportGroup?.transactions?.find((transaction) => transaction.transactionID === distanceTransactionID);
+
+            expect(distanceTransaction).toBeDefined();
+            expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
+
+            const expectedPropertyCount = 57;
+            expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
         it('should return getReportSections result when type is EXPENSE and groupBy is report', () => {
