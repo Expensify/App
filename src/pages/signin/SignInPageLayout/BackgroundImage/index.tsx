@@ -53,10 +53,7 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
                 style={styles.signInBackground}
                 entering={FadeIn.duration(transitionDuration)}
             >
-                <BackgroundComponent
-                    width={width}
-                    style={styles.signInBackground}
-                />
+                <BackgroundComponent width={width} />
             </Animated.View>
         </Suspense>
     );
