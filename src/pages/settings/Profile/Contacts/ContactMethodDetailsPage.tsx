@@ -21,7 +21,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
     clearContactMethod,
@@ -61,12 +60,10 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-    const isDeletingRef = useRef(false);
 
     const {formatPhoneNumber, translate} = useLocalize();
     const theme = useTheme();
     const themeStyles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
@@ -154,7 +151,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
      * Delete the contact method and hide the modal
      */
     const confirmDeleteAndHideModal = useCallback(() => {
-        isDeletingRef.current = true;
         toggleDeleteModal(false);
         deleteContactMethod(contactMethod, loginList ?? {}, backTo);
     }, [contactMethod, loginList, toggleDeleteModal, backTo]);
@@ -177,12 +173,12 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (!loginData || loginData?.validatedDate || prevPendingDeletedLogin) {
+        if (!loginData?.partnerUserID || loginData?.validatedDate || prevPendingDeletedLogin) {
             return;
         }
         resetContactMethodValidateCodeSentState(contactMethod);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- The prevPendingDeletedLogin is a ref, so no need to add it to dependencies.
-    }, [contactMethod, loginData]);
+    }, [contactMethod, loginData?.partnerUserID, loginData?.validatedDate]);
 
     const getThreeDotsMenuItems = useCallback(() => {
         const menuItems = [];
@@ -320,7 +316,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 threeDotsMenuItems={getThreeDotsMenuItems()}
                 shouldShowThreeDotsButton={getThreeDotsMenuItems().length > 0}
                 shouldOverlayDots
-                threeDotsAnchorPosition={themeStyles.threeDotsPopoverOffset(windowWidth)}
                 onThreeDotsButtonPress={() => {
                     // Hide the keyboard when the user clicks the three-dot menu.
                     // Use blurActiveElement() for mWeb and KeyboardUtils.dismiss() for native apps.
@@ -351,12 +346,19 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber)}
                         validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
                         clearError={() => {
-                            if (isDeletingRef.current || !loginDataRef.current) {
+                            // When removing unverified contact methods, the ValidateCodeActionForm unmounts and triggers clearError.
+                            // This causes loginData to become an object, which makes sendValidateCode trigger, so we add this check to prevent clearing the error.
+                            if (!loginData.partnerUserID || !loginDataRef.current) {
                                 return;
                             }
                             clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent');
                         }}
-                        sendValidateCode={() => requestContactMethodValidateCode(contactMethod)}
+                        sendValidateCode={() => {
+                            if (!loginData.partnerUserID) {
+                                return;
+                            }
+                            requestContactMethodValidateCode(contactMethod);
+                        }}
                         descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
                         forwardedRef={validateCodeFormRef}
                         shouldSkipInitialValidation={shouldSkipInitialValidation}
