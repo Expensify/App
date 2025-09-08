@@ -432,6 +432,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 feed: defaultFeedID ? [defaultFeedID] : [''],
+                groupBy: CONST.SEARCH.GROUP_BY.CARD,
                 postedOn: CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT,
             }),
             get searchQueryJSON() {
@@ -452,6 +453,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+                groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 reimbursable: CONST.SEARCH.BOOLEAN.YES,
             }),
             get searchQueryJSON() {
@@ -472,6 +474,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 feed: defaultFeedID ? [defaultFeedID] : [''],
+                groupBy: CONST.SEARCH.GROUP_BY.CARD,
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
             }),
             get searchQueryJSON() {
@@ -493,6 +496,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 withdrawalType: CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT,
                 withdrawnOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
             }),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
