@@ -306,7 +306,8 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     // actually filter out results
     const similarSearchIgnoredFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
 
-    // Certain filte
+    // Certain filters' values are significant in deciding which search we are on, so we want to include
+    // their value when computing the similarSearchHash
     const similarSearchValueBasedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION]);
 
     query.flatFilters
