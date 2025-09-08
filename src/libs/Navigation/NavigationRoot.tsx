@@ -131,6 +131,12 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
         const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
 
+        // If we have a transition URL, don't restore last visited path - let React Navigation handle it
+        // This prevents reusing deep links after logout regardless of authentication status
+        if (isTransitioning) {
+            return undefined;
+        }
+
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
         if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning) {
@@ -150,7 +156,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             // Only skip restoration if there's a specific deep link that's not the root
             // This allows restoration when app is killed and reopened without a deep link
             const isRootPath = !path || path === '' || path === '/';
-            const isSpecificDeepLink = path && !isRootPath && !isTransitioning;
+            const isSpecificDeepLink = path && !isRootPath;
 
             if (!isSpecificDeepLink) {
                 Log.info('Restoring last visited path on app startup', false, {lastVisitedPath, initialUrl, path});
