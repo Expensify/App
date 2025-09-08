@@ -1,10 +1,12 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
@@ -25,6 +27,13 @@ import NotFoundPage from './ErrorPage/NotFoundPage';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
+const APPROVER_TYPE = {
+    ADD_APPROVER: 'addApprover',
+    BYPASS_APPROVER: 'bypassApprover',
+} as const;
+
+type ApproverType = ValueOf<typeof APPROVER_TYPE>;
+
 type ReportChangeApproverPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.ROOT>;
 
 function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportChangeApproverPageProps) {
@@ -33,13 +42,13 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const [selectedApproverType, setSelectedApproverType] = useState<string>();
+    const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>();
 
     const changeApprover = useCallback(() => {
         if (!selectedApproverType) {
             return;
         }
-        if (selectedApproverType === 'addApprover') {
+        if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
             if (policy && !isControlPolicy(policy)) {
                 Navigation.navigate(
                     ROUTES.WORKSPACE_UPGRADE.getRoute(
@@ -58,13 +67,12 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     }, [selectedApproverType, report, currentUserDetails.accountID, reportID, policy]);
 
     const sections = useMemo(() => {
-        const data = [
+        const data: Array<ListItem<ApproverType>> = [
             {
                 text: translate('iou.changeApprover.actions.addApprover'),
-                keyForList: 'addApprover',
-                value: 'addApprover',
+                keyForList: APPROVER_TYPE.ADD_APPROVER,
                 alternateText: translate('iou.changeApprover.actions.addApproverSubtitle'),
-                isSelected: selectedApproverType === 'addApprover',
+                isSelected: selectedApproverType === APPROVER_TYPE.ADD_APPROVER,
             },
         ];
 
@@ -72,10 +80,9 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
         if (!isMemberPolicyAdmin(policy, getLoginByAccountID(report.managerID ?? CONST.DEFAULT_NUMBER_ID))) {
             data.push({
                 text: translate('iou.changeApprover.actions.bypassApprovers'),
-                keyForList: 'bypassApprover',
-                value: 'bypassApprover',
+                keyForList: APPROVER_TYPE.BYPASS_APPROVER,
                 alternateText: translate('iou.changeApprover.actions.bypassApproversSubtitle'),
-                isSelected: selectedApproverType === 'bypassApprover',
+                isSelected: selectedApproverType === APPROVER_TYPE.BYPASS_APPROVER,
             });
         }
 
@@ -103,7 +110,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
                 ListItem={RadioListItem}
                 sections={sections}
                 isAlternateTextMultilineSupported
-                onSelectRow={(option) => setSelectedApproverType(option.keyForList)}
+                onSelectRow={(option) => option.keyForList && setSelectedApproverType(option.keyForList)}
                 showConfirmButton
                 confirmButtonText={translate('iou.changeApprover.title')}
                 onConfirm={changeApprover}
