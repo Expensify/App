@@ -116,12 +116,12 @@ function IOURequestStepDestination({
     };
 
     useEffect(() => {
-        if (!shouldShowEmptyState) {
+        if (!isEmptyObject(customUnit?.rates) || isOffline) {
             return;
         }
         fetchPerDiemRates(policy?.id);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [isOffline]);
 
     return (
         <ScreenWrapper
