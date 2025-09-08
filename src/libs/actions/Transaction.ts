@@ -83,8 +83,9 @@ Onyx.connect({
     },
 });
 
+// `allReports` is only used in actions, so getting it using Onyx.connectWithoutView is correct.
 let allReports: OnyxCollection<Report> = {};
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
