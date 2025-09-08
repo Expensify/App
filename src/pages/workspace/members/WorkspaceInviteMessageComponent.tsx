@@ -83,14 +83,7 @@ function WorkspaceInviteMessageComponent({
     );
 
     const getDefaultWelcomeNote = useCallback(() => {
-        return (
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            formData?.[INPUT_IDS.WELCOME_MESSAGE] ??
-            // workspaceInviteMessageDraft can be an empty string
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            workspaceInviteMessageDraft ??
-            translate('workspace.common.welcomeNote')
-        );
+        return formData?.[INPUT_IDS.WELCOME_MESSAGE] ?? workspaceInviteMessageDraft ?? translate('workspace.common.welcomeNote');
     }, [workspaceInviteMessageDraft, translate, formData]);
 
     useEffect(() => {
@@ -105,6 +98,10 @@ function WorkspaceInviteMessageComponent({
             return;
         }
         Navigation.goBack(backTo);
+
+        // We only want to run this useEffect when the onyx values have loaded
+        // We navigate back to the main members screen when the invitation has been sent
+        // This is decided when onyx values have loaded and if `invitedEmailsToAccountIDsDraft` is empty
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isOnyxLoading]);
 
@@ -112,6 +109,7 @@ function WorkspaceInviteMessageComponent({
         Keyboard.dismiss();
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
+        // See https://github.com/Expensify/App/blob/main/README.md#workspace, we set conditions about who can leave the workspace
         addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, policyID, policyMemberAccountIDs, workspaceInviteRoleDraft, formatPhoneNumber);
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
@@ -225,7 +223,7 @@ function WorkspaceInviteMessageComponent({
                                 description={translate('common.role')}
                                 shouldShowRightIcon
                                 onPress={() => {
-                                    Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.getRoute(policyID, Navigation.getActiveRoute()));
+                                    Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.getRoute(policyID ?? '', Navigation.getActiveRoute()));
                                 }}
                             />
                         </View>
