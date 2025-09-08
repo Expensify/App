@@ -195,8 +195,10 @@ class TranslationGenerator {
                 result.dispose();
             }
 
-            // Import en.ts
-            transformedSourceFile = TSCompilerUtils.addImport(transformedSourceFile, 'en', './en', true);
+            // Import en.ts (only if not already present)
+            if (!this.hasEnImport(transformedSourceFile)) {
+                transformedSourceFile = TSCompilerUtils.addImport(transformedSourceFile, 'en', './en', true);
+            }
 
             // Generate translated TypeScript code
             const printer = ts.createPrinter();
@@ -677,6 +679,21 @@ class TranslationGenerator {
         }
 
         return pathParts.length > 0 ? pathParts.join('.') : null;
+    }
+
+    /**
+     * Check if a source file already has an import for 'en'.
+     */
+    private hasEnImport(sourceFile: ts.SourceFile): boolean {
+        for (const statement of sourceFile.statements) {
+            if (ts.isImportDeclaration(statement) && statement.importClause) {
+                const importClause = statement.importClause;
+                if (importClause.name?.text === 'en') {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
