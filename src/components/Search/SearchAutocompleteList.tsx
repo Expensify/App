@@ -248,6 +248,8 @@ function SearchAutocompleteList(
         return getAutocompleteRecentCategories(allRecentCategories);
     }, [allRecentCategories]);
 
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
 
@@ -579,7 +581,7 @@ function SearchAutocompleteList(
                 return searchOptions.recentReports;
             }
 
-            const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, autocompleteQueryValue, {
+            const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, autocompleteQueryValue, activePolicyID, {
                 sortByReportTypeInSearch: true,
                 preferChatRoomsOverThreads: true,
             });
@@ -617,7 +619,7 @@ function SearchAutocompleteList(
             });
             throw error;
         }
-    }, [autocompleteQueryValue, searchOptions]);
+    }, [activePolicyID, autocompleteQueryValue, searchOptions]);
 
     const debounceHandleSearch = useDebounce(
         useCallback(() => {

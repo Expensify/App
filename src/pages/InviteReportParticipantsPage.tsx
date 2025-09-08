@@ -61,6 +61,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     useEffect(() => {
         updateUserSearchPhrase(debouncedSearchTerm);
@@ -85,12 +86,12 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
             return getEmptyOptions();
         }
 
-        return getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, false, options.reports, true);
-    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, options.reports]);
+        return getMemberInviteOptions(options.personalDetails, activePolicyID, betas ?? [], excludedUsers, false, options.reports, true);
+    }, [activePolicyID, areOptionsInitialized, betas, excludedUsers, options.personalDetails, options.reports]);
 
     const inviteOptions = useMemo(
-        () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {excludeLogins: excludedUsers}),
-        [debouncedSearchTerm, defaultOptions, excludedUsers, countryCode],
+        () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, activePolicyID, {excludeLogins: excludedUsers}),
+        [defaultOptions, debouncedSearchTerm, countryCode, activePolicyID, excludedUsers],
     );
 
     useEffect(() => {

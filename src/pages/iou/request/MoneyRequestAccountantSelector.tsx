@@ -62,6 +62,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
 
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
@@ -83,13 +85,13 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             },
         );
 
-        const orderedOptions = orderOptions(optionList);
+        const orderedOptions = orderOptions(optionList, activePolicyID);
 
         return {
             ...optionList,
             ...orderedOptions,
         };
-    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, options.personalDetails, options.reports]);
+    }, [action, activePolicyID, areOptionsInitialized, betas, didScreenTransitionEnd, options.personalDetails, options.reports]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -101,12 +103,12 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 headerMessage: '',
             };
         }
-        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, activePolicyID, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, activePolicyID]);
 
     /**
      * Returns the sections needed for the OptionsSelector
