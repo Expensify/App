@@ -74,8 +74,9 @@ Onyx.connect({
     },
 });
 
+// `allTransactionDrafts` is only used in actions, so getting it using Onyx.connectWithoutView is correct.
 let allTransactionDrafts: OnyxCollection<Transaction> = {};
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
     waitForCollectionCallback: true,
     callback: (value) => {
