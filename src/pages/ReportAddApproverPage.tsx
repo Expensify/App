@@ -67,6 +67,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                     const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? CONST.DEFAULT_NUMBER_ID);
                     const isPendingDelete = employeeList?.[accountID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
+                    // Filter the current report approver and members which are pending for deletion
                     if (report.managerID === accountID || isPendingDelete) {
                         return null;
                     }
