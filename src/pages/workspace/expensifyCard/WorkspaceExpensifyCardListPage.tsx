@@ -16,7 +16,6 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
@@ -42,6 +41,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ScrollView from '@components/ScrollView';
 import EmptyCardView from './EmptyCardView';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
 import WorkspaceCardListLabels from './WorkspaceCardListLabels';
@@ -196,8 +196,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         </>
     );
 
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({ addBottomSafeAreaPadding: true});
-
     const handleBackButtonPress = () => {
         Navigation.popToSidebar();
         return true;
@@ -240,22 +238,27 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     policyID={policyID}
                 />
             ) : (
-                <FlatList
-                    data={filteredSortedCards}
-                    renderItem={renderItem}
-                    ListHeaderComponent={renderListHeader}
-                    contentContainerStyle={[bottomSafeAreaPaddingStyle, styles.flexGrow1, {minHeight: windowHeight - headerHeight + footerHeight}]}
-                    ListFooterComponent={
-                        <Text
-                            style={[styles.textMicroSupporting, styles.p5]}
-                            onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}
-                        >
-                            {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
-                        </Text>
-                    }
-                    ListFooterComponentStyle={[styles.flexGrow1, styles.justifyContentEnd]}
-                    keyboardShouldPersistTaps="handled"
-                />
+              <ScrollView
+                  addBottomSafeAreaPadding
+                  showsVerticalScrollIndicator={false}
+              >
+                  <FlatList
+                      data={filteredSortedCards}
+                      renderItem={renderItem}
+                      ListHeaderComponent={renderListHeader}
+                      contentContainerStyle={[styles.flexGrow1, {minHeight: windowHeight - headerHeight + footerHeight}]}
+                      ListFooterComponent={
+                          <Text
+                              style={[styles.textMicroSupporting, styles.ph5, styles.pv2]}
+                              onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}
+                          >
+                              {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
+                          </Text>
+                      }
+                      ListFooterComponentStyle={[styles.flexGrow1, styles.justifyContentEnd]}
+                      keyboardShouldPersistTaps="handled"
+                  />
+              </ScrollView>
             )}
         </ScreenWrapper>
     );
