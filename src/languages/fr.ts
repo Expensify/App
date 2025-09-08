@@ -2501,8 +2501,10 @@ const translations = {
         messages: {
             onboardingEmployerOrSubmitMessage: 'Se faire rembourser est aussi simple que d’envoyer un message. Voici les bases.',
             onboardingPersonalSpendMessage: 'Voici comment suivre vos dépenses en quelques clics.',
-            onboardingManageTeamMessage:
-                '# Votre essai gratuit a commencé ! Passons à la configuration.\n👋 Bonjour, je suis votre spécialiste de configuration Expensify. Maintenant que vous avez créé un espace de travail, profitez pleinement de vos 30 jours d’essai gratuit en suivant les étapes ci-dessous !',
+            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
+                hasIntroSelected
+                    ? '# Votre essai gratuit a commencé ! Configurons tout cela.\n👋 Bonjour, je suis votre spécialiste de configuration Expensify. Maintenant que vous avez créé un espace de travail, profitez pleinement de votre essai gratuit de 30 jours en suivant les étapes ci-dessous.'
+                    : '# Votre essai gratuit a commencé ! Configurons tout cela.\n👋 Bonjour, je suis votre spécialiste de configuration Expensify. J’ai déjà créé un espace de travail pour vous aider à gérer les reçus et dépenses de votre équipe. Pour profiter pleinement de votre essai gratuit de 30 jours, suivez simplement les étapes de configuration ci-dessous.',
             onboardingTrackWorkspaceMessage:
                 '# Configurons votre espace\n👋 Je suis là pour vous aider ! J’ai personnalisé votre espace pour les entrepreneurs individuels et entreprises similaires. Vous pouvez le modifier via le lien ci-dessous.\n\nVoici comment suivre vos dépenses rapidement :',
             onboardingChatSplitMessage: 'Partager des dépenses entre amis est aussi simple qu’un message. Voici comment faire.',
@@ -2801,6 +2803,7 @@ const translations = {
             formLabel: 'Voir le PDF',
         },
         attachmentNotFound: 'Pièce jointe introuvable',
+        retry: 'Réessayer',
     },
     messages: {
         errorMessageInvalidPhone: `Veuillez entrer un numéro de téléphone valide sans parenthèses ni tirets. Si vous êtes en dehors des États-Unis, veuillez inclure votre indicatif de pays (par exemple, ${CONST.EXAMPLE_PHONE_NUMBER}).`,
@@ -5415,6 +5418,7 @@ const translations = {
             genericFailureMessage: "Une erreur s'est produite lors de la mise à jour de l'espace de travail. Veuillez réessayer.",
             avatarUploadFailureMessage: "Une erreur s'est produite lors du téléchargement de l'avatar. Veuillez réessayer.",
             addressContext: "Une adresse de l'espace de travail est requise pour activer Expensify Travel. Veuillez entrer une adresse associée à votre entreprise.",
+            policy: 'Politique de dépenses',
         },
         bankAccount: {
             continueWithSetup: 'Continuer la configuration',
@@ -5751,8 +5755,7 @@ const translations = {
             },
             customRules: {
                 title: 'Règles personnalisées',
-                subtitle: 'Description',
-                description: 'Saisir des règles personnalisées pour les rapports de dépenses',
+                cardSubtitle: 'Voici où se trouve la politique de dépenses de votre équipe, afin que tout le monde sache ce qui est couvert.',
             },
         },
         planTypePage: {

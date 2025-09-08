@@ -70,7 +70,15 @@ import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {arePaymentsEnabled, canSendInvoice, getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
-import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
+import {
+    getOriginalMessage,
+    getReportActionHtml,
+    isCreatedAction,
+    isDeletedAction,
+    isMoneyRequestAction,
+    isResolvedActionableWhisper,
+    isWhisperActionTargetedToOthers,
+} from './ReportActionsUtils';
 import {canReview} from './ReportPreviewActionUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
@@ -995,6 +1003,8 @@ function getTransactionsSections(
                 hasViolation: transactionItem.hasViolation,
                 cardID: transactionItem.cardID,
                 cardName: transactionItem.cardName,
+                convertedAmount: transactionItem.convertedAmount,
+                convertedCurrency: transactionItem.convertedCurrency,
             };
 
             transactionsSections.push(transactionSection);
@@ -1288,8 +1298,14 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
 
     for (const key in data) {
         if (isReportActionEntry(key)) {
-            const reportActions = data[key];
-            for (const reportAction of Object.values(reportActions)) {
+            const reportActions = Object.values(data[key]);
+            const freeTrialMessages = reportActions.filter((action) => {
+                const html = getReportActionHtml(action);
+                return Parser.htmlToMarkdown(html) === CONST.FREE_TRIAL_MARKDOWN;
+            });
+            const isDuplicateFreeTrialMessage = freeTrialMessages.length > 1;
+            const filteredReportActions = reportActions.filter((action) => !isDuplicateFreeTrialMessage || action.reportActionID !== freeTrialMessages.at(0)?.reportActionID);
+            for (const reportAction of filteredReportActions) {
                 const from = data.personalDetailsList?.[reportAction.accountID];
                 const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ?? {};
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
