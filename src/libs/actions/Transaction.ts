@@ -62,8 +62,9 @@ Onyx.connect({
     },
 });
 
+// `allTransactions` is only used in actions, so getting it using Onyx.connectWithoutView is correct.
 const allTransactions: Record<string, Transaction> = {};
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     callback: (transaction, key) => {
         if (!key || !transaction) {
