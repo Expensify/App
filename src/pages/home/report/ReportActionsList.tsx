@@ -9,6 +9,7 @@ import type {RenderScrollComponentType} from '@components/ActionSheetAwareScroll
 import FlatList from '@components/FlatList';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import {PersonalDetailsContext, usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -837,9 +838,10 @@ function ReportActionsList({
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
-            <View
+            <KeyboardAvoidingView
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
+                behavior="height"
             >
                 <ListComponent
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
@@ -871,7 +873,7 @@ function ReportActionsList({
                         trackVerticalScrolling(undefined);
                     }}
                 />
-            </View>
+            </KeyboardAvoidingView>
         </>
     );
 }
