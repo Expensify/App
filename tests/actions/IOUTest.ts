@@ -5532,7 +5532,7 @@ describe('actions/IOU', () => {
                 amount: 0,
                 modifiedAmount: 0,
                 receipt: {
-                    source: 'test',
+                    uri: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
                 },
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
@@ -5544,7 +5544,7 @@ describe('actions/IOU', () => {
                 amount: 0,
                 modifiedAmount: 0,
                 receipt: {
-                    source: 'test',
+                    uri: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
                 },
                 merchant: 'test merchant',
@@ -5594,7 +5594,7 @@ describe('actions/IOU', () => {
                 amount: 0,
                 modifiedAmount: 0,
                 receipt: {
-                    source: 'test',
+                    uri: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
                 },
                 merchant: 'test merchant',
@@ -5640,7 +5640,7 @@ describe('actions/IOU', () => {
                 reportID,
                 amount: 0,
                 receipt: {
-                    source: 'test',
+                    uri: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
                 },
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
@@ -6410,7 +6410,7 @@ describe('actions/IOU', () => {
             const transaction = {
                 transactionID,
                 receipt: {
-                    source: 'test1',
+                    uri: 'test1',
                 },
             };
 
@@ -6447,7 +6447,7 @@ describe('actions/IOU', () => {
                     },
                 });
             });
-            expect(updatedTransaction?.receipt?.source).toBe(source);
+            expect(updatedTransaction?.receipt?.uri).toBe(source);
 
             // Then the snapshot should have the new receipt source
             const updatedSnapshot = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
@@ -6462,7 +6462,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
+            expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.uri).toBe(source);
         });
 
         it('should add receipt if it does not exist', async () => {
@@ -6509,7 +6509,7 @@ describe('actions/IOU', () => {
                     },
                 });
             });
-            expect(updatedTransaction?.receipt?.source).toBe(source);
+            expect(updatedTransaction?.receipt?.uri).toBe(source);
 
             // Then the snapshot should have the new receipt source
             const updatedSnapshot = await new Promise<OnyxEntry<SearchResults>>((resolve) => {
@@ -6524,7 +6524,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
+            expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.uri).toBe(source);
         });
     });
 
@@ -6888,7 +6888,7 @@ describe('actions/IOU', () => {
                 reportID,
                 amount: 27,
                 receipt: {
-                    source: 'test',
+                    uri: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
                 },
                 merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
@@ -8026,7 +8026,7 @@ describe('actions/IOU', () => {
             };
 
             const mockReceipt = {
-                source: 'receipt_source_123',
+                uri: 'receipt_source_123',
                 name: 'receipt.pdf',
                 state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
             };

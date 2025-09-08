@@ -136,7 +136,7 @@ function IOURequestStepParticipants({
             return;
         }
         const firstReceiptFilename = initialTransaction?.filename ?? '';
-        const firstReceiptPath = initialTransaction?.receipt?.source ?? '';
+        const firstReceiptPath = initialTransaction?.receipt?.uri ?? '';
         const firstReceiptType = initialTransaction?.receipt?.type ?? '';
         navigateToStartStepIfScanFileCannotBeRead(firstReceiptFilename, firstReceiptPath, () => {}, iouRequestType, iouType, initialTransactionID, reportID, firstReceiptType);
     }, [iouRequestType, iouType, initialTransaction, initialTransactionID, reportID, isMovingTransactionFromTrackExpense]);

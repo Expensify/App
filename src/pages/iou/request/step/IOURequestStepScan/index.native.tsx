@@ -34,7 +34,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {readFileAsync, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import {getFileName, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
@@ -306,7 +306,7 @@ function IOURequestStepScan({
             files.forEach((receiptFile: ReceiptFile, index) => {
                 const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
                 const receipt: Receipt = receiptFile.file ?? {};
-                receipt.source = receiptFile.source;
+                receipt.uri = receiptFile.uri;
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
                 if (iouType === CONST.IOU.TYPE.TRACK && report) {
                     trackExpense({
@@ -404,7 +404,7 @@ function IOURequestStepScan({
                     const firstReceiptFile = files.at(0);
                     if (iouType === CONST.IOU.TYPE.SPLIT && firstReceiptFile) {
                         const splitReceipt: Receipt = firstReceiptFile.file ?? {};
-                        splitReceipt.source = firstReceiptFile.source;
+                        splitReceipt.uri = firstReceiptFile.uri;
                         splitReceipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
                         startSplitBill({
                             participants,
@@ -535,7 +535,7 @@ function IOURequestStepScan({
             }
 
             setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, file.type, true);
-            navigateToConfirmationStep([{file, source: file.uri, transactionID: initialTransactionID}], false, true);
+            navigateToConfirmationStep([{file, uri: file.uri, transactionID: initialTransactionID}], false, true);
         });
     }, [initialTransactionID, isEditing, navigateToConfirmationStep]);
 
@@ -569,7 +569,7 @@ function IOURequestStepScan({
 
         files.forEach((file, index) => {
             const transaction =
-                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt?.source)
+                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt?.uri)
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<Transaction>,
@@ -578,7 +578,7 @@ function IOURequestStepScan({
                       });
 
             const transactionID = transaction.transactionID ?? initialTransactionID;
-            newReceiptFiles.push({file, source: file.uri ?? '', transactionID});
+            newReceiptFiles.push({file, uri: file.uri ?? '', transactionID});
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             setMoneyRequestReceipt(transactionID, file.uri ?? '', file.name || '', true);
         });
@@ -669,7 +669,7 @@ function IOURequestStepScan({
                     .then((photo: PhotoFile) => {
                         // Store the receipt on the transaction object in Onyx
                         const transaction =
-                            isMultiScanEnabled && initialTransaction?.receipt?.source
+                            isMultiScanEnabled && initialTransaction?.receipt?.uri
                                 ? buildOptimisticTransactionAndCreateDraft({
                                       initialTransaction,
                                       currentUserPersonalDetails,
@@ -681,31 +681,27 @@ function IOURequestStepScan({
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height).then(({filename, source}) => {
                             setMoneyRequestReceipt(transactionID, source, filename, !isEditing);
 
-                            readFileAsync(
-                                source,
-                                filename,
-                                (file) => {
-                                    if (isEditing) {
-                                        updateScanAndNavigate(file, source);
-                                        return;
-                                    }
+                            // Create FileObject for path-based tracking
+                            const fileForTracking: FileObject = {
+                                uri: source,
+                                name: getFileName(filename),
+                                type: 'image/jpeg',
+                            } as FileObject;
 
-                                    const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
-                                    setReceiptFiles(newReceiptFiles);
+                            if (isEditing) {
+                                updateScanAndNavigate(fileForTracking, source);
+                                return;
+                            }
 
-                                    if (isMultiScanEnabled) {
-                                        setDidCapturePhoto(false);
-                                        return;
-                                    }
+                            const newReceiptFiles = [...receiptFiles, {file: fileForTracking, uri: source, transactionID}];
+                            setReceiptFiles(newReceiptFiles);
 
-                                    submitReceipts(newReceiptFiles);
-                                },
-                                () => {
-                                    setDidCapturePhoto(false);
-                                    showCameraAlert();
-                                    Log.warn('Error reading photo');
-                                },
-                            );
+                            if (isMultiScanEnabled) {
+                                setDidCapturePhoto(false);
+                                return;
+                            }
+
+                            submitReceipts(newReceiptFiles);
                         });
                     })
                     .catch((error: string) => {

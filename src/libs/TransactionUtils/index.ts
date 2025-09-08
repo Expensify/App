@@ -195,7 +195,7 @@ function isScanRequest(transaction: OnyxEntry<Transaction> | Partial<Transaction
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
     }
 
-    return !!transaction?.receipt?.source && transaction?.amount === 0;
+    return !!transaction?.receipt?.uri && transaction?.amount === 0;
 }
 
 function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
@@ -231,6 +231,28 @@ function getRequestType(transaction: OnyxEntry<Transaction>, isManualDistanceEna
     }
 
     return CONST.IOU.REQUEST_TYPE.MANUAL;
+}
+
+/**
+ * Determines the appropriate receipt state based on request type and receipt properties.
+ * This function encapsulates the business logic for setting receipt states:
+ * - Test receipts: SCAN_COMPLETE (already processed)
+ * - Manual requests: OPEN (receipt can be added later)
+ * - Scan requests: SCAN_READY (waiting for SmartScan processing)
+ */
+function getReceiptState(requestType: IOURequestType, isTestReceipt?: boolean, isTestDriveReceipt?: boolean): ValueOf<typeof CONST.IOU.RECEIPT_STATE> {
+    // Test receipts should always be SCAN_COMPLETE
+    if (isTestReceipt === true || isTestDriveReceipt === true) {
+        return CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
+    }
+
+    // Manual requests should be OPEN (receipt can be added later)
+    if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
+        return CONST.IOU.RECEIPT_STATE.OPEN;
+    }
+
+    // All other request types (primarily SCAN) should be SCAN_READY
+    return CONST.IOU.RECEIPT_STATE.SCAN_READY;
 }
 
 /**
@@ -354,8 +376,8 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         merchant: merchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        receipt: receipt?.source ? {source: receipt.source, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY, isTestDriveReceipt: receipt.isTestDriveReceipt} : {},
-        filename: (receipt?.source ? (receipt?.name ?? filename) : filename).toString(),
+        receipt: receipt?.uri ? {uri: receipt.uri, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY, isTestDriveReceipt: receipt.isTestDriveReceipt} : {},
+        filename: (receipt?.uri ? (receipt?.name ?? filename) : filename).toString(),
         category,
         tag,
         taxCode,
@@ -380,7 +402,7 @@ function hasReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boo
 
 /** Check if the receipt has the source file */
 function hasReceiptSource(transaction: OnyxInputOrEntry<Transaction>): boolean {
-    return !!transaction?.receipt?.source;
+    return !!transaction?.receipt?.uri;
 }
 
 function isDemoTransaction(transaction: OnyxInputOrEntry<Transaction>): boolean {
@@ -2026,6 +2048,7 @@ export {
     getOriginalTransactionWithSplitInfo,
     getTransactionPendingAction,
     isTransactionPendingDelete,
+    getReceiptState,
     createUnreportedExpenseSections,
     isDemoTransaction,
     shouldShowViolation,

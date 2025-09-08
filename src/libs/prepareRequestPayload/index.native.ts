@@ -1,4 +1,5 @@
-import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
+import isFileUploadable from '@libs/isFileUploadable';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 import type PrepareRequestPayload from './types';
 
@@ -18,19 +19,53 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 return Promise.resolve();
             }
 
-            if ((key === 'receipt' || key === 'file') && initiatedOffline) {
-                const {uri: path = '', source} = value as File;
+            // Handle receipt key separately (memory-efficient path-based approach)
+            if (key === 'receipt') {
+                const receiptValue = value as File;
+                const {uri} = receiptValue;
+
+                if (!uri) {
+                    validateFormDataParameter(command, key, value);
+                    formData.append(key, value as string | Blob);
+                    return Promise.resolve();
+                }
+
+                // Validate the receipt
+                const isUploadable = isFileUploadable(receiptValue);
+                if (!isUploadable) {
+                    validateFormDataParameter(command, key, value);
+                    formData.append(key, value as string | Blob);
+                    return Promise.resolve();
+                }
+
+                validateFormDataParameter(command, key, receiptValue);
+
+                // Append receipt using path-based approach (no file reading)
+                const receiptFormData = {
+                    uri,
+                    name: receiptValue.name ?? getFileName(uri),
+                    type: receiptValue.type && receiptValue.type !== '' ? receiptValue.type : 'image/jpeg',
+                };
+
+                formData.append(key, receiptFormData as File);
+                return Promise.resolve();
+            }
+
+            // Handle file key separately (original readFileAsync logic)
+            if (key === 'file' && initiatedOffline) {
+                const fileValue = value as File;
+                const {uri: path = '', source} = fileValue;
+
                 if (!source) {
                     validateFormDataParameter(command, key, value);
                     formData.append(key, value as string | Blob);
-
                     return Promise.resolve();
                 }
+
                 return readFileAsync(source, path, () => {}).then((file) => {
                     if (!file) {
                         return;
                     }
-
                     validateFormDataParameter(command, key, file);
                     formData.append(key, file);
                 });

@@ -366,7 +366,7 @@ describe('MergeTransactionUtils', () => {
                 },
                 reimbursable: true,
                 billable: false,
-                receipt: {receiptID: 1234, source: 'original.jpg'},
+                receipt: {receiptID: 1234, uri: 'original.jpg'},
             };
 
             const mergeTransaction = {
@@ -378,7 +378,7 @@ describe('MergeTransactionUtils', () => {
                 description: 'Merged description',
                 reimbursable: false,
                 billable: true,
-                receipt: {receiptID: 1235, source: 'merged.jpg'},
+                receipt: {receiptID: 1235, uri: 'merged.jpg'},
             };
 
             const result = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -400,7 +400,7 @@ describe('MergeTransactionUtils', () => {
                 reimbursable: false,
                 billable: true,
                 filename: 'merged.jpg',
-                receipt: {receiptID: 1235, source: 'merged.jpg'},
+                receipt: {receiptID: 1235, uri: 'merged.jpg'},
             });
         });
     });
