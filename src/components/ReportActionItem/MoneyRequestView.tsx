@@ -182,9 +182,7 @@ function MoneyRequestView({
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
 
-    // If it's from the merge transaction flow:
-    // - We can use amount from the updated transaction because it's already converted to the correct sign for user to select
-    // - This will support to display correct sign of amount for negative amount
+    // Use the updated transaction amount in merge flow to have correct positive/negative sign
     const actualAmount = isFromMergeTransaction && updatedTransaction ? updatedTransaction.amount : transactionAmount;
     const actualCurrency = updatedTransaction ? getCurrency(updatedTransaction) : transactionCurrency;
     const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!actualAmount) && actualAmount !== undefined;
