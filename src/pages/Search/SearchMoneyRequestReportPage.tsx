@@ -8,18 +8,23 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getPlatform from '@libs/getPlatform';
+import includeSafeAreaBottom from '@libs/includeSafeAreaBottom';
+import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import {getFilteredReportActionsForReportView, getIOUActionForTransactionID, getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
-import {openReport} from '@userActions/Report';
+import {createTransactionThreadReport, openReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ActionListContextType, ScrollPosition} from '@src/pages/home/ReportScreenContext';
@@ -27,6 +32,7 @@ import {ActionListContext} from '@src/pages/home/ReportScreenContext';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import shouldEnableKeyboardAvoidingView from './shouldEnableKeyboardAvoidingView';
 
 type SearchMoneyRequestPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>;
 
@@ -42,6 +48,7 @@ const defaultReportMetadata = {
 function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
 
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
@@ -49,7 +56,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${report?.reportID}`, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
@@ -58,11 +64,32 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const flatListRef = useRef<FlatList>(null);
     const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
+    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportIDFromRoute);
+    const {transactions: allReportTransactions} = useTransactionsAndViolationsForReport(reportIDFromRoute);
+    const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
+    const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions), [allReportTransactions, reportActions]);
+    const visibleTransactions = useMemo(
+        () => reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+        [reportTransactions, isOffline],
+    );
+    const reportTransactionIDs = useMemo(() => visibleTransactions?.map((transaction) => transaction.transactionID), [visibleTransactions]);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
+    const oneTransactionID = reportTransactions.at(0)?.transactionID;
+
     const reportID = report?.reportID;
 
     useEffect(() => {
+        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && oneTransactionID) {
+            const iouAction = getIOUActionForTransactionID(reportActions, oneTransactionID);
+            createTransactionThreadReport(report, iouAction);
+            return;
+        }
+
         openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined);
-    }, [reportIDFromRoute]);
+        // We don't want this hook to re-run on the every report change
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [reportIDFromRoute, transactionThreadReportID]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
@@ -83,9 +110,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         [reportID, reportMetadata?.isLoadingInitialReportActions],
     );
 
-    const platform = getPlatform();
-    const isIOS = platform === CONST.PLATFORM.IOS;
-
     if (shouldUseNarrowLayout) {
         return (
             <ActionListContext.Provider value={actionListValue}>
@@ -95,8 +119,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                         shouldEnableMaxHeight
                         offlineIndicatorStyle={styles.mtAuto}
                         headerGapStyles={styles.searchHeaderGap}
-                        shouldEnableKeyboardAvoidingView={isComposerFullSize || !isIOS}
-                        includeSafeAreaPaddingBottom={!isIOS}
+                        shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
+                        includeSafeAreaPaddingBottom={includeSafeAreaBottom}
                     >
                         <FullPageNotFoundView
                             shouldShow={shouldShowNotFoundPage}
@@ -130,8 +154,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                     shouldEnableMaxHeight
                     offlineIndicatorStyle={styles.mtAuto}
                     headerGapStyles={[styles.searchHeaderGap, styles.h0]}
-                    shouldEnableKeyboardAvoidingView={isComposerFullSize || !isIOS}
-                    includeSafeAreaPaddingBottom={!isIOS}
+                    shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
+                    includeSafeAreaPaddingBottom={includeSafeAreaBottom}
                 >
                     <View style={[styles.searchSplitContainer, styles.flexColumn, styles.flex1]}>
                         <FullPageNotFoundView

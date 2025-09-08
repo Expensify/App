@@ -59,7 +59,8 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
-import {createNewReport} from './actions/Report';
+import {createNewReport, createTransactionThreadReport, openReport} from './actions/Report';
+import {updateSearchResultsWithTransactionThreadReportID} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
@@ -1276,6 +1277,19 @@ function getTaskSections(
     );
 }
 
+/** Creates transaction thread report and navigates to it from the search page */
+function createAndOpenSearchTransactionThread(item: TransactionListItemType, iouReportAction: OnyxEntry<OnyxTypes.ReportAction>, hash: number, backTo: string) {
+    // We know that iou report action exists, but it wasn't loaded yet. We need to load iou report to have the necessary data in the onyx.
+    if (!iouReportAction) {
+        openReport(item.report.reportID);
+    }
+    const transactionThreadReport = createTransactionThreadReport(item.report, iouReportAction ?? ({reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction));
+    if (transactionThreadReport?.reportID) {
+        updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
+    }
+    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo}));
+}
+
 /**
  * @private
  * Organizes data into List Sections for display, for the ReportActionListItemType of Search Results.
@@ -2308,6 +2322,7 @@ export {
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
     getDatePresets,
+    createAndOpenSearchTransactionThread,
     getWithdrawalTypeOptions,
     getActionOptions,
     getColumnsToShow,
