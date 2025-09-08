@@ -30,7 +30,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -71,7 +71,7 @@ function WorkspaceReportFieldsPage({
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
-    const hasReportAccountingConnections = hasAccountingConnections(policy);
+    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const filteredPolicyFieldList = useMemo(() => {
         if (!policy?.fieldList) {
             return {};
@@ -82,11 +82,11 @@ function WorkspaceReportFieldsPage({
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
-        if (!hasReportAccountingConnections) {
+        if (!hasAccountingConnections) {
             return;
         }
         setIsOrganizeWarningModalOpen(true);
-    }, [hasReportAccountingConnections]);
+    }, [hasAccountingConnections]);
 
     const fetchReportFields = useCallback(() => {
         openPolicyReportFieldsPage(policyID);
@@ -266,7 +266,7 @@ function WorkspaceReportFieldsPage({
                                     }
                                     enablePolicyReportFields(policyID, isEnabled);
                                 }}
-                                disabled={hasReportAccountingConnections}
+                                disabled={hasAccountingConnections}
                                 disabledAction={onDisabledOrganizeSwitchPress}
                                 subMenuItems={
                                     !!policy?.areReportFieldsEnabled && (
@@ -278,7 +278,7 @@ function WorkspaceReportFieldsPage({
                                                     keyExtractor={keyExtractor}
                                                 />
                                             </View>
-                                            {!hasReportAccountingConnections && (
+                                            {!hasAccountingConnections && (
                                                 <MenuItem
                                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
                                                     title={translate('workspace.reportFields.addField')}
