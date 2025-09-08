@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -36,9 +37,11 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [selectedApproverType, setSelectedApproverType] = useState<string>();
+    const [hasError, setHasError] = useState(false);
 
     const changeApprover = useCallback(() => {
         if (!selectedApproverType) {
+            setHasError(true);
             return;
         }
 
@@ -86,7 +89,10 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
                 ListItem={RadioListItem}
                 sections={sections}
                 isAlternateTextMultilineSupported
-                onSelectRow={(option) => setSelectedApproverType(option.keyForList)}
+                onSelectRow={(option) => {
+                    setSelectedApproverType(option.keyForList);
+                    setHasError(false);
+                }}
                 showConfirmButton
                 confirmButtonText={translate('iou.changeApprover.title')}
                 onConfirm={changeApprover}
@@ -98,7 +104,15 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
                         </View>
                     </>
                 }
-            />
+            >
+                {hasError && (
+                    <FormHelpMessage
+                        isError
+                        style={[styles.ph5, styles.mb3]}
+                        message={translate('common.error.pleaseSelectOne')}
+                    />
+                )}
+            </SelectionList>
         </ScreenWrapper>
     );
 }

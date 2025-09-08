@@ -20,7 +20,6 @@ import {InputBlurContextProvider} from './components/InputBlurContext';
 import {KeyboardDismissibleFlatListContextProvider} from './components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
 import KeyboardProvider from './components/KeyboardProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
-import {ModalProvider} from './components/Modal/Global';
 import NavigationBar from './components/NavigationBar';
 import OnyxListItemProvider from './components/OnyxListItemProvider';
 import PopoverContextProvider from './components/PopoverProvider';
@@ -118,7 +117,6 @@ function App() {
                                         InputBlurContextProvider,
                                         FullScreenBlockingViewContextProvider,
                                         FullScreenLoaderContextProvider,
-                                        ModalProvider,
                                         SidePanelContextProvider,
                                     ]}
                                 >
