@@ -50,19 +50,14 @@ function EnvironmentProvider({children}: EnvironmentProviderProps): ReactElement
                 return html;
             }
 
-            try {
-                const dom = parseDocument(html);
-                const anchorTags = DomUtils.findAll((element) => element.name.toLowerCase() === 'a', dom);
-                for (const anchorTag of anchorTags) {
-                    const href = anchorTag.attribs.href;
-                    if (href?.startsWith('https://new.expensify.com')) {
-                        anchorTag.attribs.href = href.replace('https://new.expensify.com', environmentURLWithoutTrailingSlash);
-                    }
-                }
-                return render(dom);
-            } catch (error) {
-                return html; // Return original HTML if parsing fails
+            // Fast-path: if there are no production URLs, avoid any processing
+            if (!html.includes('https://new.expensify.com')) {
+                return html;
             }
+
+            // Use a conservative regex replace on href attributes only, to avoid
+            // re-parsing and re-serializing message HTML (which can be fragile with custom tags like <mention-user>).
+            return html.replace(/href=(['"])https:\/\/new\.expensify\.com/gi, (_m, quote: string) => `href=${quote}${environmentURLWithoutTrailingSlash}`);
         },
         [environmentURLWithoutTrailingSlash],
     );
