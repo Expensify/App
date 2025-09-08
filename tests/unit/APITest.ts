@@ -800,4 +800,42 @@ describe('APITests', () => {
                 expect(xhr.mock.calls.at(0)?.[1].policyID).toBe('2');
             });
     });
+
+    test('Write request with supportal insufficient permissions (666) suppresses retry and applies failureData', () => {
+        const xhr = jest
+            .spyOn(HttpUtils, 'xhr')
+            .mockResolvedValue({jsonCode: 666, message: 'You do not have the permission to do the requested action.'});
+
+        const onyxUpdateSpy = jest.spyOn(Onyx, 'update');
+
+        const failureData = [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
+                value: 'failed',
+            },
+        ];
+
+        return Onyx.multiSet({
+            [ONYXKEYS.SESSION]: {authToken: 'anyToken', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT},
+            [ONYXKEYS.NETWORK]: {isOffline: false},
+        })
+            .then(() => {
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {} as ApiRequestCommandParameters[WriteCommand], {failureData});
+                return waitForNetworkPromises();
+            })
+            .then(() => {
+                // Should only call once (no retries)
+                expect(xhr).toHaveBeenCalledTimes(1);
+
+                // Request should not remain in the persisted queue
+                expect(PersistedRequests.getAll().length).toBe(0);
+
+                // Failure data should be applied through Onyx.update at flush time
+                const failureApplied = onyxUpdateSpy.mock.calls.some(([updates]) =>
+                    Array.isArray(updates) && updates.some((u) => u?.key === ONYXKEYS.ONBOARDING_ERROR_MESSAGE && u?.value === 'failed'),
+                );
+                expect(failureApplied).toBe(true);
+            });
+    });
 });
