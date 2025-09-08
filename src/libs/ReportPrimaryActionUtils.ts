@@ -372,14 +372,15 @@ function getTransactionThreadPrimaryAction(
     parentReport: Report,
     reportTransaction: Transaction,
     violations: TransactionViolation[],
-    policy?: Policy,
+    policy: OnyxEntry<Policy>,
+    isFromReviewDuplicates: boolean,
 ): ValueOf<typeof CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS> | '' {
     if (isHoldCreator(reportTransaction, transactionThreadReport.reportID)) {
         return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
     if (isReviewDuplicatesAction(parentReport, [reportTransaction])) {
-        return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES;
+        return isFromReviewDuplicates ? CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.KEEP_THIS_ONE : CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
     if (isMarkAsCashActionForTransaction(parentReport, violations, policy)) {
