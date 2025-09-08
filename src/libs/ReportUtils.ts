@@ -20,7 +20,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
-import CONST from '@src/CONST';
+import CONST, {TASK_TO_FEATURE} from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -263,7 +263,7 @@ import {
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
 } from './TransactionUtils';
-import {addTrailingForwardSlash} from './Url';
+import addTrailingForwardSlash from './UrlUtils';
 import type {AvatarSource} from './UserUtils';
 import {generateAccountID, getDefaultAvatarURL} from './UserUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
@@ -736,7 +736,7 @@ type OptimisticIOUReport = Pick<
 
 type OptimisticChangedApproverReportAction = Pick<
     ReportAction,
-    'actionName' | 'actorAccountID' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'
+    'actionName' | 'actorAccountID' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction' | 'isOptimisticAction'
 >;
 
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
@@ -3576,9 +3576,9 @@ function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amoun
  * @param [actionsToMerge] - the optimistic merge actions that needs to be considered while fetching last visible message
 
  */
-function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: ReportActions = {}): LastVisibleMessage {
+function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: ReportActions = {}, isReportArchived = false): LastVisibleMessage {
     const report = getReportOrDraftReport(reportID);
-    const lastVisibleAction = getLastVisibleActionReportActionsUtils(reportID, canUserPerformWriteAction(report), actionsToMerge);
+    const lastVisibleAction = getLastVisibleActionReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge);
 
     // For Chat Report with deleted parent actions, let us fetch the correct message
     if (isDeletedParentAction(lastVisibleAction) && !isEmptyObject(report) && isChatReport(report)) {
@@ -7632,6 +7632,7 @@ function buildOptimisticChangeApproverReportAction(managerID: number, actorAccou
         },
         shouldShow: false,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        isOptimisticAction: true,
         reportActionID: rand64(),
     };
 }
@@ -7999,7 +8000,7 @@ function buildOptimisticMoneyRequestEntities({
  * Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
  * Added caching mechanism via derived values.
  */
-function isEmptyReport(report: OnyxEntry<Report>): boolean {
+function isEmptyReport(report: OnyxEntry<Report>, isReportArchived = false): boolean {
     if (!report) {
         return true;
     }
@@ -8010,14 +8011,14 @@ function isEmptyReport(report: OnyxEntry<Report>): boolean {
         return attributes.isEmpty;
     }
 
-    return generateIsEmptyReport(report);
+    return generateIsEmptyReport(report, isReportArchived);
 }
 
 /**
  * Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
  * No cache implementation which bypasses derived value check.
  */
-function generateIsEmptyReport(report: OnyxEntry<Report>): boolean {
+function generateIsEmptyReport(report: OnyxEntry<Report>, isReportArchived = false): boolean {
     if (!report) {
         return true;
     }
@@ -8026,17 +8027,17 @@ function generateIsEmptyReport(report: OnyxEntry<Report>): boolean {
         return false;
     }
 
-    const lastVisibleMessage = getLastVisibleMessage(report.reportID);
+    const lastVisibleMessage = getLastVisibleMessage(report.reportID, {}, isReportArchived);
     return !lastVisibleMessage.lastMessageText;
 }
 
 // We need oneTransactionThreadReport to get the correct last visible action created
-function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>): boolean {
+function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived = false): boolean {
     if (!report) {
         return false;
     }
 
-    if (isEmptyReport(report)) {
+    if (isEmptyReport(report, isReportArchived)) {
         return false;
     }
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
@@ -8403,7 +8404,7 @@ function reasonForReportToBeInOptionList({
     // We used to use the system DM for A/B testing onboarding tasks, but now only create them in the Concierge chat. We
     // still need to allow existing users who have tasks in the system DM to see them, but otherwise we don't need to
     // show that chat
-    if (report?.participants?.[CONST.ACCOUNT_ID.NOTIFICATIONS] && isEmptyReport(report)) {
+    if (report?.participants?.[CONST.ACCOUNT_ID.NOTIFICATIONS] && isEmptyReport(report, isReportArchived)) {
         return null;
     }
 
@@ -8442,7 +8443,7 @@ function reasonForReportToBeInOptionList({
         return CONST.REPORT_IN_LHN_REASONS.HAS_GBR;
     }
 
-    const isEmptyChat = isEmptyReport(report);
+    const isEmptyChat = isEmptyReport(report, isReportArchived);
     const canHideReport = shouldHideReport(report, currentReportId);
 
     // Include reports if they are pinned
@@ -8472,7 +8473,7 @@ function reasonForReportToBeInOptionList({
     if (isInFocusMode) {
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-        return isUnread(report, oneTransactionThreadReport) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE
+        return isUnread(report, oneTransactionThreadReport, isReportArchived) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE
             ? CONST.REPORT_IN_LHN_REASONS.IS_UNREAD
             : null;
     }
@@ -10240,6 +10241,7 @@ function prepareOnboardingOnyxData(
     userReportedIntegration?: OnboardingAccounting,
     wasInvited?: boolean,
     companySize?: OnboardingCompanySize,
+    selectedInterestedFeatures: string[] = [],
 ) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
@@ -10327,6 +10329,12 @@ function prepareOnboardingOnyxData(
     let createWorkspaceTaskReportID;
     const tasksData = onboardingMessage.tasks
         .filter((task) => {
+            if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+                if (selectedInterestedFeatures?.length && TASK_TO_FEATURE[task.type] && !selectedInterestedFeatures.includes(TASK_TO_FEATURE[task.type])) {
+                    return false;
+                }
+            }
+
             if (([CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES, CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS] as string[]).includes(task.type) && userReportedIntegration) {
                 return false;
             }
@@ -10590,16 +10598,13 @@ function prepareOnboardingOnyxData(
         },
     );
 
-    // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
-    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [textCommentAction.reportActionID]: textCommentAction as ReportAction,
-            },
-        });
-    }
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [textCommentAction.reportActionID]: textCommentAction as ReportAction,
+        },
+    });
 
     if (!wasInvited) {
         optimisticData.push({
@@ -10611,16 +10616,13 @@ function prepareOnboardingOnyxData(
 
     const successData: OnyxUpdate[] = [...tasksForSuccessData];
 
-    // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
-    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [textCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
-            },
-        });
-    }
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [textCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
+        },
+    });
 
     let failureReport: Partial<Report> = {
         lastMessageText: '',
@@ -10658,18 +10660,15 @@ function prepareOnboardingOnyxData(
             },
         },
     );
-    // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
-    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [textCommentAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
-                } as ReportAction,
-            },
-        });
-    }
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [textCommentAction.reportActionID]: {
+                errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
+            } as ReportAction,
+        },
+    });
 
     if (!wasInvited) {
         failureData.push({
@@ -10720,12 +10719,9 @@ function prepareOnboardingOnyxData(
         });
     }
 
-    // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
     const guidedSetupData: GuidedSetupData = [];
 
-    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
-        guidedSetupData.push({type: 'message', ...textMessage});
-    }
+    guidedSetupData.push({type: 'message', ...textMessage});
 
     let selfDMParameters: SelfDMParameters = {};
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
@@ -10861,11 +10857,22 @@ function getChatUsedForOnboarding(): OnyxEntry<Report> {
  * Checks if given field has any violations and returns name of the first encountered one
  */
 function getFieldViolation(violations: OnyxEntry<ReportViolations>, reportField: PolicyReportField): ReportViolationName | undefined {
-    if (!violations || !reportField) {
+    if (!reportField) {
         return undefined;
     }
 
-    return Object.values(CONST.REPORT_VIOLATIONS).find((violation) => !!violations[violation] && violations[violation][reportField.fieldID]);
+    if (!violations) {
+        return reportField.value ? undefined : CONST.REPORT_VIOLATIONS.FIELD_REQUIRED;
+    }
+
+    const fieldViolation = Object.values(CONST.REPORT_VIOLATIONS).find((violation) => !!violations[violation] && violations[violation][reportField.fieldID]);
+
+    // If the field has no value or no violation, we return 'fieldRequired' violation
+    if (!fieldViolation) {
+        return reportField.value ? undefined : CONST.REPORT_VIOLATIONS.FIELD_REQUIRED;
+    }
+
+    return fieldViolation;
 }
 
 /**
@@ -10906,13 +10913,13 @@ function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
  * @param canUserPerformWriteActionInReport
  * @returns containing the calculated message preview data of the report
  */
-function getReportLastMessage(reportID: string, actionsToMerge?: ReportActions) {
+function getReportLastMessage(reportID: string, actionsToMerge?: ReportActions, isReportArchived = false) {
     let result: Partial<Report> = {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
 
-    const {lastMessageText = ''} = getLastVisibleMessage(reportID, actionsToMerge);
+    const {lastMessageText = ''} = getLastVisibleMessage(reportID, actionsToMerge, isReportArchived);
 
     if (lastMessageText) {
         const report = getReport(reportID, allReports);
