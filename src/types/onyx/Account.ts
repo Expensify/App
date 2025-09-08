@@ -205,6 +205,9 @@ type Account = {
     /** Whether we should use the staging version of the secure API server */
     shouldUseStagingServer?: boolean;
 
+    /** Whether we should block the transaction thread report creation */
+    shouldBlockTransactionThreadReportCreation?: boolean;
+
     /** Whether or not the user is on a public domain email account or not */
     isFromPublicDomain?: boolean;
 
