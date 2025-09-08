@@ -53,8 +53,7 @@ function getExportMenuItem(
             const description = currentConnectionName && type ? translate('workspace.moreFeatures.companyCards.integrationExport', {integration: currentConnectionName, type}) : undefined;
             let data: Account[];
             let shouldShowMenuItem = nonReimbursableExpensesExportDestination !== CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL;
-            let title: string | undefined = '';
-            let selectedAccount: string | undefined = '';
+            let selectedAccount: Account | undefined;
             const defaultAccount = nonReimbursableExpensesAccount?.name ?? reimbursableExpensesAccount?.name;
             let isDefaultTitle = false;
             let exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | undefined;
@@ -70,8 +69,7 @@ function getExportMenuItem(
                         (!companyCard?.nameValuePairs?.quickbooks_online_export_account ||
                             companyCard?.nameValuePairs?.quickbooks_online_export_account === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE)
                     );
-                    title = isDefaultTitle ? defaultCard : companyCard?.nameValuePairs?.quickbooks_online_export_account;
-                    selectedAccount = companyCard?.nameValuePairs?.quickbooks_online_export_account ?? defaultAccount;
+                    selectedAccount = (creditCards ?? []).find((currentCard) => currentCard.id === (companyCard?.nameValuePairs?.quickbooks_online_export_account ?? defaultAccount));
                     exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT;
                     break;
                 }
@@ -82,8 +80,9 @@ function getExportMenuItem(
                         (!companyCard?.nameValuePairs?.quickbooks_online_export_account_debit ||
                             companyCard?.nameValuePairs?.quickbooks_online_export_account_debit === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE)
                     );
-                    title = isDefaultTitle ? defaultCard : companyCard?.nameValuePairs?.quickbooks_online_export_account_debit;
-                    selectedAccount = companyCard?.nameValuePairs?.quickbooks_online_export_account_debit ?? defaultAccount;
+                    selectedAccount = (quickbooksOnlineBankAccounts ?? []).find(
+                        (bank) => bank.id === (companyCard?.nameValuePairs?.quickbooks_online_export_account_debit ?? defaultAccount),
+                    );
                     exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_ONLINE_EXPORT_ACCOUNT_DEBIT;
                     break;
                 }
@@ -91,20 +90,19 @@ function getExportMenuItem(
                     shouldShowMenuItem = false;
                     data = [];
             }
-
             const resultData = data.length > 0 ? [defaultMenuItem, ...data] : data;
 
             return {
                 description,
-                title,
+                title: isDefaultTitle ? defaultCard : selectedAccount?.name,
                 exportType,
                 shouldShowMenuItem,
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID, backTo)),
                 data: resultData.map((card) => ({
-                    value: card.name,
+                    value: card.id,
                     text: card.name,
                     keyForList: card.name,
-                    isSelected: isDefaultTitle ? card.name === defaultCard : card.name === selectedAccount,
+                    isSelected: isDefaultTitle ? card.name === defaultCard : card.id === selectedAccount?.id,
                 })),
             };
         }

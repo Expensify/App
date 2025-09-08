@@ -20,6 +20,7 @@ import {
 import {verifyTestDriveRecipient} from '@libs/actions/Onboarding';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import type AccountExistsError from '@libs/Errors/AccountExistsError';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TestDriveModalNavigatorParamList} from '@libs/Navigation/types';
@@ -49,6 +50,7 @@ function EmployeeTestDriveModal() {
     }, []);
 
     const navigate = () => {
+        Log.hmmm('[EmployeeTestDriveModal] Navigate function called', {bossEmail});
         const loginTrim = bossEmail.trim();
         if (!loginTrim || !Str.isValidEmail(loginTrim)) {
             setFormError(translate('common.error.email'));
@@ -59,6 +61,7 @@ function EmployeeTestDriveModal() {
 
         verifyTestDriveRecipient(bossEmail)
             .then(() => {
+                Log.hmmm('[EmployeeTestDriveModal] Test drive recipient verified');
                 setTestReceipt(
                     TestReceipt,
                     'jpg',
@@ -89,18 +92,22 @@ function EmployeeTestDriveModal() {
                         setMoneyRequestMerchant(transactionID, testDrive.EMPLOYEE_FAKE_RECEIPT.MERCHANT, true);
                         setMoneyRequestCreated(transactionID, format(new Date(), CONST.DATE.FNS_FORMAT_STRING), true);
 
+                        Log.hmmm('[EmployeeTestDriveModal] Running after interactions');
                         InteractionManager.runAfterInteractions(() => {
+                            Log.hmmm('[EmployeeTestDriveModal] Calling Navigation.goBack() and Navigation.navigate()');
                             Navigation.goBack();
                             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                         });
                     },
                     () => {
+                        Log.hmmm('[EmployeeTestDriveModal] Error setting test receipt');
                         setIsLoading(false);
                         setFormError(translate('common.genericErrorMessage'));
                     },
                 );
             })
             .catch((e: AccountExistsError) => {
+                Log.hmmm('[EmployeeTestDriveModal] Error verifying test drive recipient', {error: e});
                 setIsLoading(false);
                 setFormError(e.translationKey ? translate(e.translationKey) : 'common.genericErrorMessage');
             });

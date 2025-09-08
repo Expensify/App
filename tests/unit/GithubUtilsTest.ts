@@ -411,13 +411,8 @@ describe('GithubUtils', () => {
 
         const baseDeployBlockerList = [`https://github.com/${process.env.GITHUB_REPOSITORY}/pull/3`, `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/4`];
 
-        // Add the new warning message that was added to the GithubUtils
-        // cspell:disable
-        const deployerFYIMessage =
-            '> 💡 **Deployer FYI:** This checklist was generated using a new process. PR list from original method and detail logging can be found in the most recent [deploy workflow](https://github.com/Expensify/App/actions/workflows/deploy.yml) labeled `staging`, in the `createChecklist` action. Please tag @Julesssss with any issues.\r\n\r\n';
-        // cspell:enable
         // eslint-disable-next-line max-len
-        const baseExpectedOutput = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n${deployerFYIMessage}\r\n**This release contains changes from the following pull requests:**\r\n`;
+        const baseExpectedOutput = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
         const openCheckbox = '- [ ] ';
         const closedCheckbox = '- [x] ';
         const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';
@@ -451,7 +446,7 @@ describe('GithubUtils', () => {
                 if (typeof issue !== 'object') {
                     return;
                 }
-                const expectedOutputWithMobileExpensify = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n**Mobile-Expensify Changes:** https://github.com/Expensify/Mobile-Expensify/compare/production...staging\r\n\r\n${deployerFYIMessage}\r\n**This release contains changes from the following pull requests:**\r\n`;
+                const expectedOutputWithMobileExpensify = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n**Mobile-Expensify Changes:** https://github.com/Expensify/Mobile-Expensify/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
                 expect(issue.issueBody).toBe(
                     `${expectedOutputWithMobileExpensify}` +
                         `${openCheckbox}${basePRList.at(2)}` +
@@ -609,7 +604,7 @@ describe('GithubUtils', () => {
                     return;
                 }
 
-                const expectedOutputWithMobileExpensify = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n**Mobile-Expensify Changes:** https://github.com/Expensify/Mobile-Expensify/compare/production...staging\r\n\r\n${deployerFYIMessage}\r\n**This release contains changes from the following pull requests:**\r\n`;
+                const expectedOutputWithMobileExpensify = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n**Mobile-Expensify Changes:** https://github.com/Expensify/Mobile-Expensify/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
                 expect(issue.issueBody).toBe(
                     `${expectedOutputWithMobileExpensify}` +
                         `${openCheckbox}${basePRList.at(2)}` +
