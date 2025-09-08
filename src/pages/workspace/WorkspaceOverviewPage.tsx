@@ -467,15 +467,17 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5]}
                             containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                         >
-                            <MenuItemWithTopDescription
-                                title={policy?.customRules ?? ''}
-                                description={translate('workspace.editor.policy')}
-                                shouldShowRightIcon={!readOnly}
-                                interactive={!readOnly}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID))}
-                                shouldRenderAsHTML
-                            />
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.customRules}>
+                                <MenuItemWithTopDescription
+                                    title={policy?.customRules ?? ''}
+                                    description={translate('workspace.editor.policy')}
+                                    shouldShowRightIcon={!readOnly}
+                                    interactive={!readOnly}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID))}
+                                    shouldRenderAsHTML
+                                />
+                            </OfflineWithFeedback>
                         </Section>
                     ) : null}
                     <ConfirmModal
