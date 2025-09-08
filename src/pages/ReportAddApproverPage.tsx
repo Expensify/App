@@ -80,7 +80,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                         keyForList: email,
                         isSelected: selectedApproverEmail === email,
                         login: email,
-                        value: accountID.toString(),
+                        value: accountID,
                         icons: [{source: avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
                         rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
                     };
