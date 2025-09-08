@@ -5,6 +5,7 @@ import TransactionListItem from '@components/SelectionList/Search/TransactionLis
 import type {
     ReportActionListItemType,
     TransactionCardGroupListItemType,
+    TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
     TransactionReportGroupListItemType,
@@ -321,6 +322,8 @@ const searchResults: OnyxTypes.SearchResults = {
             errors: undefined,
             filename: undefined,
             isActionLoading: false,
+            convertedAmount: -5000,
+            convertedCurrency: 'USD',
         },
         [`transactions_${transactionID2}`]: {
             accountID: adminAccountID,
@@ -365,6 +368,8 @@ const searchResults: OnyxTypes.SearchResults = {
             errors: undefined,
             filename: undefined,
             isActionLoading: false,
+            convertedAmount: -5000,
+            convertedCurrency: 'USD',
         },
         ...allViolations,
         [`transactions_${transactionID3}`]: {
@@ -410,6 +415,8 @@ const searchResults: OnyxTypes.SearchResults = {
             filename: undefined,
             isActionLoading: false,
             hasViolation: undefined,
+            convertedAmount: -5000,
+            convertedCurrency: 'USD',
         },
         [`transactions_${transactionID4}`]: {
             accountID: adminAccountID,
@@ -454,6 +461,8 @@ const searchResults: OnyxTypes.SearchResults = {
             filename: undefined,
             isActionLoading: false,
             hasViolation: undefined,
+            convertedAmount: -5000,
+            convertedCurrency: 'USD',
         },
     },
     search: {
@@ -692,6 +701,8 @@ const transactionsListItems = [
         isActionLoading: false,
         hasViolation: false,
         violations: [],
+        convertedAmount: -5000,
+        convertedCurrency: 'USD',
     },
     {
         accountID: 18439984,
@@ -763,6 +774,8 @@ const transactionsListItems = [
                 type: CONST.VIOLATION_TYPES.VIOLATION,
             },
         ],
+        convertedAmount: -5000,
+        convertedCurrency: 'USD',
     },
     {
         accountID: 18439984,
@@ -829,6 +842,8 @@ const transactionsListItems = [
         isActionLoading: false,
         hasViolation: undefined,
         violations: [],
+        convertedAmount: -5000,
+        convertedCurrency: 'USD',
     },
     {
         accountID: 18439984,
@@ -895,6 +910,8 @@ const transactionsListItems = [
         isActionLoading: false,
         hasViolation: undefined,
         violations: [],
+        convertedAmount: -5000,
+        convertedCurrency: 'USD',
     },
 ] as TransactionListItemType[];
 
@@ -998,6 +1015,8 @@ const transactionReportGroupListItems = [
                 filename: undefined,
                 isActionLoading: false,
                 violations: [],
+                convertedAmount: -5000,
+                convertedCurrency: 'USD',
             },
         ],
         type: 'expense',
@@ -1107,6 +1126,8 @@ const transactionReportGroupListItems = [
                 errors: undefined,
                 filename: undefined,
                 isActionLoading: false,
+                convertedAmount: -5000,
+                convertedCurrency: 'USD',
             },
         ],
         type: 'expense',
@@ -1633,7 +1654,67 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return getTransactionsSections result when groupBy is undefined', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber)).toStrictEqual(transactionsListItems);
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber)).toEqual(transactionsListItems);
+        });
+
+        it('should include iouRequestType property for distance transactions', () => {
+            const distanceTransactionID = 'distance_transaction_123';
+            const testSearchResults = {
+                ...searchResults,
+                data: {
+                    ...searchResults.data,
+                    [`transactions_${distanceTransactionID}`]: {
+                        ...searchResults.data[`transactions_${transactionID}`],
+                        transactionID: distanceTransactionID,
+                        transactionType: CONST.SEARCH.TRANSACTION_TYPE.DISTANCE,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    },
+                },
+            };
+
+            const result = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, testSearchResults.data, 2074551, formatPhoneNumber) as TransactionListItemType[];
+
+            const distanceTransaction = result.find((item) => item.transactionID === distanceTransactionID);
+
+            expect(distanceTransaction).toBeDefined();
+            expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
+
+            const expectedPropertyCount = 57;
+            expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
+        });
+
+        it('should include iouRequestType property for distance transactions in grouped results', () => {
+            const distanceTransactionID = 'distance_transaction_grouped_123';
+            const testSearchResults = {
+                ...searchResults,
+                data: {
+                    ...searchResults.data,
+                    [`transactions_${distanceTransactionID}`]: {
+                        ...searchResults.data[`transactions_${transactionID}`],
+                        transactionID: distanceTransactionID,
+                        transactionType: CONST.SEARCH.TRANSACTION_TYPE.DISTANCE,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    },
+                },
+            };
+
+            const result = SearchUIUtils.getSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                testSearchResults.data,
+                2074551,
+                formatPhoneNumber,
+                CONST.SEARCH.GROUP_BY.REPORTS,
+            ) as TransactionGroupListItemType[];
+
+            const reportGroup = result.find((group) => group.transactions?.some((transaction) => transaction.transactionID === distanceTransactionID));
+
+            const distanceTransaction = reportGroup?.transactions?.find((transaction) => transaction.transactionID === distanceTransactionID);
+
+            expect(distanceTransaction).toBeDefined();
+            expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
+
+            const expectedPropertyCount = 57;
+            expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
         it('should return getReportSections result when type is EXPENSE and groupBy is report', () => {
@@ -2275,6 +2356,8 @@ describe('SearchUIUtils', () => {
                     transactionID: '1805965960759424086',
                     transactionThreadReportID: '4139222832581831',
                     transactionType: 'cash',
+                    convertedAmount: -5000,
+                    convertedCurrency: 'USD',
                 },
             },
             search: {
