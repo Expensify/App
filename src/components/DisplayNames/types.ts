@@ -46,9 +46,6 @@ type DisplayNamesProps = ForwardedFSClassProps & {
 
     /** Additional Text component to render after the displayNames */
     renderAdditionalText?: () => React.ReactNode;
-
-    /** TestID indicating order */
-    testID?: number;
 };
 
 export default DisplayNamesProps;
