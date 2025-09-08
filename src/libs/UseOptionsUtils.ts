@@ -1,4 +1,4 @@
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {useBetas} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -19,6 +19,14 @@ function useOptions() {
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const existingDelegates = useMemo(() => Object.fromEntries((account?.delegatedAccess?.delegates ?? []).map(({email}) => [email, true])), [account?.delegatedAccess?.delegates]);
 
+    useEffect(() => {
+        if (!isLoading || !optionsList.reports || !optionsList.personalDetails) {
+            return;
+        }
+
+        setIsLoading(false);
+    }, [isLoading, optionsList.reports, optionsList.personalDetails]);
+
     const defaultOptions = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = memoizedGetValidOptions(
             {
@@ -33,11 +41,6 @@ function useOptions() {
 
         const headerMessage = getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0, !!userToInvite, '');
 
-        if (isLoading) {
-            // eslint-disable-next-line react-compiler/react-compiler
-            setIsLoading(false);
-        }
-
         return {
             userToInvite,
             recentReports,
@@ -45,7 +48,7 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, isLoading]);
+    }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates]);
 
     const options = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), countryCode, {
