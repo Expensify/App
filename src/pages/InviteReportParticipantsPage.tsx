@@ -53,7 +53,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
         return res;
     }, [report]);
 
-    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, toggleOption, areOptionsInitialized, onListEndReached} = useSearchSelector({
+    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleOption, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
         includeUserToInvite: true,
@@ -75,10 +75,10 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
         }
 
         // Selected options section
-        if (selectedOptions.length > 0) {
+        if (selectedOptionsForDisplay.length > 0) {
             sectionsArr.push({
                 title: undefined,
-                data: selectedOptions,
+                data: selectedOptionsForDisplay,
             });
         }
 
@@ -107,7 +107,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
         }
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptions, availableOptions, translate]);
+    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions, translate]);
 
     const handleToggleOption = useCallback(
         (option: OptionData) => {

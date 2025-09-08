@@ -70,6 +70,8 @@ type UseSearchSelectorReturn = {
     availableOptions: Options;
     /** Currently selected options */
     selectedOptions: OptionData[];
+    /** Currently selected options used for list display */
+    selectedOptionsForDisplay: OptionData[];
     /** Function to set selected options */
     setSelectedOptions: (options: OptionData[]) => void;
     /** Function to toggle option selection */
@@ -281,6 +283,12 @@ function useSearchSelector({
           }
         : undefined;
 
+    const selectedOptionsForDisplay = useMemo(() => {
+        return selectedOptions.filter((option) => {
+            return !!option.text?.toLowerCase().includes(computedSearchTerm) || !!option.login?.toLowerCase().includes(computedSearchTerm);
+        });
+    }, [selectedOptions, computedSearchTerm]);
+
     return {
         searchTerm,
         setSearchTerm,
@@ -292,6 +300,7 @@ function useSearchSelector({
         areOptionsInitialized,
         contactState,
         onListEndReached,
+        selectedOptionsForDisplay,
     };
 }
 
