@@ -4,7 +4,7 @@ import HttpUtils from './HttpUtils';
 import Log from './Log';
 import type Middleware from './Middleware/types';
 import enhanceParameters from './Network/enhanceParameters';
-import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
+import {hasReadRequiredDataFromStorage, isSupportAuthToken} from './Network/NetworkStore';
 
 let middlewares: Middleware[] = [];
 
@@ -12,11 +12,12 @@ function makeXHR(request: Request): Promise<Response | void> {
     const finalParameters = enhanceParameters(request.command, request?.data ?? {});
     return hasReadRequiredDataFromStorage().then((): Promise<Response | void> => {
         return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline).then((response) => {
-            const insufficientPermissions =
+            const unsupportedSupportalCommand =
+                isSupportAuthToken() &&
                 Number(response?.jsonCode) === 666 &&
                 (typeof response?.message === 'string' && response.message.includes('You do not have the permission to do the requested action.'));
 
-            if (insufficientPermissions) {
+            if (unsupportedSupportalCommand) {
                 // Prevent retries for this request
                 if (request?.data) {
                     request.data.shouldRetry = false;
