@@ -37,6 +37,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Last four Primary Account Number digits */
     lastFourPAN?: string;
 
+    /** Pin of the card */
+    pin?: string;
+
     /** Card number */
     cardNumber?: string;
 
@@ -226,6 +229,9 @@ type IssueNewCardData = {
 
     /** Name of the card */
     cardTitle: string;
+
+    /** Currency of the card */
+    currency: string;
 };
 
 /** Model of Issue new card flow */

@@ -5,6 +5,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import RandomAvatarUtils from '@libs/RandomAvatarUtils';
 import {getDelegateAccountIDFromReportAction, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     getDefaultWorkspaceAvatar,
@@ -33,6 +34,7 @@ function useReportActionAvatars({
     policyID: passedPolicyID,
     fallbackDisplayName = '',
     invitedEmailsToAccountIDs,
+    shouldUseCustomFallbackAvatar = false,
 }: {
     report: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
@@ -42,6 +44,7 @@ function useReportActionAvatars({
     policyID?: string;
     fallbackDisplayName?: string;
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
+    shouldUseCustomFallbackAvatar?: boolean;
 }) {
     /* Get avatar type */
     const allPersonalDetails = usePersonalDetails();
@@ -114,6 +117,7 @@ function useReportActionAvatars({
             type: CONST.ICON_TYPE_AVATAR,
             source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
             name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? invitedEmail ?? '',
+            fallbackIcon: shouldUseCustomFallbackAvatar ? RandomAvatarUtils.getAvatarForContact(String(id)) : undefined,
         };
     });
 
