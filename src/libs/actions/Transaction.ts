@@ -47,8 +47,9 @@ import type TransactionState from '@src/types/utils/TransactionStateType';
 import {getPolicyCategoriesData} from './Policy/Category';
 import {getPolicyTagsData} from './Policy/Tag';
 
+// `recentWaypoints` is only used in actions, so getting it using Onyx.connectWithoutView is correct.
 let recentWaypoints: RecentWaypoint[] = [];
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
     callback: (val) => (recentWaypoints = val ?? []),
 });
