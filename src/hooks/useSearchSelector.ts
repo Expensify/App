@@ -1,4 +1,4 @@
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {PermissionStatus} from 'react-native-permissions';
 import {RESULTS} from 'react-native-permissions';
@@ -135,7 +135,7 @@ function useSearchSelector({
 
     // Get optimized options with heap filtering and mark selection state
     const searchOptions = useMemo(() => {
-        if (!areOptionsInitialized || !shouldInitialize) {
+        if (!areOptionsInitialized) {
             return getEmptyOptions();
         }
 
@@ -217,7 +217,6 @@ function useSearchSelector({
         shouldEnableContacts,
         memoizedContacts,
         getValidOptionsConfig,
-        shouldInitialize,
     ]);
 
     // Available options (unselected items only with proper deduplication)
