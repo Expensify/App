@@ -58,7 +58,7 @@ function ReportFieldsAddListValuePage({
     const createValue = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
             if (reportFieldID) {
-                addReportFieldListValue(policyID, reportFieldID, values[INPUT_IDS.VALUE_NAME]);
+                addReportFieldListValue({policy, reportFieldID, valueName: values[INPUT_IDS.VALUE_NAME]});
             } else {
                 createReportFieldsListValue({
                     valueName: values[INPUT_IDS.VALUE_NAME],

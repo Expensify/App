@@ -52,7 +52,7 @@ function WorkspaceCreateReportFieldsPage({
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
             createReportField({
-                policyID,
+                policy,
                 name: values[INPUT_IDS.NAME],
                 type: values[INPUT_IDS.TYPE],
                 initialValue: !(values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength === 0) ? values[INPUT_IDS.INITIAL_VALUE] : '',

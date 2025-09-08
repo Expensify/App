@@ -66,7 +66,7 @@ function ReportFieldsValueSettingsPage({
     }
     const deleteListValueAndHideModal = () => {
         if (reportFieldID) {
-            removeReportFieldListValue(policyID, reportFieldID, [valueIndex]);
+            removeReportFieldListValue({policy, reportFieldID, valueIndexes: [valueIndex]});
         } else {
             deleteReportFieldsListValue({
                 valueIndexes: [valueIndex],
@@ -80,7 +80,7 @@ function ReportFieldsValueSettingsPage({
 
     const updateListValueEnabled = (value: boolean) => {
         if (reportFieldID) {
-            updateReportFieldListValueEnabled(policyID, reportFieldID, [Number(valueIndex)], value);
+            updateReportFieldListValueEnabled({policy, reportFieldID, valueIndexes: [Number(valueIndex)], enabled: value});
             return;
         }
 
