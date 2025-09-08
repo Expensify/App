@@ -39,6 +39,7 @@ jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
+jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
 
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
@@ -342,7 +343,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify notification was created
-                expect(LocalNotification.showCommentNotification).toBeCalled();
+                expect(LocalNotification.showCommentNotification).toHaveBeenCalled();
             })
             .then(() => {
                 // // Verify the new report option appears in the LHN

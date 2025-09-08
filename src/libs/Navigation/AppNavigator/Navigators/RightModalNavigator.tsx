@@ -7,7 +7,7 @@ import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
 import {clearTwoFactorAuthData} from '@libs/actions/TwoFactorAuthActions';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
-import useCustomScreenOptions from '@libs/Navigation/AppNavigator/useCustomScreenOptions';
+import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -26,7 +26,26 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
 
-    const screenOptions = useCustomScreenOptions();
+    const screenOptions = useRHPScreenOptions();
+    const screenListeners = React.useMemo(
+        () => ({
+            blur: () => {
+                if (
+                    // @ts-expect-error There is something wrong with a types here and it's don't see the params list
+                    navigation.getState().routes.find((routes) => routes.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params?.screen === SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE ||
+                    route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE
+                ) {
+                    return;
+                }
+                // Delay clearing review duplicate data till the RHP is completely closed
+                // to avoid not found showing briefly in confirmation page when RHP is closing
+                InteractionManager.runAfterInteractions(() => {
+                    abandonReviewDuplicateTransactions();
+                });
+            },
+        }),
+        [navigation, route],
+    );
 
     return (
         <NarrowPaneContextProvider>
@@ -48,23 +67,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 <View style={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}>
                     <Stack.Navigator
                         screenOptions={screenOptions}
-                        screenListeners={{
-                            blur: () => {
-                                if (
-                                    // @ts-expect-error There is something wrong with a types here and it's don't see the params list
-                                    navigation.getState().routes.find((routes) => routes.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params?.screen ===
-                                        SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE ||
-                                    route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE
-                                ) {
-                                    return;
-                                }
-                                // Delay clearing review duplicate data till the RHP is completely closed
-                                // to avoid not found showing briefly in confirmation page when RHP is closing
-                                InteractionManager.runAfterInteractions(() => {
-                                    abandonReviewDuplicateTransactions();
-                                });
-                            },
-                        }}
+                        screenListeners={screenListeners}
                         id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     >
                         <Stack.Screen
@@ -103,6 +106,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.REPORT_CHANGE_WORKSPACE}
                             component={ModalStackNavigators.ReportChangeWorkspaceModalStackNavigator}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER}
+                            component={ModalStackNavigators.ReportChangeApproverModalStackNavigator}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.REPORT_SETTINGS}

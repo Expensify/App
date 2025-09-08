@@ -25,14 +25,16 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
+import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearOnyxAndResetApp} from '@userActions/App';
+import CONFIG from '@src/CONFIG';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import getLightbulbIllustrationStyle from './getLightbulbIllustrationStyle';
 
 type BaseMenuItem = {
     translationKey: TranslationPaths;
@@ -47,11 +49,12 @@ function TroubleshootPage() {
     const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrationStyle = getLightbulbIllustrationStyle();
     const [isLoading, setIsLoading] = useState(false);
     const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
     const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE, {canBeMissing: true});
     const {resetOptions} = useOptionsList({shouldInitialize: false});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
+    const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
     const {setShouldResetSearchQuery} = useSearchContext();
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
@@ -68,6 +71,25 @@ function TroubleshootPage() {
         };
 
         const baseMenuItems: BaseMenuItem[] = [
+            {
+                translationKey: 'exitSurvey.goToExpensifyClassic',
+                icon: Expensicons.ExpensifyLogoNew,
+                ...(CONFIG.IS_HYBRID_APP
+                    ? {
+                          action: () => closeReactNativeApp({shouldSetNVP: true}),
+                      }
+                    : {
+                          action() {
+                              resetExitSurveyForm(() => {
+                                  if (shouldOpenSurveyReasonPage) {
+                                      Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_REASON.route);
+                                      return;
+                                  }
+                                  Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
+                              });
+                          },
+                      }),
+            },
             {
                 translationKey: 'initialSettingsPage.troubleshoot.clearCacheAndRestart',
                 icon: Expensicons.RotateLeft,
@@ -93,7 +115,7 @@ function TroubleshootPage() {
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
             }))
             .reverse();
-    }, [waitForNavigate, exportOnyxState, shouldStoreLogs, translate, styles.sectionMenuItemTopDescription]);
+    }, [waitForNavigate, exportOnyxState, shouldStoreLogs, translate, styles.sectionMenuItemTopDescription, shouldOpenSurveyReasonPage]);
 
     return (
         <ScreenWrapper
@@ -118,7 +140,6 @@ function TroubleshootPage() {
                         isCentralPane
                         subtitleMuted
                         illustration={LottieAnimations.Desk}
-                        illustrationStyle={illustrationStyle}
                         titleStyles={styles.accountSettingsSectionTitle}
                         renderSubtitle={() => (
                             <View style={[styles.renderHTML, styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>

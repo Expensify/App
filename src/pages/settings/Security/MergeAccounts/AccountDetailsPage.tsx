@@ -199,6 +199,7 @@ function AccountDetailsPage() {
                             autoCorrect={false}
                             onChangeText={setEmail}
                             value={email}
+                            inputMode={CONST.INPUT_MODE.EMAIL}
                         />
                         <InputWrapper
                             style={[styles.mt8]}
