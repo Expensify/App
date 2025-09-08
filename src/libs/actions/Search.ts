@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
-import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
+import type {PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
@@ -28,6 +28,7 @@ import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
+import { convertToDisplayString } from '@libs/CurrencyUtils';
 
 function handleActionButtonPress(
     hash: number,
@@ -576,6 +577,50 @@ function clearAdvancedFilters() {
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
+/**
+ * Check if the current selected reports/transactions are eligible for bulk pay.
+ */
+function getPayOption(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, lastPaymentMethods: OnyxEntry<LastPaymentMethod>) {
+    const transactionKeys = Object.keys(selectedTransactions ?? {});
+    const firstTransaction = selectedTransactions?.[transactionKeys.at(0) ?? ''];
+    const firstReport = selectedReports.at(0);
+    const hasLastPaymentMethod =
+        selectedReports.length > 0
+            ? selectedReports.some((report) => !!getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods))
+            : Object.keys(selectedTransactions ?? {}).some((transactionIdKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIdKey].policyID, lastPaymentMethods));
+    // We will show the bulk option, if all the selected reports have the same action type, report type and policyID.
+            const shouldShowBulkPayOption =
+        selectedReports.length > 0
+            ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY) &&
+              selectedReports.every((report) => getReportType(report.reportID) === getReportType(firstReport?.reportID)) &&
+              selectedReports.every((report) => report.policyID === firstReport?.policyID)
+            : transactionKeys.every((transactionIdKey) => selectedTransactions[transactionIdKey].action === CONST.SEARCH.ACTION_TYPES.PAY) &&
+              transactionKeys.every((transactionIdKey) => getReportType(selectedTransactions[transactionIdKey].reportID) === getReportType(firstTransaction?.reportID)) &&
+              transactionKeys.every((transactionIdKey) => selectedTransactions[transactionIdKey].policyID === firstTransaction?.policyID);
+
+    return {
+        shouldEnableBulkPayOption: shouldShowBulkPayOption,
+        isFirstTimePayment: !hasLastPaymentMethod,
+    };
+}
+
+/**
+ * 
+ * @param selectedReports 
+ * @param selectedTransactions 
+ * @param currency 
+ * @returns The formatted amount of the selected reports/trasactions.
+ */
+function getFormattedAmount(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, currency: string): string {
+    const transactionKeys = Object.keys(selectedTransactions ?? {});
+    const totalAmount =
+        selectedReports.length > 0
+            ? selectedReports.reduce((acc, report) => acc + (Math.abs(report.total) ?? 0), 0)
+            : transactionKeys.reduce((acc, transactionIdKey) => acc + (Math.abs(selectedTransactions[transactionIdKey].amount) ?? 0), 0);
+    const formattedAmount = convertToDisplayString(totalAmount, currency);
+    return formattedAmount ?? '';
+}
+
 export {
     saveSearch,
     search,
@@ -598,4 +643,6 @@ export {
     getLastPolicyPaymentMethod,
     getLastPolicyBankAccountID,
     exportToIntegrationOnSearch,
+    getPayOption,
+    getFormattedAmount,
 };

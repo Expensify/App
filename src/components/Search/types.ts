@@ -233,4 +233,5 @@ export type {
     SearchAction,
     SearchCurrencyFilterKeys,
     UserFriendlyValue,
+    SelectedReports,
 };
