@@ -154,8 +154,12 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
         ) {
             return translate('messages.userIsAlreadyMember', {login: processedLogin, name: reportName ?? ''});
         }
-        return getHeaderMessage(availableOptions.recentReports.length + availableOptions.personalDetails.length !== 0, !!availableOptions.userToInvite, processedLogin);
-    }, [searchTerm, availableOptions, excludedUsers, translate, reportName]);
+        return getHeaderMessage(
+            selectedOptions.length + availableOptions.recentReports.length + availableOptions.personalDetails.length !== 0,
+            !!availableOptions.userToInvite,
+            processedLogin,
+        );
+    }, [searchTerm, availableOptions, selectedOptions, excludedUsers, translate, reportName]);
 
     const footerContent = useMemo(
         () => (
