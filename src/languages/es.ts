@@ -149,6 +149,7 @@ import type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    PayAndDowngradeDescriptionParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
@@ -5631,7 +5632,7 @@ const translations = {
         payAndDowngrade: {
             title: 'Pagar y bajar de categoría',
             headline: 'Tu pago final',
-            description1: 'Tu factura final por esta suscripción será',
+            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `Tu factura final por esta suscripción será <strong>${formattedAmount}</strong>`,
             description2: ({date}: DateParams) => `Consulta el desglose a continuación para ${date}:`,
             subscription:
                 '¡Atención! Esta acción finalizará tu suscripción a Expensify, eliminará este espacio de trabajo y eliminará a todos los miembros del espacio de trabajo. Si deseas conservar este espacio de trabajo y solo eliminarte a ti mismo, haz que otro administrador tome el control de la facturación primero.',

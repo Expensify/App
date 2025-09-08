@@ -162,6 +162,7 @@ import type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    PayAndDowngradeDescriptionParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
@@ -5629,7 +5630,7 @@ const translations = {
         payAndDowngrade: {
             title: 'Betalen & downgraden',
             headline: 'Uw laatste betaling',
-            description1: 'Uw eindafrekening voor dit abonnement zal zijn',
+            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `Je eindfactuur voor dit abonnement is <strong>${formattedAmount}</strong>`,
             description2: ({date}: DateParams) => `Zie hieronder uw uitsplitsing voor ${date}:`,
             subscription:
                 'Let op! Deze actie beëindigt je Expensify-abonnement, verwijdert deze werkruimte en verwijdert alle leden van de werkruimte. Als je deze werkruimte wilt behouden en alleen jezelf wilt verwijderen, laat dan eerst een andere beheerder de facturering overnemen.',
