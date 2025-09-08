@@ -1,10 +1,10 @@
-import WORKSPACES_LIST_TO_RHP from '@navigation/linkingConfig/RELATIONS/WORKSPACES_LIST_TO_RHP';
 import SEARCH_TO_RHP from './SEARCH_TO_RHP';
 import SETTINGS_TO_RHP from './SETTINGS_TO_RHP';
 import SIDEBAR_TO_RHP from './SIDEBAR_TO_RHP';
 import SIDEBAR_TO_SPLIT from './SIDEBAR_TO_SPLIT';
 import TAB_TO_FULLSCREEN from './TAB_TO_FULLSCREEN';
 import WORKSPACE_TO_RHP from './WORKSPACE_TO_RHP';
+import WORKSPACES_LIST_TO_RHP from './WORKSPACES_LIST_TO_RHP';
 
 /**
  * This module manages the relationships between different fullscreen navigators and screens in the app.
