@@ -321,6 +321,8 @@ const searchResults: OnyxTypes.SearchResults = {
             errors: undefined,
             filename: undefined,
             isActionLoading: false,
+            convertedAmount: -5000,
+            convertedCurrency: 'USD',
         },
         [`transactions_${transactionID2}`]: {
             accountID: adminAccountID,
@@ -365,6 +367,8 @@ const searchResults: OnyxTypes.SearchResults = {
             errors: undefined,
             filename: undefined,
             isActionLoading: false,
+            convertedAmount: -5000,
+            convertedCurrency: 'USD',
         },
         ...allViolations,
         [`transactions_${transactionID3}`]: {
@@ -410,6 +414,8 @@ const searchResults: OnyxTypes.SearchResults = {
             filename: undefined,
             isActionLoading: false,
             hasViolation: undefined,
+            convertedAmount: -5000,
+            convertedCurrency: 'USD',
         },
         [`transactions_${transactionID4}`]: {
             accountID: adminAccountID,
@@ -454,6 +460,8 @@ const searchResults: OnyxTypes.SearchResults = {
             filename: undefined,
             isActionLoading: false,
             hasViolation: undefined,
+            convertedAmount: -5000,
+            convertedCurrency: 'USD',
         },
     },
     search: {
@@ -692,6 +700,8 @@ const transactionsListItems = [
         isActionLoading: false,
         hasViolation: false,
         violations: [],
+        convertedAmount: -5000,
+        convertedCurrency: 'USD',
     },
     {
         accountID: 18439984,
@@ -763,6 +773,8 @@ const transactionsListItems = [
                 type: CONST.VIOLATION_TYPES.VIOLATION,
             },
         ],
+        convertedAmount: -5000,
+        convertedCurrency: 'USD',
     },
     {
         accountID: 18439984,
@@ -829,6 +841,8 @@ const transactionsListItems = [
         isActionLoading: false,
         hasViolation: undefined,
         violations: [],
+        convertedAmount: -5000,
+        convertedCurrency: 'USD',
     },
     {
         accountID: 18439984,
@@ -895,6 +909,8 @@ const transactionsListItems = [
         isActionLoading: false,
         hasViolation: undefined,
         violations: [],
+        convertedAmount: -5000,
+        convertedCurrency: 'USD',
     },
 ] as TransactionListItemType[];
 
@@ -998,6 +1014,8 @@ const transactionReportGroupListItems = [
                 filename: undefined,
                 isActionLoading: false,
                 violations: [],
+                convertedAmount: -5000,
+                convertedCurrency: 'USD',
             },
         ],
         type: 'expense',
@@ -1107,6 +1125,8 @@ const transactionReportGroupListItems = [
                 errors: undefined,
                 filename: undefined,
                 isActionLoading: false,
+                convertedAmount: -5000,
+                convertedCurrency: 'USD',
             },
         ],
         type: 'expense',
@@ -1671,6 +1691,63 @@ describe('SearchUIUtils', () => {
                 SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResultsGroupByWithdrawalID.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID),
             ).toStrictEqual(transactionWithdrawalIDGroupListItems);
         });
+
+        it('should handle transaction keys before report keys correctly when groupBy is report', () => {
+            const originalData = searchResults.data;
+
+            const searchResultsWithTransactionKeysFirst: OnyxTypes.SearchResults = {
+                data: {
+                    // First add non-transaction and non-report keys
+                    personalDetailsList: originalData.personalDetailsList,
+                    [`policy_${policyID}`]: originalData[`policy_${policyID}`],
+                    [`reportActions_${reportID}`]: originalData[`reportActions_${reportID}`],
+
+                    // Then add transaction keys first (this is the key part of the test)
+                    [`transactions_${transactionID}`]: originalData[`transactions_${transactionID}`],
+                    [`transactions_${transactionID2}`]: originalData[`transactions_${transactionID2}`],
+                    [`transactions_${transactionID3}`]: originalData[`transactions_${transactionID3}`],
+                    [`transactions_${transactionID4}`]: originalData[`transactions_${transactionID4}`],
+
+                    // Finally add report keys after transaction keys
+                    [`report_${reportID}`]: originalData[`report_${reportID}`],
+                    [`report_${reportID2}`]: originalData[`report_${reportID2}`],
+                    [`report_${reportID3}`]: originalData[`report_${reportID3}`],
+                    [`report_${reportID4}`]: originalData[`report_${reportID4}`],
+                    [`report_${reportID5}`]: originalData[`report_${reportID5}`],
+                },
+                search: searchResults.search,
+            };
+
+            const resultWithTransactionKeysFirst = SearchUIUtils.getSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                searchResultsWithTransactionKeysFirst.data,
+                2074551,
+                formatPhoneNumber,
+                CONST.SEARCH.GROUP_BY.REPORTS,
+            );
+
+            const resultWithNormalOrder = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS);
+
+            expect(resultWithTransactionKeysFirst.length).toBe(resultWithNormalOrder.length);
+
+            const reportsWithTransactionKeysFirst = resultWithTransactionKeysFirst as TransactionReportGroupListItemType[];
+            const reportsWithNormalOrder = resultWithNormalOrder as TransactionReportGroupListItemType[];
+
+            reportsWithTransactionKeysFirst.forEach((reportWithTransactionKeysFirst, index) => {
+                const reportWithNormalOrder = reportsWithNormalOrder.at(index);
+                expect(reportWithTransactionKeysFirst.transactions.length).toBe(reportWithNormalOrder?.transactions.length);
+                expect(reportWithTransactionKeysFirst.reportID).toBe(reportWithNormalOrder?.reportID);
+
+                if (reportWithTransactionKeysFirst.reportID === reportID) {
+                    expect(reportWithTransactionKeysFirst.transactions.length).toBeGreaterThan(0);
+                    expect(reportWithTransactionKeysFirst.transactions.at(0)?.transactionID).toBe(transactionID);
+                }
+                if (reportWithTransactionKeysFirst.reportID === reportID2) {
+                    expect(reportWithTransactionKeysFirst.transactions.length).toBeGreaterThan(0);
+                    expect(reportWithTransactionKeysFirst.transactions.at(0)?.transactionID).toBe(transactionID2);
+                }
+            });
+        });
     });
 
     describe('Test getSortedSections', () => {
@@ -2218,6 +2295,8 @@ describe('SearchUIUtils', () => {
                     transactionID: '1805965960759424086',
                     transactionThreadReportID: '4139222832581831',
                     transactionType: 'cash',
+                    convertedAmount: -5000,
+                    convertedCurrency: 'USD',
                 },
             },
             search: {
