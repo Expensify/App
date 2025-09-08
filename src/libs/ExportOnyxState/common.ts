@@ -21,6 +21,32 @@ const keysToMask = [
     'edits',
     'lastMessageHtml',
     'lastMessageText',
+    'avatar',
+    'avatarURL',
+    'primaryLogin',
+    'validateCode',
+    'displayName',
+    'zipCode',
+    'owner',
+    'oldPolicyName',
+    'policyAvatar',
+    'policyName',
+    'merchant',
+    'modifiedMerchant',
+    'cardName',
+    'cardNumber',
+    'comment',
+    'bank',
+    'name',
+    'description',
+    'routingNumber',
+    'firstName',
+    'lastName',
+    'legalFirstName',
+    'legalLastName',
+    'phoneNumber',
+    'reportName',
+    'source',
 ];
 
 const onyxKeysToRemove: Array<ValueOf<typeof ONYXKEYS>> = [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID];
@@ -30,6 +56,16 @@ const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
 const emailMap = new Map<string, string>();
 
 const getRandomLetter = () => String.fromCharCode(97 + Math.floor(Math.random() * 26));
+
+function maskValuePreservingLength(value: unknown) {
+    if (typeof value !== 'string') {
+        return MASKING_PATTERN;
+    }
+
+    return Array.from(value)
+        .map(() => getRandomLetter())
+        .join('');
+}
 
 function stringContainsEmail(text: string) {
     return emailRegex.test(text);
@@ -120,7 +156,7 @@ const maskFragileData = (data: OnyxState | unknown[] | null, parentKey?: string)
             if (Array.isArray(value)) {
                 maskedData[key] = value.map(() => MASKING_PATTERN);
             } else {
-                maskedData[key] = MASKING_PATTERN;
+                maskedData[key] = maskValuePreservingLength(value);
             }
         } else if (typeof value === 'string' && Str.isValidEmail(value)) {
             maskedData[propertyName] = maskEmail(value);
