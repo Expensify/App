@@ -1,6 +1,7 @@
 import {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {isArchivedNonExpenseReport, isArchivedReport, isInvoiceRoom} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportNameValuePairs} from '@src/types/onyx';
 import type {InvoiceReceiverType} from '@src/types/onyx/Report';
@@ -9,46 +10,52 @@ import useOnyx from './useOnyx';
 
 type ReportNameValuePairsSelector = Pick<ReportNameValuePairs, 'private_isArchived'>;
 
-const reportNameValuePairsSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): ReportNameValuePairsSelector =>
-    (reportNameValuePairs && {
-        private_isArchived: reportNameValuePairs.private_isArchived,
-    }) as ReportNameValuePairsSelector;
+const reportNameValuePairsSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): ReportNameValuePairsSelector | undefined => {
+    if (reportNameValuePairs && 'type' in reportNameValuePairs && reportNameValuePairs?.type !== CONST.REPORT.TYPE.CHAT) {
+        return;
+    }
+    return (
+        reportNameValuePairs &&
+        ({
+            private_isArchived: reportNameValuePairs.private_isArchived,
+        } as ReportNameValuePairsSelector)
+    );
+};
+
+const reportSelector = (report: OnyxEntry<Report>): Report | undefined => {
+    if (!report || !isInvoiceRoom(report)) {
+        return;
+    }
+
+    return report;
+};
 
 function useParticipantsInvoiceReport(receiverID: string | number | undefined, receiverType: InvoiceReceiverType, policyID?: string): OnyxEntry<Report> {
-    const reportSelector = (report: OnyxEntry<Report>): Report | undefined => {
-        if (!report || !isInvoiceRoom(report)) {
-            return;
-        }
-
-        const isSameReceiver =
-            report.invoiceReceiver &&
-            report.invoiceReceiver.type === receiverType &&
-            (('accountID' in report.invoiceReceiver && report.invoiceReceiver.accountID === receiverID) ||
-                ('policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === receiverID));
-
-        const isSameInvoiceRoom = report.policyID === policyID && isSameReceiver;
-        if (isSameInvoiceRoom) {
-            return report;
-        }
-    };
-
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: (c) => mapOnyxCollectionItems(c, reportSelector)}, [receiverID, receiverType, policyID]);
-    const existingInvoiceReport = Object.values(allReports ?? {}).find((report) => !!report);
-    const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${existingInvoiceReport?.reportID}`, {
+    const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}`, {
         canBeMissing: true,
-        selector: reportNameValuePairsSelector,
+        selector: (c) => mapOnyxCollectionItems(c, reportNameValuePairsSelector),
     });
 
     const invoiceReport = useMemo(() => {
-        const isReportArchived = isArchivedReport(reportNameValuePair);
+        const existingInvoiceReport = Object.values(allReports ?? {}).find((report) => {
+            if (!report || !reportNameValuePair) {
+                return false;
+            }
+            const isReportArchived = isArchivedReport(reportNameValuePair[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
+            if (isArchivedNonExpenseReport(report, isReportArchived)) {
+                return false;
+            }
+            const isSameReceiver =
+                report.invoiceReceiver &&
+                report.invoiceReceiver.type === receiverType &&
+                (('accountID' in report.invoiceReceiver && report.invoiceReceiver.accountID === receiverID) ||
+                    ('policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === receiverID));
 
-        if (isArchivedNonExpenseReport(existingInvoiceReport, isReportArchived)) {
-            return;
-        }
-
+            return report.policyID === policyID && isSameReceiver;
+        });
         return existingInvoiceReport;
-    }, [reportNameValuePair, existingInvoiceReport]);
-
+    }, [allReports, reportNameValuePair, receiverID, receiverType, policyID]);
     return invoiceReport;
 }
 
