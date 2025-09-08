@@ -8,6 +8,7 @@ import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import type {
+    SearchAction,
     SearchColumnType,
     SearchDateFilterKeys,
     SearchDatePreset,
@@ -69,7 +70,15 @@ import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {arePaymentsEnabled, canSendInvoice, getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
-import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
+import {
+    getOriginalMessage,
+    getReportActionHtml,
+    isCreatedAction,
+    isDeletedAction,
+    isMoneyRequestAction,
+    isResolvedActionableWhisper,
+    isWhisperActionTargetedToOthers,
+} from './ReportActionsUtils';
 import {canReview} from './ReportPreviewActionUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
@@ -994,6 +1003,8 @@ function getTransactionsSections(
                 hasViolation: transactionItem.hasViolation,
                 cardID: transactionItem.cardID,
                 cardName: transactionItem.cardName,
+                convertedAmount: transactionItem.convertedAmount,
+                convertedCurrency: transactionItem.convertedCurrency,
             };
 
             transactionsSections.push(transactionSection);
@@ -1287,8 +1298,14 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
 
     for (const key in data) {
         if (isReportActionEntry(key)) {
-            const reportActions = data[key];
-            for (const reportAction of Object.values(reportActions)) {
+            const reportActions = Object.values(data[key]);
+            const freeTrialMessages = reportActions.filter((action) => {
+                const html = getReportActionHtml(action);
+                return Parser.htmlToMarkdown(html) === CONST.FREE_TRIAL_MARKDOWN;
+            });
+            const isDuplicateFreeTrialMessage = freeTrialMessages.length > 1;
+            const filteredReportActions = reportActions.filter((action) => !isDuplicateFreeTrialMessage || action.reportActionID !== freeTrialMessages.at(0)?.reportActionID);
+            for (const reportAction of filteredReportActions) {
                 const from = data.personalDetailsList?.[reportAction.accountID];
                 const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ?? {};
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
@@ -1852,7 +1869,7 @@ function createTypeMenuSections(
                                               if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
                                                   const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
                                                   Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID}));
+                                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
                                                   });
                                                   return;
                                               }
@@ -2099,6 +2116,10 @@ function getWithdrawalTypeOptions(translate: LocaleContextProps['translate']) {
     return Object.values(CONST.SEARCH.WITHDRAWAL_TYPE).map<SingleSelectItem<SearchWithdrawalType>>((value) => ({text: translate(`search.filters.withdrawalType.${value}`), value}));
 }
 
+function getActionOptions(translate: LocaleContextProps['translate']) {
+    return Object.values(CONST.SEARCH.ACTION_FILTERS).map<SingleSelectItem<SearchAction>>((value) => ({text: translate(`search.filters.action.${value}`), value}));
+}
+
 /**
  * Determines what columns to show based on available data
  * @param isExpenseReportView: true when we are inside an expense report view, false if we're in the Reports page.
@@ -2249,6 +2270,7 @@ export {
     isTransactionTaxAmountTooLong,
     getDatePresets,
     getWithdrawalTypeOptions,
+    getActionOptions,
     getColumnsToShow,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
