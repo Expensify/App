@@ -1221,13 +1221,13 @@ function MoneyReportHeader({
                 return;
             }
             if (transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length) {
-                handleGoBackAfterDeleteExpenses();
+                Navigation.goBack(route.params?.backTo);
             }
             handleDeleteTransactions();
         });
-    }, [showConfirmModal, translate, selectedTransactionIDs.length, transactions, handleDeleteTransactions, handleGoBackAfterDeleteExpenses]);
+    }, [showConfirmModal, translate, selectedTransactionIDs.length, transactions, handleDeleteTransactions, route.params?.backTo]);
 
-    const showExportModal = useCallback(() => {
+    const showExportAgainModal = useCallback(() => {
         if (!connectedIntegration) {
             return;
         }
@@ -1251,8 +1251,8 @@ function MoneyReportHeader({
         if (!exportModalStatus) {
             return;
         }
-        showExportModal();
-    }, [exportModalStatus, showExportModal]);
+        showExportAgainModal();
+    }, [exportModalStatus, showExportAgainModal]);
 
     const selectedTransactionsOptions = useMemo(() => {
         return originalSelectedTransactionsOptions.map((option) => {
