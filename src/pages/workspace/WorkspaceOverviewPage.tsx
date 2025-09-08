@@ -14,10 +14,12 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,6 +50,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import WorkspaceReceiptPartnersPromotionBanner from './receiptPartners/WorkspaceReceiptPartnersPromotionBanner';
 import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -59,7 +62,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
-
     const backTo = route.params.backTo;
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {
@@ -71,6 +73,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
+    const defaultFundID = useDefaultFundID(policy?.id);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
+    const isBankAccountVerified = !!cardSettings?.paymentBankAccountID;
 
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const outputCurrency = policy?.outputCurrency ?? '';
@@ -134,11 +139,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const policyDescription = policy?.description ?? translate('workspace.common.defaultDescription');
     const policyCurrency = policy?.outputCurrency ?? '';
     const readOnly = !isPolicyAdminPolicyUtils(policy);
+    const currencyReadOnly = readOnly || isBankAccountVerified;
     const isOwner = isPolicyOwner(policy, currentUserAccountID);
     const imageStyle: StyleProp<ImageStyle> = shouldUseNarrowLayout ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
     const shouldShowAddress = !readOnly || !!formattedAddress;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const {isBetaEnabled} = usePermissions();
 
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
@@ -211,6 +218,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (isComingFromGlobalReimbursementsFlow) {
             setIsComingFromGlobalReimbursementsFlow(false);
             Navigation.goBack();
+            return;
         }
 
         if (backTo) {
@@ -292,6 +300,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{getHeaderButtons()}</View>}
+                    <WorkspaceReceiptPartnersPromotionBanner
+                        policy={policy}
+                        readOnly={readOnly}
+                    />
                     <Section
                         isCentralPane
                         title=""
@@ -402,12 +414,15 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 <MenuItemWithTopDescription
                                     title={formattedCurrency}
                                     description={translate('workspace.editor.currencyInputLabel')}
-                                    shouldShowRightIcon={hasVBA ? false : !readOnly}
-                                    interactive={hasVBA ? false : !readOnly}
+                                    shouldShowRightIcon={hasVBA ? false : !currencyReadOnly}
+                                    interactive={hasVBA ? false : !currencyReadOnly}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={onPressCurrency}
                                     hintText={
-                                        hasVBA ? translate('workspace.editor.currencyInputDisabledText', {currency: policyCurrency}) : translate('workspace.editor.currencyInputHelpText')
+                                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                        hasVBA || isBankAccountVerified
+                                            ? translate('workspace.editor.currencyInputDisabledText', {currency: policyCurrency})
+                                            : translate('workspace.editor.currencyInputHelpText')
                                     }
                                 />
                             </View>
@@ -442,6 +457,29 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             </OfflineWithFeedback>
                         )}
                     </Section>
+                    {isBetaEnabled(CONST.BETAS.CUSTOM_RULES) ? (
+                        <Section
+                            isCentralPane
+                            title={translate('workspace.editor.policy')}
+                            titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb0]}
+                            subtitle={translate('workspace.rules.customRules.cardSubtitle')}
+                            subtitleStyles={[styles.mb6]}
+                            subtitleTextStyles={[styles.textNormal, styles.colorMuted, styles.mr5]}
+                            containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
+                        >
+                            <OfflineWithFeedback pendingAction={policy?.pendingFields?.customRules}>
+                                <MenuItemWithTopDescription
+                                    title={policy?.customRules ?? ''}
+                                    description={translate('workspace.editor.policy')}
+                                    shouldShowRightIcon={!readOnly}
+                                    interactive={!readOnly}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID))}
+                                    shouldRenderAsHTML
+                                />
+                            </OfflineWithFeedback>
+                        </Section>
+                    ) : null}
                     <ConfirmModal
                         title={translate('workspace.common.delete')}
                         isVisible={isDeleteModalOpen}
