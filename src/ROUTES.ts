@@ -68,15 +68,42 @@ const ROUTES = {
     },
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
-        getRoute: ({reportID, reportActionID, backTo}: {reportID: string | undefined; reportActionID?: string; backTo?: string}) => {
+        getRoute: ({
+            reportID,
+            reportActionID,
+            backTo,
+            moneyRequestReportActionID,
+            transactionID,
+            iouReportID,
+        }: {
+            reportID: string | undefined;
+            reportActionID?: string;
+            backTo?: string;
+            moneyRequestReportActionID?: string;
+            transactionID?: string;
+            iouReportID?: string;
+        }) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
             }
-
             const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
 
+            const queryParams = [];
+
+            // When we are opening a transaction thread but don't have the transaction thread report created yet we need to pass the moneyRequestReportActionID and transactionID so we can send those to the OpenReport call and create the transaction report
+            if (transactionID) {
+                queryParams.push(`transactionID=${transactionID}`);
+            }
+            if (moneyRequestReportActionID) {
+                queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
+            }
+            if (iouReportID) {
+                queryParams.push(`iouReportID=${iouReportID}`);
+            }
+
+            const queryString = queryParams.length > 0 ? (`${baseRoute}?${queryParams.join('&')}` as const) : baseRoute;
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(baseRoute, backTo);
+            return getUrlWithBackToParam(queryString, backTo);
         },
     },
     SEARCH_MONEY_REQUEST_REPORT: {
@@ -419,7 +446,7 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, moneyRequestReportActionID?: string, transactionID?: string, backTo?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
             }
@@ -428,6 +455,12 @@ const ROUTES = {
             const queryParams: string[] = [];
             if (referrer) {
                 queryParams.push(`referrer=${encodeURIComponent(referrer)}`);
+            }
+
+            // When we are opening a transaction thread but don't have the transaction report created yet we need to pass the moneyRequestReportActionID and transactionID so we can send those to the OpenReport call and create the transaction report
+            if (moneyRequestReportActionID && transactionID) {
+                queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
+                queryParams.push(`transactionID=${transactionID}`);
             }
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';

@@ -26,10 +26,9 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
 import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMessageAction} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, isArchivedReport} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, generateReportID, isArchivedReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
-    createAndOpenSearchTransactionThread,
     getColumnsToShow,
     getListItem,
     getSections,
@@ -598,10 +597,18 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             const isTransactionItem = isTransactionListItemType(item);
             const backTo = Navigation.getActiveRoute();
 
-            // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const iouReportAction = getIOUActionForTransactionID(reportActionsArray, item.transactionID);
-                createAndOpenSearchTransactionThread(item, iouReportAction, hash, backTo);
+            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
+            if (isTransactionItem && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                const generatedReportID = generateReportID();
+                updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, generatedReportID);
+                Navigation.navigate(
+                    ROUTES.SEARCH_REPORT.getRoute({
+                        reportID: generatedReportID,
+                        backTo,
+                        moneyRequestReportActionID: item.moneyRequestReportActionID,
+                        transactionID: item.transactionID,
+                    }),
+                );
                 return;
             }
 
@@ -671,7 +678,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         },
-        [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, reportActionsArray, hash],
+        [hash, isMobileSelectionModeEnabled, toggleTransaction, queryJSON],
     );
 
     const currentColumns = useMemo(() => {

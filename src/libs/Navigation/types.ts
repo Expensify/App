@@ -1870,6 +1870,9 @@ type ReportsSplitNavigatorParamList = {
         openOnAdminRoom?: boolean;
         referrer?: string;
         backTo?: Routes;
+        moneyRequestReportActionID?: string;
+        transactionID?: string;
+        iouReportID?: string;
     };
     [SCREENS.ATTACHMENTS]: AttachmentModalScreensParamList[typeof SCREENS.ATTACHMENTS];
 };

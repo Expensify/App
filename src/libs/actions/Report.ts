@@ -1327,17 +1327,6 @@ function getOptimisticChatReport(accountID: number): OptimisticChatReport {
     });
 }
 
-function createTransactionThreadReport(iouReport: OnyxEntry<Report>, iouReportAction: OnyxEntry<ReportAction>): OptimisticChatReport | undefined {
-    if (!iouReport || !iouReportAction) {
-        Log.warn('Cannot build transaction thread report without iouReport and iouReportAction parameters');
-        return;
-    }
-    const optimisticTransactionThreadReportID = generateReportID();
-    const optimisticTransactionThread = buildTransactionThread(iouReportAction, iouReport, undefined, optimisticTransactionThreadReportID);
-    openReport(optimisticTransactionThreadReportID, undefined, currentUserEmail ? [currentUserEmail] : [], optimisticTransactionThread, iouReportAction?.reportActionID);
-    return optimisticTransactionThread;
-}
-
 /**
  * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
  *
@@ -6141,6 +6130,5 @@ export {
     changeReportPolicy,
     changeReportPolicyAndInviteSubmitter,
     removeFailedReport,
-    createTransactionThreadReport,
     openUnreportedExpense,
 };

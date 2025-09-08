@@ -556,7 +556,10 @@ const dismissModal = (ref = navigationRef) => {
  * For detailed information about dismissing modals,
  * see the NAVIGATION.md documentation.
  */
-const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT], ref = navigationRef) => {
+const dismissModalWithReport = (
+    {reportID, reportActionID, referrer, moneyRequestReportActionID, transactionID, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],
+    ref = navigationRef,
+) => {
     isNavigationReady().then(() => {
         const topmostReportID = getTopmostReportId();
         const areReportsIDsDefined = !!topmostReportID && !!reportID;
@@ -565,7 +568,7 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
             dismissModal();
             return;
         }
-        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo);
+        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, moneyRequestReportActionID, transactionID, backTo);
         if (getIsNarrowLayout()) {
             navigate(reportRoute, {forceReplace: true});
             return;
