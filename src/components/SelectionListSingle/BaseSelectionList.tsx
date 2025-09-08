@@ -101,18 +101,27 @@ function BaseSelectionList<TItem extends ListItem>({
     );
 
     const dataDetails = useMemo<DataDetailsType<TItem>>(() => {
-        const disabledIndexes = data
-            .filter((item) => item?.isDisabled && !isItemSelected(item))
-            .map((item) => item.index)
-            .filter((i): i is number => i !== undefined);
+        const {disabledIndexes, disabledArrowKeyIndexes, selectedOptions} = data.reduce(
+            (acc: {disabledIndexes: number[]; disabledArrowKeyIndexes: number[]; selectedOptions: TItem[]}, item: TItem) => {
+                const idx = item.index;
+                const isDisabled = !!item?.isDisabled && !isItemSelected(item);
 
-        const disabledArrowKeyIndexes = data
-            .filter((item) => !!item?.isDisabled && !isItemSelected(item) && !item?.isDisabledCheckbox)
-            .map((item) => item.index)
-            .filter((i): i is number => i !== undefined);
+                if (isItemSelected(item)) {
+                    acc.selectedOptions.push(item);
+                } else if (isDisabled && idx != null) {
+                    acc.disabledIndexes.push(idx);
+
+                    if (!item?.isDisabledCheckbox) {
+                        acc.disabledArrowKeyIndexes.push(idx);
+                    }
+                }
+
+                return acc;
+            },
+            {disabledIndexes: [], disabledArrowKeyIndexes: [], selectedOptions: []},
+        );
 
         const totalSelectable = data.length - disabledIndexes.length;
-        const selectedOptions = data.filter(isItemSelected);
         const allSelected = selectedOptions.length > 0 && selectedOptions.length === totalSelectable;
         const someSelected = selectedOptions.length > 0 && selectedOptions.length < totalSelectable;
 
@@ -277,6 +286,30 @@ function BaseSelectionList<TItem extends ListItem>({
         [data, itemsToHighlight, scrollToIndex],
     );
 
+    const ListFooterComponent = useMemo(() => {
+        if (listFooterContent) {
+            return listFooterContent;
+        }
+        if (hasMoreDataToShow) {
+            return (
+                <ShowMoreButton
+                    containerStyle={[styles.mt2, styles.mb5]}
+                    currentCount={PAGE_SIZE * currentPage}
+                    totalCount={data.length}
+                    onPress={incrementPage}
+                />
+            );
+        }
+        return null;
+    }, [listFooterContent, hasMoreDataToShow, styles.mt2, styles.mb5, currentPage, data.length]);
+
+    const handleSelectAll = useCallback(() => {
+        onSelectAll?.();
+        if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
+            innerTextInputRef.current.focus();
+        }
+    }, [onSelectAll, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow]);
+
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex}), [scrollAndHighlightItem, scrollToIndex]);
     return (
         <View style={styles.flex1}>
@@ -290,12 +323,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         aboveListHeaderMessage={aboveListHeaderMessage}
                         customListHeader={customListHeader}
                         canSelectMultiple={canSelectMultiple}
-                        onSelectAll={() => {
-                            onSelectAll?.();
-                            if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
-                                innerTextInputRef.current.focus();
-                            }
-                        }}
+                        onSelectAll={handleSelectAll}
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     />
                     <FlashList
@@ -303,17 +331,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         renderItem={renderItem}
                         ref={listRef}
                         keyExtractor={(item, index) => `${item.keyForList}-${index}`}
-                        ListFooterComponent={
-                            listFooterContent ??
-                            (hasMoreDataToShow ? (
-                                <ShowMoreButton
-                                    containerStyle={[styles.mt2, styles.mb5]}
-                                    currentCount={PAGE_SIZE * currentPage}
-                                    totalCount={data.length}
-                                    onPress={incrementPage}
-                                />
-                            ) : null)
-                        }
+                        ListFooterComponent={ListFooterComponent}
                         scrollEnabled={scrollEnabled}
                         indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
