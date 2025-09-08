@@ -4,7 +4,6 @@ import React, {memo, useEffect, useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -57,7 +56,6 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     const text = getTextFromHtml(html);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {adjustExpensifyLinksForEnv} = useEnvironment();
 
     const message = isEmpty(iouMessage) ? text : iouMessage;
 
@@ -97,7 +95,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
             htmlWithTag = `<muted-text>${htmlWithTag}<muted-text>`;
         }
 
-        htmlWithTag = adjustExpensifyLinksForEnv(getHtmlWithAttachmentID(htmlWithTag, reportActionID));
+        htmlWithTag = getHtmlWithAttachmentID(htmlWithTag, reportActionID);
 
         return (
             <RenderCommentHTML
