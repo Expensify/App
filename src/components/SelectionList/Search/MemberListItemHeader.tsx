@@ -6,11 +6,13 @@ import type {ListItem, TransactionMemberGroupListItemType} from '@components/Sel
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ActionCell from './ActionCell';
 import TotalCell from './TotalCell';
 
@@ -36,9 +38,10 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onSel
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
     const [formattedDisplayName, formattedLogin] = useMemo(
-        () => [formatPhoneNumber(getDisplayNameOrDefault(memberItem)), formatPhoneNumber(memberItem.login ?? '')],
-        [memberItem, formatPhoneNumber],
+        () => [formatPhoneNumber(getDisplayNameOrDefault(memberItem, undefined, undefined, undefined, areTranslationsLoading)), formatPhoneNumber(memberItem.login ?? '')],
+        [formatPhoneNumber, memberItem, areTranslationsLoading],
     );
     const shouldShowAction = isLargeScreenWidth;
 
