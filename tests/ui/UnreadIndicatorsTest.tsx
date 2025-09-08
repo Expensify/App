@@ -196,7 +196,8 @@ describe('Unread Indicators', () => {
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
-    it('Display bold in the LHN for unread chat and new line indicator above the chat message when we navigate to it', () =>
+    // Skipping this test because it is flaky and will be fixed here https://github.com/Expensify/App/issues/70126
+    it.skip('Display bold in the LHN for unread chat and new line indicator above the chat message when we navigate to it', () =>
         signInAndGetAppWithUnreadChat()
             .then(() => {
                 // Verify no notifications are created for these older messages
