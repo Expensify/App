@@ -347,7 +347,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
                 from: [`${accountID}`],
             }),
             get searchQueryJSON() {
