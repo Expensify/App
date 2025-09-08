@@ -803,7 +803,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const onComposerLayout = useCallback((height: number) => setComposerHeight(height), []);
 
-    const shouldEnableKeyboardAvoidingViewResult = shouldEnableKeyboardAvoidingView({isComposerFullSize, isInNarrowPaneModal, isTopMostReportId});
+    const shouldEnableKeyboardAvoidingViewResult = shouldEnableKeyboardAvoidingView({isInNarrowPaneModal, isTopMostReportId});
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
