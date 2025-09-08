@@ -44,7 +44,6 @@ jest.spyOn(console, 'log').mockImplementation(() => {});
 jest.spyOn(console, 'info').mockImplementation(() => {});
 jest.spyOn(console, 'debug').mockImplementation(() => {});
 jest.spyOn(console, 'warn').mockImplementation(() => {});
-jest.spyOn(console, 'error').mockImplementation(() => {});
 
 // This mock is required for mocking file systems when running tests
 jest.mock('react-native-fs', () => ({
