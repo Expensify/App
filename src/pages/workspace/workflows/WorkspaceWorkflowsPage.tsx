@@ -171,6 +171,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
     }, [policy, route.params.policyID, availableMembers, usedApproverEmails]);
 
+    const filteredApprovalWorkflows = useMemo(() => {
+        if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED) {
+            return approvalWorkflows;
+        }
+        return approvalWorkflows.filter((workflow) => workflow.isDefault);
+    }, [policy?.approvalMode, approvalWorkflows]);
+
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {bankAccountID} = policy?.achAccount ?? {};
         const bankAccount = bankAccountList?.[bankAccountID ?? CONST.DEFAULT_NUMBER_ID];
@@ -223,7 +230,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 },
                 subMenuItems: (
                     <>
-                        {approvalWorkflows.map((workflow, index) => (
+                        {filteredApprovalWorkflows.map((workflow, index) => (
                             <OfflineWithFeedback
                                 // eslint-disable-next-line react/no-array-index-key
                                 key={`workflow-${index}`}
@@ -355,7 +362,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         translate,
         onPressAutoReportingFrequency,
         isSmartLimitEnabled,
-        approvalWorkflows,
         addApprovalAction,
         isOffline,
         theme.spinner,
@@ -368,6 +374,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         hasValidExistingAccounts,
         shouldShowContinueModal,
         showLockedAccountModal,
+        filteredApprovalWorkflows,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
