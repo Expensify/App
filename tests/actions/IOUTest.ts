@@ -134,7 +134,7 @@ jest.mock('@src/libs/actions/Report', () => {
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 const unapprovedCashHash = 565065994;
-const unapprovedCashSimilarSearchHashh = 236417221;
+const unapprovedCashSimilarSearchHash = 236417221;
 jest.mock('@src/libs/SearchQueryUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@src/libs/SearchQueryUtils');
@@ -150,7 +150,7 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
             flatFilters: [{key: 'reimbursable', filters: [{operator: 'eq', value: 'yes'}]}],
             inputQuery: '',
             recentSearchHash: 89,
-            similarSearchHash: unapprovedCashSimilarSearchHashh,
+            similarSearchHash: unapprovedCashSimilarSearchHash,
             sortBy: 'tag',
             sortOrder: 'asc',
         })),
