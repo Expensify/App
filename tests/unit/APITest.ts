@@ -802,9 +802,7 @@ describe('APITests', () => {
     });
 
     test('Write request with supportal insufficient permissions (666) suppresses retry and applies failureData', () => {
-        const xhr = jest
-            .spyOn(HttpUtils, 'xhr')
-            .mockResolvedValue({jsonCode: 666, message: 'You do not have the permission to do the requested action.'});
+        const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: 666, message: 'You do not have the permission to do the requested action.'});
 
         const onyxUpdateSpy = jest.spyOn(Onyx, 'update');
 
@@ -832,8 +830,8 @@ describe('APITests', () => {
                 expect(PersistedRequests.getAll().length).toBe(0);
 
                 // Failure data should be applied through Onyx.update at flush time
-                const failureApplied = onyxUpdateSpy.mock.calls.some(([updates]) =>
-                    Array.isArray(updates) && updates.some((u) => u?.key === ONYXKEYS.ONBOARDING_ERROR_MESSAGE && u?.value === 'failed'),
+                const failureApplied = onyxUpdateSpy.mock.calls.some(
+                    ([updates]) => Array.isArray(updates) && updates.some((u) => u?.key === ONYXKEYS.ONBOARDING_ERROR_MESSAGE && u?.value === 'failed'),
                 );
                 expect(failureApplied).toBe(true);
             });

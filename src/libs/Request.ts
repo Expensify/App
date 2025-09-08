@@ -15,7 +15,8 @@ function makeXHR(request: Request): Promise<Response | void> {
             const unsupportedSupportalCommand =
                 isSupportAuthToken() &&
                 Number(response?.jsonCode) === 666 &&
-                (typeof response?.message === 'string' && response.message.includes('You do not have the permission to do the requested action.'));
+                typeof response?.message === 'string' &&
+                response.message.includes('You do not have the permission to do the requested action.');
 
             if (unsupportedSupportalCommand) {
                 // Prevent retries for this request
