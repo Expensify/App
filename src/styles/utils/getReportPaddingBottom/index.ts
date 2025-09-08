@@ -1,5 +1,3 @@
-import type GetReportPaddingBottomParams from './types';
-
-const getReportPaddingBottom = ({safePaddingBottom, isKeyboardActive}: GetReportPaddingBottomParams) => (isKeyboardActive ? 0 : safePaddingBottom);
+const getReportPaddingBottom = () => 0;
 
 export default getReportPaddingBottom;
