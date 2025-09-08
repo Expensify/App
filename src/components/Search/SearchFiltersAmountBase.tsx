@@ -76,7 +76,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
         }
         switch (selectedModifier) {
             case CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO:
-                return 'Equal to';
+                return translate('search.filters.amount.equalTo');
             case CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN:
                 return translate('search.filters.amount.greaterThan');
             case CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN:
