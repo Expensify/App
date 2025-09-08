@@ -100,8 +100,8 @@ function removeDraftSplitTransaction(transactionID: string | undefined) {
 function removeDraftTransactions(shouldExcludeInitialTransaction = false, allTransactionDrafts?: OnyxCollection<Transaction>) {
     const draftTransactions = getDraftTransactions(allTransactionDrafts);
 
-    if (!draftTransactions || draftTransactions.length === 0) {
-        return new Promise<void>((resolve) => {
+    return new Promise<void>((resolve) => {
+        if (!draftTransactions || draftTransactions.length === 0) {
             // We do not depend on updates on the UI to remove draft transactions
             // so we are safe to use `connectWithoutView` here.
             const conn = Onyx.connectWithoutView({
@@ -128,20 +128,21 @@ function removeDraftTransactions(shouldExcludeInitialTransaction = false, allTra
                     Onyx.multiSet(draftTransactionsSet).then(() => resolve());
                 },
             });
-        });
-    }
+            return;
+        }
 
-    const draftTransactionsSet = draftTransactions.reduce(
-        (acc, item) => {
-            if (shouldExcludeInitialTransaction && item.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+        const draftTransactionsSet = draftTransactions.reduce(
+            (acc, item) => {
+                if (shouldExcludeInitialTransaction && item.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+                    return acc;
+                }
+                acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
                 return acc;
-            }
-            acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
-            return acc;
-        },
-        {} as Record<string, null>,
-    );
-    Onyx.multiSet(draftTransactionsSet);
+            },
+            {} as Record<string, null>,
+        );
+        Onyx.multiSet(draftTransactionsSet).then(() => resolve());
+    });
 }
 
 function replaceDefaultDraftTransaction(transaction: OnyxEntry<Transaction>) {
