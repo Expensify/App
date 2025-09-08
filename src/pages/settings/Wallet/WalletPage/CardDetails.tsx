@@ -39,7 +39,7 @@ type CardDetailsProps = {
 function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
 
     return (
         <>
@@ -49,6 +49,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                     title={pan}
                     interactive={false}
                     copyValue={pan}
+                    copyable
                 />
             )}
             {expiration?.length > 0 && (
@@ -56,6 +57,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                     description={translate('cardPage.cardDetails.expiration')}
                     title={expiration}
                     interactive={false}
+                    copyable
                 />
             )}
             {cvv?.length > 0 && (
@@ -63,6 +65,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                     description={translate('cardPage.cardDetails.cvv')}
                     title={cvv}
                     interactive={false}
+                    copyable
                 />
             )}
             {pan?.length > 0 && (
@@ -72,6 +75,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         title={getFormattedAddress(privatePersonalDetails || defaultPrivatePersonalDetails)}
                         interactive={false}
+                        copyable
                     />
                     <TextLink
                         style={[styles.link, styles.mh5, styles.mb3]}

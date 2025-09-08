@@ -10,12 +10,10 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useCancellationType from '@hooks/useCancellationType';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {navigateToConciergeChat} from '@libs/actions/Report';
 import {cancelBillingSubscription} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
 import type {CancellationType, FeedbackSurveyOptionID} from '@src/CONST';
@@ -45,11 +43,9 @@ function RequestEarlyCancellationPage() {
             <View style={[styles.flexGrow1, styles.justifyContentBetween, styles.mh5]}>
                 <View>
                     <Text style={styles.textHeadline}>{translate('subscription.requestEarlyCancellation.requestSubmitted.title')}</Text>
-                    <Text style={[styles.mt1, styles.textNormalThemeText]}>
-                        {translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.part1')}
-                        <TextLink onPress={() => navigateToConciergeChat()}>{translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.link')}</TextLink>
-                        {translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.part2')}
-                    </Text>
+                    <View style={[styles.mt1, styles.renderHTML]}>
+                        <RenderHTML html={translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle')} />
+                    </View>
                 </View>
                 <FixedFooter style={styles.ph0}>
                     <Button

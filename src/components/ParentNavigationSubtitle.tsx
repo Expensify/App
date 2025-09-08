@@ -4,6 +4,7 @@ import type {StyleProp, TextStyle} from 'react-native';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -36,6 +37,9 @@ type ParentNavigationSubtitleProps = {
 
     /** Whether to open the parent report link in the current tab if possible */
     openParentReportInCurrentTab?: boolean;
+
+    /** The status text of the expense report */
+    statusText?: string;
 };
 
 function ParentNavigationSubtitle({
@@ -44,6 +48,7 @@ function ParentNavigationSubtitle({
     parentReportID = '',
     pressableStyles,
     openParentReportInCurrentTab = false,
+    statusText,
 }: ParentNavigationSubtitleProps) {
     const currentRoute = useRoute();
     const styles = useThemeStyles();
@@ -57,7 +62,8 @@ function ParentNavigationSubtitle({
     const {workspaceName, reportName} = parentNavigationSubtitleData;
     const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: false});
-    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
     const isReportInRHP = currentRoute.name === SCREENS.SEARCH.REPORT_RHP;
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
 
@@ -106,6 +112,7 @@ function ParentNavigationSubtitle({
             style={[styles.optionAlternateText, styles.textLabelSupporting]}
             numberOfLines={1}
         >
+            {!!statusText && <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${statusText} ${CONST.DOT_SEPARATOR} `}</Text>}
             {!!reportName && (
                 <>
                     <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${translate('threads.from')} `}</Text>

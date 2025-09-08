@@ -1,7 +1,8 @@
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import CONST from '@src/CONST';
+import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
 
-const DEFAULT_RETURN_VALUE = {transactions: {}, violations: {}};
+const DEFAULT_RETURN_VALUE: ReportTransactionsAndViolations = {transactions: {}, violations: {}};
 
 function useTransactionsAndViolationsForReport(reportID?: string) {
     const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();

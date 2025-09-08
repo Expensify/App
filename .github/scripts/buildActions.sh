@@ -19,8 +19,6 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/isStagingDeployLocked/isStagingDeployLocked.ts"
     "$ACTIONS_DIR/markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts"
     "$ACTIONS_DIR/postTestBuildComment/postTestBuildComment.ts"
-    "$ACTIONS_DIR/postTestCoverageComment/postTestCoverageComment.ts"
-    "$ACTIONS_DIR/waitforJestTests/waitForJestTests.ts"
     "$ACTIONS_DIR/reopenIssueWithComment/reopenIssueWithComment.ts"
     "$ACTIONS_DIR/verifySignedCommits/verifySignedCommits.ts"
     "$ACTIONS_DIR/authorChecklist/authorChecklist.ts"
