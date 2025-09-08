@@ -23,6 +23,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -106,6 +107,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
+    const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
 
     const shouldLogout = useRef(false);
 
@@ -126,6 +128,19 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     }, [bankAccountList, fundList, hasBrokenFeedConnection, hasPendingCardAction, userWallet?.errors, walletTerms?.errors]);
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
+
+    const hasAccountBeenSwitched = useMemo(
+        () => currentUserPersonalDetails.accountID !== previousUserPersonalDetails.accountID,
+        [currentUserPersonalDetails.accountID, previousUserPersonalDetails.accountID],
+    );
+
+    useEffect(() => {
+        if (!hasAccountBeenSwitched) {
+            return;
+        }
+
+        Navigation.clearPreloadedRoutes();
+    }, [hasAccountBeenSwitched]);
 
     useEffect(() => {
         openInitialSettingsPage();

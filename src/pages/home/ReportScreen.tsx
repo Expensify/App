@@ -48,16 +48,13 @@ import {
     isCreatedAction,
     isDeletedParentAction,
     isMoneyRequestAction,
-    isSentMoneyReportAction,
     isWhisperAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {
-    buildTransactionThread,
     canEditReportAction,
     canUserPerformWriteAction,
     findLastAccessedReport,
-    generateReportID,
     getParticipantsAccountIDsForDisplay,
     getReportOfflinePendingActionAndErrors,
     getReportTransactions,
@@ -80,6 +77,7 @@ import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
 import {
     clearDeleteTransactionNavigateBackUrl,
+    createTransactionThreadReport,
     navigateToConciergeChat,
     openReport,
     readNewestAction,
@@ -115,7 +113,12 @@ const defaultReportMetadata = {
     isOptimisticReport: false,
 };
 
-const reportDetailScreens = [...Object.values(SCREENS.REPORT_DETAILS), ...Object.values(SCREENS.REPORT_SETTINGS), ...Object.values(SCREENS.PRIVATE_NOTES)];
+const reportDetailScreens = [
+    ...Object.values(SCREENS.REPORT_DETAILS),
+    ...Object.values(SCREENS.REPORT_SETTINGS),
+    ...Object.values(SCREENS.PRIVATE_NOTES),
+    ...Object.values(SCREENS.REPORT_PARTICIPANTS),
+];
 
 /**
  * Check is the report is deleted.
@@ -272,7 +275,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [isLinkingToMessage, setIsLinkingToMessage] = useState(!!reportActionIDFromRoute);
 
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID, canBeMissing: false});
-    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
     // wrapping in useMemo because this is array operation and can cause performance issues
@@ -317,7 +319,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         canBeMissing: true,
     });
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
-    const isSentMoneyReport = useMemo(() => reportActions.some((action) => isSentMoneyReportAction(action)), [reportActions]);
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
     // wrapping in useMemo to stabilize children re-rendering
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -477,13 +478,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     const createOneTransactionThreadReport = useCallback(() => {
-        const optimisticTransactionThreadReportID = generateReportID();
         const currentReportTransaction = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const oneTransactionID = currentReportTransaction.at(0)?.transactionID;
         const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
-        const optimisticTransactionThread = buildTransactionThread(iouAction, report, undefined, optimisticTransactionThreadReportID);
-        openReport(optimisticTransactionThreadReportID, undefined, currentUserEmail ? [currentUserEmail] : [], optimisticTransactionThread, iouAction?.reportActionID);
-    }, [currentUserEmail, report, reportID]);
+        createTransactionThreadReport(report, iouAction);
+    }, [report, reportID]);
 
     const fetchReport = useCallback(() => {
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
@@ -494,18 +493,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        const moneyRequestReportActionID: string | undefined = route.params?.moneyRequestReportActionID;
-        const transactionID: string | undefined = route.params?.transactionID;
-
-        // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
-        // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
-        if (transactionID && currentUserEmail) {
-            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, transactionID);
-            return;
-        }
-
         // If there is one transaction thread that has not yet been created, we should create it.
-        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport && parentReportAction?.childMoneyRequestCount === 1) {
+        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) {
             createOneTransactionThreadReport();
             return;
         }
@@ -515,12 +504,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         reportMetadata.isOptimisticReport,
         report,
         isOffline,
-        route.params?.moneyRequestReportActionID,
-        route.params?.transactionID,
-        currentUserEmail,
         transactionThreadReportID,
         transactionThreadReport,
-        parentReportAction?.childMoneyRequestCount,
         reportIDFromRoute,
         reportActionIDFromRoute,
         createOneTransactionThreadReport,
@@ -890,8 +875,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         isComposerFullSize={!!isComposerFullSize}
                                         lastReportAction={lastReportAction}
                                         reportTransactions={reportTransactions}
-                                        // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
-                                        transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
                                     />
                                 ) : null}
                             </View>

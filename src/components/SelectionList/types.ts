@@ -1,14 +1,16 @@
-import type {ForwardedRef, MutableRefObject, ReactElement, ReactNode} from 'react';
+import type {ForwardedRef, JSXElementConstructor, MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {
     GestureResponderEvent,
     InputModeOptions,
     LayoutChangeEvent,
     NativeScrollEvent,
     NativeSyntheticEvent,
+    ScrollViewProps,
     SectionListData,
     StyleProp,
     TargetedEvent,
     TextInput,
+    TextInputFocusEventData,
     TextStyle,
     ViewStyle,
 } from 'react-native';
@@ -224,6 +226,9 @@ type ListItem<K extends string | number = string> = {
 
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
+
+    /** Used to initiate payment from search page */
+    hash?: number;
 };
 
 type TransactionListItemType = ListItem &
@@ -254,15 +259,6 @@ type TransactionListItemType = ListItem &
 
         /** Whether we should show the merchant column */
         shouldShowMerchant: boolean;
-
-        /** Whether we should show the category column */
-        shouldShowCategory: boolean;
-
-        /** Whether we should show the tag column */
-        shouldShowTag: boolean;
-
-        /** Whether we should show the tax column */
-        shouldShowTax: boolean;
 
         /** Whether we should show the transaction year.
          * This is true if at least one transaction in the dataset was created in past years
@@ -395,6 +391,15 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+    /** Index of the item in the list */
+    index?: number;
+
+    /** Callback when the input inside the item is focused (if input exists) */
+    onInputFocus?: (index: number) => void;
+
+    /** Callback when the input inside the item is blurred (if input exists) */
+    onInputBlur?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -477,6 +482,8 @@ type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
+    columns?: SearchColumnType[];
+    areAllOptionalColumnsHidden?: boolean;
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -487,6 +494,8 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
     policies?: OnyxCollection<Policy>;
+    columns?: SearchColumnType[];
+    areAllOptionalColumnsHidden?: boolean;
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -799,6 +808,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      */
     onEndReachedThreshold?: number;
 
+    /** Whether to skip the Show More button pagination logic */
+    shouldSkipShowMoreButton?: boolean;
+
     /**
      * While maxToRenderPerBatch tells the amount of items rendered per batch, setting updateCellsBatchingPeriod tells your VirtualizedList the delay in milliseconds between batch renders (how frequently your component will be rendering the windowed items).
      * https://reactnative.dev/docs/optimizing-flatlist-configuration#updatecellsbatchingperiod
@@ -876,6 +888,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListHandle>;
+
+    /** Custom scroll component to use instead of the default ScrollView */
+    renderScrollComponent?: (props: ScrollViewProps) => ReactElement<ScrollViewProps, string | JSXElementConstructor<unknown>>;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -886,6 +901,7 @@ type SelectionListHandle = {
     updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
     getFocusedOption: () => ListItem | undefined;
     focusTextInput: () => void;
+    scrollToFocusedInput: (index: number) => void;
 };
 
 type ItemLayout = {
