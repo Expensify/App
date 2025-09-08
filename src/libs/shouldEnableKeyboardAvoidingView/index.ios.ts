@@ -1,7 +1,5 @@
-import type ShouldEnableKeyboardAvoidingViewParams from './types';
-
-const shouldEnableKeyboardAvoidingView = ({isComposerFullSize}: ShouldEnableKeyboardAvoidingViewParams) => {
-    return isComposerFullSize;
+const shouldEnableKeyboardAvoidingView = () => {
+    return false;
 };
 
 export default shouldEnableKeyboardAvoidingView;

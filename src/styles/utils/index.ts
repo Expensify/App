@@ -1920,27 +1920,32 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
         const correctedHeaderHeight = paddingTop + headerHeight;
 
-        const getSpacerHeight = (): number => {
+        const getComposerHeight = (): number => {
             if (isComposerFullSize) {
                 if (isKeyboardActive) {
                     return windowHeight - keyboardHeight.get() - correctedHeaderHeight;
                 }
 
-                return windowHeight - correctedHeaderHeight;
+                return windowHeight - correctedHeaderHeight - 24;
             }
 
             return composerHeight;
         };
 
-        const transform = isComposerFullSize ? [] : [{translateY: keyboardHeight.get() > paddingBottom ? -keyboardHeight.get() : -paddingBottom}];
+        const getTransform = () => {
+            if (keyboardHeight.get() > paddingBottom) {
+                return [{translateY: -keyboardHeight.get()}];
+            }
+
+            return [{translateY: -paddingBottom}];
+        };
 
         return {
             position: 'absolute',
             bottom: 0,
             width: '100%',
-            transform,
-            height: getSpacerHeight(),
-            paddingBottom: isComposerFullSize && !isKeyboardActive ? 16 : 0,
+            transform: getTransform(),
+            height: getComposerHeight(),
         };
     },
     getOfflineIndicatorStyles: (keyboardHeight: SharedValue<number>, paddingBottom: number): ViewStyle => {
