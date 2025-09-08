@@ -94,7 +94,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
         let htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
 
         if (styleAsMuted) {
-            htmlWithTag = `<muted-text>${htmlWithTag}<muted-text>`;
+            htmlWithTag = `<muted-text>${htmlWithTag}</muted-text>`;
         }
 
         htmlWithTag = adjustExpensifyLinksForEnv(getHtmlWithAttachmentID(htmlWithTag, reportActionID));
