@@ -2521,8 +2521,10 @@ const translations = {
         messages: {
             onboardingEmployerOrSubmitMessage: 'Terugbetaald krijgen is net zo eenvoudig als een bericht sturen. Laten we de basis doornemen.',
             onboardingPersonalSpendMessage: 'Zo volgt u uw uitgaven in een paar klikken.',
-            onboardingManageTeamMessage:
-                '# Je gratis proefperiode is begonnen! Laten we aan de slag gaan met de installatie.\n👋 Hallo, ik ben je Expensify-installatiespecialist. Nu je een workspace hebt gemaakt, haal het meeste uit je 30 dagen gratis proefperiode door de onderstaande stappen te volgen!',
+            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
+                hasIntroSelected
+                    ? '# Je gratis proefperiode is gestart! Laten we aan de slag gaan.\n👋 Hoi, ik ben je Expensify-instellingsspecialist. Nu je een werkruimte hebt gemaakt, haal het meeste uit je 30 dagen gratis proefperiode door de onderstaande stappen te volgen!'
+                    : '# Je gratis proefperiode is gestart! Laten we aan de slag gaan.\n👋 Hoi, ik ben je Expensify-instellingsspecialist. Ik heb al een werkruimte gemaakt om je te helpen met het beheren van de bonnetjes en uitgaven van je team. Haal het meeste uit je 30 dagen gratis proefperiode door eenvoudig de resterende instellingsstappen hieronder te volgen!',
             onboardingTrackWorkspaceMessage:
                 '# Laten we u instellen\n👋 Ik ben hier om te helpen! Om u op weg te helpen, heb ik uw werkruimte-instellingen afgestemd op eenmanszaken en soortgelijke bedrijven. U kunt uw werkruimte aanpassen door op de onderstaande link te klikken!\n\nZo volgt u uw uitgaven in een paar klikken:',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als een bericht sturen. Zo doet u dat.',
@@ -2817,6 +2819,7 @@ const translations = {
             formLabel: 'PDF bekijken',
         },
         attachmentNotFound: 'Bijlage niet gevonden',
+        retry: 'Opnieuw proberen',
     },
     messages: {
         errorMessageInvalidPhone: `Voer alstublieft een geldig telefoonnummer in zonder haakjes of streepjes. Als u zich buiten de VS bevindt, voeg dan uw landcode toe (bijv. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
@@ -4885,8 +4888,7 @@ const translations = {
             existingTagError: 'Er bestaat al een tag met deze naam.',
             invalidTagNameError: 'Tagnaam kan niet 0 zijn. Kies een andere waarde.',
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de tag, probeer het alstublieft opnieuw.',
-            importedFromAccountingSoftware: 'Tags worden beheerd in je',
-            employeesSeeTagsAs: 'Werknemers zien tags als ',
+            importedFromAccountingSoftware: 'De onderstaande labels zijn geïmporteerd uit uw',
             glCode: 'GL-code',
             updateGLCodeFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de GL-code, probeer het alstublieft opnieuw.',
             tagRules: 'Tagregels',
@@ -5412,6 +5414,7 @@ const translations = {
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de werkruimte. Probeer het opnieuw.',
             avatarUploadFailureMessage: 'Er is een fout opgetreden bij het uploaden van de avatar. Probeer het opnieuw.',
             addressContext: 'Een Werkruimteadres is vereist om Expensify Travel in te schakelen. Voer een adres in dat aan uw bedrijf is gekoppeld.',
+            policy: 'Kostenbeleid',
         },
         bankAccount: {
             continueWithSetup: 'Setup voortzetten',
@@ -5745,8 +5748,7 @@ const translations = {
             },
             customRules: {
                 title: 'Aangepaste regels',
-                subtitle: 'Beschrijving',
-                description: "Voer aangepaste regels in voor onkostennota's",
+                cardSubtitle: 'Hier staat het uitgavenbeleid van je team, zodat iedereen weet wat er wel en niet wordt vergoed.',
             },
         },
         planTypePage: {
@@ -6186,6 +6188,12 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Terugbetaling',
+            },
+            action: {
+                [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Indienen',
+                [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Goedkeuren',
+                [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Betalen',
+                [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporteren',
             },
         },
         groupBy: 'Groep per',
