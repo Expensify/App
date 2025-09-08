@@ -5,7 +5,10 @@
         "transpileOnly": true,
         "compilerOptions": {
             "module": "commonjs",
-            "target": "es2020"
+            "moduleResolution": "node",
+            "target": "es2020",
+            "types": ["node"],
+            "esModuleInterop": true
         }
     }
 }
