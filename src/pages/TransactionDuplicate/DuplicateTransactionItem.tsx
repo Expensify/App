@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
+import {ReportActionItemContext} from '@pages/home/report/ReportActionItemContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
@@ -60,28 +61,30 @@ function DuplicateTransactionItem({transaction, index, allReports, policies}: Du
 
     return (
         <View style={styles.pb2}>
-            <ReportActionItem
-                allReports={allReports}
-                policies={policies}
-                action={action}
-                report={report}
-                parentReportAction={getReportAction(report?.parentReportID, report?.parentReportActionID)}
-                index={index}
-                reportActions={Object.values(reportActions ?? {})}
-                displayAsGroup={false}
-                shouldDisplayNewMarker={false}
-                isMostRecentIOUReportAction={false}
-                isFirstVisibleReportAction={false}
-                shouldDisplayContextMenu={false}
-                userWalletTierName={userWalletTierName}
-                isUserValidated={isUserValidated}
-                personalDetails={personalDetails}
-                draftMessage={matchingDraftMessage}
-                emojiReactions={emojiReactions}
-                linkedTransactionRouteError={linkedTransactionRouteError}
-                userBillingFundID={userBillingFundID}
-                isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-            />
+            <ReportActionItemContext.Provider value={{shouldOpenReportInRHP: true}}>
+                <ReportActionItem
+                    allReports={allReports}
+                    policies={policies}
+                    action={action}
+                    report={report}
+                    parentReportAction={getReportAction(report?.parentReportID, report?.parentReportActionID)}
+                    index={index}
+                    reportActions={Object.values(reportActions ?? {})}
+                    displayAsGroup={false}
+                    shouldDisplayNewMarker={false}
+                    isMostRecentIOUReportAction={false}
+                    isFirstVisibleReportAction={false}
+                    shouldDisplayContextMenu={false}
+                    userWalletTierName={userWalletTierName}
+                    isUserValidated={isUserValidated}
+                    personalDetails={personalDetails}
+                    draftMessage={matchingDraftMessage}
+                    emojiReactions={emojiReactions}
+                    linkedTransactionRouteError={linkedTransactionRouteError}
+                    userBillingFundID={userBillingFundID}
+                    isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+                />
+            </ReportActionItemContext.Provider>
         </View>
     );
 }
