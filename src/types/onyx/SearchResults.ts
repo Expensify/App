@@ -4,6 +4,7 @@ import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {BankName} from './Bank';
@@ -379,6 +380,9 @@ type SearchTransaction = {
 
     /** The transaction recipient ID */
     managerID: number;
+
+    /** Used during the creation flow before the transaction is saved to the server */
+    iouRequestType?: IOURequestType;
 
     /** If the transaction has violations */
     hasViolation?: boolean;
