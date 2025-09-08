@@ -2062,6 +2062,15 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
     }
 }
 
+function getHasOptions(type: SearchDataTypes) {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            return [{text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT}];
+        default:
+            return [];
+    }
+}
+
 function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
     const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
         {text: translateLocal('common.expense'), value: CONST.SEARCH.DATA_TYPES.EXPENSE},
@@ -2273,5 +2282,6 @@ export {
     getWithdrawalTypeOptions,
     getActionOptions,
     getColumnsToShow,
+    getHasOptions,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
