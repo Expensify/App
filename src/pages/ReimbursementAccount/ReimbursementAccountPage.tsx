@@ -21,7 +21,6 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCurrencySupportedForECards} from '@libs/CardUtils';
-import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
@@ -83,11 +82,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const policyCurrency = policy?.outputCurrency ?? '';
+    const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
     const hasUnsupportedCurrency =
-        isComingFromExpensifyCard && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK)
+        isComingFromExpensifyCard && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) && isNonUSDWorkspace
             ? !isCurrencySupportedForECards(policyCurrency)
             : !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND));
-    const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
     let workspaceRoute = '';
     const isFocused = useIsFocused();
@@ -131,7 +130,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
      */
     const hasInProgressVBBA = useCallback((): boolean => {
-        return !!achData?.bankAccountID && !!achData?.state && achData?.state !== BankAccount.STATE.OPEN && achData?.state !== BankAccount.STATE.LOCKED;
+        return !!achData?.bankAccountID && !!achData?.state && achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN && achData?.state !== CONST.BANK_ACCOUNT.STATE.LOCKED;
     }, [achData?.bankAccountID, achData?.state]);
 
     /** Returns true if user passed first step of flow for non USD VBBA */
@@ -357,9 +356,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
                 break;
 
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
-                if ([BankAccount.STATE.VERIFYING, BankAccount.STATE.SETUP].some((value) => value === achData?.state)) {
+                if ([CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.SETUP].some((value) => value === achData?.state)) {
                     goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
-                } else if (!isOffline && achData?.state === BankAccount.STATE.PENDING) {
+                } else if (!isOffline && achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
                     setShouldShowContinueSetupButton(true);
                     setUSDBankAccountStep(null);
                 } else {
