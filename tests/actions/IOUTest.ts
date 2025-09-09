@@ -4861,8 +4861,8 @@ describe('actions/IOU', () => {
                 const {result} = renderHook(() => useAncestorReportActions(iouReport.reportID, true));
 
                 expect(result.current.ancestorReportsAndReportActions).toHaveLength(1); // 1 Policy expense chat report
-                expect(result.current.ancestorReportsAndReportActions?.at(0).report.reportID).toBe(expenseChatReportID);
-                expect(result.current.ancestorReportsAndReportActions?.at(0).reportAction?.reportActionID).toBe(reportPreviewAction.reportActionID);
+                expect(result.current.ancestorReportsAndReportActions?.at(0)?.report?.reportID).toBe(expenseChatReportID);
+                expect(result.current.ancestorReportsAndReportActions?.at(0)?.reportAction?.reportActionID).toBe(reportPreviewAction.reportActionID);
 
                 bulkHold(
                     comment,
