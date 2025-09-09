@@ -91,6 +91,9 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         return addSMSDomainIfPhoneNumber(decodeURIComponent(beforeAtSign + afterAtSign));
     }, [route.params.contactMethod]);
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
+    
+    // We need to store loginData in a ref to ensure clearError() has access to the latest loginData value.
+    // This fixes an issue where removing an unverified contact method from a second device would trigger clearError()
     const loginDataRef = useRef(loginData);
     loginDataRef.current = loginData;
 
