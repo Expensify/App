@@ -14,12 +14,19 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {createItemHeightCalculator} from '@components/Search/itemHeightCalculator';
 import ITEM_HEIGHTS from '@components/Search/itemHeights';
-import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
+import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ExtendedTargetedEvent, ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {
+    ExtendedTargetedEvent,
+    ReportActionListItemType,
+    TaskListItemType,
+    TransactionCardGroupListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useInitialWindowDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -35,6 +42,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Transaction from '@src/types/onyx/Transaction';
 import BaseSearchList from './BaseSearchList';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
@@ -103,6 +111,8 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     isMobileSelectionModeEnabled: boolean;
 
     areAllOptionalColumnsHidden: boolean;
+
+    newTransactions?: Transaction[];
 };
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
@@ -113,6 +123,20 @@ function isTransactionGroupListItemArray(data: SearchListItem[]): data is Transa
     }
     const firstElement = data.at(0);
     return typeof firstElement === 'object' && 'transactions' in firstElement;
+}
+
+function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: SearchListItem, groupBy: SearchGroupBy | undefined) {
+    const isGroupByFromOrCard = groupBy === CONST.SEARCH.GROUP_BY.CARD || groupBy === CONST.SEARCH.GROUP_BY.FROM;
+    if (!groupBy || !isGroupByFromOrCard) {
+        return false;
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
+        return transaction.cardID === (groupItem as TransactionCardGroupListItemType).cardID;
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
+        return !!transaction.transactionID;
+    }
+    return false;
 }
 
 function SearchList(
@@ -141,6 +165,7 @@ function SearchList(
         estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
         isMobileSelectionModeEnabled,
         areAllOptionalColumnsHidden,
+        newTransactions = [],
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -271,6 +296,8 @@ function SearchList(
         (item: SearchListItem, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
+            const newTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
+
             return (
                 <Animated.View
                     exiting={shouldAnimate && isFocused ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
@@ -301,11 +328,14 @@ function SearchList(
                         accountID={accountID}
                         isOffline={isOffline}
                         onFocus={onFocus}
+                        newTransactionID={newTransactionID}
                     />
                 </Animated.View>
             );
         },
         [
+            groupBy,
+            newTransactions,
             shouldAnimate,
             isFocused,
             styles.overflowHidden,
@@ -313,21 +343,20 @@ function SearchList(
             ListItem,
             onSelectRow,
             handleLongPressRow,
-            columns,
             onCheckboxPress,
             canSelectMultiple,
             shouldPreventDefaultFocusOnSelectRow,
             hash,
+            columns,
+            areAllOptionalColumnsHidden,
             policies,
             allReports,
-            groupBy,
             userWalletTierName,
             isUserValidated,
             personalDetails,
             userBillingFundID,
             accountID,
             isOffline,
-            areAllOptionalColumnsHidden,
         ],
     );
 

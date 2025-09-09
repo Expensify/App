@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import Button from '@components/Button';
@@ -59,6 +59,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     accountID,
     isOffline,
     areAllOptionalColumnsHidden: areAllOptionalColumnsHiddenProp,
+    newTransactionID,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
@@ -184,6 +185,18 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
+
+    useEffect(() => {
+        if (isEmpty || !newTransactionID || !groupItem.transactionsQueryJSON) {
+            return;
+        }
+        search({
+            queryJSON: groupItem.transactionsQueryJSON,
+            searchKey: undefined,
+            offset: transactionsSnapshot?.search?.offset ?? 0,
+            shouldCalculateTotals: false,
+        });
+    }, [groupItem.transactionsQueryJSON, isEmpty, newTransactionID, transactionsSnapshot?.search?.offset]);
 
     const handleToggle = useCallback(() => {
         setIsExpanded(!isExpanded);

@@ -374,7 +374,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         openSearch();
     }, []);
 
-    const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
+    const {newSearchResultKey, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
         searchResults,
         transactions,
         previousTransactions,
@@ -385,6 +385,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         reportActions,
         previousReportActions,
     });
+
+    console.log(newTransactions);
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
@@ -910,6 +912,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
+                    newTransactions={newTransactions}
                 />
             </Animated.View>
         </SearchScopeProvider>
