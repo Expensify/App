@@ -10880,15 +10880,15 @@ function prepareOnboardingOnyxData(
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [assignedGuideAccountID]: null,
-            }
+            },
         });
-    
+
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [assignedGuideAccountID]: null,
-            }
+            },
         });
     }
 
