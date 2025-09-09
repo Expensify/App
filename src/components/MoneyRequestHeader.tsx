@@ -5,9 +5,11 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
+import useGetChatIouReportIDFromReportAction from '@hooks/useGetIouReportFromReportAction';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -98,6 +100,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
+    const chatIouReportID = useGetChatIouReportIDFromReportAction(parentReportAction);
+    const isChatIOUReportArchived = useReportIsArchived(chatIouReportID);
 
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
 
@@ -360,9 +364,17 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         throw new Error('Data missing');
                     }
                     if (isTrackExpenseAction(parentReportAction)) {
-                        deleteTrackExpense(report?.parentReportID, transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true);
+                        deleteTrackExpense(
+                            report?.parentReportID,
+                            transaction.transactionID,
+                            parentReportAction,
+                            duplicateTransactions,
+                            duplicateTransactionViolations,
+                            true,
+                            isChatIOUReportArchived,
+                        );
                     } else {
-                        deleteMoneyRequest(transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true);
+                        deleteMoneyRequest(transaction.transactionID, parentReportAction, duplicateTransactions, duplicateTransactionViolations, true, undefined, isChatIOUReportArchived);
                         removeTransaction(transaction.transactionID);
                     }
                     onBackButtonPress();

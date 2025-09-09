@@ -65,13 +65,15 @@ function getContextualSearchQuery(item: SearchQueryItem) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${item.policyID}`;
-            if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE && item.autocompleteID) {
-                additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO}:${sanitizeSearchValue(item.searchQuery ?? '')}`;
+            if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE && item.autocompleteID && item.searchQuery) {
+                additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TO}:${sanitizeSearchValue(item.searchQuery)}`;
             }
             break;
         case CONST.SEARCH.DATA_TYPES.CHAT:
         default:
-            additionalQuery = ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN}:${sanitizeSearchValue(item.searchQuery ?? '')}`;
+            if (item.searchQuery) {
+                additionalQuery = ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN}:${sanitizeSearchValue(item.searchQuery)}`;
+            }
             break;
     }
     return baseQuery + additionalQuery;
