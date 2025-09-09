@@ -819,6 +819,7 @@ button {
 
 .article-card {
     @extend .card;
+    align-items: center;
 
     .right-icon {
         display: flex;

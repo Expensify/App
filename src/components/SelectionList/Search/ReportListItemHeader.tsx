@@ -36,6 +36,12 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
+
+    /** Whether all transactions are selected */
+    isSelectAllChecked?: boolean;
+
+    /** Whether only some transactions are selected */
+    isIndeterminate?: boolean;
 };
 
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
@@ -59,6 +65,12 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
 
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
+
+    /** Whether all transactions are selected */
+    isSelectAllChecked?: boolean;
+
+    /** Whether only some transactions are selected */
+    isIndeterminate?: boolean;
 };
 
 function HeaderFirstRow<TItem extends ListItem>({
@@ -69,6 +81,8 @@ function HeaderFirstRow<TItem extends ListItem>({
     handleOnButtonPress = () => {},
     shouldShowAction = false,
     avatarBorderColor,
+    isSelectAllChecked,
+    isIndeterminate,
 }: FirstRowReportHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -95,7 +109,8 @@ function HeaderFirstRow<TItem extends ListItem>({
                 {!!canSelectMultiple && (
                     <Checkbox
                         onPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
-                        isChecked={reportItem.isSelected}
+                        isChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
                         containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!reportItem.isSelected, !!reportItem.isDisabled)]}
                         disabled={!!isDisabled || reportItem.isDisabledCheckbox}
                         accessibilityLabel={reportItem.text ?? ''}
@@ -136,8 +151,16 @@ function HeaderFirstRow<TItem extends ListItem>({
     );
 }
 
-function ReportListItemHeader<TItem extends ListItem>({report: reportItem, onSelectRow, onCheckboxPress, isDisabled, isFocused, canSelectMultiple}: ReportListItemHeaderProps<TItem>) {
-    const styles = useThemeStyles();
+function ReportListItemHeader<TItem extends ListItem>({
+    report: reportItem,
+    onSelectRow,
+    onCheckboxPress,
+    isDisabled,
+    isFocused,
+    canSelectMultiple,
+    isSelectAllChecked,
+    isIndeterminate,
+}: ReportListItemHeaderProps<TItem>) {
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {currentSearchHash, currentSearchKey} = useSearchContext();
@@ -175,6 +198,8 @@ function ReportListItemHeader<TItem extends ListItem>({report: reportItem, onSel
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
                 avatarBorderColor={avatarBorderColor}
+                isSelectAllChecked={isSelectAllChecked}
+                isIndeterminate={isIndeterminate}
             />
             <UserInfoAndActionButtonRow
                 item={reportItem}
@@ -192,10 +217,9 @@ function ReportListItemHeader<TItem extends ListItem>({report: reportItem, onSel
                 shouldShowAction
                 handleOnButtonPress={handleOnButtonPress}
                 avatarBorderColor={avatarBorderColor}
+                isSelectAllChecked={isSelectAllChecked}
+                isIndeterminate={isIndeterminate}
             />
-            <View style={[styles.pv2, styles.ph3]}>
-                <View style={[styles.borderBottom]} />
-            </View>
         </View>
     );
 }
