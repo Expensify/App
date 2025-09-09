@@ -4,39 +4,39 @@ description: Learn how to update your profile settings, preferences, and notific
 keywords: [New Expensify, profile, account preferences, notifications, language, theme, timezone, personal information]
 ---
 
-Expensify allows you to personalize your experience by customizing your profile, preferences, and notifications. This guide shows you how to update your photo, language, timezone, notification settings, and more—all from the left-hand navigation menu.
+Expensify allows you to personalize your experience by customizing things. This guide shows you how to update your photo, language, timezone, notification settings, and more.
 
 ---
 
-# Profile Customization Options
+# Profile Options
 
-You can update the following profile settings:
+You can update these settings:
 
-- **Profile Photo** – Upload or change your photo.
-- **Status** – Add a custom message and emoji to show your current status.
-- **Pronouns** – Display your preferred pronouns on your profile.
-- **Language** – Update your account to your preferred language. 
-- **Timezone** – Set the correct timezone for expense and report timestamps.
-- **Theme** – Toggle between light mode, dark mode, or follow device settings.
-- **Notifications** – Customize how and when you receive email and app notifications.
-- **Personal Information** – Add or update your legal name, birth date, and address.
+- **Profile Photo** – Upload or change it.
+- **Status** – Add a custom message and emoji.
+- **Pronouns** – Display your preferred pronouns.
+- **Language** – Update your account language. 
+- **Timezone** – Set the timezone.
+- **Theme** – Toggle between modes.
+- **Notifications** – Customize how you receive notifications.
+- **Personal Information** – Add or update your info.
 
 ---
 
-# How to Update Profile and Preferences
+# How to Update Things
 
-## Profile Photo
+### Profile Photo
 
-To upload or update your photo:
-1. In the left-hand menu, click **Account > Profile**.
-2. Click the pencil icon next to your profile image.
-3. Select **Upload Image** and choose a new photo.
+To upload or update it:
+1. Click **Account > Profile**.
+2. Click the pencil icon next to the image.
+3. Select **Upload Image** and choose a photo.
 
-## Timezone
+### Timezone
 
-To update your timezone:
+To update it:
 1. Go to **Account > Profile**.
-2. Click **Timezone** and select the correct time zone from the list.
+2. Click **Timezone** and select from the list.
 
 ## Language
 
