@@ -22,7 +22,9 @@ Onyx.connect({
 
 // Check if the user is logged in as a delegate and send that if so
 let delegate = '';
-Onyx.connect({
+// To enhance the API parameters, we do not need to depend on the UI,
+// so it is okay to use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.ACCOUNT,
     callback: (val) => {
         delegate = val?.delegatedAccess?.delegate ?? '';
@@ -30,7 +32,9 @@ Onyx.connect({
 });
 
 let stashedSupportLogin = '';
-Onyx.connect({
+// To enhance the API parameters, we do not need to depend on the UI,
+// so it is okay to use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.STASHED_CREDENTIALS,
     callback: (val) => {
         stashedSupportLogin = val?.login ?? '';

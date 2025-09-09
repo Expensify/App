@@ -19,6 +19,7 @@ import syncBrowserHistory from './syncBrowserHistory';
 import type {
     DismissModalActionType,
     OpenWorkspaceSplitActionType,
+    PreloadActionType,
     PushActionType,
     ReplaceActionType,
     RootStackNavigatorAction,
@@ -44,6 +45,10 @@ function isDismissModalAction(action: RootStackNavigatorAction): action is Dismi
 
 function isToggleSidePanelWithHistoryAction(action: RootStackNavigatorAction): action is ToggleSidePanelWithHistoryActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.TOGGLE_SIDE_PANEL_WITH_HISTORY;
+}
+
+function isPreloadAction(action: RootStackNavigatorAction): action is PreloadActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.PRELOAD;
 }
 
 function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
@@ -80,6 +85,10 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
     return {
         ...stackRouter,
         getStateForAction(state: StackNavigationState<ParamListBase>, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) {
+            if (isPreloadAction(action) && action.payload.name === state.routes.at(-1)?.name) {
+                return state;
+            }
+
             if (isToggleSidePanelWithHistoryAction(action)) {
                 return handleToggleSidePanelWithHistoryAction(state, action);
             }
