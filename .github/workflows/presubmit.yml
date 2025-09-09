@@ -35,7 +35,7 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - uses: aldo-expensify/ai-reviewer-hackaton@c91b349b41efdf1eeaa290716628d76068148f0b
+      - uses: presubmit/ai-reviewer@987adce514aa144560f36710225ea1c6164bf1af
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
