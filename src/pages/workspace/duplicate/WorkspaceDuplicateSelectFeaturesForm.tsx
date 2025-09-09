@@ -310,7 +310,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     return (
         <>
             <HeaderWithBackButton
-                onBackButtonPress={policyID ? () => Navigation.goBack(ROUTES.WORKSPACE_DUPLICATE.getRoute(policyID, ROUTES.WORKSPACES_LIST.route)) : undefined}
+                onBackButtonPress={policyID ? () => Navigation.goBack(ROUTES.WORKSPACE_DUPLICATE.getRoute(policyID)) : undefined}
                 title={translate('workspace.common.duplicateWorkspace')}
             />
             <>
