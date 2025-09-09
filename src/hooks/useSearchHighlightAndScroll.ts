@@ -75,7 +75,7 @@ function useSearchHighlightAndScroll({
         }
 
         const newTransactionIDs = transactionsIDs.filter((id) => !previousTransactionsIDsSet.has(id));
-        return newTransactionIDs.map((id) => transactions?.[id]).filter((transaction) => transaction !== undefined);
+        return newTransactionIDs.map((id) => transactions?.[id]);
     }, [previousTransactions, transactions]);
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
