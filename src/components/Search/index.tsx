@@ -18,7 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {openSearch, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
+import {openSearch} from '@libs/actions/Search';
 import Timing from '@libs/actions/Timing';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -29,6 +29,7 @@ import {getIOUActionForTransactionID, isExportIntegrationAction, isIntegrationMe
 import {canEditFieldOfMoneyRequest, isArchivedReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
+    createAndOpenSearchTransactionThread,
     getColumnsToShow,
     getListItem,
     getSections,
@@ -52,7 +53,6 @@ import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
-import {createTransactionThreadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -406,8 +406,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return [];
         }
 
-        return getSections(type, searchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet);
-    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID]);
+        return getSections(type, searchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
+    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -543,7 +543,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, selectAllMatchingItems, shouldShowSelectAllMatchingItems, groupBy]);
 
     const toggleTransaction = useCallback(
-        (item: SearchListItem) => {
+        (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
             if (isReportActionListItemType(item)) {
                 return;
             }
@@ -561,10 +561,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 return;
             }
 
-            if (item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
+            const currentTransactions = itemTransactions ?? item.transactions;
+            if (currentTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
                 const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
 
-                item.transactions.forEach((transaction) => {
+                currentTransactions.forEach((transaction) => {
                     delete reducedSelectedTransactions[transaction.keyForList];
                 });
 
@@ -576,7 +577,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 {
                     ...selectedTransactions,
                     ...Object.fromEntries(
-                        item.transactions
+                        currentTransactions
                             .filter((t) => !isTransactionPendingDelete(t))
                             .map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray, outstandingReportsByPolicyID)),
                     ),
@@ -587,10 +588,20 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         [data, reportActionsArray, selectedTransactions, outstandingReportsByPolicyID, setSelectedTransactions],
     );
 
-    const openReport = useCallback(
+    const onSelectRow = useCallback(
         (item: SearchListItem) => {
             if (isMobileSelectionModeEnabled) {
                 toggleTransaction(item);
+                return;
+            }
+
+            const isTransactionItem = isTransactionListItemType(item);
+            const backTo = Navigation.getActiveRoute();
+
+            // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
+            if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                const iouReportAction = getIOUActionForTransactionID(reportActionsArray, item.transactionID);
+                createAndOpenSearchTransactionThread(item, iouReportAction, hash, backTo);
                 return;
             }
 
@@ -599,7 +610,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.accountID}]});
                 const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQuery}));
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false});
                 return;
             }
 
@@ -608,7 +623,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.cardID}]});
                 const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQuery}));
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false});
                 return;
             }
 
@@ -617,12 +636,15 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.entryID}]});
                 const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQuery}));
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false});
                 return;
             }
 
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            const isTransactionItem = isTransactionListItemType(item);
 
             const reportID =
                 isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
@@ -636,21 +658,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             Performance.markStart(CONST.TIMING.OPEN_REPORT_SEARCH);
             Timing.start(CONST.TIMING.OPEN_REPORT_SEARCH);
 
-            const backTo = Navigation.getActiveRoute();
-
             if (isTransactionGroupListItemType(item)) {
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
-                return;
-            }
-
-            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionItem && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const iouReportAction = getIOUActionForTransactionID(reportActionsArray, item.transactionID);
-                const transactionThreadReport = createTransactionThreadReport(item.report, iouReportAction);
-                if (transactionThreadReport?.reportID) {
-                    updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
-                }
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo}));
                 return;
             }
 
@@ -662,7 +671,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         },
-        [hash, isMobileSelectionModeEnabled, toggleTransaction, queryJSON, reportActionsArray],
+        [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, reportActionsArray, hash],
     );
 
     const currentColumns = useMemo(() => {
@@ -700,13 +709,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple =
-        !isChat &&
-        !isTask &&
-        (!isSmallScreenWidth || isMobileSelectionModeEnabled) &&
-        groupBy !== CONST.SEARCH.GROUP_BY.FROM &&
-        groupBy !== CONST.SEARCH.GROUP_BY.CARD &&
-        groupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
+    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled) && groupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
     const ListItem = getListItem(type, status, groupBy);
 
     const sortedSelectedData = useMemo(
@@ -853,7 +856,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowSorting = !groupBy;
-    const shouldShowTableHeader = isLargeScreenWidth && !isChat;
+    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !groupBy;
+    const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!groupBy || groupBy === CONST.SEARCH.GROUP_BY.REPORTS);
 
     return (
         <SearchScopeProvider isOnSearch>
@@ -862,7 +866,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                     ref={searchListRef}
                     data={sortedSelectedData}
                     ListItem={ListItem}
-                    onSelectRow={openReport}
+                    onSelectRow={onSelectRow}
                     onCheckboxPress={toggleTransaction}
                     onAllCheckboxPress={toggleAllTransactions}
                     canSelectMultiple={canSelectMultiple}
@@ -873,7 +877,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                             <SearchTableHeader
                                 canSelectMultiple={canSelectMultiple}
                                 columns={columnsToShow}
-                                metadata={searchResults?.search}
+                                type={searchResults?.search.type}
                                 onSortPress={onSortPress}
                                 sortOrder={sortOrder}
                                 sortBy={sortBy}
@@ -881,13 +885,13 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                                 isAmountColumnWide={shouldShowAmountInWideColumn}
                                 isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                                 shouldShowSorting={shouldShowSorting}
-                                groupBy={groupBy}
                                 areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                                groupBy={groupBy}
                             />
                         )
                     }
                     contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
-                    containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
+                    containerStyle={[styles.pv0, !tableHeaderVisible && !isSmallScreenWidth && styles.pt3]}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     onScroll={onSearchListScroll}
                     onEndReachedThreshold={0.75}
