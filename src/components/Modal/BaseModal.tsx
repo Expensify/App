@@ -1,4 +1,4 @@
-import React, {forwardRef, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 // Animated required for side panel navigation
 // eslint-disable-next-line no-restricted-imports
@@ -159,8 +159,8 @@ function BaseModal(
         backdropOpacity,
         shouldUseReanimatedModal = false,
         shouldDisableBottomSafeAreaPadding = false,
+        ref,
     }: BaseModalProps,
-    ref: React.ForwardedRef<View>,
 ) {
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
@@ -485,4 +485,4 @@ function BaseModal(
 
 BaseModal.displayName = 'BaseModalWithRef';
 
-export default forwardRef(BaseModal);
+export default BaseModal;
