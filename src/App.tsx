@@ -89,6 +89,7 @@ function App() {
                                 <ComposeProviders
                                     components={[
                                         OnyxListItemProvider,
+                                        CurrentUserPersonalDetailsProvider,
                                         ThemeProvider,
                                         ThemeStylesProvider,
                                         ThemeIllustrationsProvider,
@@ -117,7 +118,6 @@ function App() {
                                         FullScreenBlockingViewContextProvider,
                                         FullScreenLoaderContextProvider,
                                         SidePanelContextProvider,
-                                        CurrentUserPersonalDetailsProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />
