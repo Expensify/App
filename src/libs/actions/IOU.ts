@@ -1032,14 +1032,21 @@ function createDraftTransaction(transaction: OnyxTypes.Transaction) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
-function clearMoneyRequest(transactionID: string, skipConfirmation = false) {
-    removeDraftTransactions();
+function clearMoneyRequest(transactionID: string, skipConfirmation = false, draftTransactions?: OnyxCollection<OnyxTypes.Transaction>) {
+    removeDraftTransactions(undefined, draftTransactions);
     Onyx.set(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, skipConfirmation);
 }
 
-function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: IOURequestType, skipConfirmation = false, backToReport?: string) {
+function startMoneyRequest(
+    iouType: ValueOf<typeof CONST.IOU.TYPE>,
+    reportID: string,
+    requestType?: IOURequestType,
+    skipConfirmation = false,
+    backToReport?: string,
+    draftTransactions?: OnyxCollection<OnyxTypes.Transaction>,
+) {
     Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE);
-    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation);
+    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation, draftTransactions);
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.MANUAL:
             Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport));
@@ -4187,7 +4194,6 @@ function getUpdateMoneyRequestParams(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.reportID}`,
             value: {
-                lastVisibleActionCreated: updatedReportAction.created,
                 lastReadTime: updatedReportAction.created,
             },
         });
@@ -4195,7 +4201,6 @@ function getUpdateMoneyRequestParams(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.reportID}`,
             value: {
-                lastVisibleActionCreated: transactionThread?.lastVisibleActionCreated,
                 lastReadTime: transactionThread?.lastReadTime,
             },
         });
@@ -4832,12 +4837,12 @@ function updateMoneyRequestTaxAmount(
         taxAmount,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, policy, policyTagList, policyCategories);
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_AMOUNT, params, onyxData);
+    API.write('UpdateMoneyRequestTaxAmount', params, onyxData);
 }
 
 type UpdateMoneyRequestTaxRateParams = {
-    transactionID: string | undefined;
-    optimisticReportActionID: string | undefined;
+    transactionID: string;
+    optimisticReportActionID: string;
     taxCode: string;
     taxAmount: number;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -4852,8 +4857,7 @@ function updateMoneyRequestTaxRate({transactionID, optimisticReportActionID, tax
         taxAmount,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, policy, policyTagList, policyCategories);
-
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
+    API.write('UpdateMoneyRequestTaxRate', params, onyxData);
 }
 
 type UpdateMoneyRequestDistanceParams = {
@@ -10561,7 +10565,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
     if (introSelected?.inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE && paymentSelected !== CONST.IOU.PAYMENT_SELECTED.BBA) {
         onboardingPurpose = CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
     }
-    const {onboardingMessages} = getOnboardingMessages();
+    const {onboardingMessages} = getOnboardingMessages(true);
 
     completeOnboarding({
         engagementChoice: onboardingPurpose,
@@ -10574,7 +10578,6 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         wasInvited: true,
     });
 }
-
 function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, paymentPolicyID?: string, full = true) {
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
@@ -12282,10 +12285,10 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     // Validate custom unit rate before proceeding with split
     const customUnitRateID = originalTransaction?.comment?.customUnit?.customUnitRateID;
+    const isPerDiem = isPerDiemRequestTransactionUtils(originalTransaction);
 
-    if (customUnitRateID && policy) {
-        const isPerDiem = isPerDiemRequestTransactionUtils(originalTransaction);
-        const customUnitRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policy, customUnitRateID);
+    if (customUnitRateID && policy && !isPerDiem) {
+        const customUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
 
         // If the rate doesn't exist or is disabled, show an error and return early
         if (!customUnitRate || !customUnitRate.enabled) {
@@ -12533,6 +12536,8 @@ function assignReportToMe(report: OnyxEntry<OnyxTypes.Report>, accountID: number
                 value: {
                     [takeControlReportAction.reportActionID]: {
                         pendingAction: null,
+                        isOptimisticAction: null,
+                        errors: null,
                     },
                 },
             },
@@ -12543,15 +12548,6 @@ function assignReportToMe(report: OnyxEntry<OnyxTypes.Report>, accountID: number
                 key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
                 value: {
                     managerID: report.managerID,
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-                value: {
-                    [takeControlReportAction.reportActionID]: {
-                        pendingAction: null,
-                    },
                 },
             },
             {
