@@ -79,7 +79,7 @@ function useAncestorReportAndReportActions(reportID: string, includeTransactionT
                 const isReportPreviewAction = isReportPreviewActionUtils(parentReportAction);
                 const isSentMoneyReportAction = isSentMoneyReportActionUtils(parentReportAction);
 
-                if ((isTransactionThread && !isSentMoneyReportAction) || isReportPreviewAction) {
+                if (!((isTransactionThread && !isSentMoneyReportAction) || isReportPreviewAction)) {
                     reportsAndReportActions.unshift({report: parentReport, reportAction: parentReportAction});
                 }
             }
