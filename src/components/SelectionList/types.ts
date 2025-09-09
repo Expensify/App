@@ -1,21 +1,23 @@
-import type {ForwardedRef, MutableRefObject, ReactElement, ReactNode} from 'react';
+import type {ForwardedRef, JSXElementConstructor, MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {
     GestureResponderEvent,
     InputModeOptions,
     LayoutChangeEvent,
     NativeScrollEvent,
     NativeSyntheticEvent,
+    ScrollViewProps,
     SectionListData,
     StyleProp,
     TargetedEvent,
     TextInput,
+    TextInputFocusEventData,
     TextStyle,
     ViewStyle,
 } from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
-import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
+import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import type SpendCategorySelectorListItem from '@pages/workspace/categories/SpendCategorySelectorListItem';
@@ -71,7 +73,7 @@ type CommonListItemProps<TItem extends ListItem> = {
     onSelectRow: (item: TItem) => void;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    onCheckboxPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
@@ -337,6 +339,12 @@ type TaskListItemType = ListItem &
 type TransactionGroupListItemType = ListItem & {
     /** List of grouped transactions */
     transactions: TransactionListItemType[];
+
+    /** Whether the report has a single transaction */
+    isOneTransactionReport?: boolean;
+
+    /** The hash of the query to get the transactions data */
+    transactionsQueryJSON?: SearchQueryJSON;
 };
 
 type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.REPORTS} & SearchReport & {
@@ -389,6 +397,18 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+    /** Whether the network is offline */
+    isOffline?: boolean;
+
+    /** Index of the item in the list */
+    index?: number;
+
+    /** Callback when the input inside the item is focused (if input exists) */
+    onInputFocus?: (index: number) => void;
+
+    /** Callback when the input inside the item is blurred (if input exists) */
+    onInputBlur?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -484,6 +504,7 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     groupBy?: SearchGroupBy;
     policies?: OnyxCollection<Policy>;
+    accountID?: number;
     columns?: SearchColumnType[];
     areAllOptionalColumnsHidden?: boolean;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
@@ -879,6 +900,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListHandle>;
+
+    /** Custom scroll component to use instead of the default ScrollView */
+    renderScrollComponent?: (props: ScrollViewProps) => ReactElement<ScrollViewProps, string | JSXElementConstructor<unknown>>;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -889,6 +913,7 @@ type SelectionListHandle = {
     updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
     getFocusedOption: () => ListItem | undefined;
     focusTextInput: () => void;
+    scrollToFocusedInput: (index: number) => void;
 };
 
 type ItemLayout = {
