@@ -37,6 +37,7 @@ const CURRENT_USER_ID = 1;
 const FAKE_NEW_REPORT_ID = '2';
 const FAKE_OLD_REPORT_ID = '3';
 const FAKE_SELF_DM_REPORT_ID = '4';
+
 const newReport = {
     reportID: FAKE_NEW_REPORT_ID,
     ownerAccountID: CURRENT_USER_ID,
