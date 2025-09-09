@@ -6243,7 +6243,7 @@ const translations = {
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `在其他地方支付了${currency}${amount}`,
                 markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `通过集成支付了${currency}${amount}`,
                 outdatedBankAccount: `由于付款人的银行账户出现问题，无法处理付款。`,
-                reimbursementACHBounce: `无法处理付款，因为付款人资金不足。`,
+                reimbursementACHBounce: `由于银行账户问题，无法处理付款。`,
                 reimbursementACHCancelled: `取消了付款`,
                 reimbursementAccountChanged: `无法处理付款，因为付款人更换了银行账户。`,
                 reimbursementDelayed: `已处理付款，但会延迟1-2个工作日。`,
