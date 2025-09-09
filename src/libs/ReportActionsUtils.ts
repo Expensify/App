@@ -2146,20 +2146,27 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
             url: '',
         });
     }
-    if (reimbursableUrls.length === 1) {
+
+    // For some integrations (e.g. Intacct, QBD), we do not render direct links because we only have IDs, not URLs
+    const noLinkLabels = new Set<string>([
+        CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.intacct,
+        CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksDesktop,
+    ]);
+    const shouldSuppressLinks = noLinkLabels.has(label ?? '');
+    if (!shouldSuppressLinks && reimbursableUrls.length === 1) {
         const shouldAddPeriod = nonReimbursableUrls.length === 0;
         result.push({
             text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink') + (shouldAddPeriod ? '.' : ''),
             url: reimbursableUrls.at(0) ?? '',
         });
     }
-    if (reimbursableUrls.length === 1 && nonReimbursableUrls.length) {
+    if (!shouldSuppressLinks && reimbursableUrls.length === 1 && nonReimbursableUrls.length) {
         result.push({
             text: translateLocal('common.and'),
             url: '',
         });
     }
-    if (nonReimbursableUrls.length) {
+    if (!shouldSuppressLinks && nonReimbursableUrls.length) {
         const text = translateLocal('report.actions.type.exportedToIntegration.nonReimbursableLink');
         let url = '';
 
