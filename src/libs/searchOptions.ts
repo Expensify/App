@@ -9,9 +9,9 @@ type Option = {
 };
 
 /**
- * Moves selected items to the top of the list while maintaining original sorting for non-selected items
+ * Moves selected item to the top of the list while maintaining original sorting for non-selected items
  * @param options - An array of option objects
- * @returns An array of options with selected items at the top
+ * @returns An array of options with selected item at the top
  */
 function moveSelectedOptionsToTop<T extends {isSelected?: boolean}>(options: T[]): T[] {
     const result = [...options];
