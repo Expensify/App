@@ -48,7 +48,18 @@ const ACCESS_VARIANTS = {
 
         (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived, isRestrictedToPreferredWorkspace)) &&
         (iouType !== CONST.IOU.TYPE.INVOICE || canSendInvoice(allPolicies, login)),
-} as const;
+} as const satisfies Record<
+    string,
+    (
+        policy: Policy,
+        login: string,
+        report: Report,
+        allPolicies: NonNullable<OnyxCollection<Policy>> | null,
+        iouType?: IOUType,
+        isArchivedReport?: boolean,
+        isRestrictedToPreferredWorkspace?: boolean,
+    ) => boolean
+>;
 
 type AccessVariant = keyof typeof ACCESS_VARIANTS;
 type AccessOrNotFoundWrapperChildrenProps = {

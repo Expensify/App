@@ -817,7 +817,18 @@ function MoneyRequestConfirmationList({
         }
 
         return options;
-    }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants, isCreateExpenseFlow, isTestReceipt, isRestrictedToPreferredWorkspace]);
+    }, [
+        isTypeSplit,
+        translate,
+        payeePersonalDetails,
+        getSplitSectionHeader,
+        splitParticipants,
+        selectedParticipants,
+        isCreateExpenseFlow,
+        isTestReceipt,
+        isRestrictedToPreferredWorkspace,
+        isTypeInvoice,
+    ]);
 
     useEffect(() => {
         if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat) || !transactionID || isReadOnly) {
