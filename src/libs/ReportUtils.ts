@@ -10896,7 +10896,7 @@ function getFieldViolation(violations: OnyxEntry<ReportViolations>, reportField:
     }
 
     if (!violations) {
-        return reportField.value ? undefined : CONST.REPORT_VIOLATIONS.FIELD_REQUIRED;
+        return (reportField.value ?? reportField.defaultValue) ? undefined : CONST.REPORT_VIOLATIONS.FIELD_REQUIRED;
     }
 
     const fieldViolation = Object.values(CONST.REPORT_VIOLATIONS).find((violation) => !!violations[violation] && violations[violation][reportField.fieldID]);
