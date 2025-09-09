@@ -377,6 +377,25 @@ describe('ReportUtils', () => {
                 }),
             );
         });
+
+        it('should not create tasks if the task feature is not in the selected interested features', () => {
+            const result = prepareOnboardingOnyxData(
+                undefined,
+                CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false, mediaAttributes: {}}],
+                },
+                '1',
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                ['categories', 'accounting', 'tags'],
+            );
+
+            expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(0);
+        });
     });
 
     describe('getIconsForParticipants', () => {
@@ -2071,6 +2090,18 @@ describe('ReportUtils', () => {
                 reportID: '8011',
             };
             expect(isChatUsedForOnboarding(report2)).toBeFalsy();
+        });
+
+        it('should return true for admins rooms chat when posting tasks in admins room', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
+            });
+
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+            };
+            expect(isChatUsedForOnboarding(report, CONST.ONBOARDING_CHOICES.MANAGE_TEAM)).toBeTruthy();
         });
     });
 
