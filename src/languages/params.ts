@@ -906,6 +906,10 @@ type SubmittedWithMemoParams = {
     memo?: string;
 };
 
+type PayAndDowngradeDescriptionParams = {
+    formattedAmount: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1209,4 +1213,5 @@ export type {
     SubmittedWithMemoParams,
     SignerInfoMessageParams,
     BusinessRegistrationNumberParams,
+    PayAndDowngradeDescriptionParams,
 };

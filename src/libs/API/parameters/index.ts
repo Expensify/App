@@ -17,6 +17,7 @@ export type {default as BeginSignInParams} from './BeginSignInParams';
 export type {default as CloseAccountParams} from './CloseAccountParams';
 export type {default as CloseSidePanelParams} from './CloseSidePanelParams';
 export type {default as ConnectBankAccountParams} from './ConnectBankAccountParams';
+export type {default as OpenDuplicatePolicyPageParams} from './OpenDuplicatePolicyPageParams';
 export type {default as ConnectPolicyToAccountingIntegrationParams} from './ConnectPolicyToAccountingIntegrationParams';
 export type {default as OpenPolicyProfilePageParams} from './OpenPolicyProfilePageParams';
 export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPageParams';
@@ -425,5 +426,6 @@ export type {default as OpenUnreportedExpensesPageParams} from './OpenUnreported
 export type {default as VerifyTestDriveRecipientParams} from './VerifyTestDriveRecipientParams';
 export type {default as ExportSearchWithTemplateParams} from './ExportSearchWithTemplateParams';
 export type {default as AssignReportToMeParams} from './AssignReportToMeParams';
+export type {default as AddReportApproverParams} from './AddReportApproverParams';
 export type {default as EnableGlobalReimbursementsForUSDBankAccountParams} from './EnableGlobalReimbursementsForUSDBankAccountParams';
 export type {default as SendReminderForCorpaySignerInformationParams} from './SendReminderForCorpaySignerInformationParams';
