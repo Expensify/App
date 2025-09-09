@@ -10,6 +10,7 @@ import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionShee
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
+import useGetChatIouReportIDFromReportAction from '@hooks/useGetIouReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {deleteMoneyRequest, deleteTrackExpense} from '@libs/actions/IOU';
@@ -291,15 +292,26 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionIDs);
 
+    const chatIouReportID = useGetChatIouReportIDFromReportAction(reportActionRef.current);
+    const isChatIOUReportArchived = useReportIsArchived(chatIouReportID);
+
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
         const reportAction = reportActionRef.current;
         if (isMoneyRequestAction(reportAction)) {
             const originalMessage = getOriginalMessage(reportAction);
             if (isTrackExpenseAction(reportAction)) {
-                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations);
+                deleteTrackExpense(
+                    reportIDRef.current,
+                    originalMessage?.IOUTransactionID,
+                    reportAction,
+                    duplicateTransactions,
+                    duplicateTransactionViolations,
+                    undefined,
+                    isChatIOUReportArchived,
+                );
             } else {
-                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations);
+                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction, duplicateTransactions, duplicateTransactionViolations, undefined, undefined, isChatIOUReportArchived);
             }
         } else if (reportAction) {
             InteractionManager.runAfterInteractions(() => {

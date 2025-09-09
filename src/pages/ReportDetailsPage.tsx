@@ -22,6 +22,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
+import useGetChatIouReportIDFromReportAction from '@hooks/useGetIouReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -253,6 +254,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         }
         return parentReportAction;
     }, [caseID, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
+    const chatIouReportID = useGetChatIouReportIDFromReportAction(requestParentReportAction);
+    const isChatIOUReportArchived = useReportIsArchived(chatIouReportID);
 
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
@@ -776,9 +779,25 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
 
         if (isTrackExpense) {
-            deleteTrackExpense(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations, isSingleTransactionView);
+            deleteTrackExpense(
+                moneyRequestReport?.reportID,
+                iouTransactionID,
+                requestParentReportAction,
+                duplicateTransactions,
+                duplicateTransactionViolations,
+                isSingleTransactionView,
+                isChatIOUReportArchived,
+            );
         } else {
-            deleteMoneyRequest(iouTransactionID, requestParentReportAction, duplicateTransactions, duplicateTransactionViolations, isSingleTransactionView);
+            deleteMoneyRequest(
+                iouTransactionID,
+                requestParentReportAction,
+                duplicateTransactions,
+                duplicateTransactionViolations,
+                isSingleTransactionView,
+                undefined,
+                isChatIOUReportArchived,
+            );
             removeTransaction(iouTransactionID);
         }
     }, [
@@ -792,6 +811,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         report,
         requestParentReportAction,
         isReportArchived,
+        isChatIOUReportArchived,
     ]);
 
     // A flag to indicate whether the user chose to delete the transaction or not
@@ -822,9 +842,15 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         if (!isEmptyObject(requestParentReportAction)) {
             const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
             if (isTrackExpense) {
-                urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, isSingleTransactionView);
+                urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
+                    moneyRequestReport?.reportID,
+                    iouTransactionID,
+                    requestParentReportAction,
+                    isSingleTransactionView,
+                    isMoneyRequestReportArchived,
+                );
             } else {
-                urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(iouTransactionID, requestParentReportAction, isSingleTransactionView);
+                urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(iouTransactionID, requestParentReportAction, isSingleTransactionView, isChatIOUReportArchived);
             }
         }
 
@@ -834,7 +860,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
         }
-    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport?.reportID]);
+    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport?.reportID, isChatIOUReportArchived, isMoneyRequestReportArchived]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 

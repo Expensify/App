@@ -7,6 +7,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import useActiveRoute from '@hooks/useActiveRoute';
+import useGetChatIouReportIDFromReportAction from '@hooks/useGetIouReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -91,6 +92,8 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
     });
 
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
+    const chatIouReportID = useGetChatIouReportIDFromReportAction(parentReportAction);
+    const isChatParentReportArchived = useReportIsArchived(chatIouReportID);
     const isTrackExpense = isTrackExpenseReport(report);
     const moneyRequestReport = parentReport;
     const linkedTransactionID = useMemo(() => {
@@ -185,7 +188,7 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
                 return;
             }
             if (parentReportAction) {
-                cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, report.reportID, true);
+                cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, report.reportID, true, isChatParentReportArchived);
                 return;
             }
         }
@@ -200,7 +203,7 @@ function MoneyRequestReceiptView({allReports, report, readonly = false, updatedT
         revert(transaction, getLastModifiedExpense(report?.reportID));
         clearError(transaction.transactionID);
         clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
-    }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID]);
+    }, [transaction, chatReport, parentReportAction, isChatParentReportArchived, linkedTransactionID, report?.reportID]);
 
     const receiptStyle = shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage;
 
