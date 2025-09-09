@@ -12,7 +12,7 @@ Connecting QuickBooks Desktop to Expensify helps streamline expense reporting, r
 
 # Step 1: Initial Connection
 
-1. From the navigation tabs, click **Workspaces > [Workspace Name] > Accounting > QuickBooks Desktop**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace Name] > Accounting > QuickBooks Desktop**.
 2. Find QuickBooks Desktop in the list of integrations and click **Set up**.
 3. You'll receive a Codat link URL that must be opened on the computer where QuickBooks Desktop is installed.
 4. Open the provided link on your QuickBooks Desktop computer and follow the connection flow.
