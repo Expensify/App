@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {FlashListProps} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
@@ -23,8 +24,8 @@ import {isValidDraftComment} from '@libs/DraftCommentUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
-import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction} from '@libs/ReportUtils';
+import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction, shouldReportActionBeVisibleAsLastAction} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -192,7 +193,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const hasDraftComment = isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
 
             const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
-            const canUserPerformWrite = canUserPerformWriteAction(item, isReportArchived);
+            const canUserPerformWrite = canUserPerformWriteActionUtil(item, isReportArchived);
             const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
             const lastReportAction = sortedReportActions.at(0);
 
@@ -216,6 +217,22 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const lastMessageTextFromReport = getLastMessageTextForReport(item, lastActorDetails, itemPolicy, !!itemReportNameValuePairs?.private_isArchived);
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
+            let lastAction;
+            if (!itemReportActions || !item) {
+                lastAction = undefined;
+            }
+
+            const canUserPerformWriteAction = canUserPerformWriteActionUtil(item, isReportArchived);
+            const actionsArray = sortedReportActions(Object.values(reportActions));
+
+            const reportActionsForDisplay = actionsArray.filter(
+                (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+            );
+
+            lastAction = reportActionsForDisplay.at(-1);
+
+            const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
+            const lastActionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID ?? CONST.DEFAULT_NUMBER_ID}`];
 
             return (
                 <OptionRowLHNData
@@ -249,6 +266,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     isScreenFocused={isScreenFocused}
                     localeCompare={localeCompare}
                     isReportArchived={isReportArchived}
+                    lastAction
+                    lastActionReport
                 />
             );
         },

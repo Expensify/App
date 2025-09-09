@@ -131,6 +131,10 @@ type OptionRowLHNDataProps = {
 
     /** Whether the report is archived */
     isReportArchived: boolean;
+
+    lastAction: ReportAction | undefined;
+
+    lastActionReport: OnyxEntry<Report> | undefined;
 };
 
 type OptionRowLHNProps = {

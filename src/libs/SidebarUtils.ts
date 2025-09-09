@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {PartialPolicyForSidebar, ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
@@ -128,15 +127,6 @@ import {getTaskReportActionMessage} from './TaskUtils';
 import {getTransactionID} from './TransactionUtils';
 
 type WelcomeMessage = {phrase1?: string; messageText?: string; messageHtml?: string};
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value;
-    },
-});
 
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     if (a < b) {
@@ -595,6 +585,7 @@ function getOptionData({
     lastAction,
     localeCompare,
     isReportArchived = false,
+    lastActionReport,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -609,6 +600,7 @@ function getOptionData({
     lastAction: ReportAction | undefined;
     localeCompare: LocaleContextProps['localeCompare'];
     isReportArchived?: boolean;
+    lastActionReport: OnyxEntry<Report> | undefined;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -774,7 +766,7 @@ function getOptionData({
                     : translateLocal('workspace.invite.removed');
             const users = translateLocal(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
-            const roomName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`]) || lastActionOriginalMessage?.roomName;
+            const roomName = getReportName(lastActionReport) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
