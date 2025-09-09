@@ -1,10 +1,10 @@
-import Timing from '@userActions/Timing';
-import CONST from '@src/CONST';
+import * as Sentry from '@sentry/react-native';
 
-export default function () {
-    Timing.start(CONST.TIMING.SPLASH_SCREEN);
-
-    document.addEventListener('visibilitychange', () => {
-        Timing.clearData();
-    });
-}
+Sentry.init({
+    dsn: 'https://c30560649568161d294f43893a3d0f5e@o4509989802344448.ingest.us.sentry.io/4509990212730880',
+    tracesSampleRate: 1.0,
+    profilesSampleRate: 1.0,
+    replaysSessionSampleRate: 0.1,
+    replaysOnErrorSampleRate: 1.0,
+    integrations: [Sentry.mobileReplayIntegration()],
+});
