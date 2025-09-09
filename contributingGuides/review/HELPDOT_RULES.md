@@ -39,9 +39,6 @@ keywords: [feature name, related terms, navigation path, etc.]
 ---
 ```
 
--  Includes one of the required wrappers:
-  - ‹div id="new-expensify" markdown="1"> for New Expensify
-  - ‹div id="expensify-classic" markdown="1"> for Classic
 -  Contains a breadcrumb path below the H1, formatted like:
   - Settings > Workspaces > Workspace Name > People
   - Account > Settings > Payments
