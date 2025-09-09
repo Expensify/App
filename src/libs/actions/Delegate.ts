@@ -118,9 +118,6 @@ type IsConnectedAsDelegateParams = WithDelegatedAccess;
 // Connect as delegate
 type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag;
 
-// Optimistic update to role (no code)
-type UpdateDelegateRoleOptimisticallyParams = WithEmail & WithRole & WithDelegatedAccess;
-
 // Clear pending action for role update
 type ClearDelegateRolePendingActionParams = WithEmail & WithDelegatedAccess;
 
@@ -666,40 +663,6 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
     API.write(WRITE_COMMANDS.UPDATE_DELEGATE_ROLE, parameters, {optimisticData, successData, failureData});
 }
 
-function updateDelegateRoleOptimistically({email, role, delegatedAccess}: UpdateDelegateRoleOptimisticallyParams) {
-    if (!delegatedAccess?.delegates) {
-        return;
-    }
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                delegatedAccess: {
-                    errorFields: {
-                        updateDelegateRole: {
-                            [email]: null,
-                        },
-                    },
-                    delegates: delegatedAccess.delegates.map((delegate) =>
-                        delegate.email === email
-                            ? {
-                                  ...delegate,
-                                  role,
-                                  pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                  pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                              }
-                            : delegate,
-                    ),
-                },
-            },
-        },
-    ];
-
-    Onyx.update(optimisticData);
-}
-
 function clearDelegateRolePendingAction({email, delegatedAccess}: ClearDelegateRolePendingActionParams) {
     if (!delegatedAccess?.delegates) {
         return;
@@ -754,7 +717,6 @@ export {
     clearDelegateErrorsByField,
     restoreDelegateSession,
     isConnectedAsDelegate,
-    updateDelegateRoleOptimistically,
     clearDelegateRolePendingAction,
     updateDelegateRole,
     removeDelegate,

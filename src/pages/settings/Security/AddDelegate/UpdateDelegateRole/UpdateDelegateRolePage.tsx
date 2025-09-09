@@ -10,16 +10,12 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDelegateRolePendingAction, updateDelegateRoleOptimistically} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {DelegateRole} from '@src/types/onyx/Account';
 import UpdateDelegateMagicCodeModal from './UpdateDelegateMagicCodeModal';
 
 type UpdateDelegateRolePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE>;
@@ -33,7 +29,6 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(showValidateActionModalFromURL ?? false);
     const [newRole, setNewRole] = useState<ValueOf<typeof CONST.DELEGATE_ROLE> | undefined>(newRoleFromURL);
     const [shouldShowLoading, setShouldShowLoading] = useState(showValidateActionModalFromURL ?? false);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     useEffect(() => {
         Navigation.setParams({showValidateActionModal: isValidateCodeActionModalVisible, newRole});
@@ -49,12 +44,6 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     }));
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
-    useEffect(() => {
-        updateDelegateRoleOptimistically({email: login ?? '', role: currentRole as DelegateRole, delegatedAccess: account?.delegatedAccess});
-        return () => clearDelegateRolePendingAction({email: login ?? '', delegatedAccess: account?.delegatedAccess});
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [login]);
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
