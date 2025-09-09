@@ -29,6 +29,6 @@ Duplicating a workspace allows you to quickly create a new workspace using the s
 - Per Diem
 - Invoices
 
-**Note:** If you’ve chosen to copy Members from a current workspace to the new duplicated workspace, you’ll be asked to **review and confirm** this will allow you to double-check your selections and click Proceed. 
+**Note:** If you’ve chosen to copy Members from a current workspace to the new duplicated workspace, you’ll be asked to **review and confirm** this will allow you to double-check your selections and click **Proceed**. 
 
 4. Expensify will create a new workspace with your chosen configurations.
