@@ -17,7 +17,7 @@ To activate distance rates for a workspace:
 3. Click **More Features** in the left menu.
 4. Toggle on **Distance Rates**.
 
-Once enabled, a new **Distance Rates** tab will appear in the left-hand menu.
+Once enabled, a new **Distance Rates** tab will appear in the navigation tabs.
 
 ---
 

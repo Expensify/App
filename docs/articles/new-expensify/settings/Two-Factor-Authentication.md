@@ -16,7 +16,7 @@ After entering your login email and magic code, Expensify will prompt you for a 
 
 # How to Enable Two-Factor Authentication in Expensify
 
-1. In the left-hand menu, tap **Account > Security**.
+1. In the navigation tabs, tap **Account > Security**.
 2. Under **Security options**, tap **Two-Factor Authentication**.
 3. Follow the prompts to enable 2FA.
 4. **Save your backup codes**—these are essential for account recovery.
