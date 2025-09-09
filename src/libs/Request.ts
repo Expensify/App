@@ -13,7 +13,9 @@ let middlewares: Middleware[] = [];
 function makeXHR(request: Request): Promise<Response | void> {
     const finalParameters = enhanceParameters(request.command, request?.data ?? {});
     return hasReadRequiredDataFromStorage().then((): Promise<Response | void> => {
-        return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline).then((response) => {
+        return Promise.resolve(
+            HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline),
+        ).then((response) => {
             const unsupportedSupportalCommand =
                 isSupportAuthToken() &&
                 Number(response?.jsonCode) === 666 &&
@@ -31,7 +33,6 @@ function makeXHR(request: Request): Promise<Response | void> {
                 Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, {
                     command: request.command,
                     message: typeof response?.message === 'string' ? response.message : undefined,
-                    timestamp: Date.now(),
                 });
             }
 
