@@ -1,0 +1,38 @@
+name: HelpDot PR Reviews with Claude Code
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request:
+    types: [opened, synchronize, labeled]
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  helpdot-review:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'HelpDot Review')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Read HELPDOT_RULES.md
+        id: read-rules
+        run: |
+          RULES_CONTENT=$(cat "contributingGuides/review/HELPDOT_RULES.md")
+          {
+            echo "content<<EOF"
+            echo "$RULES_CONTENT"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Run Claude Code
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.LLM_API_KEY }}
+          prompt: ${{ steps.read-rules.outputs.content }}
