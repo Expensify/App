@@ -14,7 +14,7 @@ Workflows help you automate how expenses are submitted, approved, and reimbursed
 
 To get started, enable the **Workflows** feature for your workspace.
 
-1. In the **navigation tabs**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **More Features**.
 4. Under the **Spend** section, toggle on **Workflows**.
