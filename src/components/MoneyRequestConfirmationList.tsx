@@ -806,8 +806,8 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isInteractive: isCreateExpenseFlow && !isTestReceipt && !isRestrictedToPreferredWorkspace,
-                shouldShowRightIcon: isCreateExpenseFlow && !isTestReceipt && !isRestrictedToPreferredWorkspace,
+                isInteractive: (isCreateExpenseFlow && !isTestReceipt && !isRestrictedToPreferredWorkspace) || isTypeInvoice,
+                shouldShowRightIcon: (isCreateExpenseFlow && !isTestReceipt && !isRestrictedToPreferredWorkspace) || isTypeInvoice,
             }));
             options.push({
                 title: translate('common.to'),
