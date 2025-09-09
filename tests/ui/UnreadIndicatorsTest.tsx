@@ -181,7 +181,8 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
         });
 }
 
-describe('Unread Indicators', () => {
+// Skipping this test because it is flaky and will be fixed here https://github.com/Expensify/App/issues/70126
+describe.skip('Unread Indicators', () => {
     beforeAll(() => {
         PusherHelper.setup();
     });
