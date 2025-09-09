@@ -42,7 +42,7 @@ To request an early cancellation:
 
 To permanently delete a workspace and downgrade to a free account:
 
-1. From the navigation tabs, click **Workspaces**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click the three dots next to the workspace name.
 3. Select **Delete workspace** from the dropdown.
 4. Confirm the deletion when prompted.
