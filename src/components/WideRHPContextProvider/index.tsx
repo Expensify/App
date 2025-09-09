@@ -13,12 +13,19 @@ import SCREENS from '@src/SCREENS';
 import defaultWideRHPContextValue from './default';
 import type {WideRHPContextType} from './types';
 
+// 0 is folded/hidden, 1 is expanded/shown
 const expandedRHPProgress = new Animated.Value(0);
 const secondOverlayProgress = new Animated.Value(0);
 
 const wideRHPMaxWidth = variables.receiptPaneRHPMaxWidth + variables.sideBarWidth;
 
-// Function to calculate receipt pane RHP width with minimum constraint
+/**
+ * Calculates the optimal width for the receipt pane RHP based on window width.
+ * Ensures the RHP doesn't exceed maximum width and maintains minimum responsive width.
+ *
+ * @param windowWidth - Current window width in pixels
+ * @returns Calculated RHP width with constraints applied
+ */
 const calculateReceiptPaneRHPWidth = (windowWidth: number) => {
     const calculatedWidth = windowWidth < wideRHPMaxWidth ? variables.receiptPaneRHPMaxWidth - (wideRHPMaxWidth - windowWidth) : variables.receiptPaneRHPMaxWidth;
 
@@ -35,6 +42,10 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [shouldRenderSecondaryOverlay, setShouldRenderSecondaryOverlay] = useState(false);
     const [expenseReportIDs, setExpenseReportIDs] = useState<Set<string>>(new Set());
 
+    /**
+     * Determines whether the secondary overlay should be displayed.
+     * Shows second overlay when RHP is open and there is a wide RHP route open but there is another regular route on the top.
+     */
     const shouldShowSecondaryOverlay = useRootNavigationState((state) => {
         const focusedRoute = findFocusedRoute(state);
         const isRHPLastRootRoute = state?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
@@ -52,6 +63,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         return false;
     });
 
+    /**
+     * Adds a route to the wide RHP route keys list, enabling wide RHP display for that route.
+     */
     const showWideRHPVersion = useCallback((route: NavigationRoute) => {
         if (!route.key) {
             console.error(`The route passed to showWideRHPVersion should have the "key" property defined.`);
@@ -64,6 +78,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         setWideRHPRouteKeys((prev) => (prev.includes(newKey) ? prev : [newKey, ...prev]));
     }, []);
 
+    /**
+     * Removes a route from the wide RHP route keys list, disabling wide RHP display for that route.
+     */
     const cleanWideRHPRouteKey = useCallback(
         (route: NavigationRoute) => {
             if (!route.key) {
@@ -83,6 +100,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         [wideRHPRouteKeys],
     );
 
+    /**
+     * Dismiss top layer modal and go back to the wide RHP.
+     */
     const dismissToWideReport = useCallback(() => {
         const rootState = navigationRef.getRootState();
         if (!rootState) {
@@ -100,6 +120,11 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         navigationRef.dispatch({...StackActions.popTo(SCREENS.RIGHT_MODAL.SEARCH_REPORT), target: rhpStateKey});
     }, []);
 
+    /**
+     * Marks a report ID as an expense report, adding it to the expense reports set.
+     * This enables optimistic wide RHP display for expense reports.
+     * It helps us open expense as wide, before it fully loads.
+     */
     const markReportIDAsExpense = useCallback((reportID: string) => {
         setExpenseReportIDs((prev) => {
             const newSet = new Set(prev);
@@ -108,6 +133,11 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         });
     }, []);
 
+    /**
+     * Checks if a report ID is marked as an expense report.
+     * Used to determine if wide RHP should be displayed optimistically.
+     * It helps us open expense as wide, before it fully loads.
+     */
     const isReportIDMarkedAsExpense = useCallback(
         (reportID: string) => {
             return expenseReportIDs.has(reportID);
@@ -115,22 +145,20 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         [expenseReportIDs],
     );
 
+    /**
+     * Effect that shows/hides the expanded RHP progress based on the number of wide RHP routes.
+     */
     useEffect(() => {
         if (wideRHPRouteKeys.length > 0) {
-            Animated.timing(expandedRHPProgress, {
-                toValue: 1,
-                duration: 0,
-                useNativeDriver: false,
-            }).start();
+            expandedRHPProgress.setValue(1);
         } else {
-            Animated.timing(expandedRHPProgress, {
-                toValue: 0,
-                duration: 0,
-                useNativeDriver: false,
-            }).start();
+            expandedRHPProgress.setValue(0);
         }
     }, [wideRHPRouteKeys.length]);
 
+    /**
+     * Effect that manages the secondary overlay animation and rendering state.
+     */
     useEffect(() => {
         if (shouldShowSecondaryOverlay) {
             setShouldRenderSecondaryOverlay(true);
@@ -150,7 +178,10 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         }
     }, [shouldShowSecondaryOverlay]);
 
-    // Effect to recalculate receiptPaneRHPWidth when dimensions change
+    /**
+     * Effect that handles responsive RHP width calculation when window dimensions change.
+     * Listens for dimension changes and recalculates the optimal RHP width accordingly.
+     */
     useEffect(() => {
         const handleDimensionChange = () => {
             const windowWidth = Dimensions.get('window').width;
@@ -187,13 +218,23 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     return <WideRHPContext.Provider value={value}>{children}</WideRHPContext.Provider>;
 }
 
-// Condition whether the screen where this hook is used should be displayed as wide. It's not always known from the beginning or can change after the screen is already mounted.
+/**
+ * Hook that manages wide RHP display for a screen based on condition or optimistic state.
+ * Automatically registers the route for wide RHP when condition is met or report is marked as expense.
+ * Cleans up the route registration when the screen is removed.
+ *
+ * @param condition - Boolean condition determining if the screen should display as wide RHP
+ */
 function useShowWideRHPVersion(condition: boolean) {
     const navigation = useNavigation();
     const route = useRoute();
     const reportID = route.params && 'reportID' in route.params && typeof route.params.reportID === 'string' ? route.params.reportID : '';
     const {showWideRHPVersion, cleanWideRHPRouteKey, isReportIDMarkedAsExpense} = useContext(WideRHPContext);
 
+    /**
+     * Effect that sets up cleanup when the screen is about to be removed.
+     * Uses InteractionManager to ensure cleanup happens after closing animation.
+     */
     useEffect(() => {
         return navigation.addListener('beforeRemove', () => {
             InteractionManager.runAfterInteractions(() => {
@@ -202,6 +243,10 @@ function useShowWideRHPVersion(condition: boolean) {
         });
     }, [cleanWideRHPRouteKey, navigation, route]);
 
+    /**
+     * Effect that determines whether to show wide RHP based on condition or optimistic state.
+     * Shows wide RHP if either the condition is true OR the reportID is marked as an expense.
+     */
     useEffect(() => {
         // Check if we should show wide RHP based on condition OR if reportID is in optimistic set
         const shouldShow = condition || (reportID && isReportIDMarkedAsExpense(reportID));
