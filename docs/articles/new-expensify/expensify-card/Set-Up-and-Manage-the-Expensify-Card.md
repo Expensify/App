@@ -33,7 +33,7 @@ To turn on Expensify Cards for your workspace:
 
 Link a U.S. business bank account to pay the card balance:
 
-1. From the navigation tabs, select **Workspaces > [Workspace Name] > Expensify Card**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Expensify Card**
 2. Click **Issue new card**
 3. Choose an existing account or [add a new bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account) as the settlement account.
 
@@ -45,7 +45,7 @@ Link a U.S. business bank account to pay the card balance:
 
 You can issue virtual or physical cards to employees:
 
-1. From the navigation tabs, head to **Workspaces > [Workspace Name] > Expensify Cards**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), head to **Workspaces > [Workspace Name] > Expensify Cards**
 2. Click **Issue new card**
 3. Select the employee
 4. Choose **Virtual** or **Physical**
@@ -65,7 +65,7 @@ You can issue virtual or physical cards to employees:
 
 **After issuing cards, you can view, adjust, or deactivate them:**
 
-1. From the navigation tabs, select **Workspaces > [Workspace Name] > Expensify Card**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Expensify Card**
 2. See a list of all issued cards
 3. Click a card to view details or adjust:
    - Spending limit
