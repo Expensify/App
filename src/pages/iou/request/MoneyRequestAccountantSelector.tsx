@@ -61,6 +61,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     });
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}`, {canBeMissing: true});
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -125,6 +126,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             [],
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            policyTags,
             personalDetails,
             true,
             undefined,
@@ -152,7 +154,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                    const reportPolicyTags = policyTags?.[participant.policyID ?? ''];
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportPolicyTags, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
@@ -173,8 +176,9 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         chatOptions.userToInvite,
         debouncedSearchTerm,
         personalDetails,
-        translate,
         reportAttributesDerived,
+        translate,
+        policyTags,
     ]);
 
     const selectAccountant = useCallback(

@@ -315,6 +315,7 @@ function updateReportsToDisplayInLHN(
  */
 function categorizeReportsForLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
+    policyTags: OnyxCollection<PolicyTagLists>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
@@ -342,7 +343,7 @@ function categorizeReportsForLHN(
         }
 
         const reportID = report.reportID;
-        const displayName = getReportName({report});
+        const displayName = getReportName({report, policyTags: policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`] ?? {}});
         const miniReport: MiniReport = {
             reportID,
             displayName,
@@ -475,6 +476,7 @@ function sortReportsToDisplayInLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
     priorityMode: OnyxEntry<PriorityMode>,
     localeCompare: LocaleContextProps['localeCompare'],
+    policyTags: OnyxCollection<PolicyTagLists>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string[] {
@@ -494,7 +496,7 @@ function sortReportsToDisplayInLHN(
     //      - Sorted by reportDisplayName in GSD (focus) view mode
 
     // Step 1: Categorize reports
-    const categories = categorizeReportsForLHN(reportsToDisplay, reportNameValuePairs, reportAttributes);
+    const categories = categorizeReportsForLHN(reportsToDisplay, policyTags, reportNameValuePairs, reportAttributes);
 
     // Step 2: Sort each category
     const sortedCategories = sortCategorizedReports(categories, isInDefaultMode, localeCompare);
@@ -786,7 +788,7 @@ function getOptionData({
                     : translateLocal('workspace.invite.removed');
             const users = translateLocal(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
-            const roomName = getReportName({report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`]}) || lastActionOriginalMessage?.roomName;
+            const roomName = getReportName({report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`], policyTags}) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -895,7 +897,8 @@ function getOptionData({
 
             if (!result.alternateText) {
                 result.alternateText = formatReportLastMessageText(
-                    getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, localeCompare, isReportArchived).messageText ?? translateLocal('report.noActivityYet'),
+                    getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, localeCompare, policyTags, isReportArchived).messageText ??
+                        translateLocal('report.noActivityYet'),
                 );
             }
         }
@@ -904,7 +907,8 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, localeCompare, isReportArchived).messageText || translateLocal('report.noActivityYet'),
+                getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, localeCompare, policyTags, isReportArchived).messageText ||
+                    translateLocal('report.noActivityYet'),
             );
         }
         if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction) && !isReportArchived) {
@@ -926,7 +930,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = getReportName({report, policy, invoiceReceiverPolicy});
+    const reportName = getReportName({report, policy, invoiceReceiverPolicy, policyTags});
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -957,6 +961,7 @@ function getWelcomeMessage(
     policy: OnyxEntry<Policy>,
     participantPersonalDetailList: PersonalDetails[],
     localeCompare: LocaleContextProps['localeCompare'],
+    policyTags: OnyxEntry<PolicyTagLists>,
     isReportArchived = false,
     reportDetailsLink = '',
 ): WelcomeMessage {
@@ -966,7 +971,7 @@ function getWelcomeMessage(
     }
 
     if (isChatRoom(report)) {
-        return getRoomWelcomeMessage(report, isReportArchived, reportDetailsLink);
+        return getRoomWelcomeMessage(report, policyTags, isReportArchived, reportDetailsLink);
     }
 
     if (isPolicyExpenseChat(report)) {
@@ -1018,10 +1023,10 @@ function getWelcomeMessage(
 /**
  * Get welcome message based on room type
  */
-function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = false, reportDetailsLink = ''): WelcomeMessage {
+function getRoomWelcomeMessage(report: OnyxEntry<Report>, policyTags: OnyxEntry<PolicyTagLists>, isReportArchived = false, reportDetailsLink = ''): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
-    const reportName = getReportName({report});
+    const reportName = getReportName({report, policyTags});
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);

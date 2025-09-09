@@ -72,6 +72,8 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     );
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, isReportArchived);
     const policyName = getPolicyName({report});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
+    const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`];
 
     const filteredOptions = moneyRequestOptions.filter(
         (
@@ -89,7 +91,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 )}`,
         )
         .join(', ');
-    const reportName = getReportName({report});
+    const reportName = getReportName({report, policyTags: reportPolicyTags});
     const shouldShowUsePlusButtonText =
         moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
@@ -131,7 +133,15 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const participantPersonalDetailListExcludeCurrentUser = Object.values(
         getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails as OnyxInputOrEntry<PersonalDetailsList>),
     );
-    const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, localeCompare, isReportArchived, reportDetailsLink);
+    const welcomeMessage = SidebarUtils.getWelcomeMessage(
+        report,
+        policy,
+        participantPersonalDetailListExcludeCurrentUser,
+        localeCompare,
+        reportPolicyTags,
+        isReportArchived,
+        reportDetailsLink,
+    );
 
     return (
         <>

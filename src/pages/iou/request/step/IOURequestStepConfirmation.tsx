@@ -221,9 +221,9 @@ function IOURequestStepConfirmation({
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policyTags, reportAttributesDerived);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived],
+        [transaction?.participants, iouType, personalDetails, policyTags, reportAttributesDerived],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) || !account?.shouldBlockTransactionThreadReportCreation;

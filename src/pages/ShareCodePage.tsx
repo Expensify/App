@@ -15,6 +15,7 @@ import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,6 +37,7 @@ import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import {getAvatarUrl} from '@libs/UserUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 
@@ -72,6 +74,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
@@ -90,13 +93,13 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                     .join(' & ');
             }
 
-            return getParentNavigationSubtitle(report, isParentReportArchived).workspaceName ?? getChatRoomSubtitle(report, false, isReportArchived);
+            return getParentNavigationSubtitle(report, policyTags, isParentReportArchived).workspaceName ?? getChatRoomSubtitle(report, false, isReportArchived);
         }
 
         return currentUserPersonalDetails.login;
-    }, [report, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived]);
+    }, [report, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, policyTags]);
 
-    const title = isReport ? getReportName({report}) : (currentUserPersonalDetails.displayName ?? '');
+    const title = isReport ? getReportName({report, policyTags}) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`

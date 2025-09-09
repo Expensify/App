@@ -126,6 +126,7 @@ function IOURequestStepScan({
     const [cameraKey, setCameraKey] = useState(0);
     const {shouldStartLocationPermissionFlow} = useIOUUtils();
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) || !account?.shouldBlockTransactionThreadReportCreation;
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
@@ -397,7 +398,7 @@ function IOURequestStepScan({
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policyTags, reportAttributesDerived);
                 });
 
                 if (shouldSkipConfirmation) {

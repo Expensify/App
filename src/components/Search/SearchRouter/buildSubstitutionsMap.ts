@@ -3,7 +3,7 @@ import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Se
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
-import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {CardFeeds, CardList, PersonalDetailsList, Policy, PolicyTagLists, Report} from '@src/types/onyx';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 
 const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
@@ -32,6 +32,7 @@ function buildSubstitutionsMap(
     cardList: CardList,
     cardFeeds: OnyxCollection<CardFeeds>,
     policies: OnyxCollection<Policy>,
+    policyTags: OnyxCollection<PolicyTagLists>,
 ): SubstitutionMap {
     const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
@@ -69,7 +70,7 @@ function buildSubstitutionsMap(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER
         ) {
-            const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList, cardFeeds, policies);
+            const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList, cardFeeds, policies, policyTags);
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
             if (displayValue !== filterValue) {

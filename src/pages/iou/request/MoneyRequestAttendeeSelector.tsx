@@ -73,6 +73,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         shouldInitialize: didScreenTransitionEnd,
     });
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}`, {canBeMissing: true});
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -148,6 +149,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             })),
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            policyTags,
             personalDetails,
             true,
             undefined,
@@ -175,7 +177,8 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                    const reportPolicyTags = policyTags?.[participant.policyID ?? ''];
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportPolicyTags, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
@@ -198,8 +201,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         cleanSearchTerm,
         attendees,
         personalDetails,
-        translate,
         reportAttributesDerived,
+        translate,
+        policyTags,
     ]);
 
     const addAttendeeToSelection = useCallback(

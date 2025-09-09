@@ -237,6 +237,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         },
     });
 
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     // Create a selector for only the reportActions needed to determine if a report has been exported or not, grouped by report
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
@@ -405,8 +406,8 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             return [];
         }
 
-        return getSections(type, searchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
-    }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON]);
+        return getSections(type, searchResults.data, accountID, formatPhoneNumber, policyTags, groupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
+    }, [searchResults, isDataLoaded, type, groupBy, accountID, formatPhoneNumber, policyTags, exportReportActions, searchKey, archivedReportsIdSet, queryJSON]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */

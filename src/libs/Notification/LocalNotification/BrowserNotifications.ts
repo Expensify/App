@@ -1,6 +1,7 @@
 // Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
 import {Str} from 'expensify-common';
 import type {ImageSourcePropType} from 'react-native';
+import {OnyxEntry} from 'react-native-onyx';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 import * as AppUpdate from '@libs/actions/AppUpdate';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
@@ -95,7 +96,7 @@ export default {
      *
      * @param usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
+    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, policyTags: OnyxEntry<PolicyTagLists>, usesIcon = false) {
         let title;
         let body;
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
@@ -114,7 +115,7 @@ export default {
         }
 
         if (isRoomOrGroupChat) {
-            const roomName = ReportUtils.getReportName({report});
+            const roomName = ReportUtils.getReportName({report, policyTags});
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {

@@ -8,7 +8,7 @@ type LocalNotificationData = {
 };
 
 type LocalNotificationModule = {
-    showCommentNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) => void;
+    showCommentNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, policyTags?: PolicyTagLists, usesIcon?: boolean) => void;
     showUpdateAvailableNotification: () => void;
     showModifiedExpenseNotification: (report: Report, reportAction: ReportAction, policyTags: PolicyTagLists, onClick: LocalNotificationClickHandler) => void;
     clearReportNotifications: ClearReportNotifications;

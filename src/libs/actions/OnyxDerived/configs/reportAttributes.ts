@@ -36,9 +36,10 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.TRANSACTION,
         ONYXKEYS.PERSONAL_DETAILS_LIST,
         ONYXKEYS.COLLECTION.POLICY,
+        ONYXKEYS.COLLECTION.POLICY_TAGS,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
-    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions], {currentValue, sourceValues, areAllConnectionsSet}) => {
+    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, , , policyTags], {currentValue, sourceValues, areAllConnectionsSet}) => {
         if (!areAllConnectionsSet) {
             return {
                 reports: {},
@@ -141,6 +142,7 @@ export default createOnyxDerivedValueConfig({
                 transactionViolations,
                 isReportArchived,
             });
+            const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`];
 
             let brickRoadStatus;
             // if report has errors or violations, show red dot
@@ -153,7 +155,7 @@ export default createOnyxDerivedValueConfig({
             }
 
             acc[report.reportID] = {
-                reportName: generateReportName(report),
+                reportName: generateReportName(report, reportPolicyTags ?? {}),
                 isEmpty: generateIsEmptyReport(report, isReportArchived),
                 brickRoadStatus,
                 requiresAttention,

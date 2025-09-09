@@ -155,6 +155,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     });
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: false});
 
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
+
     const {reportActions} = usePaginatedReportActions(report.reportID);
 
     const {removeTransaction} = useSearchContext();
@@ -198,7 +200,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isArchivedRoom = useMemo(() => isArchivedNonExpenseReport(report, isReportArchived), [report, isReportArchived]);
     const shouldDisableRename = useMemo(() => shouldDisableRenameUtil(report, isReportArchived), [report, isReportArchived]);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policyTags, isParentReportArchived);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => {
@@ -313,7 +315,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
 
-    const reportName = Parser.htmlToText(getReportName({report}));
+    const reportName = Parser.htmlToText(getReportName({report, policyTags}));
 
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom

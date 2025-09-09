@@ -145,6 +145,7 @@ function IOURequestStepDistanceMap({
     const customUnitRateID = getRateID(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
 
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
     const setDistanceRequestData = useCallback(
@@ -311,7 +312,7 @@ function IOURequestStepDistanceMap({
             const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policyTags, reportAttributesDerived);
             });
             setDistanceRequestData(participants);
             if (shouldSkipConfirmation) {
@@ -413,6 +414,7 @@ function IOURequestStepDistanceMap({
         shouldSkipConfirmation,
         transactionID,
         personalDetails,
+        policyTags,
         reportAttributesDerived,
         translate,
         currentUserPersonalDetails.login,

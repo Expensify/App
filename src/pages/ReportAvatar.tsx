@@ -17,12 +17,13 @@ function ReportAvatar({route}: ReportAvatarProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
 
     const attachment = useMemo(() => {
         if (isGroupChat(report) && !isThread(report)) {
             return {
                 source: report?.avatarUrl ? getFullSizeAvatar(report.avatarUrl, 0) : getDefaultGroupAvatar(report?.reportID),
-                headerTitle: getReportName({report}),
+                headerTitle: getReportName({report, policyTags}),
                 isWorkspaceAvatar: false,
             };
         }
@@ -34,7 +35,7 @@ function ReportAvatar({route}: ReportAvatarProps) {
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID,
             isWorkspaceAvatar: true,
         };
-    }, [report, policy]);
+    }, [report, policy, policyTags]);
 
     return (
         <AttachmentModal

@@ -56,6 +56,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails();
@@ -391,7 +392,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
-                    subtitle={StringUtils.lineBreaksToSpaces(getReportName({report}))}
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportName({report, policyTags}))}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             setSelectedMembers([]);

@@ -128,6 +128,7 @@ function IOURequestStepScan({
     const isReplacingReceipt = (isEditing && hasReceipt(initialTransaction)) || (!!initialTransaction?.receipt && !!backTo);
     const {shouldStartLocationPermissionFlow} = useIOUUtils();
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) || !account?.shouldBlockTransactionThreadReportCreation;
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) => Object.values(items ?? {}),
@@ -454,7 +455,7 @@ function IOURequestStepScan({
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policyTags, reportAttributesDerived);
                 });
 
                 if (shouldSkipConfirmation) {
@@ -558,6 +559,7 @@ function IOURequestStepScan({
             navigateToConfirmationPage,
             shouldSkipConfirmation,
             personalDetails,
+            policyTags,
             reportAttributesDerived,
             createTransaction,
             currentUserPersonalDetails?.login,

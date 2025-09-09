@@ -123,6 +123,7 @@ function MoneyRequestReportPreviewContent({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReport?.policyID}`, {canBeMissing: true});
 
     const {areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -652,7 +653,7 @@ function MoneyRequestReportPreviewContent({
                                                             style={[styles.headerText]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
-                                                            {getMoneyReportPreviewName(action, iouReport, isInvoice)}
+                                                            {getMoneyReportPreviewName(action, iouReport, policyTags, isInvoice)}
                                                         </Text>
                                                     </Animated.View>
                                                 </View>

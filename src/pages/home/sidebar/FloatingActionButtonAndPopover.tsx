@@ -134,6 +134,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin, canBeMissing: true});
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${quickActionReport?.policyID}`, {canBeMissing: true});
 
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
     const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);
@@ -380,7 +381,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     ...baseQuickAction,
                     icon: Expensicons.ReceiptScan,
                     text: translate('quickAction.scanReceipt'),
-                    description: getReportName({report: policyChatForActivePolicy}),
+                    description: getReportName({report: policyChatForActivePolicy, policyTags}),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected,
                     rightIconReportID: policyChatForActivePolicy?.reportID,
@@ -407,6 +408,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         selectOption,
         isManualDistanceTrackingEnabled,
         showDelegateNoAccessModal,
+        policyTags,
         allTransactionDrafts,
     ]);
 
