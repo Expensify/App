@@ -505,15 +505,18 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
         policyID: string;
         accountID: number;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: {
         policyID: string;
         accountID: number;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: {
         policyID: string;
         accountID: number;
         error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
         policyID: string;
@@ -1867,9 +1870,6 @@ type ReportsSplitNavigatorParamList = {
         openOnAdminRoom?: boolean;
         referrer?: string;
         backTo?: Routes;
-        moneyRequestReportActionID?: string;
-        transactionID?: string;
-        iouReportID?: string;
     };
     [SCREENS.ATTACHMENTS]: AttachmentModalScreensParamList[typeof SCREENS.ATTACHMENTS];
 };
@@ -2243,6 +2243,7 @@ type SearchFullscreenNavigatorParamList = {
     };
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: {
         reportID: string;
+        backTo?: Routes;
     };
 };
 
