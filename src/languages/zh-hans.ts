@@ -162,6 +162,7 @@ import type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    PayAndDowngradeDescriptionParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
@@ -2204,10 +2205,6 @@ const translations = {
             title: '欢迎使用Expensify',
             description: '一个应用程序即可以聊天的速度处理您的商业和个人支出。试试看，让我们知道您的想法。更多精彩即将到来！',
             secondaryDescription: '要切换回 Expensify Classic，只需点击您的个人资料图片 > 转到 Expensify Classic。',
-        },
-        welcomeVideo: {
-            title: '欢迎使用Expensify',
-            description: '一个应用程序即可在聊天中处理您所有的商务和个人支出。为您的企业、团队和朋友而打造。',
         },
         getStarted: '开始使用',
         whatsYourName: '你叫什么名字？',
@@ -4798,8 +4795,7 @@ const translations = {
             existingTagError: '具有此名称的标签已存在',
             invalidTagNameError: '标签名称不能为0。请选择其他值。',
             genericFailureMessage: '更新标签时发生错误，请重试。',
-            importedFromAccountingSoftware: '标签在您的系统中管理',
-            employeesSeeTagsAs: '员工看到的标签为 ',
+            importedFromAccountingSoftware: '以下标签是从您的...导入的',
             glCode: 'GL代码',
             updateGLCodeFailureMessage: '更新总账代码时发生错误，请重试。',
             tagRules: '标签规则',
@@ -5531,7 +5527,7 @@ const translations = {
         payAndDowngrade: {
             title: '支付和降级',
             headline: '您的最终付款',
-            description1: '您此订阅的最终账单将是',
+            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `您本次订阅的最终账单金额为 <strong>${formattedAmount}</strong>`,
             description2: ({date}: DateParams) => `查看您在${date}的明细：`,
             subscription: '注意！此操作将终止您的Expensify订阅，删除此工作区，并移除所有工作区成员。如果您只想移除自己并保留此工作区，请先让其他管理员接管账单。',
             genericFailureMessage: '支付账单时发生错误。请重试。',
@@ -6072,6 +6068,9 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '报销',
             },
+            has: {
+                receipt: '收据',
+            },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '提交',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '批准',
@@ -6079,6 +6078,7 @@ const translations = {
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: '导出',
             },
         },
+        has: '有',
         groupBy: '组别',
         moneyRequestReport: {
             emptyStateTitle: '此报告没有费用。',

@@ -162,6 +162,7 @@ import type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    PayAndDowngradeDescriptionParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
@@ -2246,10 +2247,6 @@ const translations = {
             description:
                 'Une application pour gérer vos dépenses professionnelles et personnelles à la vitesse de la conversation. Essayez-la et faites-nous savoir ce que vous en pensez. Beaucoup plus à venir !',
             secondaryDescription: "Pour revenir à Expensify Classic, il suffit d'appuyer sur votre photo de profil > Aller à Expensify Classic.",
-        },
-        welcomeVideo: {
-            title: 'Bienvenue sur Expensify',
-            description: 'Une application pour gérer toutes vos dépenses professionnelles et personnelles dans un chat. Conçue pour votre entreprise, votre équipe et vos amis.',
         },
         getStarted: 'Commencer',
         whatsYourName: 'Quel est votre nom ?',
@@ -4888,8 +4885,7 @@ const translations = {
             existingTagError: 'Un tag avec ce nom existe déjà',
             invalidTagNameError: 'Le nom de la balise ne peut pas être 0. Veuillez choisir une autre valeur.',
             genericFailureMessage: "Une erreur s'est produite lors de la mise à jour du tag, veuillez réessayer.",
-            importedFromAccountingSoftware: 'Les étiquettes sont gérées dans votre',
-            employeesSeeTagsAs: 'Les employés voient les étiquettes comme ',
+            importedFromAccountingSoftware: 'Les balises ci-dessous sont importées de votre',
             glCode: 'Code GL',
             updateGLCodeFailureMessage: "Une erreur s'est produite lors de la mise à jour du code GL, veuillez réessayer.",
             tagRules: 'Règles de balise',
@@ -5635,7 +5631,7 @@ const translations = {
         payAndDowngrade: {
             title: 'Payer et rétrograder',
             headline: 'Votre paiement final',
-            description1: 'Votre facture finale pour cet abonnement sera',
+            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `Votre facture finale pour cet abonnement sera de <strong>${formattedAmount}</strong>`,
             description2: ({date}: DateParams) => `Voir votre répartition ci-dessous pour le ${date} :`,
             subscription:
                 "Attention ! Cette action mettra fin à votre abonnement Expensify, supprimera cet espace de travail et retirera tous les membres de l'espace de travail. Si vous souhaitez conserver cet espace de travail et seulement vous retirer, demandez à un autre administrateur de prendre en charge la facturation d'abord.",
@@ -6197,6 +6193,9 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Remboursement',
             },
+            has: {
+                receipt: 'Reçu',
+            },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Soumettre',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approuver',
@@ -6204,6 +6203,7 @@ const translations = {
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporter',
             },
         },
+        has: 'A',
         groupBy: 'Groupe par',
         moneyRequestReport: {
             emptyStateTitle: "Ce rapport n'a pas de dépenses.",
