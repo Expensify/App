@@ -29,7 +29,7 @@ If your company’s business bank account is located in Australia, you can enabl
 
 # Step 1: Connect Your Australian Bank Account
 
-1. In the navigation tabs, select **Workspaces > [Workspace Name] > Overview**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Overview**.
 2. Under **Default currency**, select **AUD A$**.
 3. From the workspace settings left-hand menu, click **Workflows > enable Make or track payments**
 4. Under **Connect bank account > Confirm currency and country (Australia - AUD A$)**
@@ -82,7 +82,7 @@ If your company’s business bank account is located in Australia, you can enabl
 
 To begin reimbursing:
 
-1. In the navigation tabs, go to **Workspaces > [Workspace Name] > Make or track payments**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Make or track payments**.
 2. Set the verified AUD account as the default reimbursement method.
 3. Ask employees to add their personal deposit account.
 
