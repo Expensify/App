@@ -10,7 +10,7 @@ New Expensify features an intuitive, cross-platform navigation experience that m
 
 # Navigation tabs
 
-The vertical **navigation tabs** is the primary navigation hub in your account. It includes:
+The **navigation tabs** (on the left on web, and at the bottom on mobile) are primary orientation hubs in your account. They includes:
 
 - The **Expensify logo**, which acts as a **Home** button and takes you to your Inbox
 - Top-level tabs:
