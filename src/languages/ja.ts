@@ -2226,10 +2226,6 @@ const translations = {
             description: 'チャットのスピードでビジネスと個人の支出を管理するための1つのアプリ。ぜひお試しいただき、ご意見をお聞かせください。もっと多くの機能が登場予定です！',
             secondaryDescription: 'Expensify Classicに戻るには、プロフィール写真をタップして > Expensify Classicに移動します。',
         },
-        welcomeVideo: {
-            title: 'Expensifyへようこそ',
-            description: 'チャットでビジネスと個人の支出をすべて管理するための1つのアプリ。あなたのビジネス、チーム、そして友人のために作られました。',
-        },
         getStarted: '始めましょう',
         whatsYourName: 'あなたの名前は何ですか？',
         peopleYouMayKnow: 'あなたが知っている人々はすでにここにいます！メールを確認して参加しましょう。',
@@ -4865,8 +4861,7 @@ const translations = {
             existingTagError: 'この名前のタグはすでに存在します',
             invalidTagNameError: 'タグ名は0にできません。別の値を選んでください。',
             genericFailureMessage: 'タグの更新中にエラーが発生しました。もう一度お試しください。',
-            importedFromAccountingSoftware: 'タグは次で管理されています:',
-            employeesSeeTagsAs: '従業員にはタグが次のように表示されます: ',
+            importedFromAccountingSoftware: '以下のタグはあなたのからインポートされます',
             glCode: 'GLコード',
             updateGLCodeFailureMessage: 'GLコードの更新中にエラーが発生しました。もう一度お試しください。',
             tagRules: 'Tag rules',
@@ -6155,6 +6150,9 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
             },
+            has: {
+                receipt: '領収書',
+            },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '送信',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '承認',
@@ -6162,6 +6160,7 @@ const translations = {
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
         },
+        has: '含む',
         groupBy: 'グループ',
         moneyRequestReport: {
             emptyStateTitle: 'このレポートには経費がありません。',

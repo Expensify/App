@@ -9,7 +9,7 @@ import type {ChangeTransactionsReportParams, DismissViolationParams, GetRoutePar
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
-import {buildNextStep} from '@libs/NextStepUtils';
+import {buildNextStepNew} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64} from '@libs/NumberUtils';
 import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -23,6 +23,7 @@ import {
     buildTransactionThread,
     findSelfDMReportID,
     getReportTransactions,
+    hasViolations as hasViolationsReportUtils,
 } from '@libs/ReportUtils';
 import {getAmount, isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -604,7 +605,15 @@ function setTransactionReport(transactionID: string, transaction: Partial<Transa
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 }
 
-function changeTransactionsReport(transactionIDs: string[], reportID: string, currentUserEmail: string | undefined, policy?: OnyxEntry<Policy>, reportNextStep?: OnyxEntry<ReportNextStep>) {
+function changeTransactionsReport(
+    transactionIDs: string[],
+    reportID: string,
+    isASAPSubmitBetaEnabled: boolean,
+    accountID: number,
+    email: string,
+    policy?: OnyxEntry<Policy>,
+    reportNextStep?: OnyxEntry<ReportNextStep>,
+) {
     const newReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     const transactions = transactionIDs.map((id) => allTransactions?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined);
@@ -630,7 +639,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, cu
     if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const currentTime = DateUtils.getDBTime();
         selfDMReport = buildOptimisticSelfDMReport(currentTime);
-        selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
+        selfDMCreatedReportAction = buildOptimisticCreatedReportAction(email ?? '', currentTime);
 
         // Add optimistic updates for self DM report
         optimisticData.push(
@@ -956,7 +965,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, cu
         let transactionThreadCreatedReportActionID;
         if (!transactionThreadReportID) {
             const optimisticTransactionThread = buildTransactionThread(newIOUAction, reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? undefined : newReport);
-            const optimisticCreatedActionForTransactionThread = buildOptimisticCreatedReportAction(currentUserEmail ?? '');
+            const optimisticCreatedActionForTransactionThread = buildOptimisticCreatedReportAction(email ?? '');
             transactionThreadReportID = optimisticTransactionThread.reportID;
             transactionThreadCreatedReportActionID = optimisticCreatedActionForTransactionThread.reportActionID;
             newIOUAction.childReportID = transactionThreadReportID;
@@ -1129,7 +1138,17 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, cu
 
     // 9. Update next step for report
     const nextStepReport = {...newReport, total: updatedReportTotals[reportID] ?? newReport?.total, reportID: newReport?.reportID ?? reportID};
-    const optimisticNextStep = buildNextStep(nextStepReport, nextStepReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN, shouldFixViolations);
+    const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation);
+    const optimisticNextStep = buildNextStepNew(
+        nextStepReport,
+        policy,
+        accountID,
+        email,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        nextStepReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+        shouldFixViolations,
+    );
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
@@ -1154,8 +1173,8 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, cu
     });
 }
 
-function getDraftTransactions(): Transaction[] {
-    return Object.values(allTransactionDrafts ?? {}).filter((transaction): transaction is Transaction => !!transaction);
+function getDraftTransactions(draftTransactions?: OnyxCollection<Transaction>): Transaction[] {
+    return Object.values(draftTransactions ?? allTransactionDrafts ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 }
 
 export {

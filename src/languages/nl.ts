@@ -2234,10 +2234,6 @@ const translations = {
                 'Eén app om uw zakelijke en persoonlijke uitgaven te beheren met de snelheid van chat. Probeer het uit en laat ons weten wat u ervan vindt. Er komt nog veel meer aan!',
             secondaryDescription: 'Om terug te schakelen naar Expensify Classic, tik je gewoon op je profielfoto > Ga naar Expensify Classic.',
         },
-        welcomeVideo: {
-            title: 'Welkom bij Expensify',
-            description: 'Eén app om al je zakelijke en persoonlijke uitgaven in een chat te beheren. Gemaakt voor jouw bedrijf, jouw team en jouw vrienden.',
-        },
         getStarted: 'Aan de slag',
         whatsYourName: 'Wat is jouw naam?',
         peopleYouMayKnow: 'Mensen die je misschien kent, zijn al hier! Verifieer je e-mail om je bij hen aan te sluiten.',
@@ -4888,8 +4884,7 @@ const translations = {
             existingTagError: 'Er bestaat al een tag met deze naam.',
             invalidTagNameError: 'Tagnaam kan niet 0 zijn. Kies een andere waarde.',
             genericFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de tag, probeer het alstublieft opnieuw.',
-            importedFromAccountingSoftware: 'Tags worden beheerd in je',
-            employeesSeeTagsAs: 'Werknemers zien tags als ',
+            importedFromAccountingSoftware: 'De onderstaande labels zijn geïmporteerd uit uw',
             glCode: 'GL-code',
             updateGLCodeFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de GL-code, probeer het alstublieft opnieuw.',
             tagRules: 'Tagregels',
@@ -6190,6 +6185,9 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Terugbetaling',
             },
+            has: {
+                receipt: 'Bon',
+            },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Indienen',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Goedkeuren',
@@ -6197,6 +6195,7 @@ const translations = {
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporteren',
             },
         },
+        has: 'Heeft',
         groupBy: 'Groep per',
         moneyRequestReport: {
             emptyStateTitle: 'Dit rapport heeft geen uitgaven.',

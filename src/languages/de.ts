@@ -2242,10 +2242,6 @@ const translations = {
                 'Eine App, um Ihre geschäftlichen und persönlichen Ausgaben mit der Geschwindigkeit des Chats zu verwalten. Probieren Sie es aus und lassen Sie uns wissen, was Sie denken. Es kommt noch viel mehr!',
             secondaryDescription: 'Um zu Expensify Classic zurückzukehren, tippen Sie einfach auf Ihr Profilbild > Gehe zu Expensify Classic.',
         },
-        welcomeVideo: {
-            title: 'Willkommen bei Expensify',
-            description: 'Eine App, um alle Ihre geschäftlichen und privaten Ausgaben in einem Chat zu verwalten. Entwickelt für Ihr Unternehmen, Ihr Team und Ihre Freunde.',
-        },
         getStarted: 'Loslegen',
         whatsYourName: 'Wie heißt du?',
         peopleYouMayKnow: 'Personen, die Sie kennen könnten, sind bereits hier! Bestätigen Sie Ihre E-Mail, um sich ihnen anzuschließen.',
@@ -4871,8 +4867,7 @@ const translations = {
             existingTagError: 'Ein Tag mit diesem Namen existiert bereits',
             invalidTagNameError: 'Der Tag-Name darf nicht 0 sein. Bitte wählen Sie einen anderen Wert.',
             genericFailureMessage: 'Beim Aktualisieren des Tags ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
-            importedFromAccountingSoftware: 'Tags werden in deiner',
-            employeesSeeTagsAs: 'Mitarbeiter sehen Tags als ',
+            importedFromAccountingSoftware: 'Die unten stehenden Tags werden aus Ihrem',
             glCode: 'GL-Code',
             updateGLCodeFailureMessage: 'Beim Aktualisieren des GL-Codes ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
             tagRules: 'Tag-Regeln',
@@ -6183,6 +6178,9 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Erstattung',
             },
+            has: {
+                receipt: 'Quittung',
+            },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Einreichen',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Genehmigen',
@@ -6190,6 +6188,7 @@ const translations = {
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportieren',
             },
         },
+        has: 'Hat',
         groupBy: 'Gruppe nach',
         moneyRequestReport: {
             emptyStateTitle: 'Dieser Bericht enthält keine Ausgaben.',

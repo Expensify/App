@@ -2215,10 +2215,6 @@ const translations = {
             description: 'Una aplicación para gestionar en un chat todos los gastos de tu empresa y personales. Inténtalo y dinos qué te parece. ¡Hay mucho más por venir!',
             secondaryDescription: 'Para volver a Expensify Classic, simplemente haz click en tu foto de perfil > Ir a Expensify Classic.',
         },
-        welcomeVideo: {
-            title: 'Bienvenido a Expensify',
-            description: 'Una aplicación para gestionar todos tus gastos de empresa y personales en un chat. Pensada para tu empresa, tu equipo y tus amigos.',
-        },
         getStarted: 'Comenzar',
         whatsYourName: '¿Cómo te llamas?',
         peopleYouMayKnow: 'Las personas que tal vez conozcas ya están aquí. Verifica tu correo electrónico para unirte a ellos.',
@@ -4863,8 +4859,7 @@ const translations = {
             existingTagError: 'Ya existe una etiqueta con este nombre',
             invalidTagNameError: 'El nombre de la etiqueta no puede ser 0. Por favor, elige un valor diferente.',
             genericFailureMessage: 'Se ha producido un error al actualizar la etiqueta. Por favor, inténtelo nuevamente.',
-            importedFromAccountingSoftware: 'Las etiquetas se gestionan en tu',
-            employeesSeeTagsAs: 'Los empleados ven las etiquetas como ',
+            importedFromAccountingSoftware: 'Etiquetas importadas desde',
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Por favor, inténtelo nuevamente.',
             tagRules: 'Reglas de etiquetas',
@@ -6178,6 +6173,9 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
             },
+            has: {
+                receipt: 'Recibo',
+            },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Enviar',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Aprobar',
@@ -6185,6 +6183,7 @@ const translations = {
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
         },
+        has: 'Tiene',
         groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este informe no tiene gastos.',
