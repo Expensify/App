@@ -10,6 +10,10 @@ import useOnyx from './useOnyx';
 
 type ReportNameValuePairsSelector = Pick<ReportNameValuePairs, 'private_isArchived'>;
 
+/*
+ Since invoice chat rooms have `type === CONST.REPORT.TYPE.CHAT`,
+ we filter on that value to minimize the number of rNVPs being subscribed to.
+*/
 const reportNameValuePairsSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): ReportNameValuePairsSelector | undefined => {
     if (reportNameValuePairs && 'type' in reportNameValuePairs && reportNameValuePairs?.type !== CONST.REPORT.TYPE.CHAT) {
         return;
