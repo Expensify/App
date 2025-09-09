@@ -875,6 +875,7 @@ Onyx.connect({
     callback: (value) => (personalDetailsList = value),
 });
 
+// Use connectWithoutView because this is created for non-UI task only
 let recentAttendees: OnyxEntry<Attendee[]>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_RECENT_ATTENDEES,
