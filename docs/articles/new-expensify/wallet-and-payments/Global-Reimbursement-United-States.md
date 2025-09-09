@@ -33,9 +33,9 @@ To comply with financial regulations, the following documents are needed:
 
 # Step 1: Connect Your US Bank Account
 
-1. In the navigation tabs, select **Workspaces > [Workspace Name] > Overview**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Overview**.
 2. Under **Default currency**, select **USD$**.
-3. From the workspace settings navigation tabs, click **Workflows > enable Make or track payments**
+3. From the workspace settings navigation tabs (on the left on web, and at the bottom on mobile), click **Workflows > enable Make or track payments**
 4. Under **Connect bank account > Confirm currency and country (United States - USD$)**
 5. Click **Confirm**.
      - See [this help article](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account) for more details on connecting a US business bank account.
@@ -81,7 +81,7 @@ Once you agree to the terms, Expensify’s Compliance Team will review your subm
 
 To begin reimbursing:
 
-1. In the navigation tabs, go to **Workspaces > [Workspace Name] > Make or track payments**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Make or track payments**.
 2. Set the verified USD account as the default reimbursement method.
 3. Ask employees to add their personal deposit account.
 
