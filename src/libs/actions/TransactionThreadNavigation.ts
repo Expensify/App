@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
  */
 
 function setActiveTransactionThreadIDs(ids: string[]) {
+    console.log("set");
     return Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, ids);
 }
 

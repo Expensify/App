@@ -155,8 +155,18 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const backTo = Navigation.getActiveRoute();
-
         const reportID = getReportIDForTransaction(transactionItem);
+
+        if (!isGroupByReports) {
+            if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                const iouAction = getReportAction(transactionItem.report.reportID, transactionItem.moneyRequestReportActionID);
+                createAndOpenSearchTransactionThread(transactionItem, iouAction, currentSearchHash, backTo);
+                return;
+            }
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+            return;
+        }
+
         const siblingTransactionThreadIDs = transactions.map(getReportIDForTransaction);
 
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
