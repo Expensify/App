@@ -1032,21 +1032,14 @@ function createDraftTransaction(transaction: OnyxTypes.Transaction) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
-function clearMoneyRequest(transactionID: string, skipConfirmation = false, draftTransactions?: OnyxCollection<OnyxTypes.Transaction>) {
-    removeDraftTransactions(undefined, draftTransactions);
+function clearMoneyRequest(transactionID: string, skipConfirmation = false) {
+    removeDraftTransactions();
     Onyx.set(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, skipConfirmation);
 }
 
-function startMoneyRequest(
-    iouType: ValueOf<typeof CONST.IOU.TYPE>,
-    reportID: string,
-    requestType?: IOURequestType,
-    skipConfirmation = false,
-    backToReport?: string,
-    draftTransactions?: OnyxCollection<OnyxTypes.Transaction>,
-) {
+function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: IOURequestType, skipConfirmation = false, backToReport?: string) {
     Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE);
-    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation, draftTransactions);
+    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation);
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.MANUAL:
             Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport));
