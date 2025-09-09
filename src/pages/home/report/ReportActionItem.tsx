@@ -66,6 +66,9 @@ type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'lin
 
     /** User billing fund ID */
     userBillingFundID: number | undefined;
+
+    /** Did the user dismiss trying out NewDot? If true, it means they prefer using OldDot */
+    isTryNewDotNVPDismissed?: boolean;
 };
 
 function ReportActionItem({
@@ -81,6 +84,7 @@ function ReportActionItem({
     personalDetails,
     linkedTransactionRouteError,
     userBillingFundID,
+    isTryNewDotNVPDismissed,
     ...props
 }: ReportActionItemProps) {
     const reportID = report?.reportID;
@@ -92,12 +96,13 @@ function ReportActionItem({
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`];
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || undefined}`];
     const blockedFromConcierge = useBlockedFromConcierge();
     const targetReport = isChatThread(report) ? parentReport : report;
-    const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWalletTierName, targetReport?.reportID, action);
+    const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWalletTierName, targetReport?.reportID, action, bankAccountList);
 
     const taskReport = originalMessage && 'taskReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.taskReportID}`] : undefined;
     const linkedReport = originalMessage && 'linkedReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.linkedReportID}`] : undefined;
@@ -145,6 +150,7 @@ function ReportActionItem({
             clearAllRelatedReportActionErrors={clearAllRelatedReportActionErrors}
             dismissTrackExpenseActionableWhisper={dismissTrackExpenseActionableWhisper}
             userBillingFundID={userBillingFundID}
+            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
         />
     );
 }

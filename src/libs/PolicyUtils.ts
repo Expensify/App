@@ -57,7 +57,6 @@ type ConnectionWithLastSyncData = {
 
 let allPolicies: OnyxCollection<Policy>;
 let activePolicyId: OnyxEntry<string>;
-let isLoadingReportData = true;
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -68,12 +67,6 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyId = value),
-});
-
-Onyx.connect({
-    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-    initWithStoredValues: false,
-    callback: (value) => (isLoadingReportData = value ?? false),
 });
 
 /**
@@ -1267,6 +1260,12 @@ function navigateToExpensifyCardPage(policyID: string) {
     });
 }
 
+function navigateToReceiptPartnersPage(policyID: string) {
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
+    });
+}
+
 function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
     return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
 }
@@ -1393,19 +1392,6 @@ function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Pol
     return Object.values(policies).filter((policy) => isPaidGroupPolicy(policy) && policy?.isPolicyExpenseChatEnabled);
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
-function shouldDisplayPolicyNotFoundPage(policyID: string): boolean {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
-    const policy = getPolicy(policyID);
-
-    if (!policy) {
-        return false;
-    }
-
-    return !isPolicyAccessible(policy) && !isLoadingReportData;
-}
-
 function hasOtherControlWorkspaces(currentPolicyID: string) {
     const otherControlWorkspaces = Object.values(allPolicies ?? {}).filter((policy) => policy?.id !== currentPolicyID && isPolicyAdmin(policy) && isControlPolicy(policy));
     return otherControlWorkspaces.length > 0;
@@ -1517,13 +1503,18 @@ function isPreferredExporter(policy: Policy) {
 }
 
 /**
- * Checks if the user is invited to any workspace.
+ * Checks if the current user is a member of any policyExpenseChatEnabled policy
  */
-function isUserInvitedToWorkspace(): boolean {
-    const currentUserAccountID = getCurrentUserAccountID();
-    return Object.values(allPolicies ?? {}).some(
-        (policy) => policy?.ownerAccountID !== currentUserAccountID && policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE,
-    );
+function isCurrentUserMemberOfAnyPolicy(): boolean {
+    return Object.values(allPolicies ?? {}).some((policy) => policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE);
+}
+
+function isMemberPolicyAdmin(policy: OnyxEntry<Policy>, memberEmail: string | undefined): boolean {
+    if (!policy || !memberEmail) {
+        return false;
+    }
+    const admins = getAdminEmployees(policy);
+    return admins.some((admin) => admin.email === memberEmail);
 }
 
 export {
@@ -1599,6 +1590,7 @@ export {
     getXeroBankAccounts,
     findSelectedVendorWithDefaultSelect,
     findSelectedBankAccountWithDefaultSelect,
+    navigateToReceiptPartnersPage,
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
     findSelectedSageVendorWithDefaultSelect,
@@ -1658,7 +1650,6 @@ export {
     getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
-    shouldDisplayPolicyNotFoundPage,
     hasOtherControlWorkspaces,
     getManagerAccountEmail,
     getRuleApprovers,
@@ -1672,12 +1663,13 @@ export {
     areAllGroupPoliciesExpenseChatDisabled,
     getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
-    isUserInvitedToWorkspace,
+    isCurrentUserMemberOfAnyPolicy,
     getPolicyRole,
     hasIndependentTags,
     getLengthOfTag,
     isPolicyMemberWithoutPendingDelete,
     getPolicyEmployeeAccountIDs,
+    isMemberPolicyAdmin,
 };
 
 export type {MemberEmailsToAccountIDs};
