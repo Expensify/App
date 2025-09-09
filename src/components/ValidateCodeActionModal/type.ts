@@ -53,5 +53,4 @@ type ValidateCodeActionModalProps = ValidateCodeActionContentProps & {
     disableAnimation?: boolean;
 };
 
-// eslint-disable-next-line import/prefer-default-export
 export type {ValidateCodeActionContentProps, ValidateCodeActionModalProps};

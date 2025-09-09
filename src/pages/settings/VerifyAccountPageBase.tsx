@@ -48,7 +48,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo}: VerifyAccoun
         }
 
         if (navigateForwardTo) {
-            Navigation.navigate(navigateForwardTo, {forceReplace: true});
+            Navigation.isNavigationReady().then(() => Navigation.navigate(navigateForwardTo, {forceReplace: true}));
         } else {
             handleClose();
         }
