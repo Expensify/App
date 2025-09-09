@@ -145,7 +145,7 @@ To create a Tax Group:
 
 # Step 12: Connect Expensify to NetSuite
 
-1. From the navigation tabs, go to **Workspaces > [Workspace Name] > Accounting**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
 2. Click **Connect** next to **NetSuite**
 3. Click **Next** through setup steps 1–4
 4. On **Step 5**, enter:
