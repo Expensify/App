@@ -353,7 +353,6 @@ function SearchList(
             shouldPreventDefaultFocusOnSelectRow,
             hash,
             columns,
-            areAllOptionalColumnsHidden,
             policies,
             allReports,
             userWalletTierName,
