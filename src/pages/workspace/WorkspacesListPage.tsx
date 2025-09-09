@@ -1,6 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {FlatList, View} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {FlatList, InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -131,7 +131,6 @@ function WorkspacesListPage() {
     // The workspace was deleted in this page
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
-    const isFocused = useIsFocused();
     const {lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
 
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
@@ -355,7 +354,6 @@ function WorkspacesListPage() {
             styles.ph5,
             styles.mb2,
             styles.mh5,
-            styles.ph5,
             duplicateWorkspace?.policyID,
             styles.hoveredComponentBG,
             styles.offlineFeedback.deleted,
@@ -576,14 +574,14 @@ function WorkspacesListPage() {
                     <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
                     {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
                     <FlatList
-                    ref={flatlistRef}
+                        ref={flatlistRef}
                         data={filteredWorkspaces}
-                    onScrollToIndexFailed={(info) => {
-                        flatlistRef.current?.scrollToOffset({
-                            offset: info.averageItemLength * info.index,
-                            animated: true,
-                        });
-                    }}
+                        onScrollToIndexFailed={(info) => {
+                            flatlistRef.current?.scrollToOffset({
+                                offset: info.averageItemLength * info.index,
+                                animated: true,
+                            });
+                        }}
                         renderItem={getMenuItem}
                         ListHeaderComponent={listHeaderComponent}
                         keyboardShouldPersistTaps="handled"
