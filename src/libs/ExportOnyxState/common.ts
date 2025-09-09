@@ -67,7 +67,7 @@ const maskSessionDetails = (session: Session): Session => {
         maskedData[key] = MASKING_PATTERN;
     });
     return maskedData as Session;
-}
+};
 
 const maskCredentials = (credentials: Credentials): Credentials => {
     const allowList = ['login', 'accountID'];
@@ -171,7 +171,7 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
     if (onyxState.stashedSession) {
         onyxState.stashedSession = maskSessionDetails(onyxState.stashedSession as Session);
     }
-   
+
     // Remove private/sensitive Onyx keys
     onyxState = removePrivateOnyxKeys(onyxState);
 
