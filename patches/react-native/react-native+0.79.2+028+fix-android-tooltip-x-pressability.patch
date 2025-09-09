@@ -561,24 +561,18 @@ index da1cf85e202..8903b70d7d5 100644
      measureLayout = jest.fn();
      setNativeProps = jest.fn();
 diff --git a/node_modules/react-native/jest/setup.js b/node_modules/react-native/jest/setup.js
-index 723a3a15709..2ad6834f018 100644
+index 723a3a15709..cddb9008310 100644
 --- a/node_modules/react-native/jest/setup.js
 +++ b/node_modules/react-native/jest/setup.js
-@@ -169,6 +169,14 @@ jest
-       /* isESModule */ true,
-     ),
-   }))
-+  .mock('../Libraries/Components/Pressable/Pressable', () => ({
-+    __esModule: true,
-+    default: mockComponent(
-+      '../Libraries/Components/Pressable/Pressable',
-+      /* instanceMethods */ MockNativeMethods,
-+      /* isESModule */ true,
-+    ),
-+  }))
-   .mock('../Libraries/Components/AccessibilityInfo/AccessibilityInfo', () => ({
+@@ -502,4 +502,7 @@ jest
+   .mock('../Libraries/Utilities/useColorScheme', () => ({
      __esModule: true,
-     default: {
+     default: jest.fn().mockReturnValue('light'),
+-  }));
++  }))
++  .mock('../Libraries/Pressability/usePressability', () =>
++    jest.fn(props => props),
++  );
 diff --git a/node_modules/react-native/src/private/types/HostInstance.js b/node_modules/react-native/src/private/types/HostInstance.js
 index bf7aa5a592f..0ddd15127a1 100644
 --- a/node_modules/react-native/src/private/types/HostInstance.js
