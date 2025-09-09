@@ -175,10 +175,8 @@ class TranslationGenerator {
             await Promise.allSettled(translationPromises);
 
             // Replace translated strings in the AST
-            const transformer = this.createFullTransformer(translationsForLocale);
-
-            // For incremental mode, transform the target file directly; otherwise transform en.ts
             let transformedSourceFile: ts.SourceFile;
+
             if (this.isIncremental) {
                 // Parse the existing target file
                 const targetPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
@@ -190,12 +188,14 @@ class TranslationGenerator {
                 const existingContent = fs.readFileSync(targetPath, 'utf8');
                 const existingSourceFile = ts.createSourceFile(targetPath, existingContent, ts.ScriptTarget.Latest, true);
 
-                // Transform the existing target file directly with path-aware filtering
+                // Transform the existing target file with incremental modify transformer
+                const transformer = this.createIncrementalModifyTransformer(translationsForLocale);
                 const result = ts.transform(existingSourceFile, [transformer]);
                 transformedSourceFile = result.transformed.at(0) ?? existingSourceFile;
                 result.dispose();
             } else {
                 // Full transformation for non-incremental mode - transform en.ts
+                const transformer = this.createFullTransformer(translationsForLocale);
                 const result = ts.transform(this.sourceFile, [transformer]);
                 transformedSourceFile = result.transformed.at(0) ?? this.sourceFile;
                 result.dispose();
