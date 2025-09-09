@@ -355,6 +355,7 @@ function BaseReportActionContextMenu({
                             card,
                             originalReport,
                             isTryNewDotNVPDismissed,
+                            childReport,
                         };
 
                         if ('renderContent' in contextAction) {

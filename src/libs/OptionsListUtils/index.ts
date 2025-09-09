@@ -621,7 +621,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
-        lastMessageTextFromReport = getTaskCreatedMessage(lastReportAction);
+        const lastReportActionChildReport = lastReportAction?.childReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastReportAction.childReportID}`] : undefined;
+        lastMessageTextFromReport = getTaskCreatedMessage(lastReportAction, lastReportActionChildReport);
     } else if (
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
