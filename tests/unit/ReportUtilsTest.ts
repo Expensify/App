@@ -2399,29 +2399,29 @@ describe('ReportUtils', () => {
         });
 
         it('returns false if the report is archived', async () => {
-            const policy: Policy = {
+            const fakePolicy: Policy = {
                 ...createRandomPolicy(7),
                 ownerAccountID: currentUserAccountID,
                 areRulesEnabled: true,
                 preventSelfApproval: false,
             };
-            const report: Report = {
+            const expenseReport: Report = {
                 ...createRandomReport(7),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 managerID: currentUserAccountID,
                 ownerAccountID: currentUserAccountID,
-                policyID: policy.id,
+                policyID: fakePolicy.id,
             };
 
             // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`, {
                 private_isArchived: DateUtils.getDBTime(),
             });
 
             // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(expenseReport?.reportID));
 
-            expect(canSubmitReport(report, policy, [], undefined, [], isReportArchived.current)).toBe(false);
+            expect(canSubmitReport(expenseReport, fakePolicy, [], undefined, [], isReportArchived.current)).toBe(false);
         });
     });
 

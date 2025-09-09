@@ -1,7 +1,5 @@
-import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
@@ -16,7 +14,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import currencyList from './currencyList.json';
 
 const testDate = DateUtils.getDBTime();
-const currentUserAccountID = 5;
 
 function initCurrencyList() {
     Onyx.init({
