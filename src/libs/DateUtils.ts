@@ -54,51 +54,17 @@ const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
 let networkTimeSkew = 0;
 let isOffline: boolean | undefined;
 
-let currentUserAccountID: number | undefined;
-// These values are only used to help the update networkLastOffline value
-// Since they aren't connected to a UI anywhere, it's OK to use connectWithoutView()
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        // When signed out, val is undefined
-        if (!val) {
-            return;
-        }
-
-        currentUserAccountID = val.accountID;
-    },
-});
-
-// These values are only used to help the update networkLastOffline value
-// Since they aren't connected to a UI anywhere, it's OK to use connectWithoutView()
-let currentUserTimezone: Required<Timezone> = CONST.DEFAULT_TIME_ZONE;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        if (!currentUserAccountID) {
-            return;
-        }
-
-        const personalDetailsTimezone = value?.[currentUserAccountID]?.timezone;
-
-        currentUserTimezone = {
-            selected: personalDetailsTimezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
-            automatic: personalDetailsTimezone?.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
-        };
-    },
-});
-
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => {
         networkTimeSkew = val?.timeSkew ?? 0;
         if (!val?.lastOfflineAt) {
-            setNetworkLastOffline(getLocalDateFromDatetime(IntlStore.getCurrentLocale(), currentUserTimezone.selected));
+            setNetworkLastOffline(new Date().toISOString());
         }
 
         const newIsOffline = val?.isOffline ?? val?.shouldForceOffline;
         if (newIsOffline && isOffline === false) {
-            setNetworkLastOffline(getLocalDateFromDatetime(IntlStore.getCurrentLocale(), currentUserTimezone.selected));
+            setNetworkLastOffline(new Date().toISOString());
         }
         isOffline = newIsOffline;
     },
