@@ -315,7 +315,6 @@ function BaseSelectionList<TItem extends ListItem>({
         );
 
         return processedSections;
-        // we don't need to add styles here as they change
         // we don't need to add flattenedSections here as they will change along with sections
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [sections, currentPage]);
