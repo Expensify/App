@@ -52,6 +52,7 @@ import type {
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
     BusinessBankAccountParams,
+    BusinessRegistrationNumberParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -203,6 +204,7 @@ import type {
     SettlementAccountInfoParams,
     SettlementDateParams,
     ShareParams,
+    SignerInfoMessageParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
@@ -321,6 +323,7 @@ const translations = {
         count: 'Contare',
         cancel: 'Annulla',
         dismiss: 'Ignora',
+        proceed: 'Proceed',
         yes: 'Sì',
         no: 'No',
         ok: 'OK',
@@ -655,6 +658,7 @@ const translations = {
         merge: 'Unisci',
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la tua rete e riprova.',
         enableGlobalReimbursements: 'Abilita i rimborsi globali',
+        purchaseAmount: 'Importo di acquisto',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -870,17 +874,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Questa chat è per tutto ciò che riguarda <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Questa chat è per le fatture tra <strong>${invoicePayer}</strong> e <strong>${invoiceReceiver}</strong>. Utilizzare il pulsante + per inviare una fattura.`,
+            `Questa chat è per le fatture tra <strong>${invoicePayer}</strong> e <strong>${invoiceReceiver}</strong>. Utilizzare il pulsante <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> per inviare una fattura.`,
         beginningOfChatHistory: 'Questa chat è con',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `È qui che <strong>${submitterDisplayName}</strong> presenterà le spese a <strong>${workspaceName}</strong>. Basta usare il pulsante +.`,
+            `È qui che <strong>${submitterDisplayName}</strong> presenterà le spese a <strong>${workspaceName}</strong>. Basta usare il pulsante <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
         beginningOfChatHistorySelfDM: 'Questo è il tuo spazio personale. Usalo per appunti, compiti, bozze e promemoria.',
         beginningOfChatHistorySystemDM: 'Benvenuto! Iniziamo con la configurazione.',
         chatWithAccountManager: 'Chatta con il tuo account manager qui',
         sayHello: 'Ciao!',
         yourSpace: 'Il tuo spazio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Benvenuto in ${roomName}!`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Usa il pulsante + per ${additionalText} una spesa.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Usa il pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} per ${additionalText} una spesa.`,
         askConcierge: 'Fai domande e ricevi supporto in tempo reale 24/7.',
         conciergeSupport: 'Supporto 24/7',
         create: 'creare',
@@ -955,6 +959,7 @@ const translations = {
         distance: 'Distanza',
         manual: 'Manuale',
         scan: 'Scansiona',
+        map: 'Mappa',
     },
     spreadsheet: {
         upload: 'Carica un foglio di calcolo',
@@ -992,6 +997,7 @@ const translations = {
         sizeNotMet: 'La dimensione del file deve essere maggiore di 0 byte',
         invalidFileMessage:
             'Il file che hai caricato è vuoto o contiene dati non validi. Assicurati che il file sia formattato correttamente e contenga le informazioni necessarie prima di caricarlo di nuovo.',
+        importSpreadsheetLibraryError: 'Impossibile caricare il modulo di fogli di calcolo. Controlla la tua connessione internet e riprova.',
         importSpreadsheet: 'Importa foglio di calcolo',
         downloadCSV: 'Scarica CSV',
         importMemberConfirmation: () => ({
@@ -1250,6 +1256,7 @@ const translations = {
             invalidCategoryLength: 'Il nome della categoria supera i 255 caratteri. Si prega di accorciarlo o scegliere una categoria diversa.',
             invalidTagLength: 'Il nome del tag supera i 255 caratteri. Per favore, accorcialo o scegli un tag diverso.',
             invalidAmount: 'Si prega di inserire un importo valido prima di continuare',
+            invalidDistance: 'Si prega di inserire una distanza valida prima di continuare',
             invalidIntegerAmount: 'Inserisci un importo in dollari intero prima di continuare',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `L'importo massimo delle tasse è ${amount}`,
             invalidSplit: "La somma delle suddivisioni deve essere uguale all'importo totale",
@@ -1924,6 +1931,7 @@ const translations = {
         virtualCardNumber: 'Numero della carta virtuale',
         travelCardCvv: 'CVV della carta di viaggio',
         physicalCardNumber: 'Numero della carta fisica',
+        physicalCardPin: 'PIN',
         getPhysicalCard: 'Ottieni carta fisica',
         reportFraud: 'Segnala frode con carta virtuale',
         reportTravelFraud: 'Segnala frode con carta di viaggio',
@@ -2506,8 +2514,10 @@ const translations = {
         messages: {
             onboardingEmployerOrSubmitMessage: 'Ricevere un rimborso è facile come inviare un messaggio. Vediamo le basi.',
             onboardingPersonalSpendMessage: 'Ecco come monitorare le tue spese in pochi clic.',
-            onboardingManageTeamMessage:
-                '# La tua prova gratuita è iniziata! Procediamo con la configurazione.\n👋 Ciao, sono il tuo specialista di configurazione Expensify. Ora che hai creato uno spazio di lavoro, sfrutta al massimo i tuoi 30 giorni di prova gratuita seguendo i passaggi indicati di seguito!',
+            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
+                hasIntroSelected
+                    ? '# La tua prova gratuita è iniziata! Configuriamo tutto.\n👋 Ciao, sono il tuo specialista di configurazione Expensify. Ora che hai creato uno spazio di lavoro, sfrutta al massimo la tua prova gratuita di 30 giorni seguendo i passaggi qui sotto!'
+                    : '# La tua prova gratuita è iniziata! Configuriamo tutto.\n👋 Ciao, sono il tuo specialista di configurazione Expensify. Ho già creato uno spazio di lavoro per aiutarti a gestire le ricevute e le spese del tuo team. Per sfruttare al massimo la tua prova gratuita di 30 giorni, segui semplicemente i restanti passaggi di configurazione qui sotto!',
             onboardingTrackWorkspaceMessage:
                 '# Iniziamo\n👋 Sono qui per aiutarti! Per iniziare, ho personalizzato le impostazioni dello spazio di lavoro per ditte individuali e aziende simili. Puoi modificarle cliccando il link qui sotto!\n\nEcco come monitorare le tue spese in pochi clic:',
             onboardingChatSplitMessage: 'Dividere le spese con gli amici è facile come inviare un messaggio. Ecco come.',
@@ -2802,6 +2812,7 @@ const translations = {
             formLabel: 'Visualizza PDF',
         },
         attachmentNotFound: 'Allegato non trovato',
+        retry: 'Riprova',
     },
     messages: {
         errorMessageInvalidPhone: `Per favore, inserisci un numero di telefono valido senza parentesi o trattini. Se ti trovi al di fuori degli Stati Uniti, includi il tuo prefisso internazionale (ad es. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
@@ -3015,7 +3026,14 @@ const translations = {
         whatsTheBusinessName: "Qual è il nome dell'azienda?",
         whatsTheBusinessAddress: "Qual è l'indirizzo dell'azienda?",
         whatsTheBusinessContactInformation: 'Quali sono le informazioni di contatto aziendali?',
-        whatsTheBusinessRegistrationNumber: "Qual è il numero di registrazione dell'azienda?",
+        whatsTheBusinessRegistrationNumber: ({country}: BusinessRegistrationNumberParams) => {
+            switch (country) {
+                case CONST.COUNTRY.GB:
+                    return "Qual è il numero di registrazione dell'azienda (CRN)?";
+                default:
+                    return "Qual è il numero di registrazione dell'azienda?";
+            }
+        },
         whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
             switch (country) {
                 case CONST.COUNTRY.US:
@@ -3248,6 +3266,10 @@ const translations = {
         PDSandFSGDescription:
             'La nostra partnership con Corpay utilizza una connessione API per sfruttare la loro vasta rete di partner bancari internazionali per alimentare i Rimborsi Globali in Expensify. Secondo la normativa australiana, ti forniamo la Guida ai Servizi Finanziari (FSG) e la Dichiarazione di Divulgazione del Prodotto (PDS) di Corpay.\n\nSi prega di leggere attentamente i documenti FSG e PDS poiché contengono dettagli completi e informazioni importanti sui prodotti e servizi offerti da Corpay. Conserva questi documenti per riferimento futuro.',
         pleaseUpload: "Si prega di caricare ulteriore documentazione qui sotto per aiutarci a verificare la tua identità come direttore o dirigente senior dell'entità aziendale.",
+        enterSignerInfo: 'Inserisci le informazioni del firmatario',
+        thisStep: 'Questo passaggio è stato completato',
+        isConnecting: ({bankAccountLastFour, currency}: SignerInfoMessageParams) =>
+            `sta collegando un conto bancario aziendale in ${currency} terminante con ${bankAccountLastFour} a Expensify per pagare i dipendenti in ${currency}. Il prossimo passaggio richiede le informazioni di un firmatario, come un direttore o un dirigente.`,
     },
     agreementsStep: {
         agreements: 'Accordi',
@@ -3461,12 +3483,14 @@ const translations = {
             customField1: 'Campo personalizzato 1',
             customField2: 'Campo personalizzato 2',
             customFieldHint: 'Aggiungi una codifica personalizzata che si applica a tutte le spese di questo membro.',
+            reports: 'Rapporti',
             reportFields: 'Campi del rapporto',
             reportTitle: 'Titolo del rapporto',
             reportField: 'Campo del report',
             taxes: 'Tasse',
             bills: 'Fatture',
             invoices: 'Fatture',
+            perDiem: 'Per diem',
             travel: 'Viaggio',
             members: 'Membri',
             accounting: 'Contabilità',
@@ -3479,6 +3503,7 @@ const translations = {
             testTransactions: 'Transazioni di prova',
             issueAndManageCards: 'Emetti e gestisci carte',
             reconcileCards: 'Riconcilia carte',
+            selectAll: 'Seleziona tutto',
             selected: () => ({
                 one: '1 selezionato',
                 other: (count: number) => `${count} selezionati`,
@@ -3493,6 +3518,8 @@ const translations = {
             notAuthorized: `Non hai accesso a questa pagina. Se stai cercando di unirti a questo spazio di lavoro, chiedi semplicemente al proprietario dello spazio di lavoro di aggiungerti come membro. Qualcos'altro? Contatta ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: 'Vai allo spazio di lavoro',
             goToWorkspaces: 'Vai agli spazi di lavoro',
+            duplicateWorkspace: 'Area di lavoro duplicata',
+            duplicateWorkspacePrefix: 'Duplicate',
             clearFilter: 'Cancella filtro',
             workspaceName: 'Nome del workspace',
             workspaceOwner: 'Proprietario',
@@ -3563,11 +3590,33 @@ const translations = {
             connect: 'Connettiti ora',
             uber: {
                 subtitle: 'Automatizza le spese di viaggio e di consegna dei pasti in tutta la tua organizzazione.',
+                sendInvites: 'Invita membri',
+                sendInvitesDescription: 'Questi membri del workspace non hanno ancora un account Uber for Business. Deseleziona tutti i membri che non desideri invitare in questo momento.',
+                confirmInvite: 'Conferma invito',
+                manageInvites: 'Gestisci inviti',
+                confirm: 'Conferma',
+                allSet: 'Tutto pronto',
+                readyToRoll: 'Sei pronto per iniziare',
+                takeBusinessRideMessage: 'Fai un viaggio di lavoro e le tue ricevute Uber verranno importate in Expensify. Andiamo!',
+                all: 'Tutti',
+                linked: 'Collegato',
+                outstanding: 'In sospeso',
+                status: {
+                    resend: 'Reinvia',
+                    invite: 'Invita',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED]: 'Collegato',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL]: 'In attesa',
+                    [CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED]: 'Sospeso',
+                },
+                invitationFailure: 'Impossibile invitare i membri a Uber for Business',
                 autoRemove: "Invita nuovi membri dell'area di lavoro su Uber for Business",
                 autoInvite: "Disattiva i membri dell'area di lavoro rimossi da Uber for Business",
-                manageInvites: 'Gestisci inviti',
                 bannerTitle: 'Expensify + Uber per le aziende',
                 bannerDescription: 'Connetti Uber for Business per automatizzare le spese di viaggio e di consegna dei pasti nella tua organizzazione.',
+                emptyContent: {
+                    title: 'Nessun membro da visualizzare',
+                    subtitle: 'Abbiamo cercato ovunque e non abbiamo trovato nulla.',
+                },
             },
         },
         perDiem: {
@@ -3962,6 +4011,18 @@ const translations = {
             syncReimbursedReportsDescription:
                 "Ogni volta che un report viene pagato utilizzando Expensify ACH, il pagamento della fattura corrispondente verrà creato nell'account Sage Intacct qui sotto.",
             paymentAccount: 'Account di pagamento Sage Intacct',
+            accountingMethods: {
+                label: 'Quando Esportare',
+                description: 'Scegli quando esportare le spese:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contanti',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Le spese anticipate verranno esportate quando approvate definitivamente.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate quando pagate',
+                },
+            },
         },
         netsuite: {
             subsidiary: 'Sussidiaria',
@@ -4435,6 +4496,8 @@ const translations = {
             verifyingTheDetails: 'Stiamo verificando alcuni dettagli. Concierge ti farà sapere quando le Expensify Card saranno pronte per essere emesse.',
             disclaimer:
                 'La Expensify Visa® Commercial Card è emessa da The Bancorp Bank, N.A., Membro FDIC, in base a una licenza di Visa U.S.A. Inc. e potrebbe non essere accettata da tutti i commercianti che accettano carte Visa. Apple® e il logo Apple® sono marchi di Apple Inc., registrati negli Stati Uniti e in altri paesi. App Store è un marchio di servizio di Apple Inc. Google Play e il logo di Google Play sono marchi di Google LLC.',
+            euUkDisclaimer:
+                'Le carte fornite ai residenti nello Spazio Economico Europeo sono emesse da Transact Payments Malta Limited, mentre le carte fornite ai residenti nel Regno Unito sono emesse da Transact Payments Limited in base alla licenza di Visa Europe Limited. Transact Payments Malta Limited è debitamente autorizzata e regolamentata dalla Malta Financial Services Authority come istituto finanziario ai sensi del Financial Institution Act del 1994. Numero di registrazione C 91879. Transact Payments Limited è autorizzata e regolamentata dalla Gibraltar Financial Service Commission.',
             issueCard: 'Emetti carta',
             findCard: 'Trova carta',
             newCard: 'Nuova carta',
@@ -4905,6 +4968,18 @@ const translations = {
             taxCode: 'Codice fiscale',
             updateTaxCodeFailureMessage: "Si è verificato un errore durante l'aggiornamento del codice fiscale, riprova.",
         },
+        duplicateWorkspace: {
+            title: 'Assegna un nome al tuo nuovo spazio di lavoro',
+            selectFeatures: 'Seleziona le funzionalità da copiare',
+            whichFeatures: 'Quali funzionalità vuoi copiare nel tuo nuovo spazio di lavoro?',
+            confirmDuplicate: '\n\nVuoi continuare?',
+            categories: 'Categorie e regole di categorizzazione automatica',
+            reimbursementAccount: 'Account di rimborso',
+            delayedSubmission: 'Invio ritardato',
+            welcomeNote: 'Inizia a utilizzare il mio nuovo spazio di lavoro',
+            confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
+                `Stai per creare e condividere ${newWorkspaceName ?? ''} con ${totalMembers ?? 0} membri dall'area di lavoro originale.`,
+        },
         emptyWorkspace: {
             title: 'Non hai spazi di lavoro',
             subtitle: 'Traccia ricevute, rimborsa spese, gestisci viaggi, invia fatture e altro ancora.',
@@ -5339,6 +5414,7 @@ const translations = {
             genericFailureMessage: "Si è verificato un errore durante l'aggiornamento dello spazio di lavoro. Per favore riprova.",
             avatarUploadFailureMessage: "Si è verificato un errore durante il caricamento dell'avatar. Per favore riprova.",
             addressContext: 'È necessario un indirizzo Workspace per abilitare Expensify Travel. Si prega di inserire un indirizzo associato alla tua attività.',
+            policy: 'Politica di spesa',
         },
         bankAccount: {
             continueWithSetup: 'Continua configurazione',
@@ -5677,8 +5753,7 @@ const translations = {
             },
             customRules: {
                 title: 'Regole personalizzate',
-                subtitle: 'Descrizione',
-                description: 'Inserisci regole personalizzate per i report di spesa',
+                cardSubtitle: 'Qui si trova la politica sulle spese del tuo team, così tutti sanno cosa è incluso.',
             },
         },
         planTypePage: {
@@ -5999,7 +6074,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Niente da mostrare',
-                subtitle: 'Prova a modificare i criteri di ricerca o a creare qualcosa con il pulsante verde +.',
+                subtitle: `Prova a modificare i criteri di ricerca o a creare qualcosa con il pulsante verde ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
             },
             emptyExpenseResults: {
                 title: 'Non hai ancora creato nessuna spesa.',
@@ -6110,6 +6185,7 @@ const translations = {
             withdrawn: 'Ritirato',
             billable: 'Fatturabile',
             reimbursable: 'Rimborsabile',
+            purchaseCurrency: 'Valuta di acquisto',
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.REPORTS]: 'Rapporto',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
@@ -6121,7 +6197,17 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Rimborso',
             },
+            has: {
+                receipt: 'Ricevuta',
+            },
+            action: {
+                [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Inviare',
+                [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approvare',
+                [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pagare',
+                [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Esportare',
+            },
         },
+        has: 'Ha',
         groupBy: 'Gruppo per',
         moneyRequestReport: {
             emptyStateTitle: 'Questo report non ha spese.',
@@ -6279,7 +6365,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `iniziato a esportare questo report su ${label}...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `impossibile esportare questo report su ${label} ("${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
+                    `impossibile esportare questo report su ${label} ("${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}")`,
                 managerAttachReceipt: `ha aggiunto una ricevuta`,
                 managerDetachReceipt: `rimosso una ricevuta`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pagato ${currency}${amount} altrove`,
@@ -6636,7 +6722,7 @@ const translations = {
         isTransactionBillable: 'Scegli se la transazione è fatturabile',
         keepThisOne: 'Mantieni questo',
         confirmDetails: `Conferma i dettagli che stai conservando`,
-        confirmDuplicatesInfo: `Le richieste duplicate che non conservi saranno tenute in attesa che il membro le elimini.`,
+        confirmDuplicatesInfo: `I duplicati che non conservi verranno mantenuti per consentire al mittente di eliminarli.`,
         hold: 'Questa spesa è stata messa in sospeso',
         resolvedDuplicates: 'risolto il duplicato',
     },

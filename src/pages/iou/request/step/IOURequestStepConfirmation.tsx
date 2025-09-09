@@ -164,8 +164,10 @@ function IOURequestStepConfirmation({
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt>>({});
-    const requestType = getRequestType(transaction);
-    const isDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+    const requestType = getRequestType(transaction, isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE));
+    const isDistanceRequest =
+        requestType === CONST.IOU.REQUEST_TYPE.DISTANCE || requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP || requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
+    const isManualDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
 
@@ -305,7 +307,7 @@ function IOURequestStepConfirmation({
 
     useEffect(() => {
         transactions.forEach((item) => {
-            if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !!item?.category) {
+            if (!isDistanceRequest || !!item?.category) {
                 return;
             }
             setMoneyRequestCategory(item.transactionID, defaultCategory, policy?.id);
@@ -431,7 +433,8 @@ function IOURequestStepConfirmation({
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, initialTransactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                 return;
             }
-            removeDraftTransactions(true).then(() => navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID));
+            removeDraftTransactions(true);
+            navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID);
         });
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
 
@@ -593,6 +596,7 @@ function IOURequestStepConfirmation({
                     },
                     transactionParams: {
                         amount: item.amount,
+                        distance: isManualDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined,
                         currency: item.currency,
                         created: item.created,
                         merchant: item.merchant,
@@ -633,6 +637,7 @@ function IOURequestStepConfirmation({
             action,
             customUnitRateID,
             isDraftPolicy,
+            isManualDistanceRequest,
         ],
     );
 
@@ -656,6 +661,7 @@ function IOURequestStepConfirmation({
                 transactionParams: {
                     amount: transaction.amount,
                     comment: trimmedComment,
+                    distance: isManualDistanceRequest ? (transaction.comment?.customUnit?.quantity ?? undefined) : undefined,
                     created: transaction.created,
                     currency: transaction.currency,
                     merchant: transaction.merchant,
@@ -679,6 +685,7 @@ function IOURequestStepConfirmation({
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             iouType,
+            isManualDistanceRequest,
             policy,
             policyCategories,
             policyTags,
@@ -721,23 +728,33 @@ function IOURequestStepConfirmation({
 
             const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
 
-            // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
-            if (iouType === CONST.IOU.TYPE.SPLIT && currentTransactionReceiptFile) {
-                if (currentUserPersonalDetails.login && !!transaction) {
-                    startSplitBill({
-                        participants: selectedParticipants,
-                        currentUserLogin: currentUserPersonalDetails.login,
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        comment: trimmedComment,
-                        receipt: currentTransactionReceiptFile,
-                        existingSplitChatReportID: report?.reportID,
-                        billable: transaction.billable,
-                        reimbursable: transaction.reimbursable,
-                        category: transaction.category,
-                        tag: transaction.tag,
-                        currency: transaction.currency,
-                        taxCode: transactionTaxCode,
-                        taxAmount: transactionTaxAmount,
+            if (iouType === CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).filter((receipt) => !!receipt).length) {
+                const currentUserLogin = currentUserPersonalDetails.login;
+                if (currentUserLogin) {
+                    transactions.forEach((item, index) => {
+                        const transactionReceiptFile = receiptFiles[item.transactionID];
+                        if (!transactionReceiptFile) {
+                            return;
+                        }
+                        const itemTrimmedComment = item?.comment?.comment?.trim() ?? '';
+
+                        // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
+                        startSplitBill({
+                            participants: selectedParticipants,
+                            currentUserLogin,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            comment: itemTrimmedComment,
+                            receipt: transactionReceiptFile,
+                            existingSplitChatReportID: report?.reportID,
+                            billable: item.billable,
+                            reimbursable: item.reimbursable,
+                            category: item.category,
+                            tag: item.tag,
+                            currency: item.currency,
+                            taxCode: transactionTaxCode,
+                            taxAmount: transactionTaxAmount,
+                            shouldPlaySound: index === transactions.length - 1,
+                        });
                     });
                 }
                 return;
@@ -905,6 +922,7 @@ function IOURequestStepConfirmation({
         [
             iouType,
             transaction,
+            transactions,
             isDistanceRequest,
             isMovingTransactionFromTrackExpense,
             receiptFiles,
@@ -1046,7 +1064,7 @@ function IOURequestStepConfirmation({
         showPreviousTransaction();
     };
 
-    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
+    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest, isManualDistanceRequest);
 
     const shouldShowSmartScanFields =
         !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
@@ -1132,6 +1150,7 @@ function IOURequestStepConfirmation({
                         iouMerchant={transaction?.merchant}
                         iouCreated={transaction?.created}
                         isDistanceRequest={isDistanceRequest}
+                        isManualDistanceRequest={isManualDistanceRequest}
                         isPerDiemRequest={isPerDiemRequest}
                         shouldShowSmartScanFields={shouldShowSmartScanFields}
                         action={action}

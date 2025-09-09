@@ -129,14 +129,6 @@ import {getTransactionID} from './TransactionUtils';
 
 type WelcomeMessage = {phrase1?: string; messageText?: string; messageHtml?: string};
 
-let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        allPersonalDetails = value ?? {};
-    },
-});
-
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -349,11 +341,11 @@ function categorizeReportsForLHN(
 
         const isPinned = !!report.isPinned;
         const requiresAttention = !!reportAttributes?.[reportID]?.requiresAttention;
-        const hasErrors = !!report.hasErrorsOtherThanFailedReceipt;
         const hasDraft = reportID ? hasValidDraftComment(reportID) : false;
         const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
         const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
         const isArchived = isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived);
+        const hasErrors = !!report.hasErrorsOtherThanFailedReceipt && !isArchived;
 
         precomputedReports.push({
             miniReport,
@@ -659,6 +651,9 @@ function getOptionData({
     };
 
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
+    const participantAccountIDsExcludeCurrentUser = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
+    const participantPersonalDetailListExcludeCurrentUser = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails));
+
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
     const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
@@ -684,7 +679,7 @@ function getOptionData({
     result.statusNum = report.statusNum;
     // When the only message of a report is deleted lastVisibleActionCreated is not reset leading to wrongly
     // setting it Unread so we add additional condition here to avoid empty chat LHN from being bold.
-    result.isUnread = isUnread(report, oneTransactionThreadReport) && !!report.lastActorAccountID;
+    result.isUnread = isUnread(report, oneTransactionThreadReport, isReportArchived) && !!report.lastActorAccountID;
     result.isUnreadWithMention = isUnreadWithMention(report);
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
@@ -887,7 +882,9 @@ function getOptionData({
                     : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction)?.lastMessageText;
 
             if (!result.alternateText) {
-                result.alternateText = formatReportLastMessageText(getWelcomeMessage(report, policy, localeCompare, isReportArchived).messageText ?? translateLocal('report.noActivityYet'));
+                result.alternateText = formatReportLastMessageText(
+                    getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, localeCompare, isReportArchived).messageText ?? translateLocal('report.noActivityYet'),
+                );
             }
         }
         result.alternateText = prefix + result.alternateText;
@@ -895,7 +892,7 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                getWelcomeMessage(report, policy, localeCompare, isReportArchived).messageText || translateLocal('report.noActivityYet'),
+                getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, localeCompare, isReportArchived).messageText || translateLocal('report.noActivityYet'),
             );
         }
         if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction) && !isReportArchived) {
@@ -946,6 +943,7 @@ function getOptionData({
 function getWelcomeMessage(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
+    participantPersonalDetailList: PersonalDetails[],
     localeCompare: LocaleContextProps['localeCompare'],
     isReportArchived = false,
     reportDetailsLink = '',
@@ -984,9 +982,8 @@ function getWelcomeMessage(
     }
 
     welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistory');
-    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
-    const isMultipleParticipant = participantAccountIDs.length > 1;
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, allPersonalDetails), isMultipleParticipant, localeCompare);
+    const isMultipleParticipant = participantPersonalDetailList.length > 1;
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetailList, isMultipleParticipant, localeCompare);
     const displayNamesWithTooltipsText = displayNamesWithTooltips
         .map(({displayName}, index) => {
             if (index === displayNamesWithTooltips.length - 1) {

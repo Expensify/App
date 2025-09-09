@@ -1,8 +1,7 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
-import useOriginalReportID from '@hooks/useOriginalReportID';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import {getIOUReportIDFromReportActionPreview, getOriginalMessage} from '@libs/ReportActionsUtils';
@@ -10,6 +9,7 @@ import {
     chatIncludesChronosWithID,
     createDraftTransactionAndNavigateToParticipantSelector,
     getIndicatedMissingPaymentMethod,
+    getOriginalReportID,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getTransactionsWithReceipts,
     isArchivedNonExpenseReport,
@@ -89,18 +89,20 @@ function ReportActionItem({
 }: ReportActionItemProps) {
     const reportID = report?.reportID;
     const originalMessage = getOriginalMessage(action);
-    const originalReportID = useOriginalReportID(reportID, action);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const originalReportID = useMemo(() => getOriginalReportID(reportID, action), [reportID, action]);
     const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`];
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || undefined}`];
     const blockedFromConcierge = useBlockedFromConcierge();
     const targetReport = isChatThread(report) ? parentReport : report;
-    const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWalletTierName, targetReport?.reportID, action);
+    const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWalletTierName, targetReport?.reportID, action, bankAccountList);
 
     const taskReport = originalMessage && 'taskReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.taskReportID}`] : undefined;
     const linkedReport = originalMessage && 'linkedReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.linkedReportID}`] : undefined;
