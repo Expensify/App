@@ -5,7 +5,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 // Importing from the react-native-gesture-handler package instead of the `components/ScrollView` to fix scroll issue:
 // https://github.com/react-native-modal/react-native-modal/issues/236
 import HeaderGap from '@components/HeaderGap';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getHelpContent from '@components/SidePanel/getHelpContent';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -21,6 +20,7 @@ import {getExpenseType} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Screen} from '@src/SCREENS';
+import HelpHeader from './HelpHeader';
 
 type HelpContentProps = {
     closeSidePanel: (shouldUpdateNarrow?: boolean) => void;
@@ -100,13 +100,12 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     return (
         <>
             <HeaderGap />
-            <HeaderWithBackButton
+            <HelpHeader
                 title={translate('common.help')}
                 onBackButtonPress={() => closeSidePanel(false)}
                 onCloseButtonPress={() => closeSidePanel(false)}
                 shouldShowBackButton={!isExtraLargeScreenWidth}
                 shouldShowCloseButton={isExtraLargeScreenWidth}
-                shouldDisplayHelpButton={false}
             />
             {currentState === undefined ? (
                 <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />

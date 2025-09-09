@@ -931,6 +931,7 @@ function IOURequestStepConfirmation({
         [
             iouType,
             transaction,
+            transactions,
             isDistanceRequest,
             isMovingTransactionFromTrackExpense,
             receiptFiles,

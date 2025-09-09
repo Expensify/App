@@ -50,7 +50,6 @@ type Sections = Array<SectionListData<MemberForList, Section<MemberForList>>>;
 
 function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: InviteReportParticipantsPageProps) {
     const route = useRoute<PlatformStackRouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -58,6 +57,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [searchValue, debouncedSearchTerm, setSearchValue] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
@@ -88,7 +88,10 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         return getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, false, options.reports, true);
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, options.reports]);
 
-    const inviteOptions = useMemo(() => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}), [debouncedSearchTerm, defaultOptions, excludedUsers]);
+    const inviteOptions = useMemo(
+        () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {excludeLogins: excludedUsers}),
+        [debouncedSearchTerm, defaultOptions, excludedUsers, countryCode],
+    );
 
     useEffect(() => {
         // Update selectedOptions with the latest personalDetails information

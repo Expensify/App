@@ -27,12 +27,17 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
 
     const accountID = Number(route.params.accountID) ?? -1;
     const policyID = route.params.policyID;
+    const backTo = route.params.backTo;
 
     const closePage = useCallback(() => {
         clearWorkspaceOwnerChangeFlow(policyID);
-        Navigation.goBack();
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
-    }, [accountID, policyID]);
+        if (backTo) {
+            Navigation.goBack(backTo);
+        } else {
+            Navigation.goBack();
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+        }
+    }, [accountID, backTo, policyID]);
 
     return (
         <AccessOrNotFoundWrapper

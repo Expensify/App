@@ -141,6 +141,7 @@ function filterOutRangesWithCorrectValue(
     const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
+    const hasList = Object.values(CONST.SEARCH.HAS_VALUES) as string[];
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
@@ -188,6 +189,8 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
             return datePresetList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS:
+            return hasList.includes(range.value);
         default:
             return false;
     }

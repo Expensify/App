@@ -332,7 +332,7 @@ function IOURequestStepAmount({
                 skipConfirmation={shouldSkipConfirmation ?? false}
                 iouType={iouType}
                 policyID={policy?.id}
-                forwardedRef={(e) => {
+                ref={(e) => {
                     textInput.current = e;
                 }}
                 shouldKeepUserInput={transaction?.shouldShowOriginalAmount}

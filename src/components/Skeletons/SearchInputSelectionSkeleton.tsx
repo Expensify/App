@@ -11,7 +11,7 @@ function SearchInputSelectionSkeleton() {
     const styles = useThemeStyles();
 
     return (
-        <View style={[styles.flex1, styles.searchRouterTextInputContainer, styles.searchAutocompleteInputResults, styles.br2, styles.justifyContentCenter]}>
+        <View style={[styles.searchRouterTextInputContainer, styles.searchAutocompleteInputResults, styles.br2, styles.justifyContentCenter]}>
             <SkeletonViewContentLoader
                 height={variables.searchAutocompleteInputSkeletonHeight}
                 backgroundColor={theme.skeletonLHNIn}

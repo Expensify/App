@@ -475,9 +475,23 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION: {
-                return Object.values(CONST.SEARCH.ACTION_FILTERS).map((status) => ({
+                const filteredActionTypes = Object.values(CONST.SEARCH.ACTION_FILTERS).filter((actionType) => {
+                    return actionType.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(actionType.toLowerCase());
+                });
+
+                return filteredActionTypes.map((action) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ACTION,
-                    text: status,
+                    text: action,
+                }));
+            }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS: {
+                const filteredHasValues = Object.values(CONST.SEARCH.HAS_VALUES).filter((hasValue) => {
+                    return hasValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(hasValue.toLowerCase());
+                });
+
+                return filteredHasValues.map((hasValue) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.HAS,
+                    text: hasValue,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
