@@ -4392,7 +4392,7 @@ function getUpdateMoneyRequestParams(
     if ('attendees' in transactionChanges) {
         // Update violation limit, if we modify attendees. The given limit value is for a single attendee, if we have multiple attendees we should multiply limit by attendee count
         const overLimitViolation = violations?.find((violation) => violation.name === 'overLimit');
-        if (!!overLimitViolation) {
+        if (overLimitViolation) {
             const limitForSingleAttendee = ViolationsUtils.getViolationAmountLimit(overLimitViolation);
             if (limitForSingleAttendee * (transactionChanges?.attendees?.length ?? 1) > Math.abs(getAmount(transaction))) {
                 optimisticData.push({
