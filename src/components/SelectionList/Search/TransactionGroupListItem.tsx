@@ -189,8 +189,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [isGroupByReports, transactions.length, onSelectRow, item, handleToggle]);
 
     const onLongPress = useCallback(() => {
+        if (isEmpty) {
+            return;
+        }
         onLongPressRow?.(item);
-    }, [item, onLongPressRow]);
+    }, [isEmpty, item, onLongPressRow]);
 
     const onCheckboxPress = useCallback(
         (val: TItem) => {

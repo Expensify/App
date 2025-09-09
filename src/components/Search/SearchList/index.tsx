@@ -201,6 +201,7 @@ function SearchList(
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
             const currentRoute = navigationRef.current?.getCurrentRoute();
+            const isReadonlyGroupBy = !!groupBy && (groupBy === CONST.SEARCH.GROUP_BY.CARD || groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID);
             if (currentRoute && route.key !== currentRoute.key) {
                 return;
             }
@@ -210,7 +211,7 @@ function SearchList(
                 return;
             }
             // disable long press for empty expense reports
-            if ('transactions' in item && item.transactions.length === 0) {
+            if ('transactions' in item && item.transactions.length === 0 && !isReadonlyGroupBy) {
                 return;
             }
             if (isMobileSelectionModeEnabled) {
@@ -220,7 +221,7 @@ function SearchList(
             setLongPressedItem(item);
             setIsModalVisible(true);
         },
-        [route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
+        [groupBy, route.key, shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled, onCheckboxPress],
     );
 
     const turnOnSelectionMode = useCallback(() => {
