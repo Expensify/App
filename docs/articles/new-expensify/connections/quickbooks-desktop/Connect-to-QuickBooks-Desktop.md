@@ -14,7 +14,7 @@ To connect QuickBooks Desktop to Expensify, you must log in as an Admin in Quick
 
 # Step 1: Start the Setup in Expensify
 
-1. From the navigation tabs, select **Workspaces**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces**
 2. Choose the workspace you want to connect to
 3. Click **More features** in the left-hand menu
 4. In the **Integrate** section, toggle on **Accounting**
