@@ -59,7 +59,7 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid} from './actions/IOU';
-import {createNewReport, createTransactionThreadReport, openReport, getCurrentUserAccountID} from './actions/Report';
+import {createNewReport, createTransactionThreadReport, getCurrentUserAccountID, openReport} from './actions/Report';
 import {updateSearchResultsWithTransactionThreadReportID} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
@@ -1239,7 +1239,7 @@ function canSubmitReportInSearch(
     transactions: SearchTransaction[],
     violations: OnyxCollection<OnyxTypes.TransactionViolations>,
     reportActions: OnyxTypes.ReportAction[],
-    isReportArchived: boolean,
+    isReportArchived: boolean = false,
 ) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
