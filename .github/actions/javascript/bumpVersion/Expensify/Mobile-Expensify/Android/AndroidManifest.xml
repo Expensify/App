@@ -21,7 +21,7 @@ See https://github.com/Expensify/Mobile-Expensify/issues/3677 for more informati
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.me.mobiexpensifyg"
       android:installLocation="auto"
-      android:versionCode="0509020201" android:versionName="9.2.2-1"
+      android:versionCode="0509020300" android:versionName="9.2.3-0"
       xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -206,6 +206,7 @@ See https://github.com/Expensify/Mobile-Expensify/issues/3677 for more informati
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/r"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/a"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/settings"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/workspaces"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/details"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/v"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/bank-account"/>
@@ -229,6 +230,7 @@ See https://github.com/Expensify/Mobile-Expensify/issues/3677 for more informati
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/r"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/a"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/settings"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/workspaces"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/details"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/v"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/bank-account"/>
