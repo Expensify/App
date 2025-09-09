@@ -7,7 +7,7 @@ export default function shouldSkipDeepLinkNavigation(route: string) {
     //
     // In general, we don't want to repeat the navigation, when the component might redirect to a different page when first mounted,
     // like with the verify account page components. See PR: https://github.com/Expensify/App/pull/68401
-    if (route.includes(ROUTES.TRANSITION_BETWEEN_APPS) || route.endsWith(VERIFY_ACCOUNT)) {
+    if (route.includes(ROUTES.TRANSITION_BETWEEN_APPS) || route.includes(VERIFY_ACCOUNT)) {
         return true;
     }
 
