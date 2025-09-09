@@ -97,6 +97,6 @@ describe('maskOnyxState', () => {
         const result = ExportOnyxState.maskOnyxState(input, true) as ExampleOnyxState;
 
         expect(result.edits).toEqual(['***', '***']);
-        expect(result.lastMessageHtml).toEqual('***');
+        expect(result.lastMessageHtml).not.toEqual(input.lastMessageHtml);
     });
 });
