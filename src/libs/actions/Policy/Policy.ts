@@ -2021,6 +2021,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                     description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    customRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
                 defaultBillable: false,
                 defaultReimbursable: true,
