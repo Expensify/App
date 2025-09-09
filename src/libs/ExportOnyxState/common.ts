@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Session} from '@src/types/onyx';
+import type {Credentials, Session} from '@src/types/onyx';
 import type OnyxState from '@src/types/onyx/OnyxState';
 import type {MaskOnyxState} from './types';
 
@@ -71,6 +71,20 @@ const maskSessionDetails = (onyxState: OnyxState): OnyxState => {
         ...onyxState,
         session: maskedData,
     };
+};
+
+const maskCredentials = (credentials: Credentials): Credentials => {
+    const allowList = ['login', 'accountID'];
+    const credentialsAllowedData: OnyxState = {};
+
+    Object.keys(credentials).forEach((key) => {
+        if (allowList.includes(key)) {
+            credentialsAllowedData[key] = credentials[key as keyof Credentials];
+            return;
+        }
+        credentialsAllowedData[key] = MASKING_PATTERN;
+    });
+    return credentialsAllowedData as Credentials;
 };
 
 const maskEmail = (email: string) => {
@@ -159,6 +173,15 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
 
     // Remove private/sensitive Onyx keys
     onyxState = removePrivateOnyxKeys(onyxState);
+
+    // Mask credentials
+    if (onyxState.credentials) {
+        onyxState.credentials = maskCredentials(onyxState.credentials as Credentials);
+    }
+
+    if (onyxState.stashedCredentials) {
+        onyxState.stashedCredentials = maskCredentials(onyxState.stashedCredentials as Credentials);
+    }
 
     // Mask fragile data other than session details if the user has enabled the option
     if (isMaskingFragileDataEnabled) {
