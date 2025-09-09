@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import Animated, {clamp, SensorType, useAnimatedSensor, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring} from 'react-native-reanimated';
+import Animated, {clamp, FadeIn, SensorType, useAnimatedSensor, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring} from 'react-native-reanimated';
 import ImageSVG from '@components/ImageSVG';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -53,7 +53,10 @@ function AnimatedEmptyStateBackground() {
 
     return (
         <View style={StyleUtils.getReportWelcomeBackgroundContainerStyle()}>
-            <Animated.View style={[StyleUtils.getReportWelcomeBackgroundImageStyle(shouldUseNarrowLayout), animatedStyles]}>
+            <Animated.View
+                style={[StyleUtils.getReportWelcomeBackgroundImageStyle(shouldUseNarrowLayout), animatedStyles]}
+                entering={FadeIn}
+            >
                 {Array.from({length: numberOfRepeats}).map((_, index) => (
                     <ImageSVG
                         // eslint-disable-next-line react/no-array-index-key
