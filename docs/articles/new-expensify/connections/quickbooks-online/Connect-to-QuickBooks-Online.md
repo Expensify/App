@@ -46,7 +46,7 @@ To do this:
 
 To connect your workspace:
 
-1. From the navigation tabs, go to **Workspaces**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces**
 2. Select your **Workspace**
 3. Click **More features**
 4. Scroll to **Integrate** and enable the **Accounting** toggle
