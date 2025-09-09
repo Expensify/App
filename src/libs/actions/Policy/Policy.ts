@@ -610,7 +610,7 @@ function setWorkspaceAutoHarvesting(policy: OnyxEntry<Policy>, enabled: boolean)
                     autoReporting: null,
                 },
                 errorFields: {
-                    autoReporting: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsDelayedSubmissionPage.autoReportingErrorMessage'),
+                    autoReporting: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsDelayedSubmissionPage.autoReportingFrequencyErrorMessage'),
                 },
             },
         },

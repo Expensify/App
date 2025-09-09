@@ -123,7 +123,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                     addBottomSafeAreaPadding
                 >
                     <HeaderWithBackButton
-                        title={translate('workflowsPage.submissionFrequency')}
+                        title={translate('common.frequency')}
                         onBackButtonPress={Navigation.goBack}
                     />
                     <OfflineWithFeedback

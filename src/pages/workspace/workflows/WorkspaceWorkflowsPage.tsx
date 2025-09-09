@@ -169,9 +169,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
         return [
             {
-                title: translate('workflowsPage.delaySubmissionTitle'),
-                subtitle: translate('workflowsPage.delaySubmissionDescription'),
-                switchAccessibilityLabel: translate('workflowsPage.delaySubmissionDescription'),
+                title: translate('workflowsPage.submissionFrequency'),
+                subtitle: translate('workflowsPage.submissionFrequencyDescription'),
+                switchAccessibilityLabel: translate('workflowsPage.submissionFrequencyDescription'),
                 onToggle: (isEnabled: boolean) => setWorkspaceAutoHarvesting(policy, isEnabled),
                 subMenuItems: (
                     <MenuItemWithTopDescription
@@ -184,7 +184,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         descriptionTextStyle={styles.textLabelSupportingNormal}
                         onPress={onPressAutoReportingFrequency}
                         // Instant submit is the equivalent of delayed submissions being turned off, so we show the feature as disabled if the frequency is instant
-                        description={translate('workflowsPage.submissionFrequency')}
+                        description={translate('common.frequency')}
                         shouldShowRightIcon
                         wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                         brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
