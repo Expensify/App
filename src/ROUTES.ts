@@ -2150,15 +2150,11 @@ const ROUTES = {
     },
     WORKSPACE_DUPLICATE: {
         route: 'workspace/:policyID/duplicate',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/duplicate`, backTo),
+        getRoute: (policyID: string) => `workspace/${policyID}/duplicate` as const,
     },
     WORKSPACE_DUPLICATE_SELECT_FEATURES: {
         route: 'workspace/:policyID/duplicate/select-features',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/duplicate/select-features`, backTo),
+        getRoute: (policyID: string) => `workspace/${policyID}/duplicate/select-features` as const,
     },
     WORKSPACE_RECEIPT_PARTNERS: {
         route: 'workspaces/:policyID/receipt-partners',
