@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
-import ConfirmModal from './ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ConfirmModal from './ConfirmModal';
 
 function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChildren) {
     const {translate} = useLocalize();
