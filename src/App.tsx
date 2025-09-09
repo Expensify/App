@@ -4,6 +4,7 @@ import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import '../wdyr';
 import {ActionSheetAwareScrollViewProvider} from './components/ActionSheetAwareScrollView';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
@@ -116,6 +117,7 @@ function App() {
                                         FullScreenBlockingViewContextProvider,
                                         FullScreenLoaderContextProvider,
                                         SidePanelContextProvider,
+                                        CurrentUserPersonalDetailsProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />
