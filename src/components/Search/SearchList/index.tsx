@@ -1,5 +1,5 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import type {FlashList, FlashListProps, ViewToken} from '@shopify/flash-list';
+import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
 import React, {forwardRef, useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
@@ -12,8 +12,6 @@ import Modal from '@components/Modal';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import {createItemHeightCalculator} from '@components/Search/itemHeightCalculator';
-import ITEM_HEIGHTS from '@components/Search/itemHeights';
 import type {SearchColumnType, SearchQueryJSON} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
@@ -21,7 +19,6 @@ import type TransactionGroupListItem from '@components/SelectionList/Search/Tran
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ExtendedTargetedEvent, ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import useInitialWindowDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -88,16 +85,13 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     isFocused: boolean;
 
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
-    onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
+    onViewableItemsChanged?: (info: {changed: Array<ViewToken<SearchListItem>>; viewableItems: Array<ViewToken<SearchListItem>>}) => void;
 
     /** Invoked on mount and layout changes */
     onLayout?: () => void;
 
     /** Styles to apply to the content container */
     contentContainerStyle?: StyleProp<ViewStyle>;
-
-    /** The estimated height of an item in the list */
-    estimatedItemSize?: number;
 
     /** Whether mobile selection mode is enabled */
     isMobileSelectionModeEnabled: boolean;
@@ -138,7 +132,6 @@ function SearchList(
         onViewableItemsChanged,
         onLayout,
         shouldAnimate,
-        estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
         isMobileSelectionModeEnabled,
         areAllOptionalColumnsHidden,
     }: SearchListProps,
@@ -146,8 +139,7 @@ function SearchList(
 ) {
     const styles = useThemeStyles();
 
-    const {initialHeight, initialWidth} = useInitialWindowDimensions();
-    const {hash, groupBy, type} = queryJSON;
+    const {hash, groupBy} = queryJSON;
     const flattenedItems = useMemo(() => {
         if (groupBy) {
             if (!isTransactionGroupListItemArray(data)) {
@@ -169,14 +161,14 @@ function SearchList(
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const listRef = useRef<FlashList<SearchListItem>>(null);
+    const listRef = useRef<FlashListRef<SearchListItem>>(null);
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const prevDataLength = usePrevious(data.length);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
@@ -334,51 +326,6 @@ function SearchList(
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length;
 
-    const getItemHeight = useMemo(
-        () =>
-            createItemHeightCalculator({
-                isLargeScreenWidth,
-                shouldUseNarrowLayout,
-                type,
-            }),
-        [isLargeScreenWidth, shouldUseNarrowLayout, type],
-    );
-
-    const overrideItemLayout = useCallback(
-        (layout: {span?: number; size?: number}, item: SearchListItem) => {
-            if (!layout) {
-                return;
-            }
-            const height = getItemHeight(item);
-            // eslint-disable-next-line no-param-reassign
-            return (layout.size = height > 0 ? height : estimatedItemSize);
-        },
-        [getItemHeight, estimatedItemSize],
-    );
-
-    const calculatedListHeight = useMemo(() => {
-        return initialHeight - variables.contentHeaderHeight;
-    }, [initialHeight]);
-
-    const calculatedListWidth = useMemo(() => {
-        if (shouldUseNarrowLayout) {
-            return initialWidth;
-        }
-
-        if (isLargeScreenWidth) {
-            return initialWidth - variables.navigationTabBarSize - variables.sideBarWithLHBWidth;
-        }
-
-        return initialWidth;
-    }, [initialWidth, shouldUseNarrowLayout, isLargeScreenWidth]);
-
-    const estimatedListSize = useMemo(() => {
-        return {
-            height: calculatedListHeight,
-            width: calculatedListWidth,
-        };
-    }, [calculatedListHeight, calculatedListWidth]);
-
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {tableHeaderVisible && (
@@ -428,13 +375,7 @@ function SearchList(
                 ListFooterComponent={ListFooterComponent}
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={onLayout}
-                removeClippedSubviews
-                drawDistance={1000}
-                estimatedItemSize={estimatedItemSize}
-                overrideItemLayout={overrideItemLayout}
-                estimatedListSize={estimatedListSize}
                 contentContainerStyle={contentContainerStyle}
-                calculatedListHeight={calculatedListHeight}
             />
             <Modal
                 isVisible={isModalVisible}
