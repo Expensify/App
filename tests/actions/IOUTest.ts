@@ -141,7 +141,8 @@ jest.mock('@src/libs/SearchQueryUtils', () => ({
         status: '',
         flatFilters: [],
     })),
-    getTodoSearchQuery: jest.fn(),
+    buildQueryStringFromFilterFormValues: jest.fn().mockImplementation(() => 'type:expense'),
+    buildCannedSearchQuery: jest.fn(),
     buildSearchQueryJSON: jest.fn(),
 }));
 
@@ -6610,7 +6611,7 @@ describe('actions/IOU', () => {
                 return;
             }
 
-            changeTransactionsReport([transaction?.transactionID], expenseReport?.reportID);
+            changeTransactionsReport([transaction?.transactionID], expenseReport?.reportID, false, CARLOS_ACCOUNT_ID, CARLOS_EMAIL);
 
             let updatedTransaction: OnyxEntry<Transaction>;
             let updatedIOUReportActionOnSelfDMReport: OnyxEntry<ReportAction>;

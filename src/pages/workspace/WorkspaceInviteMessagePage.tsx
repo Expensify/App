@@ -200,6 +200,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                             }}
                             secondaryAvatarContainerStyle={styles.secondAvatarInline}
                             invitedEmailsToAccountIDs={invitedEmailsToAccountIDsDraft}
+                            shouldUseCustomFallbackAvatar
                         />
                     </View>
                     <View style={[styles.mb5]}>

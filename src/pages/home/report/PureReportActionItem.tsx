@@ -58,7 +58,6 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, getPersonalPolicy, isPolicyAdmin, isPolicyOwner} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
-    getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
     getChangedApproverActionMessage,
@@ -330,6 +329,7 @@ type PureReportActionItemProps = {
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
         formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
         policy: OnyxEntry<OnyxTypes.Policy>,
+        isReportArchived: boolean,
     ) => void;
 
     /** Whether the provided report is a closed expense report with no expenses */
@@ -831,7 +831,14 @@ function PureReportActionItem({
                 {
                     text: 'common.buttonConfirm',
                     key: `${action.reportActionID}-actionableReportMentionConfirmWhisper-${CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE}`,
-                    onPress: () => resolveActionableMentionConfirmWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE, formatPhoneNumber),
+                    onPress: () =>
+                        resolveActionableMentionConfirmWhisper(
+                            reportID,
+                            action,
+                            CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE,
+                            formatPhoneNumber,
+                            isReportArchived,
+                        ),
                     isPrimary: true,
                 },
             ];
@@ -844,7 +851,15 @@ function PureReportActionItem({
             actionableMentionWhisperOptions.push({
                 text: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
-                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE, formatPhoneNumber, policy),
+                onPress: () =>
+                    resolveActionableMentionWhisper(
+                        reportID,
+                        action,
+                        CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
+                        formatPhoneNumber,
+                        policy,
+                        isReportArchived,
+                    ),
                 isMediumSized: true,
             });
         }
@@ -853,13 +868,13 @@ function PureReportActionItem({
             {
                 text: 'actionableMentionWhisperOptions.inviteToChat',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, formatPhoneNumber, policy),
+                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, formatPhoneNumber, policy, isReportArchived),
                 isMediumSized: true,
             },
             {
                 text: 'actionableMentionWhisperOptions.nothing',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, formatPhoneNumber, policy),
+                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, formatPhoneNumber, policy, isReportArchived),
                 isMediumSized: true,
             },
         );
@@ -879,6 +894,7 @@ function PureReportActionItem({
         resolveActionableReportMentionWhisper,
         formatPhoneNumber,
         resolveActionableMentionWhisper,
+        isReportArchived,
     ]);
 
     /**
@@ -944,7 +960,7 @@ function PureReportActionItem({
                                         return;
                                     }
 
-                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
+                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID, undefined, undefined, Navigation.getActiveRoute()));
                                 }}
                                 isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
                             />
@@ -1273,19 +1289,6 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedAuditRateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
             children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
-        } else if (isActionableMentionWhisper(action)) {
-            children = (
-                <ReportActionItemBasicMessage>
-                    <RenderHTML html={getActionableMentionWhisperMessage(action)} />
-                    {actionableItemButtons.length > 0 && (
-                        <ActionableItemButtons
-                            items={actionableItemButtons}
-                            shouldUseLocalization
-                            layout="horizontal"
-                        />
-                    )}
-                </ReportActionItemBasicMessage>
-            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
             children = (
                 <ReportActionItemBasicMessage>

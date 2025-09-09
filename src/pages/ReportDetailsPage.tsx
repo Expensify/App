@@ -165,7 +165,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.isDebugModeEnabled, canBeMissing: false});
+    const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
@@ -601,7 +601,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 errors={report.errorFields?.avatar ?? null}
                 errorRowStyles={styles.mt6}
                 onErrorClose={() => clearAvatarErrors(report.reportID)}
-                shouldUseStyleUtilityForAnchorPosition
                 style={[styles.w100, styles.mb3]}
             />
         );

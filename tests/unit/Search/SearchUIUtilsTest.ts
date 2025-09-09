@@ -5,23 +5,44 @@ import TransactionListItem from '@components/SelectionList/Search/TransactionLis
 import type {
     ReportActionListItemType,
     TransactionCardGroupListItemType,
+    TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionList/types';
+import Navigation from '@navigation/Navigation';
+// eslint-disable-next-line no-restricted-syntax
+import type * as ReportUserActions from '@userActions/Report';
+import {createTransactionThreadReport, openReport} from '@userActions/Report';
+// eslint-disable-next-line no-restricted-syntax
+import type * as SearchUtils from '@userActions/Search';
+import {updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {formatPhoneNumber, localeCompare} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+jest.mock('@src/libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+}));
+jest.mock('@userActions/Report', () => ({
+    ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
+    createTransactionThreadReport: jest.fn(),
+    openReport: jest.fn(),
+}));
+jest.mock('@userActions/Search', () => ({
+    ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
+    updateSearchResultsWithTransactionThreadReportID: jest.fn(),
+}));
 
 const adminAccountID = 18439984;
 const adminEmail = 'admin@policy.com';
@@ -321,6 +342,8 @@ const searchResults: OnyxTypes.SearchResults = {
             errors: undefined,
             filename: undefined,
             isActionLoading: false,
+            convertedAmount: -5000,
+            convertedCurrency: 'USD',
         },
         [`transactions_${transactionID2}`]: {
             accountID: adminAccountID,
@@ -365,6 +388,8 @@ const searchResults: OnyxTypes.SearchResults = {
             errors: undefined,
             filename: undefined,
             isActionLoading: false,
+            convertedAmount: -5000,
+            convertedCurrency: 'USD',
         },
         ...allViolations,
         [`transactions_${transactionID3}`]: {
@@ -410,6 +435,8 @@ const searchResults: OnyxTypes.SearchResults = {
             filename: undefined,
             isActionLoading: false,
             hasViolation: undefined,
+            convertedAmount: -5000,
+            convertedCurrency: 'USD',
         },
         [`transactions_${transactionID4}`]: {
             accountID: adminAccountID,
@@ -454,6 +481,8 @@ const searchResults: OnyxTypes.SearchResults = {
             filename: undefined,
             isActionLoading: false,
             hasViolation: undefined,
+            convertedAmount: -5000,
+            convertedCurrency: 'USD',
         },
     },
     search: {
@@ -692,6 +721,8 @@ const transactionsListItems = [
         isActionLoading: false,
         hasViolation: false,
         violations: [],
+        convertedAmount: -5000,
+        convertedCurrency: 'USD',
     },
     {
         accountID: 18439984,
@@ -763,6 +794,8 @@ const transactionsListItems = [
                 type: CONST.VIOLATION_TYPES.VIOLATION,
             },
         ],
+        convertedAmount: -5000,
+        convertedCurrency: 'USD',
     },
     {
         accountID: 18439984,
@@ -829,6 +862,8 @@ const transactionsListItems = [
         isActionLoading: false,
         hasViolation: undefined,
         violations: [],
+        convertedAmount: -5000,
+        convertedCurrency: 'USD',
     },
     {
         accountID: 18439984,
@@ -895,6 +930,8 @@ const transactionsListItems = [
         isActionLoading: false,
         hasViolation: undefined,
         violations: [],
+        convertedAmount: -5000,
+        convertedCurrency: 'USD',
     },
 ] as TransactionListItemType[];
 
@@ -998,6 +1035,8 @@ const transactionReportGroupListItems = [
                 filename: undefined,
                 isActionLoading: false,
                 violations: [],
+                convertedAmount: -5000,
+                convertedCurrency: 'USD',
             },
         ],
         type: 'expense',
@@ -1107,6 +1146,8 @@ const transactionReportGroupListItems = [
                 errors: undefined,
                 filename: undefined,
                 isActionLoading: false,
+                convertedAmount: -5000,
+                convertedCurrency: 'USD',
             },
         ],
         type: 'expense',
@@ -1203,6 +1244,7 @@ const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
         login: 'admin@policy.com',
         total: 70,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         accountID: 1111111,
@@ -1214,6 +1256,7 @@ const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
         login: 'approver@policy.com',
         total: 30,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1228,6 +1271,7 @@ const transactionMemberGroupListItemsSorted: TransactionMemberGroupListItemType[
         login: 'approver@policy.com',
         total: 30,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 
     {
@@ -1240,6 +1284,7 @@ const transactionMemberGroupListItemsSorted: TransactionMemberGroupListItemType[
         login: 'admin@policy.com',
         total: 70,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1258,6 +1303,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         login: 'admin@policy.com',
         total: 40,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         accountID: 1111111,
@@ -1273,6 +1319,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         login: 'approver@policy.com',
         total: 20,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1291,6 +1338,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         login: 'approver@policy.com',
         total: 20,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         accountID: 18439984,
@@ -1306,6 +1354,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         login: 'admin@policy.com',
         total: 40,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1320,6 +1369,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         total: 40,
         groupedBy: 'withdrawal-id',
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         bankName: CONST.BANK_NAMES.CITIBANK,
@@ -1331,6 +1381,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         total: 20,
         groupedBy: 'withdrawal-id',
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1345,6 +1396,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         total: 20,
         groupedBy: 'withdrawal-id',
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         bankName: CONST.BANK_NAMES.CHASE,
@@ -1356,6 +1408,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         total: 40,
         groupedBy: 'withdrawal-id',
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1633,7 +1686,67 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return getTransactionsSections result when groupBy is undefined', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber)).toStrictEqual(transactionsListItems);
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber)).toEqual(transactionsListItems);
+        });
+
+        it('should include iouRequestType property for distance transactions', () => {
+            const distanceTransactionID = 'distance_transaction_123';
+            const testSearchResults = {
+                ...searchResults,
+                data: {
+                    ...searchResults.data,
+                    [`transactions_${distanceTransactionID}`]: {
+                        ...searchResults.data[`transactions_${transactionID}`],
+                        transactionID: distanceTransactionID,
+                        transactionType: CONST.SEARCH.TRANSACTION_TYPE.DISTANCE,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    },
+                },
+            };
+
+            const result = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, testSearchResults.data, 2074551, formatPhoneNumber) as TransactionListItemType[];
+
+            const distanceTransaction = result.find((item) => item.transactionID === distanceTransactionID);
+
+            expect(distanceTransaction).toBeDefined();
+            expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
+
+            const expectedPropertyCount = 57;
+            expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
+        });
+
+        it('should include iouRequestType property for distance transactions in grouped results', () => {
+            const distanceTransactionID = 'distance_transaction_grouped_123';
+            const testSearchResults = {
+                ...searchResults,
+                data: {
+                    ...searchResults.data,
+                    [`transactions_${distanceTransactionID}`]: {
+                        ...searchResults.data[`transactions_${transactionID}`],
+                        transactionID: distanceTransactionID,
+                        transactionType: CONST.SEARCH.TRANSACTION_TYPE.DISTANCE,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    },
+                },
+            };
+
+            const result = SearchUIUtils.getSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                testSearchResults.data,
+                2074551,
+                formatPhoneNumber,
+                CONST.SEARCH.GROUP_BY.REPORTS,
+            ) as TransactionGroupListItemType[];
+
+            const reportGroup = result.find((group) => group.transactions?.some((transaction) => transaction.transactionID === distanceTransactionID));
+
+            const distanceTransaction = reportGroup?.transactions?.find((transaction) => transaction.transactionID === distanceTransactionID);
+
+            expect(distanceTransaction).toBeDefined();
+            expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
+
+            const expectedPropertyCount = 57;
+            expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
         it('should return getReportSections result when type is EXPENSE and groupBy is report', () => {
@@ -2218,6 +2331,8 @@ describe('SearchUIUtils', () => {
                     transactionID: '1805965960759424086',
                     transactionThreadReportID: '4139222832581831',
                     transactionType: 'cash',
+                    convertedAmount: -5000,
+                    convertedCurrency: 'USD',
                 },
             },
             search: {
@@ -2449,6 +2564,36 @@ describe('SearchUIUtils', () => {
 
             // Should not show tag column because it's the empty tag value
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(false);
+        });
+    });
+
+    describe('createAndOpenSearchTransactionThread', () => {
+        const threadReportID = 'thread-report-123';
+        const threadReport = {reportID: threadReportID};
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
+        const iouReportAction = {reportActionID: 'action-123'} as OnyxTypes.ReportAction;
+        const hash = 12345;
+        const backTo = '/search/all';
+
+        test('Should create transaction thread report and navigate to it', () => {
+            (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
+
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, iouReportAction, hash, backTo);
+
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, iouReportAction);
+            expect(updateSearchResultsWithTransactionThreadReportID).toHaveBeenCalledWith(hash, transactionID, threadReportID);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
+        });
+
+        test('Should not load iou report if iouReportAction was provided', () => {
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, iouReportAction, hash, backTo);
+            expect(openReport).not.toHaveBeenCalled();
+        });
+
+        test('Should load iou report if iouReportAction was not provided', () => {
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, hash, backTo);
+            expect(openReport).toHaveBeenCalled();
         });
     });
 });

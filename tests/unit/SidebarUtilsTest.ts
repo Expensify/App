@@ -15,7 +15,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {OriginalMessageIOU, PersonalDetails, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
@@ -748,6 +748,11 @@ describe('SidebarUtils', () => {
                 chatType: 'group',
                 type: 'chat',
             };
+            const participantPersonalDetailList: PersonalDetails[] = [
+                {accountID: 1, avatar: 'https://example.com/one.png', pronouns: 'they/them', login: 'email1@test.com'} as unknown as PersonalDetails,
+                {accountID: 2, avatar: 'https://example.com/two.png', pronouns: 'she/her', login: 'two@example.com'} as unknown as PersonalDetails,
+            ];
+
             return (
                 waitForBatchedUpdates()
                     // When Onyx is updated to contain that report
@@ -757,7 +762,7 @@ describe('SidebarUtils', () => {
                         }),
                     )
                     .then(() => {
-                        const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, localeCompare);
+                        const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare);
                         expect(result.messageText).toBe('This chat is with One and Two.');
                     })
             );
@@ -768,6 +773,10 @@ describe('SidebarUtils', () => {
                 ...LHNTestUtils.getFakeReport(),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
+            const participantPersonalDetailList: PersonalDetails[] = [
+                {accountID: 1, displayName: 'One', avatar: 'https://example.com/one.png', pronouns: 'they/them', login: 'One'} as unknown as PersonalDetails,
+                {accountID: 2, displayName: 'Two', avatar: 'https://example.com/two.png', pronouns: 'she/her', login: 'Two'} as unknown as PersonalDetails,
+            ];
             return (
                 waitForBatchedUpdates()
                     // Given a "chat room" report (ie. a policy announce room) is stored in Onyx
@@ -780,7 +789,7 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, localeCompare, isReportArchived.current);
+                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare, isReportArchived.current);
                     })
 
                     // Then the welcome message should indicate the report is archived
@@ -793,6 +802,10 @@ describe('SidebarUtils', () => {
                 ...LHNTestUtils.getFakeReport(),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
+            const participantPersonalDetailList: PersonalDetails[] = [
+                {accountID: 1, displayName: 'One', avatar: 'https://example.com/one.png', pronouns: 'they/them', login: 'one@example.com'} as unknown as PersonalDetails,
+                {accountID: 2, displayName: 'Two', avatar: 'https://example.com/two.png', pronouns: 'she/her', login: 'two@example.com'} as unknown as PersonalDetails,
+            ];
             return (
                 waitForBatchedUpdates()
                     // Given a "chat room" report (ie. a policy announce room) is stored in Onyx
@@ -802,7 +815,7 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, localeCompare, isReportArchived.current);
+                        return SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined, participantPersonalDetailList, localeCompare, isReportArchived.current);
                     })
 
                     // Then the welcome message should explain the purpose of the room
