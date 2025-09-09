@@ -5,7 +5,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import {useSession} from './OnyxListItemProvider';
 
-const CurrentUserPersonalDetailsContext = createContext<PersonalDetails | undefined>(undefined);
+const defaultCurrentUserPersonalDetails: PersonalDetails = {
+    accountID: CONST.DEFAULT_NUMBER_ID,
+};
+
+const CurrentUserPersonalDetailsContext = createContext<PersonalDetails>(defaultCurrentUserPersonalDetails);
 
 function CurrentUserPersonalDetailsProvider({children}: {children: React.ReactNode}) {
     const session = useSession();
