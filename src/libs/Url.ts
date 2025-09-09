@@ -93,4 +93,4 @@ function getUrlWithParams<TBase extends string, TParams extends UrlParams>(baseU
     return (queryString ? `${path}?${queryString}` : path) as UrlWithParams<TBase>;
 }
 
-export {getSearchParamFromUrl, addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL, addLeadingForwardSlash, extractUrlDomain, getUrlWithParams};
+export {getSearchParamFromUrl, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL, addLeadingForwardSlash, extractUrlDomain, getUrlWithParams};
