@@ -1,7 +1,5 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
@@ -10,15 +8,6 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getReportActionHtml, getReportActionText} from './ReportActionsUtils';
-
-let allReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value;
-    },
-});
 
 /**
  * Check if the active route belongs to task edit flow.
@@ -52,23 +41,21 @@ function getTaskReportActionMessage(action: OnyxEntry<ReportAction>): Pick<Messa
     }
 }
 
-function getTaskTitleFromReport(taskReport: OnyxEntry<Report>, fallbackTitle = '', shouldReturnMarkdown = false): string {
+function getTaskTitleFromReport(taskReport?: OnyxEntry<Report>, fallbackTitle = '', shouldReturnMarkdown = false): string {
     // We need to check for reportID, not just reportName, because when a receiver opens the task for the first time,
     // an optimistic report is created with the only property - reportName: 'Chat report',
     // and it will be displayed as the task title without checking for reportID to be present.
-    const title = taskReport?.reportID && taskReport.reportName ? taskReport.reportName : fallbackTitle;
+    const title = taskReport && taskReport?.reportID && taskReport.reportName ? taskReport.reportName : fallbackTitle;
 
     return shouldReturnMarkdown ? Parser.htmlToMarkdown(title) : Parser.htmlToText(title).trim();
 }
 
-function getTaskTitle(taskReportID: string | undefined, fallbackTitle = '', shouldReturnMarkdown = false): string {
-    const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
+function getTaskTitle(taskReport?: Report, fallbackTitle = '', shouldReturnMarkdown = false): string {
     return getTaskTitleFromReport(taskReport, fallbackTitle, shouldReturnMarkdown);
 }
 
-function getTaskCreatedMessage(reportAction: OnyxEntry<ReportAction>, shouldReturnMarkdown = false) {
-    const taskReportID = reportAction?.childReportID;
-    const taskTitle = getTaskTitle(taskReportID, reportAction?.childReportName, shouldReturnMarkdown);
+function getTaskCreatedMessage(reportAction: OnyxEntry<ReportAction>, taskReport?: Report, shouldReturnMarkdown = false) {
+    const taskTitle = getTaskTitle(taskReport, reportAction?.childReportName, shouldReturnMarkdown);
     return taskTitle ? translateLocal('task.messages.created', {title: taskTitle}) : '';
 }
 
