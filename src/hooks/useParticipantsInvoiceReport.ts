@@ -35,18 +35,18 @@ const reportSelector = (report: OnyxEntry<Report>): Report | undefined => {
 };
 
 function useParticipantsInvoiceReport(receiverID: string | number | undefined, receiverType: InvoiceReceiverType, policyID?: string): OnyxEntry<Report> {
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: (c) => mapOnyxCollectionItems(c, reportSelector)});
-    const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}`, {
+    const [allInvoiceReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: (c) => mapOnyxCollectionItems(c, reportSelector)});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}`, {
         canBeMissing: true,
         selector: (c) => mapOnyxCollectionItems(c, reportNameValuePairsSelector),
     });
 
     const invoiceReport = useMemo(() => {
-        const existingInvoiceReport = Object.values(allReports ?? {}).find((report) => {
-            if (!report || !reportNameValuePair) {
+        const existingInvoiceReport = Object.values(allInvoiceReports ?? {}).find((report) => {
+            if (!report || !reportNameValuePairs) {
                 return false;
             }
-            const isReportArchived = isArchivedReport(reportNameValuePair[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
+            const isReportArchived = isArchivedReport(reportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
             if (isArchivedNonExpenseReport(report, isReportArchived)) {
                 return false;
             }
@@ -59,7 +59,7 @@ function useParticipantsInvoiceReport(receiverID: string | number | undefined, r
             return report.policyID === policyID && isSameReceiver;
         });
         return existingInvoiceReport;
-    }, [allReports, reportNameValuePair, receiverID, receiverType, policyID]);
+    }, [allInvoiceReports, reportNameValuePairs, receiverID, receiverType, policyID]);
     return invoiceReport;
 }
 
