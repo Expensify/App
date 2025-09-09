@@ -37,6 +37,7 @@ title: [Full article title]
 description: [Concise, benefit-focused summary]
 keywords: [feature name, related terms, navigation path, etc.]
 ---
+```
 
 -  Includes one of the required wrappers:
   - ‹div id="new-expensify" markdown="1"> for New Expensify
