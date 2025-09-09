@@ -74,7 +74,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyRequestParticipants, unholdRequest} from './actions/IOU';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
-import {handleReportChanged} from './actions/Report';
+import {getCurrentUserAccountID, handleReportChanged} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
@@ -120,6 +120,7 @@ import {
     getActivePolicies,
     getCleanedTagName,
     getConnectedIntegration,
+    getCorrectedAutoReportingFrequency,
     getForwardsToAccount,
     getManagerAccountEmail,
     getManagerAccountID,
@@ -221,9 +222,9 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
-import {canSubmitReportInSearch} from './SearchUIUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
+    allHavePendingRTERViolation,
     getAttendees,
     getBillable,
     getCardID,
@@ -246,6 +247,7 @@ import {
     getTaxCode,
     getAmount as getTransactionAmount,
     getWaypoints,
+    hasAnyTransactionWithoutRTERViolation,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
     hasNoticeTypeViolation,
     hasReceipt as hasReceiptTransactionUtils,
@@ -260,6 +262,7 @@ import {
     isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense,
     isPending,
+    isPendingCardOrScanningTransaction,
     isPerDiemRequest,
     isReceiptBeingScanned,
     isScanning,
@@ -2566,12 +2569,12 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
         }
 
         const iouReport = typeof iouReportOrID !== 'string' && iouReportOrID?.reportID === iouReportID ? iouReportOrID : getReportOrDraftReport(iouReportID);
-        const iouReportActions = getAllReportActions(iouReportID) as unknown as ReportAction[];
-        const transactions = getReportTransactions(iouReportID) as SearchTransaction[];
+        const iouReportActions = getAllReportActions(iouReportID);
+        const transactions = getReportTransactions(iouReportID);
         return (
             canIOUBePaid(iouReport, chatReport, policy, transactions) ||
             canApproveIOU(iouReport, policy, transactions) ||
-            canSubmitReportInSearch(iouReport, policy, transactions, undefined, iouReportActions, false)
+            canSubmitReport(iouReport, policy, transactions, undefined, iouReportActions)
         );
     });
 }
@@ -10149,6 +10152,52 @@ function createDraftTransactionAndNavigateToParticipantSelector(
 }
 
 /**
+ * Checks if a report can be submitted
+ * @param report - The report to check if it can be submitted
+ * @param reportActions - The report actions associated with the report
+ * @param policy - The policy associated with the report
+ * @param transactions - The transactions associated with the report
+ * @param violations - Violations associated with the transactions
+ * @param isReportArchived - Whether the report is archived
+ */
+function canSubmitReport(
+    report: OnyxEntry<Report> | SearchReport,
+    policy: OnyxEntry<Policy> | SearchPolicy,
+    transactions: Transaction[] | SearchTransaction[],
+    violations: OnyxCollection<TransactionViolations>,
+    reportActions: ReportAction[] | ReportActions,
+    isReportArchived: boolean = false,
+    isInSearch: boolean = false,
+) {
+    const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
+    const hasBeenRetracted = hasReportBeenReopened(report, reportActions) || hasReportBeenRetracted(report, reportActions);
+
+    if (!(hasBeenRetracted || isManualSubmitEnabled)) {
+        return false;
+    }
+
+    const currentUserAccountID = getCurrentUserAccountID();
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isOwner = report?.ownerAccountID === currentUserAccountID;
+    const isManager = report?.managerID === currentUserAccountID;
+
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations);
+    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, violations);
+    const hasOnlyPendingCardOrScanFailTransactions = transactions.length > 0 && transactions.every((t) => isPendingCardOrScanningTransaction(t));
+
+    return (
+        isOpenExpenseReport(report) &&
+        // In search we can not sumbit the report  if it has multiple transactions
+        (isInSearch ? transactions.length === 1 : transactions.length > 0) &&
+        (isOwner || isManager || isAdmin) &&
+        !hasOnlyPendingCardOrScanFailTransactions &&
+        !hasAllPendingRTERViolations &&
+        hasTransactionWithoutRTERViolation &&
+        !isReportArchived
+    );
+}
+
+/**
  * Check if a report has any forwarded actions
  */
 function hasForwardedAction(reportID: string): boolean {
@@ -11512,6 +11561,7 @@ export {
     isNonAdminOrOwnerOfPolicyExpenseChat,
     canJoinChat,
     canLeaveChat,
+    canSubmitReport,
     canReportBeMentionedWithinPolicy,
     canRequestMoney,
     canSeeDefaultRoom,

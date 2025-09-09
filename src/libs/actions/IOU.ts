@@ -154,6 +154,8 @@ import {
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     hasOutstandingChildRequest,
+    hasReportBeenReopened,
+    hasReportBeenRetracted,
     isArchivedReport,
     isClosedReport as isClosedReportUtil,
     isDraftReport,
