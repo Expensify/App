@@ -188,7 +188,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const pressableRef = useRef<View>(null);
 
     useEffect(() => {
-        if (isEmpty || !newTransactionID || !groupItem.transactionsQueryJSON) {
+        if (!newTransactionID || !groupItem.transactionsQueryJSON) {
             return;
         }
         search({
@@ -197,7 +197,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             offset: transactionsSnapshot?.search?.offset ?? 0,
             shouldCalculateTotals: false,
         });
-    }, [groupItem.transactionsQueryJSON, isEmpty, newTransactionID, transactionsSnapshot?.search?.offset]);
+    }, [groupItem.transactionsQueryJSON, newTransactionID, transactionsSnapshot?.search?.offset]);
 
     const handleToggle = useCallback(() => {
         setIsExpanded(!isExpanded);
@@ -225,6 +225,20 @@ function TransactionGroupListItem<TItem extends ListItem>({
         },
         [onCheckboxPressRow, transactions, isGroupByReports],
     );
+
+    const onExpandIconPress = useCallback(() => {
+        if (isEmpty && !shouldDisplayEmptyView) {
+            onPress();
+        } else if (groupItem.transactionsQueryJSON && !isExpanded) {
+            search({
+                queryJSON: groupItem.transactionsQueryJSON,
+                searchKey: undefined,
+                offset: transactionsSnapshot?.search?.offset ?? 0,
+                shouldCalculateTotals: false,
+            });
+        }
+        handleToggle();
+    }, [isEmpty, shouldDisplayEmptyView, groupItem.transactionsQueryJSON, isExpanded, transactionsSnapshot?.search?.offset, onPress, handleToggle]);
 
     const getHeader = useMemo(() => {
         const headers: Record<SearchGroupBy, React.JSX.Element> = {
@@ -307,19 +321,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     <AnimatedCollapsible
                         isExpanded={isExpanded}
                         header={getHeader}
-                        onPress={() => {
-                            if (isEmpty && !shouldDisplayEmptyView) {
-                                onPress();
-                            } else if (groupItem.transactionsQueryJSON && !isExpanded) {
-                                search({
-                                    queryJSON: groupItem.transactionsQueryJSON,
-                                    searchKey: undefined,
-                                    offset: transactionsSnapshot?.search?.offset ?? 0,
-                                    shouldCalculateTotals: false,
-                                });
-                            }
-                            handleToggle();
-                        }}
+                        onPress={onExpandIconPress}
                     >
                         {shouldDisplayEmptyView ? (
                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>

@@ -129,9 +129,6 @@ function isTransactionGroupListItemArray(data: SearchListItem[]): data is Transa
 }
 
 function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: SearchListItem, groupBy: SearchGroupBy | undefined) {
-    if (groupBy !== CONST.SEARCH.GROUP_BY.CARD && groupBy !== CONST.SEARCH.GROUP_BY.FROM) {
-        return false;
-    }
     if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
         return transaction.cardID === (groupItem as TransactionCardGroupListItemType).cardID;
     }
