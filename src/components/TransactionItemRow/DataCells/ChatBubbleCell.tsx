@@ -18,7 +18,7 @@ import type {Report} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
 const isReportUnread = ({lastReadTime = '', lastVisibleActionCreated = '', lastMentionedTime = ''}: Report): boolean =>
-    lastReadTime <= lastVisibleActionCreated || lastReadTime < (lastMentionedTime ?? '');
+    lastReadTime < lastVisibleActionCreated || lastReadTime < (lastMentionedTime ?? '');
 
 function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionReport}: {transaction: Transaction; containerStyles?: ViewStyle[]; isInSingleTransactionReport?: boolean}) {
     const theme = useTheme();

@@ -1178,10 +1178,13 @@ function MoneyReportHeader({
         </KYCWall>
     );
 
+    const hasOtherItems =
+        (shouldShowNextStep && !!optimisticNextStep?.message?.length) || (shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline) || !!statusBarProps;
+
     const moreContentUnfiltered = [
         shouldShowSelectedTransactionsButton && shouldDisplayNarrowVersion && (
             <View
-                style={[styles.dFlex, styles.w100, styles.pb3]}
+                style={[styles.dFlex, styles.w100, !hasOtherItems && styles.pb3]}
                 key="1"
             >
                 <ButtonWithDropdownMenu
@@ -1217,6 +1220,7 @@ function MoneyReportHeader({
         <View style={[styles.pt0, styles.borderBottom]}>
             <HeaderWithBackButton
                 shouldShowReportAvatarWithDisplay
+                shouldDisplayStatus
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
                 shouldShowBackButton={shouldShowBackButton}

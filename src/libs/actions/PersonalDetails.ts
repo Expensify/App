@@ -29,8 +29,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {DateOfBirthForm} from '@src/types/form';
-import type {PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails} from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 let currentUserEmail = '';
 let currentUserAccountID = -1;
@@ -40,12 +41,6 @@ Onyx.connect({
         currentUserEmail = val?.email ?? '';
         currentUserAccountID = val?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
-});
-
-let privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
-Onyx.connect({
-    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    callback: (val) => (privatePersonalDetails = val),
 });
 
 function updatePronouns(pronouns: string) {
@@ -222,7 +217,7 @@ function clearPhoneNumberError() {
     });
 }
 
-function updateAddress(street: string, street2: string, city: string, state: string, zip: string, country: Country | '') {
+function updateAddress(addresses: Address[], street: string, street2: string, city: string, state: string, zip: string, country: Country | '') {
     const parameters: UpdateHomeAddressParams = {
         homeAddressStreet: street,
         addressStreet2: street2,
@@ -245,7 +240,7 @@ function updateAddress(street: string, street2: string, city: string, state: str
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
                     addresses: [
-                        ...(privatePersonalDetails?.addresses ?? []),
+                        ...addresses,
                         {
                             street: PersonalDetailsUtils.getFormattedStreet(street, street2),
                             city,

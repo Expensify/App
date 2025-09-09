@@ -37,6 +37,9 @@ type ParentNavigationSubtitleProps = {
 
     /** Whether to open the parent report link in the current tab if possible */
     openParentReportInCurrentTab?: boolean;
+
+    /** The status text of the expense report */
+    statusText?: string;
 };
 
 function ParentNavigationSubtitle({
@@ -45,6 +48,7 @@ function ParentNavigationSubtitle({
     parentReportID = '',
     pressableStyles,
     openParentReportInCurrentTab = false,
+    statusText,
 }: ParentNavigationSubtitleProps) {
     const currentRoute = useRoute();
     const styles = useThemeStyles();
@@ -108,6 +112,7 @@ function ParentNavigationSubtitle({
             style={[styles.optionAlternateText, styles.textLabelSupporting]}
             numberOfLines={1}
         >
+            {!!statusText && <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${statusText} ${CONST.DOT_SEPARATOR} `}</Text>}
             {!!reportName && (
                 <>
                     <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${translate('threads.from')} `}</Text>

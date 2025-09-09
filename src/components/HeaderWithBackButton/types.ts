@@ -63,6 +63,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should show a border on the bottom of the Header */
     shouldShowBorderBottom?: boolean;
 
+    /** Whether we should display the status of the report */
+    shouldDisplayStatus?: boolean;
+
     /** Whether we should show a download button */
     shouldShowDownloadButton?: boolean;
 
