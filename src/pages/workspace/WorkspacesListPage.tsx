@@ -37,6 +37,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
+import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {
     calculateBillNewDot,
     clearDeleteWorkspaceError,
@@ -56,6 +57,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {getAllSelfApprovers, getDefaultApprover, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, isPolicyAuditor, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import colors from '@styles/theme/colors';
@@ -133,6 +135,7 @@ function WorkspacesListPage() {
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: false});
     const isDuplicatedWorkspaceEnabled = isBetaEnabled(CONST.BETAS.DUPLICATE_WORKSPACE);
 
@@ -252,6 +255,26 @@ function WorkspacesListPage() {
         setLoadingSpinnerIconIndex(null);
     }, []);
 
+    const startChangeOwnershipFlow = useCallback(
+        (policyID: string | undefined) => {
+            if (!policyID) {
+                return;
+            }
+
+            clearWorkspaceOwnerChangeFlow(policyID);
+            requestWorkspaceOwnerChange(policyID);
+            Navigation.navigate(
+                ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(
+                    policyID,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>,
+                    Navigation.getActiveRoute(),
+                ),
+            );
+        },
+        [session?.accountID],
+    );
+
     /**
      * Gets the menu item for each workspace
      */
@@ -342,6 +365,14 @@ function WorkspacesListPage() {
                 });
             }
 
+            if (isAdmin && !isOwner && shouldRenderTransferOwnerButton(fundList)) {
+                threeDotsMenuItems.push({
+                    icon: Expensicons.Transfer,
+                    text: translate('workspace.people.transferOwner'),
+                    onSelected: () => startChangeOwnershipFlow(item.policyID),
+                });
+            }
+
             return (
                 <OfflineWithFeedback
                     key={`${item.title}_${index}`}
@@ -383,23 +414,25 @@ function WorkspacesListPage() {
             );
         },
         [
-            isLessThanMediumScreen,
+            session?.email,
+            session?.accountID,
+            activePolicyID,
+            translate,
+            policies,
+            fundList,
+            styles.ph5,
             styles.mb2,
             styles.mh5,
-            styles.ph5,
             duplicateWorkspace?.policyID,
             styles.hoveredComponentBG,
-            translate,
             styles.offlineFeedback.deleted,
-            session?.accountID,
-            session?.email,
-            activePolicyID,
             loadingSpinnerIconIndex,
             shouldCalculateBillNewDot,
             isSupportalAction,
             isDuplicatedWorkspaceEnabled,
             setIsDeletingPaidWorkspace,
-            policies,
+            startChangeOwnershipFlow,
+            isLessThanMediumScreen,
             isLoadingBill,
             resetLoadingSpinnerIconIndex,
         ],

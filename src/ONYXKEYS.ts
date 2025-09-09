@@ -434,6 +434,12 @@ const ONYXKEYS = {
     /** Indicates whether we should mask fragile user data while exporting onyx state or not */
     SHOULD_MASK_ONYX_STATE: 'shouldMaskOnyxState',
 
+    /** Indicates whether we should use the staging version of the secure API server */
+    SHOULD_USE_STAGING_SERVER: 'shouldUseStagingServer',
+
+    /** Indicates whether the debug mode is currently enabled */
+    IS_DEBUG_MODE_ENABLED: 'isDebugModeEnabled',
+
     /** Stores new group chat draft */
     NEW_GROUP_CHAT_DRAFT: 'newGroupChatDraft',
 
@@ -1204,6 +1210,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
     [ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA]: boolean;
     [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: boolean;
+    [ONYXKEYS.SHOULD_USE_STAGING_SERVER]: boolean;
+    [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
     [ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS]: Record<string, OnyxTypes.PolicyOwnershipChangeChecks>;
     [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: OnyxTypes.QuickAction;
