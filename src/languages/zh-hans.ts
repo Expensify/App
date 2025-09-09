@@ -2487,8 +2487,10 @@ const translations = {
             onboardingEmployerOrSubmitMessage:
                 '\u62a5\u9500\u5c31\u50cf\u53d1\u9001\u6d88\u606f\u4e00\u6837\u7b80\u5355\u3002\u8ba9\u6211\u4eec\u6765\u770b\u770b\u57fa\u672c\u77e5\u8bc6\u3002',
             onboardingPersonalSpendMessage: '\u4ee5\u4e0b\u662f\u5982\u4f55\u5728\u51e0\u6b21\u70b9\u51fb\u4e2d\u8ddf\u8e2a\u60a8\u7684\u652f\u51fa\u3002',
-            onboardingManageTeamMessage:
-                '\u0023 \u60a8\u7684\u514d\u8d39\u8bd5\u7528\u5df2\u7ecf\u5f00\u59cb\uff01\u8ba9\u6211\u4eec\u5e2e\u60a8\u5b8c\u6210\u8bbe\u7f6e\u3002\n\ud83d\udc4b \u60a8\u597d\uff0c\u6211\u662f\u60a8\u7684 Expensify \u8bbe\u7f6e\u4e13\u5458\u3002\u73b0\u5728\u60a8\u5df2\u7ecf\u521b\u5efa\u4e86\u4e00\u4e2a\u5de5\u4f5c\u533a\uff0c\u8bf7\u5145\u5206\u5229\u7528 30 \u5929\u514d\u8d39\u8bd5\u7528\uff0c\u5e76\u6309\u7167\u4e0b\u9762\u7684\u6b65\u9aa4\u64cd\u4f5c\uff01',
+            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
+                hasIntroSelected
+                    ? '\u0023 \u60a8\u7684\u514d\u8d39\u8bd5\u7528\u5df2\u7ecf\u5f00\u59cb\uff01\u8ba9\u6211\u4eec\u5e2e\u60a8\u5b8c\u6210\u8bbe\u7f6e\u3002\n\ud83d\udc4b \u60a8\u597d\uff0c\u6211\u662f\u60a8\u7684 Expensify \u8bbe\u7f6e\u4e13\u5458\u3002\u73b0\u5728\u60a8\u5df2\u7ecf\u521b\u5efa\u4e86\u4e00\u4e2a\u5de5\u4f5c\u533a\uff0c\u8bf7\u5145\u5206\u5229\u7528 30 \u5929\u514d\u8d39\u8bd5\u7528\uff0c\u5e76\u6309\u7167\u4e0b\u9762\u7684\u6b65\u9aa4\u64cd\u4f5c\uff01'
+                    : '\u0023 \u60a8\u7684\u514d\u8d39\u8bd5\u7528\u5df2\u7ecf\u5f00\u59cb\uff01\u8ba9\u6211\u4eec\u5e2e\u60a8\u5b8c\u6210\u8bbe\u7f6e\u3002\n\ud83d\udc4b \u60a8\u597d\uff0c\u6211\u662f\u60a8\u7684 Expensify \u8bbe\u7ece\u4e13\u5458\u3002\u6211\u5df2\u7ecf\u521b\u5efa\u4e86\u4e00\u4e2a\u5de5\u4f5c\u533a\uff0c\u7528\u4e8e\u5e2e\u52a9\u7ba1\u7406\u60a8\u56e2\u961f\u7684\u6536\u636e\u548c\u8d39\u7528\u3002\u4e3a\u4e86\u5145\u5206\u5229\u7528 30 \u5929\u514d\u8d39\u8bd5\u7528\uff0c\u8bf7\u6309\u7167\u4e0b\u9762\u7684\u5269\u4f59\u6b65\u9aa4\u64cd\u4f5c\uff01',
             onboardingTrackWorkspaceMessage:
                 '# \u8ba9\u6211\u4eec\u6765\u8bbe\u7f6e\u60a8\u7684\u5e10\u6237\n\u00f0\u009f\u0091\u008b \u6211\u6765\u5e2e\u5fd9\u4e86\uff01\u4e3a\u4e86\u5e2e\u52a9\u60a8\u5f00\u59cb\uff0c\u6211\u5df2\u4e3a\u4e2a\u4f53\u7ecf\u8425\u8005\u548c\u7c7b\u4f3c\u4f01\u4e1a\u91cf\u8eab\u5b9a\u5236\u4e86\u60a8\u7684\u5de5\u4f5c\u533a\u8bbe\u7f6e\u3002\u60a8\u53ef\u4ee5\u901a\u8fc7\u70b9\u51fb\u4e0b\u9762\u7684\u94fe\u63a5\u6765\u8c03\u6574\u60a8\u7684\u5de5\u4f5c\u533a\uff01\n\n\u4ee5\u4e0b\u662f\u5982\u4f55\u5728\u51e0\u6b21\u70b9\u51fb\u4e2d\u8ddf\u8e2a\u60a8\u7684\u652f\u51fa\uff1a',
             onboardingChatSplitMessage: '\u4e0e\u670b\u53cb\u5206\u644a\u8d26\u5355\u5c31\u50cf\u53d1\u9001\u6d88\u606f\u4e00\u6837\u7b80\u5355\u3002\u4ee5\u4e0b\u662f\u65b9\u6cd5\u3002',
@@ -4796,8 +4798,7 @@ const translations = {
             existingTagError: '具有此名称的标签已存在',
             invalidTagNameError: '标签名称不能为0。请选择其他值。',
             genericFailureMessage: '更新标签时发生错误，请重试。',
-            importedFromAccountingSoftware: '标签在您的系统中管理',
-            employeesSeeTagsAs: '员工看到的标签为 ',
+            importedFromAccountingSoftware: '以下标签是从您的...导入的',
             glCode: 'GL代码',
             updateGLCodeFailureMessage: '更新总账代码时发生错误，请重试。',
             tagRules: '标签规则',
@@ -6070,6 +6071,9 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '报销',
             },
+            has: {
+                receipt: '收据',
+            },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '提交',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '批准',
@@ -6077,6 +6081,7 @@ const translations = {
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: '导出',
             },
         },
+        has: '有',
         groupBy: '组别',
         moneyRequestReport: {
             emptyStateTitle: '此报告没有费用。',
