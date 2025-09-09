@@ -26,7 +26,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 **To set up an approval workflow:**
 
-1. In the navigation tabs, go to **Workspaces > [Workspace Name] > Workflows**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Workflows**.
 2. Create a custom workflow to route expenses to the appropriate approvers.
 
 ---
@@ -46,7 +46,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 **To place an expense on hold:**
 
-1. In the navigation tabs, head to **Reports > Expenses**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Expenses**.
 2. Locate the expense using the search bar or filters.
 3. Click **View**.
 4. Open the **More** dropdown at the top of the expense.
@@ -54,7 +54,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 **To take an expense off hold to approve:**
 
-1. In the navigation tabs, head to **Reports > Expenses**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Expenses**.
 2. Locate the held expense using the search bar or filters.
 3. Click **View**.
 4. Open the **More** dropdown at the top of the expense.
@@ -67,7 +67,7 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 # Unapprove an Expense
 
-1. In the navigation tabs, head to **Reports > Expenses**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Expenses**.
 2. Locate the expense using the search bar or filters.
 3. Click **View**.
 4. Open the **More** dropdown at the top of the expense.
