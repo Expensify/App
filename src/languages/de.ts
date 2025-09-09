@@ -162,6 +162,7 @@ import type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    PayAndDowngradeDescriptionParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
@@ -5616,7 +5617,7 @@ const translations = {
         payAndDowngrade: {
             title: 'Bezahlen & Herabstufen',
             headline: 'Ihre letzte Zahlung',
-            description1: 'Ihre endgültige Rechnung für dieses Abonnement wird sein',
+            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `Ihre endgültige Rechnung für dieses Abonnement beträgt <strong>${formattedAmount}</strong>`,
             description2: ({date}: DateParams) => `Siehe Ihre Aufschlüsselung unten für ${date}:`,
             subscription:
                 'Achtung! Diese Aktion beendet Ihr Expensify-Abonnement, löscht diesen Arbeitsbereich und entfernt alle Mitglieder des Arbeitsbereichs. Wenn Sie diesen Arbeitsbereich behalten und nur sich selbst entfernen möchten, lassen Sie zuerst einen anderen Administrator die Abrechnung übernehmen.',
