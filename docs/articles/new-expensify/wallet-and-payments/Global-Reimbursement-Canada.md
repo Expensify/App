@@ -30,7 +30,7 @@ To comply with financial regulations, the following documents are needed:
 
 # Step 1: Set Your Workspace Currency and Enable Payments
 
-1. From the navigation tabs, go to **Workspaces > [Workspace Name] > Overview**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Overview**.
 2. Under **Default currency**, choose **CAD$**.
 3. Return to the left-hand menu and select **Workflows > Make or Track Payments**.
 4. Click **Connect bank account**, then confirm your **currency and country** (Canada – CAD$).
@@ -101,7 +101,7 @@ To reimburse members:
 
 ## How do members add their deposit-only accounts?
 
-1. In the navigation tabs, go to **Account > Wallet**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Account > Wallet**.
 2. Click **Add deposit-only bank account**.
 3. Enter personal bank details.
 
