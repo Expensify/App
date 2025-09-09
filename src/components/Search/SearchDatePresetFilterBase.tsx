@@ -42,9 +42,6 @@ type SearchDatePresetFilterBaseProps = {
     /** The date presets */
     presets?: SearchDatePreset[];
 
-    /** Whether we should display the horizontal rule after the presets list */
-    shouldShowHorizontalRule?: boolean;
-
     /** The ref handle */
     ref: Ref<SearchDatePresetFilterBaseHandle>;
 };
@@ -59,11 +56,13 @@ type SearchDatePresetFilterBaseProps = {
  * - On save: if a date modifier is selected (i.e. user clicked save at the calendar picker) you should `setDateValueOfSelectedDateModifier` otherwise `getDateValues`
  * - On reset: if a date modifier is selected (i.e. user clicked reset at the calendar picker) you should `clearDateValueOfSelectedDateModifier` otherwise `clearDateValues`
  */
-function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelectDateModifier, presets, shouldShowHorizontalRule = false, ref}: SearchDatePresetFilterBaseProps) {
+function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelectDateModifier, presets, ref}: SearchDatePresetFilterBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+
+    const shouldShowHorizontalRule = !!presets?.length;
 
     const [dateValues, setDateValues] = useState<SearchDateValues>(defaultDateValues);
     const setDateValue = useCallback((dateModifier: SearchDateModifier, value: string | undefined) => {
