@@ -74,7 +74,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyRequestParticipants, unholdRequest} from './actions/IOU';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
-import {getCurrentUserAccountID, handleReportChanged} from './actions/Report';
+import {handleReportChanged} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
@@ -10166,8 +10166,8 @@ function canSubmitReport(
     transactions: Transaction[] | SearchTransaction[],
     violations: OnyxCollection<TransactionViolations>,
     reportActions: ReportAction[] | ReportActions,
-    isReportArchived: boolean = false,
-    isInSearch: boolean = false,
+    isReportArchived = false,
+    isInSearch = false,
 ) {
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const hasBeenRetracted = hasReportBeenReopened(report, reportActions) || hasReportBeenRetracted(report, reportActions);
@@ -10176,10 +10176,9 @@ function canSubmitReport(
         return false;
     }
 
-    const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isOwner = report?.ownerAccountID === currentUserAccountID;
     const isManager = report?.managerID === currentUserAccountID;
+    const isOwner = report?.ownerAccountID === currentUserAccountID;
 
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations);
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, violations);
