@@ -591,11 +591,9 @@ function setWorkspaceAutoHarvesting(policy: OnyxEntry<Policy>, enabled: boolean)
                 harvesting: {enabled},
                 pendingFields: {
                     autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    harvesting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
                 errorFields: {
                     autoReporting: null,
-                    harvesting: null,
                 },
             },
         },
@@ -610,11 +608,9 @@ function setWorkspaceAutoHarvesting(policy: OnyxEntry<Policy>, enabled: boolean)
                 harvesting: policy?.harvesting ?? null,
                 pendingFields: {
                     autoReporting: null,
-                    harvesting: null,
                 },
                 errorFields: {
                     autoReporting: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsDelayedSubmissionPage.autoReportingErrorMessage'),
-                    harvesting: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
         },
@@ -627,7 +623,6 @@ function setWorkspaceAutoHarvesting(policy: OnyxEntry<Policy>, enabled: boolean)
             value: {
                 pendingFields: {
                     autoReporting: null,
-                    harvesting: null,
                 },
             },
         },
