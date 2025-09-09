@@ -22,6 +22,7 @@ import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
 import LegalName from './substeps/LegalName';
 import PhoneNumber from './substeps/PhoneNumber';
+import Pin from './substeps/Pin';
 import type {CustomSubStepProps} from './types';
 import {getInitialSubstep, getSubstepValues} from './utils';
 
@@ -30,7 +31,7 @@ type MissingPersonalDetailsContentProps = {
     draftValues: OnyxEntry<PersonalDetailsForm>;
 };
 
-const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
+const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Pin, Confirmation];
 
 function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();

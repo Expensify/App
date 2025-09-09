@@ -29,7 +29,7 @@ function EnableBiometricsModal({isVisible, onCancel = () => {}, updateLabelToReg
     const [isNotificationVisible, setNotificationVisibility] = useState(false);
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
-    const navigateToErrorPage = singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.ENABLE_BIOMETRICS_ERROR_PAGE)));
+    const navigateToErrorPage = singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS)));
 
     const handleClose = () => {
         onCancel();
@@ -54,7 +54,7 @@ function EnableBiometricsModal({isVisible, onCancel = () => {}, updateLabelToReg
      * Change to false if you want to test error page. This should be replaced by the actual logic checking if the registration was successful.
      * The logic behind making the success notification visible will also require some adjustment but it won't be anything major so no issue there.
      */
-    const wasRegistrationSuccessful = true;
+    const wasRegistrationSuccessful = false;
 
     return (
         <View>
