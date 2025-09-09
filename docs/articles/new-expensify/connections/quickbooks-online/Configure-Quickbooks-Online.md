@@ -13,7 +13,7 @@ Connecting QuickBooks Online to Expensify helps streamline expense tracking and 
 
 To choose how data is imported from QuickBooks Online to Expensify:
 
-1. From the navigation tabs, go to **Workspaces > [Workspace Name] > Accounting > QuickBooks Online**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting > QuickBooks Online**
 2. Click **Import** under the QuickBooks Online connection
 3. Review and adjust each of the following:
 
@@ -35,7 +35,7 @@ To choose how data is imported from QuickBooks Online to Expensify:
 
 To choose how data is exported from Expensify to QuickBooks Online:
 
-1. From the navigation tabs, go to **Workspaces > [Workspace Name] > Accounting > QuickBooks Online**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting > QuickBooks Online**
 2. Click **Export** under the QuickBooks Online connection
 3. Configure the following settings:
 
@@ -64,7 +64,7 @@ To choose how data is exported from Expensify to QuickBooks Online:
 
 To manage automation and other connection preferences:
 
-1. From the navigation tabs, go to **Workspaces > [Workspace Name] > Accounting > QuickBooks Online**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting > QuickBooks Online**
 2. Click **Advanced** under the QuickBooks Online connection
 3. Configure the following:
 
