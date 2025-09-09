@@ -16,7 +16,7 @@ import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
-import {setMoneyRequestParticipants} from '@userActions/IOU';
+import {setCustomUnitRateID, setMoneyRequestParticipants} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,6 +73,9 @@ function IOURequestStepUpgrade({
                     return;
                 }
                 setTransactionReport(transactionID, {reportID}, true);
+                // Let the confirmation step decide the distance rate because policy data is not fully available at this step
+                setCustomUnitRateID(transactionID, '-1');
+                Navigation.setParams({reportID});
                 Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID, transactionID, reportID, Navigation.getActiveRoute()));
                 break;
             }
