@@ -130,3 +130,15 @@
 - Upstream PR/issue: https://github.com/necolas/react-native-web/pull/2800
 - E/App issue: https://github.com/Expensify/App/issues/65820
 - PR introducing patch: https://github.com/Expensify/App/pull/68834
+
+### [react-native-web+0.20.0+012+fix-overscroll-recoil.patch](react-native-web+0.20.0+012+fix-overscroll-recoil.patch)
+
+- Reason:
+  
+    ```
+    Fixes the perceived overscroll recoil or rubber band effect at the edges of inverted flatlists.
+    ```
+  
+- Upstream PR/issue: This was a patch on top of patches 008 and 009 of react-native-web.
+- E/App issue: https://github.com/Expensify/App/issues/66821
+- PR introducing patch: https://github.com/Expensify/App/pull/69820
