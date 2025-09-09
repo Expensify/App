@@ -39,8 +39,8 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
         const qbdReimbursableAccounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, nonReimbursable);
         // We use the logical OR (||) here instead of ?? because `nonReimbursableAccount` can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return qbdReimbursableAccounts.find(({id}) => nonReimbursableAccount === id)?.name || qbdReimbursableAccounts.at(0)?.name || translate('workspace.qbd.notConfigured');
-    }, [policy?.connections?.quickbooksDesktop, nonReimbursable, translate, nonReimbursableAccount]);
+        return qbdReimbursableAccounts.find(({id}) => nonReimbursableAccount === id)?.name || qbdReimbursableAccounts.at(0)?.name;
+    }, [policy?.connections?.quickbooksDesktop, nonReimbursable, nonReimbursableAccount]);
 
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!qbdConfig?.shouldAutoCreateVendor);
 
