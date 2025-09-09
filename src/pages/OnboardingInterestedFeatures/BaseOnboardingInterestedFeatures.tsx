@@ -157,6 +157,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             setRootStatusBarEnabled(false);
             return;
         }
+        // Wait for CompleteGuidedSetup and CreateWorkspace to complete before redirecting to OldDot to prevent showing this onboarding modal again.
         waitForIdle().then(() => {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
         });
@@ -214,10 +215,8 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         });
 
         if (shouldOnboardingRedirectToOldDot(onboardingCompanySize, newUserReportedIntegration)) {
-            if (CONFIG.IS_HYBRID_APP) {
-                return;
-            }
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+            // Do not call openOldDotLink here because it will cause a navigation loop. See https://github.com/Expensify/App/issues/61363
+            return;
         }
 
         // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
