@@ -91,9 +91,14 @@ class TranslationGenerator {
     private readonly compareRef: string;
 
     /**
-     * Specific paths to retranslate.
+     * Paths to add (don't exist in target file yet).
      */
-    private readonly pathsToTranslate: Set<TranslationPaths>;
+    private readonly pathsToAdd: Set<TranslationPaths>;
+
+    /**
+     * Paths to modify (exist in target file and need retranslation).
+     */
+    private readonly pathsToModify: Set<TranslationPaths>;
 
     /**
      * Paths to remove (only populated when using compareRef).
@@ -132,10 +137,11 @@ class TranslationGenerator {
         this.sourceFile = ts.createSourceFile(config.sourceFile, sourceCode, ts.ScriptTarget.Latest, true);
         this.translator = config.translator;
         this.compareRef = config.compareRef;
-        this.pathsToTranslate = config.paths ?? new Set<TranslationPaths>();
+        this.pathsToAdd = new Set<TranslationPaths>();
+        this.pathsToModify = config.paths ?? new Set<TranslationPaths>();
         this.pathsToRemove = new Set<TranslationPaths>();
         this.verbose = config.verbose;
-        this.isIncremental = this.pathsToTranslate.size > 0 || !!this.compareRef;
+        this.isIncremental = this.pathsToModify.size > 0 || this.pathsToAdd.size > 0 || !!this.compareRef;
     }
 
     public async generateTranslations(): Promise<void> {
@@ -144,7 +150,7 @@ class TranslationGenerator {
         // map of translations for each locale
         const translations = new Map<TranslationTargetLocale, Map<number, string>>();
 
-        if (this.pathsToTranslate.size === 0 && this.compareRef) {
+        if (this.pathsToModify.size === 0 && this.pathsToAdd.size === 0 && this.compareRef) {
             // If compareRef is provided (and no specific paths), use git diff to find changed lines and build dot-notation paths
             this.buildPathsFromGitDiff();
         }
@@ -397,11 +403,13 @@ class TranslationGenerator {
      * If paths are specified, only paths that match exactly or are nested under a specified path should be translated.
      */
     private shouldTranslatePath(currentPath: string): boolean {
-        if (this.pathsToTranslate.size === 0) {
+        if (this.pathsToModify.size === 0 && this.pathsToAdd.size === 0) {
             return true;
         }
 
-        for (const targetPath of this.pathsToTranslate) {
+        // Check if path is in either pathsToModify or pathsToAdd
+        const allPathsToTranslate = new Set([...this.pathsToModify, ...this.pathsToAdd]);
+        for (const targetPath of allPathsToTranslate) {
             // Exact match
             if (currentPath === targetPath) {
                 return true;
@@ -591,17 +599,18 @@ class TranslationGenerator {
             // Handle the case where the same path has both additions and removals (treat as modified, not deleted)
             // Also check if removed paths still exist in en.ts (partial removal within function)
             for (const removedPath of this.pathsToRemove) {
-                if (this.pathsToTranslate.has(removedPath)) {
+                if (this.pathsToModify.has(removedPath)) {
                     this.pathsToRemove.delete(removedPath); // It's modified, not removed
                 } else if (get(en, removedPath) !== undefined) {
                     // Path still exists in en.ts, so it's modified not removed
                     this.pathsToRemove.delete(removedPath);
-                    this.pathsToTranslate.add(removedPath);
+                    this.pathsToModify.add(removedPath);
                 }
             }
 
             if (this.verbose) {
-                console.log(`📝 Paths to retranslate: ${Array.from(this.pathsToTranslate).join(', ')}`);
+                console.log(`🔄 Paths to modify: ${Array.from(this.pathsToModify).join(', ')}`);
+                console.log(`➕ Paths to add: ${Array.from(this.pathsToAdd).join(', ')}`);
                 console.log(`🗑️ Paths to remove: ${Array.from(this.pathsToRemove).join(', ')}`);
             }
         } catch (error) {
@@ -632,7 +641,7 @@ class TranslationGenerator {
             const dotPath = this.buildDotNotationPathFromNode(node);
             if (dotPath) {
                 if (isOnAddedLine) {
-                    this.pathsToTranslate.add(dotPath as TranslationPaths);
+                    this.pathsToModify.add(dotPath as TranslationPaths);
                 }
                 if (isOnRemovedLine) {
                     this.pathsToRemove.add(dotPath as TranslationPaths);
