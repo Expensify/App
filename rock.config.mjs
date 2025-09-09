@@ -1,11 +1,11 @@
-import {platformAndroid} from '@rnef/platform-android';
-import {platformIOS} from '@rnef/platform-ios';
-import {pluginMetro} from '@rnef/plugin-metro';
-import {providerGitHub} from '@rnef/provider-github';
+import {platformAndroid} from '@rock-js/platform-android';
+import {platformIOS} from '@rock-js/platform-ios';
+import {pluginMetro} from '@rock-js/plugin-metro';
+import {providerGitHub} from '@rock-js/provider-github';
 
 const isHybrid = process.env.IS_HYBRID_APP === 'true';
 
-/** @type {import('@rnef/config').Config} */
+/** @type {import('@rock-js/config').Config} */
 export default {
     remoteCacheProvider: providerGitHub({
         owner: 'Expensify',
