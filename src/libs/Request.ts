@@ -28,6 +28,7 @@ function makeXHR(request: Request): Promise<Response | void> {
                 Log.info('411 insufficient permissions; suppressing retry', false, {command: request.command});
 
                 // Trigger a global modal via Onyx so it shows regardless of current UI location
+                // eslint-disable-next-line rulesdir/prefer-actions-set-data
                 Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, {
                     command: request.command,
                     message: typeof response?.message === 'string' ? response.message : undefined,
