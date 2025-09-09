@@ -304,7 +304,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // If the count is too high (equal to or exceeds the web pagination size / 50) and there are no cached messages in the report,
     // OpenReport will be called each time the user scrolls up the report a bit, clicks on report preview, and then goes back.
     const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
-    const {transactions: allReportTransactions} = useTransactionsAndViolationsForReport(reportIDFromRoute);
+    const {transactions: allReportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportIDFromRoute);
 
     const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions), [allReportTransactions, reportActions]);
     // wrapping in useMemo because this is array operation and can cause performance issues
@@ -863,6 +863,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         reportActions={reportActions}
                                         transactions={visibleTransactions}
                                         newTransactions={newTransactions}
+                                        violations={allReportViolations}
                                         hasOlderActions={hasOlderActions}
                                         hasNewerActions={hasNewerActions}
                                         showReportActionsLoadingState={showReportActionsLoadingState}
