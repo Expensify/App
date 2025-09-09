@@ -133,7 +133,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             ...DEFAULT_SPLIT_TRANSACTION,
             filename: 'receipt1.jpg',
             iouRequestType: 'scan',
-            receipt: {source: 'path/to/receipt1.jpg', type: ''},
+            receipt: {uri: 'path/to/receipt1.jpg', type: ''},
         });
 
         render(
@@ -168,7 +168,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             ...DEFAULT_SPLIT_TRANSACTION,
             filename: 'receipt1.jpg',
             iouRequestType: 'scan',
-            receipt: {source: 'path/to/receipt1.jpg', type: ''},
+            receipt: {uri: 'path/to/receipt1.jpg', type: ''},
             transactionID: '1',
         });
 
@@ -176,7 +176,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             ...DEFAULT_SPLIT_TRANSACTION,
             filename: 'receipt2.jpg',
             iouRequestType: 'scan',
-            receipt: {source: 'path/to/receipt2.jpg', type: ''},
+            receipt: {uri: 'path/to/receipt2.jpg', type: ''},
             transactionID: '2',
         });
 
