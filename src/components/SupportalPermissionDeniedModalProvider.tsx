@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import ConfirmModal from '@components/ConfirmModal';
+import ConfirmModal from './ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
