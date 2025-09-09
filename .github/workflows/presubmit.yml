@@ -35,7 +35,7 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - uses: presubmit/ai-reviewer@987adce514aa144560f36710225ea1c6164bf1af
+      - uses: Expensify/ai-reviewer@987adce514aa144560f36710225ea1c6164bf1af
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
