@@ -324,7 +324,6 @@ function IOURequestStepDistanceMap({
                     trackExpense({
                         report,
                         isDraftPolicy: false,
-                        isReportArchived,
                         participantParams: {
                             payeeEmail: currentUserPersonalDetails.login,
                             payeeAccountID: currentUserPersonalDetails.accountID,

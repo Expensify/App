@@ -596,7 +596,6 @@ type CreateTrackExpenseParams = {
     isRetry?: boolean;
     shouldPlaySound?: boolean;
     shouldHandleNavigation?: boolean;
-    isReportArchived?: boolean;
 };
 
 type BuildOnyxDataForInvoiceParams = {
