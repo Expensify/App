@@ -42,19 +42,22 @@ function ShareRootPage() {
     const {validateFiles} = useFilesValidation(addValidatedShareFile);
     const isTextShared = currentAttachment?.mimeType === 'txt';
 
-    const validateFileIfNecessary = (file: ShareTempFile) => {
-        if (!file || isTextShared || !shouldValidateFile(file)) {
-            return;
-        }
+    const validateFileIfNecessary = useCallback(
+        (file: ShareTempFile) => {
+            if (!file || isTextShared || !shouldValidateFile(file)) {
+                return;
+            }
 
-        validateFiles([
-            {
-                name: file.id,
-                uri: file.content,
-                type: file.mimeType,
-            },
-        ]);
-    };
+            validateFiles([
+                {
+                    name: file.id,
+                    uri: file.content,
+                    type: file.mimeType,
+                },
+            ]);
+        },
+        [isTextShared, validateFiles],
+    );
 
     const appState = useRef(AppState.currentState);
     const [isFileReady, setIsFileReady] = useState(false);

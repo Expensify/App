@@ -69,7 +69,6 @@ export default function createRandomReportAction(index: number): ReportAction {
         automatic: randBoolean(),
         shouldShow: randBoolean(),
         lastModified: getRandomDate(),
-        pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
         delegateAccountID: index,
         errors: {},
         isAttachmentOnly: randBoolean(),
