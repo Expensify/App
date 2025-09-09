@@ -9,19 +9,26 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
+import {getHeaderMessageForNonUserList, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getOriginalMessage, getReportActionMessage, getReportActionMessageText, getSortedReportActionsForDisplay, isCreatedAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, formatReportLastMessageText} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, formatReportLastMessageText, getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, ReportAction} from '@src/types/onyx';
+import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 type DebugReportActionsProps = {
     reportID: string;
 };
-
+const personalDetailsSelector = (personalDetail: OnyxInputOrEntry<PersonalDetails>): OnyxInputOrEntry<PersonalDetails> =>
+    personalDetail && {
+        accountID: personalDetail.accountID,
+        login: personalDetail.login,
+        avatar: personalDetail.avatar,
+        pronouns: personalDetail.pronouns,
+    };
 function DebugReportActions({reportID}: DebugReportActionsProps) {
     const {translate, datetimeToCalendarTime, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -29,12 +36,15 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const isReportArchived = useReportIsArchived(reportID);
-    const ifUserCanPerformWriteAction = canUserPerformWriteAction(report);
+    const ifUserCanPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (c) => mapOnyxCollectionItems(c, personalDetailsSelector), canBeMissing: false});
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
         selector: (allReportActions) => getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true),
         canBeMissing: true,
     });
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
+    const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails as OnyxInputOrEntry<PersonalDetailsList>));
 
     const getReportActionDebugText = useCallback(
         (reportAction: ReportAction) => {
@@ -50,7 +60,9 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
             }
 
             if (isCreatedAction(reportAction)) {
-                return formatReportLastMessageText(SidebarUtils.getWelcomeMessage(report, policy, localeCompare, isReportArchived).messageText ?? translate('report.noActivityYet'));
+                return formatReportLastMessageText(
+                    SidebarUtils.getWelcomeMessage(report, policy, participantPersonalDetailList, localeCompare, isReportArchived).messageText ?? translate('report.noActivityYet'),
+                );
             }
 
             if (reportActionMessage.html) {
@@ -59,7 +71,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
             return getReportActionMessageText(reportAction);
         },
-        [translate, policy, report, isReportArchived, localeCompare],
+        [translate, report, policy, participantPersonalDetailList, localeCompare, isReportArchived],
     );
 
     const searchedReportActions = useMemo(() => {

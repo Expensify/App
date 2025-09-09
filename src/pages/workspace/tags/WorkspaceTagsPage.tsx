@@ -9,6 +9,7 @@ import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -24,7 +25,6 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
-import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -122,9 +122,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         return policyTagLists?.at(0)?.tags;
     }, [isMultiLevelTags, policyTagLists]);
 
-    const filterTags = useCallback((tag?: PolicyTag | PolicyTagList) => !!tag && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, []);
-
-    const [selectedTags, setSelectedTags] = useFilteredSelection(tagsList, filterTags);
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
     const isTagSelected = useCallback((tag: TagListItem) => selectedTags.includes(tag.value), [selectedTags]);
 
@@ -136,7 +134,55 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const cleanupSelectedOption = useCallback(() => setSelectedTags([]), [setSelectedTags]);
+    useEffect(() => {
+        if (selectedTags.length === 0 || !canSelectMultiple) {
+            return;
+        }
+
+        setSelectedTags((prevSelectedTags) => {
+            const newSelectedTags = [];
+
+            for (const tagName of prevSelectedTags) {
+                if (isMultiLevelTags) {
+                    const tagListExists = tagsList?.[tagName];
+                    if (!tagListExists) {
+                        const renamedTagList = Object.entries(tagsList ?? {}).find(([, tagList]) => {
+                            const typedTagList = tagList as {previousTagName?: string};
+                            return typedTagList.previousTagName === tagName;
+                        });
+                        if (renamedTagList) {
+                            newSelectedTags.push(renamedTagList[0]);
+                            continue;
+                        }
+                    }
+
+                    if (tagListExists && tagListExists.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                        newSelectedTags.push(tagName);
+                    }
+                } else {
+                    const tagExists = tagsList?.[tagName];
+                    if (!tagExists) {
+                        const renamedTag = Object.entries(tagsList ?? {}).find(([, tag]) => {
+                            const typedTag = tag as {previousTagName?: string};
+                            return typedTag.previousTagName === tagName;
+                        });
+                        if (renamedTag) {
+                            newSelectedTags.push(renamedTag[0]);
+                            continue;
+                        }
+                    }
+
+                    if (tagExists && tagExists.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                        newSelectedTags.push(tagName);
+                    }
+                }
+            }
+
+            return newSelectedTags;
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [tagsList]);
+    const cleanupSelectedOption = useCallback(() => setSelectedTags([]), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
 
     useSearchBackPress({
@@ -331,6 +377,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         InteractionManager.runAfterInteractions(() => {
             setSelectedTags([]);
+            if (isMobileSelectionModeEnabled && selectedTags.length === Object.keys(policyTagLists.at(0)?.tags ?? {}).length) {
+                turnOffMobileSelectionMode();
+            }
         });
     };
 
@@ -556,17 +605,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const headerContent = (
         <>
             <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : undefined]}>
-                {!hasSyncError && isConnectionVerified ? (
-                    <Text>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
-                        <TextLink
-                            style={[styles.textNormal, styles.link]}
-                            href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                        >
-                            {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                        </TextLink>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
-                    </Text>
+                {!hasSyncError && isConnectionVerified && currentConnectionName ? (
+                    <ImportedFromAccountingSoftware
+                        policyID={policyID}
+                        currentConnectionName={currentConnectionName}
+                        connectedIntegration={connectedIntegration}
+                        translatedText={translate('workspace.tags.importedFromAccountingSoftware')}
+                    />
                 ) : (
                     <Text style={[styles.textNormal, styles.colorMuted]}>
                         {translate('workspace.tags.subtitle')}

@@ -1,10 +1,9 @@
 import {Image} from 'expo-image';
-import React, {useEffect, useMemo, useState} from 'react';
-import {InteractionManager} from 'react-native';
+import React, {useEffect, useState} from 'react';
 import type {ImageSourcePropType} from 'react-native';
+import {InteractionManager} from 'react-native';
 import Reanimated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import DesktopBackgroundImage from '@assets/images/home-background--desktop.svg';
-import MobileBackgroundImage from '@assets/images/home-background--mobile-new.svg';
+import MobileBackgroundImage from '@assets/images/home-background--ios.svg';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isAnonymousUser} from '@libs/actions/Session';
@@ -12,10 +11,9 @@ import CONST from '@src/CONST';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 import type BackgroundImageProps from './types';
 
-function BackgroundImage({width, transitionDuration, isSmallScreen = false}: BackgroundImageProps) {
+function BackgroundImage({width, transitionDuration}: BackgroundImageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const src = useMemo(() => (isSmallScreen ? MobileBackgroundImage : DesktopBackgroundImage), [isSmallScreen]);
     const [isInteractionComplete, setIsInteractionComplete] = useState(false);
     const isAnonymous = isAnonymousUser();
 
@@ -56,7 +54,7 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
     return (
         <Reanimated.View style={[styles.signInBackground, StyleUtils.getWidthStyle(width), animatedStyle]}>
             <Image
-                source={src as ImageSourcePropType}
+                source={MobileBackgroundImage as ImageSourcePropType}
                 onLoadEnd={() => setOpacityAnimation()}
                 style={[styles.signInBackground, StyleUtils.getWidthStyle(width)]}
                 transition={transitionDuration}
