@@ -47,7 +47,6 @@ function useSearchHighlightAndScroll({
     const hasNewItemsRef = useRef(false);
     const previousSearchResults = usePrevious(searchResults?.data);
     const [newSearchResultKey, setNewSearchResultKey] = useState<string | null>(null);
-    const [newTransactions, setNewTransactions] = useState<Transaction[]>([]);
     const highlightedIDs = useRef<Set<string>>(new Set());
     const initializedRef = useRef(false);
     const hasPendingSearchRef = useRef(false);
@@ -59,6 +58,25 @@ function useSearchHighlightAndScroll({
         }
         return isChat ? extractReportActionIDsFromSearchResults(searchResults.data) : extractTransactionIDsFromSearchResults(searchResults.data);
     }, [searchResults?.data, isChat]);
+
+    const newTransactions = useMemo(() => {
+        const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
+        const transactionsIDs = Object.keys(transactions ?? {});
+
+        if (previousTransactionsIDs.length === 0) {
+            return [];
+        }
+
+        const previousTransactionsIDsSet = new Set(previousTransactionsIDs);
+        const hasTransactionsIDsChange = transactionsIDs.length !== previousTransactionsIDs.length || transactionsIDs.some((id) => !previousTransactionsIDsSet.has(id));
+
+        if (!hasTransactionsIDsChange) {
+            return [];
+        }
+
+        const newTransactionIDs = transactionsIDs.filter((id) => !previousTransactionsIDsSet.has(id));
+        return newTransactionIDs.map((id) => transactions?.[id]).filter((transaction) => transaction !== undefined);
+    }, [previousTransactions, transactions]);
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
@@ -82,13 +100,6 @@ function useSearchHighlightAndScroll({
         const previousReportActionsIDsSet = new Set(previousReportActionsIDs);
         const hasTransactionsIDsChange = transactionsIDs.length !== previousTransactionsIDs.length || transactionsIDs.some((id) => !previousTransactionsIDsSet.has(id));
         const hasReportActionsIDsChange = reportActionsIDs.some((id) => !previousReportActionsIDsSet.has(id));
-
-        if (hasTransactionsIDsChange) {
-            const newTransactionIDs = transactionsIDs.filter((id) => !previousTransactionsIDsSet.has(id));
-            setNewTransactions(newTransactionIDs.map((id) => transactions?.[id]).filter((transaction) => transaction !== undefined));
-        } else {
-            setNewTransactions([]);
-        }
 
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange || hasPendingSearchRef.current) {

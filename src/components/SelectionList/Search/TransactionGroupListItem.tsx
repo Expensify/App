@@ -159,13 +159,18 @@ function TransactionGroupListItem<TItem extends ListItem>({
         const backTo = Navigation.getActiveRoute();
         const reportID = getReportIDForTransaction(transactionItem);
 
-        if (!isGroupByReports) {
+        const navigateToTransactionThread = () => {
             if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 const iouAction = getReportAction(transactionItem.report.reportID, transactionItem.moneyRequestReportActionID);
                 createAndOpenSearchTransactionThread(transactionItem, iouAction, currentSearchHash, backTo);
                 return;
             }
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+        };
+
+        // The arrow navigation in RHP is only allowed for group-by:reports
+        if (!isGroupByReports) {
+            navigateToTransactionThread();
             return;
         }
 
@@ -175,12 +180,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         // to display prev/next arrows in RHP for navigation
         setActiveTransactionThreadIDs(siblingTransactionThreadIDs).then(() => {
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
-            if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const iouAction = getReportAction(transactionItem.report.reportID, transactionItem.moneyRequestReportActionID);
-                createAndOpenSearchTransactionThread(transactionItem, iouAction, currentSearchHash, backTo);
-                return;
-            }
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+            navigateToTransactionThread();
         });
     };
 
@@ -310,6 +310,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         onPress={() => {
                             if (isEmpty && !shouldDisplayEmptyView) {
                                 onPress();
+                            } else if (groupItem.transactionsQueryJSON && !isExpanded) {
+                                search({
+                                    queryJSON: groupItem.transactionsQueryJSON,
+                                    searchKey: undefined,
+                                    offset: transactionsSnapshot?.search?.offset ?? 0,
+                                    shouldCalculateTotals: false,
+                                });
                             }
                             handleToggle();
                         }}

@@ -129,8 +129,7 @@ function isTransactionGroupListItemArray(data: SearchListItem[]): data is Transa
 }
 
 function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: SearchListItem, groupBy: SearchGroupBy | undefined) {
-    const isGroupByFromOrCard = groupBy === CONST.SEARCH.GROUP_BY.CARD || groupBy === CONST.SEARCH.GROUP_BY.FROM;
-    if (!groupBy || !isGroupByFromOrCard) {
+    if (groupBy !== CONST.SEARCH.GROUP_BY.CARD && groupBy !== CONST.SEARCH.GROUP_BY.FROM) {
         return false;
     }
     if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
@@ -230,7 +229,7 @@ function SearchList(
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
             const currentRoute = navigationRef.current?.getCurrentRoute();
-            const isReadonlyGroupBy = !!groupBy && (groupBy === CONST.SEARCH.GROUP_BY.CARD || groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID);
+            const isReadonlyGroupBy = groupBy && groupBy !== CONST.SEARCH.GROUP_BY.REPORTS;
             if (currentRoute && route.key !== currentRoute.key) {
                 return;
             }
@@ -471,6 +470,7 @@ function SearchList(
                 estimatedListSize={estimatedListSize}
                 contentContainerStyle={contentContainerStyle}
                 calculatedListHeight={calculatedListHeight}
+                newTransactions={newTransactions}
             />
             <Modal
                 isVisible={isModalVisible}
