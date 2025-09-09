@@ -9,7 +9,9 @@ import {getAuthToken, getCurrentUserEmail} from './NetworkStore';
 // For all requests, we'll send the lastUpdateID that is applied to this client. This will
 // allow us to calculate previousUpdateID faster.
 let lastUpdateIDAppliedToClient = -1;
-Onyx.connect({
+// `lastUpdateIDAppliedToClient` is not dependent on any changes on the UI,
+// so it is okay to use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (value) => {
         if (value) {
