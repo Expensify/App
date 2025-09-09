@@ -51,6 +51,7 @@ import type {
     SetPolicyProhibitedExpensesParams,
     SetPolicyRulesEnabledParams,
     SetWorkspaceApprovalModeParams,
+    SetWorkspaceAutoHarvestingParams,
     SetWorkspaceAutoReportingFrequencyParams,
     SetWorkspaceAutoReportingMonthlyOffsetParams,
     SetWorkspacePayerParams,
@@ -573,6 +574,67 @@ function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorks
     if (policyID === lastAccessedWorkspacePolicyID) {
         updateLastAccessedWorkspace(undefined);
     }
+}
+
+/* Set the auto harvesting on a workspace. This goes in tandem with auto reporting. so when you enable/disable
+ * harvesting, you are enabling/disabling auto reporting too.
+ */
+function setWorkspaceAutoHarvesting(policy: Policy, enabled: boolean) {
+    const policyID = policy.id;
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReporting: enabled,
+                harvesting: {enabled},
+                pendingFields: {
+                    autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    harvesting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                errorFields: {
+                    autoReporting: null,
+                    harvesting: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReporting: policy?.autoReporting ?? null,
+                harvesting: policy?.harvesting ?? null,
+                pendingFields: {
+                    autoReporting: null,
+                    harvesting: null,
+                },
+                errorFields: {
+                    autoReporting: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsDelayedSubmissionPage.autoReportingErrorMessage'),
+                    harvesting: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    autoReporting: null,
+                    harvesting: null,
+                },
+            },
+        },
+    ];
+
+    const params: SetWorkspaceAutoHarvestingParams = {policyID, enabled};
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_HARVESTING, params, {optimisticData, failureData, successData});
 }
 
 function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>) {
@@ -6250,6 +6312,7 @@ export {
     buildOptimisticRecentlyUsedCurrencies,
     setWorkspaceInviteMessageDraft,
     setWorkspaceApprovalMode,
+    setWorkspaceAutoHarvesting,
     setWorkspaceAutoReportingFrequency,
     setWorkspaceAutoReportingMonthlyOffset,
     updateWorkspaceDescription,
