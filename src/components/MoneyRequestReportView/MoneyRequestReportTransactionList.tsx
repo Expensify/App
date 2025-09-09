@@ -49,6 +49,9 @@ type MoneyRequestReportTransactionListProps = {
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
 
+    /** Whether there is a pending delete transaction */
+    hasPendingDeletionTransaction?: boolean;
+
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
 
@@ -115,6 +118,7 @@ function MoneyRequestReportTransactionList({
     reportActions,
     hasComments,
     isLoadingInitialReportActions: isLoadingReportActions,
+    hasPendingDeletionTransaction = false,
     scrollToNewTransaction,
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
@@ -134,8 +138,8 @@ function MoneyRequestReportTransactionList({
     const session = useSession();
 
     const hasPendingAction = useMemo(() => {
-        return transactions.some(getTransactionPendingAction);
-    }, [transactions]);
+        return hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);
+    }, [hasPendingDeletionTransaction, transactions]);
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();

@@ -88,6 +88,9 @@ type MoneyRequestReportListProps = {
     /** List of transactions belonging to this report */
     transactions?: OnyxTypes.Transaction[];
 
+    /** Whether there is a pending delete transaction */
+    hasPendingDeletionTransaction?: boolean;
+
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
 
@@ -116,6 +119,7 @@ function MoneyRequestReportActionsList({
     newTransactions,
     hasNewerActions,
     hasOlderActions,
+    hasPendingDeletionTransaction,
     showReportActionsLoadingState,
 }: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
@@ -720,6 +724,7 @@ function MoneyRequestReportActionsList({
                                     report={report}
                                     transactions={transactions}
                                     newTransactions={newTransactions}
+                                    hasPendingDeletionTransaction={hasPendingDeletionTransaction}
                                     reportActions={reportActions}
                                     hasComments={reportHasComments}
                                     isLoadingInitialReportActions={showReportActionsLoadingState}
