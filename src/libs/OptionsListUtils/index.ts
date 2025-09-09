@@ -761,7 +761,6 @@ function createOption(
         isSelected: isSelected ?? selected ?? false, // Use isSelected preferentially, fallback to selected for compatibility
         isDisabled,
         brickRoadIndicator: null,
-        // isUnread: report && ((report.lastReadTime ?? '') < (report.lastVisibleActionCreated ?? '') || (report.lastReadTime ?? '') < (report.lastMentionedTime ?? '')),
 
         // Type/category flags - used in SearchOption context
         isPolicyExpenseChat: report ? reportUtilsIsPolicyExpenseChat(report) : false,
