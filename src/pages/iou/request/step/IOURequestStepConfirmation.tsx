@@ -164,7 +164,7 @@ function IOURequestStepConfirmation({
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt>>({});
-    const requestType = getRequestType(transaction);
+    const requestType = getRequestType(transaction, isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE));
     const isDistanceRequest =
         requestType === CONST.IOU.REQUEST_TYPE.DISTANCE || requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP || requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
     const isManualDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
@@ -307,7 +307,7 @@ function IOURequestStepConfirmation({
 
     useEffect(() => {
         transactions.forEach((item) => {
-            if (requestType !== CONST.IOU.REQUEST_TYPE.DISTANCE || !!item?.category) {
+            if (!isDistanceRequest || !!item?.category) {
                 return;
             }
             setMoneyRequestCategory(item.transactionID, defaultCategory, policy?.id);
@@ -433,7 +433,8 @@ function IOURequestStepConfirmation({
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, initialTransactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                 return;
             }
-            removeDraftTransactions(true).then(() => navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID));
+            removeDraftTransactions(true);
+            navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID);
         });
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
 
@@ -595,7 +596,7 @@ function IOURequestStepConfirmation({
                     },
                     transactionParams: {
                         amount: item.amount,
-                        distance: item.comment?.customUnit?.quantity ?? undefined,
+                        distance: isManualDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined,
                         currency: item.currency,
                         created: item.created,
                         merchant: item.merchant,
@@ -636,6 +637,7 @@ function IOURequestStepConfirmation({
             action,
             customUnitRateID,
             isDraftPolicy,
+            isManualDistanceRequest,
         ],
     );
 
@@ -726,23 +728,33 @@ function IOURequestStepConfirmation({
 
             const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
 
-            // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
-            if (iouType === CONST.IOU.TYPE.SPLIT && currentTransactionReceiptFile) {
-                if (currentUserPersonalDetails.login && !!transaction) {
-                    startSplitBill({
-                        participants: selectedParticipants,
-                        currentUserLogin: currentUserPersonalDetails.login,
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        comment: trimmedComment,
-                        receipt: currentTransactionReceiptFile,
-                        existingSplitChatReportID: report?.reportID,
-                        billable: transaction.billable,
-                        reimbursable: transaction.reimbursable,
-                        category: transaction.category,
-                        tag: transaction.tag,
-                        currency: transaction.currency,
-                        taxCode: transactionTaxCode,
-                        taxAmount: transactionTaxAmount,
+            if (iouType === CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).filter((receipt) => !!receipt).length) {
+                const currentUserLogin = currentUserPersonalDetails.login;
+                if (currentUserLogin) {
+                    transactions.forEach((item, index) => {
+                        const transactionReceiptFile = receiptFiles[item.transactionID];
+                        if (!transactionReceiptFile) {
+                            return;
+                        }
+                        const itemTrimmedComment = item?.comment?.comment?.trim() ?? '';
+
+                        // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
+                        startSplitBill({
+                            participants: selectedParticipants,
+                            currentUserLogin,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            comment: itemTrimmedComment,
+                            receipt: transactionReceiptFile,
+                            existingSplitChatReportID: report?.reportID,
+                            billable: item.billable,
+                            reimbursable: item.reimbursable,
+                            category: item.category,
+                            tag: item.tag,
+                            currency: item.currency,
+                            taxCode: transactionTaxCode,
+                            taxAmount: transactionTaxAmount,
+                            shouldPlaySound: index === transactions.length - 1,
+                        });
                     });
                 }
                 return;

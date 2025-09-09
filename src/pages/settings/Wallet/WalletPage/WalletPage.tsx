@@ -29,6 +29,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod, FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -59,7 +60,10 @@ type WalletPageProps = {
 function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {
+        canBeMissing: true,
+        selector: (allFunds) => Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true)),
+    });
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
@@ -69,6 +73,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const isUserValidated = userAccount?.validated ?? false;
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const {isBetaEnabled} = usePermissions();
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -385,6 +390,11 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         !isCurrentPaymentMethodDefault() &&
         !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
 
+    const shouldShowEnableGlobalReimbursementsButton =
+        isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) &&
+        paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+        !paymentMethod.selectedPaymentMethod?.additionalData?.corpay?.achAuthorizationForm;
+
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || shouldUseNarrowLayout;
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
@@ -691,6 +701,28 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 }}
                                 wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                             />
+                            {shouldShowEnableGlobalReimbursementsButton && (
+                                <MenuItem
+                                    title={translate('common.enableGlobalReimbursements')}
+                                    icon={Expensicons.Globe}
+                                    onPress={() => {
+                                        if (isActingAsDelegate) {
+                                            closeModal(() => {
+                                                showDelegateNoAccessModal();
+                                            });
+                                            return;
+                                        }
+                                        if (isAccountLocked) {
+                                            closeModal(() => showLockedAccountModal());
+                                            return;
+                                        }
+                                        closeModal(() =>
+                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)),
+                                        );
+                                    }}
+                                    wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
+                                />
+                            )}
                         </View>
                     )}
                 </Popover>

@@ -141,4 +141,4 @@
   
 - Upstream PR/issue: This was a patch on top of patches 008 and 009 of react-native-web.
 - E/App issue: https://github.com/Expensify/App/issues/66821
-- PR introducing patch: https://github.com/Expensify/App/pull/68895
+- PR introducing patch: https://github.com/Expensify/App/pull/69820

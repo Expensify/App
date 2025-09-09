@@ -22,6 +22,7 @@ function ValidateCodeActionModal({
     threeDotsMenuItems = [],
     onThreeDotsButtonPress = () => {},
 }: ValidateCodeActionModalProps) {
+
     return (
         <Modal
             shouldHandleNavigationBack={shouldHandleNavigationBack}

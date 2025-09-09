@@ -1,8 +1,9 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
+import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {memo, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -25,7 +26,6 @@ import {connect} from '@libs/actions/Delegate';
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import {READ_COMMANDS} from '@libs/API/types';
-import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
@@ -36,6 +36,7 @@ import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformS
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
+import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
@@ -79,18 +80,8 @@ import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
+import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
-
-type AuthScreensProps = {
-    /** Session of currently logged in user */
-    session: OnyxEntry<OnyxTypes.Session>;
-
-    /** The report ID of the last opened public room as anonymous user */
-    lastOpenedPublicRoomID: OnyxEntry<string>;
-
-    /** The last Onyx update ID was applied to the client */
-    initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
-};
 
 const loadAttachmentModalScreen = () => require<ReactComponentModule>('../../../pages/media/AttachmentModalScreen').default;
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
@@ -120,6 +111,7 @@ function initializePusher() {
 }
 let timezone: Timezone | null;
 let currentAccountID = -1;
+let lastUpdateIDAppliedToClient: OnyxEntry<number>;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -161,7 +153,14 @@ Onyx.connect({
     },
 });
 
-function handleNetworkReconnect(lastUpdateIDAppliedToClient: number | undefined, isLoadingApp: boolean) {
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    callback: (value) => {
+        lastUpdateIDAppliedToClient = value;
+    },
+});
+
+function handleNetworkReconnect(isLoadingApp: boolean) {
     if (isLoadingApp) {
         App.openApp();
     } else {
@@ -207,13 +206,12 @@ const modalScreenListenersWithCancelSearch = {
     },
 };
 
-function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
+function AuthScreens() {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {toggleSearch} = useSearchRouterContext();
     const currentUrl = getCurrentUrl();
@@ -223,6 +221,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         canBeMissing: true,
     });
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
+    const [userReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, {canBeMissing: true});
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
     const [isOnboardingLoading] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: (value) => !!value?.isLoading});
@@ -230,9 +229,14 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const [shouldShowRequire2FAPage, setShouldShowRequire2FAPage] = useState(!!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth);
     const navigation = useNavigation();
     const {initialURL, isAuthenticatedAtStartup, setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
+    const modalCardStyleInterpolator = useModalCardStyleInterpolator();
 
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
+
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [lastOpenedPublicRoomID] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, {canBeMissing: true});
+    const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
 
     // On HybridApp we need to prevent flickering during transition to OldDot
     const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
@@ -243,12 +247,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         return (
             !CONFIG.IS_HYBRID_APP &&
             Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_INTERESTED_FEATURES.route) &&
-            getPlatform() !== CONST.PLATFORM.DESKTOP &&
-            onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
+            shouldOnboardingRedirectToOldDot(onboardingCompanySize, userReportedIntegration) &&
             isOnboardingCompleted === true &&
             (!!isOnboardingLoading || !!prevIsOnboardingLoading)
         );
-    }, [onboardingCompanySize, isOnboardingCompleted, isOnboardingLoading, prevIsOnboardingLoading]);
+    }, [onboardingCompanySize, isOnboardingCompleted, isOnboardingLoading, prevIsOnboardingLoading, userReportedIntegration]);
 
     useEffect(() => {
         NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
@@ -287,7 +290,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         }
 
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => handleNetworkReconnect(lastUpdateIDAppliedToClient, !!isLoadingApp));
+        NetworkConnection.onReconnect(() => handleNetworkReconnect(!!isLoadingApp));
         PusherConnectionManager.init();
         initializePusher();
         // Sometimes when we transition from old dot to new dot, the client is not the leader
@@ -370,10 +373,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         return;
                     }
 
-                    if (Navigation.isActiveRoute(ROUTES.KEYBOARD_SHORTCUTS)) {
+                    if (Navigation.isActiveRoute(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()))) {
                         return;
                     }
-                    return Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS);
+                    return Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()));
                 });
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
@@ -449,10 +452,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
         return {
             ...rootNavigatorScreenOptions.splitNavigator,
-
-            // Allow swipe to go back from this split navigator to the settings navigator.
-            gestureEnabled: true,
             animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+            web: {
+                ...rootNavigatorScreenOptions.splitNavigator.web,
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled}),
+            },
         };
     };
 
@@ -468,6 +472,10 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         return {
             ...rootNavigatorScreenOptions.splitNavigator,
             animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+            web: {
+                ...rootNavigatorScreenOptions.splitNavigator.web,
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled}),
+            },
         };
     };
 
@@ -534,7 +542,17 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     return (
         <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, LockedAccountModalProvider, DelegateNoAccessModalProvider]}>
-            <RootStack.Navigator persistentScreens={[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
+            <RootStack.Navigator
+                persistentScreens={[
+                    NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                    NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                    NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                    NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                    NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
+                    SCREENS.WORKSPACES_LIST,
+                    SCREENS.SEARCH.ROOT,
+                ]}
+            >
                 {/* This has to be the first navigator in auth screens. */}
                 <RootStack.Screen
                     name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
@@ -777,18 +795,4 @@ AuthScreens.displayName = 'AuthScreens';
 
 const AuthScreensMemoized = memo(AuthScreens, () => true);
 
-// Migration to useOnyx cause re-login if logout from deeplinked report in desktop app
-// Further analysis required and more details can be seen here:
-// https://github.com/Expensify/App/issues/50560
-// eslint-disable-next-line
-export default withOnyx<AuthScreensProps, AuthScreensProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    lastOpenedPublicRoomID: {
-        key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
-    },
-    initialLastUpdateIDAppliedToClient: {
-        key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    },
-})(AuthScreensMemoized);
+export default AuthScreensMemoized;
