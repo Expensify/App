@@ -53,9 +53,8 @@ describe('ReimbursementAccount', () => {
                             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                             callback: (policy) => {
                                 Onyx.disconnect(connection);
-                                resolve();
-
                                 expect(policy?.achAccount).toBeUndefined();
+                                resolve();
                             },
                         });
                     }),
