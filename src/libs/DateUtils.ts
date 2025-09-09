@@ -230,7 +230,7 @@ function datetimeToCalendarTime(
     currentSelectedTimezone: SelectedTimezone = timezone.selected,
     isLowercase = false,
 ): string {
-    const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short', hour12: true});
+    const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short'});
     const dateFormatter = new Intl.DateTimeFormat(locale, {month: 'short', day: 'numeric', year: 'numeric'});
     const date = getLocalDateFromDatetime(locale, datetime, fallbackToSupportedTimezone(currentSelectedTimezone));
     const tz = includeTimeZone ? ' [UTC]Z' : '';
@@ -326,7 +326,7 @@ function formatToDayOfWeek(datetime: Date, locale: Locale | undefined): string {
  * @returns 2:30 PM
  */
 function formatToLocalTime(datetime: string | Date, locale: Locale | undefined): string {
-    const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short', hour12: true});
+    const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short'});
     return timeFormatter.format(new Date(datetime));
 }
 
@@ -760,7 +760,7 @@ function formatWithUTCTimeZone(datetime: string, dateFormat?: string, locale?: L
     if (isValid(date)) {
         if (locale) {
             const formatOptions: Record<string, Intl.DateTimeFormatOptions> = {
-                [CONST.DATE.LOCAL_TIME_FORMAT]: {timeZone, timeStyle: 'short', hour12: true},
+                [CONST.DATE.LOCAL_TIME_FORMAT]: {timeZone, timeStyle: 'short'},
                 [CONST.DATE.MONTH_FORMAT]: {timeZone, month: 'long'},
                 [CONST.DATE.WEEKDAY_TIME_FORMAT]: {timeZone, weekday: 'long'},
                 [CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT]: {timeZone, month: 'short', day: 'numeric', year: 'numeric'},
@@ -876,7 +876,7 @@ function getFormattedReservationRangeDate(date1: Date, date2: Date, locale: Loca
  * 2. When the date refers not to the current year: Departs on Wednesday, Mar 17, 2023 at 8:00.
  */
 function getFormattedTransportDate(date: Date, locale: Locale | undefined): string {
-    const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short', hour12: true});
+    const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short'});
     const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric'});
     const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'});
     if (isThisYear(date)) {
@@ -892,7 +892,7 @@ function getFormattedTransportDate(date: Date, locale: Locale | undefined): stri
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
  */
 function getFormattedTransportDateAndHour(date: Date, locale: Locale | undefined): {date: string; hour: string} {
-    const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short', hour12: true});
+    const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short'});
     const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric'});
     const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'});
     if (isThisYear(date)) {
@@ -914,7 +914,7 @@ function getFormattedTransportDateAndHour(date: Date, locale: Locale | undefined
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
  */
 function getFormattedCancellationDate(date: Date, locale: Locale | undefined): string {
-    const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short', hour12: true});
+    const timeFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'short'});
     const monthDayWeekdayAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric'});
     const monthDayWeekdayYearAbbrFormatter = new Intl.DateTimeFormat(locale, {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'});
     if (isThisYear(date)) {
