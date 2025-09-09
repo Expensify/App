@@ -655,6 +655,14 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 4,
         },
 
+        /**
+         * Background style applied to navigation tab bar items when they are hovered.
+         * Do not apply for the active/selected state, those already have their own styling.
+         */
+        navigationTabBarItemHovered: {
+            backgroundColor: theme.sidebarHover,
+        },
+
         leftNavigationTabBarContainer: {
             height: '100%',
             width: variables.navigationTabBarSize,

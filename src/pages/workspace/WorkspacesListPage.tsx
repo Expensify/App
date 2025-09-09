@@ -328,7 +328,6 @@ function WorkspacesListPage() {
             translate,
             policies,
             fundList,
-            styles.ph5,
             styles.mb2,
             styles.mh5,
             styles.ph5,
