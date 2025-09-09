@@ -611,10 +611,6 @@ export default {
         paddingLeft: 32,
     },
 
-    pl9: {
-        paddingLeft: 36,
-    },
-
     pt9: {
         paddingTop: 36,
     },

@@ -6,14 +6,20 @@ import getBankIcon from '@components/Icon/BankIcons';
 import type {ListItem, TransactionWithdrawalIDGroupListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
+import ActionCell from './ActionCell';
 import TotalCell from './TotalCell';
 
 type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
     /** The withdrawal ID currently being looked at */
     withdrawalID: TransactionWithdrawalIDGroupListItemType;
+
+    /** Callback to fire when the item is pressed */
+    onSelectRow: (item: TItem) => void;
 
     /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
@@ -23,30 +29,26 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
-
-    /** Whether all transactions are selected */
-    isSelectAllChecked?: boolean;
-
-    /** Whether only some transactions are selected */
-    isIndeterminate?: boolean;
 };
 
 function WithdrawalIDListItemHeader<TItem extends ListItem>({
     withdrawalID: withdrawalIDItem,
+    onSelectRow,
     onCheckboxPress,
     isDisabled,
     canSelectMultiple,
-    isIndeterminate,
-    isSelectAllChecked,
 }: WithdrawalIDListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
     const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
     );
+    const shouldShowAction = isLargeScreenWidth;
 
     return (
         <View>
@@ -55,10 +57,9 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                     {!!canSelectMultiple && (
                         <Checkbox
                             onPress={() => onCheckboxPress?.(withdrawalIDItem as unknown as TItem)}
-                            isChecked={isSelectAllChecked}
+                            isChecked={withdrawalIDItem.isSelected}
                             disabled={!!isDisabled || withdrawalIDItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
-                            isIndeterminate={isIndeterminate}
                         />
                     )}
                     <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
@@ -86,6 +87,15 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                         currency={withdrawalIDItem.currency}
                     />
                 </View>
+                {shouldShowAction && (
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                        <ActionCell
+                            action={CONST.SEARCH.ACTION_TYPES.VIEW}
+                            goToItem={() => onSelectRow(withdrawalIDItem as unknown as TItem)}
+                            isSelected={withdrawalIDItem.isSelected}
+                        />
+                    </View>
+                )}
             </View>
         </View>
     );

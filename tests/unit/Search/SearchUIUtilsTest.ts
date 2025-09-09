@@ -1244,7 +1244,6 @@ const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
         login: 'admin@policy.com',
         total: 70,
         transactions: [],
-        transactionsQueryJSON: undefined,
     },
     {
         accountID: 1111111,
@@ -1256,7 +1255,6 @@ const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
         login: 'approver@policy.com',
         total: 30,
         transactions: [],
-        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1271,7 +1269,6 @@ const transactionMemberGroupListItemsSorted: TransactionMemberGroupListItemType[
         login: 'approver@policy.com',
         total: 30,
         transactions: [],
-        transactionsQueryJSON: undefined,
     },
 
     {
@@ -1284,7 +1281,6 @@ const transactionMemberGroupListItemsSorted: TransactionMemberGroupListItemType[
         login: 'admin@policy.com',
         total: 70,
         transactions: [],
-        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1303,7 +1299,6 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         login: 'admin@policy.com',
         total: 40,
         transactions: [],
-        transactionsQueryJSON: undefined,
     },
     {
         accountID: 1111111,
@@ -1319,7 +1314,6 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         login: 'approver@policy.com',
         total: 20,
         transactions: [],
-        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1338,7 +1332,6 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         login: 'approver@policy.com',
         total: 20,
         transactions: [],
-        transactionsQueryJSON: undefined,
     },
     {
         accountID: 18439984,
@@ -1354,7 +1347,6 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         login: 'admin@policy.com',
         total: 40,
         transactions: [],
-        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1369,7 +1361,6 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         total: 40,
         groupedBy: 'withdrawal-id',
         transactions: [],
-        transactionsQueryJSON: undefined,
     },
     {
         bankName: CONST.BANK_NAMES.CITIBANK,
@@ -1381,7 +1372,6 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         total: 20,
         groupedBy: 'withdrawal-id',
         transactions: [],
-        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1396,7 +1386,6 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         total: 20,
         groupedBy: 'withdrawal-id',
         transactions: [],
-        transactionsQueryJSON: undefined,
     },
     {
         bankName: CONST.BANK_NAMES.CHASE,
@@ -1408,7 +1397,6 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         total: 40,
         groupedBy: 'withdrawal-id',
         transactions: [],
-        transactionsQueryJSON: undefined,
     },
 ];
 

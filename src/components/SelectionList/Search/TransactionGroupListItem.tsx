@@ -1,13 +1,9 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
-import AnimatedCollapsible from '@components/AnimatedCollapsible';
-import Button from '@components/Button';
+import React, {useCallback, useMemo, useRef} from 'react';
+import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import {useSearchContext} from '@components/Search/SearchContext';
-import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
-import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionList/SearchTableHeader';
+import type {SearchGroupBy} from '@components/Search/types';
 import type {
     ListItem,
     TransactionCardGroupListItemType,
@@ -22,13 +18,11 @@ import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {search} from '@libs/actions/Search';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
@@ -36,7 +30,6 @@ import {createAndOpenSearchTransactionThread, getColumnsToShow, getSections} fro
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
@@ -49,7 +42,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     showTooltip,
     isDisabled,
     canSelectMultiple,
-    onCheckboxPress: onCheckboxPressRow,
+    onCheckboxPress,
     onSelectRow,
     onFocus,
     onLongPressRow,
@@ -59,7 +52,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     accountID,
     isOffline,
     areAllOptionalColumnsHidden: areAllOptionalColumnsHiddenProp,
-    violations,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
@@ -125,23 +117,23 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [isExpanded, setIsExpanded] = useState(false);
 
     const isEmpty = transactions.length === 0;
+    const {translate} = useLocalize();
+    const isEmpty = groupItem.transactions.length === 0;
     // Currently only the transaction report groups have transactions where the empty view makes sense
-    const shouldDisplayEmptyView = isEmpty && isGroupByReports;
+    const shouldDisplayEmptyView = isEmpty && groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
     const isDisabledOrEmpty = isEmpty || isDisabled;
-    const shouldDisplayShowMoreButton = !isGroupByReports && !!transactionsSnapshotMetadata?.hasMoreResults;
-    const shouldDisplayLoadingIndicator = !isGroupByReports && !!transactionsSnapshotMetadata?.isLoading;
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
-        const isAmountColumnWide = transactions.some((transaction) => transaction.isAmountColumnWide);
-        const isTaxAmountColumnWide = transactions.some((transaction) => transaction.isTaxAmountColumnWide);
-        const shouldShowYearForSomeTransaction = transactions.some((transaction) => transaction.shouldShowYear);
+        const isAmountColumnWide = groupItem.transactions.some((transaction) => transaction.isAmountColumnWide);
+        const isTaxAmountColumnWide = groupItem.transactions.some((transaction) => transaction.isTaxAmountColumnWide);
+        const shouldShowYearForSomeTransaction = groupItem.transactions.some((transaction) => transaction.shouldShowYear);
         return {
             amountColumnSize: isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             taxAmountColumnSize: isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             dateColumnSize: shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
         };
-    }, [transactions]);
+    }, [groupItem.transactions]);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -150,15 +142,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
-    const isItemSelected = isSelectAllChecked || item?.isSelected;
-
-    const pressableStyle = [styles.transactionGroupListItemStyle, isItemSelected && styles.activeComponentBG];
+    const pressableStyle = [styles.transactionGroupListItemStyle, item.isSelected && styles.activeComponentBG];
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const backTo = Navigation.getActiveRoute();
 
         const reportID = getReportIDForTransaction(transactionItem);
-        const siblingTransactionThreadIDs = transactions.map(getReportIDForTransaction);
+        const siblingTransactionThreadIDs = groupItem.transactions.map(getReportIDForTransaction);
 
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
@@ -173,33 +163,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
         });
     };
 
-    const StyleUtils = useStyleUtils();
-    const pressableRef = useRef<View>(null);
-
-    const handleToggle = useCallback(() => {
-        setIsExpanded(!isExpanded);
-    }, [isExpanded]);
-
-    const onPress = useCallback(() => {
-        if (isGroupByReports || transactions.length === 0) {
-            onSelectRow(item);
-        }
-        if (!isGroupByReports) {
-            handleToggle();
-        }
-    }, [isGroupByReports, transactions.length, onSelectRow, item, handleToggle]);
-
-    const onLongPress = useCallback(() => {
-        onLongPressRow?.(item);
-    }, [item, onLongPressRow]);
-
-    const onCheckboxPress = useCallback(
-        (val: TItem) => {
-            onCheckboxPressRow?.(val, isGroupByReports ? undefined : transactions);
-        },
-        [onCheckboxPressRow, transactions, isGroupByReports],
-    );
-
     const getHeader = useMemo(() => {
         const headers: Record<SearchGroupBy, React.JSX.Element> = {
             [CONST.SEARCH.GROUP_BY.REPORTS]: (
@@ -210,39 +173,34 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isDisabled={isDisabledOrEmpty}
                     isFocused={isFocused}
                     canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
                 />
             ),
             [CONST.SEARCH.GROUP_BY.FROM]: (
                 <MemberListItemHeader
                     member={groupItem as TransactionMemberGroupListItemType}
+                    onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
                 />
             ),
             [CONST.SEARCH.GROUP_BY.CARD]: (
                 <CardListItemHeader
                     card={groupItem as TransactionCardGroupListItemType}
+                    onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     isFocused={isFocused}
                     canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
                 />
             ),
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: (
                 <WithdrawalIDListItemHeader
                     withdrawalID={groupItem as TransactionWithdrawalIDGroupListItemType}
+                    onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
                 />
             ),
         };
@@ -252,7 +210,18 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         return headers[groupBy];
-    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, groupBy]);
+    }, [groupItem, onSelectRow, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, groupBy]);
+
+    const StyleUtils = useStyleUtils();
+    const pressableRef = useRef<View>(null);
+
+    const onPress = useCallback(() => {
+        onSelectRow(item);
+    }, [item, onSelectRow]);
+
+    const onLongPress = useCallback(() => {
+        onLongPressRow?.(item);
+    }, [item, onLongPressRow]);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
@@ -262,121 +231,57 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 ref={pressableRef}
                 onLongPress={onLongPress}
                 onPress={onPress}
-                disabled={isDisabled && !isItemSelected}
+                disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
+                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={item.keyForList ?? ''}
                 style={[
                     pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[styles.mb2, styles.mh5, animatedHighlightStyle, styles.userSelectNone]}
             >
                 <View style={styles.flex1}>
-                    <AnimatedCollapsible
-                        isExpanded={isExpanded}
-                        header={getHeader}
-                        onPress={() => {
-                            if (isEmpty && !shouldDisplayEmptyView) {
-                                onPress();
-                            }
-                            handleToggle();
-                        }}
-                    >
-                        {shouldDisplayEmptyView ? (
-                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
-                                <Text
-                                    style={[styles.textLabelSupporting]}
-                                    numberOfLines={1}
-                                >
-                                    {translate('search.moneyRequestReport.emptyStateTitle')}
-                                </Text>
-                            </View>
-                        ) : (
-                            <>
-                                {isLargeScreenWidth && (
-                                    <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader, styles.bgTransparent, styles.pl9, styles.pr3]}>
-                                        <SearchTableHeader
-                                            canSelectMultiple
-                                            type={CONST.SEARCH.DATA_TYPES.EXPENSE}
-                                            onSortPress={() => {}}
-                                            sortOrder={undefined}
-                                            sortBy={undefined}
-                                            shouldShowYear={dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
-                                            isAmountColumnWide={amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
-                                            isTaxAmountColumnWide={taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
-                                            shouldShowSorting={false}
-                                            columns={currentColumns}
-                                            areAllOptionalColumnsHidden={areAllOptionalColumnsHidden ?? false}
-                                            groupBy={groupBy}
-                                        />
-                                    </View>
-                                )}
-                                {transactions.map((transaction) => (
-                                    <TransactionItemRow
-                                        key={transaction.transactionID}
-                                        report={transaction.report}
-                                        transactionItem={transaction}
-                                        violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
-                                        isSelected={!!transaction.isSelected}
-                                        dateColumnSize={dateColumnSize}
-                                        amountColumnSize={amountColumnSize}
-                                        taxAmountColumnSize={taxAmountColumnSize}
-                                        shouldShowTooltip={showTooltip}
-                                        shouldUseNarrowLayout={!isLargeScreenWidth}
-                                        shouldShowCheckbox={!!canSelectMultiple}
-                                        onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                        columns={currentColumns}
-                                        onButtonPress={() => {
-                                            openReportInRHP(transaction);
-                                        }}
-                                        style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
-                                        isReportItemChild
-                                        isInSingleTransactionReport={groupItem.transactions.length === 1}
-                                        areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                                    />
-                                ))}
-                                {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (
-                                    <View style={[styles.w100, styles.flexRow, isLargeScreenWidth && styles.pl10]}>
-                                        <Button
-                                            text={translate('common.showMore')}
-                                            onPress={() => {
-                                                if (!!isOffline || !groupItem.transactionsQueryJSON) {
-                                                    return;
-                                                }
-                                                search({
-                                                    queryJSON: groupItem.transactionsQueryJSON,
-                                                    searchKey: undefined,
-                                                    offset: (transactionsSnapshotMetadata?.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE,
-                                                    shouldCalculateTotals: false,
-                                                });
-                                            }}
-                                            link
-                                            shouldUseDefaultHover={false}
-                                            isNested
-                                            medium
-                                            innerStyles={[styles.ph3]}
-                                            textStyles={[styles.fontSizeNormal]}
-                                        />
-                                    </View>
-                                )}
-                                {shouldDisplayLoadingIndicator && (
-                                    <View style={[isLargeScreenWidth && styles.pl10, styles.pt3, isEmpty && styles.pb3]}>
-                                        <ActivityIndicator
-                                            color={theme.spinner}
-                                            size={25}
-                                            style={[styles.pl3, !isEmpty && styles.alignItemsStart]}
-                                        />
-                                    </View>
-                                )}
-                            </>
-                        )}
-                    </AnimatedCollapsible>
+                    {getHeader}
+                    {shouldDisplayEmptyView ? (
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
+                            <Text
+                                style={[styles.textLabelSupporting]}
+                                numberOfLines={1}
+                            >
+                                {translate('search.moneyRequestReport.emptyStateTitle')}
+                            </Text>
+                        </View>
+                    ) : (
+                        groupItem.transactions.map((transaction) => (
+                            <TransactionItemRow
+                                key={transaction.transactionID}
+                                report={transaction.report}
+                                transactionItem={transaction}
+                                isSelected={!!transaction.isSelected}
+                                dateColumnSize={dateColumnSize}
+                                amountColumnSize={amountColumnSize}
+                                taxAmountColumnSize={taxAmountColumnSize}
+                                shouldShowTooltip={showTooltip}
+                                shouldUseNarrowLayout={!isLargeScreenWidth}
+                                shouldShowCheckbox={!!canSelectMultiple}
+                                onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                columns={columns}
+                                onButtonPress={() => {
+                                    openReportInRHP(transaction);
+                                }}
+                                style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
+                                isReportItemChild
+                                isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                            />
+                        ))
+                    )}
                 </View>
             </PressableWithFeedback>
         </OfflineWithFeedback>
