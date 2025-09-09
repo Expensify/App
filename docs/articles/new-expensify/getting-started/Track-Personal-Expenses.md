@@ -25,7 +25,7 @@ To chat with Concierge, open your **chat inbox** anytime for help and guidance.
 
 Each workspace has its own rules and settings, even for personal expense tracking.
 
-1. Use the **navigation tabs** to go to **Workspaces**.
+1. Use the **navigation tabs (on the left on web, and at the bottom on mobile)** to go to **Workspaces**.
 2. Click **New workspace > Name** to rename the workspace.
 
 ---
@@ -75,7 +75,7 @@ Let Expensify automatically import and match card transactions to SmartScanned r
 
 ## Connect a Bank Account
 
-1. Go to **Workspaces** in the navigation tabs.
+1. Go to **Workspaces** in the navigation tabs (on the left on web, and at the bottom on mobile).
 2. Click **[Workspace Name] > More features > Enable Workflows**.
 3. From the left-hand menu, click **Workflows**.
 4. Enable **Make or track payments**.
