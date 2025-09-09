@@ -433,7 +433,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         if (prevIsPendingDelete && !isPendingDelete) {
             setIsLoaderVisible(false);
             if (policyErrorMessage) {
-                clearDeleteWorkspaceError(policyID);
                 setDeleteWorkspaceErrorModal({
                     isVisible: true,
                     errorMessage: policyErrorMessage,
@@ -555,7 +554,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             </ScreenWrapper>
             {deleteWorkspaceErrorModal?.isVisible ? (
                 <DeleteWorkspaceErrorConfirmModal
-                    onModalHide={() => setDeleteWorkspaceErrorModal(null)}
+                    onModalHide={() => {
+                        setDeleteWorkspaceErrorModal(null);
+                        clearDeleteWorkspaceError(policyID);
+                    }}
                     errorMessage={deleteWorkspaceErrorModal?.errorMessage}
                 />
             ) : null}

@@ -28,10 +28,10 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePermissions from '@hooks/usePermissions';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -48,7 +48,7 @@ import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePre
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {getDefaultApprover, getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy, wasPolicyLastModifiedWhileOffline} from '@libs/PolicyUtils';
+import {getDefaultApprover, getPolicy, getPolicyBrickRoadIndicatorStatus, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import type {DeleteWorkspaceErrorModal} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
@@ -104,7 +104,7 @@ function WorkspacesListPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate, localeCompare, preferredLocale} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -130,8 +130,8 @@ function WorkspacesListPage() {
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     // The workspace was deleted in this page
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
+    const [wasPolicyDeletedWhileOffline, setWasPolicyDeletedWhileOffline] = useState(false);
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
-    const {lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
 
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
 
@@ -152,11 +152,14 @@ function WorkspacesListPage() {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policyToDelete = getPolicy(policyIDToDelete);
+    const prevPolicyToDelete = usePrevious(policyToDelete);
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
         !isEmptyObject(cardsList) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         ((policyToDelete?.areExpensifyCardsEnabled || policyToDelete?.areCompanyCardsEnabled) && policyToDelete?.workspaceAccountID);
+    const isPendingDelete = isPendingDeletePolicy(policyToDelete);
+    const prevIsPendingDelete = isPendingDeletePolicy(prevPolicyToDelete);
 
     const isSupportalAction = isSupportAuthToken();
 
@@ -171,6 +174,7 @@ function WorkspacesListPage() {
 
         deleteWorkspace(policyIDToDelete, policyNameToDelete, lastAccessedWorkspacePolicyID, lastPaymentMethod);
         setIsDeleteModalOpen(false);
+        setWasPolicyDeletedWhileOffline(isOffline);
     };
 
     const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn();
@@ -200,22 +204,16 @@ function WorkspacesListPage() {
     );
 
     useEffect(() => {
-        if (!isFocused || deleteWorkspaceErrorModal?.isVisible) {
+        if (!isFocused || wasPolicyDeletedWhileOffline || !prevIsPendingDelete || isPendingDelete || deleteWorkspaceErrorModal?.isVisible) {
             return;
         }
 
-        const policyWithError = Object.values(policies ?? {}).find(getLatestErrorMessage);
-        const policyIDWithError = policyWithError?.id;
-        if (!policyWithError || wasPolicyLastModifiedWhileOffline(policyWithError, isOffline, lastOfflineAt.current, lastOnlineAt.current, preferredLocale)) {
-            return;
-        }
-        const policyErrorMessage = getLatestErrorMessage(policyWithError);
-        clearDeleteWorkspaceError(policyIDWithError);
+        const policyErrorMessage = getLatestErrorMessage(policyToDelete);
         setDeleteWorkspaceErrorModal({
             isVisible: true,
             errorMessage: policyErrorMessage,
         });
-    }, [deleteWorkspaceErrorModal?.isVisible, policies, isFocused, isOffline, lastOfflineAt, lastOnlineAt, preferredLocale]);
+    }, [deleteWorkspaceErrorModal?.isVisible, isFocused, policyIDToDelete, policyToDelete, wasPolicyDeletedWhileOffline, prevIsPendingDelete, isPendingDelete]);
 
     /**
      * Gets the menu item for each workspace
@@ -308,6 +306,7 @@ function WorkspacesListPage() {
                 <OfflineWithFeedback
                     key={`${item.title}_${index}`}
                     pendingAction={item.pendingAction}
+                    shouldShowErrorMessages={!deleteWorkspaceErrorModal?.isVisible}
                     errorRowStyles={styles.ph5}
                     onClose={item.dismissError}
                     errors={item.errors}
@@ -366,6 +365,7 @@ function WorkspacesListPage() {
             isLessThanMediumScreen,
             isLoadingBill,
             resetLoadingSpinnerIconIndex,
+            deleteWorkspaceErrorModal?.isVisible,
         ],
     );
 
@@ -605,7 +605,11 @@ function WorkspacesListPage() {
             </ScreenWrapper>
             {deleteWorkspaceErrorModal?.isVisible ? (
                 <DeleteWorkspaceErrorConfirmModal
-                    onModalHide={() => setDeleteWorkspaceErrorModal(null)}
+                    onModalHide={() => {
+                        setDeleteWorkspaceErrorModal(null);
+                        setWasPolicyDeletedWhileOffline(false);
+                        clearDeleteWorkspaceError(policyIDToDelete);
+                    }}
                     errorMessage={deleteWorkspaceErrorModal?.errorMessage}
                 />
             ) : null}
