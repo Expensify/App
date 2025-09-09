@@ -32,7 +32,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const reportID = isUnreported ? transaction?.participants?.at(0)?.reportID : transaction?.reportID;
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const {removeTransaction} = useSearchContext();
 
