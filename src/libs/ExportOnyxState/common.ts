@@ -57,14 +57,20 @@ const emailMap = new Map<string, string>();
 
 const getRandomLetter = () => String.fromCharCode(97 + Math.floor(Math.random() * 26));
 
+function getRandomString(length: number): string {
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += getRandomLetter();
+    }
+    return result;
+}
+
 function maskValuePreservingLength(value: unknown) {
     if (typeof value !== 'string') {
         return MASKING_PATTERN;
     }
 
-    return Array.from(value)
-        .map(() => getRandomLetter())
-        .join('');
+    return getRandomString(value.length);
 }
 
 function stringContainsEmail(text: string) {
