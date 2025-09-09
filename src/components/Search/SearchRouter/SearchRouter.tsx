@@ -57,7 +57,7 @@ function getContextualSearchAutocompleteKey(item: SearchQueryItem) {
         return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${item.searchQuery}`;
     }
     if (item.roomType === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${getPolicyNameByID(item.policyID ?? '')}`;
+        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${item.policyID ? getPolicyNameByID(item.policyID) : ''}`;
     }
 }
 
@@ -67,7 +67,7 @@ function getContextualSearchQuery(item: SearchQueryItem) {
 
     switch (item.roomType) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${sanitizeSearchValue(getPolicyNameByID(item.policyID ?? ''))}`;
+            additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${sanitizeSearchValue(item.policyID ? getPolicyNameByID(item.policyID) : '')}`;
             break;
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             additionalQuery += ` ${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID}:${item.policyID}`;
