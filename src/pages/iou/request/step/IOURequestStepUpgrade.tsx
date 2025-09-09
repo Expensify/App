@@ -76,7 +76,7 @@ function IOURequestStepUpgrade({
                 // Let the confirmation step decide the distance rate because policy data is not fully available at this step
                 setCustomUnitRateID(transactionID, '-1');
                 Navigation.setParams({reportID});
-                Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID, transactionID, reportID, Navigation.getActiveRoute()));
+                Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID, transactionID, reportID));
                 break;
             }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.categories.id:
