@@ -579,8 +579,8 @@ function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorks
 /* Set the auto harvesting on a workspace. This goes in tandem with auto reporting. so when you enable/disable
  * harvesting, you are enabling/disabling auto reporting too.
  */
-function setWorkspaceAutoHarvesting(policy: Policy, enabled: boolean) {
-    const policyID = policy.id;
+function setWorkspaceAutoHarvesting(policy: OnyxEntry<Policy>, enabled: boolean) {
+    const policyID = policy?.id;
 
     const optimisticData: OnyxUpdate[] = [
         {
