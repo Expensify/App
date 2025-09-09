@@ -15,7 +15,7 @@ Your goal is to analyze the file below and score it in three categories using th
 ## 1. Readability (score 1–10)
 
 Score based on:
-- Sentence clarity, grammar, and scannability
+- Sentence clarity, grammar, and readability
 - Logical flow and ordering of sections
 - Reading level is 8th grade or below
 - Avoids unnecessary jargon or filler
@@ -64,7 +64,7 @@ Score based on:
  - FAQ section:
   - Uses # FAQ as the heading
   - All questions are #*# subheadings
-  - Answers are plain text (not collapsive)
+  - Answers are plain text (not collapsible)
 
 ##  Output Format (markdown)
 
