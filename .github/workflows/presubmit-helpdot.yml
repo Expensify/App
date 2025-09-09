@@ -1,0 +1,51 @@
+name: HelpDot PR Reviews using Presubmit
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request:
+    types: [opened, synchronize, labeled]
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  helpdot-review:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'HelpDot Review')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check required secrets
+        run: |
+          if [ -z "${{ secrets.HELPDOT_REVIEWER_OPENAI_KEY }}" ]; then
+            echo "Error: HELPDOT_REVIEWER_OPENAI_KEY secret is not configured"
+            exit 1
+          fi
+
+      - name: Read HELPDOT_RULES.md
+        id: read-rules
+        run: |
+          RULES_CONTENT=$(cat "contributingGuides/review/HELPDOT_RULES.md")
+          {
+            echo "content<<EOF"
+            echo "$RULES_CONTENT"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Print HELPDOT_RULES.md
+        run: |
+          echo "📋 HELPDOT_RULES.md"
+          echo "======================================"
+          echo "${{ steps.read-rules.outputs.content }}"
+          echo "======================================"
+
+      - uses: Expensify/ai-reviewer@987adce514aa144560f36710225ea1c6164bf1af
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LLM_API_KEY: ${{ secrets.HELPDOT_REVIEWER_OPENAI_KEY }}
+          LLM_MODEL: "gpt-4.1"
+        with:
+          style_guide_rules: ${{ steps.read-rules.outputs.content }}
