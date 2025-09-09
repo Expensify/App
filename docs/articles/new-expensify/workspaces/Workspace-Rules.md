@@ -14,7 +14,7 @@ Workspace Rules let Admins enforce expense policies by setting custom requiremen
 
 To activate Rules for your workspace:
 
-1. In the **navigation tabs**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **More Features**.
 4. Under the **Manage** section, toggle on **Rules**.
