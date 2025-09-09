@@ -1311,7 +1311,12 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
         .filter(isPolicyEntry)
         .map((key) => data[key]);
 
-    for (const key in data) {
+    const listKeys = Object.keys(data);
+    const reportKeys = listKeys.filter(isReportEntry);
+    const transactionKeys = listKeys.filter(isTransactionEntry);
+    const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
+
+    for (const key of orderedKeys) {
         if (isReportActionEntry(key)) {
             const reportActions = Object.values(data[key]);
             const freeTrialMessages = reportActions.filter((action) => {
