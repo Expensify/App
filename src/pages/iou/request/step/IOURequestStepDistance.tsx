@@ -20,7 +20,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
@@ -146,7 +145,6 @@ function IOURequestStepDistance({
     const customUnitRateID = getRateID(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
-    const isReportArchived = useReportIsArchived(report?.reportID);
 
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
     const setDistanceRequestData = useCallback(
@@ -324,7 +322,6 @@ function IOURequestStepDistance({
                     trackExpense({
                         report,
                         isDraftPolicy: false,
-                        isReportArchived,
                         participantParams: {
                             payeeEmail: currentUserPersonalDetails.login,
                             payeeAccountID: currentUserPersonalDetails.accountID,
@@ -427,7 +424,6 @@ function IOURequestStepDistance({
         navigateToConfirmationPage,
         reportID,
         lastSelectedDistanceRates,
-        isReportArchived,
     ]);
 
     const getError = () => {
