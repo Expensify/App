@@ -4409,7 +4409,7 @@ function getUpdateMoneyRequestParams(
                 transactionChanges.attendees?.map(({avatarUrl, displayName, email}) => ({avatarUrl, displayName, email})),
                 recentAttendees,
                 'email',
-            ).slice(0, 5),
+            ).slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW),
         });
     }
 

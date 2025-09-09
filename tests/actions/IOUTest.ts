@@ -8126,7 +8126,7 @@ describe('actions/IOU', () => {
                     },
                 });
             });
-            expect(recentAttendees?.length).toBe(5);
+            expect(recentAttendees?.length).toBe(CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW);
         });
     });
 });
