@@ -175,7 +175,7 @@ class TranslationGenerator {
             await Promise.allSettled(translationPromises);
 
             // Replace translated strings in the AST
-            const transformer = this.createTransformer(translationsForLocale);
+            const transformer = this.createFullTransformer(translationsForLocale);
 
             // For incremental mode, transform the target file directly; otherwise transform en.ts
             let transformedSourceFile: ts.SourceFile;
@@ -706,78 +706,137 @@ class TranslationGenerator {
     }
 
     /**
-     * Generate an AST transformer for the given set of translations.
+     * Apply translation to a translatable node.
      */
-    private createTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
-        return (context: ts.TransformationContext) => {
-            const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
-                if (this.shouldNodeBeTranslated(node)) {
-                    // For incremental mode, handle path filtering
-                    if (this.isIncremental) {
-                        // Check if this path should be removed
-                        if (currentPath && this.pathsToRemove.has(currentPath as TranslationPaths)) {
-                            return undefined; // Remove this node
-                        }
-                        // Only translate nodes with paths in pathsToTranslate
-                        if (!this.shouldTranslatePath(currentPath)) {
-                            return node; // Keep unchanged
-                        }
-                    }
+    private translateNode(node: ts.Node, translations: Map<number, string>, currentPath: string, visitWithPath: (node: ts.Node, path: string) => ts.Node | undefined): ts.Node | undefined {
+        // String literals and no-substitution templates can be translated directly
+        if (ts.isStringLiteral(node)) {
+            const translatedText = translations.get(this.getTranslationKey(node));
+            return translatedText ? ts.factory.createStringLiteral(translatedText) : node;
+        }
 
-                    if (ts.isStringLiteral(node)) {
-                        const translatedText = translations.get(this.getTranslationKey(node));
-                        return translatedText ? ts.factory.createStringLiteral(translatedText) : node;
-                    }
+        if (ts.isNoSubstitutionTemplateLiteral(node)) {
+            const translatedText = translations.get(this.getTranslationKey(node));
+            return translatedText ? ts.factory.createNoSubstitutionTemplateLiteral(translatedText) : node;
+        }
 
-                    if (ts.isNoSubstitutionTemplateLiteral(node)) {
-                        const translatedText = translations.get(this.getTranslationKey(node));
-                        return translatedText ? ts.factory.createNoSubstitutionTemplateLiteral(translatedText) : node;
-                    }
+        if (ts.isTemplateExpression(node)) {
+            const translatedTemplate = translations.get(this.getTranslationKey(node));
+            if (!translatedTemplate) {
+                console.warn('⚠️ No translation found for template expression', node.getText());
+                return node;
+            }
 
-                    if (ts.isTemplateExpression(node)) {
-                        const translatedTemplate = translations.get(this.getTranslationKey(node));
-                        if (!translatedTemplate) {
-                            console.warn('⚠️ No translation found for template expression', node.getText());
-                            return node;
-                        }
+            // Recursively translate all complex template expressions first
+            const translatedComplexExpressions = new Map<number, ts.Expression>();
 
-                        // Recursively translate all complex template expressions first
-                        const translatedComplexExpressions = new Map<number, ts.Expression>();
+            // Template expression is complex:
+            for (const span of node.templateSpans) {
+                const expression = span.expression;
+                if (this.isSimpleExpression(expression)) {
+                    continue;
+                }
+                const hash = hashStr(expression.getText());
+                const translatedExpression = visitWithPath(expression, currentPath);
+                translatedComplexExpressions.set(hash, translatedExpression as ts.Expression);
+            }
 
-                        // Template expression is complex:
-                        for (const span of node.templateSpans) {
-                            const expression = span.expression;
-                            if (this.isSimpleExpression(expression)) {
-                                continue;
-                            }
-                            const hash = hashStr(expression.getText());
-                            const translatedExpression = visitWithPath(expression, currentPath);
-                            translatedComplexExpressions.set(hash, translatedExpression as ts.Expression);
-                        }
+            // Build the translated template expression, referencing the translated template spans as necessary
+            return this.stringToTemplateExpression(translatedTemplate, translatedComplexExpressions);
+        }
 
-                        // Build the translated template expression, referencing the translated template spans as necessary
-                        return this.stringToTemplateExpression(translatedTemplate, translatedComplexExpressions);
+        return node;
+    }
+
+    /**
+     * Continue traversing children, updating path for property assignments.
+     */
+    private visitChildren(node: ts.Node, currentPath: string, visitWithPath: (node: ts.Node, path: string) => ts.Node | undefined, context: ts.TransformationContext): ts.Node {
+        return ts.visitEachChild(
+            node,
+            (child) => {
+                let childPath = currentPath;
+
+                // If the child is a property assignment, update the path
+                if (ts.isPropertyAssignment(child)) {
+                    const propName = TSCompilerUtils.extractKeyFromPropertyNode(child);
+                    if (propName) {
+                        childPath = currentPath ? `${currentPath}.${propName}` : propName;
                     }
                 }
 
-                // Continue traversing children, updating path for property assignments
-                return ts.visitEachChild(
-                    node,
-                    (child) => {
-                        let childPath = currentPath;
+                return visitWithPath(child, childPath);
+            },
+            context,
+        );
+    }
 
-                        // If the child is a property assignment, update the path
-                        if (ts.isPropertyAssignment(child)) {
-                            const propName = TSCompilerUtils.extractKeyFromPropertyNode(child);
-                            if (propName) {
-                                childPath = currentPath ? `${currentPath}.${propName}` : propName;
-                            }
-                        }
+    /**
+     * Create a transformer factory for full translations (transforms en.ts completely).
+     */
+    private createFullTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
+        return (context: ts.TransformationContext) => {
+            const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
+                if (this.shouldNodeBeTranslated(node)) {
+                    return this.translateNode(node, translations, currentPath, visitWithPath);
+                }
 
-                        return visitWithPath(child, childPath);
-                    },
-                    context,
-                );
+                return this.visitChildren(node, currentPath, visitWithPath, context);
+            };
+
+            return (sourceFile: ts.SourceFile) => {
+                return (ts.visitNode(sourceFile, visitWithPath) as ts.SourceFile) ?? sourceFile;
+            };
+        };
+    }
+
+    /**
+     * Create a transformer factory for incremental translations of target files.
+     * Handles pathsToModify (retranslate) and pathsToRemove (delete).
+     */
+    private createIncrementalModifyTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
+        return (context: ts.TransformationContext) => {
+            const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
+                if (this.shouldNodeBeTranslated(node)) {
+                    // Check if this path should be removed
+                    if (currentPath && this.pathsToRemove.has(currentPath as TranslationPaths)) {
+                        return undefined; // Remove this node
+                    }
+
+                    // Only translate nodes with paths in pathsToModify
+                    if (!this.pathsToModify.has(currentPath as TranslationPaths)) {
+                        return node; // Keep unchanged
+                    }
+
+                    return this.translateNode(node, translations, currentPath, visitWithPath);
+                }
+
+                return this.visitChildren(node, currentPath, visitWithPath, context);
+            };
+
+            return (sourceFile: ts.SourceFile) => {
+                return (ts.visitNode(sourceFile, visitWithPath) as ts.SourceFile) ?? sourceFile;
+            };
+        };
+    }
+
+    /**
+     * Create a transformer factory for incremental translations of en.ts.
+     * Only translates paths that are in pathsToAdd, skips everything else.
+     */
+    private createIncrementalAddTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
+        return (context: ts.TransformationContext) => {
+            const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
+                if (this.shouldNodeBeTranslated(node)) {
+                    // Only translate nodes with paths in pathsToAdd
+                    if (this.pathsToAdd.has(currentPath as TranslationPaths)) {
+                        return this.translateNode(node, translations, currentPath, visitWithPath);
+                    }
+                    // For nodes not in pathsToAdd, return unchanged
+                    return node;
+                }
+
+                return this.visitChildren(node, currentPath, visitWithPath, context);
             };
 
             return (sourceFile: ts.SourceFile) => {
