@@ -10,7 +10,7 @@ Once you receive your Expensify Visa® Commercial Card, you can activate it and 
 
 # Activate your Expensify Card
 
-1. In the navigation tabs, select **Reports > Tasks**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Reports > Tasks**.
 2. Complete the task labeled **Activate your Expensify Card**.
 3. Enter the last 4 digits of your physical card to activate it.
 
@@ -23,7 +23,7 @@ Once activated, your card is ready to use!
 Your **Smart Limit** is the amount you're allowed to spend without approved expenses. This limit is set and managed by your workspace admin.
 
 **To view your current limit:**
-1. From the navigation tabs, select **Account > Wallet**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Account > Wallet**.
 2. Click your Expensify Card to view your Smart Limit.
 
 If you try to make a purchase that exceeds this limit, the transaction will be declined.
@@ -77,7 +77,7 @@ A virtual card is a secure, flexible way to manage online spending:
 
 ## View your virtual card details
 
-1. From the navigation tabs, go to **Account > Wallet**.
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Account > Wallet**.
 2. Click your Expensify Card.
 3. Click **Reveal Details** to view the card number, expiration date, CVV, and billing address.
 
@@ -114,7 +114,7 @@ Common reasons for Expensify card declines include:
 ## How do I deactivate my card and request a replacement?
 
 If your card is lost, stolen, or damaged:
-1. Go to **Account > Wallet** from the navigation tabs.
+1. Go to **Account > Wallet** from the navigation tabs (on the left on web, and at the bottom on mobile).
 2. Locate your physical card and click **Report card lost or damaged**.
 3. Choose the reason for the card replacement.
 4. Enter your updated address under **Please confirm the mailing address for your new card** and click **Save**.
