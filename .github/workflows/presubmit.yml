@@ -5,7 +5,7 @@ permissions:
   pull-requests: write
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, labeled]
   pull_request_review_comment:
     types: [created]
@@ -13,10 +13,23 @@ on:
 jobs:
   review:
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'AI Review')
+    # if: contains(github.event.pull_request.labels.*.name, 'AI Review')
     steps:
-      - name: Checkout code
+      - name: Checkout main branch (trusted code)
         uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Debug checkout information
+        run: |
+          echo "🔍 Checkout Information:"
+          echo "Repository: ${{ github.repository }}"
+          echo "Repository URL: https://github.com/${{ github.repository }}"
+          echo "Checked out branch: $(git branch --show-current)"
+          echo "Checked out commit: $(git rev-parse HEAD)"
+          echo "Working directory: $(pwd)"
+          echo "Remote origin: $(git remote get-url origin)"
 
       - name: Check required secrets
         run: |
@@ -25,7 +38,7 @@ jobs:
             exit 1
           fi
 
-      - name: Read RULES.md
+      - name: Read RULES.md from main branch
         id: read-rules
         run: |
           RULES_CONTENT=$(cat "contributingGuides/review/RULES.md")
@@ -37,7 +50,7 @@ jobs:
 
       - name: Print RULES.md
         run: |
-          echo "📋 RULES.md"
+          echo "📋 RULES.md (from main branch)"
           echo "======================================"
           echo "${{ steps.read-rules.outputs.content }}"
           echo "======================================"
