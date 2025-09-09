@@ -175,7 +175,9 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
     onyxState = removePrivateOnyxKeys(onyxState);
 
     // Mask credentials
-    onyxState.credentials = maskCredentials(onyxState.credentials as Credentials);
+    if (onyxState.credentials) {
+        onyxState.credentials = maskCredentials(onyxState.credentials as Credentials);
+    }
 
     if (onyxState.stashedCredentials) {
         onyxState.stashedCredentials = maskCredentials(onyxState.stashedCredentials as Credentials);
