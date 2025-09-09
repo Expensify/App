@@ -10172,7 +10172,7 @@ function canSubmitReport(
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const hasBeenRetracted = hasReportBeenReopened(report, reportActions) || hasReportBeenRetracted(report, reportActions);
 
-    if (!(hasBeenRetracted || isManualSubmitEnabled)) {
+    if (isReportArchived || !(hasBeenRetracted || isManualSubmitEnabled)) {
         return false;
     }
 
@@ -10187,13 +10187,12 @@ function canSubmitReport(
 
     return (
         isOpenExpenseReport(report) &&
-        // In search we can not sumbit the report  if it has multiple transactions
+        // In search we can not submit the report  if it has multiple transactions
         (isInSearch ? transactions.length === 1 : transactions.length > 0) &&
         (isOwner || isManager || isAdmin) &&
         !hasOnlyPendingCardOrScanFailTransactions &&
         !hasAllPendingRTERViolations &&
-        hasTransactionWithoutRTERViolation &&
-        !isReportArchived
+        hasTransactionWithoutRTERViolation
     );
 }
 
