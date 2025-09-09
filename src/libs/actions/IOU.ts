@@ -1,6 +1,7 @@
 import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import cloneDeep from 'lodash/cloneDeep';
+// eslint-disable-next-line you-dont-need-lodash-underscore/union-by
 import lodashUnionBy from 'lodash/unionBy';
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
