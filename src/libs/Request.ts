@@ -5,6 +5,8 @@ import Log from './Log';
 import type Middleware from './Middleware/types';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage, isSupportAuthToken} from './Network/NetworkStore';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 let middlewares: Middleware[] = [];
 
@@ -24,6 +26,13 @@ function makeXHR(request: Request): Promise<Response | void> {
                     request.data.shouldRetry = false;
                 }
                 Log.info('411 insufficient permissions; suppressing retry', false, {command: request.command});
+
+                // Trigger a global modal via Onyx so it shows regardless of current UI location
+                Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, {
+                    command: request.command,
+                    message: typeof response?.message === 'string' ? response.message : undefined,
+                    timestamp: Date.now(),
+                });
             }
 
             return response;

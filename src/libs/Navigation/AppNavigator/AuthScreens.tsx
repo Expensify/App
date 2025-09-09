@@ -9,6 +9,7 @@ import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProv
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
+import SupportalPermissionDeniedModalProvider from '@components/SupportalPermissionDeniedModalProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import PriorityModeController from '@components/PriorityModeController';
 import {SearchContextProvider} from '@components/Search/SearchContext';
@@ -541,7 +542,7 @@ function AuthScreens() {
     }
 
     return (
-        <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, LockedAccountModalProvider, DelegateNoAccessModalProvider]}>
+        <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, LockedAccountModalProvider, DelegateNoAccessModalProvider, SupportalPermissionDeniedModalProvider]}>
             <RootStack.Navigator
                 persistentScreens={[
                     NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
