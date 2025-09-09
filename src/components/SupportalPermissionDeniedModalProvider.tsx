@@ -1,7 +1,7 @@
 import React, {useMemo, useState} from 'react';
+import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import ConfirmModal from '@components/ConfirmModal';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChildren) {
@@ -10,7 +10,8 @@ function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChild
     const [isVisible, setIsVisible] = useState(false);
 
     const title = 'Invalid Supportal Action';
-    const prompt = 'You do not have the permission to take the requested action while using Supportal. If you think that Success should be able to take this action, please start a conversation in Slack.';
+    const prompt =
+        'You do not have the permission to take the requested action while using Supportal. If you think that Success should be able to take this action, please start a conversation in Slack.';
 
     React.useEffect(() => {
         setIsVisible(!!payload);
@@ -43,5 +44,3 @@ function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChild
 SupportalPermissionDeniedModalProvider.displayName = 'SupportalPermissionDeniedModalProvider';
 
 export default SupportalPermissionDeniedModalProvider;
-
-

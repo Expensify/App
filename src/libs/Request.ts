@@ -1,3 +1,5 @@
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import HttpUtils from './HttpUtils';
@@ -5,17 +7,13 @@ import Log from './Log';
 import type Middleware from './Middleware/types';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage, isSupportAuthToken} from './Network/NetworkStore';
-import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 let middlewares: Middleware[] = [];
 
 function makeXHR(request: Request): Promise<Response | void> {
     const finalParameters = enhanceParameters(request.command, request?.data ?? {});
     return hasReadRequiredDataFromStorage().then((): Promise<Response | void> => {
-        return Promise.resolve(
-            HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline),
-        ).then((response) => {
+        return Promise.resolve(HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline)).then((response) => {
             const unsupportedSupportalCommand =
                 isSupportAuthToken() &&
                 Number(response?.jsonCode) === 666 &&
