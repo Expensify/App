@@ -4,7 +4,7 @@ description: Learn how to review, approve, or deny travel requests in Expensify 
 keywords: [approve travel, deny travel request, soft approval, hard approval, travel policy approval, manager approval, designated approver, secondary approver, travel workflows]
 ---
 
-Approving d flexible, giving approvers full control over how and when travel requests get reviewed. With customizable approval flows, mobile-friendly access, and even email-based actions, approving travel happens wherever you are.
+Approving travel is easy and flexible, giving approvers full control over how and when travel requests get reviewed. With customizable approval flows, mobile-friendly access, and even email-based actions, approving travel happens wherever you are.
 
 ---
 
@@ -19,7 +19,7 @@ Approving d flexible, giving approvers full control over how and when travel req
 
 # Review and approve travel requests
 
-All drequests that require approval can be found under:
+All trip requests that require approval can be found under:
 
 - **Trips > Approvals** (on both mobile and desktop)
 - All users responsible for approving trips will receive an email notification when a trip is awaiting their approval.
@@ -34,7 +34,7 @@ Each trip will display relevant details and action buttons to **Approve** or **D
 
 ---
 
-#### Approval actions
+# Approval actions
 
 Approvers will see the following options for each trip:
 
