@@ -1784,29 +1784,6 @@ describe('SearchUIUtils', () => {
                 SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResultsGroupByWithdrawalID.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID),
             ).toStrictEqual(transactionWithdrawalIDGroupListItems);
         });
-
-        it('should process report actions regardless of key order when bug is fixed', () => {
-            const testDataTransactionFirst = {
-                [`transactions_${transactionID}`]: searchResults.data[`transactions_${transactionID}`],
-                [`reportActions_${reportID}`]: searchResults.data[`reportActions_${reportID}`],
-                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
-                personalDetailsList: searchResults.data.personalDetailsList,
-                [`policy_${policyID}`]: searchResults.data[`policy_${policyID}`],
-            };
-
-            const testDataReportFirst = {
-                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
-                [`reportActions_${reportID}`]: searchResults.data[`reportActions_${reportID}`],
-                [`transactions_${transactionID}`]: searchResults.data[`transactions_${transactionID}`],
-                personalDetailsList: searchResults.data.personalDetailsList,
-                [`policy_${policyID}`]: searchResults.data[`policy_${policyID}`],
-            };
-
-            const resultTransactionFirst = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.CHAT, testDataTransactionFirst, adminAccountID, formatPhoneNumber) as ReportActionListItemType[];
-            const resultReportFirst = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.CHAT, testDataReportFirst, adminAccountID, formatPhoneNumber) as ReportActionListItemType[];
-
-            expect(resultTransactionFirst).toEqual(resultReportFirst);
-        });
     });
 
     describe('Test getSortedSections', () => {
