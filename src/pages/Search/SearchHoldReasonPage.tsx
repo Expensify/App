@@ -19,7 +19,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
-import type {ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 
 function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>>) {
     const {backTo = '', reportID} = route.params;
@@ -29,6 +30,43 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
 
     const {report, ancestorReportsAndReportActions} = useAncestorReportsAndReportActions(reportID);
     const allReportTransactionsAndViolations = useAllReportsTransactionsAndViolations();
+
+    const [selectedTransactionsIOUActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        canBeMissing: false,
+        selector: (reportActions) => {
+            const actions = Object.values(reportActions ?? {});
+
+            return context.selectedTransactionIDs.reduce<Record<string, ReportAction>>((acc, transactionID) => {
+                const iouAction = getIOUActionForTransactionID(actions, transactionID);
+                if (!iouAction) {
+                    Log.warn(`[SearchHoldReasonPage] No IOU action found for selected transactionID: ${transactionID}`);
+                    return acc;
+                }
+                acc[transactionID] = iouAction;
+                return acc;
+            }, {});
+        },
+    });
+
+    const [selectedTransactionsThreads] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`, {
+        canBeMissing: false,
+        selector: (allReports) => {
+            if (!allReports) {
+                return;
+            }
+
+            return Object.entries(selectedTransactionsIOUActions ?? {}).reduce<Record<string, OnyxValueWithOfflineFeedback<Report>>>((acc, [transactionID, iouAction]) => {
+                if (!iouAction?.childReportID) {
+                    return acc;
+                }
+                const thread = allReports[iouAction.childReportID];
+                if (thread) {
+                    acc[transactionID] = thread;
+                }
+                return acc;
+            }, {});
+        },
+    });
 
     // Get the selected transactions and violations for the current reportID
     const [selectedTransactions, selectedTransactionViolations] = useMemo(() => {
@@ -63,32 +101,18 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
         return [transactions, violations];
     }, [allReportTransactionsAndViolations, context.selectedTransactionIDs, reportID]);
 
-    const [selectedTransactionsIOUActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        canBeMissing: false,
-        selector: (reportActions) => {
-            if (!reportActions || !selectedTransactions) {
-                return {};
-            }
-
-            const transactionsIOUActions: Record<string, ReportAction> = {};
-            const actions = Object.values(reportActions);
-
-            for (const transactionID of Object.keys(selectedTransactions)) {
-                const iouAction = getIOUActionForTransactionID(actions, transactionID);
-                if (!iouAction) {
-                    Log.warn(`[SearchHoldReasonPage] No IOU action found for selected transactionID: ${transactionID}`);
-                    continue;
-                }
-                transactionsIOUActions[transactionID] = iouAction;
-            }
-            return transactionsIOUActions;
-        },
-    });
-
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                bulkHold(comment, report, ancestorReportsAndReportActions, selectedTransactions, selectedTransactionViolations, selectedTransactionsIOUActions ?? {});
+                bulkHold(
+                    comment,
+                    report,
+                    ancestorReportsAndReportActions,
+                    selectedTransactions,
+                    selectedTransactionViolations,
+                    selectedTransactionsIOUActions ?? {},
+                    selectedTransactionsThreads ?? {},
+                );
                 context.clearSelectedTransactions(true);
             } else {
                 holdMoneyRequestOnSearch(context.currentSearchHash, Object.keys(context.selectedTransactions), comment, selectedTransactions, selectedTransactionsIOUActions ?? {});
@@ -96,7 +120,7 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
             }
             Navigation.goBack();
         },
-        [ancestorReportsAndReportActions, context, report, route.name, selectedTransactions, selectedTransactionViolations, selectedTransactionsIOUActions],
+        [ancestorReportsAndReportActions, context, report, route.name, selectedTransactions, selectedTransactionViolations, selectedTransactionsThreads, selectedTransactionsIOUActions],
     );
 
     const validate = useCallback(

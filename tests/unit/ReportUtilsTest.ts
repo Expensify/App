@@ -4,6 +4,7 @@ import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import useAncestorReportAndReportActions from '@hooks/useAncestorReportsAndReportActions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
@@ -115,7 +116,6 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import useAncestorReportAndReportActions from '@hooks/useAncestorReportsAndReportActions';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('@libs/Permissions');
@@ -2146,7 +2146,7 @@ describe('ReportUtils', () => {
             expect(canHoldUnholdReportAction(expenseCreatedAction)).toEqual({canHoldRequest: true, canUnholdRequest: false});
 
             const {result} = renderHook(() => useAncestorReportAndReportActions(expenseReport.reportID));
-            
+
             putOnHold(expenseTransaction.transactionID, 'hold', result.current.ancestorReportsAndReportActions, transactionThreadReport.reportID);
             await waitForBatchedUpdates();
 
