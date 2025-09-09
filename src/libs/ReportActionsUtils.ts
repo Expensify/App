@@ -2148,10 +2148,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
     }
 
     // For some integrations (e.g. Intacct, QBD), we do not render direct links because we only have IDs, not URLs
-    const noLinkLabels = new Set<string>([
-        CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.intacct,
-        CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksDesktop,
-    ]);
+    const noLinkLabels = new Set<string>([CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.intacct, CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksDesktop]);
     const shouldSuppressLinks = noLinkLabels.has(label ?? '');
     if (!shouldSuppressLinks && reimbursableUrls.length === 1) {
         const shouldAddPeriod = nonReimbursableUrls.length === 0;
