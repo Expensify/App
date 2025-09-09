@@ -1,10 +1,12 @@
 import React from 'react';
+import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -26,6 +28,9 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const session = useSession();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     const selectReport = (item: TransactionGroupListItem) => {
@@ -34,7 +39,15 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             return;
         }
 
-        changeTransactionsReport(selectedTransactionIDs, item.value, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`], reportNextStep);
+        changeTransactionsReport(
+            selectedTransactionIDs,
+            item.value,
+            isASAPSubmitBetaEnabled,
+            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            session?.email ?? '',
+            allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+            reportNextStep,
+        );
         turnOffMobileSelectionMode();
         clearSelectedTransactions(true);
         Navigation.dismissModal();
@@ -44,7 +57,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         if (!transactionReport || selectedTransactionIDs.length === 0) {
             return;
         }
-        changeTransactionsReport(selectedTransactionIDs, CONST.REPORT.UNREPORTED_REPORT_ID);
+        changeTransactionsReport(selectedTransactionIDs, CONST.REPORT.UNREPORTED_REPORT_ID, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
@@ -56,6 +69,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         <IOURequestEditReportCommon
             backTo={backTo}
             transactionsReports={transactionReport ? [transactionReport] : []}
+            transactionIds={selectedTransactionIDs}
             selectReport={selectReport}
             removeFromReport={removeFromReport}
             isEditing={action === CONST.IOU.ACTION.EDIT}
