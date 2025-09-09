@@ -162,6 +162,7 @@ import type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    PayAndDowngradeDescriptionParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
@@ -2228,10 +2229,6 @@ const translations = {
             title: 'Witamy w Expensify',
             description: 'Jedna aplikacja do zarządzania wydatkami biznesowymi i osobistymi z prędkością czatu. Wypróbuj ją i daj nam znać, co o tym myślisz. Jeszcze wiele przed nami!',
             secondaryDescription: 'Aby przełączyć się z powrotem na Expensify Classic, wystarczy stuknąć swoje zdjęcie profilowe > Przejdź do Expensify Classic.',
-        },
-        welcomeVideo: {
-            title: 'Witamy w Expensify',
-            description: 'Jedna aplikacja do zarządzania wszystkimi wydatkami biznesowymi i osobistymi w czacie. Stworzona dla Twojego biznesu, Twojego zespołu i Twoich przyjaciół.',
         },
         getStarted: 'Zacznij teraz',
         whatsYourName: 'Jak masz na imię?',
@@ -5617,7 +5614,7 @@ const translations = {
         payAndDowngrade: {
             title: 'Zapłać i obniż plan',
             headline: 'Twoja ostateczna płatność',
-            description1: 'Twój ostateczny rachunek za tę subskrypcję wyniesie',
+            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `Ostateczny rachunek za tę subskrypcję wyniesie <strong>${formattedAmount}</strong>`,
             description2: ({date}: DateParams) => `Zobacz swoje zestawienie poniżej dla ${date}:`,
             subscription:
                 'Uwaga! Ta akcja zakończy Twoją subskrypcję Expensify, usunie to miejsce pracy i usunie wszystkich członków miejsca pracy. Jeśli chcesz zachować to miejsce pracy i tylko usunąć siebie, najpierw poproś innego administratora o przejęcie rozliczeń.',

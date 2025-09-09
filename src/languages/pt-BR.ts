@@ -162,6 +162,7 @@ import type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    PayAndDowngradeDescriptionParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
@@ -2232,10 +2233,6 @@ const translations = {
             title: 'Bem-vindo ao Expensify',
             description: 'Um aplicativo para gerenciar seus gastos empresariais e pessoais na velocidade de um chat. Experimente e nos diga o que você acha. Muito mais por vir!',
             secondaryDescription: 'Para voltar para o Expensify Classic, basta tocar na sua foto de perfil > Ir para Expensify Classic.',
-        },
-        welcomeVideo: {
-            title: 'Bem-vindo ao Expensify',
-            description: 'Um aplicativo para gerenciar todos os seus gastos empresariais e pessoais em um chat. Feito para o seu negócio, sua equipe e seus amigos.',
         },
         getStarted: 'Comece agora',
         whatsYourName: 'Qual é o seu nome?',
@@ -5629,7 +5626,7 @@ const translations = {
         payAndDowngrade: {
             title: 'Pagar e rebaixar',
             headline: 'Seu pagamento final',
-            description1: 'Sua fatura final para esta assinatura será',
+            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `Sua fatura final para essa assinatura será de <strong>${formattedAmount}</strong>`,
             description2: ({date}: DateParams) => `Veja sua análise abaixo para ${date}:`,
             subscription:
                 'Atenção! Esta ação encerrará sua assinatura do Expensify, excluirá este espaço de trabalho e removerá todos os membros do espaço de trabalho. Se você quiser manter este espaço de trabalho e apenas se remover, peça a outro administrador para assumir a cobrança primeiro.',

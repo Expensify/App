@@ -162,6 +162,7 @@ import type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    PayAndDowngradeDescriptionParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
@@ -2233,10 +2234,6 @@ const translations = {
             description:
                 'Eén app om uw zakelijke en persoonlijke uitgaven te beheren met de snelheid van chat. Probeer het uit en laat ons weten wat u ervan vindt. Er komt nog veel meer aan!',
             secondaryDescription: 'Om terug te schakelen naar Expensify Classic, tik je gewoon op je profielfoto > Ga naar Expensify Classic.',
-        },
-        welcomeVideo: {
-            title: 'Welkom bij Expensify',
-            description: 'Eén app om al je zakelijke en persoonlijke uitgaven in een chat te beheren. Gemaakt voor jouw bedrijf, jouw team en jouw vrienden.',
         },
         getStarted: 'Aan de slag',
         whatsYourName: 'Wat is jouw naam?',
@@ -5628,7 +5625,7 @@ const translations = {
         payAndDowngrade: {
             title: 'Betalen & downgraden',
             headline: 'Uw laatste betaling',
-            description1: 'Uw eindafrekening voor dit abonnement zal zijn',
+            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `Je eindfactuur voor dit abonnement is <strong>${formattedAmount}</strong>`,
             description2: ({date}: DateParams) => `Zie hieronder uw uitsplitsing voor ${date}:`,
             subscription:
                 'Let op! Deze actie beëindigt je Expensify-abonnement, verwijdert deze werkruimte en verwijdert alle leden van de werkruimte. Als je deze werkruimte wilt behouden en alleen jezelf wilt verwijderen, laat dan eerst een andere beheerder de facturering overnemen.',

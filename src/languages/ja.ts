@@ -162,6 +162,7 @@ import type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    PayAndDowngradeDescriptionParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
@@ -2225,10 +2226,6 @@ const translations = {
             title: 'Expensifyへようこそ',
             description: 'チャットのスピードでビジネスと個人の支出を管理するための1つのアプリ。ぜひお試しいただき、ご意見をお聞かせください。もっと多くの機能が登場予定です！',
             secondaryDescription: 'Expensify Classicに戻るには、プロフィール写真をタップして > Expensify Classicに移動します。',
-        },
-        welcomeVideo: {
-            title: 'Expensifyへようこそ',
-            description: 'チャットでビジネスと個人の支出をすべて管理するための1つのアプリ。あなたのビジネス、チーム、そして友人のために作られました。',
         },
         getStarted: '始めましょう',
         whatsYourName: 'あなたの名前は何ですか？',
@@ -5600,7 +5597,7 @@ const translations = {
         payAndDowngrade: {
             title: '支払いとダウングレード',
             headline: '最終支払い',
-            description1: 'このサブスクリプションの最終請求書は',
+            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `このサブスクリプションの最終的な請求額は<strong>${formattedAmount}</strong>です`,
             description2: ({date}: DateParams) => `${date}の内訳を以下に示します：`,
             subscription:
                 'ご注意ください！この操作は、Expensifyのサブスクリプションを終了し、このワークスペースを削除し、すべてのワークスペースメンバーを削除します。このワークスペースを保持し、自分だけを削除したい場合は、別の管理者に請求を引き継いでもらってください。',
