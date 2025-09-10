@@ -207,6 +207,12 @@ class TranslationGenerator {
 
                 // If we have nodes to add, inject them into the target file
                 if (translatedAddedNodes.size > 0) {
+                    if (this.verbose) {
+                        console.log(`🔧 Injecting ${translatedAddedNodes.size} translated nodes:`);
+                        for (const [path, node] of translatedAddedNodes) {
+                            console.log(`   ${path}: ${node.getText()}`);
+                        }
+                    }
                     const injectTransformer = this.createIncrementalInjectTransformer(translatedAddedNodes);
                     const injectResult = ts.transform(transformedSourceFile, [injectTransformer]);
                     transformedSourceFile = injectResult.transformed.at(0) ?? transformedSourceFile;
@@ -627,6 +633,28 @@ class TranslationGenerator {
                 }
             }
 
+            // Classify pathsToModify into actual modify vs add based on target file existence
+            // We need to check against each target language file to properly classify paths
+            for (const targetLanguage of this.targetLanguages) {
+                const targetPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
+
+                if (fs.existsSync(targetPath)) {
+                    const existingContent = fs.readFileSync(targetPath, 'utf8');
+                    const existingSourceFile = ts.createSourceFile(targetPath, existingContent, ts.ScriptTarget.Latest, true);
+
+                    // Check each path in pathsToModify to see if it actually exists in this target file
+                    for (const pathToCheck of this.pathsToModify) {
+                        if (!this.pathExistsInFile(existingSourceFile, pathToCheck)) {
+                            this.pathsToModify.delete(pathToCheck);
+                            this.pathsToAdd.add(pathToCheck);
+                        }
+                    }
+
+                    // Break after first existing target file since path classification should be consistent
+                    break;
+                }
+            }
+
             if (this.verbose) {
                 console.log(`🔄 Paths to modify: ${Array.from(this.pathsToModify).join(', ')}`);
                 console.log(`➕ Paths to add: ${Array.from(this.pathsToAdd).join(', ')}`);
@@ -722,6 +750,31 @@ class TranslationGenerator {
             }
         }
         return false;
+    }
+
+    /**
+     * Check if a dot-notation path exists in the given source file.
+     */
+    private pathExistsInFile(sourceFile: ts.SourceFile, path: string): boolean {
+        const translationsNode = this.findTranslationsNode(sourceFile);
+        if (!translationsNode) {
+            return false;
+        }
+
+        // Simple implementation: check if the final property name exists in the node text
+        // This could be improved with proper AST traversal, but should work for most cases
+        const finalKey = path.split('.').pop();
+        if (!finalKey) {
+            return false;
+        }
+
+        try {
+            const nodeText = translationsNode.getText();
+            // Look for the key as a property (with colon or parentheses)
+            return nodeText.includes(`${finalKey}:`) || nodeText.includes(`${finalKey}(`);
+        } catch {
+            return false;
+        }
     }
 
     /**
