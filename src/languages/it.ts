@@ -169,6 +169,7 @@ import type {
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    PhoneErrorRouteParams,
     PolicyAddedReportFieldOptionParams,
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
@@ -657,6 +658,7 @@ const translations = {
         submitTo: 'Invia a',
         forwardTo: 'Inoltra a',
         merge: 'Unisci',
+        none: 'Nessuno',
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la tua rete e riprova.',
         enableGlobalReimbursements: 'Abilita i rimborsi globali',
         purchaseAmount: 'Importo di acquisto',
@@ -1413,7 +1415,7 @@ const translations = {
         listPage: {
             header: 'Unisci spese',
             noEligibleExpenseFound: 'Nessuna spesa idonea trovata',
-            noEligibleExpenseFoundSubtitle: `Non hai spese che possono essere unite a questa. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Scopri di più</a> sulle spese idonee.`,
+            noEligibleExpenseFoundSubtitle: `<muted-text><centered-text>Non hai spese che possono essere unite a questa. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Scopri di più</a> sulle spese idonee.</centered-text></muted-text>`,
             selectTransactionToMerge: ({reportName}: {reportName: string}) =>
                 `Seleziona una <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">spesa idonea</a> da unire <strong>${reportName}</strong>.`,
         },
@@ -3399,11 +3401,8 @@ const translations = {
         tripSummary: 'Riepilogo del viaggio',
         departs: 'Parte',
         errorMessage: 'Qualcosa è andato storto. Per favore riprova più tardi.',
-        phoneError: {
-            phrase1: 'Per favore',
-            link: "aggiungi un'email di lavoro come login principale",
-            phrase2: 'per prenotare viaggi.',
-        },
+        phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) =>
+            `<rbr><a href="${phoneErrorMethodsRoute}">Aggiungete un'e-mail di lavoro come login principale</a> per prenotare i viaggi.</rbr>`,
         domainSelector: {
             title: 'Dominio',
             subtitle: 'Scegli un dominio per la configurazione di Expensify Travel.',
