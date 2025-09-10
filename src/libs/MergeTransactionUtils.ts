@@ -46,7 +46,10 @@ const MERGE_FIELD_TRANSLATION_KEYS = {
 
 // Get the filename from the receipt
 function getReceiptFileName(receipt?: Receipt) {
-    return receipt?.source?.split('/')?.pop();
+    if (!receipt?.uri) {
+        return undefined;
+    }
+    return receipt.uri.split('/').pop();
 }
 
 /**
