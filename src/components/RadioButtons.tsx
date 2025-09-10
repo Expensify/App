@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FormHelpMessage from './FormHelpMessage';
+import {PressableWithDelayToggle, PressableWithFeedback} from './Pressable';
 import RadioButtonWithLabel from './RadioButtonWithLabel';
 
 type Choice = {
@@ -56,7 +57,7 @@ function RadioButtons({items, onPress, defaultCheckedValue = '', radioButtonStyl
                     <RadioButtonWithLabel
                         key={item.value}
                         isChecked={item.value === checkedValue}
-                        style={[styles.mb4, radioButtonStyle]}
+                        style={radioButtonStyle}
                         onPress={() => {
                             setCheckedValue(item.value);
                             onInputChange(item.value);
