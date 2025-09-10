@@ -59,6 +59,14 @@ describe('generateTranslations', () => {
 
         // Set dry-run flag for tests
         process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it'];
+
+        // Reset Git mocks to default behavior for each test
+        mockIsValidRef.mockReset();
+        mockDiff.mockReset();
+
+        // Default to invalid ref unless explicitly mocked otherwise
+        mockIsValidRef.mockReturnValue(false);
+        mockDiff.mockReturnValue({files: [], hasChanges: false});
     });
 
     afterEach(() => {
