@@ -35,7 +35,7 @@ To comply with financial regulations, the following documents are needed:
 
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Overview**.
 2. Under **Default currency**, select **USD$**.
-3. From the workspace settings navigation tabs (on the left on web, and at the bottom on mobile), click **Workflows > enable Make or track payments**
+3. From the workspace settings **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workflows > enable Make or track payments**
 4. Under **Connect bank account > Confirm currency and country (United States - USD$)**
 5. Click **Confirm**.
      - See [this help article](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account) for more details on connecting a US business bank account.
