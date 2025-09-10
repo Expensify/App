@@ -816,9 +816,17 @@ class TranslationGenerator {
      */
     private extractTranslatedNodes(sourceFile: ts.SourceFile, translatedNodes: Map<string, ts.Node>): void {
         const visitWithPath = (node: ts.Node, currentPath = ''): void => {
-            // If this path is in pathsToAdd or pathsToModify, collect the full node and don't recurse further
+            // If this path is in pathsToAdd or pathsToModify, collect the appropriate node
             if (this.pathsToAdd.has(currentPath as TranslationPaths) || this.pathsToModify.has(currentPath as TranslationPaths)) {
-                translatedNodes.set(currentPath, node);
+                if (this.pathsToAdd.has(currentPath as TranslationPaths)) {
+                    // For pathsToAdd: extract the entire PropertyAssignment (we're adding new properties)
+                    translatedNodes.set(currentPath, node);
+                } else if (this.pathsToModify.has(currentPath as TranslationPaths) && ts.isPropertyAssignment(node)) {
+                    // For pathsToModify: extract only the value (initializer) since we're replacing existing values
+                    if (node.initializer) {
+                        translatedNodes.set(currentPath, node.initializer);
+                    }
+                }
                 return; // Stop recursing into children
             }
 
@@ -923,11 +931,12 @@ class TranslationGenerator {
                     return undefined; // Remove this node
                 }
 
-                // Check if this path should be replaced with a translated node
-                if (currentPath && this.pathsToModify.has(currentPath as TranslationPaths)) {
-                    const translatedNode = translatedNodeMap.get(currentPath);
-                    if (translatedNode) {
-                        return translatedNode;
+                // Check if this is a property assignment that should be modified
+                if (ts.isPropertyAssignment(node) && currentPath && this.pathsToModify.has(currentPath as TranslationPaths)) {
+                    const translatedValue = translatedNodeMap.get(currentPath);
+                    if (translatedValue) {
+                        // Create a new property assignment with the translated value
+                        return ts.factory.createPropertyAssignment(node.name, translatedValue as ts.Expression);
                     }
                 }
 
