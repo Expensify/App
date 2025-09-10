@@ -60,6 +60,9 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+
     const session = useSession();
     const {isBetaEnabled} = usePermissions();
     const {options, areOptionsInitialized} = useOptionsList({
@@ -89,14 +92,14 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, true);
+        const inviteOptions = getMemberInviteOptions(options.personalDetails, activePolicyID, betas ?? [], excludedUsers, true);
 
         return {...inviteOptions, recentReports: [], currentUserOption: null};
-    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
+    }, [activePolicyID, areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
 
     const inviteOptions = useMemo(
-        () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {excludeLogins: excludedUsers}),
-        [debouncedSearchTerm, defaultOptions, excludedUsers, countryCode],
+        () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, activePolicyID, {excludeLogins: excludedUsers}),
+        [defaultOptions, debouncedSearchTerm, countryCode, activePolicyID, excludedUsers],
     );
 
     useEffect(() => {

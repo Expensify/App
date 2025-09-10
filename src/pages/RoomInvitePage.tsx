@@ -59,6 +59,7 @@ function RoomInvitePage({
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const {options, areOptionsInitialized} = useOptionsList();
 
@@ -83,7 +84,7 @@ function RoomInvitePage({
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers);
+        const inviteOptions = getMemberInviteOptions(options.personalDetails, activePolicyID, betas ?? [], excludedUsers);
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, MemberForList> = {};
         inviteOptions.personalDetails.forEach((detail) => {
@@ -104,16 +105,16 @@ function RoomInvitePage({
             recentReports: [],
             currentUserOption: null,
         };
-    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, selectedOptions]);
+    }, [activePolicyID, areOptionsInitialized, betas, excludedUsers, options.personalDetails, selectedOptions]);
 
     const inviteOptions = useMemo(() => {
         if (debouncedSearchTerm.trim() === '') {
             return defaultOptions;
         }
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {excludeLogins: excludedUsers});
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, activePolicyID, {excludeLogins: excludedUsers});
 
         return filteredOptions;
-    }, [debouncedSearchTerm, defaultOptions, excludedUsers, countryCode]);
+    }, [debouncedSearchTerm, defaultOptions, countryCode, activePolicyID, excludedUsers]);
 
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];
