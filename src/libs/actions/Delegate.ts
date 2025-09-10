@@ -543,6 +543,7 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
+                isLoading: true,
                 delegatedAccess: {
                     errorFields: {
                         updateDelegateRole: {
@@ -569,6 +570,7 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
+                isLoading: false,
                 delegatedAccess: {
                     errorFields: {
                         updateDelegateRole: {
@@ -596,6 +598,7 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
+                isLoading: true,
                 delegatedAccess: {
                     delegates: delegatedAccess.delegates.map((delegate) =>
                         delegate.email === email

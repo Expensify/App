@@ -19,20 +19,19 @@ type UpdateDelegateMagicCodePageProps = PlatformStackScreenProps<SettingsNavigat
 function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) {
     const {translate} = useLocalize();
     const login = route.params.login;
-    const currentRole = route.params.currentRole as ValueOf<typeof CONST.DELEGATE_ROLE>;
     const newRole = route.params.newRole as ValueOf<typeof CONST.DELEGATE_ROLE>;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
     const updateDelegateErrors = account?.delegatedAccess?.errorFields?.updateDelegateRole?.[login];
     useEffect(() => {
-        if (currentDelegate?.role !== currentRole || !!currentDelegate.pendingFields?.role || !!updateDelegateErrors) {
+        if (currentDelegate?.role !== newRole || !!currentDelegate.pendingFields?.role || !!updateDelegateErrors) {
             return;
         }
 
         // Dismiss modal on successful magic code verification
         Navigation.goBack(ROUTES.SETTINGS_SECURITY);
-    }, [login, currentDelegate, currentRole, updateDelegateErrors]);
+    }, [login, currentDelegate, updateDelegateErrors, newRole]);
 
     const clearError = () => {
         if (isEmptyObject(updateDelegateErrors) && isEmptyObject(validateCodeAction?.errorFields)) {

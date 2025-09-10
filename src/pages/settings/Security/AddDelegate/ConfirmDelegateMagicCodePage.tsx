@@ -47,9 +47,7 @@ function ConfirmDelegateMagicCodePage({route}: ConfirmDelegateMagicCodePageProps
         <ValidateCodeActionContent
             clearError={clearError}
             validateCodeActionErrorField="addDelegate"
-            onClose={() => {
-                Navigation.goBack();
-            }}
+            onClose={() => Navigation.goBack()}
             validateError={validateLoginError}
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => requestValidateCodeAction()}
