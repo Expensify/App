@@ -13,13 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import {openPolicyCategoriesPage} from '@userActions/Policy/Category';
-import {openPolicyDistanceRatesPage} from '@userActions/Policy/DistanceRate';
-import {openWorkspaceMembersPage} from '@userActions/Policy/Member';
-import {openPolicyPerDiemPage} from '@userActions/Policy/PerDiem';
-import {duplicateWorkspace as duplicateWorkspaceAction, openPolicyTaxesPage, openPolicyWorkflowsPage} from '@userActions/Policy/Policy';
-import {openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
-import {openPolicyTagsPage} from '@userActions/Policy/Tag';
+import {duplicateWorkspace as duplicateWorkspaceAction, openDuplicatePolicyPage} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -205,15 +199,8 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         if (!policyID) {
             return;
         }
-        openWorkspaceMembersPage(policyID, Object.keys(allIds ?? {}));
-        openPolicyCategoriesPage(policyID);
-        openPolicyDistanceRatesPage(policyID);
-        openPolicyPerDiemPage(policyID);
-        openPolicyReportFieldsPage(policyID);
-        openPolicyTagsPage(policyID);
-        openPolicyTaxesPage(policyID);
-        openPolicyWorkflowsPage(policyID);
-    }, [policyID, allIds]);
+        openDuplicatePolicyPage(policyID);
+    }, [policyID]);
 
     const confirmDuplicate = useCallback(() => {
         if (!policy || !duplicateWorkspace?.name || !duplicateWorkspace?.policyID) {

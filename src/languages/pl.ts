@@ -162,12 +162,14 @@ import type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    PayAndDowngradeDescriptionParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    PhoneErrorRouteParams,
     PolicyAddedReportFieldOptionParams,
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
@@ -656,6 +658,7 @@ const translations = {
         submitTo: 'Wyślij do',
         forwardTo: 'Przekaż do',
         merge: 'Scal',
+        none: 'Brak',
         unstableInternetConnection: 'Niestabilne połączenie internetowe. Sprawdź swoją sieć i spróbuj ponownie.',
         enableGlobalReimbursements: 'Włącz globalne zwroty',
         purchaseAmount: 'Kwota zakupu',
@@ -1411,7 +1414,7 @@ const translations = {
         listPage: {
             header: 'Scal wydatki',
             noEligibleExpenseFound: 'Nie znaleziono kwalifikujących się wydatków',
-            noEligibleExpenseFoundSubtitle: `Nie masz wydatków, które można scalić z tym. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Dowiedz się więcej</a> o kwalifikujących się wydatkach.`,
+            noEligibleExpenseFoundSubtitle: `<muted-text><centered-text>Nie masz wydatków, które można scalić z tym. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Dowiedz się więcej</a> o kwalifikujących się wydatkach.</centered-text></muted-text>`,
             selectTransactionToMerge: ({reportName}: {reportName: string}) =>
                 `Wybierz <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">kwalifikujący się wydatek</a> do scalenia <strong>${reportName}</strong>.`,
         },
@@ -2228,10 +2231,6 @@ const translations = {
             title: 'Witamy w Expensify',
             description: 'Jedna aplikacja do zarządzania wydatkami biznesowymi i osobistymi z prędkością czatu. Wypróbuj ją i daj nam znać, co o tym myślisz. Jeszcze wiele przed nami!',
             secondaryDescription: 'Aby przełączyć się z powrotem na Expensify Classic, wystarczy stuknąć swoje zdjęcie profilowe > Przejdź do Expensify Classic.',
-        },
-        welcomeVideo: {
-            title: 'Witamy w Expensify',
-            description: 'Jedna aplikacja do zarządzania wszystkimi wydatkami biznesowymi i osobistymi w czacie. Stworzona dla Twojego biznesu, Twojego zespołu i Twoich przyjaciół.',
         },
         getStarted: 'Zacznij teraz',
         whatsYourName: 'Jak masz na imię?',
@@ -3407,11 +3406,8 @@ const translations = {
         tripSummary: 'Podsumowanie podróży',
         departs: 'Odjeżdża',
         errorMessage: 'Coś poszło nie tak. Spróbuj ponownie później.',
-        phoneError: {
-            phrase1: 'Proszę',
-            link: 'dodaj służbowy adres e-mail jako swoje główne logowanie',
-            phrase2: 'zarezerwować podróż.',
-        },
+        phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) =>
+            `<rbr><a href="${phoneErrorMethodsRoute}">Dodaj służbowy adres e-mail jako główny login</a> do rezerwacji podróży.</rbr>`,
         domainSelector: {
             title: 'Domena',
             subtitle: 'Wybierz domenę dla konfiguracji Expensify Travel.',
@@ -5622,7 +5618,7 @@ const translations = {
         payAndDowngrade: {
             title: 'Zapłać i obniż plan',
             headline: 'Twoja ostateczna płatność',
-            description1: 'Twój ostateczny rachunek za tę subskrypcję wyniesie',
+            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `Ostateczny rachunek za tę subskrypcję wyniesie <strong>${formattedAmount}</strong>`,
             description2: ({date}: DateParams) => `Zobacz swoje zestawienie poniżej dla ${date}:`,
             subscription:
                 'Uwaga! Ta akcja zakończy Twoją subskrypcję Expensify, usunie to miejsce pracy i usunie wszystkich członków miejsca pracy. Jeśli chcesz zachować to miejsce pracy i tylko usunąć siebie, najpierw poproś innego administratora o przejęcie rozliczeń.',

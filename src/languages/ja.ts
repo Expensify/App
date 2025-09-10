@@ -162,12 +162,14 @@ import type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    PayAndDowngradeDescriptionParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    PhoneErrorRouteParams,
     PolicyAddedReportFieldOptionParams,
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
@@ -656,6 +658,7 @@ const translations = {
         submitTo: '送信先',
         forwardTo: '転送先',
         merge: 'マージ',
+        none: 'なし',
         unstableInternetConnection: 'インターネット接続が不安定です。ネットワークを確認してもう一度お試しください。',
         enableGlobalReimbursements: 'グローバル払い戻しを有効にする',
         purchaseAmount: '購入金額',
@@ -1413,7 +1416,7 @@ const translations = {
         listPage: {
             header: '経費をマージ',
             noEligibleExpenseFound: 'マージ対象となる経費が見つかりません',
-            noEligibleExpenseFoundSubtitle: `この経費とマージできる経費がありません。<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">マージ可能な経費</a>について詳しくはこちら。`,
+            noEligibleExpenseFoundSubtitle: `<muted-text><centered-text>この経費とマージできる経費がありません。<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">マージ可能な経費</a>について詳しくはこちら。</centered-text></muted-text>`,
             selectTransactionToMerge: ({reportName}: {reportName: string}) =>
                 `<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">マージ対象の経費</a>を選択してください <strong>${reportName}</strong>.`,
         },
@@ -2225,10 +2228,6 @@ const translations = {
             title: 'Expensifyへようこそ',
             description: 'チャットのスピードでビジネスと個人の支出を管理するための1つのアプリ。ぜひお試しいただき、ご意見をお聞かせください。もっと多くの機能が登場予定です！',
             secondaryDescription: 'Expensify Classicに戻るには、プロフィール写真をタップして > Expensify Classicに移動します。',
-        },
-        welcomeVideo: {
-            title: 'Expensifyへようこそ',
-            description: 'チャットでビジネスと個人の支出をすべて管理するための1つのアプリ。あなたのビジネス、チーム、そして友人のために作られました。',
         },
         getStarted: '始めましょう',
         whatsYourName: 'あなたの名前は何ですか？',
@@ -3409,11 +3408,8 @@ const translations = {
         tripSummary: '旅行概要',
         departs: '出発します',
         errorMessage: '問題が発生しました。後でもう一度お試しください。',
-        phoneError: {
-            phrase1: 'お願いします',
-            link: '勤務用メールアドレスをプライマリログインとして追加してください。',
-            phrase2: '旅行を予約するために。',
-        },
+        phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) =>
+            `<rbr>旅行予約のための<a href="${phoneErrorMethodsRoute}">プライマリログインとして、仕事の電子メールを追加して</a>ください。</rbr>`,
         domainSelector: {
             title: 'ドメイン',
             subtitle: 'Expensify Travelのセットアップ用にドメインを選択してください。',
@@ -5605,7 +5601,7 @@ const translations = {
         payAndDowngrade: {
             title: '支払いとダウングレード',
             headline: '最終支払い',
-            description1: 'このサブスクリプションの最終請求書は',
+            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `このサブスクリプションの最終的な請求額は<strong>${formattedAmount}</strong>です`,
             description2: ({date}: DateParams) => `${date}の内訳を以下に示します：`,
             subscription:
                 'ご注意ください！この操作は、Expensifyのサブスクリプションを終了し、このワークスペースを削除し、すべてのワークスペースメンバーを削除します。このワークスペースを保持し、自分だけを削除したい場合は、別の管理者に請求を引き継いでもらってください。',
