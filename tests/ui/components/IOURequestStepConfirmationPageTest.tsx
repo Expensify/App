@@ -167,7 +167,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
     });
 
     it('should create a split expense for each scanned receipt', async () => {
-        // await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`, {
             ...DEFAULT_SPLIT_TRANSACTION,
