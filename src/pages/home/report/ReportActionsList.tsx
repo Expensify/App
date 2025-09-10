@@ -2,7 +2,7 @@ import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/Vir
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
-import {DeviceEventEmitter, InteractionManager} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
 import type {RenderScrollComponentType} from '@components/ActionSheetAwareScrollView/types';
@@ -831,6 +831,8 @@ function ReportActionsList({
         [isTransactionThreadReport],
     );
 
+    const ListWrapper = isTransactionThreadReport ? KeyboardAvoidingView : View;
+
     return (
         <>
             <FloatingMessageCounter
@@ -838,10 +840,14 @@ function ReportActionsList({
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
-            <KeyboardAvoidingView
+            <ListWrapper
+                // If styles.pb4 is changed, please also update the keyboardVerticalOffset prop below
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
                 behavior="height"
+                // We need to take into account the initial height difference between the list and the keyboard
+                // which corresponds to the footer min height plus the bottom padding (16)
+                keyboardVerticalOffset={-CONST.CHAT_FOOTER_MIN_HEIGHT - 16}
             >
                 <ListComponent
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
@@ -873,7 +879,7 @@ function ReportActionsList({
                         trackVerticalScrolling(undefined);
                     }}
                 />
-            </KeyboardAvoidingView>
+            </ListWrapper>
         </>
     );
 }
