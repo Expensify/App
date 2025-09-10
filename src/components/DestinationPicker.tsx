@@ -1,9 +1,9 @@
 import React, {useMemo} from 'react';
+import type {ForwardedRef} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getDestinationListSections} from '@libs/PerDiemRequestUtils';
 import type {Destination} from '@libs/PerDiemRequestUtils';
@@ -12,21 +12,19 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SelectionList from './SelectionList';
 import RadioListItem from './SelectionList/RadioListItem';
-import type {ListItem} from './SelectionList/types';
+import type {ListItem, SelectionListHandle} from './SelectionList/types';
 
 type DestinationPickerProps = {
     policyID: string;
     selectedDestination?: string;
     onSubmit: (item: ListItem & {currency: string}) => void;
+    ref?: ForwardedRef<SelectionListHandle>;
 };
 
-function DestinationPicker({selectedDestination, policyID, onSubmit}: DestinationPickerProps) {
+function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: DestinationPickerProps) {
     const policy = usePolicy(policyID);
     const customUnit = getPerDiemCustomUnit(policy);
     const [policyRecentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`, {canBeMissing: true});
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to focus input only on small devices
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -76,6 +74,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
 
     return (
         <SelectionList
+            ref={ref}
             sections={sections}
             headerMessage={headerMessage}
             textInputValue={searchValue}
@@ -86,7 +85,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
             shouldHideKeyboardOnScroll={false}
-            textInputAutoFocus={!isSmallScreenWidth}
+            textInputAutoFocus={false}
         />
     );
 }

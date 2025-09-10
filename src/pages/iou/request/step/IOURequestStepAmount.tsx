@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {ForwardedRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import {SelectionListHandle} from '@components/SelectionList/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -51,6 +52,10 @@ type AmountParams = {
     paymentMethod?: PaymentMethodType;
 };
 
+type IOURequestStepAmountRef = {
+    focus?: () => void;
+};
+
 type IOURequestStepAmountProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** The transaction object being modified in Onyx */
@@ -58,6 +63,11 @@ type IOURequestStepAmountProps = WithCurrentUserPersonalDetailsProps &
 
         /** Whether the user input should be kept or not */
         shouldKeepUserInput?: boolean;
+
+        ref?: ForwardedRef<IOURequestStepAmountRef>;
+
+        /** Whether the user input should be auto focused or not */
+        shouldAutoFocusInput?: boolean;
     };
 
 function IOURequestStepAmount({
@@ -68,6 +78,8 @@ function IOURequestStepAmount({
     transaction,
     currentUserPersonalDetails,
     shouldKeepUserInput = false,
+    shouldAutoFocusInput = true,
+    ref,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
@@ -100,6 +112,10 @@ function IOURequestStepAmount({
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS) || !account?.shouldBlockTransactionThreadReportCreation;
 
+    useImperativeHandle(ref, () => ({
+        focus: () => textInput.current?.focus?.(),
+    }));
+
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
     const shouldSkipConfirmation: boolean = useMemo(() => {
@@ -112,14 +128,20 @@ function IOURequestStepAmount({
 
     useFocusEffect(
         useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
+            if (!shouldAutoFocusInput) {
+                return;
+            }
+
+            focusTimeoutRef.current = setTimeout(() => {
+                textInput.current?.focus();
+            }, CONST.ANIMATED_TRANSITION);
+
             return () => {
-                if (!focusTimeoutRef.current) {
-                    return;
+                if (focusTimeoutRef.current) {
+                    clearTimeout(focusTimeoutRef.current);
                 }
-                clearTimeout(focusTimeoutRef.current);
             };
-        }, []),
+        }, [shouldAutoFocusInput]),
     );
 
     useEffect(() => {
