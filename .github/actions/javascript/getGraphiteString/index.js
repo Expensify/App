@@ -2691,70 +2691,6 @@ exports["default"] = _default;
 
 /***/ }),
 
-/***/ 717:
-/***/ ((module, __webpack_exports__, __nccwpck_require__) => {
-
-"use strict";
-__nccwpck_require__.r(__webpack_exports__);
-/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(186);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(147);
-/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__nccwpck_require__.n(fs__WEBPACK_IMPORTED_MODULE_1__);
-/* module decorator */ module = __nccwpck_require__.hmd(module);
-
-
-const run = () => {
-    // Prefix path to the graphite metric
-    const GRAPHITE_PATH = 'reassure';
-    const PR_NUMBER = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('PR_NUMBER', { required: true });
-    // Read the contents of the file, the file is in the JSONL format
-    const regressionFile = fs__WEBPACK_IMPORTED_MODULE_1___default().readFileSync('.reassure/baseline.perf', 'utf8');
-    // Split file contents by newline to get individual JSON entries
-    const regressionEntries = regressionFile.split('\n');
-    // Initialize string to store Graphite metrics
-    let graphiteString = '';
-    let timestamp;
-    // Iterate over each entry
-    regressionEntries.forEach((entry) => {
-        // Skip empty lines
-        if (entry.trim() === '') {
-            return;
-        }
-        try {
-            const current = JSON.parse(entry);
-            // Extract timestamp, Graphite accepts timestamp in seconds
-            if (current.metadata?.creationDate) {
-                timestamp = Math.floor(new Date(current.metadata.creationDate).getTime() / 1000);
-            }
-            if (current.name && current.meanDuration && current.meanCount && timestamp) {
-                const formattedName = current.name.split(' ').join('-');
-                const renderDurationString = `${GRAPHITE_PATH}.${formattedName}.renderDuration ${current.meanDuration} ${timestamp}`;
-                const renderCountString = `${GRAPHITE_PATH}.${formattedName}.renderCount ${current.meanCount} ${timestamp}`;
-                const renderPRNumberString = `${GRAPHITE_PATH}.${formattedName}.prNumber ${PR_NUMBER} ${timestamp}`;
-                // Concatenate Graphite strings
-                graphiteString += `${renderDurationString}\n${renderCountString}\n${renderPRNumberString}\n`;
-            }
-        }
-        catch (e) {
-            const error = new Error('Error parsing baseline.perf JSON file');
-            console.error(error.message);
-            _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(error);
-        }
-    });
-    // Set generated graphite string to the github variable
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('GRAPHITE_STRING', graphiteString);
-};
-if (__nccwpck_require__.c[__nccwpck_require__.s] === module) {
-    run();
-}
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (run);
-
-
-/***/ }),
-
 /***/ 491:
 /***/ ((module) => {
 
@@ -2857,8 +2793,8 @@ module.exports = require("util");
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			id: moduleId,
-/******/ 			loaded: false,
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
 /******/ 	
@@ -2871,83 +2807,73 @@ module.exports = require("util");
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
 /******/ 	
-/******/ 		// Flag the module as loaded
-/******/ 		module.loaded = true;
-/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
-/******/ 	// expose the module cache
-/******/ 	__nccwpck_require__.c = __webpack_module_cache__;
-/******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/compat get default export */
-/******/ 	(() => {
-/******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__nccwpck_require__.n = (module) => {
-/******/ 			var getter = module && module.__esModule ?
-/******/ 				() => (module['default']) :
-/******/ 				() => (module);
-/******/ 			__nccwpck_require__.d(getter, { a: getter });
-/******/ 			return getter;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/harmony module decorator */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.hmd = (module) => {
-/******/ 			module = Object.create(module);
-/******/ 			if (!module.children) module.children = [];
-/******/ 			Object.defineProperty(module, 'exports', {
-/******/ 				enumerable: true,
-/******/ 				set: () => {
-/******/ 					throw new Error('ES Modules may not assign module.exports or exports.*, Use ESM export syntax, instead: ' + module.id);
-/******/ 				}
-/******/ 			});
-/******/ 			return module;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-/******/ 	
-/******/ 	// module cache are used so entry inlining is disabled
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	var __webpack_exports__ = __nccwpck_require__(__nccwpck_require__.s = 717);
-/******/ 	module.exports = __webpack_exports__;
-/******/ 	
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
+"use strict";
+var exports = __webpack_exports__;
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __nccwpck_require__(186);
+const fs_1 = __nccwpck_require__(147);
+const run = () => {
+    // Prefix path to the graphite metric
+    const GRAPHITE_PATH = 'reassure';
+    const PR_NUMBER = core.getInput('PR_NUMBER', { required: true });
+    // Read the contents of the file, the file is in the JSONL format
+    const regressionFile = fs_1.default.readFileSync('.reassure/baseline.perf', 'utf8');
+    // Split file contents by newline to get individual JSON entries
+    const regressionEntries = regressionFile.split('\n');
+    // Initialize string to store Graphite metrics
+    let graphiteString = '';
+    let timestamp;
+    // Iterate over each entry
+    regressionEntries.forEach((entry) => {
+        // Skip empty lines
+        if (entry.trim() === '') {
+            return;
+        }
+        try {
+            const current = JSON.parse(entry);
+            // Extract timestamp, Graphite accepts timestamp in seconds
+            if (current.metadata?.creationDate) {
+                timestamp = Math.floor(new Date(current.metadata.creationDate).getTime() / 1000);
+            }
+            if (current.name && current.meanDuration && current.meanCount && timestamp) {
+                const formattedName = current.name.split(' ').join('-');
+                const renderDurationString = `${GRAPHITE_PATH}.${formattedName}.renderDuration ${current.meanDuration} ${timestamp}`;
+                const renderCountString = `${GRAPHITE_PATH}.${formattedName}.renderCount ${current.meanCount} ${timestamp}`;
+                const renderPRNumberString = `${GRAPHITE_PATH}.${formattedName}.prNumber ${PR_NUMBER} ${timestamp}`;
+                // Concatenate Graphite strings
+                graphiteString += `${renderDurationString}\n${renderCountString}\n${renderPRNumberString}\n`;
+            }
+        }
+        catch (e) {
+            const error = new Error('Error parsing baseline.perf JSON file');
+            console.error(error.message);
+            core.setFailed(error);
+        }
+    });
+    // Set generated graphite string to the github variable
+    core.setOutput('GRAPHITE_STRING', graphiteString);
+};
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+exports["default"] = run;
+
+})();
+
+module.exports = __webpack_exports__;
 /******/ })()
 ;

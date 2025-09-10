@@ -3371,64 +3371,24 @@ exports["default"] = _default;
 
 /***/ }),
 
-/***/ 7361:
-/***/ ((module, __webpack_exports__, __nccwpck_require__) => {
-
-"use strict";
-__nccwpck_require__.r(__webpack_exports__);
-/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2186);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _github_libs_versionUpdater__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(8982);
-/* harmony import */ var _scripts_bumpVersion__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(7086);
-/* module decorator */ module = __nccwpck_require__.hmd(module);
-
-
-
-async function run() {
-    try {
-        const semverLevel = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('SEMVER_LEVEL', { required: true });
-        if (!_github_libs_versionUpdater__WEBPACK_IMPORTED_MODULE_1__/* .isValidSemverLevel */ .Yb(semverLevel)) {
-            throw new Error(`Invalid SEMVER_LEVEL ${semverLevel}`);
-        }
-        const newVersion = await (0,_scripts_bumpVersion__WEBPACK_IMPORTED_MODULE_2__/* ["default"] */ .ZP)(semverLevel);
-        _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('NEW_VERSION', newVersion);
-    }
-    catch (e) {
-        if (e instanceof Error) {
-            _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(e);
-            return;
-        }
-        _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed('An unknown error occurred.');
-    }
-}
-if (__nccwpck_require__.c[__nccwpck_require__.s] === module) {
-    run();
-}
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (run);
-
-
-/***/ }),
-
 /***/ 8982:
-/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
-/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   "Yb": () => (/* binding */ isValidSemverLevel),
-/* harmony export */   "hi": () => (/* binding */ incrementVersion),
-/* harmony export */   "tH": () => (/* binding */ SEMANTIC_VERSION_LEVELS)
-/* harmony export */ });
-/* unused harmony exports getVersionNumberFromString, getVersionStringFromNumber, MAX_INCREMENTS, incrementMinor, incrementPatch, getPreviousVersion */
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = void 0;
+exports.isValidSemverLevel = isValidSemverLevel;
+exports.getPreviousVersion = getPreviousVersion;
 const SEMANTIC_VERSION_LEVELS = {
     MAJOR: 'MAJOR',
     MINOR: 'MINOR',
     PATCH: 'PATCH',
     BUILD: 'BUILD',
 };
+exports.SEMANTIC_VERSION_LEVELS = SEMANTIC_VERSION_LEVELS;
 const MAX_INCREMENTS = 99;
+exports.MAX_INCREMENTS = MAX_INCREMENTS;
 function isValidSemverLevel(str) {
     return Object.keys(SEMANTIC_VERSION_LEVELS).includes(str);
 }
@@ -3440,10 +3400,12 @@ const getVersionNumberFromString = (versionString) => {
     const [major, minor, patch] = version.split('.').map((n) => Number(n));
     return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
 };
+exports.getVersionNumberFromString = getVersionNumberFromString;
 /**
  * Transforms version numbers components into a version string
  */
 const getVersionStringFromNumber = (major, minor, patch, build = 0) => `${major}.${minor}.${patch}-${build}`;
+exports.getVersionStringFromNumber = getVersionStringFromNumber;
 /**
  * Increments a minor version
  */
@@ -3453,6 +3415,7 @@ const incrementMinor = (major, minor) => {
     }
     return getVersionStringFromNumber(major + 1, 0, 0, 0);
 };
+exports.incrementMinor = incrementMinor;
 /**
  * Increments a Patch version
  */
@@ -3462,6 +3425,7 @@ const incrementPatch = (major, minor, patch) => {
     }
     return incrementMinor(major, minor);
 };
+exports.incrementPatch = incrementPatch;
 /**
  * Increments a build version
  */
@@ -3482,6 +3446,7 @@ const incrementVersion = (version, level) => {
     }
     return incrementPatch(major, minor, patch);
 };
+exports.incrementVersion = incrementVersion;
 function getPreviousVersion(currentVersion, level) {
     const [major, minor, patch, build] = getVersionNumberFromString(currentVersion);
     if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
@@ -3509,58 +3474,28 @@ function getPreviousVersion(currentVersion, level) {
 }
 
 
-
 /***/ }),
 
-/***/ 7086:
-/***/ ((module, __webpack_exports__, __nccwpck_require__) => {
+/***/ 3891:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-// EXPORTS
-__nccwpck_require__.d(__webpack_exports__, {
-  "ZP": () => (/* binding */ bumpVersion)
-});
-
-// UNUSED EXPORTS: generateAndroidVersionCode, updateAndroid
-
-;// CONCATENATED MODULE: external "child_process"
-const external_child_process_namespaceObject = require("child_process");
-// EXTERNAL MODULE: external "fs"
-var external_fs_ = __nccwpck_require__(7147);
-// EXTERNAL MODULE: external "path"
-var external_path_ = __nccwpck_require__(1017);
-var external_path_default = /*#__PURE__*/__nccwpck_require__.n(external_path_);
-// EXTERNAL MODULE: ./node_modules/semver/functions/major.js
-var major = __nccwpck_require__(6688);
-var major_default = /*#__PURE__*/__nccwpck_require__.n(major);
-// EXTERNAL MODULE: ./node_modules/semver/functions/minor.js
-var minor = __nccwpck_require__(8447);
-var minor_default = /*#__PURE__*/__nccwpck_require__.n(minor);
-// EXTERNAL MODULE: ./node_modules/semver/functions/patch.js
-var patch = __nccwpck_require__(2866);
-var patch_default = /*#__PURE__*/__nccwpck_require__.n(patch);
-// EXTERNAL MODULE: ./node_modules/semver/functions/prerelease.js
-var prerelease = __nccwpck_require__(4016);
-var prerelease_default = /*#__PURE__*/__nccwpck_require__.n(prerelease);
-// EXTERNAL MODULE: external "util"
-var external_util_ = __nccwpck_require__(3837);
-// EXTERNAL MODULE: ./.github/libs/versionUpdater.ts
-var versionUpdater = __nccwpck_require__(8982);
-;// CONCATENATED MODULE: ./scripts/bumpVersion.ts
-/* module decorator */ module = __nccwpck_require__.hmd(module);
-
-
-
-
-
-
-
-
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.updateAndroid = updateAndroid;
+exports.generateAndroidVersionCode = generateAndroidVersionCode;
+const child_process_1 = __nccwpck_require__(2081);
+const fs_1 = __nccwpck_require__(7147);
+const path_1 = __nccwpck_require__(1017);
+const major_1 = __nccwpck_require__(6688);
+const minor_1 = __nccwpck_require__(8447);
+const patch_1 = __nccwpck_require__(2866);
+const prerelease_1 = __nccwpck_require__(4016);
+const util_1 = __nccwpck_require__(3837);
 // Disabling lint on the next two imports due to a bug in @dword-design/import-alias/prefer-alias
 // eslint-disable-next-line
-
-const exec = (0,external_util_.promisify)(external_child_process_namespaceObject.exec);
+const versionUpdater = __nccwpck_require__(8982);
+const exec = (0, util_1.promisify)(child_process_1.exec);
 // PlistBuddy executable path
 const PLIST_BUDDY = '/usr/libexec/PlistBuddy';
 /**
@@ -3571,24 +3506,24 @@ const PLIST_BUDDY = '/usr/libexec/PlistBuddy';
  *   - if it's evaluated at runtime, it won't refer to the directory of the imported module, because the code will have moved to wherever it's bundled
  */
 function getRepoRoot() {
-    return (0,external_child_process_namespaceObject.execSync)('git rev-parse --show-toplevel', {
+    return (0, child_process_1.execSync)('git rev-parse --show-toplevel', {
         encoding: 'utf8',
     }).trim();
 }
 // Filepath constants
 const ROOT_DIR = getRepoRoot();
-const PACKAGE_JSON_PATH = __nccwpck_require__.ab + "App/" + ROOT_DIR + '/package.json';
-const BUILD_GRADLE_PATH = __nccwpck_require__.ab + "App/" + ROOT_DIR + '/android/app/build.gradle';
-const PLIST_PATH = external_path_default().resolve(ROOT_DIR, 'ios/NewExpensify/Info.plist');
-const PLIST_PATH_NSE = __nccwpck_require__.ab + "App/" + ROOT_DIR + '/ios/NotificationServiceExtension/Info.plist';
-const PLIST_PATH_SHARE = external_path_default().resolve(ROOT_DIR, 'ios/ShareViewController/Info.plist');
+const PACKAGE_JSON_PATH = path_1.default.resolve(ROOT_DIR, 'package.json');
+const BUILD_GRADLE_PATH = path_1.default.resolve(ROOT_DIR, 'android/app/build.gradle');
+const PLIST_PATH = path_1.default.resolve(ROOT_DIR, 'ios/NewExpensify/Info.plist');
+const PLIST_PATH_NSE = path_1.default.resolve(ROOT_DIR, 'ios/NotificationServiceExtension/Info.plist');
+const PLIST_PATH_SHARE = path_1.default.resolve(ROOT_DIR, 'ios/ShareViewController/Info.plist');
 // Filepath constants (submodule)
-const MOBILE_EXPENSIFY_DIR = external_path_default().resolve(ROOT_DIR, 'Mobile-Expensify');
-const MOBILE_EXPENSIFY_CONFIG_JSON_PATH = __nccwpck_require__.ab + "App/" + MOBILE_EXPENSIFY_DIR + '/app/config/config.json';
-const MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH = __nccwpck_require__.ab + "App/" + MOBILE_EXPENSIFY_DIR + '/Android/AndroidManifest.xml';
-const MOBILE_EXPENSIFY_PLIST_PATH = __nccwpck_require__.ab + "App/" + MOBILE_EXPENSIFY_DIR + '/iOS/Expensify/Expensify-Info.plist';
-const MOBILE_EXPENSIFY_PLIST_PATH_NSE = __nccwpck_require__.ab + "App/" + MOBILE_EXPENSIFY_DIR + '/iOS/NotificationServiceExtension/Info.plist';
-const MOBILE_EXPENSIFY_PLIST_PATH_SS = __nccwpck_require__.ab + "App/" + MOBILE_EXPENSIFY_DIR + '/iOS/SmartScanExtension/Info.plist';
+const MOBILE_EXPENSIFY_DIR = path_1.default.resolve(ROOT_DIR, 'Mobile-Expensify');
+const MOBILE_EXPENSIFY_CONFIG_JSON_PATH = path_1.default.resolve(MOBILE_EXPENSIFY_DIR, 'app/config/config.json');
+const MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH = path_1.default.resolve(MOBILE_EXPENSIFY_DIR, 'Android/AndroidManifest.xml');
+const MOBILE_EXPENSIFY_PLIST_PATH = path_1.default.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/Expensify/Expensify-Info.plist');
+const MOBILE_EXPENSIFY_PLIST_PATH_NSE = path_1.default.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/NotificationServiceExtension/Info.plist');
+const MOBILE_EXPENSIFY_PLIST_PATH_SS = path_1.default.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/SmartScanExtension/Info.plist');
 /**
  * Pad a number to be two digits (with leading zeros if necessary).
  */
@@ -3604,7 +3539,7 @@ function padToTwoDigits(value) {
  * As a result, our max version is 99.99.99-99.
  */
 function generateAndroidVersionCode(npmVersion, prefix) {
-    return ''.concat(prefix, padToTwoDigits(major_default()(npmVersion) ?? 0), padToTwoDigits(minor_default()(npmVersion) ?? 0), padToTwoDigits(patch_default()(npmVersion) ?? 0), padToTwoDigits(Number(prerelease_default()(npmVersion)) ?? 0));
+    return ''.concat(prefix, padToTwoDigits((0, major_1.default)(npmVersion) ?? 0), padToTwoDigits((0, minor_1.default)(npmVersion) ?? 0), padToTwoDigits((0, patch_1.default)(npmVersion) ?? 0), padToTwoDigits(Number((0, prerelease_1.default)(npmVersion)) ?? 0));
 }
 /**
  * Update the Android native versions in E/App and the Mobile-Expensify submodule.
@@ -3618,22 +3553,22 @@ async function updateAndroid(version) {
             // build.gradle versions will be prefixed with '10' due to previous versioning
             const versionCode = generateAndroidVersionCode(version, '10');
             console.log(`Updating ${BUILD_GRADLE_PATH}:`, { version, versionCode });
-            const fileContent = await external_fs_.promises.readFile(BUILD_GRADLE_PATH, { encoding: 'utf8' });
+            const fileContent = await fs_1.promises.readFile(BUILD_GRADLE_PATH, { encoding: 'utf8' });
             const updatedContent = fileContent
                 .replace(new RegExp(`versionName "${versionNamePattern}"`), `versionName "${version}"`)
                 .replace(new RegExp(`versionCode ${versionCodePattern}`), `versionCode ${versionCode}`);
-            await external_fs_.promises.writeFile(BUILD_GRADLE_PATH, updatedContent, { encoding: 'utf8' });
+            await fs_1.promises.writeFile(BUILD_GRADLE_PATH, updatedContent, { encoding: 'utf8' });
             console.log(`Updated ${BUILD_GRADLE_PATH}`);
         };
         const updateAndroidManifest = async () => {
             // AndroidManifest.xml versions will be prefixed with '05' due to previous versioning
             const versionCode = generateAndroidVersionCode(version, '05');
             console.log(`Updating ${MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH}:`, { version, versionCode });
-            const fileContent = await external_fs_.promises.readFile(MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH, { encoding: 'utf8' });
+            const fileContent = await fs_1.promises.readFile(MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH, { encoding: 'utf8' });
             const updatedContent = fileContent
                 .replace(new RegExp(`android:versionName="${versionNamePattern}"`), `android:versionName="${version}"`)
                 .replace(new RegExp(`android:versionCode="${versionCodePattern}"`), `android:versionCode="${versionCode}"`);
-            await external_fs_.promises.writeFile(MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH, updatedContent, { encoding: 'utf8' });
+            await fs_1.promises.writeFile(MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH, updatedContent, { encoding: 'utf8' });
             console.log(`Updated ${MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH}`);
         };
         await Promise.all([updateBuildGradle(), updateAndroidManifest()]);
@@ -3698,9 +3633,9 @@ async function updateNPM(version) {
 async function updateConfigJSON(version) {
     try {
         console.log(`Updating ${MOBILE_EXPENSIFY_CONFIG_JSON_PATH} to ${version}`);
-        const fileContent = JSON.parse(await external_fs_.promises.readFile(MOBILE_EXPENSIFY_CONFIG_JSON_PATH, { encoding: 'utf8' }));
+        const fileContent = JSON.parse(await fs_1.promises.readFile(MOBILE_EXPENSIFY_CONFIG_JSON_PATH, { encoding: 'utf8' }));
         fileContent.meta.version = version;
-        await external_fs_.promises.writeFile(MOBILE_EXPENSIFY_CONFIG_JSON_PATH, JSON.stringify(fileContent, null, 4), { encoding: 'utf8' });
+        await fs_1.promises.writeFile(MOBILE_EXPENSIFY_CONFIG_JSON_PATH, JSON.stringify(fileContent, null, 4), { encoding: 'utf8' });
         console.log(`Updated ${MOBILE_EXPENSIFY_CONFIG_JSON_PATH}`);
     }
     catch (err) {
@@ -3713,27 +3648,19 @@ async function updateConfigJSON(version) {
 }
 async function run(semanticVersionLevel) {
     // Parse the current version from package.json
-    const { version: previousVersion } = JSON.parse(await external_fs_.promises.readFile(PACKAGE_JSON_PATH, { encoding: 'utf8' }));
+    const { version: previousVersion } = JSON.parse(await fs_1.promises.readFile(PACKAGE_JSON_PATH, { encoding: 'utf8' }));
     if (!previousVersion) {
         throw new Error('Could not read package.json');
     }
     // Figure out the next version
-    const newVersion = versionUpdater/* incrementVersion */.hi(previousVersion ?? '', semanticVersionLevel);
+    const newVersion = versionUpdater.incrementVersion(previousVersion ?? '', semanticVersionLevel);
     console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
     // Apply the version changes in Android, iOS, and JS config files (E/App and Mobile-Expensify)
     await Promise.all([updateAndroid(newVersion), updateIOS(newVersion), updateNPM(newVersion), updateConfigJSON(newVersion)]);
     return newVersion;
 }
-if (__nccwpck_require__.c[__nccwpck_require__.s] === module) {
-    // Get and validate SEMVER_LEVEL input
-    const semanticVersionLevel = process.argv.at(2) ?? 'BUILD';
-    if (!versionUpdater/* isValidSemverLevel */.Yb(semanticVersionLevel)) {
-        throw new Error(`Invalid semver level ${semanticVersionLevel}. Must be one of: ${Object.values(versionUpdater/* SEMANTIC_VERSION_LEVELS */.tH).join(', ')}`);
-    }
-    run(semanticVersionLevel);
-}
-/* harmony default export */ const bumpVersion = (run);
-
+if (false) {}
+exports["default"] = run;
 
 
 /***/ }),
@@ -3743,6 +3670,14 @@ if (__nccwpck_require__.c[__nccwpck_require__.s] === module) {
 
 "use strict";
 module.exports = require("assert");
+
+/***/ }),
+
+/***/ 2081:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("child_process");
 
 /***/ }),
 
@@ -3840,8 +3775,8 @@ module.exports = require("util");
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			id: moduleId,
-/******/ 			loaded: false,
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
 /******/ 	
@@ -3854,83 +3789,50 @@ module.exports = require("util");
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
 /******/ 	
-/******/ 		// Flag the module as loaded
-/******/ 		module.loaded = true;
-/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
-/******/ 	// expose the module cache
-/******/ 	__nccwpck_require__.c = __webpack_module_cache__;
-/******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/compat get default export */
-/******/ 	(() => {
-/******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__nccwpck_require__.n = (module) => {
-/******/ 			var getter = module && module.__esModule ?
-/******/ 				() => (module['default']) :
-/******/ 				() => (module);
-/******/ 			__nccwpck_require__.d(getter, { a: getter });
-/******/ 			return getter;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/harmony module decorator */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.hmd = (module) => {
-/******/ 			module = Object.create(module);
-/******/ 			if (!module.children) module.children = [];
-/******/ 			Object.defineProperty(module, 'exports', {
-/******/ 				enumerable: true,
-/******/ 				set: () => {
-/******/ 					throw new Error('ES Modules may not assign module.exports or exports.*, Use ESM export syntax, instead: ' + module.id);
-/******/ 				}
-/******/ 			});
-/******/ 			return module;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-/******/ 	
-/******/ 	// module cache are used so entry inlining is disabled
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	var __webpack_exports__ = __nccwpck_require__(__nccwpck_require__.s = 7361);
-/******/ 	module.exports = __webpack_exports__;
-/******/ 	
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
+"use strict";
+var exports = __webpack_exports__;
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __nccwpck_require__(2186);
+const versionUpdater = __nccwpck_require__(8982);
+const bumpVersion_1 = __nccwpck_require__(3891);
+async function run() {
+    try {
+        const semverLevel = core.getInput('SEMVER_LEVEL', { required: true });
+        if (!versionUpdater.isValidSemverLevel(semverLevel)) {
+            throw new Error(`Invalid SEMVER_LEVEL ${semverLevel}`);
+        }
+        const newVersion = await (0, bumpVersion_1.default)(semverLevel);
+        core.setOutput('NEW_VERSION', newVersion);
+    }
+    catch (e) {
+        if (e instanceof Error) {
+            core.setFailed(e);
+            return;
+        }
+        core.setFailed('An unknown error occurred.');
+    }
+}
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+exports["default"] = run;
+
+})();
+
+module.exports = __webpack_exports__;
 /******/ })()
 ;
