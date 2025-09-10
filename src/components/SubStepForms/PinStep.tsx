@@ -22,7 +22,6 @@ import { getLatestErrorMessage } from '@libs/ErrorUtils';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
-import type { FormOnyxValues } from '@components/Form/types';
 
 type PinCodeFormHandle = {
     focus: () => void;
@@ -41,7 +40,7 @@ type PinStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & 
     innerRef?: ForwardedRef<PinCodeFormHandle>;
 
     /** Function is called when submitting form  */
-    handleSubmit: (values: FormOnyxValues<TFormID>) => void;
+    handleSubmit: () => void;
 };
 
 function PinStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -120,23 +119,8 @@ function PinStep<TFormID extends keyof OnyxFormValuesMapping>({
         [setPinCode],
     );
 
-    // const validate = useCallback(() => {
-    //     if (!isRequiredFulfilled(pinCode)) {
-    //         setFormError({pinCode: 'common.error.fieldRequired'});
-    //     }
-
-    //     if (!isValidPinCode(pinCode)) {
-    //         setFormError({pinCode: 'privatePersonalDetails.error.invalidPinCode'});
-    //     }
-
-    //     return formError;
-    //     },
-    //     [formError, pinCode],
-    // );
-
     /**
-     * Check that all the form fields are valid, then trigger the submit callback
-     * Check if that was 
+     * Check if the pin is valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
         setCanShowError(true);
@@ -169,31 +153,33 @@ function PinStep<TFormID extends keyof OnyxFormValuesMapping>({
             formID={formID}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={validateAndSubmitForm}
-            style={[styles.mh5, styles.flexGrow1]}
+            style={[styles.flexGrow1, styles.ph5]}
             shouldHideFixErrorsAlert
         >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>Set the PIN for your card.</Text>
-            <MagicCodeInput
-                autoComplete='one-time-code'
-                ref={inputPinCodeRef}
-                name="inputPinCode"
-                value={pinCode}
-                onChangeText={onCodeInput}
-                errorText={errorText}
-                hasError={canShowError && !isEmptyObject(formError)}
-                maxLength={4}
-                autoFocus
-                isCursorOn={false}
-                isPastingAllowed={false}
-                isInputMasked={isRevealed}
-            />
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>Set the PIN for your card.</Text>
+            <View style={[styles.ph15, styles.mb6]}>
+                <MagicCodeInput
+                    autoComplete='one-time-code'
+                    ref={inputPinCodeRef}
+                    name="inputPinCode"
+                    value={pinCode}
+                    onChangeText={onCodeInput}
+                    errorText={errorText}
+                    hasError={canShowError && !isEmptyObject(formError)}
+                    maxLength={4}
+                    autoFocus
+                    isCursorOn={false}
+                    isPastingAllowed={false}
+                    isInputMasked={isRevealed}
+                />
+            </View>
             <OfflineWithFeedback>
                 <View style={styles.ph25}>
                     <Button
-                        text="Reveal PIN"
+                        text={isRevealed ? "Reveal PIN" : "Hide PIN"}
                         onPress={() => setRevealed(!isRevealed)}
-                        icon={Expensicons.Eye}
-                        style={styles.ph5}
+                        icon={isRevealed ? (Expensicons.Eye) : (Expensicons.EyeDisabled)}
+                        style={styles.flexShrink1}
                     />
                 </View>
             </OfflineWithFeedback>

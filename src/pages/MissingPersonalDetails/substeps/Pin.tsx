@@ -1,22 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
-import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import PinStep from '@components/SubStepForms/PinStep';
 
-const STEP_FIELDS = [INPUT_IDS.LEGAL_FIRST_NAME, INPUT_IDS.LEGAL_LAST_NAME];
+function Pin({isEditing, onNext, onMove}: CustomSubStepProps) {
+    const [pinCode, setPinCode] = useState('');
 
-function Pin({isEditing, onNext, onMove, personalDetailsValues}: CustomSubStepProps) {
-
-    // const defaultValues = {
-    //     isValidPinCode: personalDetailsValues[INPUT_IDS.PIN],
-    // };
-
-    const handleSubmit = usePersonalDetailsFormSubmit({
-        fieldIds: STEP_FIELDS,
+    const handleSubmit = ({
+        setPinCode,
         onNext,
-        shouldSaveDraft: true,
     });
 
     return (
@@ -25,19 +17,7 @@ function Pin({isEditing, onNext, onMove, personalDetailsValues}: CustomSubStepPr
             isEditing={isEditing}
             onNext={onNext}
             onMove={onMove}
-            // ref={inputValidateCodeRef}
-            // name="inputCode"
-            // value={validateCode}
-            // onChangeText={onTextInput}
-            // errorText={errorText}
-            // hasError={canShowError && !isEmptyObject(finalValidateError)}
             handleSubmit={handleSubmit}
-            // defaultValues={defaultValues}
-            // maxLength={4}
-            // autoFocus
-            // isCursorOn={false}
-            // isPastingAllowed={false}
-            // isInputMasked={isRevealed}
         />
 );
 }
