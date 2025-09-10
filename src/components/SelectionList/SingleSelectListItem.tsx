@@ -25,6 +25,7 @@ function SingleSelectListItem<TItem extends ListItem>({
     wrapperStyle,
     titleStyles,
     accessibilityState,
+    rightHandSideComponent=undefined,
 }: SingleSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
     const isSelected = item.isSelected;
@@ -47,7 +48,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             isFocused={isFocused}
             showTooltip={showTooltip}
             isDisabled={isDisabled}
-            rightHandSideComponent={radioCheckboxComponent}
+            rightHandSideComponent={rightHandSideComponent ?? radioCheckboxComponent}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
