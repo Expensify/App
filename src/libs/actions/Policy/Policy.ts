@@ -2003,6 +2003,9 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 areExpensifyCardsEnabled: false,
+                maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE,
+                maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE,
+                maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
                 employeeList: {
                     [sessionEmail]: {
                         submitsTo: sessionEmail,
