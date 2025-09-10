@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import * as AppActions from '@userActions/App';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ConfirmModal from './ConfirmModal';
 
@@ -9,9 +10,8 @@ function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChild
     const [payload] = useOnyx(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, {canBeMissing: true});
     const [isVisible, setIsVisible] = useState(false);
 
-    const title = 'Invalid Supportal Action';
-    const prompt =
-        'You do not have the permission to take the requested action while using Supportal. If you think that Success should be able to take this action, please start a conversation in Slack.';
+    const title = translate('supportalNoAccess.title');
+    const prompt = translate('supportalNoAccess.description');
 
     React.useEffect(() => {
         setIsVisible(!!payload);
@@ -20,9 +20,7 @@ function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChild
     const close = () => {
         setIsVisible(false);
         // Clear the flag so it doesn't re-open
-        // We intentionally set to null to keep key present but empty
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        Promise.resolve().then(() => window?.Onyx?.set?.(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, null));
+        AppActions.clearSupportalPermissionDenied();
     };
 
     return (

@@ -48,6 +48,8 @@ export default function () {
                 isVisible: false,
                 willAlertModalBecomeVisible: false,
             },
+            // Ensure the Supportal permission modal doesn't persist across reloads
+            [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
     });

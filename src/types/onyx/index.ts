@@ -126,6 +126,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type SupportalPermissionDenied from './SupportalPermissionDenied';
 
 export type {
     FileObject,
@@ -233,6 +234,7 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    SupportalPermissionDenied,
     PurchaseList,
     ReportUserIsTyping,
     PolicyReportField,
