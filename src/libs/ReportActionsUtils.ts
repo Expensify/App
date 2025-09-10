@@ -150,7 +150,7 @@ function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean 
 }
 
 function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): boolean {
-    if (isInviteOrRemovedAction(reportAction)) {
+    if (isInviteOrRemovedAction(reportAction) || isActionableMentionWhisper(reportAction)) {
         return false;
     }
 
@@ -776,7 +776,7 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
  * Checks if a given report action corresponds to an actionable mention whisper.
  * @param reportAction
  */
-function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER> {
+function isActionableMentionWhisper(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER);
 }
 
@@ -1064,7 +1064,14 @@ function isVisiblePreviewOrMoneyRequest(action: ReportAction): boolean {
  * Delegates visibility logic to isVisiblePreviewOrMoneyRequest.
  */
 function getFilteredReportActionsForReportView(actions: ReportAction[]) {
-    return actions.filter(isVisiblePreviewOrMoneyRequest);
+    // The free trial message can be duplicated due to this change https://github.com/Expensify/App/pull/68630 without the backend change
+    // So we need to filter out the duplicate free trial message
+    const freeTrialMessages = actions.filter((action) => {
+        const html = getReportActionHtml(action);
+        return Parser.htmlToMarkdown(html) === CONST.FREE_TRIAL_MARKDOWN;
+    });
+    const isDuplicateFreeTrialMessage = freeTrialMessages.length > 1;
+    return actions.filter(isVisiblePreviewOrMoneyRequest).filter((action) => !isDuplicateFreeTrialMessage || action.reportActionID !== freeTrialMessages.at(0)?.reportActionID);
 }
 
 /**
@@ -2876,7 +2883,7 @@ function getUpdatedManualApprovalThresholdMessage(reportAction: OnyxEntry<Report
     return translateLocal('workspaceActions.updatedManualApprovalThreshold', {oldLimit: convertToDisplayString(oldLimit, currency), newLimit: convertToDisplayString(newLimit, currency)});
 }
 
-function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>(reportAction: OnyxEntry<ReportAction>) {
+function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL | typeof CONST.REPORT.ACTIONS.TYPE.REROUTE>(reportAction: OnyxEntry<ReportAction>) {
     const {mentionedAccountIDs} = getOriginalMessage(reportAction as ReportAction<T>) ?? {};
 
     // If mentionedAccountIDs exists and has values, use the first one
