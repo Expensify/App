@@ -24,12 +24,14 @@ const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
 // Used to mock the Octokit GithubAPI
 const mockGetInput = jest.fn<string | undefined, [string]>();
 
+const isVerbose = process.argv.includes('--verbose') || process.env.JEST_VERBOSE === 'true';
+
 type ExecSyncError = {stderr: Buffer};
 
 function exec(command: string) {
     try {
         Log.info(command);
-        execSync(command, {stdio: 'inherit'});
+        execSync(command, {stdio: isVerbose ? 'inherit' : 'pipe'});
     } catch (error) {
         if ((error as ExecSyncError).stderr) {
             Log.error((error as ExecSyncError).stderr.toString());
@@ -471,10 +473,12 @@ async function assertPRsMergedBetween(from: string, to: string, expected: number
 let startingDir: string;
 describe('CIGitLogic', () => {
     beforeAll(() => {
-        jest.spyOn(Log, 'log').mockImplementation(() => {});
-        jest.spyOn(Log, 'info').mockImplementation(() => {});
-        jest.spyOn(Log, 'success').mockImplementation(() => {});
-        jest.spyOn(Log, 'warn').mockImplementation(() => {});
+        if (!isVerbose) {
+            jest.spyOn(Log, 'log').mockImplementation(() => {});
+            jest.spyOn(Log, 'info').mockImplementation(() => {});
+            jest.spyOn(Log, 'success').mockImplementation(() => {});
+            jest.spyOn(Log, 'warn').mockImplementation(() => {});
+        }
 
         Log.info('Starting setup');
         startingDir = process.cwd();

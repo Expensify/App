@@ -1,4 +1,5 @@
 /* eslint-disable max-classes-per-file */
+import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
 import type * as RNAppLogs from 'react-native-app-logs';
 import 'react-native-gesture-handler/jestSetup';
@@ -40,10 +41,19 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
     },
 }));
 
-jest.spyOn(console, 'log').mockImplementation(() => {});
-jest.spyOn(console, 'info').mockImplementation(() => {});
-jest.spyOn(console, 'debug').mockImplementation(() => {});
-jest.spyOn(console, 'warn').mockImplementation(() => {});
+const isVerbose = process.argv.includes('verbose') || process.env.JEST_VERBOSE === 'true';
+
+if (!isVerbose) {
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'info').mockImplementation(() => {});
+    jest.spyOn(console, 'debug').mockImplementation(() => {});
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    jest.spyOn(core, 'startGroup').mockImplementation(() => {});
+    jest.spyOn(core, 'endGroup').mockImplementation(() => {});
+    jest.spyOn(core, 'group').mockImplementation(<T>(_title: string, fn: () => T) => fn());
+    jest.spyOn(core, 'info').mockImplementation(() => {});
+    jest.spyOn(core, 'setOutput').mockImplementation(() => {});
+}
 
 // This mock is required for mocking file systems when running tests
 jest.mock('react-native-fs', () => ({
