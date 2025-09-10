@@ -26,7 +26,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
     let source = transactionItem?.receipt?.source ?? '';
     let previewSource = transactionItem?.receipt?.source ?? '';
 
-    if (source) {
+    if (source && typeof source === 'string') {
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
         source = tryResolveUrlFromApiRoot(receiptURIs.thumbnail ?? receiptURIs.image ?? '');
