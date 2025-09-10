@@ -7,7 +7,7 @@
 - Much of the logic in the app is asynchronous in nature. [`react-native-onyx`](https://github.com/expensify/react-native-onyx) writes data async before updating subscribers.
 - [Actions](https://github.com/Expensify/App#actions) do not typically return a `Promise` and therefore can't always be "awaited" before running an assertion.
 - To test a result after some asynchronous code has run we can use [`Onyx.connect()`](https://github.com/Expensify/react-native-onyx/blob/2c94a94e51fab20330f7bd5381b72ea6c25553d9/lib/Onyx.js#L217-L231) and the helper method [`waitForBatchedUpdates()`](https://github.com/Expensify/ReactNativeChat/blob/ca2fa88a5789b82463d35eddc3d57f70a7286868/tests/utils/waitForBatchedUpdates.js#L1-L9) which returns a `Promise` and will ensure that all other `Promises` have finished running before resolving.
-- **Important Note:** When writing any asynchronous Jest test it's very important that your test itself **return a `Promise`**.
+- **Important Note:** When writing any asynchronous Jest test it's very important that your test itself **return a `Promise`**. In hooks like BeforeEach, BeforeAll, AfterAll, etc., you also need to return a promise or use async/await if they perform any asynchronous calls.
 
 ## Mocking Network Requests
 
