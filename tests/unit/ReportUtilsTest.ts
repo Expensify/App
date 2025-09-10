@@ -1444,50 +1444,50 @@ describe('ReportUtils', () => {
                     });
                 });
 
-                    describe('getSearchReportName', () => {
-                        const baseChatReport = {
-                            reportID: '',
-                            reportName: 'Vikings Report',
-                            type: CONST.REPORT.TYPE.CHAT,
-                        };
+                describe('getSearchReportName', () => {
+                    const baseChatReport = {
+                        reportID: '',
+                        reportName: 'Vikings Report',
+                        type: CONST.REPORT.TYPE.CHAT,
+                    };
 
-                        // Converting the chat report into a thread chat report
-                        const chatThread = {
-                            ...baseChatReport,
-                            parentReportID: '1',
-                            parentReportActionID: '1',
-                        };
+                    // Converting the chat report into a thread chat report
+                    const chatThread = {
+                        ...baseChatReport,
+                        parentReportID: '1',
+                        parentReportActionID: '1',
+                    };
 
-                        test('should return the policy name when report is chat thread', () => {
-                            const searchReportName = getSearchReportName({report: chatThread, policy});
-                            expect(searchReportName).toBe('Vikings Policy');
-                        });
-
-                        test('should return a empty string when report is chat thread and policy is undefined', () => {
-                            const searchReportName = getSearchReportName({report: chatThread, policy: undefined});
-                            expect(searchReportName).toBe('');
-                        });
-
-                        test('should return the report name when report is not chat thread', () => {
-                            const searchReportName = getSearchReportName({report: baseChatReport, policy});
-                            expect(searchReportName).toBe('Vikings Report');
-                        });
-
-                        test('should return the report name when report is not chat thread and policy is undefined', () => {
-                            const searchReportName = getSearchReportName({report: baseChatReport, policy: undefined});
-                            expect(searchReportName).toBe('Vikings Report');
-                        });
-
-                        test('should return a empty string when report is undefined ', () => {
-                            const searchReportName = getSearchReportName({report: undefined, policy});
-                            expect(searchReportName).toBe('');
-                        });
-
-                        test('should return a empty string when both report and policy are undefined', () => {
-                            const searchReportName = getSearchReportName({report: undefined, policy: undefined});
-                            expect(searchReportName).toBe('');
-                        });
+                    test('should return the policy name when report is chat thread', () => {
+                        const searchReportName = getSearchReportName({report: chatThread, policy});
+                        expect(searchReportName).toBe('Vikings Policy');
                     });
+
+                    test('should return a empty string when report is chat thread and policy is undefined', () => {
+                        const searchReportName = getSearchReportName({report: chatThread, policy: undefined});
+                        expect(searchReportName).toBe('');
+                    });
+
+                    test('should return the report name when report is not chat thread', () => {
+                        const searchReportName = getSearchReportName({report: baseChatReport, policy});
+                        expect(searchReportName).toBe('Vikings Report');
+                    });
+
+                    test('should return the report name when report is not chat thread and policy is undefined', () => {
+                        const searchReportName = getSearchReportName({report: baseChatReport, policy: undefined});
+                        expect(searchReportName).toBe('Vikings Report');
+                    });
+
+                    test('should return a empty string when report is undefined ', () => {
+                        const searchReportName = getSearchReportName({report: undefined, policy});
+                        expect(searchReportName).toBe('');
+                    });
+
+                    test('should return a empty string when both report and policy are undefined', () => {
+                        const searchReportName = getSearchReportName({report: undefined, policy: undefined});
+                        expect(searchReportName).toBe('');
+                    });
+                });
             });
 
             describe('Expenses', () => {
