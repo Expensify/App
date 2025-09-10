@@ -87,7 +87,6 @@ describe('actions/Workflow', () => {
             const policyID = generatePolicyID();
             const newApprover: Approver = {
                 email: 'newapprover@example.com',
-                avatar: 'newavatar',
                 displayName: 'New Approver',
             };
             const approverIndex = 0;
