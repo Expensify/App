@@ -1,7 +1,8 @@
 import {useContext, useEffect} from 'react';
 import type {ViewProps} from 'react-native';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
-import Reanimated, {
+import type Reanimated from 'react-native-reanimated';
+import {
     useAnimatedReaction,
     useAnimatedRef,
     useAnimatedStyle,
