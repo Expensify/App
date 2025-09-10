@@ -15,6 +15,7 @@ import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import SupportalPermissionDeniedModalProvider from '@components/SupportalPermissionDeniedModalProvider';
+import WideRHPContextProvider from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useOnyx from '@hooks/useOnyx';
@@ -549,6 +550,7 @@ function AuthScreens() {
                 LockedAccountModalProvider,
                 DelegateNoAccessModalProvider,
                 SupportalPermissionDeniedModalProvider,
+                WideRHPContextProvider,
             ]}
         >
             <RootStack.Navigator
