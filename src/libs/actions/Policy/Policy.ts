@@ -2129,6 +2129,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                     description: null,
                     type: null,
                     areReportFieldsEnabled: null,
+                    customRules: null,
                 },
                 ...optimisticMccGroupData.successData,
                 fieldList: {
