@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
-import {loadCompanyCardIllustration, loadSimpleIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
 import Text from '@components/Text';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -34,36 +34,34 @@ function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: Wo
     const shouldShowExpensifyCardPromotionBanner = !hasIssuedExpensifyCard(policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID, allWorkspaceCards);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const {asset: CreditCardsIcon} = useMemoizedLazyAsset(() => loadSimpleIllustration('CreditCardsNew'));
-    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadSimpleIllustration('HandCard'));
-    const {asset: MagnifyingGlassIcon} = useMemoizedLazyAsset(() => loadSimpleIllustration('MagnifyingGlassMoney'));
-    const {asset: CompanyCardsEmptyStateIcon} = useMemoizedLazyAsset(() => loadCompanyCardIllustration('CompanyCardsEmptyState'));
+    const {asset: CreditCardsIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('CreditCardsNew'));
+    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('HandCard'));
+    const {asset: MagnifyingGlassIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('MagnifyingGlassMoney'));
+    const {asset: CompanyCardsEmptyStateIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('CompanyCardsEmptyState'));
 
-    const companyCardFeatures: FeatureListItem[] = useMemo(() => {
-        const features: FeatureListItem[] = [];
-
-        if (CreditCardsIcon) {
-            features.push({
+    const companyCardFeatures = useMemo(() => {
+        const features = [
+            {
                 icon: CreditCardsIcon,
-                translationKey: 'workspace.moreFeatures.companyCards.feed.features.support',
-            });
-        }
+                translationKey: 'workspace.moreFeatures.companyCards.feed.features.support' as const,
+            },
 
-        if (HandCardIcon) {
-            features.push({
+            {
                 icon: HandCardIcon,
-                translationKey: 'workspace.moreFeatures.companyCards.feed.features.assignCards',
-            });
-        }
+                translationKey: 'workspace.moreFeatures.companyCards.feed.features.assignCards' as const,
+            },
 
-        if (MagnifyingGlassIcon) {
-            features.push({
+            {
                 icon: MagnifyingGlassIcon,
-                translationKey: 'workspace.moreFeatures.companyCards.feed.features.automaticImport',
-            });
-        }
-
-        return features;
+                translationKey: 'workspace.moreFeatures.companyCards.feed.features.automaticImport' as const,
+            },
+        ];
+        return features
+            .filter((feature) => feature.icon !== null)
+            .map((feature) => ({
+                icon: feature.icon,
+                translationKey: feature.translationKey,
+            }));
     }, [CreditCardsIcon, HandCardIcon, MagnifyingGlassIcon]);
 
     const handleCtaPress = useCallback(() => {
@@ -82,7 +80,7 @@ function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: Wo
         <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
             {shouldShowExpensifyCardPromotionBanner && <WorkspaceCompanyCardExpensifyCardPromotionBanner policy={policy} />}
             <FeatureList
-                menuItems={companyCardFeatures}
+                menuItems={companyCardFeatures as FeatureListItem[]}
                 title={translate('workspace.moreFeatures.companyCards.feed.title')}
                 subtitle={translate('workspace.moreFeatures.companyCards.subtitle')}
                 ctaText={translate('workspace.companyCards.addCards')}
