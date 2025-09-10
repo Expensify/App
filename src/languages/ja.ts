@@ -660,6 +660,7 @@ const translations = {
         unstableInternetConnection: 'インターネット接続が不安定です。ネットワークを確認してもう一度お試しください。',
         enableGlobalReimbursements: 'グローバル払い戻しを有効にする',
         purchaseAmount: '購入金額',
+        frequency: '頻度',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1953,9 +1954,8 @@ const translations = {
     workflowsPage: {
         workflowTitle: '支出',
         workflowDescription: '支出が発生した瞬間から、承認および支払いを含むワークフローを設定します。',
-        delaySubmissionTitle: '提出を遅らせる',
-        delaySubmissionDescription: '経費提出のカスタムスケジュールを選択するか、支出のリアルタイム更新のためにこれをオフにしておいてください。',
         submissionFrequency: '提出頻度',
+        submissionFrequencyDescription: '経費提出のカスタムスケジュールを選択するか、支出のリアルタイム更新のためにこれをオフにしておいてください。',
         submissionFrequencyDateOfMonth: '月の日付',
         addApprovalsTitle: '承認を追加',
         addApprovalButton: '承認ワークフローを追加',
@@ -1969,7 +1969,7 @@ const translations = {
         },
         frequencyDescription: '経費を自動で提出する頻度を選択するか、手動で行うように設定してください。',
         frequencies: {
-            instant: 'インスタント',
+            instant: '即座に',
             weekly: '毎週',
             monthly: '毎月',
             twiceAMonth: '月に2回',

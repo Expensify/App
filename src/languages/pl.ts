@@ -660,6 +660,7 @@ const translations = {
         unstableInternetConnection: 'Niestabilne połączenie internetowe. Sprawdź swoją sieć i spróbuj ponownie.',
         enableGlobalReimbursements: 'Włącz globalne zwroty',
         purchaseAmount: 'Kwota zakupu',
+        frequency: 'Częstotliwość',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1955,10 +1956,9 @@ const translations = {
     workflowsPage: {
         workflowTitle: 'Wydatki',
         workflowDescription: 'Skonfiguruj przepływ pracy od momentu wystąpienia wydatku, w tym zatwierdzenie i płatność.',
-        delaySubmissionTitle: 'Opóźnij zgłoszenia',
-        delaySubmissionDescription:
-            'Wybierz niestandardowy harmonogram przesyłania wydatków lub pozostaw to wyłączone, aby otrzymywać aktualizacje w czasie rzeczywistym dotyczące wydatków.',
         submissionFrequency: 'Częstotliwość składania wniosków',
+        submissionFrequencyDescription:
+            'Wybierz niestandardowy harmonogram przesyłania wydatków lub pozostaw to wyłączone, aby otrzymywać aktualizacje w czasie rzeczywistym dotyczące wydatków.',
         submissionFrequencyDateOfMonth: 'Data miesiąca',
         addApprovalsTitle: 'Dodaj zatwierdzenia',
         addApprovalButton: 'Dodaj przepływ pracy zatwierdzania',
@@ -1972,7 +1972,7 @@ const translations = {
         },
         frequencyDescription: 'Wybierz, jak często chcesz, aby wydatki były przesyłane automatycznie, lub ustaw je na ręczne przesyłanie.',
         frequencies: {
-            instant: 'Natychmiastowy',
+            instant: 'Natychmiast',
             weekly: 'Cotygodniowo',
             monthly: 'Miesięczny',
             twiceAMonth: 'Dwa razy w miesiącu',
