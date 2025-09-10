@@ -5633,7 +5633,7 @@ describe('ReportUtils', () => {
             };
 
             const result = populateOptimisticReportFormula('{report:total}', reportWithNaNTotal, mockPolicy);
-            expect(result).toBe('{report:total}');
+            expect(result).toBe('New report');
         });
 
         it('should replace {report:total} with formatted amount', () => {
@@ -5660,10 +5660,10 @@ describe('ReportUtils', () => {
             };
 
             const result = populateOptimisticReportFormula('{report:total}', reportWithUndefinedTotal, mockPolicy);
-            expect(result).toBe('{report:total}');
+            expect(result).toBe('New report');
         });
 
-        it('should return original formula when result is empty after replacements', () => {
+        it('should return "New report" when result is empty after replacements', () => {
             const formula = '{report:total}';
             const reportWithNaNTotal = {
                 ...mockReport,
@@ -5671,7 +5671,7 @@ describe('ReportUtils', () => {
             };
 
             const result = populateOptimisticReportFormula(formula, reportWithNaNTotal, mockPolicy);
-            expect(result).toBe('{report:total}');
+            expect(result).toBe('New report');
         });
 
         it('should handle complex formula with multiple placeholders and some invalid values', () => {
@@ -5682,8 +5682,17 @@ describe('ReportUtils', () => {
             };
 
             const result = populateOptimisticReportFormula(formula, reportWithNaNTotal, mockPolicy);
-            const expectedId = getBase62ReportID(Number(mockReport.reportID));
-            expect(result).toBe(`ID: ${expectedId}, Total: , Type: Expense Report`);
+            expect(result).toBe('New report');
+        });
+
+        it('should handle missing total gracefully', () => {
+            const reportWithMissingTotal = {
+                ...mockReport,
+                total: undefined,
+            };
+
+            const result = populateOptimisticReportFormula('{report:total}', reportWithMissingTotal, mockPolicy);
+            expect(result).toBe('New report');
         });
     });
     describe('canSeeDefaultRoom', () => {
