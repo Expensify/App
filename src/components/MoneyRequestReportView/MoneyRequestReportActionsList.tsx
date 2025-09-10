@@ -91,9 +91,6 @@ type MoneyRequestReportListProps = {
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
 
-    /** Violations indexed by transaction ID */
-    violations?: Record<string, OnyxTypes.TransactionViolation[]>;
-
     /** If the report has newer actions to load */
     hasNewerActions: boolean;
 
@@ -117,7 +114,6 @@ function MoneyRequestReportActionsList({
     reportActions = [],
     transactions = [],
     newTransactions,
-    violations,
     hasNewerActions,
     hasOlderActions,
     showReportActionsLoadingState,

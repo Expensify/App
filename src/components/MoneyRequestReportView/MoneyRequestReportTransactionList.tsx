@@ -112,15 +112,7 @@ const getTransactionValue = (transaction: OnyxTypes.Transaction, key: SortableCo
     }
 };
 
-function MoneyRequestReportTransactionList({
-    report,
-    transactions,
-    newTransactions,
-    reportActions,
-    violations,
-    scrollToNewTransaction,
-    policy
-}: MoneyRequestReportTransactionListProps) {
+function MoneyRequestReportTransactionList({report, transactions, newTransactions, reportActions, violations, scrollToNewTransaction, policy}: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

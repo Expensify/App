@@ -23,8 +23,8 @@ import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
@@ -33,8 +33,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {canAddTransaction as canAddTransactionUtil, getAddExpenseDropdownOptions} from '@libs/ReportUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
+import {canAddTransaction as canAddTransactionUtil, getAddExpenseDropdownOptions} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getSections} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
@@ -308,15 +308,15 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                     {translate('search.moneyRequestReport.emptyStateTitle')}
                                 </Text>
                                 {canAddTransaction && (
-                                   <ButtonWithDropdownMenu
-                                    onPress={() => {}}
-                                    shouldAlwaysShowDropdownMenu
-                                    customText={translate('iou.addExpense')}
-                                    options={addExpenseDropdownOptions}
-                                    isSplitButton={false}
-                                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                                />
-                            )}
+                                    <ButtonWithDropdownMenu
+                                        onPress={() => {}}
+                                        shouldAlwaysShowDropdownMenu
+                                        customText={translate('iou.addExpense')}
+                                        options={addExpenseDropdownOptions}
+                                        isSplitButton={false}
+                                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                                    />
+                                )}
                             </View>
                         ) : (
                             <>
