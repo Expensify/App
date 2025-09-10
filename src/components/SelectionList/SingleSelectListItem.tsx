@@ -56,7 +56,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             alternateTextNumberOfLines={alternateTextNumberOfLines}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={[wrapperStyle, styles.optionRowCompact]}
+            wrapperStyle={[styles.optionRowCompact,wrapperStyle]}
             titleStyles={titleStyles}
             accessibilityState={accessibilityState}
         />
