@@ -1,3 +1,4 @@
+import {emailSelector} from '@selectors/Session';
 import React, {useMemo} from 'react';
 import Banner from '@components/Banner';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -16,7 +17,7 @@ import ROUTES from '@src/ROUTES';
 function SystemChatReportFooterMessage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [choice] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
