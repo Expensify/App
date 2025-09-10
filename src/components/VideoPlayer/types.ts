@@ -6,7 +6,7 @@ import type CONST from '@src/CONST';
 type VideoPlayerProps = {
     url: string;
     // TODO: Verify this works
-    onSourceLoaded: (event: SourceLoadEventPayload) => void;
+    onSourceLoaded?: (event: SourceLoadEventPayload) => void;
     resizeMode?: string;
     isLooping?: boolean;
     // style for the whole video player component
