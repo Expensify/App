@@ -12,23 +12,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {TransactionViolation} from '@src/types/onyx';
 
-type UnreportedExpenseListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    violations?: Record<string, TransactionViolation[]>;
-};
-
-function UnreportedExpenseListItem<TItem extends ListItem>({
-    item,
-    isFocused,
-    showTooltip,
-    isDisabled,
-    onFocus,
-    shouldSyncFocus,
-    onSelectRow,
-    violations,
-}: UnreportedExpenseListItemProps<TItem>) {
+function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, onFocus, shouldSyncFocus, onSelectRow}: ListItemProps<TItem>) {
     const styles = useThemeStyles();
     const transactionItem = item as unknown as TransactionListItemType;
     const [isSelected, setIsSelected] = useState<boolean>(false);
@@ -69,7 +54,6 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
             >
                 <TransactionItemRow
                     transactionItem={transactionItem}
-                    violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`]}
                     shouldUseNarrowLayout
                     isSelected={isSelected}
                     shouldShowTooltip={showTooltip}
