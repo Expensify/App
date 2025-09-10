@@ -88,37 +88,37 @@ const baseFilterConfig: Record<
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS),
     },
     date: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterDateDisplayTitle,
         description: 'common.date',
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE),
     },
     submitted: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterDateDisplayTitle,
         description: 'search.filters.submitted',
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED),
     },
     approved: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterDateDisplayTitle,
         description: 'search.filters.approved',
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED),
     },
     paid: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterDateDisplayTitle,
         description: 'search.filters.paid',
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID),
     },
     exported: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterDateDisplayTitle,
         description: 'search.filters.exported',
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED),
     },
     posted: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterDateDisplayTitle,
         description: 'search.filters.posted',
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED),
     },
     withdrawn: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterDateDisplayTitle,
         description: 'search.filters.withdrawn',
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN),
     },
@@ -148,12 +148,12 @@ const baseFilterConfig: Record<
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.REPORT_ID),
     },
     amount: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterAmountDisplayTitle,
         description: 'iou.amount',
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT),
     },
     total: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterAmountDisplayTitle,
         description: 'common.total',
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL),
     },
@@ -243,7 +243,7 @@ const baseFilterConfig: Record<
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID),
     },
     purchaseAmount: {
-        getTitle: getFilterDisplayTitle,
+        getTitle: getFilterAmountDisplayTitle,
         description: 'common.purchaseAmount',
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.PURCHASE_AMOUNT),
     },
@@ -369,8 +369,8 @@ function getFilterAmountDisplayTitle(filterKey: SearchFilterKey, context: Filter
     }
 }
 
-function getFilterDisplayTitle(filterKey: SearchFilterKey, context: FilterContext) {
-    const nonDateFilterKey = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys | 'amount' | 'total'>;
+function getFilterDisplayTitle(filterKey: SearchFilterKey, context: FilterContext): string | undefined {
+    const nonDateFilterKey = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys | 'amount' | 'total' | 'purchaseAmount'>;
 
     if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY && context.filters[nonDateFilterKey]) {
         const filterArray = context.filters[nonDateFilterKey] ?? [];
