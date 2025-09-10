@@ -22,7 +22,7 @@ const updateWorkspaceFilter = (policyID: string[] | null) => {
     updateAdvancedFilters({
         policyID,
     });
-    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
 };
 
 function SearchFiltersWorkspacePage() {
@@ -87,7 +87,7 @@ function SearchFiltersWorkspacePage() {
                     <HeaderWithBackButton
                         title={translate('workspace.common.workspace')}
                         onBackButtonPress={() => {
-                            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                         }}
                     />
                     {shouldShowLoadingIndicator ? (
