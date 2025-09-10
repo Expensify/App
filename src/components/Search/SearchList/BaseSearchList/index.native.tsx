@@ -17,7 +17,11 @@ function BaseSearchList({
     ListFooterComponent,
     onViewableItemsChanged,
     onLayout,
+    estimatedItemSize,
+    overrideItemLayout,
+    estimatedListSize,
     contentContainerStyle,
+    calculatedListHeight,
 }: BaseSearchListProps) {
     const renderItemWithoutKeyboardFocus = useCallback(
         ({item, index}: {item: SearchListItem; index: number}) => {
@@ -41,8 +45,11 @@ function BaseSearchList({
             onLayout={onLayout}
             removeClippedSubviews
             drawDistance={1000}
+            estimatedItemSize={estimatedItemSize}
+            overrideItemLayout={overrideItemLayout}
+            estimatedListSize={estimatedListSize}
             contentContainerStyle={contentContainerStyle}
-            maintainVisibleContentPosition={{disabled: true}}
+            overrideProps={{estimatedHeightSize: calculatedListHeight}}
         />
     );
 }
