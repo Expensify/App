@@ -70,7 +70,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
+import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
 import {
     getOriginalMessage,
     getReportActionHtml,
@@ -433,6 +433,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 feed: defaultFeedID ? [defaultFeedID] : [''],
+                groupBy: CONST.SEARCH.GROUP_BY.CARD,
                 postedOn: CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT,
             }),
             get searchQueryJSON() {
@@ -453,6 +454,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+                groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 reimbursable: CONST.SEARCH.BOOLEAN.YES,
             }),
             get searchQueryJSON() {
@@ -473,6 +475,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 feed: defaultFeedID ? [defaultFeedID] : [''],
+                groupBy: CONST.SEARCH.GROUP_BY.CARD,
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
             }),
             get searchQueryJSON() {
@@ -494,6 +497,7 @@ function getSuggestedSearches(accountID: number = CONST.DEFAULT_NUMBER_ID, defau
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 withdrawalType: CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT,
                 withdrawnOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
             }),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
@@ -1671,9 +1675,9 @@ function getSortedSections(
 
 /**
  * Compares two values based on a specified sorting order and column.
- * Handles both string and numeric comparisons, with special handling for absolute values when sorting by total amount.
+ * Handles both string and numeric comparisons.
  */
-function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: string, localeCompare: LocaleContextProps['localeCompare']): number {
+function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: string, localeCompare: LocaleContextProps['localeCompare'], shouldCompareOriginalValue = false): number {
     const isAsc = sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
 
     if (a === undefined || b === undefined) {
@@ -1685,8 +1689,8 @@ function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: str
     }
 
     if (typeof a === 'number' && typeof b === 'number') {
-        const aValue = sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT ? Math.abs(a) : a;
-        const bValue = sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT ? Math.abs(b) : b;
+        const aValue = sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT && !shouldCompareOriginalValue ? Math.abs(a) : a;
+        const bValue = sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT && !shouldCompareOriginalValue ? Math.abs(b) : b;
         return isAsc ? aValue - bValue : bValue - aValue;
     }
 
@@ -1800,7 +1804,11 @@ function getSortedReportActionData(data: ReportActionListItemType[], localeCompa
  * Checks if the search results contain any data, useful for determining if the search results are empty.
  */
 function isSearchResultsEmpty(searchResults: SearchResults) {
-    return !Object.keys(searchResults?.data).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
+    return !Object.keys(searchResults?.data).some(
+        (key) =>
+            key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) &&
+            (searchResults?.data[key as keyof typeof searchResults.data] as SearchTransaction)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
 }
 
 /**
@@ -1868,6 +1876,7 @@ function createTypeMenuSections(
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
     defaultCardFeed: CardFeedForDisplay | undefined,
     policies: OnyxCollection<OnyxTypes.Policy>,
+    activePolicyID: string | undefined,
     savedSearches: OnyxEntry<OnyxTypes.SaveSearch>,
     isOffline: boolean,
 ): SearchTypeMenuSection[] {
@@ -1899,7 +1908,7 @@ function createTypeMenuSections(
                                       buttonText: 'report.newReport.createReport',
                                       buttonAction: () => {
                                           interceptAnonymousUser(() => {
-                                              const activePolicy = getActivePolicy();
+                                              const activePolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
                                               const personalDetails = getPersonalDetailsForAccountID(currentUserAccountID) as OnyxTypes.PersonalDetails;
 
                                               let workspaceIDForReportCreation: string | undefined;

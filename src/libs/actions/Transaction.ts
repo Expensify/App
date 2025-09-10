@@ -54,15 +54,6 @@ Onyx.connect({
     callback: (val) => (recentWaypoints = val ?? []),
 });
 
-let currentUserEmail = '';
-
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        currentUserEmail = value?.email ?? '';
-    },
-});
-
 const allTransactions: Record<string, Transaction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -648,7 +639,7 @@ function changeTransactionsReport(
     if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const currentTime = DateUtils.getDBTime();
         selfDMReport = buildOptimisticSelfDMReport(currentTime);
-        selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
+        selfDMCreatedReportAction = buildOptimisticCreatedReportAction(email ?? '', currentTime);
 
         // Add optimistic updates for self DM report
         optimisticData.push(
@@ -974,7 +965,7 @@ function changeTransactionsReport(
         let transactionThreadCreatedReportActionID;
         if (!transactionThreadReportID) {
             const optimisticTransactionThread = buildTransactionThread(newIOUAction, reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? undefined : newReport);
-            const optimisticCreatedActionForTransactionThread = buildOptimisticCreatedReportAction(currentUserEmail);
+            const optimisticCreatedActionForTransactionThread = buildOptimisticCreatedReportAction(email ?? '');
             transactionThreadReportID = optimisticTransactionThread.reportID;
             transactionThreadCreatedReportActionID = optimisticCreatedActionForTransactionThread.reportActionID;
             newIOUAction.childReportID = transactionThreadReportID;

@@ -1,6 +1,5 @@
 // We have opted for `Onyx.connectWithoutView` here as this logic is strictly non-UI in nature.
 import Onyx from 'react-native-onyx';
-import {getActivePolicy} from '@libs/PolicyUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PerfAttributes} from './types';
@@ -60,7 +59,6 @@ Onyx.connectWithoutView({
 
 function getAttributes<T extends keyof PerfAttributes>(attributes?: T[]): Pick<PerfAttributes, T> {
     const session = SessionUtils.getSession();
-    const policy = getActivePolicy();
 
     const allAttributes: PerfAttributes = {
         accountId: session?.accountID?.toString() ?? 'N/A',
@@ -70,8 +68,6 @@ function getAttributes<T extends keyof PerfAttributes>(attributes?: T[]): Pick<P
         transactionViolationsLength: transactionViolationsCount.toString(),
         policiesLength: policiesCount.toString(),
         transactionsLength: transactionsCount.toString(),
-        policyType: policy?.type ?? 'N/A',
-        policyRole: policy?.role ?? 'N/A',
     };
 
     if (attributes && attributes.length > 0) {

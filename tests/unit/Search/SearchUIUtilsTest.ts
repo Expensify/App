@@ -1911,7 +1911,7 @@ describe('SearchUIUtils', () => {
 
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, {}, false)
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -1989,7 +1989,7 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, mockSavedSearches, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, mockSavedSearches, false);
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeDefined();
@@ -2039,7 +2039,7 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, mockSavedSearches, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, mockSavedSearches, false);
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
@@ -2068,7 +2068,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeDefined();
@@ -2077,7 +2077,7 @@ describe('SearchUIUtils', () => {
         it('should not show saved section when there are no saved searches', () => {
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeUndefined();
@@ -2099,6 +2099,7 @@ describe('SearchUIUtils', () => {
                 {},
                 undefined,
                 {},
+                undefined,
                 mockSavedSearches,
                 false, // not offline
             );
@@ -2123,6 +2124,7 @@ describe('SearchUIUtils', () => {
                 {},
                 undefined,
                 {},
+                undefined,
                 mockSavedSearches,
                 true, // offline
             );
@@ -2145,7 +2147,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false);
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeUndefined();
@@ -2171,6 +2173,7 @@ describe('SearchUIUtils', () => {
                 {}, // no card feeds
                 undefined,
                 mockPolicies,
+                undefined,
                 {},
                 false,
             );
@@ -2203,7 +2206,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false);
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
@@ -2228,7 +2231,7 @@ describe('SearchUIUtils', () => {
             };
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, {}, false);
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
 
             expect(accountingSection).toBeDefined();
@@ -2237,7 +2240,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should generate correct routes', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, {}, false)
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -2246,6 +2249,64 @@ describe('SearchUIUtils', () => {
             menuItems.forEach((item, index) => {
                 expect(item.searchQuery).toStrictEqual(expectedQueries.at(index));
             });
+        });
+    });
+
+    describe('Test isSearchResultsEmpty', () => {
+        it('should return true when all transactions have delete pending action', () => {
+            const results: OnyxTypes.SearchResults = {
+                data: {
+                    personalDetailsList: {},
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    transactions_1805965960759424086: {
+                        accountID: 2074551,
+                        amount: 0,
+                        canDelete: false,
+                        canHold: true,
+                        canUnhold: false,
+                        category: 'Employee Meals Remote (Fringe Benefit)',
+                        action: 'approve',
+                        allActions: ['approve'],
+                        comment: {
+                            comment: '',
+                        },
+                        created: '2025-05-26',
+                        currency: 'USD',
+                        hasEReceipt: false,
+                        isFromOneTransactionReport: true,
+                        managerID: adminAccountID,
+                        merchant: '(none)',
+                        modifiedAmount: -1000,
+                        modifiedCreated: '2025-05-22',
+                        modifiedCurrency: 'USD',
+                        modifiedMerchant: 'Costco Wholesale',
+                        parentTransactionID: '',
+                        policyID: '137DA25D273F2423',
+                        receipt: {
+                            source: 'https://www.expensify.com/receipts/fake.jpg',
+                            state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
+                        },
+                        reportID: '6523565988285061',
+                        reportType: 'expense',
+                        tag: '',
+                        transactionID: '1805965960759424086',
+                        transactionThreadReportID: '4139222832581831',
+                        transactionType: 'cash',
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        convertedAmount: -5000,
+                        convertedCurrency: 'USD',
+                    },
+                },
+                search: {
+                    type: 'expense',
+                    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                    offset: 0,
+                    hasMoreResults: false,
+                    hasResults: true,
+                    isLoading: false,
+                },
+            };
+            expect(SearchUIUtils.isSearchResultsEmpty(results)).toBe(true);
         });
     });
 
