@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Session} from '@src/types/onyx';
+import type {Credentials, Session} from '@src/types/onyx';
 import type OnyxState from '@src/types/onyx/OnyxState';
 import type {MaskOnyxState} from './types';
 
@@ -55,22 +55,32 @@ function replaceEmailInString(text: string, emailReplacement: string) {
     return text.replace(emailRegex, emailReplacement);
 }
 
-const maskSessionDetails = (onyxState: OnyxState): OnyxState => {
-    const session = onyxState.session as Session;
+const maskSessionDetails = (session: Session): Session => {
+    const allowList = ['email', 'accountID', 'loading', 'creationDate', 'errors'];
     const maskedData: OnyxState = {};
 
     Object.keys(session).forEach((key) => {
-        if (key !== 'authToken' && key !== 'encryptedAuthToken') {
+        if (allowList.includes(key)) {
             maskedData[key] = session[key as keyof Session];
             return;
         }
         maskedData[key] = MASKING_PATTERN;
     });
+    return maskedData as Session;
+};
 
-    return {
-        ...onyxState,
-        session: maskedData,
-    };
+const maskCredentials = (credentials: Credentials): Credentials => {
+    const allowList = ['login', 'accountID'];
+    const maskedData: OnyxState = {};
+
+    Object.keys(credentials).forEach((key) => {
+        if (allowList.includes(key)) {
+            maskedData[key] = credentials[key as keyof Credentials];
+            return;
+        }
+        maskedData[key] = MASKING_PATTERN;
+    });
+    return maskedData as Credentials;
 };
 
 const maskEmail = (email: string) => {
@@ -155,10 +165,24 @@ const maskOnyxState: MaskOnyxState = (data, isMaskingFragileDataEnabled) => {
     let onyxState = data;
 
     // Mask session details by default
-    onyxState = maskSessionDetails(onyxState);
+    if (onyxState.session) {
+        onyxState.session = maskSessionDetails(onyxState.session as Session);
+    }
+    if (onyxState.stashedSession) {
+        onyxState.stashedSession = maskSessionDetails(onyxState.stashedSession as Session);
+    }
 
     // Remove private/sensitive Onyx keys
     onyxState = removePrivateOnyxKeys(onyxState);
+
+    // Mask credentials
+    if (onyxState.credentials) {
+        onyxState.credentials = maskCredentials(onyxState.credentials as Credentials);
+    }
+
+    if (onyxState.stashedCredentials) {
+        onyxState.stashedCredentials = maskCredentials(onyxState.stashedCredentials as Credentials);
+    }
 
     // Mask fragile data other than session details if the user has enabled the option
     if (isMaskingFragileDataEnabled) {
