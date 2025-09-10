@@ -57,7 +57,6 @@ import {
     getReportDescription,
     getReportFieldKey,
     getReportName,
-    getReportNameValuePairs,
     isAdminOwnerApproverOrReportOwner,
     isArchivedNonExpenseReport,
     isCanceledTaskReport as isCanceledTaskReportUtil,
@@ -146,10 +145,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
-
-    const rnvp = getReportNameValuePairs(report.reportID);
-    console.log('morwa rnvp', rnvp);
-    console.log('morwa report', report);
 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`, {canBeMissing: true});

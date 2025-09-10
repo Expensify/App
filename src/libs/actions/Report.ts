@@ -2326,6 +2326,7 @@ function toggleSubscribeToChildReport(
 
 function updateReportName(reportID: string, value: string, previousValue: string) {
     const optimisticData: OnyxUpdate[] = [
+        ...removeTitleFieldFromReport(reportID),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -2336,7 +2337,6 @@ function updateReportName(reportID: string, value: string, previousValue: string
                 },
             },
         },
-        ...removeTitleFieldFromReport(reportID),
     ];
     const failureData: OnyxUpdate[] = [
         {
