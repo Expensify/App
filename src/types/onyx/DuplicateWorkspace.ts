@@ -1,4 +1,3 @@
-import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of plaid data */
