@@ -2691,6 +2691,99 @@ exports["default"] = _default;
 
 /***/ }),
 
+/***/ 717:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(186));
+const fs_1 = __importDefault(__nccwpck_require__(147));
+const run = () => {
+    // Prefix path to the graphite metric
+    const GRAPHITE_PATH = 'reassure';
+    const PR_NUMBER = core.getInput('PR_NUMBER', { required: true });
+    // Read the contents of the file, the file is in the JSONL format
+    const regressionFile = fs_1.default.readFileSync('.reassure/baseline.perf', 'utf8');
+    // Split file contents by newline to get individual JSON entries
+    const regressionEntries = regressionFile.split('\n');
+    // Initialize string to store Graphite metrics
+    let graphiteString = '';
+    let timestamp;
+    // Iterate over each entry
+    regressionEntries.forEach((entry) => {
+        // Skip empty lines
+        if (entry.trim() === '') {
+            return;
+        }
+        try {
+            const current = JSON.parse(entry);
+            // Extract timestamp, Graphite accepts timestamp in seconds
+            if (current.metadata?.creationDate) {
+                timestamp = Math.floor(new Date(current.metadata.creationDate).getTime() / 1000);
+            }
+            if (current.name && current.meanDuration && current.meanCount && timestamp) {
+                const formattedName = current.name.split(' ').join('-');
+                const renderDurationString = `${GRAPHITE_PATH}.${formattedName}.renderDuration ${current.meanDuration} ${timestamp}`;
+                const renderCountString = `${GRAPHITE_PATH}.${formattedName}.renderCount ${current.meanCount} ${timestamp}`;
+                const renderPRNumberString = `${GRAPHITE_PATH}.${formattedName}.prNumber ${PR_NUMBER} ${timestamp}`;
+                // Concatenate Graphite strings
+                graphiteString += `${renderDurationString}\n${renderCountString}\n${renderPRNumberString}\n`;
+            }
+        }
+        catch (e) {
+            const error = new Error('Error parsing baseline.perf JSON file');
+            console.error(error.message);
+            core.setFailed(error);
+        }
+    });
+    // Set generated graphite string to the github variable
+    core.setOutput('GRAPHITE_STRING', graphiteString);
+};
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+exports["default"] = run;
+
+
+/***/ }),
+
 /***/ 491:
 /***/ ((module) => {
 
@@ -2817,63 +2910,12 @@ module.exports = require("util");
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
-(() => {
-"use strict";
-var exports = __webpack_exports__;
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __nccwpck_require__(186);
-const fs_1 = __nccwpck_require__(147);
-const run = () => {
-    // Prefix path to the graphite metric
-    const GRAPHITE_PATH = 'reassure';
-    const PR_NUMBER = core.getInput('PR_NUMBER', { required: true });
-    // Read the contents of the file, the file is in the JSONL format
-    const regressionFile = fs_1.default.readFileSync('.reassure/baseline.perf', 'utf8');
-    // Split file contents by newline to get individual JSON entries
-    const regressionEntries = regressionFile.split('\n');
-    // Initialize string to store Graphite metrics
-    let graphiteString = '';
-    let timestamp;
-    // Iterate over each entry
-    regressionEntries.forEach((entry) => {
-        // Skip empty lines
-        if (entry.trim() === '') {
-            return;
-        }
-        try {
-            const current = JSON.parse(entry);
-            // Extract timestamp, Graphite accepts timestamp in seconds
-            if (current.metadata?.creationDate) {
-                timestamp = Math.floor(new Date(current.metadata.creationDate).getTime() / 1000);
-            }
-            if (current.name && current.meanDuration && current.meanCount && timestamp) {
-                const formattedName = current.name.split(' ').join('-');
-                const renderDurationString = `${GRAPHITE_PATH}.${formattedName}.renderDuration ${current.meanDuration} ${timestamp}`;
-                const renderCountString = `${GRAPHITE_PATH}.${formattedName}.renderCount ${current.meanCount} ${timestamp}`;
-                const renderPRNumberString = `${GRAPHITE_PATH}.${formattedName}.prNumber ${PR_NUMBER} ${timestamp}`;
-                // Concatenate Graphite strings
-                graphiteString += `${renderDurationString}\n${renderCountString}\n${renderPRNumberString}\n`;
-            }
-        }
-        catch (e) {
-            const error = new Error('Error parsing baseline.perf JSON file');
-            console.error(error.message);
-            core.setFailed(error);
-        }
-    });
-    // Set generated graphite string to the github variable
-    core.setOutput('GRAPHITE_STRING', graphiteString);
-};
-if (require.main === require.cache[eval('__filename')]) {
-    run();
-}
-exports["default"] = run;
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(717);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;

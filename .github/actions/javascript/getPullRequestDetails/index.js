@@ -11494,16 +11494,161 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 6981:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ 5096:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
+const ActionUtils_1 = __nccwpck_require__(6981);
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const isEmptyObject_1 = __nccwpck_require__(6497);
+const DEFAULT_PAYLOAD = {
+    owner: CONST_1.default.GITHUB_OWNER,
+    repo: CONST_1.default.APP_REPO,
+};
+const pullRequestNumber = (0, ActionUtils_1.getJSONInput)('PULL_REQUEST_NUMBER', { required: false }, null);
+const user = core.getInput('USER', { required: true });
+if (pullRequestNumber) {
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
+    console.log(`Looking for pull request w/ number: ${pullRequestNumber}`);
+}
+if (user) {
+    console.log(`Looking for pull request w/ user: ${user}`);
+}
+/**
+ * Output pull request merge actor.
+ */
+function outputMergeActor(PR) {
+    if (user === CONST_1.default.OS_BOTIFY) {
+        core.setOutput('MERGE_ACTOR', PR.merged_by?.login);
+    }
+    else {
+        core.setOutput('MERGE_ACTOR', user);
+    }
+}
+/**
+ * Output forked repo URL if PR includes changes from a fork.
+ */
+function outputForkedRepoUrl(PR) {
+    if (PR.head?.repo?.html_url === CONST_1.default.APP_REPO_URL) {
+        core.setOutput('FORKED_REPO_URL', '');
+    }
+    else {
+        core.setOutput('FORKED_REPO_URL', `${PR.head?.repo?.html_url}.git`);
+    }
+}
+GithubUtils_1.default.octokit.pulls
+    .get({
+    ...DEFAULT_PAYLOAD,
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    pull_number: pullRequestNumber,
+})
+    .then(({ data: PR }) => {
+    if (!(0, isEmptyObject_1.isEmptyObject)(PR)) {
+        console.log(`Found matching pull request: ${PR.html_url}`);
+        console.log(`Pull request details: ${JSON.stringify(PR)}}`);
+        core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
+        core.setOutput('HEAD_COMMIT_SHA', PR.head?.sha);
+        core.setOutput('IS_MERGED', PR.merged);
+        outputMergeActor(PR);
+        outputForkedRepoUrl(PR);
+    }
+    else {
+        const err = new Error('Could not find matching pull request');
+        console.error(err);
+        core.setFailed(err);
+    }
+})
+    .catch((err) => {
+    console.log(`An unknown error occurred with the GitHub API: ${err}`);
+    core.setFailed(err);
+});
+
+
+/***/ }),
+
+/***/ 6981:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getJSONInput = getJSONInput;
 exports.getStringInput = getStringInput;
 exports.convertToNumber = convertToNumber;
-const core = __nccwpck_require__(2186);
+const core = __importStar(__nccwpck_require__(2186));
 /**
  * Safely parse a JSON input to a GitHub Action.
  *
@@ -11622,19 +11767,55 @@ exports["default"] = CONST;
 /***/ }),
 
 /***/ 9296:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
-const core = __nccwpck_require__(2186);
+const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
 const request_error_1 = __nccwpck_require__(537);
-const arrayDifference_1 = __nccwpck_require__(7532);
-const CONST_1 = __nccwpck_require__(9873);
+const arrayDifference_1 = __importDefault(__nccwpck_require__(7532));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const isEmptyObject_1 = __nccwpck_require__(6497);
 class GithubUtils {
     /**
@@ -12393,82 +12574,12 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
-(() => {
-"use strict";
-var exports = __webpack_exports__;
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __nccwpck_require__(2186);
-const ActionUtils_1 = __nccwpck_require__(6981);
-const CONST_1 = __nccwpck_require__(9873);
-const GithubUtils_1 = __nccwpck_require__(9296);
-const isEmptyObject_1 = __nccwpck_require__(6497);
-const DEFAULT_PAYLOAD = {
-    owner: CONST_1.default.GITHUB_OWNER,
-    repo: CONST_1.default.APP_REPO,
-};
-const pullRequestNumber = (0, ActionUtils_1.getJSONInput)('PULL_REQUEST_NUMBER', { required: false }, null);
-const user = core.getInput('USER', { required: true });
-if (pullRequestNumber) {
-    // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
-    console.log(`Looking for pull request w/ number: ${pullRequestNumber}`);
-}
-if (user) {
-    console.log(`Looking for pull request w/ user: ${user}`);
-}
-/**
- * Output pull request merge actor.
- */
-function outputMergeActor(PR) {
-    if (user === CONST_1.default.OS_BOTIFY) {
-        core.setOutput('MERGE_ACTOR', PR.merged_by?.login);
-    }
-    else {
-        core.setOutput('MERGE_ACTOR', user);
-    }
-}
-/**
- * Output forked repo URL if PR includes changes from a fork.
- */
-function outputForkedRepoUrl(PR) {
-    if (PR.head?.repo?.html_url === CONST_1.default.APP_REPO_URL) {
-        core.setOutput('FORKED_REPO_URL', '');
-    }
-    else {
-        core.setOutput('FORKED_REPO_URL', `${PR.head?.repo?.html_url}.git`);
-    }
-}
-GithubUtils_1.default.octokit.pulls
-    .get({
-    ...DEFAULT_PAYLOAD,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    pull_number: pullRequestNumber,
-})
-    .then(({ data: PR }) => {
-    if (!(0, isEmptyObject_1.isEmptyObject)(PR)) {
-        console.log(`Found matching pull request: ${PR.html_url}`);
-        console.log(`Pull request details: ${JSON.stringify(PR)}}`);
-        core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
-        core.setOutput('HEAD_COMMIT_SHA', PR.head?.sha);
-        core.setOutput('IS_MERGED', PR.merged);
-        outputMergeActor(PR);
-        outputForkedRepoUrl(PR);
-    }
-    else {
-        const err = new Error('Could not find matching pull request');
-        console.error(err);
-        core.setFailed(err);
-    }
-})
-    .catch((err) => {
-    console.log(`An unknown error occurred with the GitHub API: ${err}`);
-    core.setFailed(err);
-});
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(5096);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;

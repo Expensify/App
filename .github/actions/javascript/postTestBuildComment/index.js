@@ -11538,6 +11538,163 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 3580:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
+const github_1 = __nccwpck_require__(5438);
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+function getTestBuildMessage(appPr, mobileExpensifyPr) {
+    const inputs = ['ANDROID', 'DESKTOP', 'IOS', 'WEB'];
+    const names = {
+        [inputs[0]]: 'Android',
+        [inputs[1]]: 'Desktop',
+        [inputs[2]]: 'iOS',
+        [inputs[3]]: 'Web',
+    };
+    const result = inputs.reduce((acc, platform) => {
+        const input = core.getInput(platform, { required: false });
+        if (!input) {
+            acc[platform] = { link: 'N/A', qrCode: 'N/A' };
+            return acc;
+        }
+        let link = '';
+        let qrCode = '';
+        switch (input) {
+            case 'success':
+                link = core.getInput(`${platform}_LINK`);
+                qrCode = `![${names[platform]}](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${link})`;
+                break;
+            case 'skipped':
+                link = '⏩ SKIPPED ⏩';
+                qrCode = `The build for ${names[platform]} was skipped`;
+                break;
+            default:
+                link = '❌ FAILED ❌';
+                qrCode = `The QR code can't be generated, because the ${names[platform]} build failed`;
+        }
+        acc[platform] = {
+            link,
+            qrCode,
+        };
+        return acc;
+    }, {});
+    const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS${appPr ? ', Desktop, and Web' : ''}. Happy testing! :test_tube::test_tube:
+Built from${appPr ? ` App PR Expensify/App#${appPr}` : ''}${mobileExpensifyPr ? ` Mobile-Expensify PR Expensify/Mobile-Expensify#${mobileExpensifyPr}` : ''}.
+| Android :robot:  | iOS :apple: |
+| ------------- | ------------- |
+| ${result.ANDROID.link}  | ${result.IOS.link}  |
+| ${result.ANDROID.qrCode}  | ${result.IOS.qrCode}  |
+
+| Desktop :computer: | Web :spider_web: |
+| ------------- | ------------- |
+| ${result.DESKTOP.link}  | ${result.WEB.link}  |
+| ${result.DESKTOP.qrCode}  | ${result.WEB.qrCode}  |
+
+---
+
+:eyes: [View the workflow run that generated this build](https://github.com/${github_1.context.repo.owner}/${github_1.context.repo.repo}/actions/runs/${github_1.context.runId}) :eyes:
+`;
+    return message;
+}
+/** Comment on a single PR */
+async function commentPR(REPO, PR, message) {
+    console.log(`Posting test build comment on #${PR}`);
+    try {
+        await GithubUtils_1.default.createComment(REPO, PR, message);
+        console.log(`Comment created on #${PR} (${REPO}) successfully 🎉`);
+    }
+    catch (err) {
+        console.log(`Unable to write comment on #${PR} 😞`);
+        if (err instanceof Error) {
+            core.setFailed(err.message);
+        }
+    }
+}
+async function run() {
+    const APP_PR_NUMBER = Number(core.getInput('APP_PR_NUMBER', { required: false }));
+    const MOBILE_EXPENSIFY_PR_NUMBER = Number(core.getInput('MOBILE_EXPENSIFY_PR_NUMBER', { required: false }));
+    const REPO = String(core.getInput('REPO', { required: true }));
+    if (REPO !== CONST_1.default.APP_REPO && REPO !== CONST_1.default.MOBILE_EXPENSIFY_REPO) {
+        core.setFailed(`Invalid repository used to place output comment: ${REPO}`);
+        return;
+    }
+    if ((REPO === CONST_1.default.APP_REPO && !APP_PR_NUMBER) || (REPO === CONST_1.default.MOBILE_EXPENSIFY_REPO && !MOBILE_EXPENSIFY_PR_NUMBER)) {
+        core.setFailed(`Please provide ${REPO} pull request number`);
+        return;
+    }
+    const destinationPRNumber = REPO === CONST_1.default.APP_REPO ? APP_PR_NUMBER : MOBILE_EXPENSIFY_PR_NUMBER;
+    const comments = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.issues.listComments, {
+        owner: CONST_1.default.GITHUB_OWNER,
+        repo: REPO,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        issue_number: destinationPRNumber,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        per_page: 100,
+    }, (response) => response.data);
+    const testBuildComment = comments.find((comment) => comment.body?.startsWith(':test_tube::test_tube: Use the links below to test this adhoc build'));
+    if (testBuildComment) {
+        console.log('Found previous build comment, hiding it', testBuildComment);
+        await GithubUtils_1.default.graphql(`
+            mutation {
+              minimizeComment(input: {classifier: OUTDATED, subjectId: "${testBuildComment.node_id}"}) {
+                minimizedComment {
+                  minimizedReason
+                }
+              }
+            }
+        `);
+    }
+    await commentPR(REPO, destinationPRNumber, getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER));
+}
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+exports["default"] = run;
+
+
+/***/ }),
+
 /***/ 9873:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -11611,19 +11768,55 @@ exports["default"] = CONST;
 /***/ }),
 
 /***/ 9296:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
-const core = __nccwpck_require__(2186);
+const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
 const request_error_1 = __nccwpck_require__(537);
-const arrayDifference_1 = __nccwpck_require__(7532);
-const CONST_1 = __nccwpck_require__(9873);
+const arrayDifference_1 = __importDefault(__nccwpck_require__(7532));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const isEmptyObject_1 = __nccwpck_require__(6497);
 class GithubUtils {
     /**
@@ -12382,127 +12575,12 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
-(() => {
-"use strict";
-var exports = __webpack_exports__;
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __nccwpck_require__(2186);
-const github_1 = __nccwpck_require__(5438);
-const CONST_1 = __nccwpck_require__(9873);
-const GithubUtils_1 = __nccwpck_require__(9296);
-function getTestBuildMessage(appPr, mobileExpensifyPr) {
-    const inputs = ['ANDROID', 'DESKTOP', 'IOS', 'WEB'];
-    const names = {
-        [inputs[0]]: 'Android',
-        [inputs[1]]: 'Desktop',
-        [inputs[2]]: 'iOS',
-        [inputs[3]]: 'Web',
-    };
-    const result = inputs.reduce((acc, platform) => {
-        const input = core.getInput(platform, { required: false });
-        if (!input) {
-            acc[platform] = { link: 'N/A', qrCode: 'N/A' };
-            return acc;
-        }
-        let link = '';
-        let qrCode = '';
-        switch (input) {
-            case 'success':
-                link = core.getInput(`${platform}_LINK`);
-                qrCode = `![${names[platform]}](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${link})`;
-                break;
-            case 'skipped':
-                link = '⏩ SKIPPED ⏩';
-                qrCode = `The build for ${names[platform]} was skipped`;
-                break;
-            default:
-                link = '❌ FAILED ❌';
-                qrCode = `The QR code can't be generated, because the ${names[platform]} build failed`;
-        }
-        acc[platform] = {
-            link,
-            qrCode,
-        };
-        return acc;
-    }, {});
-    const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS${appPr ? ', Desktop, and Web' : ''}. Happy testing! :test_tube::test_tube:
-Built from${appPr ? ` App PR Expensify/App#${appPr}` : ''}${mobileExpensifyPr ? ` Mobile-Expensify PR Expensify/Mobile-Expensify#${mobileExpensifyPr}` : ''}.
-| Android :robot:  | iOS :apple: |
-| ------------- | ------------- |
-| ${result.ANDROID.link}  | ${result.IOS.link}  |
-| ${result.ANDROID.qrCode}  | ${result.IOS.qrCode}  |
-
-| Desktop :computer: | Web :spider_web: |
-| ------------- | ------------- |
-| ${result.DESKTOP.link}  | ${result.WEB.link}  |
-| ${result.DESKTOP.qrCode}  | ${result.WEB.qrCode}  |
-
----
-
-:eyes: [View the workflow run that generated this build](https://github.com/${github_1.context.repo.owner}/${github_1.context.repo.repo}/actions/runs/${github_1.context.runId}) :eyes:
-`;
-    return message;
-}
-/** Comment on a single PR */
-async function commentPR(REPO, PR, message) {
-    console.log(`Posting test build comment on #${PR}`);
-    try {
-        await GithubUtils_1.default.createComment(REPO, PR, message);
-        console.log(`Comment created on #${PR} (${REPO}) successfully 🎉`);
-    }
-    catch (err) {
-        console.log(`Unable to write comment on #${PR} 😞`);
-        if (err instanceof Error) {
-            core.setFailed(err.message);
-        }
-    }
-}
-async function run() {
-    const APP_PR_NUMBER = Number(core.getInput('APP_PR_NUMBER', { required: false }));
-    const MOBILE_EXPENSIFY_PR_NUMBER = Number(core.getInput('MOBILE_EXPENSIFY_PR_NUMBER', { required: false }));
-    const REPO = String(core.getInput('REPO', { required: true }));
-    if (REPO !== CONST_1.default.APP_REPO && REPO !== CONST_1.default.MOBILE_EXPENSIFY_REPO) {
-        core.setFailed(`Invalid repository used to place output comment: ${REPO}`);
-        return;
-    }
-    if ((REPO === CONST_1.default.APP_REPO && !APP_PR_NUMBER) || (REPO === CONST_1.default.MOBILE_EXPENSIFY_REPO && !MOBILE_EXPENSIFY_PR_NUMBER)) {
-        core.setFailed(`Please provide ${REPO} pull request number`);
-        return;
-    }
-    const destinationPRNumber = REPO === CONST_1.default.APP_REPO ? APP_PR_NUMBER : MOBILE_EXPENSIFY_PR_NUMBER;
-    const comments = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.issues.listComments, {
-        owner: CONST_1.default.GITHUB_OWNER,
-        repo: REPO,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        issue_number: destinationPRNumber,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        per_page: 100,
-    }, (response) => response.data);
-    const testBuildComment = comments.find((comment) => comment.body?.startsWith(':test_tube::test_tube: Use the links below to test this adhoc build'));
-    if (testBuildComment) {
-        console.log('Found previous build comment, hiding it', testBuildComment);
-        await GithubUtils_1.default.graphql(`
-            mutation {
-              minimizeComment(input: {classifier: OUTDATED, subjectId: "${testBuildComment.node_id}"}) {
-                minimizedComment {
-                  minimizedReason
-                }
-              }
-            }
-        `);
-    }
-    await commentPR(REPO, destinationPRNumber, getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER));
-}
-if (require.main === require.cache[eval('__filename')]) {
-    run();
-}
-exports["default"] = run;
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(3580);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;

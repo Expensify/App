@@ -11494,6 +11494,116 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 6285:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+/* eslint-disable @typescript-eslint/naming-convention */
+const core = __importStar(__nccwpck_require__(2186));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const isEmptyObject_1 = __nccwpck_require__(6497);
+const run = function () {
+    const issueNumber = Number(core.getInput('ISSUE_NUMBER', { required: true }));
+    console.log(`Fetching issue number ${issueNumber}`);
+    return GithubUtils_1.default.octokit.issues
+        .get({
+        owner: CONST_1.default.GITHUB_OWNER,
+        repo: CONST_1.default.APP_REPO,
+        issue_number: issueNumber,
+    })
+        .then(({ data }) => {
+        console.log('Checking for unverified PRs or unresolved deploy blockers', data);
+        // Check the issue description to see if there are any unfinished/un-QAed items in the checklist.
+        const uncheckedBoxRegex = /-\s\[\s]\s/;
+        if (uncheckedBoxRegex.test(data.body ?? '')) {
+            console.log('An unverified PR or unresolved deploy blocker was found.');
+            core.setOutput('HAS_DEPLOY_BLOCKERS', true);
+            return;
+        }
+        return GithubUtils_1.default.octokit.issues.listComments({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            issue_number: issueNumber,
+            per_page: 100,
+        });
+    })
+        .then((comments) => {
+        console.log('Checking the last comment for the :shipit: seal of approval', comments);
+        // If comments is undefined that means we found an unchecked QA item in the
+        // issue description, so there's nothing more to do but return early.
+        if (comments === undefined) {
+            return;
+        }
+        // If there are no comments, then we have not yet gotten the :shipit: seal of approval.
+        if ((0, isEmptyObject_1.isEmptyObject)(comments.data)) {
+            console.log('No comments found on issue');
+            core.setOutput('HAS_DEPLOY_BLOCKERS', true);
+            return;
+        }
+        console.log('Verifying that the last comment is the :shipit: seal of approval');
+        const lastComment = comments.data.pop();
+        const shipItRegex = /^:shipit:/g;
+        if (!shipItRegex.exec(lastComment?.body ?? '')) {
+            console.log('The last comment on the issue was not :shipit');
+            core.setOutput('HAS_DEPLOY_BLOCKERS', true);
+        }
+        else {
+            console.log('Everything looks good, there are no deploy blockers!');
+            core.setOutput('HAS_DEPLOY_BLOCKERS', false);
+        }
+    })
+        .catch((error) => {
+        console.error('A problem occurred while trying to communicate with the GitHub API', error);
+        core.setFailed(error);
+    });
+};
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+exports["default"] = run;
+
+
+/***/ }),
+
 /***/ 9873:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -11567,19 +11677,55 @@ exports["default"] = CONST;
 /***/ }),
 
 /***/ 9296:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
-const core = __nccwpck_require__(2186);
+const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
 const request_error_1 = __nccwpck_require__(537);
-const arrayDifference_1 = __nccwpck_require__(7532);
-const CONST_1 = __nccwpck_require__(9873);
+const arrayDifference_1 = __importDefault(__nccwpck_require__(7532));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const isEmptyObject_1 = __nccwpck_require__(6497);
 class GithubUtils {
     /**
@@ -12338,80 +12484,12 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
-(() => {
-"use strict";
-var exports = __webpack_exports__;
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable @typescript-eslint/naming-convention */
-const core = __nccwpck_require__(2186);
-const CONST_1 = __nccwpck_require__(9873);
-const GithubUtils_1 = __nccwpck_require__(9296);
-const isEmptyObject_1 = __nccwpck_require__(6497);
-const run = function () {
-    const issueNumber = Number(core.getInput('ISSUE_NUMBER', { required: true }));
-    console.log(`Fetching issue number ${issueNumber}`);
-    return GithubUtils_1.default.octokit.issues
-        .get({
-        owner: CONST_1.default.GITHUB_OWNER,
-        repo: CONST_1.default.APP_REPO,
-        issue_number: issueNumber,
-    })
-        .then(({ data }) => {
-        console.log('Checking for unverified PRs or unresolved deploy blockers', data);
-        // Check the issue description to see if there are any unfinished/un-QAed items in the checklist.
-        const uncheckedBoxRegex = /-\s\[\s]\s/;
-        if (uncheckedBoxRegex.test(data.body ?? '')) {
-            console.log('An unverified PR or unresolved deploy blocker was found.');
-            core.setOutput('HAS_DEPLOY_BLOCKERS', true);
-            return;
-        }
-        return GithubUtils_1.default.octokit.issues.listComments({
-            owner: CONST_1.default.GITHUB_OWNER,
-            repo: CONST_1.default.APP_REPO,
-            issue_number: issueNumber,
-            per_page: 100,
-        });
-    })
-        .then((comments) => {
-        console.log('Checking the last comment for the :shipit: seal of approval', comments);
-        // If comments is undefined that means we found an unchecked QA item in the
-        // issue description, so there's nothing more to do but return early.
-        if (comments === undefined) {
-            return;
-        }
-        // If there are no comments, then we have not yet gotten the :shipit: seal of approval.
-        if ((0, isEmptyObject_1.isEmptyObject)(comments.data)) {
-            console.log('No comments found on issue');
-            core.setOutput('HAS_DEPLOY_BLOCKERS', true);
-            return;
-        }
-        console.log('Verifying that the last comment is the :shipit: seal of approval');
-        const lastComment = comments.data.pop();
-        const shipItRegex = /^:shipit:/g;
-        if (!shipItRegex.exec(lastComment?.body ?? '')) {
-            console.log('The last comment on the issue was not :shipit');
-            core.setOutput('HAS_DEPLOY_BLOCKERS', true);
-        }
-        else {
-            console.log('Everything looks good, there are no deploy blockers!');
-            core.setOutput('HAS_DEPLOY_BLOCKERS', false);
-        }
-    })
-        .catch((error) => {
-        console.error('A problem occurred while trying to communicate with the GitHub API', error);
-        core.setFailed(error);
-    });
-};
-if (require.main === require.cache[eval('__filename')]) {
-    run();
-}
-exports["default"] = run;
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(6285);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;

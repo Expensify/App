@@ -3371,6 +3371,76 @@ exports["default"] = _default;
 
 /***/ }),
 
+/***/ 7361:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
+const versionUpdater = __importStar(__nccwpck_require__(8982));
+const bumpVersion_1 = __importDefault(__nccwpck_require__(3891));
+async function run() {
+    try {
+        const semverLevel = core.getInput('SEMVER_LEVEL', { required: true });
+        if (!versionUpdater.isValidSemverLevel(semverLevel)) {
+            throw new Error(`Invalid SEMVER_LEVEL ${semverLevel}`);
+        }
+        const newVersion = await (0, bumpVersion_1.default)(semverLevel);
+        core.setOutput('NEW_VERSION', newVersion);
+    }
+    catch (e) {
+        if (e instanceof Error) {
+            core.setFailed(e);
+            return;
+        }
+        core.setFailed('An unknown error occurred.');
+    }
+}
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+exports["default"] = run;
+
+
+/***/ }),
+
 /***/ 8982:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -3477,24 +3547,60 @@ function getPreviousVersion(currentVersion, level) {
 /***/ }),
 
 /***/ 3891:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.updateAndroid = updateAndroid;
 exports.generateAndroidVersionCode = generateAndroidVersionCode;
 const child_process_1 = __nccwpck_require__(2081);
 const fs_1 = __nccwpck_require__(7147);
-const path_1 = __nccwpck_require__(1017);
-const major_1 = __nccwpck_require__(6688);
-const minor_1 = __nccwpck_require__(8447);
-const patch_1 = __nccwpck_require__(2866);
-const prerelease_1 = __nccwpck_require__(4016);
+const path_1 = __importDefault(__nccwpck_require__(1017));
+const major_1 = __importDefault(__nccwpck_require__(6688));
+const minor_1 = __importDefault(__nccwpck_require__(8447));
+const patch_1 = __importDefault(__nccwpck_require__(2866));
+const prerelease_1 = __importDefault(__nccwpck_require__(4016));
 const util_1 = __nccwpck_require__(3837);
 // Disabling lint on the next two imports due to a bug in @dword-design/import-alias/prefer-alias
 // eslint-disable-next-line
-const versionUpdater = __nccwpck_require__(8982);
+const versionUpdater = __importStar(__nccwpck_require__(8982));
 const exec = (0, util_1.promisify)(child_process_1.exec);
 // PlistBuddy executable path
 const PLIST_BUDDY = '/usr/libexec/PlistBuddy';
@@ -3799,40 +3905,12 @@ module.exports = require("util");
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
-(() => {
-"use strict";
-var exports = __webpack_exports__;
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __nccwpck_require__(2186);
-const versionUpdater = __nccwpck_require__(8982);
-const bumpVersion_1 = __nccwpck_require__(3891);
-async function run() {
-    try {
-        const semverLevel = core.getInput('SEMVER_LEVEL', { required: true });
-        if (!versionUpdater.isValidSemverLevel(semverLevel)) {
-            throw new Error(`Invalid SEMVER_LEVEL ${semverLevel}`);
-        }
-        const newVersion = await (0, bumpVersion_1.default)(semverLevel);
-        core.setOutput('NEW_VERSION', newVersion);
-    }
-    catch (e) {
-        if (e instanceof Error) {
-            core.setFailed(e);
-            return;
-        }
-        core.setFailed('An unknown error occurred.');
-    }
-}
-if (require.main === require.cache[eval('__filename')]) {
-    run();
-}
-exports["default"] = run;
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(7361);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;
