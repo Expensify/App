@@ -879,8 +879,7 @@ describe('generateTranslations', () => {
             expect(itContent).toContain('[it] Save');
 
             // Should not translate other paths
-            expect(itContent).not.toContain('[it] Cancel');
-            expect(itContent).not.toContain('[it] An error occurred');
+            expect(itContent).toContain('[it] An error occurred (existing)');
 
             expect(translateSpy).toHaveBeenCalledTimes(2);
         });

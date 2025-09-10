@@ -154,6 +154,13 @@ class TranslationGenerator {
             // If compareRef is provided (and no specific paths), use git diff to find changed lines and build dot-notation paths
             this.buildPathsFromGitDiff();
         }
+
+        if (this.verbose) {
+            console.log(`🎯 Initial path sets:`);
+            console.log(`   pathsToModify: ${Array.from(this.pathsToModify).join(', ')}`);
+            console.log(`   pathsToAdd: ${Array.from(this.pathsToAdd).join(', ')}`);
+            console.log(`   pathsToRemove: ${Array.from(this.pathsToRemove).join(', ')}`);
+        }
         for (const targetLanguage of this.targetLanguages) {
             // Map of translations
             const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
