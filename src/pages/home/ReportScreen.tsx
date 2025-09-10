@@ -893,6 +893,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             reportActions={reportActions}
                                             transactions={visibleTransactions}
                                             newTransactions={newTransactions}
+                                            violations={allReportViolations}
                                             hasOlderActions={hasOlderActions}
                                             hasNewerActions={hasNewerActions}
                                             showReportActionsLoadingState={showReportActionsLoadingState}
