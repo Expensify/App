@@ -303,7 +303,7 @@ function MoneyRequestParticipantsSelector(
             chatOptions.userToInvite &&
             !isCurrentUser({
                 ...chatOptions.userToInvite,
-                accountID: chatOptions.userToInvite?.accountID,
+                accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 status: chatOptions.userToInvite?.status ?? undefined,
             }) &&
             !isPerDiemRequest
