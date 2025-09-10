@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import * as AppActions from '@userActions/App';
+import {clearSupportalPermissionDenied} from '@userActions/App';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ConfirmModal from './ConfirmModal';
 
@@ -20,7 +20,7 @@ function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChild
     const close = () => {
         setIsVisible(false);
         // Clear the flag so it doesn't re-open
-        AppActions.clearSupportalPermissionDenied();
+        clearSupportalPermissionDenied();
     };
 
     return (
