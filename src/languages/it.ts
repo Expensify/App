@@ -6005,6 +6005,7 @@ const translations = {
         memberNotFound: 'Membro non trovato.',
         useInviteButton: 'Per invitare un nuovo membro alla chat, utilizza il pulsante di invito sopra.',
         notAuthorized: `Non hai accesso a questa pagina. Se stai cercando di unirti a questa stanza, chiedi a un membro della stanza di aggiungerti. Qualcos'altro? Contatta ${CONST.EMAIL.CONCIERGE}`,
+        roomArchived: `Sembra che questa stanza sia stata archiviata. Se hai domande, contatta ${CONST.EMAIL.CONCIERGE}.`,
         removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `Sei sicuro di voler rimuovere ${memberName} dalla stanza?`,
             other: 'Sei sicuro di voler rimuovere i membri selezionati dalla stanza?',

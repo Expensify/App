@@ -5997,6 +5997,7 @@ const translations = {
         memberNotFound: 'Lid niet gevonden.',
         useInviteButton: 'Om een nieuw lid uit te nodigen voor de chat, gebruik de uitnodigingsknop hierboven.',
         notAuthorized: `Je hebt geen toegang tot deze pagina. Als je probeert deze kamer te betreden, vraag dan een kamerlid om je toe te voegen. Iets anders? Neem contact op met ${CONST.EMAIL.CONCIERGE}`,
+        roomArchived: `Het lijkt erop dat deze kamer is gearchiveerd. Voor vragen kun je contact opnemen met ${CONST.EMAIL.CONCIERGE}.`,
         removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `Weet je zeker dat je ${memberName} uit de kamer wilt verwijderen?`,
             other: 'Weet je zeker dat je de geselecteerde leden uit de kamer wilt verwijderen?',
