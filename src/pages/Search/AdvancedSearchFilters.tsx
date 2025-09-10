@@ -8,7 +8,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
-import type {SearchDateFilterKeys, SearchFilterKey, SearchGroupBy} from '@components/Search/types';
+import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterKey, SearchGroupBy} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
@@ -35,6 +35,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {CardList, PersonalDetailsList, Policy, Report, WorkspaceCardsList} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -74,162 +75,187 @@ const baseFilterConfig: Record<
     type: {
         getTitle: getFilterDisplayTitle,
         description: 'common.type',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_TYPE,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE),
     },
     groupBy: {
         getTitle: getFilterDisplayTitle,
         description: 'search.groupBy',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_GROUP_BY,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY),
     },
     status: {
         getTitle: getStatusFilterDisplayTitle,
         description: 'common.status',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_STATUS,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS),
     },
     date: {
-        getTitle: getFilterDateDisplayTitle,
+        getTitle: getFilterDisplayTitle,
         description: 'common.date',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE),
     },
     submitted: {
-        getTitle: getFilterDateDisplayTitle,
+        getTitle: getFilterDisplayTitle,
         description: 'search.filters.submitted',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_SUBMITTED,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED),
     },
     approved: {
-        getTitle: getFilterDateDisplayTitle,
+        getTitle: getFilterDisplayTitle,
         description: 'search.filters.approved',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_APPROVED,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED),
     },
     paid: {
-        getTitle: getFilterDateDisplayTitle,
+        getTitle: getFilterDisplayTitle,
         description: 'search.filters.paid',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_PAID,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID),
     },
     exported: {
-        getTitle: getFilterDateDisplayTitle,
+        getTitle: getFilterDisplayTitle,
         description: 'search.filters.exported',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPORTED,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED),
     },
     posted: {
-        getTitle: getFilterDateDisplayTitle,
+        getTitle: getFilterDisplayTitle,
         description: 'search.filters.posted',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_POSTED,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED),
     },
     withdrawn: {
-        getTitle: getFilterDateDisplayTitle,
+        getTitle: getFilterDisplayTitle,
         description: 'search.filters.withdrawn',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_WITHDRAWN,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN),
     },
     currency: {
         getTitle: getFilterDisplayTitle,
         description: 'common.currency',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_CURRENCY,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY),
     },
     groupCurrency: {
         getTitle: getFilterDisplayTitle,
         description: 'common.groupCurrency',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_GROUP_CURRENCY,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_CURRENCY),
     },
     merchant: {
         getTitle: getFilterDisplayTitle,
         description: 'common.merchant',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_MERCHANT,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT),
     },
     description: {
         getTitle: getFilterDisplayTitle,
         description: 'common.description',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIPTION,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION),
     },
     reportID: {
         getTitle: getFilterDisplayTitle,
         description: 'common.reportID',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_REPORT_ID,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.REPORT_ID),
     },
     amount: {
-        getTitle: getFilterAmountDisplayTitle,
+        getTitle: getFilterDisplayTitle,
         description: 'iou.amount',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_AMOUNT,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT),
     },
     total: {
-        getTitle: getFilterAmountDisplayTitle,
+        getTitle: getFilterDisplayTitle,
         description: 'common.total',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_TOTAL,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL),
     },
     category: {
         getTitle: getFilterDisplayTitle,
         description: 'common.category',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_CATEGORY,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY),
     },
     keyword: {
         getTitle: getFilterDisplayTitle,
         description: 'search.filters.hasKeywords',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_KEYWORD,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD),
     },
     cardID: {
         getTitle: getFilterCardDisplayTitle,
         description: 'common.card',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_CARD,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CARD_ID),
     },
     taxRate: {
         getTitle: getFilterTaxRateDisplayTitle,
         description: 'workspace.taxes.taxRate',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_TAX_RATE,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TAX_RATE),
     },
     expenseType: {
         getTitle: getFilterExpenseDisplayTitle,
         description: 'search.expenseType',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPENSE_TYPE),
     },
     withdrawalType: {
         getTitle: getFilterDisplayTitle,
         description: 'search.withdrawalType',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_WITHDRAWAL_TYPE,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_TYPE),
+    },
+    withdrawalID: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.withdrawalID',
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_ID),
     },
     tag: {
         getTitle: getFilterDisplayTitle,
         description: 'common.tag',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_TAG,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG),
+    },
+    has: {
+        getTitle: getFilterDisplayTitle,
+        description: 'search.has',
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS),
     },
     from: {
         getTitle: getFilterParticipantDisplayTitle,
         description: 'common.from',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM),
     },
     to: {
         getTitle: getFilterParticipantDisplayTitle,
         description: 'common.to',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO),
     },
     in: {
         getTitle: getFilterInDisplayTitle,
         description: 'common.in',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.IN),
     },
     title: {
         getTitle: getFilterDisplayTitle,
         description: 'common.title',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_TITLE,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE),
     },
     assignee: {
         getTitle: getFilterParticipantDisplayTitle,
         description: 'common.assignee',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_ASSIGNEE,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE),
     },
     reimbursable: {
         getTitle: getFilterDisplayTitle,
         description: 'common.reimbursable',
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_REIMBURSABLE,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE),
     },
     billable: {
         getTitle: getFilterDisplayTitle,
-        description: 'common.billable' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_BILLABLE,
+        description: 'common.billable',
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE),
     },
     policyID: {
         getTitle: getFilterWorkspaceDisplayTitle,
-        description: 'workspace.common.workspace' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS_WORKSPACE,
+        description: 'workspace.common.workspace',
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID),
+    },
+    purchaseAmount: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.purchaseAmount',
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.PURCHASE_AMOUNT),
+    },
+    purchaseCurrency: {
+        getTitle: getFilterDisplayTitle,
+        description: 'search.filters.purchaseCurrency',
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.PURCHASE_CURRENCY),
+    },
+    action: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.action',
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ACTION),
     },
 };
 
@@ -541,6 +567,7 @@ function AdvancedSearchFilters() {
             return item;
         });
     });
+
     const displaySearchButton = queryJSON && !isCannedSearchQuery(queryJSON);
 
     const sections: SectionType[] = [
