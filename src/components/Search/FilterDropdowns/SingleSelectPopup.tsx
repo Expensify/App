@@ -5,9 +5,11 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 type SingleSelectItem<T> = {
     text: string;
@@ -29,22 +31,71 @@ type SingleSelectPopupProps<T> = {
 
     /** Function to call when changes are applied */
     onChange: (item: SingleSelectItem<T> | null) => void;
+
+    /** Whether the search input should be displayed */
+    isSearchable?: boolean;
+
+    /** Search input place holder */
+    searchPlaceholder?: string;
 };
 
-function SingleSelectPopup<T extends string>({label, value, items, closeOverlay, onChange}: SingleSelectPopupProps<T>) {
+function SingleSelectPopup<T extends string>({label, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder}: SingleSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
     const [selectedItem, setSelectedItem] = useState(value);
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
-    const listData: ListItem[] = useMemo(() => {
-        return items.map((item) => ({
-            text: item.text,
-            keyForList: item.value,
-            isSelected: item.value === selectedItem?.value,
-        }));
-    }, [items, selectedItem]);
+    const {sections, noResultsFound} = useMemo(() => {
+        // If the selection is searchable, we push the initially selected item into its own section and display it at the top
+        if (isSearchable) {
+            const initiallySelectedItemSection = value?.text.toLowerCase().includes(debouncedSearchTerm?.toLowerCase())
+                ? [{text: value.text, keyForList: value.value, isSelected: selectedItem?.value === value.value}]
+                : [];
+            const remainingItemsSection = items
+                .filter((item) => item?.value !== value?.value && item?.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
+                .map((item) => ({
+                    text: item.text,
+                    keyForList: item.value,
+                    isSelected: selectedItem?.value === item.value,
+                }));
+            const isEmpty = !initiallySelectedItemSection.length && !remainingItemsSection.length;
+            return {
+                sections: isEmpty
+                    ? []
+                    : [
+                          {
+                              data: initiallySelectedItemSection,
+                              shouldShow: initiallySelectedItemSection.length > 0,
+                              indexOffset: 0,
+                          },
+                          {
+                              data: remainingItemsSection,
+                              shouldShow: remainingItemsSection.length > 0,
+                              indexOffset: initiallySelectedItemSection.length,
+                          },
+                      ],
+                noResultsFound: isEmpty,
+            };
+        }
+
+        return {
+            sections: [
+                {
+                    data: items.map((item) => ({
+                        text: item.text,
+                        keyForList: item.value,
+                        isSelected: item.value === selectedItem?.value,
+                    })),
+                },
+            ],
+            noResultsFound: false,
+        };
+    }, [isSearchable, items, value, selectedItem, debouncedSearchTerm]);
+
+    const dataLength = useMemo(() => sections.flatMap((section) => section.data).length, [sections]);
 
     const updateSelectedItem = useCallback(
         (item: ListItem) => {
@@ -68,12 +119,19 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
             {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
 
-            <View style={[styles.getSelectionListPopoverHeight(items.length)]}>
+            <View style={[styles.getSelectionListPopoverHeight(dataLength || 1, windowHeight, isSearchable ?? false)]}>
                 <SelectionList
                     shouldSingleExecuteRowSelect
-                    sections={[{data: listData}]}
+                    sections={sections}
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
+                    textInputValue={searchTerm}
+                    onChangeText={setSearchTerm}
+                    textInputLabel={isSearchable ? (searchPlaceholder ?? translate('common.search')) : undefined}
+                    shouldUpdateFocusedIndex={isSearchable}
+                    initiallyFocusedOptionKey={isSearchable ? value?.value : undefined}
+                    headerMessage={noResultsFound ? translate('common.noResultsFound') : undefined}
+                    showLoadingPlaceholder={!noResultsFound}
                 />
             </View>
             <View style={[styles.flexRow, styles.gap2, styles.ph5]}>

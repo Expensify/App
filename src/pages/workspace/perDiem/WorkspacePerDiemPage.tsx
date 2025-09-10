@@ -380,6 +380,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     >
                         {translate('workspace.common.learnMore')}
                     </TextLink>
+                    .
                 </Text>
             </View>
             {subRatesList.length > CONST.SEARCH_ITEM_LIMIT && (

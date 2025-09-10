@@ -1,7 +1,7 @@
 import type {MarkdownTextInputProps} from '@expensify/react-native-live-markdown';
 import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import Animated, {useSharedValue} from 'react-native-reanimated';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import useTheme from '@hooks/useTheme';
@@ -18,9 +18,10 @@ type AnimatedMarkdownTextInputRef = typeof AnimatedMarkdownTextInput & MarkdownT
 // Make the parser prop optional for this component because we are always defaulting to `parseExpensiMark`
 type RNMarkdownTextInputWithRefProps = Omit<MarkdownTextInputProps, 'parser'> & {
     parser?: MarkdownTextInputProps['parser'];
+    ref?: ForwardedRef<AnimatedMarkdownTextInputRef>;
 };
 
-function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTextInputWithRefProps, ref: ForwardedRef<AnimatedMarkdownTextInputRef>) {
+function RNMarkdownTextInputWithRef({maxLength, parser, ref, ...props}: RNMarkdownTextInputWithRefProps) {
     const theme = useTheme();
 
     const {availableLoginsList, currentUserMentions} = useShortMentionsList();
@@ -87,5 +88,5 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTex
 
 RNMarkdownTextInputWithRef.displayName = 'RNMarkdownTextInputWithRef';
 
-export default forwardRef(RNMarkdownTextInputWithRef);
+export default RNMarkdownTextInputWithRef;
 export type {AnimatedMarkdownTextInputRef};

@@ -31,7 +31,15 @@ import {
     getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    buildUserReadableQueryString,
+    getQueryWithoutFilters,
+    getUserFriendlyKey,
+    getUserFriendlyValue,
+    sanitizeSearchValue,
+    shouldHighlight,
+} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
@@ -181,30 +189,43 @@ function SearchAutocompleteList(
     const [isInitialRender, setIsInitialRender] = useState(true);
 
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
-    const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY);
+    const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
 
     const statusAutocompleteList = useMemo(() => {
         const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
         const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
         const currentType = typeFilter?.value;
 
+        let suggestedStatuses;
         switch (currentType) {
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                return Object.values(CONST.SEARCH.STATUS.EXPENSE);
+                suggestedStatuses = Object.values(CONST.SEARCH.STATUS.EXPENSE);
+                break;
             case CONST.SEARCH.DATA_TYPES.INVOICE:
-                return Object.values(CONST.SEARCH.STATUS.INVOICE);
+                suggestedStatuses = Object.values(CONST.SEARCH.STATUS.INVOICE);
+                break;
             case CONST.SEARCH.DATA_TYPES.CHAT:
-                return Object.values(CONST.SEARCH.STATUS.CHAT);
+                suggestedStatuses = Object.values(CONST.SEARCH.STATUS.CHAT);
+                break;
             case CONST.SEARCH.DATA_TYPES.TRIP:
-                return Object.values(CONST.SEARCH.STATUS.TRIP);
+                suggestedStatuses = Object.values(CONST.SEARCH.STATUS.TRIP);
+                break;
             case CONST.SEARCH.DATA_TYPES.TASK:
-                return Object.values(CONST.SEARCH.STATUS.TASK);
+                suggestedStatuses = Object.values(CONST.SEARCH.STATUS.TASK);
+                break;
             default:
-                return Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.TASK});
+                suggestedStatuses = Object.values({
+                    ...CONST.SEARCH.STATUS.EXPENSE,
+                    ...CONST.SEARCH.STATUS.INVOICE,
+                    ...CONST.SEARCH.STATUS.CHAT,
+                    ...CONST.SEARCH.STATUS.TRIP,
+                    ...CONST.SEARCH.STATUS.TASK,
+                });
         }
+        return suggestedStatuses.map((value) => getUserFriendlyValue(value));
     }, [autocompleteQueryValue]);
 
-    const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
+    const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
     const withdrawalTypes = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
     const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
 
@@ -307,7 +328,9 @@ function SearchAutocompleteList(
                     text: categoryName,
                 }));
             }
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY: {
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY: {
                 const autocompleteList = autocompleteValue ? currencyAutocompleteList : (recentCurrencyAutocompleteList ?? []);
                 const filteredCurrencies = autocompleteList
                     .filter((currency) => currency.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(currency.toLowerCase()))
@@ -315,7 +338,7 @@ function SearchAutocompleteList(
                     .slice(0, 10);
 
                 return filteredCurrencies.map((currencyName) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CURRENCY,
+                    filterKey: getUserFriendlyKey(autocompleteKey),
                     text: currencyName,
                 }));
             }
@@ -337,7 +360,7 @@ function SearchAutocompleteList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
-                const participants = getSearchOptions(options, betas ?? [], true, true, autocompleteValue, 10, false, false).personalDetails.filter(
+                const participants = getSearchOptions(options, betas ?? [], true, true, autocompleteValue, 10, false, false, true).personalDetails.filter(
                     (participant) => participant.text && !alreadyAutocompletedKeys.includes(participant.text.toLowerCase()),
                 );
 
@@ -452,15 +475,33 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION: {
-                return Object.values(CONST.SEARCH.ACTION_FILTERS).map((status) => ({
+                const filteredActionTypes = Object.values(CONST.SEARCH.ACTION_FILTERS).filter((actionType) => {
+                    return actionType.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(actionType.toLowerCase());
+                });
+
+                return filteredActionTypes.map((action) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ACTION,
-                    text: status,
+                    text: action,
                 }));
             }
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS: {
+                const filteredHasValues = Object.values(CONST.SEARCH.HAS_VALUES).filter((hasValue) => {
+                    return hasValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(hasValue.toLowerCase());
+                });
+
+                return filteredHasValues.map((hasValue) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.HAS,
+                    text: hasValue,
+                }));
+            }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED: {
-                const filteredDatePresets = (getDatePresets(autocompleteKey, true) ?? [])
+                const filteredDatePresets = getDatePresets(autocompleteKey, true)
                     .filter((datePreset) => datePreset.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(datePreset.toLowerCase()))
                     .sort()
                     .slice(0, 10);
@@ -718,7 +759,7 @@ function SearchAutocompleteList(
         // will fail because the list will be empty on first render so we only render after options are initialized.
         areOptionsInitialized && (
             <SelectionList<OptionData | SearchQueryItem>
-                showLoadingPlaceholder={!areOptionsInitialized}
+                showLoadingPlaceholder
                 fixedNumItemsForLoader={4}
                 loaderSpeed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
                 sections={sections}

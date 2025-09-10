@@ -22,7 +22,7 @@ import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -49,11 +49,37 @@ function useSelectedTransactionsActions({
     session?: Session;
     onExportFailed?: () => void;
     policy?: Policy;
-    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[]) => void;
+    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
 }) {
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
+
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
+    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+
+    // Collate the list of user-created in-app export templates
+    const customInAppTemplates = useMemo(() => {
+        const policyTemplates = Object.entries(policy?.exportLayouts ?? {}).map(([templateName, layout]) => ({
+            ...layout,
+            templateName,
+            description: policy?.name,
+            policyID: policy?.id,
+        }));
+
+        // Collate a list of the user's account level in-app export templates, excluding the Default CSV template
+        const csvTemplates = Object.entries(csvExportLayouts ?? {})
+            .filter(([, layout]) => layout.name !== CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV)
+            .map(([templateName, layout]) => ({
+                ...layout,
+                templateName,
+                description: '',
+                policyID: undefined,
+            }));
+
+        return [...policyTemplates, ...csvTemplates];
+    }, [csvExportLayouts, policy]);
+
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const selectedTransactions = useMemo(
@@ -88,7 +114,7 @@ function useSelectedTransactionsActions({
         const transactionsWithActions = selectedTransactionIDs.map((transactionID) => ({
             transactionID,
             action: iouActions.find((action) => {
-                const IOUTransactionID = (getOriginalMessage(action) as OriginalMessageIOU)?.IOUTransactionID;
+                const IOUTransactionID = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action)?.IOUTransactionID;
                 return transactionID === IOUTransactionID;
             }),
         }));
@@ -223,6 +249,18 @@ function useSelectedTransactionsActions({
                 }
             }
 
+            // If the user has any custom in-app export templates, add them as export options
+            if (customInAppTemplates && customInAppTemplates.length > 0) {
+                for (const template of customInAppTemplates) {
+                    exportOptions.push({
+                        text: template.name,
+                        icon: Expensicons.Table,
+                        description: template.description,
+                        onSelected: () => beginExportWithTemplate(template.templateName, CONST.EXPORT_TEMPLATE_TYPES.IN_APP, selectedTransactionIDs, template.policyID),
+                    });
+                }
+            }
+
             return exportOptions;
         };
 
@@ -241,11 +279,11 @@ function useSelectedTransactionsActions({
             }
             const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
 
-            const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT);
+            const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
             return canMoveExpense;
         });
 
-        const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
+        const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
         if (canSelectedExpensesBeMoved && canUserPerformWriteAction) {
             options.push({
                 text: translate('iou.moveExpenses', {count: selectedTransactionIDs.length}),
@@ -312,9 +350,11 @@ function useSelectedTransactionsActions({
         iouType,
         session?.accountID,
         showDeleteModal,
+        outstandingReportsByPolicyID,
         policy,
         beginExportWithTemplate,
         integrationsExportTemplates,
+        customInAppTemplates,
     ]);
 
     return {
