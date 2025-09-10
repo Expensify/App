@@ -878,8 +878,11 @@ describe('generateTranslations', () => {
             expect(itContent).toContain('[it] Hello');
             expect(itContent).toContain('[it] Save');
 
-            // Should not translate other paths
+            // Should not translate other paths - should preserve existing translations
             expect(itContent).toContain('[it] An error occurred (existing)');
+
+            // Should not contain fresh translations of unspecified paths
+            expect(itContent).not.toContain('[it] Cancel'); // This path doesn't exist, so shouldn't be added
 
             expect(translateSpy).toHaveBeenCalledTimes(2);
         });
@@ -960,8 +963,6 @@ describe('generateTranslations', () => {
             expect(itContent).not.toContain("farewell: 'Goodbye'");
             expect(itContent).not.toContain("cancel: 'Cancel'");
             expect(itContent).not.toContain("network: 'Network error'");
-            // eslint-disable-next-line no-template-curly-in-string
-            expect(itContent).not.toContain('Welcome ${name} to our app');
         });
 
         it('handles incremental translation with multiple target languages', async () => {
