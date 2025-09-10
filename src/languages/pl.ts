@@ -163,12 +163,14 @@ import type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    PayAndDowngradeDescriptionParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    PhoneErrorRouteParams,
     PolicyAddedReportFieldOptionParams,
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
@@ -657,6 +659,7 @@ const translations = {
         submitTo: 'Wyślij do',
         forwardTo: 'Przekaż do',
         merge: 'Scal',
+        none: 'Brak',
         unstableInternetConnection: 'Niestabilne połączenie internetowe. Sprawdź swoją sieć i spróbuj ponownie.',
         enableGlobalReimbursements: 'Włącz globalne zwroty',
         purchaseAmount: 'Kwota zakupu',
@@ -1412,7 +1415,7 @@ const translations = {
         listPage: {
             header: 'Scal wydatki',
             noEligibleExpenseFound: 'Nie znaleziono kwalifikujących się wydatków',
-            noEligibleExpenseFoundSubtitle: `Nie masz wydatków, które można scalić z tym. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Dowiedz się więcej</a> o kwalifikujących się wydatkach.`,
+            noEligibleExpenseFoundSubtitle: `<muted-text><centered-text>Nie masz wydatków, które można scalić z tym. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Dowiedz się więcej</a> o kwalifikujących się wydatkach.</centered-text></muted-text>`,
             selectTransactionToMerge: ({reportName}: {reportName: string}) =>
                 `Wybierz <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">kwalifikujący się wydatek</a> do scalenia <strong>${reportName}</strong>.`,
         },
@@ -2230,10 +2233,6 @@ const translations = {
             description: 'Jedna aplikacja do zarządzania wydatkami biznesowymi i osobistymi z prędkością czatu. Wypróbuj ją i daj nam znać, co o tym myślisz. Jeszcze wiele przed nami!',
             secondaryDescription: 'Aby przełączyć się z powrotem na Expensify Classic, wystarczy stuknąć swoje zdjęcie profilowe > Przejdź do Expensify Classic.',
         },
-        welcomeVideo: {
-            title: 'Witamy w Expensify',
-            description: 'Jedna aplikacja do zarządzania wszystkimi wydatkami biznesowymi i osobistymi w czacie. Stworzona dla Twojego biznesu, Twojego zespołu i Twoich przyjaciół.',
-        },
         getStarted: 'Zacznij teraz',
         whatsYourName: 'Jak masz na imię?',
         peopleYouMayKnow: 'Osoby, które możesz znać, już tu są! Zweryfikuj swój email, aby do nich dołączyć.',
@@ -2517,8 +2516,10 @@ const translations = {
         messages: {
             onboardingEmployerOrSubmitMessage: 'Terugbetaald krijgen is net zo eenvoudig als een bericht sturen. Laten we de basis doornemen.',
             onboardingPersonalSpendMessage: 'Zo volgt u uw uitgaven in een paar klikken.',
-            onboardingManageTeamMessage:
-                '# Twój bezpłatny okres próbny właśnie się rozpoczął! Zacznijmy konfigurację.\n👋 Cześć, jestem Twoim specjalistą ds. konfiguracji Expensify. Teraz, gdy utworzyłeś przestrzeń roboczą, wykorzystaj w pełni swoje 30 dni bezpłatnego okresu próbnego, postępując zgodnie z poniższymi krokami!',
+            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
+                hasIntroSelected
+                    ? '# Twój bezpłatny okres próbny właśnie się rozpoczął! Skonfigurujmy wszystko.\n👋 Cześć, jestem twoim specjalistą ds. konfiguracji Expensify. Teraz, gdy utworzyłeś przestrzeń roboczą, w pełni wykorzystaj 30-dniowy bezpłatny okres próbny, wykonując poniższe kroki!'
+                    : '# Twój bezpłatny okres próbny właśnie się rozpoczął! Skonfigurujmy wszystko.\n👋 Cześć, jestem twoim specjalistą ds. konfiguracji Expensify. Już utworzyłem przestrzeń roboczą, aby pomóc w zarządzaniu paragonami i wydatkami twojego zespołu. Aby w pełni wykorzystać 30-dniowy bezpłatny okres próbny, po prostu wykonaj poniższe pozostałe kroki konfiguracji!',
             onboardingTrackWorkspaceMessage:
                 '# Laten we u instellen\n👋 Ik ben hier om te helpen! Om u op weg te helpen, heb ik uw werkruimte-instellingen afgestemd op eenmanszaken en soortgelijke bedrijven. U kunt uw werkruimte aanpassen door op de onderstaande link te klikken!\n\nZo volgt u uw uitgaven in een paar klikken:',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als een bericht sturen. Zo doet u dat.',
@@ -3401,11 +3402,8 @@ const translations = {
         tripSummary: 'Podsumowanie podróży',
         departs: 'Odjeżdża',
         errorMessage: 'Coś poszło nie tak. Spróbuj ponownie później.',
-        phoneError: {
-            phrase1: 'Proszę',
-            link: 'dodaj służbowy adres e-mail jako swoje główne logowanie',
-            phrase2: 'zarezerwować podróż.',
-        },
+        phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) =>
+            `<rbr><a href="${phoneErrorMethodsRoute}">Dodaj służbowy adres e-mail jako główny login</a> do rezerwacji podróży.</rbr>`,
         domainSelector: {
             title: 'Domena',
             subtitle: 'Wybierz domenę dla konfiguracji Expensify Travel.',
@@ -4876,8 +4874,7 @@ const translations = {
             existingTagError: 'Tag o tej nazwie już istnieje',
             invalidTagNameError: 'Nazwa tagu nie może być 0. Proszę wybrać inną wartość.',
             genericFailureMessage: 'Wystąpił błąd podczas aktualizacji tagu, spróbuj ponownie.',
-            importedFromAccountingSoftware: 'Tagi są zarządzane w Twoim',
-            employeesSeeTagsAs: 'Pracownicy widzą tagi jako ',
+            importedFromAccountingSoftware: 'Tagi poniżej są importowane z twojego',
             glCode: 'Kod GL',
             updateGLCodeFailureMessage: 'Wystąpił błąd podczas aktualizacji kodu GL, spróbuj ponownie.',
             tagRules: 'Zasady tagów',
@@ -5618,7 +5615,7 @@ const translations = {
         payAndDowngrade: {
             title: 'Zapłać i obniż plan',
             headline: 'Twoja ostateczna płatność',
-            description1: 'Twój ostateczny rachunek za tę subskrypcję wyniesie',
+            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `Ostateczny rachunek za tę subskrypcję wyniesie <strong>${formattedAmount}</strong>`,
             description2: ({date}: DateParams) => `Zobacz swoje zestawienie poniżej dla ${date}:`,
             subscription:
                 'Uwaga! Ta akcja zakończy Twoją subskrypcję Expensify, usunie to miejsce pracy i usunie wszystkich członków miejsca pracy. Jeśli chcesz zachować to miejsce pracy i tylko usunąć siebie, najpierw poproś innego administratora o przejęcie rozliczeń.',
@@ -6176,6 +6173,9 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Zwrot kosztów',
             },
+            has: {
+                receipt: 'Paragon',
+            },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Prześlij',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Zatwierdź',
@@ -6183,6 +6183,7 @@ const translations = {
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Eksportuj',
             },
         },
+        has: 'Ma',
         groupBy: 'Grupa według',
         moneyRequestReport: {
             emptyStateTitle: 'Ten raport nie zawiera wydatków.',
