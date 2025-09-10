@@ -31,17 +31,8 @@ type SearchFiltersTextBaseProps = {
     /** Optional validation function */
     validate?: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>;
 
-    /** Whether to include safe area padding bottom */
-    includeSafeAreaPaddingBottom?: boolean;
-
     /** Whether to hide fix errors alert */
     shouldHideFixErrorsAlert?: boolean;
-
-    /** Whether the form can be missing from onyx */
-    canFormBeMissing?: boolean;
-
-    /** Custom margin bottom style for the input container */
-    inputContainerStyle?: 'mb4' | 'mb5';
 
     /** Whether to wrap content with FullPageNotFoundView */
     shouldShowFullPageNotFoundView?: boolean;
@@ -52,22 +43,19 @@ function SearchFiltersTextBase({
     titleKey,
     testID,
     validate,
-    includeSafeAreaPaddingBottom = true,
     shouldHideFixErrorsAlert = true,
-    canFormBeMissing = false,
-    inputContainerStyle = 'mb5',
     shouldShowFullPageNotFoundView = false,
 }: SearchFiltersTextBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: canFormBeMissing});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
     const value = searchAdvancedFiltersForm?.[filterKey as keyof typeof searchAdvancedFiltersForm];
     const {inputCallbackRef} = useAutoFocusInput();
 
     const updateFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         updateAdvancedFilters(values);
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     };
 
     return (
@@ -75,14 +63,14 @@ function SearchFiltersTextBase({
             testID={testID}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
             <FullPageNotFoundView shouldShow={shouldShowFullPageNotFoundView}>
                 <HeaderWithBackButton
                     title={translate(titleKey)}
                     onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                     }}
                 />
                 <FormProvider
@@ -94,7 +82,7 @@ function SearchFiltersTextBase({
                     enabledWhenOffline
                     shouldHideFixErrorsAlert={shouldHideFixErrorsAlert}
                 >
-                    <View style={styles[inputContainerStyle]}>
+                    <View style={styles.mb5}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={filterKey}

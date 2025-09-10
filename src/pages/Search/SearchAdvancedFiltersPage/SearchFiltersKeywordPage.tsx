@@ -7,8 +7,6 @@ function SearchFiltersKeywordPage() {
             filterKey="keyword"
             titleKey="search.filters.keyword"
             testID={SearchFiltersKeywordPage.displayName}
-            includeSafeAreaPaddingBottom={false}
-            inputContainerStyle="mb4"
             shouldShowFullPageNotFoundView
         />
     );

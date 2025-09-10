@@ -4,7 +4,7 @@ import SearchFiltersTextBase from '@components/Search/SearchFiltersTextBase';
 import useLocalize from '@hooks/useLocalize';
 import {isValidInputLength} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type ONYXKEYS from '@src/ONYXKEYS';
 
 function SearchFiltersMerchantPage() {
     const {translate} = useLocalize();
@@ -27,7 +27,6 @@ function SearchFiltersMerchantPage() {
             titleKey="common.merchant"
             testID={SearchFiltersMerchantPage.displayName}
             validate={validate}
-            canFormBeMissing
         />
     );
 }
