@@ -12386,7 +12386,10 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
             type: CONST.VIOLATION_TYPES.WARNING,
             data: {
                 comment: comment ?? '',
+                rejectedBy: currentUserEmail,
+                rejectedDate: DateUtils.getDBTime(),
             },
+            showInReview: true,
         };
 
         optimisticData.push({
