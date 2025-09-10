@@ -895,6 +895,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to hide the keyboard when scrolling a list */
     shouldHideKeyboardOnScroll?: boolean;
 
+    /** Icon to display on the left side of TextInput */
+    textInputIcon?: IconAsset;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListHandle>;
 

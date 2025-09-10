@@ -4,12 +4,14 @@ import type {OnyxCollection} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SectionListDataType, SelectionListHandle} from '@components/SelectionList/types';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -22,7 +24,8 @@ import Permissions from '@libs/Permissions';
 import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {createUnreportedExpenseSections, isPerDiemRequest} from '@libs/TransactionUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
+import {createUnreportedExpenseSections, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {convertBulkTrackedExpensesToIOU, startMoneyRequest} from '@userActions/IOU';
@@ -44,6 +47,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [offset, setOffset] = useState(0);
     const {isOffline} = useNetwork();
     const [selectedIds, setSelectedIds] = useState(new Set<string>());
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     const {reportID, backToReport} = route.params;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
@@ -97,11 +101,31 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
     const styles = useThemeStyles();
     const selectionListRef = useRef<SelectionListHandle>(null);
-    const sections: Array<SectionListDataType<Transaction & ListItem>> = useMemo(() => createUnreportedExpenseSections(transactions), [transactions]);
+    const filteredTransactions = useMemo(() => {
+        if (!debouncedSearchValue.trim()) {
+            return transactions;
+        }
 
-    const thereIsNoUnreportedTransaction = !((sections.at(0)?.data.length ?? 0) > 0);
+        return tokenizedSearch(transactions, debouncedSearchValue, (transaction) => [getMerchant(transaction)]);
+    }, [transactions, debouncedSearchValue]);
 
-    if (thereIsNoUnreportedTransaction && isLoadingUnreportedTransactions) {
+    const sections: Array<SectionListDataType<Transaction & ListItem>> = useMemo(() => createUnreportedExpenseSections(filteredTransactions), [filteredTransactions]);
+
+    const shouldShowTextInput = useMemo(() => {
+        return transactions.length >= CONST.SEARCH_ITEM_LIMIT;
+    }, [transactions.length]);
+
+    const headerMessage = useMemo(() => {
+        if (debouncedSearchValue.trim() && sections.at(0)?.data.length === 0) {
+            return translate('common.noResultsFound');
+        }
+        return '';
+    }, [debouncedSearchValue, sections, translate]);
+
+    const hasSearchTerm = debouncedSearchValue.trim().length > 0;
+    const isShowingEmptyState = !hasSearchTerm && transactions.length === 0;
+
+    if (isShowingEmptyState && isLoadingUnreportedTransactions) {
         return (
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
@@ -120,7 +144,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         );
     }
 
-    if (thereIsNoUnreportedTransaction) {
+    if (isShowingEmptyState) {
         return (
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
@@ -194,7 +218,12 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                         return newIds;
                     });
                 }}
-                shouldShowTextInput={false}
+                shouldShowTextInput={shouldShowTextInput}
+                textInputValue={searchValue}
+                textInputLabel={shouldShowTextInput ? translate('iou.findMerchant') : undefined}
+                onChangeText={setSearchValue}
+                headerMessage={headerMessage}
+                textInputIcon={Expensicons.MagnifyingGlass}
                 canSelectMultiple
                 sections={sections}
                 ListItem={UnreportedExpenseListItem}
