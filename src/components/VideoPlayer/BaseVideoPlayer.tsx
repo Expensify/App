@@ -48,6 +48,7 @@ function BaseVideoPlayer({
     isVideoHovered = false,
     isPreview,
     reportID,
+    onSourceLoaded,
 }: VideoPlayerProps & {reportID: string}) {
     const styles = useThemeStyles();
     const {
@@ -224,6 +225,10 @@ function BaseVideoPlayer({
         setIsEnded(true);
         setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
         controlsOpacity.set(1);
+    });
+
+    useEventListener(videoPlayerRef.current, 'sourceLoad', (event) => {
+        onSourceLoaded?.(event);
     });
 
     useEffect(() => {
