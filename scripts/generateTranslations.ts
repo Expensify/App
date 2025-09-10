@@ -193,6 +193,17 @@ class TranslationGenerator {
                 const result = ts.transform(existingSourceFile, [transformer]);
                 transformedSourceFile = result.transformed.at(0) ?? existingSourceFile;
                 result.dispose();
+
+                // Transform added paths only in en.ts
+                const transformedEnForAddedPaths = ts.transform(this.sourceFile, [this.createIncrementalAddTransformer(translationsForLocale)]);
+                const translatedAddedNodes = new Map<string, ts.Node>();
+
+                // Extract translated nodes for pathsToAdd from the transformed en.ts
+                const transformedEnSourceFile = transformedEnForAddedPaths.transformed.at(0);
+                if (transformedEnSourceFile) {
+                    this.extractTranslatedNodes(transformedEnSourceFile, translatedAddedNodes);
+                }
+                transformedEnForAddedPaths.dispose();
             } else {
                 // Full transformation for non-incremental mode - transform en.ts
                 const transformer = this.createFullTransformer(translationsForLocale);
@@ -746,6 +757,36 @@ class TranslationGenerator {
         }
 
         return node;
+    }
+
+    /**
+     * Extract translated nodes from a transformed AST for the specified paths.
+     */
+    private extractTranslatedNodes(sourceFile: ts.SourceFile, translatedNodes: Map<string, ts.Node>): void {
+        const visitWithPath = (node: ts.Node, currentPath = ''): void => {
+            // If this path is in pathsToAdd, collect the full node and don't recurse further
+            if (this.pathsToAdd.has(currentPath as TranslationPaths)) {
+                translatedNodes.set(currentPath, node);
+                return; // Stop recursing into children
+            }
+
+            // Continue traversing children, updating path for property assignments
+            node.forEachChild((child) => {
+                let childPath = currentPath;
+
+                // If the child is a property assignment, update the path
+                if (ts.isPropertyAssignment(child)) {
+                    const propName = TSCompilerUtils.extractKeyFromPropertyNode(child);
+                    if (propName) {
+                        childPath = currentPath ? `${currentPath}.${propName}` : propName;
+                    }
+                }
+
+                visitWithPath(child, childPath);
+            });
+        };
+
+        visitWithPath(sourceFile);
     }
 
     /**
