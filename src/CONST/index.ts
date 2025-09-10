@@ -6608,6 +6608,7 @@ const CONST = {
             PURCHASE_AMOUNT: 'purchaseAmount',
             PURCHASE_CURRENCY: 'purchaseCurrency',
             WITHDRAWAL_ID: 'withdrawalID',
+            ATTENDEE: 'attendee',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
@@ -6659,6 +6660,7 @@ const CONST = {
             PURCHASE_AMOUNT: 'purchase-amount',
             PURCHASE_CURRENCY: 'purchase-currency',
             WITHDRAWAL_ID: 'withdrawal-id',
+            ATTENDEE: 'attendee',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
