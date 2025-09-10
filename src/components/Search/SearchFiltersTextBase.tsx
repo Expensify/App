@@ -18,15 +18,17 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
-// Text-based filter keys that accept string input
-type TextFilterKey = 
+// Text-based filter keys that accept string input - these are keys from SearchAdvancedFiltersForm that have string values
+type TextFilterKey = keyof Pick<SearchAdvancedFiltersForm, 
     | 'merchant'
     | 'description' 
     | 'reportID'
     | 'keyword'
     | 'title'
-    | 'withdrawalID';
+    | 'withdrawalID'
+>;
 
 type SearchFiltersTextBaseProps = {
     /** The filter key from text-based FILTER_KEYS */
@@ -56,7 +58,6 @@ function SearchFiltersTextBase({
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
-    // Since filterKey is constrained to TextFilterKey, we know this will be a string
     const currentValue = searchAdvancedFiltersForm?.[filterKey] ?? '';
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -67,7 +68,6 @@ function SearchFiltersTextBase({
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM> = {};
-        // Since filterKey is constrained to TextFilterKey, we know this will be a string
         const fieldValue = values[filterKey] ?? '';
         const trimmedValue = fieldValue.trim();
         const {isValid, byteLength} = isValidInputLength(trimmedValue, characterLimit);
