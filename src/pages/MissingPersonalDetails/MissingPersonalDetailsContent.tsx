@@ -37,7 +37,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
