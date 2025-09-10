@@ -1,4 +1,6 @@
 import * as Sentry from '@sentry/react-native';
+import CONFIG from '@src/CONFIG';
+import pkg from '../../../package.json';
 
 export default function(): void {
   Sentry.init({
@@ -8,5 +10,7 @@ export default function(): void {
       replaysSessionSampleRate: 0.1,
       replaysOnErrorSampleRate: 1.0,
       integrations: [Sentry.mobileReplayIntegration()],
+      environment: CONFIG.ENVIRONMENT,
+      release: `${pkg.name}@${pkg.version}`
   });
 }
