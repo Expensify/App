@@ -110,17 +110,6 @@ Onyx.connectWithoutView({
     },
 });
 
-let accountID = 0;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (session) => {
-        if (!session?.accountID) {
-            return;
-        }
-        accountID = session.accountID;
-    },
-});
-
 function simulatePoorConnection(network: Network) {
     // Starts random network status change when shouldSimulatePoorConnection is turned into true
     // or after app restart if shouldSimulatePoorConnection is true already
@@ -190,7 +179,7 @@ function trackConnectionChanges() {
  * `disconnected` event which takes about 10-15 seconds to emit.
  * @returns unsubscribe method
  */
-function subscribeToNetInfo(): () => void {
+function subscribeToNetInfo(accountID: number | undefined): () => void {
     // Note: We are disabling the configuration for NetInfo when using the local web API since requests can get stuck in a 'Pending' state and are not reliable indicators for "offline".
     // If you need to test the "recheck" feature then switch to the production API proxy server.
     if (!CONFIG.IS_USING_LOCAL_WEB) {
@@ -199,7 +188,7 @@ function subscribeToNetInfo(): () => void {
             // By default, NetInfo uses `/` for `reachabilityUrl`
             // When App is served locally (or from Electron) this address is always reachable - even offline
             // Using the API url ensures reachability is tested over internet
-            reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID || 'unknown'}`,
+            reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID ?? 'unknown'}`,
             reachabilityMethod: 'GET',
             reachabilityTest: (response) => {
                 if (!response.ok) {
