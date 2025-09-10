@@ -152,12 +152,14 @@ import type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    PayAndDowngradeDescriptionParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    PhoneErrorRouteParams,
     PolicyAddedReportFieldOptionParams,
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
@@ -648,6 +650,7 @@ const translations = {
         submitTo: 'Submit to',
         forwardTo: 'Forward to',
         merge: 'Merge',
+        none: 'None',
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
         enableGlobalReimbursements: 'Enable Global Reimbursements',
         purchaseAmount: 'Purchase amount',
@@ -1401,7 +1404,7 @@ const translations = {
         listPage: {
             header: 'Merge expenses',
             noEligibleExpenseFound: 'No eligible expenses found',
-            noEligibleExpenseFoundSubtitle: `You don't have any expenses that can be merged with this one. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Learn more</a> about eligible expenses.`,
+            noEligibleExpenseFoundSubtitle: `<muted-text><centered-text>You don't have any expenses that can be merged with this one. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Learn more</a> about eligible expenses.</centered-text></muted-text>`,
             selectTransactionToMerge: ({reportName}: {reportName: string}) =>
                 `Select an <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">eligible expense</a> to merge with <strong>${reportName}</strong>.`,
         },
@@ -2218,10 +2221,6 @@ const translations = {
             title: 'Welcome to Expensify',
             description: 'One app to handle your business and personal spend at the speed of chat. Try it out and let us know what you think. Much more to come!',
             secondaryDescription: 'To switch back to Expensify Classic, just tap your profile picture > Go to Expensify Classic.',
-        },
-        welcomeVideo: {
-            title: 'Welcome to Expensify',
-            description: 'One app to handle all your business and personal spend in a chat. Built for your business, your team, and your friends.',
         },
         getStarted: 'Get started',
         whatsYourName: "What's your name?",
@@ -3387,11 +3386,7 @@ const translations = {
         tripSummary: 'Trip summary',
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
-        phoneError: {
-            phrase1: 'Please',
-            link: 'add a work email as your primary login',
-            phrase2: ' to book travel.',
-        },
+        phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) => `<rbr>Please <a href="${phoneErrorMethodsRoute}">add a work email as your primary login</a> to book travel.</rbr>`,
         domainSelector: {
             title: 'Domain',
             subtitle: 'Choose a domain for Expensify Travel setup.',
@@ -4851,8 +4846,7 @@ const translations = {
             existingTagError: 'A tag with this name already exists',
             invalidTagNameError: 'Tag name cannot be 0. Please choose a different value.',
             genericFailureMessage: 'An error occurred while updating the tag, please try again',
-            importedFromAccountingSoftware: 'Tags are managed in your',
-            employeesSeeTagsAs: 'Employees see tags as ',
+            importedFromAccountingSoftware: 'The tags below are imported from your',
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again',
             tagRules: 'Tag rules',
@@ -5593,7 +5587,7 @@ const translations = {
         payAndDowngrade: {
             title: 'Pay & downgrade',
             headline: 'Your final payment',
-            description1: 'Your final bill for this subscription will be',
+            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `Your final bill for this subscription will be <strong>${formattedAmount}</strong>`,
             description2: ({date}: DateParams) => `See your breakdown below for ${date}:`,
             subscription:
                 'Heads up! This action will end your Expensify subscription, delete this workspace, and remove all workspace members. If you want to keep this workspace and only remove yourself, have another admin take over billing first.',
@@ -6154,6 +6148,9 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reimbursement',
             },
+            has: {
+                receipt: 'Receipt',
+            },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Submit',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approve',
@@ -6161,6 +6158,7 @@ const translations = {
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
         },
+        has: 'Has',
         groupBy: 'Group by',
         moneyRequestReport: {
             emptyStateTitle: 'This report has no expenses.',

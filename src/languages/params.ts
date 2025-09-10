@@ -164,6 +164,10 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
+type PhoneErrorRouteParams = {
+    phoneErrorMethodsRoute: string;
+};
+
 type WorkspacesListRouteParams = {
     workspacesListRoute: string;
 };
@@ -910,6 +914,10 @@ type DependentMultiLevelTagsSubtitleParams = {
     importSpreadsheetLink: string;
 };
 
+type PayAndDowngradeDescriptionParams = {
+    formattedAmount: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     ContactMethodParams,
@@ -1190,6 +1198,7 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
+    PhoneErrorRouteParams,
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
@@ -1214,4 +1223,5 @@ export type {
     SignerInfoMessageParams,
     BusinessRegistrationNumberParams,
     DependentMultiLevelTagsSubtitleParams,
+    PayAndDowngradeDescriptionParams,
 };
