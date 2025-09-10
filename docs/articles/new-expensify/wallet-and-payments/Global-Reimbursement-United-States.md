@@ -81,7 +81,7 @@ Once you agree to the terms, Expensify’s Compliance Team will review your subm
 
 To begin reimbursing:
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Make or track payments**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Make or track payments**.
 2. Set the verified USD account as the default reimbursement method.
 3. Ask employees to add their personal deposit account.
 
