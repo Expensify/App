@@ -17,8 +17,8 @@ import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -33,46 +33,53 @@ type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
 };
 
-let currentUserAccountID: number | undefined;
-let currentUserEmail: string;
-Onyx.connect({
+// `currentSessionData` is only used in actions, not during render. So `Onyx.connectWithoutView` is appropriate.
+// If React components need this value in the future, use `useOnyx` instead.
+let currentSessionData: {accountID?: number; email: string} = {
+    accountID: undefined,
+    email: '',
+};
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        currentUserAccountID = val?.accountID;
-        currentUserEmail = val?.email ?? '';
+        currentSessionData = {
+            accountID: val?.accountID,
+            email: val?.email ?? '',
+        };
     },
 });
 
+// `isSidebarLoaded` is only used inside the event handler, not during render.
+// `useOnyx` would trigger extra rerenders without affecting the View, so `Onyx.connectWithoutView` is used instead
 let isSidebarLoaded: boolean | undefined;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: (val) => (isSidebarLoaded = val),
     initWithStoredValues: false,
 });
 
+// `isUsingImportedState` is only used in `clearOnyxAndResetApp`, not during render. So `Onyx.connectWithoutView` is appropriate.
+// If React components need this value in the future, use `useOnyx` instead.
 let isUsingImportedState: boolean | undefined;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.IS_USING_IMPORTED_STATE,
     callback: (value) => {
         isUsingImportedState = value ?? false;
     },
 });
 
-let preservedShouldUseStagingServer: boolean | undefined;
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        preservedShouldUseStagingServer = value?.shouldUseStagingServer;
-    },
-});
-
+// hasLoadedAppPromise is used in the "reconnectApp" function and is not directly associated with the View,
+// so retrieving it using Onyx.connectWithoutView is correct.
 let resolveHasLoadedAppPromise: () => void;
 const hasLoadedAppPromise = new Promise<void>((resolve) => {
     resolveHasLoadedAppPromise = resolve;
 });
 
+// hasLoadedApp is used in the "reconnectApp" function and is not directly associated with the View,
+// so retrieving it using Onyx.connectWithoutView is correct.
+// If this variable is ever needed for use in React components, it should be retrieved using useOnyx.
 let hasLoadedApp: boolean | undefined;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.HAS_LOADED_APP,
     callback: (value) => {
         hasLoadedApp = value;
@@ -80,8 +87,11 @@ Onyx.connect({
     },
 });
 
+// allReports is used in the "ForOpenOrReconnect" functions and is not directly associated with the View,
+// so retrieving it using Onyx.connectWithoutView is correct.
+// If this variable is ever needed for use in React components, it should be retrieved using useOnyx.
 let allReports: OnyxCollection<OnyxTypes.Report>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -113,9 +123,18 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.NVP_PREFERRED_LOCALE,
     ONYXKEYS.CREDENTIALS,
     ONYXKEYS.PRESERVED_USER_SESSION,
+    ONYXKEYS.HYBRID_APP,
+    ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.IS_DEBUG_MODE_ENABLED,
 ];
 
-Onyx.connect({
+/*
+ * This listener allows you to reset the state stored in Onyx by changing the value under the ONYXKEYS.RESET_REQUIRED key.
+ * It is only used in emergencies when the entire state requires clearing.
+ *
+ * It has no direct impact on the View, making the use of Onyx.connectWithoutView justified in this case.
+ */
+Onyx.connectWithoutView({
     key: ONYXKEYS.RESET_REQUIRED,
     callback: (isResetRequired) => {
         if (!isResetRequired) {
@@ -154,7 +173,7 @@ function setLocale(locale: Locale, currentPreferredLocale: Locale | undefined) {
     }
 
     // If user is not signed in, change just locally.
-    if (!currentUserAccountID) {
+    if (!currentSessionData.accountID) {
         Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
         return;
     }
@@ -287,7 +306,7 @@ function getOnyxDataForOpenOrReconnect(
     // This ensures that any report with a draft comment is preserved in Onyx even if it doesn’t contain chat history
     const reportsWithDraftComments = Object.entries(allReportsWithDraftComments ?? {})
         .filter(([, value]) => value !== null)
-        .map(([key]) => key.replace(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, ''))
+        .map(([key]) => key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ''))
         .map((reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
 
     reportsWithDraftComments?.forEach((report) => {
@@ -547,7 +566,7 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, isMa
 
     // If the route that is being handled is a magic link, email and shortLivedAuthToken should not be attached to the url
     // to prevent signing into the wrong account
-    if (!currentUserAccountID || !shouldAuthenticateWithCurrentAccount) {
+    if (!currentSessionData.accountID || !shouldAuthenticateWithCurrentAccount) {
         Browser.openRouteInDesktopApp();
         return;
     }
@@ -559,13 +578,13 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, isMa
         if (!response) {
             Log.alert(
                 'Trying to redirect via deep link, but the response is empty. User likely not authenticated.',
-                {response, shouldAuthenticateWithCurrentAccount, currentUserAccountID},
+                {response, shouldAuthenticateWithCurrentAccount, currentUserAccountID: currentSessionData.accountID},
                 true,
             );
             return;
         }
 
-        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail, isMagicLink ? '/r' : initialRoute);
+        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentSessionData.email, isMagicLink ? '/r' : initialRoute);
     });
 }
 
@@ -601,10 +620,10 @@ function setPreservedUserSession(session: OnyxTypes.Session) {
 function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     // The value of isUsingImportedState will be lost once Onyx is cleared, so we need to store it
     const isStateImported = isUsingImportedState;
-    const shouldUseStagingServer = preservedShouldUseStagingServer;
     const sequentialQueue = getAll();
 
     rollbackOngoingRequest();
+    Navigation.clearPreloadedRoutes();
     Onyx.clear(KEYS_TO_PRESERVE)
         .then(() => {
             // Network key is preserved, so when using imported state, we should stop forcing offline mode so that the app can re-fetch the network
@@ -619,10 +638,6 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             if (preservedUserSession) {
                 Onyx.set(ONYXKEYS.SESSION, preservedUserSession);
                 Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, null);
-            }
-
-            if (shouldUseStagingServer) {
-                Onyx.set(ONYXKEYS.ACCOUNT, {shouldUseStagingServer});
             }
         })
         .then(() => {

@@ -118,9 +118,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4], 1);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, 'Hi, this is a comment');
+            addComment(report3.reportID, 'Hi, this is a comment');
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -166,9 +166,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4], 1);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, 'Hi, this is a comment');
+            addComment(report3.reportID, 'Hi, this is a comment');
 
             const currentReportId = report1.reportID;
             const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -187,7 +187,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: {[report1.reportID]: 'report1 draft'},
+                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report1.reportID}`]: 'report1 draft',
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -215,9 +215,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4], 1);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, 'Hi, this is a comment');
+            addComment(report3.reportID, 'Hi, this is a comment');
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -276,9 +276,9 @@ describe('Sidebar', () => {
             };
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, 'Hi, this is a comment');
+            addComment(report3.reportID, 'Hi, this is a comment');
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -350,9 +350,9 @@ describe('Sidebar', () => {
             report3.iouReportID = iouReport.reportID;
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, 'Hi, this is a comment');
+            addComment(report3.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, 'Hi, this is a comment');
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -429,9 +429,9 @@ describe('Sidebar', () => {
             report3.iouReportID = expenseReport.reportID;
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, 'Hi, this is a comment');
+            addComment(report3.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, 'Hi, this is a comment');
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
@@ -479,9 +479,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4], 1);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, 'Hi, this is a comment');
+            addComment(report3.reportID, 'Hi, this is a comment');
 
             const currentReportId = report2.reportID;
 
@@ -501,7 +501,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: {[report2.reportID]: 'This is a draft'},
+                            [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT + report2.reportID]: 'This is a draft',
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -548,7 +548,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: {[report.reportID]: 'This is a draft'},
+                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`]: 'This is a draft',
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -559,7 +559,7 @@ describe('Sidebar', () => {
                     })
 
                     // When the draft is removed
-                    .then(() => Onyx.merge(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {[report.reportID]: null}))
+                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, null))
 
                     // Then the pencil icon goes away
                     .then(() => {
@@ -628,7 +628,7 @@ describe('Sidebar', () => {
                 iouReportID: undefined,
             };
             const report4 = LHNTestUtils.getFakeReport([1, 5], 1);
-            addComment(report4.reportID, report4.reportID, 'Hi, this is a comment');
+            addComment(report4.reportID, 'Hi, this is a comment');
 
             const iouReport: OnyxTypes.Report = {
                 ...LHNTestUtils.getFakeReport([1, 4]),
@@ -674,7 +674,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
-                            [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: {[report2.reportID]: 'Report2 draft comment'},
+                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report2.reportID}`]: 'Report2 draft comment',
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -785,11 +785,9 @@ describe('Sidebar', () => {
             };
 
             const reportDraftCommentCollectionDataSet = {
-                [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: {
-                    [report1.reportID]: 'report1 draft',
-                    [report2.reportID]: 'report2 draft',
-                    [report3.reportID]: 'report3 draft',
-                },
+                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report1.reportID}`]: 'report1 draft',
+                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report2.reportID}`]: 'report2 draft',
+                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report3.reportID}`]: 'report3 draft',
             };
 
             return (
@@ -821,7 +819,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             ...reportDraftCommentCollectionDataSet,
-                            [ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS]: {[report4.reportID]: 'report4 draft'},
+                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report4.reportID}`]: 'report4 draft',
                             [`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`]: report4,
                             ...reportCollectionDataSet,
                         }),
@@ -850,9 +848,9 @@ describe('Sidebar', () => {
             const report3 = LHNTestUtils.getFakeReport([1, 4]);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, 'Hi, this is a comment');
+            addComment(report3.reportID, 'Hi, this is a comment');
 
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
@@ -904,9 +902,9 @@ describe('Sidebar', () => {
             const report3: OnyxTypes.Report = LHNTestUtils.getFakeReport([1, 4]);
 
             // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
-            addComment(report1.reportID, report1.reportID, 'Hi, this is a comment');
-            addComment(report2.reportID, report2.reportID, 'Hi, this is a comment');
-            addComment(report3.reportID, report3.reportID, 'Hi, this is a comment');
+            addComment(report1.reportID, 'Hi, this is a comment');
+            addComment(report2.reportID, 'Hi, this is a comment');
+            addComment(report3.reportID, 'Hi, this is a comment');
 
             const reportCollectionDataSet: ReportCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
