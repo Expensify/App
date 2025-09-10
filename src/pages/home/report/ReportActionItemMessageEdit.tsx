@@ -42,7 +42,7 @@ import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import {getReportActionHtml, isDeletedAction} from '@libs/ReportActionsUtils';
-import {getCommentLength} from '@libs/ReportUtils';
+import {getCommentLength, getOriginalReportID} from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -131,7 +131,8 @@ function ReportActionItemMessageEdit(
     const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
-    const isReportArchived = useReportIsArchived(reportID);
+    const originalReportID = getOriginalReportID(reportID, action);
+    const isOriginalReportArchived = useReportIsArchived(originalReportID);
 
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();
@@ -288,9 +289,9 @@ function ReportActionItemMessageEdit(
             ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache), isReportArchived);
+        editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache), isOriginalReportArchived);
         deleteDraft();
-    }, [action, deleteDraft, draft, reportID, isReportArchived]);
+    }, [action, deleteDraft, draft, reportID, isOriginalReportArchived]);
 
     /**
      * @param emoji

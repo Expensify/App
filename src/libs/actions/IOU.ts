@@ -5180,6 +5180,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         created,
         attendees,
         transactionThreadReportID,
+        isLinkedTrackedExpenseReportArchived,
     } = transactionParams;
     const {optimisticData: convertTransactionOptimisticData = [], successData: convertTransactionSuccessData = [], failureData: convertTransactionFailureData = []} = onyxData;
 
@@ -5191,7 +5192,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
         CONST.IOU.ACTION.SUBMIT,
-        transactionParams.isLinkedTrackedExpenseReportArchived,
+        isLinkedTrackedExpenseReportArchived,
     );
 
     optimisticData?.push(...convertTransactionOptimisticData);
