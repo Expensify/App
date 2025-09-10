@@ -1,9 +1,8 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses]
+keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan]
 ---
-<div id="new-expensify" markdown="1">
 
 Workspace Rules let Admins enforce expense policies by setting custom requirements for receipts, spending limits, category behavior, auto-approvals, and more. These rules help ensure compliance and streamline the approval process.
 
@@ -126,4 +125,7 @@ Only Workspace Admins on the **Control** plan can enable and configure workspace
 
 Turning off workspace rules removes any active warnings or violations from draft or outstanding expenses that relied on those rules.
 
-</div>
+## Can I disable SmartScan for my workspace? 
+
+No, SmartScan can’t be disabled for group (paid) workspaces. It’s always enabled by default.
+

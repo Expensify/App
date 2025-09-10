@@ -106,6 +106,7 @@ function Expensify() {
     const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
 
     useDebugShortcut();
     usePriorityMode();
@@ -168,10 +169,10 @@ function Expensify() {
         ActiveClientManager.init();
 
         // Used for the offline indicator appearing when someone is offline
-        const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo();
+        const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo(session?.accountID);
 
         return unsubscribeNetInfo;
-    }, []);
+    }, [session?.accountID]);
 
     useEffect(() => {
         // Initialize Fullstory lib
@@ -222,12 +223,12 @@ function Expensify() {
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
             setInitialUrl(url as Route);
-            Report.openReportFromDeepLink(url ?? '', currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath);
+            Report.openReportFromDeepLink(url ?? '', currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports);
         });
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath);
+            Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports);
         });
         if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.onURLListenerAdded();

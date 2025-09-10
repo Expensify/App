@@ -5,11 +5,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import variables from '@styles/variables';
-import type {ThemeStyles} from '@src/styles';
 
-type GetModalStackScreenOptions = (styles: ThemeStyles) => PlatformStackNavigationOptions;
-
-function useModalStackScreenOptions(getScreenOptions?: GetModalStackScreenOptions) {
+function useModalStackScreenOptions() {
     const styles = useThemeStyles();
 
     // We have to use isSmallScreenWidth, otherwise the content of RHP 'jumps' on Safari - its width is set to size of screen and only after rerender it is set to the correct value
@@ -20,7 +17,7 @@ function useModalStackScreenOptions(getScreenOptions?: GetModalStackScreenOption
 
     const cardStyleInterpolator = CardStyleInterpolators.forHorizontalIOS;
 
-    const defaultSubRouteOptions = useMemo(
+    return useMemo(
         (): PlatformStackNavigationOptions => ({
             ...hideKeyboardOnSwipe,
             headerShown: false,
@@ -38,13 +35,6 @@ function useModalStackScreenOptions(getScreenOptions?: GetModalStackScreenOption
         }),
         [cardStyleInterpolator, isSmallScreenWidth, styles.navigationScreenCardStyle],
     );
-
-    if (!getScreenOptions) {
-        return defaultSubRouteOptions;
-    }
-
-    return {...defaultSubRouteOptions, ...getScreenOptions(styles)};
 }
 
 export default useModalStackScreenOptions;
-export type {GetModalStackScreenOptions};
