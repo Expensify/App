@@ -1,9 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -140,13 +138,17 @@ function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<t
     return type === CONST.REPORT.MOVE_TYPE.TO ? reportActionOriginalMessage?.movedToReportID : reportActionOriginalMessage?.movedFromReport;
 }
 
-function getMovedFromOrToReportMessage(movedFromReport: OnyxEntry<Report> | undefined, movedToReport: OnyxEntry<Report> | undefined): string | undefined {
+function getMovedFromOrToReportMessage(
+    movedFromReport: OnyxEntry<Report> | undefined,
+    movedToReport: OnyxEntry<Report> | undefined,
+    policyTags: OnyxEntry<PolicyTagLists>,
+): string | undefined {
     if (movedToReport) {
         return getForExpenseMovedFromSelfDM(movedToReport);
     }
 
     if (movedFromReport) {
-        const originReportName = getReportName(movedFromReport);
+        const originReportName = getReportName({report: movedFromReport, policyTags});
         return translateLocal('iou.movedFromReport', {reportName: originReportName ?? ''});
     }
 }
@@ -172,7 +174,7 @@ function getForReportAction({
         return '';
     }
 
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(movedFromReport, movedToReport);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(movedFromReport, movedToReport, policyTags);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }

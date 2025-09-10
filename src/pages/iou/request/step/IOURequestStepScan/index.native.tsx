@@ -503,6 +503,7 @@ function IOURequestStepScan({
             navigateToConfirmationPage,
             shouldSkipConfirmation,
             personalDetails,
+            policyTags,
             reportAttributesDerived,
             createTransaction,
             currentUserPersonalDetails?.login,

@@ -236,7 +236,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
         }
 
         return [sectionsList, firstKey];
-    }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, reportAttributesDerived, translate, userToInvite]);
+    }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, policyTags, reportAttributesDerived, translate, userToInvite]);
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.

@@ -21,7 +21,7 @@ describe('ModifiedExpenseMessage', () => {
 
     beforeEach(() => {
         // The `getReportName` method is quite complex, and we don't need to test it here
-        jest.spyOn(ReportUtils, 'getReportName').mockImplementation((report) => report?.reportName ?? '');
+        jest.spyOn(ReportUtils, 'getReportName').mockImplementation(({report}) => report?.reportName ?? '');
     });
 
     afterEach(() => {
@@ -95,7 +95,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReport(1),
                     chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
                 };
-                const result = getMovedFromOrToReportMessage(undefined, selfDMReport);
+                const result = getMovedFromOrToReportMessage(undefined, selfDMReport, {});
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToPersonalSpace');
                 expect(result).toEqual(expectedResult);
             });
@@ -104,7 +104,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReport(1),
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 };
-                const result = getMovedFromOrToReportMessage(undefined, policyExpenseReport);
+                const result = getMovedFromOrToReportMessage(undefined, policyExpenseReport, {});
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
                     reportName: policyExpenseReport.reportName,
                 });
@@ -116,7 +116,7 @@ describe('ModifiedExpenseMessage', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     policyName: 'Policy',
                 };
-                const result = getMovedFromOrToReportMessage(undefined, policyExpenseReport);
+                const result = getMovedFromOrToReportMessage(undefined, policyExpenseReport, {});
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
                     reportName: policyExpenseReport.reportName,
                     workspaceName: policyExpenseReport.policyName,
@@ -129,7 +129,7 @@ describe('ModifiedExpenseMessage', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     reportName: '',
                 };
-                const result = getMovedFromOrToReportMessage(undefined, policyExpenseReport);
+                const result = getMovedFromOrToReportMessage(undefined, policyExpenseReport, {});
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.changedTheExpense');
                 expect(result).toEqual(expectedResult);
             });
@@ -141,7 +141,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns "moved expense from reportName" message', () => {
-                const result = getMovedFromOrToReportMessage(movedFromReport, undefined);
+                const result = getMovedFromOrToReportMessage(movedFromReport, undefined, {});
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', {
                     reportName: movedFromReport.reportName ?? '',
                 });
@@ -154,7 +154,7 @@ describe('ModifiedExpenseMessage', () => {
                     reportName: '',
                     chatType: undefined,
                 };
-                const result = getMovedFromOrToReportMessage(reportWithoutName, undefined);
+                const result = getMovedFromOrToReportMessage(reportWithoutName, undefined, {});
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', {
                     reportName: '',
                 });
@@ -164,7 +164,7 @@ describe('ModifiedExpenseMessage', () => {
         });
 
         it('returns undefined when neither movedToReport nor movedFromReport is provided', () => {
-            const result = getMovedFromOrToReportMessage(undefined, undefined);
+            const result = getMovedFromOrToReportMessage(undefined, undefined, {});
             expect(result).toBeUndefined();
         });
     });

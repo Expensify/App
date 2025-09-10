@@ -253,6 +253,7 @@ function IOURequestStepDistanceManual({
             activePolicy,
             shouldSkipConfirmation,
             personalDetails,
+            policyTags,
             reportAttributesDerived,
             translate,
             currentUserPersonalDetails.login,

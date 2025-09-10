@@ -120,6 +120,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         cleanSearchTerm,
         didScreenTransitionEnd,
         personalDetails,
+        policyTags,
         reportAttributesDerived,
         selectedOptions,
         selectedReportIDs,
