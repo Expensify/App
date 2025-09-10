@@ -5248,7 +5248,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
 /**
  * Move multiple tracked expenses from self-DM to an IOU report
  */
-function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportID: string, isSelfDMReportArchived = false) {
+function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportID: string) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`];
 
     if (!iouReport || !isMoneyRequestReportReportUtils(iouReport)) {
@@ -5382,7 +5382,6 @@ function convertBulkTrackedExpensesToIOU(transactionIDs: string[], targetReportI
                 linkedTrackedExpenseReportAction,
                 linkedTrackedExpenseReportID: selfDMReportID,
                 transactionThreadReportID: moneyRequestTransactionThreadReportID,
-                isLinkedTrackedExpenseReportArchived: isSelfDMReportArchived,
             },
             chatParams: {
                 reportID: moneyRequestChatReport.reportID,
