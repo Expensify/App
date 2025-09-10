@@ -1691,8 +1691,11 @@ type ExpenseRule = {
     id?: string;
 };
 
+/** Policy's report field error fields */
 type PolicyFieldListErrorFields = {
+    /** Report title error field */
     [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+        /** Error field value */
         defaultValue: OnyxCommon.Errors;
     };
 };
