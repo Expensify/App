@@ -8,7 +8,6 @@ function SearchFiltersTitlePage() {
             filterKey="title"
             titleKey="common.title"
             testID={SearchFiltersTitlePage.displayName}
-            shouldHideFixErrorsAlert={false}
             characterLimit={CONST.TASK_TITLE_CHARACTER_LIMIT}
         />
     );

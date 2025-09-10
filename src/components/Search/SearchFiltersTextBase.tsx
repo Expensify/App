@@ -13,15 +13,24 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {isValidInputLength} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import { isValidInputLength } from '@libs/ValidationUtils';
+
+// Text-based filter keys that accept string input
+type TextFilterKey = 
+    | 'merchant'
+    | 'description' 
+    | 'reportID'
+    | 'keyword'
+    | 'title'
+    | 'withdrawalID';
 
 type SearchFiltersTextBaseProps = {
-    /** The filter key from FILTER_KEYS */
-    filterKey: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>;
+    /** The filter key from text-based FILTER_KEYS */
+    filterKey: TextFilterKey;
 
     /** The translation key for the page title and input label */
     titleKey: TranslationPaths;
@@ -32,9 +41,6 @@ type SearchFiltersTextBaseProps = {
     /** The character limit for the input */
     characterLimit?: number;
 
-    /** Whether to hide fix errors alert */
-    shouldHideFixErrorsAlert?: boolean;
-
     /** Whether to wrap content with FullPageNotFoundView */
     shouldShowFullPageNotFoundView?: boolean;
 };
@@ -43,7 +49,6 @@ function SearchFiltersTextBase({
     filterKey,
     titleKey,
     testID,
-    shouldHideFixErrorsAlert = true,
     shouldShowFullPageNotFoundView = false,
     characterLimit = CONST.MERCHANT_NAME_MAX_BYTES,
 }: SearchFiltersTextBaseProps) {
@@ -51,7 +56,8 @@ function SearchFiltersTextBase({
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
-    const value = searchAdvancedFiltersForm?.[filterKey];
+    // Since filterKey is constrained to TextFilterKey, we know this will be a string
+    const currentValue = searchAdvancedFiltersForm?.[filterKey] ?? '';
     const {inputCallbackRef} = useAutoFocusInput();
 
     const updateFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
@@ -61,8 +67,10 @@ function SearchFiltersTextBase({
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM> = {};
-        const value = values[filterKey]?.trim();
-        const {isValid, byteLength} = isValidInputLength(value, characterLimit);
+        // Since filterKey is constrained to TextFilterKey, we know this will be a string
+        const fieldValue = values[filterKey] ?? '';
+        const trimmedValue = fieldValue.trim();
+        const {isValid, byteLength} = isValidInputLength(trimmedValue, characterLimit);
 
         if (!isValid) {
             errors[filterKey] = translate('common.error.characterLimitExceedCounter', {length: byteLength, limit: characterLimit});
@@ -93,14 +101,14 @@ function SearchFiltersTextBase({
                     onSubmit={updateFilter}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
-                    shouldHideFixErrorsAlert={shouldHideFixErrorsAlert}
+                    shouldHideFixErrorsAlert
                 >
                     <View style={styles.mb5}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={filterKey}
                             name={filterKey}
-                            defaultValue={value as string}
+                            defaultValue={currentValue}
                             label={translate(titleKey)}
                             accessibilityLabel={translate(titleKey)}
                             role={CONST.ROLE.PRESENTATION}
