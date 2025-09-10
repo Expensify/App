@@ -256,7 +256,8 @@ function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FI
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
     ) {
         if (typeof filterValue === 'string') {
             return getPersonalDetailByEmail(filterValue)?.accountID.toString() ?? filterValue;
@@ -539,7 +540,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.ASSIGNEE ||
                     filterKey === FILTER_KEYS.POLICY_ID ||
                     filterKey === FILTER_KEYS.HAS ||
-                    filterKey === FILTER_KEYS.EXPORTER) &&
+                    filterKey === FILTER_KEYS.EXPORTER ||
+                    filterKey === FILTER_KEYS.ATTENDEE) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
@@ -648,7 +650,8 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
         ) {
             filtersForm[filterKey] = filterValues.filter((id) => personalDetails && personalDetails[id]);
         }
@@ -781,7 +784,8 @@ function getFilterDisplayValue(
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
     ) {
         // login can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
