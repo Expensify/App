@@ -1,9 +1,10 @@
-import {useMemo} from 'react';
+import {use, useMemo} from 'react';
 import type {DependencyList} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxValue, UseOnyxOptions, UseOnyxResult} from 'react-native-onyx';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {Context as SearchContext} from '@components/Search/SearchContext';
+import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
@@ -47,7 +48,13 @@ const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResu
  * Custom hook for accessing and subscribing to Onyx data with search snapshot support
  */
 const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(key: TKey, options?: UseOnyxOptions<TKey, TReturnValue>, dependencies?: DependencyList) => {
-    const {isOnSearch, currentSearchHash} = useSearchContext();
+    const {isOnSearch} = useIsOnSearch();
+    let currentSearchHash: number | undefined;
+    if (isOnSearch) {
+        const {currentSearchHash: searchContextCurrentSearchHash} = use(SearchContext);
+        currentSearchHash = searchContextCurrentSearchHash;
+    }
+
     const useOnyxOptions = options as UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> | undefined;
     const {selector: selectorProp, ...optionsWithoutSelector} = useOnyxOptions ?? {};
 
