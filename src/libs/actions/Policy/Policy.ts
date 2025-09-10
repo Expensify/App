@@ -28,6 +28,7 @@ import type {
     InviteWorkspaceEmployeesToUberParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
+    OpenDuplicatePolicyPageParams,
     OpenPolicyEditCardLimitTypePageParams,
     OpenPolicyExpensifyCardsPageParams,
     OpenPolicyInitialPageParams,
@@ -2024,6 +2025,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                     description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    customRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
                 defaultBillable: false,
                 defaultReimbursable: true,
@@ -2299,7 +2301,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         engagementChoice &&
         shouldAddOnboardingTasks
     ) {
-        const {onboardingMessages} = getOnboardingMessages();
+        const {onboardingMessages} = getOnboardingMessages(true);
         const onboardingData = ReportUtils.prepareOnboardingOnyxData(introSelected, engagementChoice, onboardingMessages[engagementChoice], adminsChatReportID, policyID);
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
@@ -4332,6 +4334,12 @@ function openPolicyProfilePage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE, params);
 }
 
+function openDuplicatePolicyPage(policyID: string) {
+    const params: OpenDuplicatePolicyPageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_DUPLICATE_POLICY_PAGE, params);
+}
+
 function openPolicyInitialPage(policyID: string) {
     const params: OpenPolicyInitialPageParams = {policyID};
 
@@ -6321,6 +6329,7 @@ export {
     calculateBillNewDot,
     payAndDowngrade,
     togglePolicyUberAutoInvite,
+    openDuplicatePolicyPage,
     togglePolicyUberAutoRemove,
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,

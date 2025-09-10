@@ -34,7 +34,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const {transactionID, backTo} = route.params;
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
         canBeMissing: true,
     });
@@ -97,7 +97,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                     <ShowContextMenuContext.Provider value={contextValue}>
                         <MoneyRequestView
                             allReports={allReports}
-                            expensePolicy={policy}
+                            policy={policy}
                             report={targetTransactionThreadReport}
                             shouldShowAnimatedBackground={false}
                             readonly
