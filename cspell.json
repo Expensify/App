@@ -252,6 +252,7 @@
         "genkey",
         "GEOLOCATION",
         "getprop",
+        "gibsdk",
         "glcode",
         "gödecke",
         "googleusercontent",
@@ -547,7 +548,7 @@
         "retryable",
         "Reupholstery",
         "rideshare",
-        "rnef",
+        "rock",
         "RNFS",
         "rnmapbox",
         "RNTL",
@@ -790,7 +791,8 @@
         "tests/unit/currencyList.json",
         "tests/unit/ValidationUtilsTest.ts",
         "src/CONST/index.ts",
-        "src/libs/SearchParser/*"
+        "src/libs/SearchParser/*",
+        "modules/group-ib-fp"
     ],
     "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true

@@ -164,6 +164,10 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
+type PhoneErrorRouteParams = {
+    phoneErrorMethodsRoute: string;
+};
+
 type WorkspacesListRouteParams = {
     workspacesListRoute: string;
 };
@@ -737,6 +741,11 @@ type CompanyNameParams = {
     companyName: string;
 };
 
+type SignerInfoMessageParams = {
+    bankAccountLastFour: string | undefined;
+    currency: string | undefined;
+};
+
 type CustomUnitRateParams = {
     rate: number;
 };
@@ -828,6 +837,10 @@ type BusinessTaxIDParams = {
     country: string;
 };
 
+type BusinessRegistrationNumberParams = {
+    country: string;
+};
+
 type QBDSetupErrorBodyParams = {
     conciergeLink: string;
 };
@@ -857,11 +870,6 @@ type MergeFailureUncreatedAccountDescriptionParams = {
 
 type MergeFailureDescriptionGenericParams = {
     email: string;
-};
-
-type EnableContinuousReconciliationParams = {
-    connectionName: string;
-    accountingAdvancedSettingsLink: string;
 };
 
 type WorkspaceUpgradeNoteParams = {
@@ -900,6 +908,10 @@ type DomainPermissionInfoRestrictionParams = {
 
 type SubmittedWithMemoParams = {
     memo?: string;
+};
+
+type PayAndDowngradeDescriptionParams = {
+    formattedAmount: string;
 };
 
 export type {
@@ -1182,6 +1194,7 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
+    PhoneErrorRouteParams,
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
@@ -1192,7 +1205,6 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
-    EnableContinuousReconciliationParams,
     WorkspaceUpgradeNoteParams,
     ChangedApproverMessageParams,
     WorkflowSettingsParam,
@@ -1204,4 +1216,7 @@ export type {
     UpgradeSuccessMessageParams,
     DomainPermissionInfoRestrictionParams,
     SubmittedWithMemoParams,
+    SignerInfoMessageParams,
+    BusinessRegistrationNumberParams,
+    PayAndDowngradeDescriptionParams,
 };

@@ -123,10 +123,9 @@ function ReanimatedModal({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isVisible, isContainerOpen, isTransitioning]);
 
-    const backdropStyle: ViewStyle = useMemo(
-        () => ({width: windowWidth, height: windowHeight, backgroundColor: backdropColor, opacity: backdropOpacity}),
-        [windowWidth, windowHeight, backdropColor, backdropOpacity],
-    );
+    const backdropStyle: ViewStyle = useMemo(() => {
+        return {width: windowWidth, height: windowHeight, backgroundColor: backdropColor};
+    }, [windowWidth, windowHeight, backdropColor]);
 
     const onOpenCallBack = useCallback(() => {
         setIsTransitioning(false);
@@ -143,7 +142,10 @@ function ReanimatedModal({
         if (handleRef.current) {
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
-        if (getPlatform() !== CONST.PLATFORM.IOS) {
+        // Because on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
+        // https://stackoverflow.com/questions/58937956/react-native-modal-ondismiss-not-invoked
+        // Therefore, we manually call onModalHide() here for Android.
+        if (getPlatform() === CONST.PLATFORM.ANDROID) {
             onModalHide();
         }
     }, [onModalHide]);
@@ -205,7 +207,7 @@ function ReanimatedModal({
                 testID={testID}
                 onDismiss={() => {
                     onDismiss?.();
-                    if (getPlatform() === CONST.PLATFORM.IOS) {
+                    if (getPlatform() !== CONST.PLATFORM.ANDROID) {
                         onModalHide();
                     }
                 }}
