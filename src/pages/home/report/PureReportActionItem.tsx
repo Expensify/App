@@ -1296,7 +1296,7 @@ function PureReportActionItem({
                     )}
                 </ReportActionItemBasicMessage>
             );
-        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
             children = (
                 <ReportActionItemBasicMessage>
                     <RenderHTML html={`<comment><muted-text>${getChangedApproverActionMessage(action)}</muted-text></comment>`} />
