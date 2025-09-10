@@ -72,28 +72,26 @@ type SearchAutocompleteInputProps = {
     ref?: ForwardedRef<BaseTextInputRef>;
 } & Pick<TextInputProps, 'caretHidden' | 'autoFocus' | 'selection'>;
 
-function SearchAutocompleteInput(
-    {
-        value,
-        onSearchQueryChange,
-        onSubmit = () => {},
-        autocompleteListRef,
-        isFullWidth,
-        disabled = false,
-        shouldShowOfflineMessage = false,
-        autoFocus = true,
-        onFocus,
-        onBlur,
-        caretHidden = false,
-        wrapperStyle,
-        wrapperFocusedStyle = {},
-        outerWrapperStyle,
-        isSearchingForReports,
-        selection,
-        substitutionMap,
-        ref,
-    }: SearchAutocompleteInputProps,
-) {
+function SearchAutocompleteInput({
+    value,
+    onSearchQueryChange,
+    onSubmit = () => {},
+    autocompleteListRef,
+    isFullWidth,
+    disabled = false,
+    shouldShowOfflineMessage = false,
+    autoFocus = true,
+    onFocus,
+    onBlur,
+    caretHidden = false,
+    wrapperStyle,
+    wrapperFocusedStyle = {},
+    outerWrapperStyle,
+    isSearchingForReports,
+    selection,
+    substitutionMap,
+    ref,
+}: SearchAutocompleteInputProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();

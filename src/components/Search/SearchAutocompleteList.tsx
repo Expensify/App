@@ -103,7 +103,7 @@ type SearchAutocompleteListProps = {
     allCards: CardList;
 
     /** Reference to the outer element */
-    ref?: ForwardedRef<SelectionListHandle>,
+    ref?: ForwardedRef<SelectionListHandle>;
 };
 
 const defaultListOptions = {
@@ -154,25 +154,23 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
     );
 }
 
-function SearchAutocompleteList(
-    {
-        autocompleteQueryValue,
-        handleSearch,
-        searchQueryItem,
-        getAdditionalSections,
-        onListItemPress,
-        setTextQuery,
-        updateAutocompleteSubstitutions,
-        shouldSubscribeToArrowKeyEvents = true,
-        onHighlightFirstItem,
-        textInputRef,
-        personalDetails,
-        reports,
-        allFeeds,
-        allCards,
-        ref,
-    }: SearchAutocompleteListProps,
-) {
+function SearchAutocompleteList({
+    autocompleteQueryValue,
+    handleSearch,
+    searchQueryItem,
+    getAdditionalSections,
+    onListItemPress,
+    setTextQuery,
+    updateAutocompleteSubstitutions,
+    shouldSubscribeToArrowKeyEvents = true,
+    onHighlightFirstItem,
+    textInputRef,
+    personalDetails,
+    reports,
+    allFeeds,
+    allCards,
+    ref,
+}: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();

@@ -137,7 +137,7 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
         /**
          * Reference to the outer element.
          */
-        ref?: React.ForwardedRef<View>,
+        ref?: React.ForwardedRef<View>;
     };
 
 export default BaseModalProps;

@@ -1,10 +1,10 @@
 import type React from 'react';
+import type {ForwardedRef} from 'react';
 import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import type {Svg, SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
 import type {QRCodeLogoMarginRatio, QRCodeLogoRatio} from '@components/QRCode';
 import type CONST from '@src/CONST';
-import type { ForwardedRef } from 'react';
 
 type QRShareProps = {
     /**

@@ -13,9 +13,21 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import type {QRShareProps} from './types';
 
-function QRShare(
-    {url, title, subtitle, logo, svgLogo, svgLogoFillColor, logoBackgroundColor, logoRatio, logoMarginRatio, shouldShowExpensifyLogo = true, additionalStyles, size, ref}: QRShareProps,
-) {
+function QRShare({
+    url,
+    title,
+    subtitle,
+    logo,
+    svgLogo,
+    svgLogoFillColor,
+    logoBackgroundColor,
+    logoRatio,
+    logoMarginRatio,
+    shouldShowExpensifyLogo = true,
+    additionalStyles,
+    size,
+    ref,
+}: QRShareProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();

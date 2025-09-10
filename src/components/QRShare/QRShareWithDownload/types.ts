@@ -1,5 +1,5 @@
-import type { ForwardedRef } from "react";
-import type { QRShareProps } from "@components/QRShare/types";
+import type {ForwardedRef} from 'react';
+import type {QRShareProps} from '@components/QRShare/types';
 
 type QRShareWithDownloadHandle = {
     download: () => Promise<void> | undefined;
@@ -7,6 +7,6 @@ type QRShareWithDownloadHandle = {
 
 type QRShareWithDownloadProps = Omit<QRShareProps, 'ref'> & {
     ref?: ForwardedRef<QRShareWithDownloadHandle>;
-}
+};
 
 export type {QRShareWithDownloadProps, QRShareWithDownloadHandle};

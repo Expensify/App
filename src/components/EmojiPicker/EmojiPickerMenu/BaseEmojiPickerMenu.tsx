@@ -82,9 +82,18 @@ function ListEmptyComponent() {
     return <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>;
 }
 
-function BaseEmojiPickerMenu(
-    {headerEmojis, scrollToHeader, isFiltered, listWrapperStyle = [], data, renderItem, stickyHeaderIndices = [], extraData = [], alwaysBounceVertical = false, ref}: BaseEmojiPickerMenuProps,
-) {
+function BaseEmojiPickerMenu({
+    headerEmojis,
+    scrollToHeader,
+    isFiltered,
+    listWrapperStyle = [],
+    data,
+    renderItem,
+    stickyHeaderIndices = [],
+    extraData = [],
+    alwaysBounceVertical = false,
+    ref,
+}: BaseEmojiPickerMenuProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
