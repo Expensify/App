@@ -11,7 +11,7 @@ import convertToLTR from '@libs/convertToLTR';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {WelcomeVideoModalNavigatorParamList} from '@libs/Navigation/types';
+import type {MigratedUserModalNavigatorParamList} from '@libs/Navigation/types';
 import {tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
@@ -42,13 +42,13 @@ const ExpensifyFeatures: FeatureListItem[] = [
     },
 ];
 
-function OnboardingWelcomeVideo() {
+function MigratedUserWelcomeModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isModalDisabled, setIsModalDisabled] = useState(true);
-    const route = useRoute<PlatformStackRouteProp<WelcomeVideoModalNavigatorParamList, typeof SCREENS.WELCOME_VIDEO.ROOT>>();
+    const route = useRoute<PlatformStackRouteProp<MigratedUserModalNavigatorParamList, typeof SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT>>();
     const shouldOpenSearch = route?.params?.shouldOpenSearch === 'true';
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
@@ -122,5 +122,5 @@ function OnboardingWelcomeVideo() {
     );
 }
 
-OnboardingWelcomeVideo.displayName = 'OnboardingWelcomeVideo';
-export default OnboardingWelcomeVideo;
+MigratedUserWelcomeModal.displayName = 'MigratedUserWelcomeModal';
+export default MigratedUserWelcomeModal;
