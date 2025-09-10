@@ -141,7 +141,7 @@ class TranslationGenerator {
         this.pathsToModify = config.paths ?? new Set<TranslationPaths>();
         this.pathsToRemove = new Set<TranslationPaths>();
         this.verbose = config.verbose;
-        this.isIncremental = this.pathsToModify.size > 0 || this.pathsToAdd.size > 0 || !!this.compareRef;
+        this.isIncremental = this.pathsToModify.size > 0 || !!this.compareRef;
     }
 
     public async generateTranslations(): Promise<void> {
@@ -150,7 +150,7 @@ class TranslationGenerator {
         // map of translations for each locale
         const translations = new Map<TranslationTargetLocale, Map<number, string>>();
 
-        if (this.pathsToModify.size === 0 && this.pathsToAdd.size === 0 && this.compareRef) {
+        if (this.pathsToModify.size === 0 && this.compareRef) {
             // If compareRef is provided (and no specific paths), use git diff to find changed lines and build dot-notation paths
             this.buildPathsFromGitDiff();
         }
