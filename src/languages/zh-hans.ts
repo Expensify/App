@@ -169,6 +169,7 @@ import type {
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    PhoneErrorRouteParams,
     PolicyAddedReportFieldOptionParams,
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
@@ -656,6 +657,7 @@ const translations = {
         submitTo: '提交到',
         forwardTo: '转发到',
         merge: '合并',
+        none: '无',
         unstableInternetConnection: '互联网连接不稳定。请检查你的网络，然后重试。',
         enableGlobalReimbursements: '启用全球报销',
         purchaseAmount: '购买金额',
@@ -1397,7 +1399,7 @@ const translations = {
         listPage: {
             header: '合并费用',
             noEligibleExpenseFound: '未找到可合并的费用',
-            noEligibleExpenseFoundSubtitle: `您没有可与此合并的费用。<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">了解更多</a>关于可合并费用的信息。`,
+            noEligibleExpenseFoundSubtitle: `<muted-text><centered-text>您没有可与此合并的费用。<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">了解更多</a>关于可合并费用的信息。</centered-text></muted-text>`,
             selectTransactionToMerge: ({reportName}: {reportName: string}) => `选择一个<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">可合并的费用</a> <strong>${reportName}</strong>.`,
         },
         receiptPage: {
@@ -3359,11 +3361,7 @@ const translations = {
         tripSummary: '行程总结',
         departs: '出发',
         errorMessage: '出现问题。请稍后再试。',
-        phoneError: {
-            phrase1: '请',
-            link: '添加工作邮箱作为您的主要登录邮箱',
-            phrase2: '预订旅行。',
-        },
+        phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) => `<rbr>请将<a href="${phoneErrorMethodsRoute}">工作邮箱添加为</a>预订旅行的主要登录邮箱。</rbr>`,
         domainSelector: {
             title: '域名',
             subtitle: '为 Expensify Travel 设置选择一个域名。',
