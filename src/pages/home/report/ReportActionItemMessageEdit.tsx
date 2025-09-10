@@ -15,8 +15,8 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
-import useDebounce from '@hooks/useDebounce';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
+import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -120,25 +120,7 @@ function ReportActionItemMessageEdit(
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const debouncedValidateCommentMaxLength = useMemo(() => lodashDebounce(validateCommentMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME), [validateCommentMaxLength]);
 
-    // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
-    const isScrollLikelyLayoutTriggered = useRef(false);
-
-    /**
-     * Reset isScrollLikelyLayoutTriggered to false.
-     *
-     * The function is debounced with a handpicked wait time to address 2 issues:
-     * 1. There is a slight delay between onChangeText and onScroll
-     * 2. Layout change will trigger onScroll multiple times
-     */
-    const debouncedLowerIsScrollLikelyLayoutTriggered = useDebounce(
-        useCallback(() => (isScrollLikelyLayoutTriggered.current = false), []),
-        500,
-    );
-
-    const raiseIsScrollLikelyLayoutTriggered = useCallback(() => {
-        isScrollLikelyLayoutTriggered.current = true;
-        debouncedLowerIsScrollLikelyLayoutTriggered();
-    }, [debouncedLowerIsScrollLikelyLayoutTriggered]);
+    const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
     const [modal = DEFAULT_MODAL_VALUE] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
@@ -239,7 +221,7 @@ function ReportActionItemMessageEdit(
      */
     const updateDraft = useCallback(
         (newDraftInput: string) => {
-            raiseIsScrollLikelyLayoutTriggered();
+            raiseIsScrollLayoutTriggered();
             const {text: newDraft, emojis, cursorPosition} = replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
 
             emojisPresentBefore.current = emojis;
@@ -340,7 +322,7 @@ function ReportActionItemMessageEdit(
     }, [suggestionsRef]);
     const onSaveScrollAndHideSuggestionMenu = useCallback(
         (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
-            if (isScrollLikelyLayoutTriggered.current) {
+            if (isScrollLayoutTriggered.current) {
                 return;
             }
             mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
