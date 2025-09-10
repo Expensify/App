@@ -288,6 +288,8 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 '@userActions': path.resolve(__dirname, '../../src/libs/actions/'),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '@desktop': path.resolve(__dirname, '../../desktop'),
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '@selectors': path.resolve(__dirname, '../../src/selectors/'),
             },
 
             // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
