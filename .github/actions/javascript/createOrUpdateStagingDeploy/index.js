@@ -3192,10 +3192,9 @@ exports.checkBypass = checkBypass;
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
-var __webpack_unused_export__;
 
 
-__webpack_unused_export__ = ({ value: true });
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 const VERSION = "3.1.0";
 
@@ -3352,10 +3351,10 @@ function paginateRest(octokit) {
 }
 paginateRest.VERSION = VERSION;
 
-__webpack_unused_export__ = composePaginateRest;
-__webpack_unused_export__ = isPaginatingEndpoint;
-exports.AA = paginateRest;
-__webpack_unused_export__ = paginatingEndpoints;
+exports.composePaginateRest = composePaginateRest;
+exports.isPaginatingEndpoint = isPaginatingEndpoint;
+exports.paginateRest = paginateRest;
+exports.paginatingEndpoints = paginatingEndpoints;
 //# sourceMappingURL=index.js.map
 
 
@@ -4480,10 +4479,9 @@ exports.restEndpointMethods = restEndpointMethods;
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
-var __webpack_unused_export__;
 
 
-__webpack_unused_export__ = ({ value: true });
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
@@ -4728,7 +4726,7 @@ function throttling(octokit, octokitOptions) {
 throttling.VERSION = VERSION;
 throttling.triggersNotification = triggersNotification;
 
-exports.O = throttling;
+exports.throttling = throttling;
 //# sourceMappingURL=index.js.map
 
 
@@ -4738,10 +4736,9 @@ exports.O = throttling;
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
-var __webpack_unused_export__;
 
 
-__webpack_unused_export__ = ({ value: true });
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
@@ -4802,7 +4799,7 @@ class RequestError extends Error {
   }
 }
 
-exports.L = RequestError;
+exports.RequestError = RequestError;
 //# sourceMappingURL=index.js.map
 
 
@@ -11497,687 +11494,1390 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 564:
-/***/ ((module, __webpack_exports__, __nccwpck_require__) => {
+/***/ 566:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
-// ESM COMPAT FLAG
-__nccwpck_require__.r(__webpack_exports__);
 
-// EXPORTS
-__nccwpck_require__.d(__webpack_exports__, {
-  "default": () => (/* binding */ createOrUpdateStagingDeploy)
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
 });
-
-// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __nccwpck_require__(2186);
-;// CONCATENATED MODULE: ./node_modules/date-fns/locale/en-US/_lib/formatDistance.js
-const formatDistanceLocale = {
-  lessThanXSeconds: {
-    one: "less than a second",
-    other: "less than {{count}} seconds",
-  },
-
-  xSeconds: {
-    one: "1 second",
-    other: "{{count}} seconds",
-  },
-
-  halfAMinute: "half a minute",
-
-  lessThanXMinutes: {
-    one: "less than a minute",
-    other: "less than {{count}} minutes",
-  },
-
-  xMinutes: {
-    one: "1 minute",
-    other: "{{count}} minutes",
-  },
-
-  aboutXHours: {
-    one: "about 1 hour",
-    other: "about {{count}} hours",
-  },
-
-  xHours: {
-    one: "1 hour",
-    other: "{{count}} hours",
-  },
-
-  xDays: {
-    one: "1 day",
-    other: "{{count}} days",
-  },
-
-  aboutXWeeks: {
-    one: "about 1 week",
-    other: "about {{count}} weeks",
-  },
-
-  xWeeks: {
-    one: "1 week",
-    other: "{{count}} weeks",
-  },
-
-  aboutXMonths: {
-    one: "about 1 month",
-    other: "about {{count}} months",
-  },
-
-  xMonths: {
-    one: "1 month",
-    other: "{{count}} months",
-  },
-
-  aboutXYears: {
-    one: "about 1 year",
-    other: "about {{count}} years",
-  },
-
-  xYears: {
-    one: "1 year",
-    other: "{{count}} years",
-  },
-
-  overXYears: {
-    one: "over 1 year",
-    other: "over {{count}} years",
-  },
-
-  almostXYears: {
-    one: "almost 1 year",
-    other: "almost {{count}} years",
-  },
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-
-const formatDistance = (token, count, options) => {
-  let result;
-
-  const tokenValue = formatDistanceLocale[token];
-  if (typeof tokenValue === "string") {
-    result = tokenValue;
-  } else if (count === 1) {
-    result = tokenValue.one;
-  } else {
-    result = tokenValue.other.replace("{{count}}", count.toString());
-  }
-
-  if (options?.addSuffix) {
-    if (options.comparison && options.comparison > 0) {
-      return "in " + result;
-    } else {
-      return result + " ago";
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
+const format_1 = __nccwpck_require__(2464);
+const fs_1 = __importDefault(__nccwpck_require__(7147));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const GitUtils_1 = __importDefault(__nccwpck_require__(1547));
+async function run() {
+    // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
+    const packageJson = JSON.parse(fs_1.default.readFileSync('package.json', 'utf8'));
+    // The checklist will use the package.json version, e.g. '1.2.3-4'
+    const newVersion = packageJson.version;
+    // The staging tag will use the package.json version with a '-staging' suffix, e.g. '1.2.3-4-staging'
+    const newStagingTag = `${packageJson.version}-staging`;
+    try {
+        // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers
+        const { data: recentDeployChecklists } = await GithubUtils_1.default.octokit.issues.listForRepo({
+            log: console,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            labels: CONST_1.default.LABELS.STAGING_DEPLOY,
+            state: 'all',
+        });
+        // Look at the state of the most recent StagingDeployCash,
+        // if it is open then we'll update the existing one, otherwise, we'll create a new one.
+        const mostRecentChecklist = recentDeployChecklists.at(0);
+        if (!mostRecentChecklist) {
+            throw new Error('Could not find the most recent checklist');
+        }
+        const shouldCreateNewDeployChecklist = mostRecentChecklist.state !== 'open';
+        const previousChecklist = shouldCreateNewDeployChecklist ? mostRecentChecklist : recentDeployChecklists.at(1);
+        if (shouldCreateNewDeployChecklist) {
+            console.log('Latest StagingDeployCash is closed, creating a new one.', mostRecentChecklist);
+        }
+        else {
+            console.log('Latest StagingDeployCash is open, updating it instead of creating a new one.', 'Current:', mostRecentChecklist, 'Previous:', previousChecklist);
+        }
+        if (!previousChecklist) {
+            throw new Error('Could not find the previous checklist');
+        }
+        // Parse the data from the previous and current checklists into the format used to generate the checklist
+        const previousChecklistData = GithubUtils_1.default.getStagingDeployCashData(previousChecklist);
+        const currentChecklistData = shouldCreateNewDeployChecklist ? undefined : GithubUtils_1.default.getStagingDeployCashData(mostRecentChecklist);
+        // Find the list of PRs merged between the current checklist and the previous checklist
+        const mergedPRs = await GitUtils_1.default.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST_1.default.APP_REPO);
+        // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
+        const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
+        const previousMobileExpensifyPRNumbers = new Set(previousChecklistData.PRListMobileExpensify.map((pr) => pr.number));
+        core.startGroup('Filtering PRs:');
+        core.info('mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out');
+        core.info(`Found ${previousPRNumbers.size} PRs in the previous checklist:`);
+        core.info(JSON.stringify(Array.from(previousPRNumbers)));
+        const newPRNumbers = mergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
+        core.info(`Found ${newPRNumbers.length} PRs deployed since the previous checklist:`);
+        core.info(JSON.stringify(newPRNumbers));
+        // Filter out cherry-picked PRs that were released with the previous checklist
+        const removedPRs = mergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
+        if (removedPRs.length > 0) {
+            core.info(`⚠️⚠️ Filtered out the following cherry-picked PRs that were released with the previous checklist: ${removedPRs.join(', ')} ⚠️⚠️`);
+        }
+        core.endGroup();
+        console.info(`[api] Checklist PRs: ${newPRNumbers.join(', ')}`);
+        // Get merged Mobile-Expensify PRs
+        let mergedMobileExpensifyPRs = [];
+        try {
+            const allMobileExpensifyPRs = await GitUtils_1.default.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST_1.default.MOBILE_EXPENSIFY_REPO);
+            mergedMobileExpensifyPRs = allMobileExpensifyPRs.filter((prNum) => !previousMobileExpensifyPRNumbers.has(prNum));
+            console.info(`Found ${allMobileExpensifyPRs.length} total Mobile-Expensify PRs, ${mergedMobileExpensifyPRs.length} new ones after filtering:`);
+            console.info(`Mobile-Expensify PRs: ${mergedMobileExpensifyPRs.join(', ')}`);
+            // Log the Mobile-Expensify PRs that were filtered out
+            const removedMobileExpensifyPRs = allMobileExpensifyPRs.filter((prNum) => previousMobileExpensifyPRNumbers.has(prNum));
+            if (removedMobileExpensifyPRs.length > 0) {
+                core.info(`⚠️⚠️ Filtered out the following cherry-picked Mobile-Expensify PRs that were released with the previous checklist: ${removedMobileExpensifyPRs.join(', ')} ⚠️⚠️`);
+            }
+        }
+        catch (error) {
+            // Check if this is a forked repository
+            if (process.env.GITHUB_REPOSITORY !== `${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.APP_REPO}`) {
+                console.warn("⚠️ Unable to fetch Mobile-Expensify PRs because this workflow is running on a forked repository and secrets aren't accessble. This is expected for development/testing on forks.");
+            }
+            else {
+                console.error('Failed to fetch Mobile-Expensify PRs:', error);
+            }
+        }
+        // Next, we generate the checklist body
+        let checklistBody = '';
+        let checklistAssignees = [];
+        if (shouldCreateNewDeployChecklist) {
+            const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersion, newPRNumbers.map((value) => GithubUtils_1.default.getPullRequestURLFromNumber(value, CONST_1.default.APP_REPO_URL)), mergedMobileExpensifyPRs.map((value) => GithubUtils_1.default.getPullRequestURLFromNumber(value, CONST_1.default.MOBILE_EXPENSIFY_URL)), [], // verifiedPRList
+            [], // verifiedPRListMobileExpensify
+            [], // deployBlockers
+            [], // resolvedDeployBlockers
+            [], // resolvedInternalQAPRs
+            false, // isFirebaseChecked
+            false);
+            if (stagingDeployCashBodyAndAssignees) {
+                checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
+                checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean);
+            }
+        }
+        else {
+            // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
+            const PRList = newPRNumbers.map((prNum) => {
+                const indexOfPRInCurrentChecklist = currentChecklistData?.PRList.findIndex((pr) => pr.number === prNum) ?? -1;
+                const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRList[indexOfPRInCurrentChecklist].isVerified : false;
+                return {
+                    number: prNum,
+                    url: GithubUtils_1.default.getPullRequestURLFromNumber(prNum, CONST_1.default.APP_REPO_URL),
+                    isVerified,
+                };
+            });
+            // Generate the updated Mobile-Expensify PR list, preserving the previous state of `isVerified` for existing PRs
+            const PRListMobileExpensify = mergedMobileExpensifyPRs.map((prNum) => {
+                const indexOfPRInCurrentChecklist = currentChecklistData?.PRListMobileExpensify.findIndex((pr) => pr.number === prNum) ?? -1;
+                const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRListMobileExpensify[indexOfPRInCurrentChecklist].isVerified : false;
+                return {
+                    number: prNum,
+                    url: GithubUtils_1.default.getPullRequestURLFromNumber(prNum, CONST_1.default.MOBILE_EXPENSIFY_URL),
+                    isVerified,
+                };
+            });
+            // Generate the deploy blocker list, preserving the previous state of `isResolved`
+            const openDeployBlockers = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.issues.listForRepo, {
+                log: console,
+                owner: CONST_1.default.GITHUB_OWNER,
+                repo: CONST_1.default.APP_REPO,
+                labels: CONST_1.default.LABELS.DEPLOY_BLOCKER,
+            });
+            // First, make sure we include all current deploy blockers
+            const deployBlockers = openDeployBlockers.map((deployBlocker) => {
+                const indexInCurrentChecklist = currentChecklistData?.deployBlockers.findIndex((item) => item.number === deployBlocker.number) ?? -1;
+                const isResolved = indexInCurrentChecklist >= 0 ? currentChecklistData?.deployBlockers[indexInCurrentChecklist].isResolved : false;
+                return {
+                    number: deployBlocker.number,
+                    url: deployBlocker.html_url,
+                    isResolved,
+                };
+            });
+            // Then make sure we include any demoted or closed blockers as well, and just check them off automatically
+            currentChecklistData?.deployBlockers.forEach((deployBlocker) => {
+                const isResolved = deployBlockers.findIndex((openBlocker) => openBlocker.number === deployBlocker.number) < 0;
+                deployBlockers.push({
+                    ...deployBlocker,
+                    isResolved,
+                });
+            });
+            // Include any existing Mobile-Expensify PRs from the current checklist that aren't in the new merged list
+            currentChecklistData?.PRListMobileExpensify.forEach((existingPR) => {
+                const isAlreadyIncluded = PRListMobileExpensify.findIndex((pr) => pr.number === existingPR.number) >= 0;
+                if (!isAlreadyIncluded) {
+                    PRListMobileExpensify.push(existingPR);
+                }
+            });
+            const didVersionChange = newVersion !== currentChecklistData?.version;
+            const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersion, PRList.map((pr) => pr.url), PRListMobileExpensify.map((pr) => pr.url), PRList.filter((pr) => pr.isVerified).map((pr) => pr.url), PRListMobileExpensify.filter((pr) => pr.isVerified).map((pr) => pr.url), deployBlockers.map((blocker) => blocker.url), deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url), currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url), didVersionChange ? false : currentChecklistData.isFirebaseChecked, didVersionChange ? false : currentChecklistData.isGHStatusChecked);
+            if (stagingDeployCashBodyAndAssignees) {
+                checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
+                checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean);
+            }
+        }
+        // Finally, create or update the checklist
+        const defaultPayload = {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            body: checklistBody,
+        };
+        if (shouldCreateNewDeployChecklist) {
+            const { data: newChecklist } = await GithubUtils_1.default.octokit.issues.create({
+                ...defaultPayload,
+                title: `Deploy Checklist: New Expensify ${(0, format_1.format)(new Date(), CONST_1.default.DATE_FORMAT_STRING)}`,
+                labels: [CONST_1.default.LABELS.STAGING_DEPLOY, CONST_1.default.LABELS.LOCK_DEPLOY],
+                assignees: [CONST_1.default.APPLAUSE_BOT].concat(checklistAssignees),
+            });
+            console.log(`Successfully created new StagingDeployCash! 🎉 ${newChecklist.html_url}`);
+            return newChecklist;
+        }
+        const { data: updatedChecklist } = await GithubUtils_1.default.octokit.issues.update({
+            ...defaultPayload,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            issue_number: currentChecklistData?.number ?? 0,
+        });
+        console.log(`Successfully updated StagingDeployCash! 🎉 ${updatedChecklist.html_url}`);
+        return updatedChecklist;
     }
-  }
-
-  return result;
-};
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/locale/_lib/buildFormatLongFn.js
-function buildFormatLongFn(args) {
-  return (options = {}) => {
-    // TODO: Remove String()
-    const width = options.width ? String(options.width) : args.defaultWidth;
-    const format = args.formats[width] || args.formats[args.defaultWidth];
-    return format;
-  };
+    catch (err) {
+        console.error('An unknown error occurred!', err);
+        core.setFailed(err);
+    }
 }
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+exports["default"] = run;
 
-;// CONCATENATED MODULE: ./node_modules/date-fns/locale/en-US/_lib/formatLong.js
 
+/***/ }),
 
-const dateFormats = {
-  full: "EEEE, MMMM do, y",
-  long: "MMMM do, y",
-  medium: "MMM d, y",
-  short: "MM/dd/yyyy",
+/***/ 9873:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
+const GIT_CONST = {
+    GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER ?? 'Expensify',
+    APP_REPO: (process.env.GITHUB_REPOSITORY ?? 'Expensify/App').split('/').at(1) ?? '',
+    MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
 };
-
-const timeFormats = {
-  full: "h:mm:ss a zzzz",
-  long: "h:mm:ss a z",
-  medium: "h:mm:ss a",
-  short: "h:mm a",
+const CONST = {
+    ...GIT_CONST,
+    APPLAUSE_BOT: 'applausebot',
+    OS_BOTIFY: 'OSBotify',
+    LABELS: {
+        STAGING_DEPLOY: 'StagingDeployCash',
+        DEPLOY_BLOCKER: 'DeployBlockerCash',
+        LOCK_DEPLOY: '🔐 LockCashDeploys 🔐',
+        INTERNAL_QA: 'InternalQA',
+        HELP_WANTED: 'Help Wanted',
+        CP_STAGING: 'CP Staging',
+    },
+    STATE: {
+        OPEN: 'open',
+    },
+    COMMENT: {
+        TYPE_BOT: 'Bot',
+        NAME_GITHUB_ACTIONS: 'github-actions',
+    },
+    ACTIONS: {
+        CREATED: 'created',
+        EDITED: 'edited',
+    },
+    EVENTS: {
+        ISSUE_COMMENT: 'issue_comment',
+    },
+    RUN_EVENT: {
+        PULL_REQUEST: 'pull_request',
+        PULL_REQUEST_TARGET: 'pull_request_target',
+        PUSH: 'push',
+    },
+    RUN_STATUS: {
+        COMPLETED: 'completed',
+        IN_PROGRESS: 'in_progress',
+        QUEUED: 'queued',
+    },
+    RUN_STATUS_CONCLUSION: {
+        SUCCESS: 'success',
+    },
+    TEST_WORKFLOW_NAME: 'Jest Unit Tests',
+    TEST_WORKFLOW_PATH: '.github/workflows/test.yml',
+    PROPOSAL_KEYWORD: 'Proposal',
+    DATE_FORMAT_STRING: 'yyyy-MM-dd',
+    PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
+    ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
+    ISSUE_OR_PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/(?:pull|issues)/([0-9]+).*`),
+    POLL_RATE: 10000,
+    APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
+    APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
+    MOBILE_EXPENSIFY_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.MOBILE_EXPENSIFY_REPO}`,
+    NO_ACTION: 'NO_ACTION',
+    ACTION_EDIT: 'ACTION_EDIT',
+    ACTION_REQUIRED: 'ACTION_REQUIRED',
+    ACTION_HIDE_DUPLICATE: 'ACTION_HIDE_DUPLICATE',
 };
+exports["default"] = CONST;
 
-const dateTimeFormats = {
-  full: "{{date}} 'at' {{time}}",
-  long: "{{date}} 'at' {{time}}",
-  medium: "{{date}}, {{time}}",
-  short: "{{date}}, {{time}}",
+
+/***/ }),
+
+/***/ 1547:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-
-const formatLong = {
-  date: buildFormatLongFn({
-    formats: dateFormats,
-    defaultWidth: "full",
-  }),
-
-  time: buildFormatLongFn({
-    formats: timeFormats,
-    defaultWidth: "full",
-  }),
-
-  dateTime: buildFormatLongFn({
-    formats: dateTimeFormats,
-    defaultWidth: "full",
-  }),
-};
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/locale/en-US/_lib/formatRelative.js
-const formatRelativeLocale = {
-  lastWeek: "'last' eeee 'at' p",
-  yesterday: "'yesterday at' p",
-  today: "'today at' p",
-  tomorrow: "'tomorrow at' p",
-  nextWeek: "eeee 'at' p",
-  other: "P",
-};
-
-const formatRelative = (token, _date, _baseDate, _options) =>
-  formatRelativeLocale[token];
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/locale/_lib/buildLocalizeFn.js
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
+const child_process_1 = __nccwpck_require__(2081);
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const versionUpdater_1 = __nccwpck_require__(8982);
 /**
- * The localize function argument callback which allows to convert raw value to
- * the actual type.
+ * Check if a tag exists locally or in the remote.
+ */
+function tagExists(tag) {
+    try {
+        // Check if the tag exists locally
+        (0, child_process_1.execSync)(`git show-ref --tags ${tag}`, { stdio: 'ignore' });
+        return true; // Tag exists locally
+    }
+    catch (error) {
+        // Tag does not exist locally, check in remote
+        let shouldRetry = true;
+        let needsRepack = false;
+        let doesTagExist = false;
+        while (shouldRetry) {
+            try {
+                if (needsRepack) {
+                    // We have seen some scenarios where this fixes the git fetch.
+                    // Why? Who knows... https://github.com/Expensify/App/pull/31459
+                    (0, child_process_1.execSync)('git repack -d', { stdio: 'inherit' });
+                }
+                (0, child_process_1.execSync)(`git ls-remote --exit-code --tags origin ${tag}`, { stdio: 'ignore' });
+                doesTagExist = true;
+                shouldRetry = false;
+            }
+            catch (e) {
+                if (!needsRepack) {
+                    console.log('Attempting to repack and retry...');
+                    needsRepack = true;
+                }
+                else {
+                    console.error("Repack didn't help, giving up...");
+                    shouldRetry = false;
+                }
+            }
+        }
+        return doesTagExist;
+    }
+}
+/**
+ * This essentially just calls getPreviousVersion in a loop, until it finds a version for which a tag exists.
+ * It's useful if we manually perform a version bump, because in that case a tag may not exist for the previous version.
  *
- * @param value - The value to convert
- *
- * @returns The converted value
+ * @param tag the current tag
+ * @param level the Semver level to step backward by
  */
-
-/**
- * The map of localized values for each width.
- */
-
-/**
- * The index type of the locale unit value. It types conversion of units of
- * values that don't start at 0 (i.e. quarters).
- */
-
-/**
- * Converts the unit value to the tuple of values.
- */
-
-/**
- * The tuple of localized era values. The first element represents BC,
- * the second element represents AD.
- */
-
-/**
- * The tuple of localized quarter values. The first element represents Q1.
- */
-
-/**
- * The tuple of localized day values. The first element represents Sunday.
- */
-
-/**
- * The tuple of localized month values. The first element represents January.
- */
-
-function buildLocalizeFn(args) {
-  return (value, options) => {
-    const context = options?.context ? String(options.context) : "standalone";
-
-    let valuesArray;
-    if (context === "formatting" && args.formattingValues) {
-      const defaultWidth = args.defaultFormattingWidth || args.defaultWidth;
-      const width = options?.width ? String(options.width) : defaultWidth;
-
-      valuesArray =
-        args.formattingValues[width] || args.formattingValues[defaultWidth];
-    } else {
-      const defaultWidth = args.defaultWidth;
-      const width = options?.width ? String(options.width) : args.defaultWidth;
-
-      valuesArray = args.values[width] || args.values[defaultWidth];
+function getPreviousExistingTag(tag, level) {
+    let previousVersion = (0, versionUpdater_1.getPreviousVersion)(tag.replace('-staging', ''), level);
+    let tagExistsForPreviousVersion = false;
+    while (!tagExistsForPreviousVersion) {
+        if (tagExists(previousVersion)) {
+            tagExistsForPreviousVersion = true;
+            break;
+        }
+        if (tagExists(`${previousVersion}-staging`)) {
+            tagExistsForPreviousVersion = true;
+            previousVersion = `${previousVersion}-staging`;
+            break;
+        }
+        console.log(`Tag for previous version ${previousVersion} does not exist. Checking for an older version...`);
+        previousVersion = (0, versionUpdater_1.getPreviousVersion)(previousVersion, level);
     }
-    const index = args.argumentCallback ? args.argumentCallback(value) : value;
+    return previousVersion;
+}
+/**
+ * Parse merged PRs, excluding those from irrelevant branches.
+ */
+function getValidMergedPRs(commits) {
+    const mergedPRs = new Set();
+    commits.forEach((commit) => {
+        const author = commit.authorName;
+        if (author === CONST_1.default.OS_BOTIFY) {
+            return;
+        }
+        // Retrieve the PR number from the commit subject,
+        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-(staging|production))/);
+        if (!Array.isArray(match) || match.length < 2) {
+            return;
+        }
+        const pr = Number.parseInt(match[1], 10);
+        if (mergedPRs.has(pr)) {
+            // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
+            // That also means that we don't want to include it in the current checklist, so we remove it now.
+            mergedPRs.delete(pr);
+            return;
+        }
+        mergedPRs.add(pr);
+    });
+    return Array.from(mergedPRs);
+}
+/**
+ * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
+ */
+async function getPullRequestsDeployedBetween(fromTag, toTag, repositoryName) {
+    console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
+    const apiCommitList = await GithubUtils_1.default.getCommitHistoryBetweenTags(fromTag, toTag, repositoryName);
+    const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
+    console.log(`Found ${apiCommitList.length} commits.`);
+    core.startGroup('Parsed PRs:');
+    core.info(apiPullRequestNumbers.join(', '));
+    core.endGroup();
+    return apiPullRequestNumbers;
+}
+exports["default"] = {
+    getPreviousExistingTag,
+    getValidMergedPRs,
+    getPullRequestsDeployedBetween,
+};
 
-    // @ts-expect-error - For some reason TypeScript just don't want to match it, no matter how hard we try. I challenge you to try to remove it!
-    return valuesArray[index];
-  };
+
+/***/ }),
+
+/***/ 9296:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+const core = __importStar(__nccwpck_require__(2186));
+const utils_1 = __nccwpck_require__(3030);
+const plugin_paginate_rest_1 = __nccwpck_require__(4193);
+const plugin_throttling_1 = __nccwpck_require__(9968);
+const request_error_1 = __nccwpck_require__(537);
+const arrayDifference_1 = __importDefault(__nccwpck_require__(7532));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const isEmptyObject_1 = __nccwpck_require__(6497);
+class GithubUtils {
+    static internalOctokit;
+    /**
+     * Initialize internal octokit.
+     * NOTE: When using GithubUtils in CI, you don't need to call this manually.
+     */
+    static initOctokitWithToken(token) {
+        const Octokit = utils_1.GitHub.plugin(plugin_throttling_1.throttling, plugin_paginate_rest_1.paginateRest);
+        // Save a copy of octokit used in this class
+        this.internalOctokit = new Octokit((0, utils_1.getOctokitOptions)(token, {
+            throttle: {
+                retryAfterBaseValue: 2000,
+                onRateLimit: (retryAfter, options) => {
+                    console.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
+                    // Retry five times when hitting a rate limit error, then give up
+                    if (options.request.retryCount <= 5) {
+                        console.log(`Retrying after ${retryAfter} seconds!`);
+                        return true;
+                    }
+                },
+                onAbuseLimit: (retryAfter, options) => {
+                    // does not retry, only logs a warning
+                    console.warn(`Abuse detected for request ${options.method} ${options.url}`);
+                },
+            },
+        }));
+    }
+    /**
+     * Default initialize method assuming running in CI, getting the token from an input.
+     *
+     * @private
+     */
+    static initOctokit() {
+        const token = process.env.GITHUB_TOKEN ?? core.getInput('GITHUB_TOKEN', { required: true });
+        if (!token) {
+            console.error('GitHubUtils could not find GITHUB_TOKEN');
+            process.exit(1);
+        }
+        this.initOctokitWithToken(token);
+    }
+    /**
+     * Either give an existing instance of Octokit rest or create a new one
+     *
+     * @readonly
+     * @static
+     */
+    static get octokit() {
+        if (!this.internalOctokit) {
+            this.initOctokit();
+        }
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        return this.internalOctokit.rest;
+    }
+    /**
+     * Get the graphql instance from internal octokit.
+     * @readonly
+     * @static
+     */
+    static get graphql() {
+        if (!this.internalOctokit) {
+            this.initOctokit();
+        }
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        return this.internalOctokit.graphql;
+    }
+    /**
+     * Either give an existing instance of Octokit paginate or create a new one
+     *
+     * @readonly
+     * @static
+     */
+    static get paginate() {
+        if (!this.internalOctokit) {
+            this.initOctokit();
+        }
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        return this.internalOctokit.paginate;
+    }
+    /**
+     * Finds one open `StagingDeployCash` issue via GitHub octokit library.
+     */
+    static getStagingDeployCash() {
+        return this.octokit.issues
+            .listForRepo({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            labels: CONST_1.default.LABELS.STAGING_DEPLOY,
+            state: 'open',
+        })
+            .then(({ data }) => {
+            if (!data.length) {
+                throw new Error(`Unable to find ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
+            }
+            if (data.length > 1) {
+                throw new Error(`Found more than one ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
+            }
+            const issue = data.at(0);
+            if (!issue) {
+                throw new Error(`Found an undefined ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
+            }
+            return this.getStagingDeployCashData(issue);
+        });
+    }
+    /**
+     * Takes in a GitHub issue object and returns the data we want.
+     */
+    static getStagingDeployCashData(issue) {
+        try {
+            const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
+            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
+            return {
+                title: issue.title,
+                url: issue.url,
+                number: this.getIssueOrPullRequestNumberFromURL(issue.url),
+                labels: issue.labels,
+                PRList: this.getStagingDeployCashPRList(issue),
+                PRListMobileExpensify: this.getStagingDeployCashPRListMobileExpensify(issue),
+                deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
+                internalQAPRList: this.getStagingDeployCashInternalQA(issue),
+                isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
+                isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
+                version,
+                tag: `${version}-staging`,
+            };
+        }
+        catch (exception) {
+            throw new Error(`Unable to find ${CONST_1.default.LABELS.STAGING_DEPLOY} issue with correct data.`);
+        }
+    }
+    /**
+     * Parse the PRList and Internal QA section of the StagingDeployCash issue body.
+     *
+     * @private
+     */
+    static getStagingDeployCashPRList(issue) {
+        let PRListSection = issue.body?.match(/pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n?/) ?? null;
+        if (PRListSection?.length !== 2) {
+            // No PRs, return an empty array
+            console.log('Hmmm...The open StagingDeployCash does not list any pull requests, continuing...');
+            return [];
+        }
+        PRListSection = PRListSection[1];
+        const PRList = [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+            url: match[2],
+            number: Number.parseInt(match[3], 10),
+            isVerified: match[1] === 'x',
+        }));
+        return PRList.sort((a, b) => a.number - b.number);
+    }
+    static getStagingDeployCashPRListMobileExpensify(issue) {
+        let mobileExpensifySection = issue.body?.match(/Mobile-Expensify PRs:\*\*\r?\n((?:-.*\r?\n)+)/) ?? null;
+        if (mobileExpensifySection?.length !== 2) {
+            return [];
+        }
+        mobileExpensifySection = mobileExpensifySection[1];
+        const mobileExpensifyPRs = [...mobileExpensifySection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+            url: match[2],
+            number: Number.parseInt(match[3], 10),
+            isVerified: match[1] === 'x',
+        }));
+        return mobileExpensifyPRs.sort((a, b) => a.number - b.number);
+    }
+    /**
+     * Parse DeployBlocker section of the StagingDeployCash issue body.
+     *
+     * @private
+     */
+    static getStagingDeployCashDeployBlockers(issue) {
+        let deployBlockerSection = issue.body?.match(/Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/) ?? null;
+        if (deployBlockerSection?.length !== 2) {
+            return [];
+        }
+        deployBlockerSection = deployBlockerSection[1];
+        const deployBlockers = [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+            url: match[2],
+            number: Number.parseInt(match[3], 10),
+            isResolved: match[1] === 'x',
+        }));
+        return deployBlockers.sort((a, b) => a.number - b.number);
+    }
+    /**
+     * Parse InternalQA section of the StagingDeployCash issue body.
+     *
+     * @private
+     */
+    static getStagingDeployCashInternalQA(issue) {
+        let internalQASection = issue.body?.match(/Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/) ?? null;
+        if (internalQASection?.length !== 2) {
+            return [];
+        }
+        internalQASection = internalQASection[1];
+        const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+            url: match[2].split('-').at(0)?.trim() ?? '',
+            number: Number.parseInt(match[3], 10),
+            isResolved: match[1] === 'x',
+        }));
+        return internalQAPRs.sort((a, b) => a.number - b.number);
+    }
+    /**
+     * Generate the issue body and assignees for a StagingDeployCash.
+     */
+    static generateStagingDeployCashBodyAndAssignees(tag, PRList, PRListMobileExpensify, verifiedPRList = [], verifiedPRListMobileExpensify = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isFirebaseChecked = false, isGHStatusChecked = false) {
+        return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
+            .then((data) => {
+            const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, isEmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
+            return Promise.all(internalQAPRs.map((pr) => this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => ({ url: pr.html_url, mergerLogin })))).then((results) => {
+                // The format of this map is following:
+                // {
+                //    'https://github.com/Expensify/App/pull/9641': 'PauloGasparSv',
+                //    'https://github.com/Expensify/App/pull/9642': 'mountiny'
+                // }
+                const internalQAPRMap = results.reduce((acc, { url, mergerLogin }) => {
+                    acc[url] = mergerLogin;
+                    return acc;
+                }, {});
+                console.log('Found the following Internal QA PRs:', internalQAPRMap);
+                const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
+                console.log('Found the following NO QA PRs:', noQAPRs);
+                const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs])];
+                const sortedPRList = [...new Set((0, arrayDifference_1.default)(PRList, Object.keys(internalQAPRMap)))].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
+                const sortedPRListMobileExpensify = [...new Set(PRListMobileExpensify)].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
+                const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
+                // Tag version and comparison URL
+                // eslint-disable-next-line max-len
+                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
+                // Add Mobile-Expensify compare link if there are Mobile-Expensify PRs
+                if (sortedPRListMobileExpensify.length > 0) {
+                    issueBody += `**Mobile-Expensify Changes:** https://github.com/${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.MOBILE_EXPENSIFY_REPO}/compare/production...staging\r\n`;
+                }
+                issueBody += '\r\n';
+                // PR list
+                if (sortedPRList.length > 0) {
+                    issueBody += '**This release contains changes from the following pull requests:**\r\n';
+                    sortedPRList.forEach((URL) => {
+                        issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                        issueBody += ` ${URL}\r\n`;
+                    });
+                    issueBody += '\r\n\r\n';
+                }
+                // Mobile-Expensify PR list
+                if (sortedPRListMobileExpensify.length > 0) {
+                    issueBody += '**Mobile-Expensify PRs:**\r\n';
+                    sortedPRListMobileExpensify.forEach((URL) => {
+                        issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                        issueBody += ` ${URL}\r\n`;
+                    });
+                    issueBody += '\r\n\r\n';
+                }
+                // Internal QA PR list
+                if (!(0, isEmptyObject_1.isEmptyObject)(internalQAPRMap)) {
+                    console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
+                    issueBody += '**Internal QA:**\r\n';
+                    Object.keys(internalQAPRMap).forEach((URL) => {
+                        const merger = internalQAPRMap[URL];
+                        const mergerMention = `@${merger}`;
+                        issueBody += `${resolvedInternalQAPRs.includes(URL) ? '- [x]' : '- [ ]'} `;
+                        issueBody += `${URL}`;
+                        issueBody += ` - ${mergerMention}`;
+                        issueBody += '\r\n';
+                    });
+                    issueBody += '\r\n\r\n';
+                }
+                // Deploy blockers
+                if (deployBlockers.length > 0) {
+                    issueBody += '**Deploy Blockers:**\r\n';
+                    sortedDeployBlockers.forEach((URL) => {
+                        issueBody += resolvedDeployBlockers.includes(URL) ? '- [x] ' : '- [ ] ';
+                        issueBody += URL;
+                        issueBody += '\r\n';
+                    });
+                    issueBody += '\r\n\r\n';
+                }
+                issueBody += '**Deployer verifications:**';
+                // eslint-disable-next-line max-len
+                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/ios:com.expensify.expensifylite/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
+                // eslint-disable-next-line max-len
+                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/android:org.me.mobiexpensifyg/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **the previous release version** and verified that the release did not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
+                // eslint-disable-next-line max-len
+                issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
+                issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
+                const issueAssignees = [...new Set(Object.values(internalQAPRMap))];
+                const issue = { issueBody, issueAssignees };
+                return issue;
+            });
+        })
+            .catch((err) => console.warn('Error generating StagingDeployCash issue body! Continuing...', err));
+    }
+    /**
+     * Fetch all pull requests given a list of PR numbers.
+     */
+    static fetchAllPullRequests(pullRequestNumbers) {
+        const oldestPR = pullRequestNumbers.sort((a, b) => a - b).at(0);
+        return this.paginate(this.octokit.pulls.list, {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            state: 'all',
+            sort: 'created',
+            direction: 'desc',
+            per_page: 100,
+        }, ({ data }, done) => {
+            if (data.find((pr) => pr.number === oldestPR)) {
+                done();
+            }
+            return data;
+        })
+            .then((prList) => prList?.filter((pr) => pullRequestNumbers.includes(pr.number)) ?? [])
+            .catch((err) => console.error('Failed to get PR list', err));
+    }
+    static getPullRequestMergerLogin(pullRequestNumber) {
+        return this.octokit.pulls
+            .get({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: pullRequestNumber,
+        })
+            .then(({ data: pullRequest }) => pullRequest.merged_by?.login);
+    }
+    static getPullRequestBody(pullRequestNumber) {
+        return this.octokit.pulls
+            .get({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: pullRequestNumber,
+        })
+            .then(({ data: pullRequestComment }) => pullRequestComment.body);
+    }
+    static getAllReviewComments(pullRequestNumber) {
+        return this.paginate(this.octokit.pulls.listReviews, {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: pullRequestNumber,
+            per_page: 100,
+        }, (response) => response.data.map((review) => review.body));
+    }
+    static getAllComments(issueNumber) {
+        return this.paginate(this.octokit.issues.listComments, {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            issue_number: issueNumber,
+            per_page: 100,
+        }, (response) => response.data.map((comment) => comment.body));
+    }
+    static getAllCommentDetails(issueNumber) {
+        return this.paginate(this.octokit.issues.listComments, {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            issue_number: issueNumber,
+            per_page: 100,
+        }, (response) => response.data);
+    }
+    /**
+     * Create comment on pull request
+     */
+    static createComment(repo, number, messageBody) {
+        console.log(`Writing comment on #${number}`);
+        return this.octokit.issues.createComment({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo,
+            issue_number: number,
+            body: messageBody,
+        });
+    }
+    /**
+     * Get the most recent workflow run for the given New Expensify workflow.
+     */
+    /* eslint-disable rulesdir/no-default-id-values */
+    static getLatestWorkflowRunID(workflow) {
+        console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
+        return this.octokit.actions
+            .listWorkflowRuns({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            workflow_id: workflow,
+        })
+            .then((response) => response.data.workflow_runs.at(0)?.id ?? -1);
+    }
+    /**
+     * List workflow runs for the repository.
+     */
+    static async listWorkflowRunsForRepo(options = {}) {
+        return this.octokit.actions.listWorkflowRunsForRepo({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            per_page: options.per_page ?? 50,
+            ...(options.status && { status: options.status }),
+        });
+    }
+    /**
+     * Generate the URL of an New Expensify pull request given the PR number.
+     */
+    static getPullRequestURLFromNumber(value, repositoryURL) {
+        return `${repositoryURL}/pull/${value}`;
+    }
+    /**
+     * Parse the pull request number from a URL.
+     *
+     * @throws {Error} If the URL is not a valid Github Pull Request.
+     */
+    static getPullRequestNumberFromURL(URL) {
+        const matches = URL.match(CONST_1.default.PULL_REQUEST_REGEX);
+        if (!Array.isArray(matches) || matches.length !== 2) {
+            throw new Error(`Provided URL ${URL} is not a Github Pull Request!`);
+        }
+        return Number.parseInt(matches[1], 10);
+    }
+    /**
+     * Parse the issue number from a URL.
+     *
+     * @throws {Error} If the URL is not a valid Github Issue.
+     */
+    static getIssueNumberFromURL(URL) {
+        const matches = URL.match(CONST_1.default.ISSUE_REGEX);
+        if (!Array.isArray(matches) || matches.length !== 2) {
+            throw new Error(`Provided URL ${URL} is not a Github Issue!`);
+        }
+        return Number.parseInt(matches[1], 10);
+    }
+    /**
+     * Parse the issue or pull request number from a URL.
+     *
+     * @throws {Error} If the URL is not a valid Github Issue or Pull Request.
+     */
+    static getIssueOrPullRequestNumberFromURL(URL) {
+        const matches = URL.match(CONST_1.default.ISSUE_OR_PULL_REQUEST_REGEX);
+        if (!Array.isArray(matches) || matches.length !== 2) {
+            throw new Error(`Provided URL ${URL} is not a valid Github Issue or Pull Request!`);
+        }
+        return Number.parseInt(matches[1], 10);
+    }
+    /**
+     * Return the login of the actor who closed an issue or PR. If the issue is not closed, return an empty string.
+     */
+    static getActorWhoClosedIssue(issueNumber) {
+        return this.paginate(this.octokit.issues.listEvents, {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            issue_number: issueNumber,
+            per_page: 100,
+        })
+            .then((events) => events.filter((event) => event.event === 'closed'))
+            .then((closedEvents) => closedEvents.at(-1)?.actor?.login ?? '');
+    }
+    /**
+     * Returns a single artifact by name. If none is found, it returns undefined.
+     */
+    static getArtifactByName(artifactName) {
+        return this.octokit.actions
+            .listArtifactsForRepo({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            per_page: 1,
+            name: artifactName,
+        })
+            .then((response) => response.data.artifacts.at(0));
+    }
+    /**
+     * Given an artifact ID, returns the download URL to a zip file containing the artifact.
+     */
+    static getArtifactDownloadURL(artifactId) {
+        return this.octokit.actions
+            .downloadArtifact({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            artifact_id: artifactId,
+            archive_format: 'zip',
+        })
+            .then((response) => response.url);
+    }
+    /**
+     * Get the contents of a file from the API at a given ref as a string.
+     */
+    static async getFileContents(path, ref = 'main') {
+        const { data } = await this.octokit.repos.getContent({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            path,
+            ref,
+        });
+        if (Array.isArray(data)) {
+            throw new Error(`Provided path ${path} refers to a directory, not a file`);
+        }
+        if (!('content' in data)) {
+            throw new Error(`Provided path ${path} is invalid`);
+        }
+        return Buffer.from(data.content, 'base64').toString('utf8');
+    }
+    /**
+     * Get commits between two tags via the GitHub API
+     */
+    static async getCommitHistoryBetweenTags(fromTag, toTag, repositoryName) {
+        console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+        core.startGroup('Fetching paginated commits:');
+        try {
+            let allCommits = [];
+            let page = 1;
+            const perPage = 250;
+            let hasMorePages = true;
+            while (hasMorePages) {
+                core.info(`📄 Fetching page ${page} of commits...`);
+                const response = await this.octokit.repos.compareCommits({
+                    owner: CONST_1.default.GITHUB_OWNER,
+                    repo: repositoryName,
+                    base: fromTag,
+                    head: toTag,
+                    per_page: perPage,
+                    page,
+                });
+                // Check if we got a proper response with commits
+                if (response.data?.commits && Array.isArray(response.data.commits)) {
+                    if (page === 1) {
+                        core.info(`📊 Total commits: ${response.data.total_commits ?? 'unknown'}`);
+                    }
+                    core.info(`✅ compareCommits API returned ${response.data.commits.length} commits for page ${page}`);
+                    allCommits = allCommits.concat(response.data.commits);
+                    // Check if we got fewer commits than requested or if we've reached the total
+                    const totalCommits = response.data.total_commits;
+                    if (response.data.commits.length < perPage || (totalCommits && allCommits.length >= totalCommits)) {
+                        hasMorePages = false;
+                    }
+                    else {
+                        page++;
+                    }
+                }
+                else {
+                    core.warning('⚠️ GitHub API returned unexpected response format');
+                    hasMorePages = false;
+                }
+            }
+            core.info(`🎉 Successfully fetched ${allCommits.length} total commits`);
+            core.endGroup();
+            console.log('');
+            return allCommits.map((commit) => ({
+                commit: commit.sha,
+                subject: commit.commit.message,
+                authorName: commit.commit.author?.name ?? 'Unknown',
+            }));
+        }
+        catch (error) {
+            if (error instanceof request_error_1.RequestError && error.status === 404) {
+                core.error(`❓❓ Failed to get commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them.`);
+            }
+            core.endGroup();
+            console.log('');
+            throw error;
+        }
+    }
+}
+exports["default"] = GithubUtils;
+
+
+/***/ }),
+
+/***/ 7532:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+/**
+ * This function is an equivalent of _.difference, it takes two arrays and returns the difference between them.
+ * It returns an array of items that are in the first array but not in the second array.
+ */
+function arrayDifference(array1, array2) {
+    return [array1, array2].reduce((a, b) => a.filter((c) => !b.includes(c)));
+}
+exports["default"] = arrayDifference;
+
+
+/***/ }),
+
+/***/ 6497:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isEmptyObject = isEmptyObject;
+function isEmptyObject(obj) {
+    return Object.keys(obj ?? {}).length === 0;
 }
 
-;// CONCATENATED MODULE: ./node_modules/date-fns/locale/en-US/_lib/localize.js
 
+/***/ }),
 
-const eraValues = {
-  narrow: ["B", "A"],
-  abbreviated: ["BC", "AD"],
-  wide: ["Before Christ", "Anno Domini"],
+/***/ 8982:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = void 0;
+exports.isValidSemverLevel = isValidSemverLevel;
+exports.getPreviousVersion = getPreviousVersion;
+const SEMANTIC_VERSION_LEVELS = {
+    MAJOR: 'MAJOR',
+    MINOR: 'MINOR',
+    PATCH: 'PATCH',
+    BUILD: 'BUILD',
 };
-
-const quarterValues = {
-  narrow: ["1", "2", "3", "4"],
-  abbreviated: ["Q1", "Q2", "Q3", "Q4"],
-  wide: ["1st quarter", "2nd quarter", "3rd quarter", "4th quarter"],
-};
-
-// Note: in English, the names of days of the week and months are capitalized.
-// If you are making a new locale based on this one, check if the same is true for the language you're working on.
-// Generally, formatted dates should look like they are in the middle of a sentence,
-// e.g. in Spanish language the weekdays and months should be in the lowercase.
-const monthValues = {
-  narrow: ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
-  abbreviated: [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ],
-
-  wide: [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ],
-};
-
-const dayValues = {
-  narrow: ["S", "M", "T", "W", "T", "F", "S"],
-  short: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
-  abbreviated: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-  wide: [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ],
-};
-
-const dayPeriodValues = {
-  narrow: {
-    am: "a",
-    pm: "p",
-    midnight: "mi",
-    noon: "n",
-    morning: "morning",
-    afternoon: "afternoon",
-    evening: "evening",
-    night: "night",
-  },
-  abbreviated: {
-    am: "AM",
-    pm: "PM",
-    midnight: "midnight",
-    noon: "noon",
-    morning: "morning",
-    afternoon: "afternoon",
-    evening: "evening",
-    night: "night",
-  },
-  wide: {
-    am: "a.m.",
-    pm: "p.m.",
-    midnight: "midnight",
-    noon: "noon",
-    morning: "morning",
-    afternoon: "afternoon",
-    evening: "evening",
-    night: "night",
-  },
-};
-
-const formattingDayPeriodValues = {
-  narrow: {
-    am: "a",
-    pm: "p",
-    midnight: "mi",
-    noon: "n",
-    morning: "in the morning",
-    afternoon: "in the afternoon",
-    evening: "in the evening",
-    night: "at night",
-  },
-  abbreviated: {
-    am: "AM",
-    pm: "PM",
-    midnight: "midnight",
-    noon: "noon",
-    morning: "in the morning",
-    afternoon: "in the afternoon",
-    evening: "in the evening",
-    night: "at night",
-  },
-  wide: {
-    am: "a.m.",
-    pm: "p.m.",
-    midnight: "midnight",
-    noon: "noon",
-    morning: "in the morning",
-    afternoon: "in the afternoon",
-    evening: "in the evening",
-    night: "at night",
-  },
-};
-
-const ordinalNumber = (dirtyNumber, _options) => {
-  const number = Number(dirtyNumber);
-
-  // If ordinal numbers depend on context, for example,
-  // if they are different for different grammatical genders,
-  // use `options.unit`.
-  //
-  // `unit` can be 'year', 'quarter', 'month', 'week', 'date', 'dayOfYear',
-  // 'day', 'hour', 'minute', 'second'.
-
-  const rem100 = number % 100;
-  if (rem100 > 20 || rem100 < 10) {
-    switch (rem100 % 10) {
-      case 1:
-        return number + "st";
-      case 2:
-        return number + "nd";
-      case 3:
-        return number + "rd";
-    }
-  }
-  return number + "th";
-};
-
-const localize = {
-  ordinalNumber,
-
-  era: buildLocalizeFn({
-    values: eraValues,
-    defaultWidth: "wide",
-  }),
-
-  quarter: buildLocalizeFn({
-    values: quarterValues,
-    defaultWidth: "wide",
-    argumentCallback: (quarter) => quarter - 1,
-  }),
-
-  month: buildLocalizeFn({
-    values: monthValues,
-    defaultWidth: "wide",
-  }),
-
-  day: buildLocalizeFn({
-    values: dayValues,
-    defaultWidth: "wide",
-  }),
-
-  dayPeriod: buildLocalizeFn({
-    values: dayPeriodValues,
-    defaultWidth: "wide",
-    formattingValues: formattingDayPeriodValues,
-    defaultFormattingWidth: "wide",
-  }),
-};
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/locale/_lib/buildMatchFn.js
-function buildMatchFn(args) {
-  return (string, options = {}) => {
-    const width = options.width;
-
-    const matchPattern =
-      (width && args.matchPatterns[width]) ||
-      args.matchPatterns[args.defaultMatchWidth];
-    const matchResult = string.match(matchPattern);
-
-    if (!matchResult) {
-      return null;
-    }
-    const matchedString = matchResult[0];
-
-    const parsePatterns =
-      (width && args.parsePatterns[width]) ||
-      args.parsePatterns[args.defaultParseWidth];
-
-    const key = Array.isArray(parsePatterns)
-      ? findIndex(parsePatterns, (pattern) => pattern.test(matchedString))
-      : // [TODO] -- I challenge you to fix the type
-        findKey(parsePatterns, (pattern) => pattern.test(matchedString));
-
-    let value;
-
-    value = args.valueCallback ? args.valueCallback(key) : key;
-    value = options.valueCallback
-      ? // [TODO] -- I challenge you to fix the type
-        options.valueCallback(value)
-      : value;
-
-    const rest = string.slice(matchedString.length);
-
-    return { value, rest };
-  };
+exports.SEMANTIC_VERSION_LEVELS = SEMANTIC_VERSION_LEVELS;
+const MAX_INCREMENTS = 99;
+exports.MAX_INCREMENTS = MAX_INCREMENTS;
+function isValidSemverLevel(str) {
+    return Object.keys(SEMANTIC_VERSION_LEVELS).includes(str);
 }
-
-function findKey(object, predicate) {
-  for (const key in object) {
-    if (
-      Object.prototype.hasOwnProperty.call(object, key) &&
-      predicate(object[key])
-    ) {
-      return key;
-    }
-  }
-  return undefined;
-}
-
-function findIndex(array, predicate) {
-  for (let key = 0; key < array.length; key++) {
-    if (predicate(array[key])) {
-      return key;
-    }
-  }
-  return undefined;
-}
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/locale/_lib/buildMatchPatternFn.js
-function buildMatchPatternFn(args) {
-  return (string, options = {}) => {
-    const matchResult = string.match(args.matchPattern);
-    if (!matchResult) return null;
-    const matchedString = matchResult[0];
-
-    const parseResult = string.match(args.parsePattern);
-    if (!parseResult) return null;
-    let value = args.valueCallback
-      ? args.valueCallback(parseResult[0])
-      : parseResult[0];
-
-    // [TODO] I challenge you to fix the type
-    value = options.valueCallback ? options.valueCallback(value) : value;
-
-    const rest = string.slice(matchedString.length);
-
-    return { value, rest };
-  };
-}
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/locale/en-US/_lib/match.js
-
-
-
-const matchOrdinalNumberPattern = /^(\d+)(th|st|nd|rd)?/i;
-const parseOrdinalNumberPattern = /\d+/i;
-
-const matchEraPatterns = {
-  narrow: /^(b|a)/i,
-  abbreviated: /^(b\.?\s?c\.?|b\.?\s?c\.?\s?e\.?|a\.?\s?d\.?|c\.?\s?e\.?)/i,
-  wide: /^(before christ|before common era|anno domini|common era)/i,
-};
-const parseEraPatterns = {
-  any: [/^b/i, /^(a|c)/i],
-};
-
-const matchQuarterPatterns = {
-  narrow: /^[1234]/i,
-  abbreviated: /^q[1234]/i,
-  wide: /^[1234](th|st|nd|rd)? quarter/i,
-};
-const parseQuarterPatterns = {
-  any: [/1/i, /2/i, /3/i, /4/i],
-};
-
-const matchMonthPatterns = {
-  narrow: /^[jfmasond]/i,
-  abbreviated: /^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i,
-  wide: /^(january|february|march|april|may|june|july|august|september|october|november|december)/i,
-};
-const parseMonthPatterns = {
-  narrow: [
-    /^j/i,
-    /^f/i,
-    /^m/i,
-    /^a/i,
-    /^m/i,
-    /^j/i,
-    /^j/i,
-    /^a/i,
-    /^s/i,
-    /^o/i,
-    /^n/i,
-    /^d/i,
-  ],
-
-  any: [
-    /^ja/i,
-    /^f/i,
-    /^mar/i,
-    /^ap/i,
-    /^may/i,
-    /^jun/i,
-    /^jul/i,
-    /^au/i,
-    /^s/i,
-    /^o/i,
-    /^n/i,
-    /^d/i,
-  ],
-};
-
-const matchDayPatterns = {
-  narrow: /^[smtwf]/i,
-  short: /^(su|mo|tu|we|th|fr|sa)/i,
-  abbreviated: /^(sun|mon|tue|wed|thu|fri|sat)/i,
-  wide: /^(sunday|monday|tuesday|wednesday|thursday|friday|saturday)/i,
-};
-const parseDayPatterns = {
-  narrow: [/^s/i, /^m/i, /^t/i, /^w/i, /^t/i, /^f/i, /^s/i],
-  any: [/^su/i, /^m/i, /^tu/i, /^w/i, /^th/i, /^f/i, /^sa/i],
-};
-
-const matchDayPeriodPatterns = {
-  narrow: /^(a|p|mi|n|(in the|at) (morning|afternoon|evening|night))/i,
-  any: /^([ap]\.?\s?m\.?|midnight|noon|(in the|at) (morning|afternoon|evening|night))/i,
-};
-const parseDayPeriodPatterns = {
-  any: {
-    am: /^a/i,
-    pm: /^p/i,
-    midnight: /^mi/i,
-    noon: /^no/i,
-    morning: /morning/i,
-    afternoon: /afternoon/i,
-    evening: /evening/i,
-    night: /night/i,
-  },
-};
-
-const match = {
-  ordinalNumber: buildMatchPatternFn({
-    matchPattern: matchOrdinalNumberPattern,
-    parsePattern: parseOrdinalNumberPattern,
-    valueCallback: (value) => parseInt(value, 10),
-  }),
-
-  era: buildMatchFn({
-    matchPatterns: matchEraPatterns,
-    defaultMatchWidth: "wide",
-    parsePatterns: parseEraPatterns,
-    defaultParseWidth: "any",
-  }),
-
-  quarter: buildMatchFn({
-    matchPatterns: matchQuarterPatterns,
-    defaultMatchWidth: "wide",
-    parsePatterns: parseQuarterPatterns,
-    defaultParseWidth: "any",
-    valueCallback: (index) => index + 1,
-  }),
-
-  month: buildMatchFn({
-    matchPatterns: matchMonthPatterns,
-    defaultMatchWidth: "wide",
-    parsePatterns: parseMonthPatterns,
-    defaultParseWidth: "any",
-  }),
-
-  day: buildMatchFn({
-    matchPatterns: matchDayPatterns,
-    defaultMatchWidth: "wide",
-    parsePatterns: parseDayPatterns,
-    defaultParseWidth: "any",
-  }),
-
-  dayPeriod: buildMatchFn({
-    matchPatterns: matchDayPeriodPatterns,
-    defaultMatchWidth: "any",
-    parsePatterns: parseDayPeriodPatterns,
-    defaultParseWidth: "any",
-  }),
-};
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/locale/en-US.js
-
-
-
-
-
-
 /**
- * @category Locales
- * @summary English locale (United States).
- * @language English
- * @iso-639-2 eng
- * @author Sasha Koss [@kossnocorp](https://github.com/kossnocorp)
- * @author Lesha Koss [@leshakoss](https://github.com/leshakoss)
+ * Transforms a versions string into a number
  */
-const enUS = {
-  code: "en-US",
-  formatDistance: formatDistance,
-  formatLong: formatLong,
-  formatRelative: formatRelative,
-  localize: localize,
-  match: match,
-  options: {
-    weekStartsOn: 0 /* Sunday */,
-    firstWeekContainsDate: 1,
-  },
+const getVersionNumberFromString = (versionString) => {
+    const [version, build] = versionString.split('-');
+    const [major, minor, patch] = version.split('.').map((n) => Number(n));
+    return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
 };
+exports.getVersionNumberFromString = getVersionNumberFromString;
+/**
+ * Transforms version numbers components into a version string
+ */
+const getVersionStringFromNumber = (major, minor, patch, build = 0) => `${major}.${minor}.${patch}-${build}`;
+exports.getVersionStringFromNumber = getVersionStringFromNumber;
+/**
+ * Increments a minor version
+ */
+const incrementMinor = (major, minor) => {
+    if (minor < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor + 1, 0, 0);
+    }
+    return getVersionStringFromNumber(major + 1, 0, 0, 0);
+};
+exports.incrementMinor = incrementMinor;
+/**
+ * Increments a Patch version
+ */
+const incrementPatch = (major, minor, patch) => {
+    if (patch < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor, patch + 1, 0);
+    }
+    return incrementMinor(major, minor);
+};
+exports.incrementPatch = incrementPatch;
+/**
+ * Increments a build version
+ */
+const incrementVersion = (version, level) => {
+    const [major, minor, patch, build] = getVersionNumberFromString(version);
+    // Majors will always be incremented
+    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
+        return getVersionStringFromNumber(major + 1, 0, 0, 0);
+    }
+    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
+        return incrementMinor(major, minor);
+    }
+    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
+        return incrementPatch(major, minor, patch);
+    }
+    if (build < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor, patch, build + 1);
+    }
+    return incrementPatch(major, minor, patch);
+};
+exports.incrementVersion = incrementVersion;
+function getPreviousVersion(currentVersion, level) {
+    const [major, minor, patch, build] = getVersionNumberFromString(currentVersion);
+    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
+        if (major === 1) {
+            return getVersionStringFromNumber(1, 0, 0, 0);
+        }
+        return getVersionStringFromNumber(major - 1, 0, 0, 0);
+    }
+    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
+        if (minor === 0) {
+            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MAJOR);
+        }
+        return getVersionStringFromNumber(major, minor - 1, 0, 0);
+    }
+    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
+        if (patch === 0) {
+            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MINOR);
+        }
+        return getVersionStringFromNumber(major, minor, patch - 1, 0);
+    }
+    if (build === 0) {
+        return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.PATCH);
+    }
+    return getVersionStringFromNumber(major, minor, patch, build - 1);
+}
 
-// Fallback for modularized imports:
-/* harmony default export */ const en_US = ((/* unused pure expression or super */ null && (enUS)));
 
-;// CONCATENATED MODULE: ./node_modules/date-fns/_lib/defaultOptions.js
+/***/ }),
+
+/***/ 9491:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("assert");
+
+/***/ }),
+
+/***/ 2081:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("child_process");
+
+/***/ }),
+
+/***/ 6113:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("crypto");
+
+/***/ }),
+
+/***/ 3975:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("encoding");
+
+/***/ }),
+
+/***/ 2361:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("events");
+
+/***/ }),
+
+/***/ 7147:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("fs");
+
+/***/ }),
+
+/***/ 3685:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("http");
+
+/***/ }),
+
+/***/ 5687:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("https");
+
+/***/ }),
+
+/***/ 1808:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("net");
+
+/***/ }),
+
+/***/ 2037:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("os");
+
+/***/ }),
+
+/***/ 1017:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("path");
+
+/***/ }),
+
+/***/ 5477:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("punycode");
+
+/***/ }),
+
+/***/ 2781:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("stream");
+
+/***/ }),
+
+/***/ 4404:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("tls");
+
+/***/ }),
+
+/***/ 7310:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("url");
+
+/***/ }),
+
+/***/ 3837:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("util");
+
+/***/ }),
+
+/***/ 9796:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("zlib");
+
+/***/ }),
+
+/***/ 6411:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+exports.addLeadingZeros = addLeadingZeros;
+function addLeadingZeros(number, targetLength) {
+  const sign = number < 0 ? "-" : "";
+  const output = Math.abs(number).toString().padStart(targetLength, "0");
+  return sign + output;
+}
+
+
+/***/ }),
+
+/***/ 7479:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "defaultLocale", ({
+  enumerable: true,
+  get: function () {
+    return _index.enUS;
+  },
+}));
+var _index = __nccwpck_require__(9425);
+
+
+/***/ }),
+
+/***/ 5586:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+exports.getDefaultOptions = getDefaultOptions;
+exports.setDefaultOptions = setDefaultOptions;
+
 let defaultOptions = {};
 
 function getDefaultOptions() {
@@ -12188,1095 +12888,23 @@ function setDefaultOptions(newOptions) {
   defaultOptions = newOptions;
 }
 
-;// CONCATENATED MODULE: ./node_modules/date-fns/constants.js
-/**
- * @module constants
- * @summary Useful constants
- * @description
- * Collection of useful date constants.
- *
- * The constants could be imported from `date-fns/constants`:
- *
- * ```ts
- * import { maxTime, minTime } from "./constants/date-fns/constants";
- *
- * function isAllowedTime(time) {
- *   return time <= maxTime && time >= minTime;
- * }
- * ```
- */
 
-/**
- * @constant
- * @name daysInWeek
- * @summary Days in 1 week.
- */
-const daysInWeek = 7;
+/***/ }),
 
-/**
- * @constant
- * @name daysInYear
- * @summary Days in 1 year.
- *
- * @description
- * How many days in a year.
- *
- * One years equals 365.2425 days according to the formula:
- *
- * > Leap year occurs every 4 years, except for years that are divisible by 100 and not divisible by 400.
- * > 1 mean year = (365+1/4-1/100+1/400) days = 365.2425 days
- */
-const daysInYear = 365.2425;
+/***/ 6615:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-/**
- * @constant
- * @name maxTime
- * @summary Maximum allowed time.
- *
- * @example
- * import { maxTime } from "./constants/date-fns/constants";
- *
- * const isValid = 8640000000000001 <= maxTime;
- * //=> false
- *
- * new Date(8640000000000001);
- * //=> Invalid Date
- */
-const maxTime = Math.pow(10, 8) * 24 * 60 * 60 * 1000;
+"use strict";
 
-/**
- * @constant
- * @name minTime
- * @summary Minimum allowed time.
- *
- * @example
- * import { minTime } from "./constants/date-fns/constants";
- *
- * const isValid = -8640000000000001 >= minTime;
- * //=> false
- *
- * new Date(-8640000000000001)
- * //=> Invalid Date
- */
-const minTime = -maxTime;
+exports.formatters = void 0;
+var _index = __nccwpck_require__(1412);
+var _index2 = __nccwpck_require__(6703);
+var _index3 = __nccwpck_require__(7131);
+var _index4 = __nccwpck_require__(3080);
+var _index5 = __nccwpck_require__(9116);
 
-/**
- * @constant
- * @name millisecondsInWeek
- * @summary Milliseconds in 1 week.
- */
-const millisecondsInWeek = 604800000;
-
-/**
- * @constant
- * @name millisecondsInDay
- * @summary Milliseconds in 1 day.
- */
-const millisecondsInDay = 86400000;
-
-/**
- * @constant
- * @name millisecondsInMinute
- * @summary Milliseconds in 1 minute
- */
-const millisecondsInMinute = 60000;
-
-/**
- * @constant
- * @name millisecondsInHour
- * @summary Milliseconds in 1 hour
- */
-const millisecondsInHour = 3600000;
-
-/**
- * @constant
- * @name millisecondsInSecond
- * @summary Milliseconds in 1 second
- */
-const millisecondsInSecond = 1000;
-
-/**
- * @constant
- * @name minutesInYear
- * @summary Minutes in 1 year.
- */
-const minutesInYear = 525600;
-
-/**
- * @constant
- * @name minutesInMonth
- * @summary Minutes in 1 month.
- */
-const minutesInMonth = 43200;
-
-/**
- * @constant
- * @name minutesInDay
- * @summary Minutes in 1 day.
- */
-const minutesInDay = 1440;
-
-/**
- * @constant
- * @name minutesInHour
- * @summary Minutes in 1 hour.
- */
-const minutesInHour = 60;
-
-/**
- * @constant
- * @name monthsInQuarter
- * @summary Months in 1 quarter.
- */
-const monthsInQuarter = 3;
-
-/**
- * @constant
- * @name monthsInYear
- * @summary Months in 1 year.
- */
-const monthsInYear = 12;
-
-/**
- * @constant
- * @name quartersInYear
- * @summary Quarters in 1 year
- */
-const quartersInYear = 4;
-
-/**
- * @constant
- * @name secondsInHour
- * @summary Seconds in 1 hour.
- */
-const secondsInHour = 3600;
-
-/**
- * @constant
- * @name secondsInMinute
- * @summary Seconds in 1 minute.
- */
-const secondsInMinute = 60;
-
-/**
- * @constant
- * @name secondsInDay
- * @summary Seconds in 1 day.
- */
-const secondsInDay = secondsInHour * 24;
-
-/**
- * @constant
- * @name secondsInWeek
- * @summary Seconds in 1 week.
- */
-const secondsInWeek = secondsInDay * 7;
-
-/**
- * @constant
- * @name secondsInYear
- * @summary Seconds in 1 year.
- */
-const secondsInYear = secondsInDay * daysInYear;
-
-/**
- * @constant
- * @name secondsInMonth
- * @summary Seconds in 1 month
- */
-const secondsInMonth = secondsInYear / 12;
-
-/**
- * @constant
- * @name secondsInQuarter
- * @summary Seconds in 1 quarter.
- */
-const secondsInQuarter = secondsInMonth * 3;
-
-/**
- * @constant
- * @name constructFromSymbol
- * @summary Symbol enabling Date extensions to inherit properties from the reference date.
- *
- * The symbol is used to enable the `constructFrom` function to construct a date
- * using a reference date and a value. It allows to transfer extra properties
- * from the reference date to the new date. It's useful for extensions like
- * [`TZDate`](https://github.com/date-fns/tz) that accept a time zone as
- * a constructor argument.
- */
-const constructFromSymbol = Symbol.for("constructDateFrom");
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/constructFrom.js
-
-
-/**
- * @name constructFrom
- * @category Generic Helpers
- * @summary Constructs a date using the reference date and the value
- *
- * @description
- * The function constructs a new date using the constructor from the reference
- * date and the given value. It helps to build generic functions that accept
- * date extensions.
- *
- * It defaults to `Date` if the passed reference date is a number or a string.
- *
- * Starting from v3.7.0, it allows to construct a date using `[Symbol.for("constructDateFrom")]`
- * enabling to transfer extra properties from the reference date to the new date.
- * It's useful for extensions like [`TZDate`](https://github.com/date-fns/tz)
- * that accept a time zone as a constructor argument.
- *
- * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
- *
- * @param date - The reference date to take constructor from
- * @param value - The value to create the date
- *
- * @returns Date initialized using the given date and value
- *
- * @example
- * import { constructFrom } from "./constructFrom/date-fns";
- *
- * // A function that clones a date preserving the original type
- * function cloneDate<DateType extends Date>(date: DateType): DateType {
- *   return constructFrom(
- *     date, // Use constructor from the given date
- *     date.getTime() // Use the date value to create a new date
- *   );
- * }
- */
-function constructFrom(date, value) {
-  if (typeof date === "function") return date(value);
-
-  if (date && typeof date === "object" && constructFromSymbol in date)
-    return date[constructFromSymbol](value);
-
-  if (date instanceof Date) return new date.constructor(value);
-
-  return new Date(value);
-}
-
-// Fallback for modularized imports:
-/* harmony default export */ const date_fns_constructFrom = ((/* unused pure expression or super */ null && (constructFrom)));
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/toDate.js
-
-
-/**
- * @name toDate
- * @category Common Helpers
- * @summary Convert the given argument to an instance of Date.
- *
- * @description
- * Convert the given argument to an instance of Date.
- *
- * If the argument is an instance of Date, the function returns its clone.
- *
- * If the argument is a number, it is treated as a timestamp.
- *
- * If the argument is none of the above, the function returns Invalid Date.
- *
- * Starting from v3.7.0, it clones a date using `[Symbol.for("constructDateFrom")]`
- * enabling to transfer extra properties from the reference date to the new date.
- * It's useful for extensions like [`TZDate`](https://github.com/date-fns/tz)
- * that accept a time zone as a constructor argument.
- *
- * **Note**: *all* Date arguments passed to any *date-fns* function is processed by `toDate`.
- *
- * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
- * @typeParam ResultDate - The result `Date` type, it is the type returned from the context function if it is passed, or inferred from the arguments.
- *
- * @param argument - The value to convert
- *
- * @returns The parsed date in the local time zone
- *
- * @example
- * // Clone the date:
- * const result = toDate(new Date(2014, 1, 11, 11, 30, 30))
- * //=> Tue Feb 11 2014 11:30:30
- *
- * @example
- * // Convert the timestamp to date:
- * const result = toDate(1392098430000)
- * //=> Tue Feb 11 2014 11:30:30
- */
-function toDate(argument, context) {
-  // [TODO] Get rid of `toDate` or `constructFrom`?
-  return constructFrom(context || argument, argument);
-}
-
-// Fallback for modularized imports:
-/* harmony default export */ const date_fns_toDate = ((/* unused pure expression or super */ null && (toDate)));
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/_lib/getTimezoneOffsetInMilliseconds.js
-
-
-/**
- * Google Chrome as of 67.0.3396.87 introduced timezones with offset that includes seconds.
- * They usually appear for dates that denote time before the timezones were introduced
- * (e.g. for 'Europe/Prague' timezone the offset is GMT+00:57:44 before 1 October 1891
- * and GMT+01:00:00 after that date)
- *
- * Date#getTimezoneOffset returns the offset in minutes and would return 57 for the example above,
- * which would lead to incorrect calculations.
- *
- * This function returns the timezone offset in milliseconds that takes seconds in account.
- */
-function getTimezoneOffsetInMilliseconds(date) {
-  const _date = toDate(date);
-  const utcDate = new Date(
-    Date.UTC(
-      _date.getFullYear(),
-      _date.getMonth(),
-      _date.getDate(),
-      _date.getHours(),
-      _date.getMinutes(),
-      _date.getSeconds(),
-      _date.getMilliseconds(),
-    ),
-  );
-  utcDate.setUTCFullYear(_date.getFullYear());
-  return +date - +utcDate;
-}
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/_lib/normalizeDates.js
-
-
-function normalizeDates(context, ...dates) {
-  const normalize = constructFrom.bind(
-    null,
-    context || dates.find((date) => typeof date === "object"),
-  );
-  return dates.map(normalize);
-}
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/startOfDay.js
-
-
-/**
- * The {@link startOfDay} function options.
- */
-
-/**
- * @name startOfDay
- * @category Day Helpers
- * @summary Return the start of a day for the given date.
- *
- * @description
- * Return the start of a day for the given date.
- * The result will be in the local timezone.
- *
- * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
- * @typeParam ResultDate - The result `Date` type, it is the type returned from the context function if it is passed, or inferred from the arguments.
- *
- * @param date - The original date
- * @param options - The options
- *
- * @returns The start of a day
- *
- * @example
- * // The start of a day for 2 September 2014 11:55:00:
- * const result = startOfDay(new Date(2014, 8, 2, 11, 55, 0))
- * //=> Tue Sep 02 2014 00:00:00
- */
-function startOfDay(date, options) {
-  const _date = toDate(date, options?.in);
-  _date.setHours(0, 0, 0, 0);
-  return _date;
-}
-
-// Fallback for modularized imports:
-/* harmony default export */ const date_fns_startOfDay = ((/* unused pure expression or super */ null && (startOfDay)));
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/differenceInCalendarDays.js
-
-
-
-
-
-/**
- * The {@link differenceInCalendarDays} function options.
- */
-
-/**
- * @name differenceInCalendarDays
- * @category Day Helpers
- * @summary Get the number of calendar days between the given dates.
- *
- * @description
- * Get the number of calendar days between the given dates. This means that the times are removed
- * from the dates and then the difference in days is calculated.
- *
- * @param laterDate - The later date
- * @param earlierDate - The earlier date
- * @param options - The options object
- *
- * @returns The number of calendar days
- *
- * @example
- * // How many calendar days are between
- * // 2 July 2011 23:00:00 and 2 July 2012 00:00:00?
- * const result = differenceInCalendarDays(
- *   new Date(2012, 6, 2, 0, 0),
- *   new Date(2011, 6, 2, 23, 0)
- * )
- * //=> 366
- * // How many calendar days are between
- * // 2 July 2011 23:59:00 and 3 July 2011 00:01:00?
- * const result = differenceInCalendarDays(
- *   new Date(2011, 6, 3, 0, 1),
- *   new Date(2011, 6, 2, 23, 59)
- * )
- * //=> 1
- */
-function differenceInCalendarDays(laterDate, earlierDate, options) {
-  const [laterDate_, earlierDate_] = normalizeDates(
-    options?.in,
-    laterDate,
-    earlierDate,
-  );
-
-  const laterStartOfDay = startOfDay(laterDate_);
-  const earlierStartOfDay = startOfDay(earlierDate_);
-
-  const laterTimestamp =
-    +laterStartOfDay - getTimezoneOffsetInMilliseconds(laterStartOfDay);
-  const earlierTimestamp =
-    +earlierStartOfDay - getTimezoneOffsetInMilliseconds(earlierStartOfDay);
-
-  // Round the number of days to the nearest integer because the number of
-  // milliseconds in a day is not constant (e.g. it's different in the week of
-  // the daylight saving time clock shift).
-  return Math.round((laterTimestamp - earlierTimestamp) / millisecondsInDay);
-}
-
-// Fallback for modularized imports:
-/* harmony default export */ const date_fns_differenceInCalendarDays = ((/* unused pure expression or super */ null && (differenceInCalendarDays)));
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/startOfYear.js
-
-
-/**
- * The {@link startOfYear} function options.
- */
-
-/**
- * @name startOfYear
- * @category Year Helpers
- * @summary Return the start of a year for the given date.
- *
- * @description
- * Return the start of a year for the given date.
- * The result will be in the local timezone.
- *
- * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
- * @typeParam ResultDate - The result `Date` type, it is the type returned from the context function if it is passed, or inferred from the arguments.
- *
- * @param date - The original date
- * @param options - The options
- *
- * @returns The start of a year
- *
- * @example
- * // The start of a year for 2 September 2014 11:55:00:
- * const result = startOfYear(new Date(2014, 8, 2, 11, 55, 00))
- * //=> Wed Jan 01 2014 00:00:00
- */
-function startOfYear(date, options) {
-  const date_ = toDate(date, options?.in);
-  date_.setFullYear(date_.getFullYear(), 0, 1);
-  date_.setHours(0, 0, 0, 0);
-  return date_;
-}
-
-// Fallback for modularized imports:
-/* harmony default export */ const date_fns_startOfYear = ((/* unused pure expression or super */ null && (startOfYear)));
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/getDayOfYear.js
-
-
-
-
-/**
- * The {@link getDayOfYear} function options.
- */
-
-/**
- * @name getDayOfYear
- * @category Day Helpers
- * @summary Get the day of the year of the given date.
- *
- * @description
- * Get the day of the year of the given date.
- *
- * @param date - The given date
- * @param options - The options
- *
- * @returns The day of year
- *
- * @example
- * // Which day of the year is 2 July 2014?
- * const result = getDayOfYear(new Date(2014, 6, 2))
- * //=> 183
- */
-function getDayOfYear(date, options) {
-  const _date = toDate(date, options?.in);
-  const diff = differenceInCalendarDays(_date, startOfYear(_date));
-  const dayOfYear = diff + 1;
-  return dayOfYear;
-}
-
-// Fallback for modularized imports:
-/* harmony default export */ const date_fns_getDayOfYear = ((/* unused pure expression or super */ null && (getDayOfYear)));
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/startOfWeek.js
-
-
-
-/**
- * The {@link startOfWeek} function options.
- */
-
-/**
- * @name startOfWeek
- * @category Week Helpers
- * @summary Return the start of a week for the given date.
- *
- * @description
- * Return the start of a week for the given date.
- * The result will be in the local timezone.
- *
- * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
- * @typeParam ResultDate - The result `Date` type, it is the type returned from the context function if it is passed, or inferred from the arguments.
- *
- * @param date - The original date
- * @param options - An object with options
- *
- * @returns The start of a week
- *
- * @example
- * // The start of a week for 2 September 2014 11:55:00:
- * const result = startOfWeek(new Date(2014, 8, 2, 11, 55, 0))
- * //=> Sun Aug 31 2014 00:00:00
- *
- * @example
- * // If the week starts on Monday, the start of the week for 2 September 2014 11:55:00:
- * const result = startOfWeek(new Date(2014, 8, 2, 11, 55, 0), { weekStartsOn: 1 })
- * //=> Mon Sep 01 2014 00:00:00
- */
-function startOfWeek(date, options) {
-  const defaultOptions = getDefaultOptions();
-  const weekStartsOn =
-    options?.weekStartsOn ??
-    options?.locale?.options?.weekStartsOn ??
-    defaultOptions.weekStartsOn ??
-    defaultOptions.locale?.options?.weekStartsOn ??
-    0;
-
-  const _date = toDate(date, options?.in);
-  const day = _date.getDay();
-  const diff = (day < weekStartsOn ? 7 : 0) + day - weekStartsOn;
-
-  _date.setDate(_date.getDate() - diff);
-  _date.setHours(0, 0, 0, 0);
-  return _date;
-}
-
-// Fallback for modularized imports:
-/* harmony default export */ const date_fns_startOfWeek = ((/* unused pure expression or super */ null && (startOfWeek)));
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/startOfISOWeek.js
-
-
-/**
- * The {@link startOfISOWeek} function options.
- */
-
-/**
- * @name startOfISOWeek
- * @category ISO Week Helpers
- * @summary Return the start of an ISO week for the given date.
- *
- * @description
- * Return the start of an ISO week for the given date.
- * The result will be in the local timezone.
- *
- * ISO week-numbering year: http://en.wikipedia.org/wiki/ISO_week_date
- *
- * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
- * @typeParam ResultDate - The result `Date` type, it is the type returned from the context function if it is passed, or inferred from the arguments.
- *
- * @param date - The original date
- * @param options - An object with options
- *
- * @returns The start of an ISO week
- *
- * @example
- * // The start of an ISO week for 2 September 2014 11:55:00:
- * const result = startOfISOWeek(new Date(2014, 8, 2, 11, 55, 0))
- * //=> Mon Sep 01 2014 00:00:00
- */
-function startOfISOWeek(date, options) {
-  return startOfWeek(date, { ...options, weekStartsOn: 1 });
-}
-
-// Fallback for modularized imports:
-/* harmony default export */ const date_fns_startOfISOWeek = ((/* unused pure expression or super */ null && (startOfISOWeek)));
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/getISOWeekYear.js
-
-
-
-
-/**
- * The {@link getISOWeekYear} function options.
- */
-
-/**
- * @name getISOWeekYear
- * @category ISO Week-Numbering Year Helpers
- * @summary Get the ISO week-numbering year of the given date.
- *
- * @description
- * Get the ISO week-numbering year of the given date,
- * which always starts 3 days before the year's first Thursday.
- *
- * ISO week-numbering year: http://en.wikipedia.org/wiki/ISO_week_date
- *
- * @param date - The given date
- *
- * @returns The ISO week-numbering year
- *
- * @example
- * // Which ISO-week numbering year is 2 January 2005?
- * const result = getISOWeekYear(new Date(2005, 0, 2))
- * //=> 2004
- */
-function getISOWeekYear(date, options) {
-  const _date = toDate(date, options?.in);
-  const year = _date.getFullYear();
-
-  const fourthOfJanuaryOfNextYear = constructFrom(_date, 0);
-  fourthOfJanuaryOfNextYear.setFullYear(year + 1, 0, 4);
-  fourthOfJanuaryOfNextYear.setHours(0, 0, 0, 0);
-  const startOfNextYear = startOfISOWeek(fourthOfJanuaryOfNextYear);
-
-  const fourthOfJanuaryOfThisYear = constructFrom(_date, 0);
-  fourthOfJanuaryOfThisYear.setFullYear(year, 0, 4);
-  fourthOfJanuaryOfThisYear.setHours(0, 0, 0, 0);
-  const startOfThisYear = startOfISOWeek(fourthOfJanuaryOfThisYear);
-
-  if (_date.getTime() >= startOfNextYear.getTime()) {
-    return year + 1;
-  } else if (_date.getTime() >= startOfThisYear.getTime()) {
-    return year;
-  } else {
-    return year - 1;
-  }
-}
-
-// Fallback for modularized imports:
-/* harmony default export */ const date_fns_getISOWeekYear = ((/* unused pure expression or super */ null && (getISOWeekYear)));
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/startOfISOWeekYear.js
-
-
-
-
-/**
- * The {@link startOfISOWeekYear} function options.
- */
-
-/**
- * @name startOfISOWeekYear
- * @category ISO Week-Numbering Year Helpers
- * @summary Return the start of an ISO week-numbering year for the given date.
- *
- * @description
- * Return the start of an ISO week-numbering year,
- * which always starts 3 days before the year's first Thursday.
- * The result will be in the local timezone.
- *
- * ISO week-numbering year: http://en.wikipedia.org/wiki/ISO_week_date
- *
- * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
- * @typeParam ResultDate - The result `Date` type, it is the type returned from the context function if it is passed, or inferred from the arguments.
- *
- * @param date - The original date
- * @param options - An object with options
- *
- * @returns The start of an ISO week-numbering year
- *
- * @example
- * // The start of an ISO week-numbering year for 2 July 2005:
- * const result = startOfISOWeekYear(new Date(2005, 6, 2))
- * //=> Mon Jan 03 2005 00:00:00
- */
-function startOfISOWeekYear(date, options) {
-  const year = getISOWeekYear(date, options);
-  const fourthOfJanuary = constructFrom(options?.in || date, 0);
-  fourthOfJanuary.setFullYear(year, 0, 4);
-  fourthOfJanuary.setHours(0, 0, 0, 0);
-  return startOfISOWeek(fourthOfJanuary);
-}
-
-// Fallback for modularized imports:
-/* harmony default export */ const date_fns_startOfISOWeekYear = ((/* unused pure expression or super */ null && (startOfISOWeekYear)));
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/getISOWeek.js
-
-
-
-
-
-/**
- * The {@link getISOWeek} function options.
- */
-
-/**
- * @name getISOWeek
- * @category ISO Week Helpers
- * @summary Get the ISO week of the given date.
- *
- * @description
- * Get the ISO week of the given date.
- *
- * ISO week-numbering year: http://en.wikipedia.org/wiki/ISO_week_date
- *
- * @param date - The given date
- * @param options - The options
- *
- * @returns The ISO week
- *
- * @example
- * // Which week of the ISO-week numbering year is 2 January 2005?
- * const result = getISOWeek(new Date(2005, 0, 2))
- * //=> 53
- */
-function getISOWeek(date, options) {
-  const _date = toDate(date, options?.in);
-  const diff = +startOfISOWeek(_date) - +startOfISOWeekYear(_date);
-
-  // Round the number of weeks to the nearest integer because the number of
-  // milliseconds in a week is not constant (e.g. it's different in the week of
-  // the daylight saving time clock shift).
-  return Math.round(diff / millisecondsInWeek) + 1;
-}
-
-// Fallback for modularized imports:
-/* harmony default export */ const date_fns_getISOWeek = ((/* unused pure expression or super */ null && (getISOWeek)));
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/getWeekYear.js
-
-
-
-
-
-/**
- * The {@link getWeekYear} function options.
- */
-
-/**
- * @name getWeekYear
- * @category Week-Numbering Year Helpers
- * @summary Get the local week-numbering year of the given date.
- *
- * @description
- * Get the local week-numbering year of the given date.
- * The exact calculation depends on the values of
- * `options.weekStartsOn` (which is the index of the first day of the week)
- * and `options.firstWeekContainsDate` (which is the day of January, which is always in
- * the first week of the week-numbering year)
- *
- * Week numbering: https://en.wikipedia.org/wiki/Week#The_ISO_week_date_system
- *
- * @param date - The given date
- * @param options - An object with options.
- *
- * @returns The local week-numbering year
- *
- * @example
- * // Which week numbering year is 26 December 2004 with the default settings?
- * const result = getWeekYear(new Date(2004, 11, 26))
- * //=> 2005
- *
- * @example
- * // Which week numbering year is 26 December 2004 if week starts on Saturday?
- * const result = getWeekYear(new Date(2004, 11, 26), { weekStartsOn: 6 })
- * //=> 2004
- *
- * @example
- * // Which week numbering year is 26 December 2004 if the first week contains 4 January?
- * const result = getWeekYear(new Date(2004, 11, 26), { firstWeekContainsDate: 4 })
- * //=> 2004
- */
-function getWeekYear(date, options) {
-  const _date = toDate(date, options?.in);
-  const year = _date.getFullYear();
-
-  const defaultOptions = getDefaultOptions();
-  const firstWeekContainsDate =
-    options?.firstWeekContainsDate ??
-    options?.locale?.options?.firstWeekContainsDate ??
-    defaultOptions.firstWeekContainsDate ??
-    defaultOptions.locale?.options?.firstWeekContainsDate ??
-    1;
-
-  const firstWeekOfNextYear = constructFrom(options?.in || date, 0);
-  firstWeekOfNextYear.setFullYear(year + 1, 0, firstWeekContainsDate);
-  firstWeekOfNextYear.setHours(0, 0, 0, 0);
-  const startOfNextYear = startOfWeek(firstWeekOfNextYear, options);
-
-  const firstWeekOfThisYear = constructFrom(options?.in || date, 0);
-  firstWeekOfThisYear.setFullYear(year, 0, firstWeekContainsDate);
-  firstWeekOfThisYear.setHours(0, 0, 0, 0);
-  const startOfThisYear = startOfWeek(firstWeekOfThisYear, options);
-
-  if (+_date >= +startOfNextYear) {
-    return year + 1;
-  } else if (+_date >= +startOfThisYear) {
-    return year;
-  } else {
-    return year - 1;
-  }
-}
-
-// Fallback for modularized imports:
-/* harmony default export */ const date_fns_getWeekYear = ((/* unused pure expression or super */ null && (getWeekYear)));
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/startOfWeekYear.js
-
-
-
-
-
-/**
- * The {@link startOfWeekYear} function options.
- */
-
-/**
- * @name startOfWeekYear
- * @category Week-Numbering Year Helpers
- * @summary Return the start of a local week-numbering year for the given date.
- *
- * @description
- * Return the start of a local week-numbering year.
- * The exact calculation depends on the values of
- * `options.weekStartsOn` (which is the index of the first day of the week)
- * and `options.firstWeekContainsDate` (which is the day of January, which is always in
- * the first week of the week-numbering year)
- *
- * Week numbering: https://en.wikipedia.org/wiki/Week#The_ISO_week_date_system
- *
- * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
- * @typeParam ResultDate - The result `Date` type.
- *
- * @param date - The original date
- * @param options - An object with options
- *
- * @returns The start of a week-numbering year
- *
- * @example
- * // The start of an a week-numbering year for 2 July 2005 with default settings:
- * const result = startOfWeekYear(new Date(2005, 6, 2))
- * //=> Sun Dec 26 2004 00:00:00
- *
- * @example
- * // The start of a week-numbering year for 2 July 2005
- * // if Monday is the first day of week
- * // and 4 January is always in the first week of the year:
- * const result = startOfWeekYear(new Date(2005, 6, 2), {
- *   weekStartsOn: 1,
- *   firstWeekContainsDate: 4
- * })
- * //=> Mon Jan 03 2005 00:00:00
- */
-function startOfWeekYear(date, options) {
-  const defaultOptions = getDefaultOptions();
-  const firstWeekContainsDate =
-    options?.firstWeekContainsDate ??
-    options?.locale?.options?.firstWeekContainsDate ??
-    defaultOptions.firstWeekContainsDate ??
-    defaultOptions.locale?.options?.firstWeekContainsDate ??
-    1;
-
-  const year = getWeekYear(date, options);
-  const firstWeek = constructFrom(options?.in || date, 0);
-  firstWeek.setFullYear(year, 0, firstWeekContainsDate);
-  firstWeek.setHours(0, 0, 0, 0);
-  const _date = startOfWeek(firstWeek, options);
-  return _date;
-}
-
-// Fallback for modularized imports:
-/* harmony default export */ const date_fns_startOfWeekYear = ((/* unused pure expression or super */ null && (startOfWeekYear)));
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/getWeek.js
-
-
-
-
-
-/**
- * The {@link getWeek} function options.
- */
-
-/**
- * @name getWeek
- * @category Week Helpers
- * @summary Get the local week index of the given date.
- *
- * @description
- * Get the local week index of the given date.
- * The exact calculation depends on the values of
- * `options.weekStartsOn` (which is the index of the first day of the week)
- * and `options.firstWeekContainsDate` (which is the day of January, which is always in
- * the first week of the week-numbering year)
- *
- * Week numbering: https://en.wikipedia.org/wiki/Week#The_ISO_week_date_system
- *
- * @param date - The given date
- * @param options - An object with options
- *
- * @returns The week
- *
- * @example
- * // Which week of the local week numbering year is 2 January 2005 with default options?
- * const result = getWeek(new Date(2005, 0, 2))
- * //=> 2
- *
- * @example
- * // Which week of the local week numbering year is 2 January 2005,
- * // if Monday is the first day of the week,
- * // and the first week of the year always contains 4 January?
- * const result = getWeek(new Date(2005, 0, 2), {
- *   weekStartsOn: 1,
- *   firstWeekContainsDate: 4
- * })
- * //=> 53
- */
-function getWeek(date, options) {
-  const _date = toDate(date, options?.in);
-  const diff = +startOfWeek(_date, options) - +startOfWeekYear(_date, options);
-
-  // Round the number of weeks to the nearest integer because the number of
-  // milliseconds in a week is not constant (e.g. it's different in the week of
-  // the daylight saving time clock shift).
-  return Math.round(diff / millisecondsInWeek) + 1;
-}
-
-// Fallback for modularized imports:
-/* harmony default export */ const date_fns_getWeek = ((/* unused pure expression or super */ null && (getWeek)));
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/_lib/addLeadingZeros.js
-function addLeadingZeros(number, targetLength) {
-  const sign = number < 0 ? "-" : "";
-  const output = Math.abs(number).toString().padStart(targetLength, "0");
-  return sign + output;
-}
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/_lib/format/lightFormatters.js
-
-
-/*
- * |     | Unit                           |     | Unit                           |
- * |-----|--------------------------------|-----|--------------------------------|
- * |  a  | AM, PM                         |  A* |                                |
- * |  d  | Day of month                   |  D  |                                |
- * |  h  | Hour [1-12]                    |  H  | Hour [0-23]                    |
- * |  m  | Minute                         |  M  | Month                          |
- * |  s  | Second                         |  S  | Fraction of second             |
- * |  y  | Year (abs)                     |  Y  |                                |
- *
- * Letters marked by * are not implemented but reserved by Unicode standard.
- */
-
-const lightFormatters = {
-  // Year
-  y(date, token) {
-    // From http://www.unicode.org/reports/tr35/tr35-31/tr35-dates.html#Date_Format_tokens
-    // | Year     |     y | yy |   yyy |  yyyy | yyyyy |
-    // |----------|-------|----|-------|-------|-------|
-    // | AD 1     |     1 | 01 |   001 |  0001 | 00001 |
-    // | AD 12    |    12 | 12 |   012 |  0012 | 00012 |
-    // | AD 123   |   123 | 23 |   123 |  0123 | 00123 |
-    // | AD 1234  |  1234 | 34 |  1234 |  1234 | 01234 |
-    // | AD 12345 | 12345 | 45 | 12345 | 12345 | 12345 |
-
-    const signedYear = date.getFullYear();
-    // Returns 1 for 1 BC (which is year 0 in JavaScript)
-    const year = signedYear > 0 ? signedYear : 1 - signedYear;
-    return addLeadingZeros(token === "yy" ? year % 100 : year, token.length);
-  },
-
-  // Month
-  M(date, token) {
-    const month = date.getMonth();
-    return token === "M" ? String(month + 1) : addLeadingZeros(month + 1, 2);
-  },
-
-  // Day of the month
-  d(date, token) {
-    return addLeadingZeros(date.getDate(), token.length);
-  },
-
-  // AM or PM
-  a(date, token) {
-    const dayPeriodEnumValue = date.getHours() / 12 >= 1 ? "pm" : "am";
-
-    switch (token) {
-      case "a":
-      case "aa":
-        return dayPeriodEnumValue.toUpperCase();
-      case "aaa":
-        return dayPeriodEnumValue;
-      case "aaaaa":
-        return dayPeriodEnumValue[0];
-      case "aaaa":
-      default:
-        return dayPeriodEnumValue === "am" ? "a.m." : "p.m.";
-    }
-  },
-
-  // Hour [1-12]
-  h(date, token) {
-    return addLeadingZeros(date.getHours() % 12 || 12, token.length);
-  },
-
-  // Hour [0-23]
-  H(date, token) {
-    return addLeadingZeros(date.getHours(), token.length);
-  },
-
-  // Minute
-  m(date, token) {
-    return addLeadingZeros(date.getMinutes(), token.length);
-  },
-
-  // Second
-  s(date, token) {
-    return addLeadingZeros(date.getSeconds(), token.length);
-  },
-
-  // Fraction of second
-  S(date, token) {
-    const numberOfDigits = token.length;
-    const milliseconds = date.getMilliseconds();
-    const fractionalSeconds = Math.trunc(
-      milliseconds * Math.pow(10, numberOfDigits - 3),
-    );
-    return addLeadingZeros(fractionalSeconds, token.length);
-  },
-};
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/_lib/format/formatters.js
-
-
-
-
-
-
-
-
+var _index6 = __nccwpck_require__(6411);
+var _index7 = __nccwpck_require__(8914);
 
 const dayPeriodEnum = {
   am: "am",
@@ -13335,7 +12963,7 @@ const dayPeriodEnum = {
  * - `p` is long localized time format
  */
 
-const formatters = {
+const formatters = (exports.formatters = {
   // Era
   G: function (date, token, localize) {
     const era = date.getFullYear() > 0 ? 1 : 0;
@@ -13365,19 +12993,19 @@ const formatters = {
       return localize.ordinalNumber(year, { unit: "year" });
     }
 
-    return lightFormatters.y(date, token);
+    return _index7.lightFormatters.y(date, token);
   },
 
   // Local week-numbering year
   Y: function (date, token, localize, options) {
-    const signedWeekYear = getWeekYear(date, options);
+    const signedWeekYear = (0, _index5.getWeekYear)(date, options);
     // Returns 1 for 1 BC (which is year 0 in JavaScript)
     const weekYear = signedWeekYear > 0 ? signedWeekYear : 1 - signedWeekYear;
 
     // Two digit year
     if (token === "YY") {
       const twoDigitYear = weekYear % 100;
-      return addLeadingZeros(twoDigitYear, 2);
+      return (0, _index6.addLeadingZeros)(twoDigitYear, 2);
     }
 
     // Ordinal number
@@ -13386,15 +13014,15 @@ const formatters = {
     }
 
     // Padding
-    return addLeadingZeros(weekYear, token.length);
+    return (0, _index6.addLeadingZeros)(weekYear, token.length);
   },
 
   // ISO week-numbering year
   R: function (date, token) {
-    const isoWeekYear = getISOWeekYear(date);
+    const isoWeekYear = (0, _index3.getISOWeekYear)(date);
 
     // Padding
-    return addLeadingZeros(isoWeekYear, token.length);
+    return (0, _index6.addLeadingZeros)(isoWeekYear, token.length);
   },
 
   // Extended year. This is a single number designating the year of this calendar system.
@@ -13408,7 +13036,7 @@ const formatters = {
   // while `uu` pads single digit years to 2 characters and returns other years unchanged.
   u: function (date, token) {
     const year = date.getFullYear();
-    return addLeadingZeros(year, token.length);
+    return (0, _index6.addLeadingZeros)(year, token.length);
   },
 
   // Quarter
@@ -13420,7 +13048,7 @@ const formatters = {
         return String(quarter);
       // 01, 02, 03, 04
       case "QQ":
-        return addLeadingZeros(quarter, 2);
+        return (0, _index6.addLeadingZeros)(quarter, 2);
       // 1st, 2nd, 3rd, 4th
       case "Qo":
         return localize.ordinalNumber(quarter, { unit: "quarter" });
@@ -13455,7 +13083,7 @@ const formatters = {
         return String(quarter);
       // 01, 02, 03, 04
       case "qq":
-        return addLeadingZeros(quarter, 2);
+        return (0, _index6.addLeadingZeros)(quarter, 2);
       // 1st, 2nd, 3rd, 4th
       case "qo":
         return localize.ordinalNumber(quarter, { unit: "quarter" });
@@ -13487,7 +13115,7 @@ const formatters = {
     switch (token) {
       case "M":
       case "MM":
-        return lightFormatters.M(date, token);
+        return _index7.lightFormatters.M(date, token);
       // 1st, 2nd, ..., 12th
       case "Mo":
         return localize.ordinalNumber(month + 1, { unit: "month" });
@@ -13519,7 +13147,7 @@ const formatters = {
         return String(month + 1);
       // 01, 02, ..., 12
       case "LL":
-        return addLeadingZeros(month + 1, 2);
+        return (0, _index6.addLeadingZeros)(month + 1, 2);
       // 1st, 2nd, ..., 12th
       case "Lo":
         return localize.ordinalNumber(month + 1, { unit: "month" });
@@ -13544,24 +13172,24 @@ const formatters = {
 
   // Local week of year
   w: function (date, token, localize, options) {
-    const week = getWeek(date, options);
+    const week = (0, _index4.getWeek)(date, options);
 
     if (token === "wo") {
       return localize.ordinalNumber(week, { unit: "week" });
     }
 
-    return addLeadingZeros(week, token.length);
+    return (0, _index6.addLeadingZeros)(week, token.length);
   },
 
   // ISO week of year
   I: function (date, token, localize) {
-    const isoWeek = getISOWeek(date);
+    const isoWeek = (0, _index2.getISOWeek)(date);
 
     if (token === "Io") {
       return localize.ordinalNumber(isoWeek, { unit: "week" });
     }
 
-    return addLeadingZeros(isoWeek, token.length);
+    return (0, _index6.addLeadingZeros)(isoWeek, token.length);
   },
 
   // Day of the month
@@ -13570,18 +13198,18 @@ const formatters = {
       return localize.ordinalNumber(date.getDate(), { unit: "date" });
     }
 
-    return lightFormatters.d(date, token);
+    return _index7.lightFormatters.d(date, token);
   },
 
   // Day of year
   D: function (date, token, localize) {
-    const dayOfYear = getDayOfYear(date);
+    const dayOfYear = (0, _index.getDayOfYear)(date);
 
     if (token === "Do") {
       return localize.ordinalNumber(dayOfYear, { unit: "dayOfYear" });
     }
 
-    return addLeadingZeros(dayOfYear, token.length);
+    return (0, _index6.addLeadingZeros)(dayOfYear, token.length);
   },
 
   // Day of week
@@ -13628,7 +13256,7 @@ const formatters = {
         return String(localDayOfWeek);
       // Padded numerical value
       case "ee":
-        return addLeadingZeros(localDayOfWeek, 2);
+        return (0, _index6.addLeadingZeros)(localDayOfWeek, 2);
       // 1st, 2nd, ..., 7th
       case "eo":
         return localize.ordinalNumber(localDayOfWeek, { unit: "day" });
@@ -13669,7 +13297,7 @@ const formatters = {
         return String(localDayOfWeek);
       // Padded numerical value
       case "cc":
-        return addLeadingZeros(localDayOfWeek, token.length);
+        return (0, _index6.addLeadingZeros)(localDayOfWeek, token.length);
       // 1st, 2nd, ..., 7th
       case "co":
         return localize.ordinalNumber(localDayOfWeek, { unit: "day" });
@@ -13710,7 +13338,7 @@ const formatters = {
         return String(isoDayOfWeek);
       // 02
       case "ii":
-        return addLeadingZeros(isoDayOfWeek, token.length);
+        return (0, _index6.addLeadingZeros)(isoDayOfWeek, token.length);
       // 2nd
       case "io":
         return localize.ordinalNumber(isoDayOfWeek, { unit: "day" });
@@ -13859,7 +13487,7 @@ const formatters = {
       return localize.ordinalNumber(hours, { unit: "hour" });
     }
 
-    return lightFormatters.h(date, token);
+    return _index7.lightFormatters.h(date, token);
   },
 
   // Hour [0-23]
@@ -13868,7 +13496,7 @@ const formatters = {
       return localize.ordinalNumber(date.getHours(), { unit: "hour" });
     }
 
-    return lightFormatters.H(date, token);
+    return _index7.lightFormatters.H(date, token);
   },
 
   // Hour [0-11]
@@ -13879,7 +13507,7 @@ const formatters = {
       return localize.ordinalNumber(hours, { unit: "hour" });
     }
 
-    return addLeadingZeros(hours, token.length);
+    return (0, _index6.addLeadingZeros)(hours, token.length);
   },
 
   // Hour [1-24]
@@ -13891,7 +13519,7 @@ const formatters = {
       return localize.ordinalNumber(hours, { unit: "hour" });
     }
 
-    return addLeadingZeros(hours, token.length);
+    return (0, _index6.addLeadingZeros)(hours, token.length);
   },
 
   // Minute
@@ -13900,7 +13528,7 @@ const formatters = {
       return localize.ordinalNumber(date.getMinutes(), { unit: "minute" });
     }
 
-    return lightFormatters.m(date, token);
+    return _index7.lightFormatters.m(date, token);
   },
 
   // Second
@@ -13909,12 +13537,12 @@ const formatters = {
       return localize.ordinalNumber(date.getSeconds(), { unit: "second" });
     }
 
-    return lightFormatters.s(date, token);
+    return _index7.lightFormatters.s(date, token);
   },
 
   // Fraction of second
   S: function (date, token) {
-    return lightFormatters.S(date, token);
+    return _index7.lightFormatters.S(date, token);
   },
 
   // Timezone (ISO-8601. If offset is 0, output is always `'Z'`)
@@ -14010,14 +13638,14 @@ const formatters = {
   // Seconds timestamp
   t: function (date, token, _localize) {
     const timestamp = Math.trunc(+date / 1000);
-    return addLeadingZeros(timestamp, token.length);
+    return (0, _index6.addLeadingZeros)(timestamp, token.length);
   },
 
   // Milliseconds timestamp
   T: function (date, token, _localize) {
-    return addLeadingZeros(+date, token.length);
+    return (0, _index6.addLeadingZeros)(+date, token.length);
   },
-};
+});
 
 function formatTimezoneShort(offset, delimiter = "") {
   const sign = offset > 0 ? "-" : "+";
@@ -14027,13 +13655,15 @@ function formatTimezoneShort(offset, delimiter = "") {
   if (minutes === 0) {
     return sign + String(hours);
   }
-  return sign + String(hours) + delimiter + addLeadingZeros(minutes, 2);
+  return (
+    sign + String(hours) + delimiter + (0, _index6.addLeadingZeros)(minutes, 2)
+  );
 }
 
 function formatTimezoneWithOptionalMinutes(offset, delimiter) {
   if (offset % 60 === 0) {
     const sign = offset > 0 ? "-" : "+";
-    return sign + addLeadingZeros(Math.abs(offset) / 60, 2);
+    return sign + (0, _index6.addLeadingZeros)(Math.abs(offset) / 60, 2);
   }
   return formatTimezone(offset, delimiter);
 }
@@ -14041,12 +13671,131 @@ function formatTimezoneWithOptionalMinutes(offset, delimiter) {
 function formatTimezone(offset, delimiter = "") {
   const sign = offset > 0 ? "-" : "+";
   const absOffset = Math.abs(offset);
-  const hours = addLeadingZeros(Math.trunc(absOffset / 60), 2);
-  const minutes = addLeadingZeros(absOffset % 60, 2);
+  const hours = (0, _index6.addLeadingZeros)(Math.trunc(absOffset / 60), 2);
+  const minutes = (0, _index6.addLeadingZeros)(absOffset % 60, 2);
   return sign + hours + delimiter + minutes;
 }
 
-;// CONCATENATED MODULE: ./node_modules/date-fns/_lib/format/longFormatters.js
+
+/***/ }),
+
+/***/ 8914:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+exports.lightFormatters = void 0;
+var _index = __nccwpck_require__(6411);
+
+/*
+ * |     | Unit                           |     | Unit                           |
+ * |-----|--------------------------------|-----|--------------------------------|
+ * |  a  | AM, PM                         |  A* |                                |
+ * |  d  | Day of month                   |  D  |                                |
+ * |  h  | Hour [1-12]                    |  H  | Hour [0-23]                    |
+ * |  m  | Minute                         |  M  | Month                          |
+ * |  s  | Second                         |  S  | Fraction of second             |
+ * |  y  | Year (abs)                     |  Y  |                                |
+ *
+ * Letters marked by * are not implemented but reserved by Unicode standard.
+ */
+
+const lightFormatters = (exports.lightFormatters = {
+  // Year
+  y(date, token) {
+    // From http://www.unicode.org/reports/tr35/tr35-31/tr35-dates.html#Date_Format_tokens
+    // | Year     |     y | yy |   yyy |  yyyy | yyyyy |
+    // |----------|-------|----|-------|-------|-------|
+    // | AD 1     |     1 | 01 |   001 |  0001 | 00001 |
+    // | AD 12    |    12 | 12 |   012 |  0012 | 00012 |
+    // | AD 123   |   123 | 23 |   123 |  0123 | 00123 |
+    // | AD 1234  |  1234 | 34 |  1234 |  1234 | 01234 |
+    // | AD 12345 | 12345 | 45 | 12345 | 12345 | 12345 |
+
+    const signedYear = date.getFullYear();
+    // Returns 1 for 1 BC (which is year 0 in JavaScript)
+    const year = signedYear > 0 ? signedYear : 1 - signedYear;
+    return (0, _index.addLeadingZeros)(
+      token === "yy" ? year % 100 : year,
+      token.length,
+    );
+  },
+
+  // Month
+  M(date, token) {
+    const month = date.getMonth();
+    return token === "M"
+      ? String(month + 1)
+      : (0, _index.addLeadingZeros)(month + 1, 2);
+  },
+
+  // Day of the month
+  d(date, token) {
+    return (0, _index.addLeadingZeros)(date.getDate(), token.length);
+  },
+
+  // AM or PM
+  a(date, token) {
+    const dayPeriodEnumValue = date.getHours() / 12 >= 1 ? "pm" : "am";
+
+    switch (token) {
+      case "a":
+      case "aa":
+        return dayPeriodEnumValue.toUpperCase();
+      case "aaa":
+        return dayPeriodEnumValue;
+      case "aaaaa":
+        return dayPeriodEnumValue[0];
+      case "aaaa":
+      default:
+        return dayPeriodEnumValue === "am" ? "a.m." : "p.m.";
+    }
+  },
+
+  // Hour [1-12]
+  h(date, token) {
+    return (0, _index.addLeadingZeros)(
+      date.getHours() % 12 || 12,
+      token.length,
+    );
+  },
+
+  // Hour [0-23]
+  H(date, token) {
+    return (0, _index.addLeadingZeros)(date.getHours(), token.length);
+  },
+
+  // Minute
+  m(date, token) {
+    return (0, _index.addLeadingZeros)(date.getMinutes(), token.length);
+  },
+
+  // Second
+  s(date, token) {
+    return (0, _index.addLeadingZeros)(date.getSeconds(), token.length);
+  },
+
+  // Fraction of second
+  S(date, token) {
+    const numberOfDigits = token.length;
+    const milliseconds = date.getMilliseconds();
+    const fractionalSeconds = Math.trunc(
+      milliseconds * Math.pow(10, numberOfDigits - 3),
+    );
+    return (0, _index.addLeadingZeros)(fractionalSeconds, token.length);
+  },
+});
+
+
+/***/ }),
+
+/***/ 6376:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+exports.longFormatters = void 0;
+
 const dateLongFormatter = (pattern, formatLong) => {
   switch (pattern) {
     case "P":
@@ -14107,12 +13856,80 @@ const dateTimeLongFormatter = (pattern, formatLong) => {
     .replace("{{time}}", timeLongFormatter(timePattern, formatLong));
 };
 
-const longFormatters = {
+const longFormatters = (exports.longFormatters = {
   p: timeLongFormatter,
   P: dateTimeLongFormatter,
-};
+});
 
-;// CONCATENATED MODULE: ./node_modules/date-fns/_lib/protectedTokens.js
+
+/***/ }),
+
+/***/ 1546:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+exports.getTimezoneOffsetInMilliseconds = getTimezoneOffsetInMilliseconds;
+var _index = __nccwpck_require__(6439);
+
+/**
+ * Google Chrome as of 67.0.3396.87 introduced timezones with offset that includes seconds.
+ * They usually appear for dates that denote time before the timezones were introduced
+ * (e.g. for 'Europe/Prague' timezone the offset is GMT+00:57:44 before 1 October 1891
+ * and GMT+01:00:00 after that date)
+ *
+ * Date#getTimezoneOffset returns the offset in minutes and would return 57 for the example above,
+ * which would lead to incorrect calculations.
+ *
+ * This function returns the timezone offset in milliseconds that takes seconds in account.
+ */
+function getTimezoneOffsetInMilliseconds(date) {
+  const _date = (0, _index.toDate)(date);
+  const utcDate = new Date(
+    Date.UTC(
+      _date.getFullYear(),
+      _date.getMonth(),
+      _date.getDate(),
+      _date.getHours(),
+      _date.getMinutes(),
+      _date.getSeconds(),
+      _date.getMilliseconds(),
+    ),
+  );
+  utcDate.setUTCFullYear(_date.getFullYear());
+  return +date - +utcDate;
+}
+
+
+/***/ }),
+
+/***/ 8897:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+exports.normalizeDates = normalizeDates;
+var _index = __nccwpck_require__(926);
+
+function normalizeDates(context, ...dates) {
+  const normalize = _index.constructFrom.bind(
+    null,
+    context || dates.find((date) => typeof date === "object"),
+  );
+  return dates.map(normalize);
+}
+
+
+/***/ }),
+
+/***/ 3554:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+exports.isProtectedDayOfYearToken = isProtectedDayOfYearToken;
+exports.isProtectedWeekYearToken = isProtectedWeekYearToken;
+exports.warnOrThrowProtectedError = warnOrThrowProtectedError;
 const dayOfYearTokenRE = /^D+$/;
 const weekYearTokenRE = /^Y+$/;
 
@@ -14137,104 +13954,419 @@ function message(token, format, input) {
   return `Use \`${token.toLowerCase()}\` instead of \`${token}\` (in \`${format}\`) for formatting ${subject} to the input \`${input}\`; see: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md`;
 }
 
-;// CONCATENATED MODULE: ./node_modules/date-fns/isDate.js
+
+/***/ }),
+
+/***/ 4278:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+exports.secondsInYear =
+  exports.secondsInWeek =
+  exports.secondsInQuarter =
+  exports.secondsInMonth =
+  exports.secondsInMinute =
+  exports.secondsInHour =
+  exports.secondsInDay =
+  exports.quartersInYear =
+  exports.monthsInYear =
+  exports.monthsInQuarter =
+  exports.minutesInYear =
+  exports.minutesInMonth =
+  exports.minutesInHour =
+  exports.minutesInDay =
+  exports.minTime =
+  exports.millisecondsInWeek =
+  exports.millisecondsInSecond =
+  exports.millisecondsInMinute =
+  exports.millisecondsInHour =
+  exports.millisecondsInDay =
+  exports.maxTime =
+  exports.daysInYear =
+  exports.daysInWeek =
+  exports.constructFromSymbol =
+    void 0; /**
+ * @module constants
+ * @summary Useful constants
+ * @description
+ * Collection of useful date constants.
+ *
+ * The constants could be imported from `date-fns/constants`:
+ *
+ * ```ts
+ * import { maxTime, minTime } from "date-fns/constants";
+ *
+ * function isAllowedTime(time) {
+ *   return time <= maxTime && time >= minTime;
+ * }
+ * ```
+ */
+
 /**
- * @name isDate
- * @category Common Helpers
- * @summary Is the given value a date?
+ * @constant
+ * @name daysInWeek
+ * @summary Days in 1 week.
+ */
+const daysInWeek = (exports.daysInWeek = 7);
+
+/**
+ * @constant
+ * @name daysInYear
+ * @summary Days in 1 year.
  *
  * @description
- * Returns true if the given value is an instance of Date. The function works for dates transferred across iframes.
+ * How many days in a year.
  *
- * @param value - The value to check
+ * One years equals 365.2425 days according to the formula:
  *
- * @returns True if the given value is a date
- *
- * @example
- * // For a valid date:
- * const result = isDate(new Date())
- * //=> true
- *
- * @example
- * // For an invalid date:
- * const result = isDate(new Date(NaN))
- * //=> true
- *
- * @example
- * // For some value:
- * const result = isDate('2014-02-31')
- * //=> false
- *
- * @example
- * // For an object:
- * const result = isDate({})
- * //=> false
+ * > Leap year occurs every 4 years, except for years that are divisible by 100 and not divisible by 400.
+ * > 1 mean year = (365+1/4-1/100+1/400) days = 365.2425 days
  */
-function isDate(value) {
-  return (
-    value instanceof Date ||
-    (typeof value === "object" &&
-      Object.prototype.toString.call(value) === "[object Date]")
+const daysInYear = (exports.daysInYear = 365.2425);
+
+/**
+ * @constant
+ * @name maxTime
+ * @summary Maximum allowed time.
+ *
+ * @example
+ * import { maxTime } from "date-fns/constants";
+ *
+ * const isValid = 8640000000000001 <= maxTime;
+ * //=> false
+ *
+ * new Date(8640000000000001);
+ * //=> Invalid Date
+ */
+const maxTime = (exports.maxTime = Math.pow(10, 8) * 24 * 60 * 60 * 1000);
+
+/**
+ * @constant
+ * @name minTime
+ * @summary Minimum allowed time.
+ *
+ * @example
+ * import { minTime } from "date-fns/constants";
+ *
+ * const isValid = -8640000000000001 >= minTime;
+ * //=> false
+ *
+ * new Date(-8640000000000001)
+ * //=> Invalid Date
+ */
+const minTime = (exports.minTime = -maxTime);
+
+/**
+ * @constant
+ * @name millisecondsInWeek
+ * @summary Milliseconds in 1 week.
+ */
+const millisecondsInWeek = (exports.millisecondsInWeek = 604800000);
+
+/**
+ * @constant
+ * @name millisecondsInDay
+ * @summary Milliseconds in 1 day.
+ */
+const millisecondsInDay = (exports.millisecondsInDay = 86400000);
+
+/**
+ * @constant
+ * @name millisecondsInMinute
+ * @summary Milliseconds in 1 minute
+ */
+const millisecondsInMinute = (exports.millisecondsInMinute = 60000);
+
+/**
+ * @constant
+ * @name millisecondsInHour
+ * @summary Milliseconds in 1 hour
+ */
+const millisecondsInHour = (exports.millisecondsInHour = 3600000);
+
+/**
+ * @constant
+ * @name millisecondsInSecond
+ * @summary Milliseconds in 1 second
+ */
+const millisecondsInSecond = (exports.millisecondsInSecond = 1000);
+
+/**
+ * @constant
+ * @name minutesInYear
+ * @summary Minutes in 1 year.
+ */
+const minutesInYear = (exports.minutesInYear = 525600);
+
+/**
+ * @constant
+ * @name minutesInMonth
+ * @summary Minutes in 1 month.
+ */
+const minutesInMonth = (exports.minutesInMonth = 43200);
+
+/**
+ * @constant
+ * @name minutesInDay
+ * @summary Minutes in 1 day.
+ */
+const minutesInDay = (exports.minutesInDay = 1440);
+
+/**
+ * @constant
+ * @name minutesInHour
+ * @summary Minutes in 1 hour.
+ */
+const minutesInHour = (exports.minutesInHour = 60);
+
+/**
+ * @constant
+ * @name monthsInQuarter
+ * @summary Months in 1 quarter.
+ */
+const monthsInQuarter = (exports.monthsInQuarter = 3);
+
+/**
+ * @constant
+ * @name monthsInYear
+ * @summary Months in 1 year.
+ */
+const monthsInYear = (exports.monthsInYear = 12);
+
+/**
+ * @constant
+ * @name quartersInYear
+ * @summary Quarters in 1 year
+ */
+const quartersInYear = (exports.quartersInYear = 4);
+
+/**
+ * @constant
+ * @name secondsInHour
+ * @summary Seconds in 1 hour.
+ */
+const secondsInHour = (exports.secondsInHour = 3600);
+
+/**
+ * @constant
+ * @name secondsInMinute
+ * @summary Seconds in 1 minute.
+ */
+const secondsInMinute = (exports.secondsInMinute = 60);
+
+/**
+ * @constant
+ * @name secondsInDay
+ * @summary Seconds in 1 day.
+ */
+const secondsInDay = (exports.secondsInDay = secondsInHour * 24);
+
+/**
+ * @constant
+ * @name secondsInWeek
+ * @summary Seconds in 1 week.
+ */
+const secondsInWeek = (exports.secondsInWeek = secondsInDay * 7);
+
+/**
+ * @constant
+ * @name secondsInYear
+ * @summary Seconds in 1 year.
+ */
+const secondsInYear = (exports.secondsInYear = secondsInDay * daysInYear);
+
+/**
+ * @constant
+ * @name secondsInMonth
+ * @summary Seconds in 1 month
+ */
+const secondsInMonth = (exports.secondsInMonth = secondsInYear / 12);
+
+/**
+ * @constant
+ * @name secondsInQuarter
+ * @summary Seconds in 1 quarter.
+ */
+const secondsInQuarter = (exports.secondsInQuarter = secondsInMonth * 3);
+
+/**
+ * @constant
+ * @name constructFromSymbol
+ * @summary Symbol enabling Date extensions to inherit properties from the reference date.
+ *
+ * The symbol is used to enable the `constructFrom` function to construct a date
+ * using a reference date and a value. It allows to transfer extra properties
+ * from the reference date to the new date. It's useful for extensions like
+ * [`TZDate`](https://github.com/date-fns/tz) that accept a time zone as
+ * a constructor argument.
+ */
+const constructFromSymbol = (exports.constructFromSymbol =
+  Symbol.for("constructDateFrom"));
+
+
+/***/ }),
+
+/***/ 926:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+exports.constructFrom = constructFrom;
+var _index = __nccwpck_require__(4278);
+
+/**
+ * @name constructFrom
+ * @category Generic Helpers
+ * @summary Constructs a date using the reference date and the value
+ *
+ * @description
+ * The function constructs a new date using the constructor from the reference
+ * date and the given value. It helps to build generic functions that accept
+ * date extensions.
+ *
+ * It defaults to `Date` if the passed reference date is a number or a string.
+ *
+ * Starting from v3.7.0, it allows to construct a date using `[Symbol.for("constructDateFrom")]`
+ * enabling to transfer extra properties from the reference date to the new date.
+ * It's useful for extensions like [`TZDate`](https://github.com/date-fns/tz)
+ * that accept a time zone as a constructor argument.
+ *
+ * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
+ *
+ * @param date - The reference date to take constructor from
+ * @param value - The value to create the date
+ *
+ * @returns Date initialized using the given date and value
+ *
+ * @example
+ * import { constructFrom } from "date-fns";
+ *
+ * // A function that clones a date preserving the original type
+ * function cloneDate<DateType extends Date>(date: DateType): DateType {
+ *   return constructFrom(
+ *     date, // Use constructor from the given date
+ *     date.getTime() // Use the date value to create a new date
+ *   );
+ * }
+ */
+function constructFrom(date, value) {
+  if (typeof date === "function") return date(value);
+
+  if (date && typeof date === "object" && _index.constructFromSymbol in date)
+    return date[_index.constructFromSymbol](value);
+
+  if (date instanceof Date) return new date.constructor(value);
+
+  return new Date(value);
+}
+
+
+/***/ }),
+
+/***/ 5671:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+exports.differenceInCalendarDays = differenceInCalendarDays;
+var _index = __nccwpck_require__(1546);
+var _index2 = __nccwpck_require__(8897);
+var _index3 = __nccwpck_require__(4278);
+var _index4 = __nccwpck_require__(5951);
+
+/**
+ * The {@link differenceInCalendarDays} function options.
+ */
+
+/**
+ * @name differenceInCalendarDays
+ * @category Day Helpers
+ * @summary Get the number of calendar days between the given dates.
+ *
+ * @description
+ * Get the number of calendar days between the given dates. This means that the times are removed
+ * from the dates and then the difference in days is calculated.
+ *
+ * @param laterDate - The later date
+ * @param earlierDate - The earlier date
+ * @param options - The options object
+ *
+ * @returns The number of calendar days
+ *
+ * @example
+ * // How many calendar days are between
+ * // 2 July 2011 23:00:00 and 2 July 2012 00:00:00?
+ * const result = differenceInCalendarDays(
+ *   new Date(2012, 6, 2, 0, 0),
+ *   new Date(2011, 6, 2, 23, 0)
+ * )
+ * //=> 366
+ * // How many calendar days are between
+ * // 2 July 2011 23:59:00 and 3 July 2011 00:01:00?
+ * const result = differenceInCalendarDays(
+ *   new Date(2011, 6, 3, 0, 1),
+ *   new Date(2011, 6, 2, 23, 59)
+ * )
+ * //=> 1
+ */
+function differenceInCalendarDays(laterDate, earlierDate, options) {
+  const [laterDate_, earlierDate_] = (0, _index2.normalizeDates)(
+    options?.in,
+    laterDate,
+    earlierDate,
+  );
+
+  const laterStartOfDay = (0, _index4.startOfDay)(laterDate_);
+  const earlierStartOfDay = (0, _index4.startOfDay)(earlierDate_);
+
+  const laterTimestamp =
+    +laterStartOfDay -
+    (0, _index.getTimezoneOffsetInMilliseconds)(laterStartOfDay);
+  const earlierTimestamp =
+    +earlierStartOfDay -
+    (0, _index.getTimezoneOffsetInMilliseconds)(earlierStartOfDay);
+
+  // Round the number of days to the nearest integer because the number of
+  // milliseconds in a day is not constant (e.g. it's different in the week of
+  // the daylight saving time clock shift).
+  return Math.round(
+    (laterTimestamp - earlierTimestamp) / _index3.millisecondsInDay,
   );
 }
 
-// Fallback for modularized imports:
-/* harmony default export */ const date_fns_isDate = ((/* unused pure expression or super */ null && (isDate)));
 
-;// CONCATENATED MODULE: ./node_modules/date-fns/isValid.js
+/***/ }),
 
+/***/ 2464:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
+"use strict";
 
-/**
- * @name isValid
- * @category Common Helpers
- * @summary Is the given date valid?
- *
- * @description
- * Returns false if argument is Invalid Date and true otherwise.
- * Argument is converted to Date using `toDate`. See [toDate](https://date-fns.org/docs/toDate)
- * Invalid Date is a Date, whose time value is NaN.
- *
- * Time value of Date: http://es5.github.io/#x15.9.1.1
- *
- * @param date - The date to check
- *
- * @returns The date is valid
- *
- * @example
- * // For the valid date:
- * const result = isValid(new Date(2014, 1, 31))
- * //=> true
- *
- * @example
- * // For the value, convertible into a date:
- * const result = isValid(1393804800000)
- * //=> true
- *
- * @example
- * // For the invalid date:
- * const result = isValid(new Date(''))
- * //=> false
- */
-function isValid(date) {
-  return !((!isDate(date) && typeof date !== "number") || isNaN(+toDate(date)));
-}
+exports.format = exports.formatDate = format;
+Object.defineProperty(exports, "formatters", ({
+  enumerable: true,
+  get: function () {
+    return _index3.formatters;
+  },
+}));
+Object.defineProperty(exports, "longFormatters", ({
+  enumerable: true,
+  get: function () {
+    return _index4.longFormatters;
+  },
+}));
+var _index = __nccwpck_require__(7479);
+var _index2 = __nccwpck_require__(5586);
+var _index3 = __nccwpck_require__(6615);
+var _index4 = __nccwpck_require__(6376);
+var _index5 = __nccwpck_require__(3554);
 
-// Fallback for modularized imports:
-/* harmony default export */ const date_fns_isValid = ((/* unused pure expression or super */ null && (isValid)));
-
-;// CONCATENATED MODULE: ./node_modules/date-fns/format.js
-
-
-
-
-
-
-
+var _index6 = __nccwpck_require__(6142);
+var _index7 = __nccwpck_require__(6439);
 
 // Rexports of internal for libraries to use.
 // See: https://github.com/date-fns/date-fns/issues/3638#issuecomment-1877082874
-
 
 // This RegExp consists of three parts separated by `|`:
 // - [yYQqMLwIdDecihHKkms]o matches any available ordinal number token
@@ -14257,8 +14389,6 @@ const longFormattingTokensRegExp = /P+p+|P+|p+|''|'(''|[^'])+('|$)|./g;
 const escapedStringRegExp = /^'([^]*?)'?$/;
 const doubleQuoteRegExp = /''/g;
 const unescapedLatinCharacterRegExp = /[a-zA-Z]/;
-
-
 
 /**
  * The {@link format} function options.
@@ -14549,8 +14679,9 @@ const unescapedLatinCharacterRegExp = /[a-zA-Z]/;
  * //=> "3 o'clock"
  */
 function format(date, formatStr, options) {
-  const defaultOptions = getDefaultOptions();
-  const locale = options?.locale ?? defaultOptions.locale ?? enUS;
+  const defaultOptions = (0, _index2.getDefaultOptions)();
+  const locale =
+    options?.locale ?? defaultOptions.locale ?? _index.defaultLocale;
 
   const firstWeekContainsDate =
     options?.firstWeekContainsDate ??
@@ -14566,9 +14697,9 @@ function format(date, formatStr, options) {
     defaultOptions.locale?.options?.weekStartsOn ??
     0;
 
-  const originalDate = toDate(date, options?.in);
+  const originalDate = (0, _index7.toDate)(date, options?.in);
 
-  if (!isValid(originalDate)) {
+  if (!(0, _index6.isValid)(originalDate)) {
     throw new RangeError("Invalid time value");
   }
 
@@ -14577,7 +14708,7 @@ function format(date, formatStr, options) {
     .map((substring) => {
       const firstCharacter = substring[0];
       if (firstCharacter === "p" || firstCharacter === "P") {
-        const longFormatter = longFormatters[firstCharacter];
+        const longFormatter = _index4.longFormatters[firstCharacter];
         return longFormatter(substring, locale.formatLong);
       }
       return substring;
@@ -14595,7 +14726,7 @@ function format(date, formatStr, options) {
         return { isToken: false, value: cleanEscapedString(substring) };
       }
 
-      if (formatters[firstCharacter]) {
+      if (_index3.formatters[firstCharacter]) {
         return { isToken: true, value: substring };
       }
 
@@ -14629,14 +14760,14 @@ function format(date, formatStr, options) {
 
       if (
         (!options?.useAdditionalWeekYearTokens &&
-          isProtectedWeekYearToken(token)) ||
+          (0, _index5.isProtectedWeekYearToken)(token)) ||
         (!options?.useAdditionalDayOfYearTokens &&
-          isProtectedDayOfYearToken(token))
+          (0, _index5.isProtectedDayOfYearToken)(token))
       ) {
-        warnOrThrowProtectedError(token, formatStr, String(date));
+        (0, _index5.warnOrThrowProtectedError)(token, formatStr, String(date));
       }
 
-      const formatter = formatters[token[0]];
+      const formatter = _index3.formatters[token[0]];
       return formatter(originalDate, token, locale.localize, formatterOptions);
     })
     .join("");
@@ -14652,1187 +14783,1541 @@ function cleanEscapedString(input) {
   return matched[1].replace(doubleQuoteRegExp, "'");
 }
 
-// Fallback for modularized imports:
-/* harmony default export */ const date_fns_format = ((/* unused pure expression or super */ null && (format)));
 
-// EXTERNAL MODULE: external "fs"
-var external_fs_ = __nccwpck_require__(7147);
-var external_fs_default = /*#__PURE__*/__nccwpck_require__.n(external_fs_);
-;// CONCATENATED MODULE: ./.github/libs/CONST.ts
-const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
-const GIT_CONST = {
-    GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER ?? 'Expensify',
-    APP_REPO: (process.env.GITHUB_REPOSITORY ?? 'Expensify/App').split('/').at(1) ?? '',
-    MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
-};
-const CONST = {
-    ...GIT_CONST,
-    APPLAUSE_BOT: 'applausebot',
-    OS_BOTIFY: 'OSBotify',
-    LABELS: {
-        STAGING_DEPLOY: 'StagingDeployCash',
-        DEPLOY_BLOCKER: 'DeployBlockerCash',
-        LOCK_DEPLOY: '🔐 LockCashDeploys 🔐',
-        INTERNAL_QA: 'InternalQA',
-        HELP_WANTED: 'Help Wanted',
-        CP_STAGING: 'CP Staging',
-    },
-    STATE: {
-        OPEN: 'open',
-    },
-    COMMENT: {
-        TYPE_BOT: 'Bot',
-        NAME_GITHUB_ACTIONS: 'github-actions',
-    },
-    ACTIONS: {
-        CREATED: 'created',
-        EDITED: 'edited',
-    },
-    EVENTS: {
-        ISSUE_COMMENT: 'issue_comment',
-    },
-    RUN_EVENT: {
-        PULL_REQUEST: 'pull_request',
-        PULL_REQUEST_TARGET: 'pull_request_target',
-        PUSH: 'push',
-    },
-    RUN_STATUS: {
-        COMPLETED: 'completed',
-        IN_PROGRESS: 'in_progress',
-        QUEUED: 'queued',
-    },
-    RUN_STATUS_CONCLUSION: {
-        SUCCESS: 'success',
-    },
-    TEST_WORKFLOW_NAME: 'Jest Unit Tests',
-    TEST_WORKFLOW_PATH: '.github/workflows/test.yml',
-    PROPOSAL_KEYWORD: 'Proposal',
-    DATE_FORMAT_STRING: 'yyyy-MM-dd',
-    PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
-    ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
-    ISSUE_OR_PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/(?:pull|issues)/([0-9]+).*`),
-    POLL_RATE: 10000,
-    APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
-    APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
-    MOBILE_EXPENSIFY_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.MOBILE_EXPENSIFY_REPO}`,
-    NO_ACTION: 'NO_ACTION',
-    ACTION_EDIT: 'ACTION_EDIT',
-    ACTION_REQUIRED: 'ACTION_REQUIRED',
-    ACTION_HIDE_DUPLICATE: 'ACTION_HIDE_DUPLICATE',
-};
-/* harmony default export */ const libs_CONST = (CONST);
+/***/ }),
 
-// EXTERNAL MODULE: ./node_modules/@actions/github/lib/utils.js
-var utils = __nccwpck_require__(3030);
-// EXTERNAL MODULE: ./node_modules/@octokit/plugin-paginate-rest/dist-node/index.js
-var dist_node = __nccwpck_require__(4193);
-// EXTERNAL MODULE: ./node_modules/@octokit/plugin-throttling/dist-node/index.js
-var plugin_throttling_dist_node = __nccwpck_require__(9968);
-// EXTERNAL MODULE: ./node_modules/@octokit/request-error/dist-node/index.js
-var request_error_dist_node = __nccwpck_require__(537);
-;// CONCATENATED MODULE: ./.github/libs/arrayDifference.ts
+/***/ 1412:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+exports.getDayOfYear = getDayOfYear;
+var _index = __nccwpck_require__(5671);
+var _index2 = __nccwpck_require__(8537);
+var _index3 = __nccwpck_require__(6439);
+
 /**
- * This function is an equivalent of _.difference, it takes two arrays and returns the difference between them.
- * It returns an array of items that are in the first array but not in the second array.
+ * The {@link getDayOfYear} function options.
  */
-function arrayDifference(array1, array2) {
-    return [array1, array2].reduce((a, b) => a.filter((c) => !b.includes(c)));
-}
-/* harmony default export */ const libs_arrayDifference = (arrayDifference);
-
-;// CONCATENATED MODULE: ./.github/libs/isEmptyObject.ts
-function isEmptyObject(obj) {
-    return Object.keys(obj ?? {}).length === 0;
-}
-
-
-;// CONCATENATED MODULE: ./.github/libs/GithubUtils.ts
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
-
-
-
-
-
-
-
-
-class GithubUtils {
-    static internalOctokit;
-    /**
-     * Initialize internal octokit.
-     * NOTE: When using GithubUtils in CI, you don't need to call this manually.
-     */
-    static initOctokitWithToken(token) {
-        const Octokit = utils.GitHub.plugin(plugin_throttling_dist_node/* throttling */.O, dist_node/* paginateRest */.AA);
-        // Save a copy of octokit used in this class
-        this.internalOctokit = new Octokit((0,utils.getOctokitOptions)(token, {
-            throttle: {
-                retryAfterBaseValue: 2000,
-                onRateLimit: (retryAfter, options) => {
-                    console.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
-                    // Retry five times when hitting a rate limit error, then give up
-                    if (options.request.retryCount <= 5) {
-                        console.log(`Retrying after ${retryAfter} seconds!`);
-                        return true;
-                    }
-                },
-                onAbuseLimit: (retryAfter, options) => {
-                    // does not retry, only logs a warning
-                    console.warn(`Abuse detected for request ${options.method} ${options.url}`);
-                },
-            },
-        }));
-    }
-    /**
-     * Default initialize method assuming running in CI, getting the token from an input.
-     *
-     * @private
-     */
-    static initOctokit() {
-        const token = process.env.GITHUB_TOKEN ?? core.getInput('GITHUB_TOKEN', { required: true });
-        if (!token) {
-            console.error('GitHubUtils could not find GITHUB_TOKEN');
-            process.exit(1);
-        }
-        this.initOctokitWithToken(token);
-    }
-    /**
-     * Either give an existing instance of Octokit rest or create a new one
-     *
-     * @readonly
-     * @static
-     */
-    static get octokit() {
-        if (!this.internalOctokit) {
-            this.initOctokit();
-        }
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        return this.internalOctokit.rest;
-    }
-    /**
-     * Get the graphql instance from internal octokit.
-     * @readonly
-     * @static
-     */
-    static get graphql() {
-        if (!this.internalOctokit) {
-            this.initOctokit();
-        }
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        return this.internalOctokit.graphql;
-    }
-    /**
-     * Either give an existing instance of Octokit paginate or create a new one
-     *
-     * @readonly
-     * @static
-     */
-    static get paginate() {
-        if (!this.internalOctokit) {
-            this.initOctokit();
-        }
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        return this.internalOctokit.paginate;
-    }
-    /**
-     * Finds one open `StagingDeployCash` issue via GitHub octokit library.
-     */
-    static getStagingDeployCash() {
-        return this.octokit.issues
-            .listForRepo({
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            labels: libs_CONST.LABELS.STAGING_DEPLOY,
-            state: 'open',
-        })
-            .then(({ data }) => {
-            if (!data.length) {
-                throw new Error(`Unable to find ${libs_CONST.LABELS.STAGING_DEPLOY} issue.`);
-            }
-            if (data.length > 1) {
-                throw new Error(`Found more than one ${libs_CONST.LABELS.STAGING_DEPLOY} issue.`);
-            }
-            const issue = data.at(0);
-            if (!issue) {
-                throw new Error(`Found an undefined ${libs_CONST.LABELS.STAGING_DEPLOY} issue.`);
-            }
-            return this.getStagingDeployCashData(issue);
-        });
-    }
-    /**
-     * Takes in a GitHub issue object and returns the data we want.
-     */
-    static getStagingDeployCashData(issue) {
-        try {
-            const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
-            return {
-                title: issue.title,
-                url: issue.url,
-                number: this.getIssueOrPullRequestNumberFromURL(issue.url),
-                labels: issue.labels,
-                PRList: this.getStagingDeployCashPRList(issue),
-                PRListMobileExpensify: this.getStagingDeployCashPRListMobileExpensify(issue),
-                deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
-                internalQAPRList: this.getStagingDeployCashInternalQA(issue),
-                isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
-                isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
-                version,
-                tag: `${version}-staging`,
-            };
-        }
-        catch (exception) {
-            throw new Error(`Unable to find ${libs_CONST.LABELS.STAGING_DEPLOY} issue with correct data.`);
-        }
-    }
-    /**
-     * Parse the PRList and Internal QA section of the StagingDeployCash issue body.
-     *
-     * @private
-     */
-    static getStagingDeployCashPRList(issue) {
-        let PRListSection = issue.body?.match(/pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n?/) ?? null;
-        if (PRListSection?.length !== 2) {
-            // No PRs, return an empty array
-            console.log('Hmmm...The open StagingDeployCash does not list any pull requests, continuing...');
-            return [];
-        }
-        PRListSection = PRListSection[1];
-        const PRList = [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${libs_CONST.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
-            url: match[2],
-            number: Number.parseInt(match[3], 10),
-            isVerified: match[1] === 'x',
-        }));
-        return PRList.sort((a, b) => a.number - b.number);
-    }
-    static getStagingDeployCashPRListMobileExpensify(issue) {
-        let mobileExpensifySection = issue.body?.match(/Mobile-Expensify PRs:\*\*\r?\n((?:-.*\r?\n)+)/) ?? null;
-        if (mobileExpensifySection?.length !== 2) {
-            return [];
-        }
-        mobileExpensifySection = mobileExpensifySection[1];
-        const mobileExpensifyPRs = [...mobileExpensifySection.matchAll(new RegExp(`- \\[([ x])]\\s(${libs_CONST.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
-            url: match[2],
-            number: Number.parseInt(match[3], 10),
-            isVerified: match[1] === 'x',
-        }));
-        return mobileExpensifyPRs.sort((a, b) => a.number - b.number);
-    }
-    /**
-     * Parse DeployBlocker section of the StagingDeployCash issue body.
-     *
-     * @private
-     */
-    static getStagingDeployCashDeployBlockers(issue) {
-        let deployBlockerSection = issue.body?.match(/Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/) ?? null;
-        if (deployBlockerSection?.length !== 2) {
-            return [];
-        }
-        deployBlockerSection = deployBlockerSection[1];
-        const deployBlockers = [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${libs_CONST.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
-            url: match[2],
-            number: Number.parseInt(match[3], 10),
-            isResolved: match[1] === 'x',
-        }));
-        return deployBlockers.sort((a, b) => a.number - b.number);
-    }
-    /**
-     * Parse InternalQA section of the StagingDeployCash issue body.
-     *
-     * @private
-     */
-    static getStagingDeployCashInternalQA(issue) {
-        let internalQASection = issue.body?.match(/Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/) ?? null;
-        if (internalQASection?.length !== 2) {
-            return [];
-        }
-        internalQASection = internalQASection[1];
-        const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${libs_CONST.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
-            url: match[2].split('-').at(0)?.trim() ?? '',
-            number: Number.parseInt(match[3], 10),
-            isResolved: match[1] === 'x',
-        }));
-        return internalQAPRs.sort((a, b) => a.number - b.number);
-    }
-    /**
-     * Generate the issue body and assignees for a StagingDeployCash.
-     */
-    static generateStagingDeployCashBodyAndAssignees(tag, PRList, PRListMobileExpensify, verifiedPRList = [], verifiedPRListMobileExpensify = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isFirebaseChecked = false, isGHStatusChecked = false) {
-        return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
-            .then((data) => {
-            const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !isEmptyObject(pr.labels.find((item) => item.name === libs_CONST.LABELS.INTERNAL_QA))) : [];
-            return Promise.all(internalQAPRs.map((pr) => this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => ({ url: pr.html_url, mergerLogin })))).then((results) => {
-                // The format of this map is following:
-                // {
-                //    'https://github.com/Expensify/App/pull/9641': 'PauloGasparSv',
-                //    'https://github.com/Expensify/App/pull/9642': 'mountiny'
-                // }
-                const internalQAPRMap = results.reduce((acc, { url, mergerLogin }) => {
-                    acc[url] = mergerLogin;
-                    return acc;
-                }, {});
-                console.log('Found the following Internal QA PRs:', internalQAPRMap);
-                const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
-                console.log('Found the following NO QA PRs:', noQAPRs);
-                const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs])];
-                const sortedPRList = [...new Set(libs_arrayDifference(PRList, Object.keys(internalQAPRMap)))].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
-                const sortedPRListMobileExpensify = [...new Set(PRListMobileExpensify)].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
-                const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
-                // Tag version and comparison URL
-                // eslint-disable-next-line max-len
-                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
-                // Add Mobile-Expensify compare link if there are Mobile-Expensify PRs
-                if (sortedPRListMobileExpensify.length > 0) {
-                    issueBody += `**Mobile-Expensify Changes:** https://github.com/${libs_CONST.GITHUB_OWNER}/${libs_CONST.MOBILE_EXPENSIFY_REPO}/compare/production...staging\r\n`;
-                }
-                issueBody += '\r\n';
-                // PR list
-                if (sortedPRList.length > 0) {
-                    issueBody += '**This release contains changes from the following pull requests:**\r\n';
-                    sortedPRList.forEach((URL) => {
-                        issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
-                        issueBody += ` ${URL}\r\n`;
-                    });
-                    issueBody += '\r\n\r\n';
-                }
-                // Mobile-Expensify PR list
-                if (sortedPRListMobileExpensify.length > 0) {
-                    issueBody += '**Mobile-Expensify PRs:**\r\n';
-                    sortedPRListMobileExpensify.forEach((URL) => {
-                        issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
-                        issueBody += ` ${URL}\r\n`;
-                    });
-                    issueBody += '\r\n\r\n';
-                }
-                // Internal QA PR list
-                if (!isEmptyObject(internalQAPRMap)) {
-                    console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
-                    issueBody += '**Internal QA:**\r\n';
-                    Object.keys(internalQAPRMap).forEach((URL) => {
-                        const merger = internalQAPRMap[URL];
-                        const mergerMention = `@${merger}`;
-                        issueBody += `${resolvedInternalQAPRs.includes(URL) ? '- [x]' : '- [ ]'} `;
-                        issueBody += `${URL}`;
-                        issueBody += ` - ${mergerMention}`;
-                        issueBody += '\r\n';
-                    });
-                    issueBody += '\r\n\r\n';
-                }
-                // Deploy blockers
-                if (deployBlockers.length > 0) {
-                    issueBody += '**Deploy Blockers:**\r\n';
-                    sortedDeployBlockers.forEach((URL) => {
-                        issueBody += resolvedDeployBlockers.includes(URL) ? '- [x] ' : '- [ ] ';
-                        issueBody += URL;
-                        issueBody += '\r\n';
-                    });
-                    issueBody += '\r\n\r\n';
-                }
-                issueBody += '**Deployer verifications:**';
-                // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/ios:com.expensify.expensifylite/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
-                // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isFirebaseChecked ? 'x' : ' '}] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/android:org.me.mobiexpensifyg/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **the previous release version** and verified that the release did not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
-                // eslint-disable-next-line max-len
-                issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
-                issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
-                const issueAssignees = [...new Set(Object.values(internalQAPRMap))];
-                const issue = { issueBody, issueAssignees };
-                return issue;
-            });
-        })
-            .catch((err) => console.warn('Error generating StagingDeployCash issue body! Continuing...', err));
-    }
-    /**
-     * Fetch all pull requests given a list of PR numbers.
-     */
-    static fetchAllPullRequests(pullRequestNumbers) {
-        const oldestPR = pullRequestNumbers.sort((a, b) => a - b).at(0);
-        return this.paginate(this.octokit.pulls.list, {
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            state: 'all',
-            sort: 'created',
-            direction: 'desc',
-            per_page: 100,
-        }, ({ data }, done) => {
-            if (data.find((pr) => pr.number === oldestPR)) {
-                done();
-            }
-            return data;
-        })
-            .then((prList) => prList?.filter((pr) => pullRequestNumbers.includes(pr.number)) ?? [])
-            .catch((err) => console.error('Failed to get PR list', err));
-    }
-    static getPullRequestMergerLogin(pullRequestNumber) {
-        return this.octokit.pulls
-            .get({
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            pull_number: pullRequestNumber,
-        })
-            .then(({ data: pullRequest }) => pullRequest.merged_by?.login);
-    }
-    static getPullRequestBody(pullRequestNumber) {
-        return this.octokit.pulls
-            .get({
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            pull_number: pullRequestNumber,
-        })
-            .then(({ data: pullRequestComment }) => pullRequestComment.body);
-    }
-    static getAllReviewComments(pullRequestNumber) {
-        return this.paginate(this.octokit.pulls.listReviews, {
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            pull_number: pullRequestNumber,
-            per_page: 100,
-        }, (response) => response.data.map((review) => review.body));
-    }
-    static getAllComments(issueNumber) {
-        return this.paginate(this.octokit.issues.listComments, {
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            issue_number: issueNumber,
-            per_page: 100,
-        }, (response) => response.data.map((comment) => comment.body));
-    }
-    static getAllCommentDetails(issueNumber) {
-        return this.paginate(this.octokit.issues.listComments, {
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            issue_number: issueNumber,
-            per_page: 100,
-        }, (response) => response.data);
-    }
-    /**
-     * Create comment on pull request
-     */
-    static createComment(repo, number, messageBody) {
-        console.log(`Writing comment on #${number}`);
-        return this.octokit.issues.createComment({
-            owner: libs_CONST.GITHUB_OWNER,
-            repo,
-            issue_number: number,
-            body: messageBody,
-        });
-    }
-    /**
-     * Get the most recent workflow run for the given New Expensify workflow.
-     */
-    /* eslint-disable rulesdir/no-default-id-values */
-    static getLatestWorkflowRunID(workflow) {
-        console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
-        return this.octokit.actions
-            .listWorkflowRuns({
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            workflow_id: workflow,
-        })
-            .then((response) => response.data.workflow_runs.at(0)?.id ?? -1);
-    }
-    /**
-     * List workflow runs for the repository.
-     */
-    static async listWorkflowRunsForRepo(options = {}) {
-        return this.octokit.actions.listWorkflowRunsForRepo({
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            per_page: options.per_page ?? 50,
-            ...(options.status && { status: options.status }),
-        });
-    }
-    /**
-     * Generate the URL of an New Expensify pull request given the PR number.
-     */
-    static getPullRequestURLFromNumber(value, repositoryURL) {
-        return `${repositoryURL}/pull/${value}`;
-    }
-    /**
-     * Parse the pull request number from a URL.
-     *
-     * @throws {Error} If the URL is not a valid Github Pull Request.
-     */
-    static getPullRequestNumberFromURL(URL) {
-        const matches = URL.match(libs_CONST.PULL_REQUEST_REGEX);
-        if (!Array.isArray(matches) || matches.length !== 2) {
-            throw new Error(`Provided URL ${URL} is not a Github Pull Request!`);
-        }
-        return Number.parseInt(matches[1], 10);
-    }
-    /**
-     * Parse the issue number from a URL.
-     *
-     * @throws {Error} If the URL is not a valid Github Issue.
-     */
-    static getIssueNumberFromURL(URL) {
-        const matches = URL.match(libs_CONST.ISSUE_REGEX);
-        if (!Array.isArray(matches) || matches.length !== 2) {
-            throw new Error(`Provided URL ${URL} is not a Github Issue!`);
-        }
-        return Number.parseInt(matches[1], 10);
-    }
-    /**
-     * Parse the issue or pull request number from a URL.
-     *
-     * @throws {Error} If the URL is not a valid Github Issue or Pull Request.
-     */
-    static getIssueOrPullRequestNumberFromURL(URL) {
-        const matches = URL.match(libs_CONST.ISSUE_OR_PULL_REQUEST_REGEX);
-        if (!Array.isArray(matches) || matches.length !== 2) {
-            throw new Error(`Provided URL ${URL} is not a valid Github Issue or Pull Request!`);
-        }
-        return Number.parseInt(matches[1], 10);
-    }
-    /**
-     * Return the login of the actor who closed an issue or PR. If the issue is not closed, return an empty string.
-     */
-    static getActorWhoClosedIssue(issueNumber) {
-        return this.paginate(this.octokit.issues.listEvents, {
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            issue_number: issueNumber,
-            per_page: 100,
-        })
-            .then((events) => events.filter((event) => event.event === 'closed'))
-            .then((closedEvents) => closedEvents.at(-1)?.actor?.login ?? '');
-    }
-    /**
-     * Returns a single artifact by name. If none is found, it returns undefined.
-     */
-    static getArtifactByName(artifactName) {
-        return this.octokit.actions
-            .listArtifactsForRepo({
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            per_page: 1,
-            name: artifactName,
-        })
-            .then((response) => response.data.artifacts.at(0));
-    }
-    /**
-     * Given an artifact ID, returns the download URL to a zip file containing the artifact.
-     */
-    static getArtifactDownloadURL(artifactId) {
-        return this.octokit.actions
-            .downloadArtifact({
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            artifact_id: artifactId,
-            archive_format: 'zip',
-        })
-            .then((response) => response.url);
-    }
-    /**
-     * Get the contents of a file from the API at a given ref as a string.
-     */
-    static async getFileContents(path, ref = 'main') {
-        const { data } = await this.octokit.repos.getContent({
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            path,
-            ref,
-        });
-        if (Array.isArray(data)) {
-            throw new Error(`Provided path ${path} refers to a directory, not a file`);
-        }
-        if (!('content' in data)) {
-            throw new Error(`Provided path ${path} is invalid`);
-        }
-        return Buffer.from(data.content, 'base64').toString('utf8');
-    }
-    /**
-     * Get commits between two tags via the GitHub API
-     */
-    static async getCommitHistoryBetweenTags(fromTag, toTag, repositoryName) {
-        console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
-        core.startGroup('Fetching paginated commits:');
-        try {
-            let allCommits = [];
-            let page = 1;
-            const perPage = 250;
-            let hasMorePages = true;
-            while (hasMorePages) {
-                core.info(`📄 Fetching page ${page} of commits...`);
-                const response = await this.octokit.repos.compareCommits({
-                    owner: libs_CONST.GITHUB_OWNER,
-                    repo: repositoryName,
-                    base: fromTag,
-                    head: toTag,
-                    per_page: perPage,
-                    page,
-                });
-                // Check if we got a proper response with commits
-                if (response.data?.commits && Array.isArray(response.data.commits)) {
-                    if (page === 1) {
-                        core.info(`📊 Total commits: ${response.data.total_commits ?? 'unknown'}`);
-                    }
-                    core.info(`✅ compareCommits API returned ${response.data.commits.length} commits for page ${page}`);
-                    allCommits = allCommits.concat(response.data.commits);
-                    // Check if we got fewer commits than requested or if we've reached the total
-                    const totalCommits = response.data.total_commits;
-                    if (response.data.commits.length < perPage || (totalCommits && allCommits.length >= totalCommits)) {
-                        hasMorePages = false;
-                    }
-                    else {
-                        page++;
-                    }
-                }
-                else {
-                    core.warning('⚠️ GitHub API returned unexpected response format');
-                    hasMorePages = false;
-                }
-            }
-            core.info(`🎉 Successfully fetched ${allCommits.length} total commits`);
-            core.endGroup();
-            console.log('');
-            return allCommits.map((commit) => ({
-                commit: commit.sha,
-                subject: commit.commit.message,
-                authorName: commit.commit.author?.name ?? 'Unknown',
-            }));
-        }
-        catch (error) {
-            if (error instanceof request_error_dist_node/* RequestError */.L && error.status === 404) {
-                core.error(`❓❓ Failed to get commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them.`);
-            }
-            core.endGroup();
-            console.log('');
-            throw error;
-        }
-    }
-}
-/* harmony default export */ const libs_GithubUtils = (GithubUtils);
-
-;// CONCATENATED MODULE: external "child_process"
-const external_child_process_namespaceObject = require("child_process");
-;// CONCATENATED MODULE: ./.github/libs/versionUpdater.ts
-const SEMANTIC_VERSION_LEVELS = {
-    MAJOR: 'MAJOR',
-    MINOR: 'MINOR',
-    PATCH: 'PATCH',
-    BUILD: 'BUILD',
-};
-const MAX_INCREMENTS = 99;
-function isValidSemverLevel(str) {
-    return Object.keys(SEMANTIC_VERSION_LEVELS).includes(str);
-}
-/**
- * Transforms a versions string into a number
- */
-const getVersionNumberFromString = (versionString) => {
-    const [version, build] = versionString.split('-');
-    const [major, minor, patch] = version.split('.').map((n) => Number(n));
-    return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
-};
-/**
- * Transforms version numbers components into a version string
- */
-const getVersionStringFromNumber = (major, minor, patch, build = 0) => `${major}.${minor}.${patch}-${build}`;
-/**
- * Increments a minor version
- */
-const incrementMinor = (major, minor) => {
-    if (minor < MAX_INCREMENTS) {
-        return getVersionStringFromNumber(major, minor + 1, 0, 0);
-    }
-    return getVersionStringFromNumber(major + 1, 0, 0, 0);
-};
-/**
- * Increments a Patch version
- */
-const incrementPatch = (major, minor, patch) => {
-    if (patch < MAX_INCREMENTS) {
-        return getVersionStringFromNumber(major, minor, patch + 1, 0);
-    }
-    return incrementMinor(major, minor);
-};
-/**
- * Increments a build version
- */
-const incrementVersion = (version, level) => {
-    const [major, minor, patch, build] = getVersionNumberFromString(version);
-    // Majors will always be incremented
-    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
-        return getVersionStringFromNumber(major + 1, 0, 0, 0);
-    }
-    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
-        return incrementMinor(major, minor);
-    }
-    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
-        return incrementPatch(major, minor, patch);
-    }
-    if (build < MAX_INCREMENTS) {
-        return getVersionStringFromNumber(major, minor, patch, build + 1);
-    }
-    return incrementPatch(major, minor, patch);
-};
-function getPreviousVersion(currentVersion, level) {
-    const [major, minor, patch, build] = getVersionNumberFromString(currentVersion);
-    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
-        if (major === 1) {
-            return getVersionStringFromNumber(1, 0, 0, 0);
-        }
-        return getVersionStringFromNumber(major - 1, 0, 0, 0);
-    }
-    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
-        if (minor === 0) {
-            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MAJOR);
-        }
-        return getVersionStringFromNumber(major, minor - 1, 0, 0);
-    }
-    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
-        if (patch === 0) {
-            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MINOR);
-        }
-        return getVersionStringFromNumber(major, minor, patch - 1, 0);
-    }
-    if (build === 0) {
-        return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.PATCH);
-    }
-    return getVersionStringFromNumber(major, minor, patch, build - 1);
-}
-
-
-;// CONCATENATED MODULE: ./.github/libs/GitUtils.ts
-
-
-
-
 
 /**
- * Check if a tag exists locally or in the remote.
- */
-function tagExists(tag) {
-    try {
-        // Check if the tag exists locally
-        (0,external_child_process_namespaceObject.execSync)(`git show-ref --tags ${tag}`, { stdio: 'ignore' });
-        return true; // Tag exists locally
-    }
-    catch (error) {
-        // Tag does not exist locally, check in remote
-        let shouldRetry = true;
-        let needsRepack = false;
-        let doesTagExist = false;
-        while (shouldRetry) {
-            try {
-                if (needsRepack) {
-                    // We have seen some scenarios where this fixes the git fetch.
-                    // Why? Who knows... https://github.com/Expensify/App/pull/31459
-                    (0,external_child_process_namespaceObject.execSync)('git repack -d', { stdio: 'inherit' });
-                }
-                (0,external_child_process_namespaceObject.execSync)(`git ls-remote --exit-code --tags origin ${tag}`, { stdio: 'ignore' });
-                doesTagExist = true;
-                shouldRetry = false;
-            }
-            catch (e) {
-                if (!needsRepack) {
-                    console.log('Attempting to repack and retry...');
-                    needsRepack = true;
-                }
-                else {
-                    console.error("Repack didn't help, giving up...");
-                    shouldRetry = false;
-                }
-            }
-        }
-        return doesTagExist;
-    }
-}
-/**
- * This essentially just calls getPreviousVersion in a loop, until it finds a version for which a tag exists.
- * It's useful if we manually perform a version bump, because in that case a tag may not exist for the previous version.
+ * @name getDayOfYear
+ * @category Day Helpers
+ * @summary Get the day of the year of the given date.
  *
- * @param tag the current tag
- * @param level the Semver level to step backward by
+ * @description
+ * Get the day of the year of the given date.
+ *
+ * @param date - The given date
+ * @param options - The options
+ *
+ * @returns The day of year
+ *
+ * @example
+ * // Which day of the year is 2 July 2014?
+ * const result = getDayOfYear(new Date(2014, 6, 2))
+ * //=> 183
  */
-function getPreviousExistingTag(tag, level) {
-    let previousVersion = getPreviousVersion(tag.replace('-staging', ''), level);
-    let tagExistsForPreviousVersion = false;
-    while (!tagExistsForPreviousVersion) {
-        if (tagExists(previousVersion)) {
-            tagExistsForPreviousVersion = true;
-            break;
-        }
-        if (tagExists(`${previousVersion}-staging`)) {
-            tagExistsForPreviousVersion = true;
-            previousVersion = `${previousVersion}-staging`;
-            break;
-        }
-        console.log(`Tag for previous version ${previousVersion} does not exist. Checking for an older version...`);
-        previousVersion = getPreviousVersion(previousVersion, level);
+function getDayOfYear(date, options) {
+  const _date = (0, _index3.toDate)(date, options?.in);
+  const diff = (0, _index.differenceInCalendarDays)(
+    _date,
+    (0, _index2.startOfYear)(_date),
+  );
+  const dayOfYear = diff + 1;
+  return dayOfYear;
+}
+
+
+/***/ }),
+
+/***/ 6703:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+exports.getISOWeek = getISOWeek;
+var _index = __nccwpck_require__(4278);
+var _index2 = __nccwpck_require__(8516);
+var _index3 = __nccwpck_require__(5437);
+var _index4 = __nccwpck_require__(6439);
+
+/**
+ * The {@link getISOWeek} function options.
+ */
+
+/**
+ * @name getISOWeek
+ * @category ISO Week Helpers
+ * @summary Get the ISO week of the given date.
+ *
+ * @description
+ * Get the ISO week of the given date.
+ *
+ * ISO week-numbering year: http://en.wikipedia.org/wiki/ISO_week_date
+ *
+ * @param date - The given date
+ * @param options - The options
+ *
+ * @returns The ISO week
+ *
+ * @example
+ * // Which week of the ISO-week numbering year is 2 January 2005?
+ * const result = getISOWeek(new Date(2005, 0, 2))
+ * //=> 53
+ */
+function getISOWeek(date, options) {
+  const _date = (0, _index4.toDate)(date, options?.in);
+  const diff =
+    +(0, _index2.startOfISOWeek)(_date) -
+    +(0, _index3.startOfISOWeekYear)(_date);
+
+  // Round the number of weeks to the nearest integer because the number of
+  // milliseconds in a week is not constant (e.g. it's different in the week of
+  // the daylight saving time clock shift).
+  return Math.round(diff / _index.millisecondsInWeek) + 1;
+}
+
+
+/***/ }),
+
+/***/ 7131:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+exports.getISOWeekYear = getISOWeekYear;
+var _index = __nccwpck_require__(926);
+var _index2 = __nccwpck_require__(8516);
+var _index3 = __nccwpck_require__(6439);
+
+/**
+ * The {@link getISOWeekYear} function options.
+ */
+
+/**
+ * @name getISOWeekYear
+ * @category ISO Week-Numbering Year Helpers
+ * @summary Get the ISO week-numbering year of the given date.
+ *
+ * @description
+ * Get the ISO week-numbering year of the given date,
+ * which always starts 3 days before the year's first Thursday.
+ *
+ * ISO week-numbering year: http://en.wikipedia.org/wiki/ISO_week_date
+ *
+ * @param date - The given date
+ *
+ * @returns The ISO week-numbering year
+ *
+ * @example
+ * // Which ISO-week numbering year is 2 January 2005?
+ * const result = getISOWeekYear(new Date(2005, 0, 2))
+ * //=> 2004
+ */
+function getISOWeekYear(date, options) {
+  const _date = (0, _index3.toDate)(date, options?.in);
+  const year = _date.getFullYear();
+
+  const fourthOfJanuaryOfNextYear = (0, _index.constructFrom)(_date, 0);
+  fourthOfJanuaryOfNextYear.setFullYear(year + 1, 0, 4);
+  fourthOfJanuaryOfNextYear.setHours(0, 0, 0, 0);
+  const startOfNextYear = (0, _index2.startOfISOWeek)(
+    fourthOfJanuaryOfNextYear,
+  );
+
+  const fourthOfJanuaryOfThisYear = (0, _index.constructFrom)(_date, 0);
+  fourthOfJanuaryOfThisYear.setFullYear(year, 0, 4);
+  fourthOfJanuaryOfThisYear.setHours(0, 0, 0, 0);
+  const startOfThisYear = (0, _index2.startOfISOWeek)(
+    fourthOfJanuaryOfThisYear,
+  );
+
+  if (_date.getTime() >= startOfNextYear.getTime()) {
+    return year + 1;
+  } else if (_date.getTime() >= startOfThisYear.getTime()) {
+    return year;
+  } else {
+    return year - 1;
+  }
+}
+
+
+/***/ }),
+
+/***/ 3080:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+exports.getWeek = getWeek;
+var _index = __nccwpck_require__(4278);
+var _index2 = __nccwpck_require__(1284);
+var _index3 = __nccwpck_require__(5129);
+var _index4 = __nccwpck_require__(6439);
+
+/**
+ * The {@link getWeek} function options.
+ */
+
+/**
+ * @name getWeek
+ * @category Week Helpers
+ * @summary Get the local week index of the given date.
+ *
+ * @description
+ * Get the local week index of the given date.
+ * The exact calculation depends on the values of
+ * `options.weekStartsOn` (which is the index of the first day of the week)
+ * and `options.firstWeekContainsDate` (which is the day of January, which is always in
+ * the first week of the week-numbering year)
+ *
+ * Week numbering: https://en.wikipedia.org/wiki/Week#The_ISO_week_date_system
+ *
+ * @param date - The given date
+ * @param options - An object with options
+ *
+ * @returns The week
+ *
+ * @example
+ * // Which week of the local week numbering year is 2 January 2005 with default options?
+ * const result = getWeek(new Date(2005, 0, 2))
+ * //=> 2
+ *
+ * @example
+ * // Which week of the local week numbering year is 2 January 2005,
+ * // if Monday is the first day of the week,
+ * // and the first week of the year always contains 4 January?
+ * const result = getWeek(new Date(2005, 0, 2), {
+ *   weekStartsOn: 1,
+ *   firstWeekContainsDate: 4
+ * })
+ * //=> 53
+ */
+function getWeek(date, options) {
+  const _date = (0, _index4.toDate)(date, options?.in);
+  const diff =
+    +(0, _index2.startOfWeek)(_date, options) -
+    +(0, _index3.startOfWeekYear)(_date, options);
+
+  // Round the number of weeks to the nearest integer because the number of
+  // milliseconds in a week is not constant (e.g. it's different in the week of
+  // the daylight saving time clock shift).
+  return Math.round(diff / _index.millisecondsInWeek) + 1;
+}
+
+
+/***/ }),
+
+/***/ 9116:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+exports.getWeekYear = getWeekYear;
+var _index = __nccwpck_require__(5586);
+var _index2 = __nccwpck_require__(926);
+var _index3 = __nccwpck_require__(1284);
+var _index4 = __nccwpck_require__(6439);
+
+/**
+ * The {@link getWeekYear} function options.
+ */
+
+/**
+ * @name getWeekYear
+ * @category Week-Numbering Year Helpers
+ * @summary Get the local week-numbering year of the given date.
+ *
+ * @description
+ * Get the local week-numbering year of the given date.
+ * The exact calculation depends on the values of
+ * `options.weekStartsOn` (which is the index of the first day of the week)
+ * and `options.firstWeekContainsDate` (which is the day of January, which is always in
+ * the first week of the week-numbering year)
+ *
+ * Week numbering: https://en.wikipedia.org/wiki/Week#The_ISO_week_date_system
+ *
+ * @param date - The given date
+ * @param options - An object with options.
+ *
+ * @returns The local week-numbering year
+ *
+ * @example
+ * // Which week numbering year is 26 December 2004 with the default settings?
+ * const result = getWeekYear(new Date(2004, 11, 26))
+ * //=> 2005
+ *
+ * @example
+ * // Which week numbering year is 26 December 2004 if week starts on Saturday?
+ * const result = getWeekYear(new Date(2004, 11, 26), { weekStartsOn: 6 })
+ * //=> 2004
+ *
+ * @example
+ * // Which week numbering year is 26 December 2004 if the first week contains 4 January?
+ * const result = getWeekYear(new Date(2004, 11, 26), { firstWeekContainsDate: 4 })
+ * //=> 2004
+ */
+function getWeekYear(date, options) {
+  const _date = (0, _index4.toDate)(date, options?.in);
+  const year = _date.getFullYear();
+
+  const defaultOptions = (0, _index.getDefaultOptions)();
+  const firstWeekContainsDate =
+    options?.firstWeekContainsDate ??
+    options?.locale?.options?.firstWeekContainsDate ??
+    defaultOptions.firstWeekContainsDate ??
+    defaultOptions.locale?.options?.firstWeekContainsDate ??
+    1;
+
+  const firstWeekOfNextYear = (0, _index2.constructFrom)(
+    options?.in || date,
+    0,
+  );
+  firstWeekOfNextYear.setFullYear(year + 1, 0, firstWeekContainsDate);
+  firstWeekOfNextYear.setHours(0, 0, 0, 0);
+  const startOfNextYear = (0, _index3.startOfWeek)(
+    firstWeekOfNextYear,
+    options,
+  );
+
+  const firstWeekOfThisYear = (0, _index2.constructFrom)(
+    options?.in || date,
+    0,
+  );
+  firstWeekOfThisYear.setFullYear(year, 0, firstWeekContainsDate);
+  firstWeekOfThisYear.setHours(0, 0, 0, 0);
+  const startOfThisYear = (0, _index3.startOfWeek)(
+    firstWeekOfThisYear,
+    options,
+  );
+
+  if (+_date >= +startOfNextYear) {
+    return year + 1;
+  } else if (+_date >= +startOfThisYear) {
+    return year;
+  } else {
+    return year - 1;
+  }
+}
+
+
+/***/ }),
+
+/***/ 1652:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+exports.isDate = isDate; /**
+ * @name isDate
+ * @category Common Helpers
+ * @summary Is the given value a date?
+ *
+ * @description
+ * Returns true if the given value is an instance of Date. The function works for dates transferred across iframes.
+ *
+ * @param value - The value to check
+ *
+ * @returns True if the given value is a date
+ *
+ * @example
+ * // For a valid date:
+ * const result = isDate(new Date())
+ * //=> true
+ *
+ * @example
+ * // For an invalid date:
+ * const result = isDate(new Date(NaN))
+ * //=> true
+ *
+ * @example
+ * // For some value:
+ * const result = isDate('2014-02-31')
+ * //=> false
+ *
+ * @example
+ * // For an object:
+ * const result = isDate({})
+ * //=> false
+ */
+function isDate(value) {
+  return (
+    value instanceof Date ||
+    (typeof value === "object" &&
+      Object.prototype.toString.call(value) === "[object Date]")
+  );
+}
+
+
+/***/ }),
+
+/***/ 6142:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+exports.isValid = isValid;
+var _index = __nccwpck_require__(1652);
+var _index2 = __nccwpck_require__(6439);
+
+/**
+ * @name isValid
+ * @category Common Helpers
+ * @summary Is the given date valid?
+ *
+ * @description
+ * Returns false if argument is Invalid Date and true otherwise.
+ * Argument is converted to Date using `toDate`. See [toDate](https://date-fns.org/docs/toDate)
+ * Invalid Date is a Date, whose time value is NaN.
+ *
+ * Time value of Date: http://es5.github.io/#x15.9.1.1
+ *
+ * @param date - The date to check
+ *
+ * @returns The date is valid
+ *
+ * @example
+ * // For the valid date:
+ * const result = isValid(new Date(2014, 1, 31))
+ * //=> true
+ *
+ * @example
+ * // For the value, convertible into a date:
+ * const result = isValid(1393804800000)
+ * //=> true
+ *
+ * @example
+ * // For the invalid date:
+ * const result = isValid(new Date(''))
+ * //=> false
+ */
+function isValid(date) {
+  return !(
+    (!(0, _index.isDate)(date) && typeof date !== "number") ||
+    isNaN(+(0, _index2.toDate)(date))
+  );
+}
+
+
+/***/ }),
+
+/***/ 9566:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+exports.buildFormatLongFn = buildFormatLongFn;
+
+function buildFormatLongFn(args) {
+  return (options = {}) => {
+    // TODO: Remove String()
+    const width = options.width ? String(options.width) : args.defaultWidth;
+    const format = args.formats[width] || args.formats[args.defaultWidth];
+    return format;
+  };
+}
+
+
+/***/ }),
+
+/***/ 4177:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+exports.buildLocalizeFn = buildLocalizeFn;
+
+/**
+ * The localize function argument callback which allows to convert raw value to
+ * the actual type.
+ *
+ * @param value - The value to convert
+ *
+ * @returns The converted value
+ */
+
+/**
+ * The map of localized values for each width.
+ */
+
+/**
+ * The index type of the locale unit value. It types conversion of units of
+ * values that don't start at 0 (i.e. quarters).
+ */
+
+/**
+ * Converts the unit value to the tuple of values.
+ */
+
+/**
+ * The tuple of localized era values. The first element represents BC,
+ * the second element represents AD.
+ */
+
+/**
+ * The tuple of localized quarter values. The first element represents Q1.
+ */
+
+/**
+ * The tuple of localized day values. The first element represents Sunday.
+ */
+
+/**
+ * The tuple of localized month values. The first element represents January.
+ */
+
+function buildLocalizeFn(args) {
+  return (value, options) => {
+    const context = options?.context ? String(options.context) : "standalone";
+
+    let valuesArray;
+    if (context === "formatting" && args.formattingValues) {
+      const defaultWidth = args.defaultFormattingWidth || args.defaultWidth;
+      const width = options?.width ? String(options.width) : defaultWidth;
+
+      valuesArray =
+        args.formattingValues[width] || args.formattingValues[defaultWidth];
+    } else {
+      const defaultWidth = args.defaultWidth;
+      const width = options?.width ? String(options.width) : args.defaultWidth;
+
+      valuesArray = args.values[width] || args.values[defaultWidth];
     }
-    return previousVersion;
+    const index = args.argumentCallback ? args.argumentCallback(value) : value;
+
+    // @ts-expect-error - For some reason TypeScript just don't want to match it, no matter how hard we try. I challenge you to try to remove it!
+    return valuesArray[index];
+  };
 }
+
+
+/***/ }),
+
+/***/ 3277:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+exports.buildMatchFn = buildMatchFn;
+
+function buildMatchFn(args) {
+  return (string, options = {}) => {
+    const width = options.width;
+
+    const matchPattern =
+      (width && args.matchPatterns[width]) ||
+      args.matchPatterns[args.defaultMatchWidth];
+    const matchResult = string.match(matchPattern);
+
+    if (!matchResult) {
+      return null;
+    }
+    const matchedString = matchResult[0];
+
+    const parsePatterns =
+      (width && args.parsePatterns[width]) ||
+      args.parsePatterns[args.defaultParseWidth];
+
+    const key = Array.isArray(parsePatterns)
+      ? findIndex(parsePatterns, (pattern) => pattern.test(matchedString))
+      : // [TODO] -- I challenge you to fix the type
+        findKey(parsePatterns, (pattern) => pattern.test(matchedString));
+
+    let value;
+
+    value = args.valueCallback ? args.valueCallback(key) : key;
+    value = options.valueCallback
+      ? // [TODO] -- I challenge you to fix the type
+        options.valueCallback(value)
+      : value;
+
+    const rest = string.slice(matchedString.length);
+
+    return { value, rest };
+  };
+}
+
+function findKey(object, predicate) {
+  for (const key in object) {
+    if (
+      Object.prototype.hasOwnProperty.call(object, key) &&
+      predicate(object[key])
+    ) {
+      return key;
+    }
+  }
+  return undefined;
+}
+
+function findIndex(array, predicate) {
+  for (let key = 0; key < array.length; key++) {
+    if (predicate(array[key])) {
+      return key;
+    }
+  }
+  return undefined;
+}
+
+
+/***/ }),
+
+/***/ 8009:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+exports.buildMatchPatternFn = buildMatchPatternFn;
+
+function buildMatchPatternFn(args) {
+  return (string, options = {}) => {
+    const matchResult = string.match(args.matchPattern);
+    if (!matchResult) return null;
+    const matchedString = matchResult[0];
+
+    const parseResult = string.match(args.parsePattern);
+    if (!parseResult) return null;
+    let value = args.valueCallback
+      ? args.valueCallback(parseResult[0])
+      : parseResult[0];
+
+    // [TODO] I challenge you to fix the type
+    value = options.valueCallback ? options.valueCallback(value) : value;
+
+    const rest = string.slice(matchedString.length);
+
+    return { value, rest };
+  };
+}
+
+
+/***/ }),
+
+/***/ 9425:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+exports.enUS = void 0;
+var _index = __nccwpck_require__(5436);
+var _index2 = __nccwpck_require__(5217);
+var _index3 = __nccwpck_require__(1566);
+var _index4 = __nccwpck_require__(2720);
+var _index5 = __nccwpck_require__(6686);
+
 /**
- * Parse merged PRs, excluding those from irrelevant branches.
+ * @category Locales
+ * @summary English locale (United States).
+ * @language English
+ * @iso-639-2 eng
+ * @author Sasha Koss [@kossnocorp](https://github.com/kossnocorp)
+ * @author Lesha Koss [@leshakoss](https://github.com/leshakoss)
  */
-function getValidMergedPRs(commits) {
-    const mergedPRs = new Set();
-    commits.forEach((commit) => {
-        const author = commit.authorName;
-        if (author === libs_CONST.OS_BOTIFY) {
-            return;
-        }
-        // Retrieve the PR number from the commit subject,
-        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-(staging|production))/);
-        if (!Array.isArray(match) || match.length < 2) {
-            return;
-        }
-        const pr = Number.parseInt(match[1], 10);
-        if (mergedPRs.has(pr)) {
-            // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
-            // That also means that we don't want to include it in the current checklist, so we remove it now.
-            mergedPRs.delete(pr);
-            return;
-        }
-        mergedPRs.add(pr);
-    });
-    return Array.from(mergedPRs);
-}
-/**
- * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
- */
-async function getPullRequestsDeployedBetween(fromTag, toTag, repositoryName) {
-    console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-    const apiCommitList = await libs_GithubUtils.getCommitHistoryBetweenTags(fromTag, toTag, repositoryName);
-    const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
-    console.log(`Found ${apiCommitList.length} commits.`);
-    core.startGroup('Parsed PRs:');
-    core.info(apiPullRequestNumbers.join(', '));
-    core.endGroup();
-    return apiPullRequestNumbers;
-}
-/* harmony default export */ const GitUtils = ({
-    getPreviousExistingTag,
-    getValidMergedPRs,
-    getPullRequestsDeployedBetween,
+const enUS = (exports.enUS = {
+  code: "en-US",
+  formatDistance: _index.formatDistance,
+  formatLong: _index2.formatLong,
+  formatRelative: _index3.formatRelative,
+  localize: _index4.localize,
+  match: _index5.match,
+  options: {
+    weekStartsOn: 0 /* Sunday */,
+    firstWeekContainsDate: 1,
+  },
 });
 
-;// CONCATENATED MODULE: ./.github/actions/javascript/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy.ts
-/* module decorator */ module = __nccwpck_require__.hmd(module);
 
+/***/ }),
 
+/***/ 5436:
+/***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
+exports.formatDistance = void 0;
 
+const formatDistanceLocale = {
+  lessThanXSeconds: {
+    one: "less than a second",
+    other: "less than {{count}} seconds",
+  },
 
-async function run() {
-    // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
-    const packageJson = JSON.parse(external_fs_default().readFileSync('package.json', 'utf8'));
-    // The checklist will use the package.json version, e.g. '1.2.3-4'
-    const newVersion = packageJson.version;
-    // The staging tag will use the package.json version with a '-staging' suffix, e.g. '1.2.3-4-staging'
-    const newStagingTag = `${packageJson.version}-staging`;
-    try {
-        // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers
-        const { data: recentDeployChecklists } = await libs_GithubUtils.octokit.issues.listForRepo({
-            log: console,
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            labels: libs_CONST.LABELS.STAGING_DEPLOY,
-            state: 'all',
-        });
-        // Look at the state of the most recent StagingDeployCash,
-        // if it is open then we'll update the existing one, otherwise, we'll create a new one.
-        const mostRecentChecklist = recentDeployChecklists.at(0);
-        if (!mostRecentChecklist) {
-            throw new Error('Could not find the most recent checklist');
-        }
-        const shouldCreateNewDeployChecklist = mostRecentChecklist.state !== 'open';
-        const previousChecklist = shouldCreateNewDeployChecklist ? mostRecentChecklist : recentDeployChecklists.at(1);
-        if (shouldCreateNewDeployChecklist) {
-            console.log('Latest StagingDeployCash is closed, creating a new one.', mostRecentChecklist);
-        }
-        else {
-            console.log('Latest StagingDeployCash is open, updating it instead of creating a new one.', 'Current:', mostRecentChecklist, 'Previous:', previousChecklist);
-        }
-        if (!previousChecklist) {
-            throw new Error('Could not find the previous checklist');
-        }
-        // Parse the data from the previous and current checklists into the format used to generate the checklist
-        const previousChecklistData = libs_GithubUtils.getStagingDeployCashData(previousChecklist);
-        const currentChecklistData = shouldCreateNewDeployChecklist ? undefined : libs_GithubUtils.getStagingDeployCashData(mostRecentChecklist);
-        // Find the list of PRs merged between the current checklist and the previous checklist
-        const mergedPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, libs_CONST.APP_REPO);
-        // mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out
-        const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
-        const previousMobileExpensifyPRNumbers = new Set(previousChecklistData.PRListMobileExpensify.map((pr) => pr.number));
-        core.startGroup('Filtering PRs:');
-        core.info('mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out');
-        core.info(`Found ${previousPRNumbers.size} PRs in the previous checklist:`);
-        core.info(JSON.stringify(Array.from(previousPRNumbers)));
-        const newPRNumbers = mergedPRs.filter((prNum) => !previousPRNumbers.has(prNum));
-        core.info(`Found ${newPRNumbers.length} PRs deployed since the previous checklist:`);
-        core.info(JSON.stringify(newPRNumbers));
-        // Filter out cherry-picked PRs that were released with the previous checklist
-        const removedPRs = mergedPRs.filter((prNum) => previousPRNumbers.has(prNum));
-        if (removedPRs.length > 0) {
-            core.info(`⚠️⚠️ Filtered out the following cherry-picked PRs that were released with the previous checklist: ${removedPRs.join(', ')} ⚠️⚠️`);
-        }
-        core.endGroup();
-        console.info(`[api] Checklist PRs: ${newPRNumbers.join(', ')}`);
-        // Get merged Mobile-Expensify PRs
-        let mergedMobileExpensifyPRs = [];
-        try {
-            const allMobileExpensifyPRs = await GitUtils.getPullRequestsDeployedBetween(previousChecklistData.tag, newStagingTag, libs_CONST.MOBILE_EXPENSIFY_REPO);
-            mergedMobileExpensifyPRs = allMobileExpensifyPRs.filter((prNum) => !previousMobileExpensifyPRNumbers.has(prNum));
-            console.info(`Found ${allMobileExpensifyPRs.length} total Mobile-Expensify PRs, ${mergedMobileExpensifyPRs.length} new ones after filtering:`);
-            console.info(`Mobile-Expensify PRs: ${mergedMobileExpensifyPRs.join(', ')}`);
-            // Log the Mobile-Expensify PRs that were filtered out
-            const removedMobileExpensifyPRs = allMobileExpensifyPRs.filter((prNum) => previousMobileExpensifyPRNumbers.has(prNum));
-            if (removedMobileExpensifyPRs.length > 0) {
-                core.info(`⚠️⚠️ Filtered out the following cherry-picked Mobile-Expensify PRs that were released with the previous checklist: ${removedMobileExpensifyPRs.join(', ')} ⚠️⚠️`);
-            }
-        }
-        catch (error) {
-            // Check if this is a forked repository
-            if (process.env.GITHUB_REPOSITORY !== `${libs_CONST.GITHUB_OWNER}/${libs_CONST.APP_REPO}`) {
-                console.warn("⚠️ Unable to fetch Mobile-Expensify PRs because this workflow is running on a forked repository and secrets aren't accessble. This is expected for development/testing on forks.");
-            }
-            else {
-                console.error('Failed to fetch Mobile-Expensify PRs:', error);
-            }
-        }
-        // Next, we generate the checklist body
-        let checklistBody = '';
-        let checklistAssignees = [];
-        if (shouldCreateNewDeployChecklist) {
-            const stagingDeployCashBodyAndAssignees = await libs_GithubUtils.generateStagingDeployCashBodyAndAssignees(newVersion, newPRNumbers.map((value) => libs_GithubUtils.getPullRequestURLFromNumber(value, libs_CONST.APP_REPO_URL)), mergedMobileExpensifyPRs.map((value) => libs_GithubUtils.getPullRequestURLFromNumber(value, libs_CONST.MOBILE_EXPENSIFY_URL)), [], // verifiedPRList
-            [], // verifiedPRListMobileExpensify
-            [], // deployBlockers
-            [], // resolvedDeployBlockers
-            [], // resolvedInternalQAPRs
-            false, // isFirebaseChecked
-            false);
-            if (stagingDeployCashBodyAndAssignees) {
-                checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
-                checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean);
-            }
-        }
-        else {
-            // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
-            const PRList = newPRNumbers.map((prNum) => {
-                const indexOfPRInCurrentChecklist = currentChecklistData?.PRList.findIndex((pr) => pr.number === prNum) ?? -1;
-                const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRList[indexOfPRInCurrentChecklist].isVerified : false;
-                return {
-                    number: prNum,
-                    url: libs_GithubUtils.getPullRequestURLFromNumber(prNum, libs_CONST.APP_REPO_URL),
-                    isVerified,
-                };
-            });
-            // Generate the updated Mobile-Expensify PR list, preserving the previous state of `isVerified` for existing PRs
-            const PRListMobileExpensify = mergedMobileExpensifyPRs.map((prNum) => {
-                const indexOfPRInCurrentChecklist = currentChecklistData?.PRListMobileExpensify.findIndex((pr) => pr.number === prNum) ?? -1;
-                const isVerified = indexOfPRInCurrentChecklist >= 0 ? currentChecklistData?.PRListMobileExpensify[indexOfPRInCurrentChecklist].isVerified : false;
-                return {
-                    number: prNum,
-                    url: libs_GithubUtils.getPullRequestURLFromNumber(prNum, libs_CONST.MOBILE_EXPENSIFY_URL),
-                    isVerified,
-                };
-            });
-            // Generate the deploy blocker list, preserving the previous state of `isResolved`
-            const openDeployBlockers = await libs_GithubUtils.paginate(libs_GithubUtils.octokit.issues.listForRepo, {
-                log: console,
-                owner: libs_CONST.GITHUB_OWNER,
-                repo: libs_CONST.APP_REPO,
-                labels: libs_CONST.LABELS.DEPLOY_BLOCKER,
-            });
-            // First, make sure we include all current deploy blockers
-            const deployBlockers = openDeployBlockers.map((deployBlocker) => {
-                const indexInCurrentChecklist = currentChecklistData?.deployBlockers.findIndex((item) => item.number === deployBlocker.number) ?? -1;
-                const isResolved = indexInCurrentChecklist >= 0 ? currentChecklistData?.deployBlockers[indexInCurrentChecklist].isResolved : false;
-                return {
-                    number: deployBlocker.number,
-                    url: deployBlocker.html_url,
-                    isResolved,
-                };
-            });
-            // Then make sure we include any demoted or closed blockers as well, and just check them off automatically
-            currentChecklistData?.deployBlockers.forEach((deployBlocker) => {
-                const isResolved = deployBlockers.findIndex((openBlocker) => openBlocker.number === deployBlocker.number) < 0;
-                deployBlockers.push({
-                    ...deployBlocker,
-                    isResolved,
-                });
-            });
-            // Include any existing Mobile-Expensify PRs from the current checklist that aren't in the new merged list
-            currentChecklistData?.PRListMobileExpensify.forEach((existingPR) => {
-                const isAlreadyIncluded = PRListMobileExpensify.findIndex((pr) => pr.number === existingPR.number) >= 0;
-                if (!isAlreadyIncluded) {
-                    PRListMobileExpensify.push(existingPR);
-                }
-            });
-            const didVersionChange = newVersion !== currentChecklistData?.version;
-            const stagingDeployCashBodyAndAssignees = await libs_GithubUtils.generateStagingDeployCashBodyAndAssignees(newVersion, PRList.map((pr) => pr.url), PRListMobileExpensify.map((pr) => pr.url), PRList.filter((pr) => pr.isVerified).map((pr) => pr.url), PRListMobileExpensify.filter((pr) => pr.isVerified).map((pr) => pr.url), deployBlockers.map((blocker) => blocker.url), deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url), currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url), didVersionChange ? false : currentChecklistData.isFirebaseChecked, didVersionChange ? false : currentChecklistData.isGHStatusChecked);
-            if (stagingDeployCashBodyAndAssignees) {
-                checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
-                checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean);
-            }
-        }
-        // Finally, create or update the checklist
-        const defaultPayload = {
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            body: checklistBody,
-        };
-        if (shouldCreateNewDeployChecklist) {
-            const { data: newChecklist } = await libs_GithubUtils.octokit.issues.create({
-                ...defaultPayload,
-                title: `Deploy Checklist: New Expensify ${format(new Date(), libs_CONST.DATE_FORMAT_STRING)}`,
-                labels: [libs_CONST.LABELS.STAGING_DEPLOY, libs_CONST.LABELS.LOCK_DEPLOY],
-                assignees: [libs_CONST.APPLAUSE_BOT].concat(checklistAssignees),
-            });
-            console.log(`Successfully created new StagingDeployCash! 🎉 ${newChecklist.html_url}`);
-            return newChecklist;
-        }
-        const { data: updatedChecklist } = await libs_GithubUtils.octokit.issues.update({
-            ...defaultPayload,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            issue_number: currentChecklistData?.number ?? 0,
-        });
-        console.log(`Successfully updated StagingDeployCash! 🎉 ${updatedChecklist.html_url}`);
-        return updatedChecklist;
+  xSeconds: {
+    one: "1 second",
+    other: "{{count}} seconds",
+  },
+
+  halfAMinute: "half a minute",
+
+  lessThanXMinutes: {
+    one: "less than a minute",
+    other: "less than {{count}} minutes",
+  },
+
+  xMinutes: {
+    one: "1 minute",
+    other: "{{count}} minutes",
+  },
+
+  aboutXHours: {
+    one: "about 1 hour",
+    other: "about {{count}} hours",
+  },
+
+  xHours: {
+    one: "1 hour",
+    other: "{{count}} hours",
+  },
+
+  xDays: {
+    one: "1 day",
+    other: "{{count}} days",
+  },
+
+  aboutXWeeks: {
+    one: "about 1 week",
+    other: "about {{count}} weeks",
+  },
+
+  xWeeks: {
+    one: "1 week",
+    other: "{{count}} weeks",
+  },
+
+  aboutXMonths: {
+    one: "about 1 month",
+    other: "about {{count}} months",
+  },
+
+  xMonths: {
+    one: "1 month",
+    other: "{{count}} months",
+  },
+
+  aboutXYears: {
+    one: "about 1 year",
+    other: "about {{count}} years",
+  },
+
+  xYears: {
+    one: "1 year",
+    other: "{{count}} years",
+  },
+
+  overXYears: {
+    one: "over 1 year",
+    other: "over {{count}} years",
+  },
+
+  almostXYears: {
+    one: "almost 1 year",
+    other: "almost {{count}} years",
+  },
+};
+
+const formatDistance = (token, count, options) => {
+  let result;
+
+  const tokenValue = formatDistanceLocale[token];
+  if (typeof tokenValue === "string") {
+    result = tokenValue;
+  } else if (count === 1) {
+    result = tokenValue.one;
+  } else {
+    result = tokenValue.other.replace("{{count}}", count.toString());
+  }
+
+  if (options?.addSuffix) {
+    if (options.comparison && options.comparison > 0) {
+      return "in " + result;
+    } else {
+      return result + " ago";
     }
-    catch (err) {
-        console.error('An unknown error occurred!', err);
-        core.setFailed(err);
+  }
+
+  return result;
+};
+exports.formatDistance = formatDistance;
+
+
+/***/ }),
+
+/***/ 5217:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+exports.formatLong = void 0;
+var _index = __nccwpck_require__(9566);
+
+const dateFormats = {
+  full: "EEEE, MMMM do, y",
+  long: "MMMM do, y",
+  medium: "MMM d, y",
+  short: "MM/dd/yyyy",
+};
+
+const timeFormats = {
+  full: "h:mm:ss a zzzz",
+  long: "h:mm:ss a z",
+  medium: "h:mm:ss a",
+  short: "h:mm a",
+};
+
+const dateTimeFormats = {
+  full: "{{date}} 'at' {{time}}",
+  long: "{{date}} 'at' {{time}}",
+  medium: "{{date}}, {{time}}",
+  short: "{{date}}, {{time}}",
+};
+
+const formatLong = (exports.formatLong = {
+  date: (0, _index.buildFormatLongFn)({
+    formats: dateFormats,
+    defaultWidth: "full",
+  }),
+
+  time: (0, _index.buildFormatLongFn)({
+    formats: timeFormats,
+    defaultWidth: "full",
+  }),
+
+  dateTime: (0, _index.buildFormatLongFn)({
+    formats: dateTimeFormats,
+    defaultWidth: "full",
+  }),
+});
+
+
+/***/ }),
+
+/***/ 1566:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+exports.formatRelative = void 0;
+
+const formatRelativeLocale = {
+  lastWeek: "'last' eeee 'at' p",
+  yesterday: "'yesterday at' p",
+  today: "'today at' p",
+  tomorrow: "'tomorrow at' p",
+  nextWeek: "eeee 'at' p",
+  other: "P",
+};
+
+const formatRelative = (token, _date, _baseDate, _options) =>
+  formatRelativeLocale[token];
+exports.formatRelative = formatRelative;
+
+
+/***/ }),
+
+/***/ 2720:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+exports.localize = void 0;
+var _index = __nccwpck_require__(4177);
+
+const eraValues = {
+  narrow: ["B", "A"],
+  abbreviated: ["BC", "AD"],
+  wide: ["Before Christ", "Anno Domini"],
+};
+
+const quarterValues = {
+  narrow: ["1", "2", "3", "4"],
+  abbreviated: ["Q1", "Q2", "Q3", "Q4"],
+  wide: ["1st quarter", "2nd quarter", "3rd quarter", "4th quarter"],
+};
+
+// Note: in English, the names of days of the week and months are capitalized.
+// If you are making a new locale based on this one, check if the same is true for the language you're working on.
+// Generally, formatted dates should look like they are in the middle of a sentence,
+// e.g. in Spanish language the weekdays and months should be in the lowercase.
+const monthValues = {
+  narrow: ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
+  abbreviated: [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ],
+
+  wide: [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ],
+};
+
+const dayValues = {
+  narrow: ["S", "M", "T", "W", "T", "F", "S"],
+  short: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
+  abbreviated: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  wide: [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ],
+};
+
+const dayPeriodValues = {
+  narrow: {
+    am: "a",
+    pm: "p",
+    midnight: "mi",
+    noon: "n",
+    morning: "morning",
+    afternoon: "afternoon",
+    evening: "evening",
+    night: "night",
+  },
+  abbreviated: {
+    am: "AM",
+    pm: "PM",
+    midnight: "midnight",
+    noon: "noon",
+    morning: "morning",
+    afternoon: "afternoon",
+    evening: "evening",
+    night: "night",
+  },
+  wide: {
+    am: "a.m.",
+    pm: "p.m.",
+    midnight: "midnight",
+    noon: "noon",
+    morning: "morning",
+    afternoon: "afternoon",
+    evening: "evening",
+    night: "night",
+  },
+};
+
+const formattingDayPeriodValues = {
+  narrow: {
+    am: "a",
+    pm: "p",
+    midnight: "mi",
+    noon: "n",
+    morning: "in the morning",
+    afternoon: "in the afternoon",
+    evening: "in the evening",
+    night: "at night",
+  },
+  abbreviated: {
+    am: "AM",
+    pm: "PM",
+    midnight: "midnight",
+    noon: "noon",
+    morning: "in the morning",
+    afternoon: "in the afternoon",
+    evening: "in the evening",
+    night: "at night",
+  },
+  wide: {
+    am: "a.m.",
+    pm: "p.m.",
+    midnight: "midnight",
+    noon: "noon",
+    morning: "in the morning",
+    afternoon: "in the afternoon",
+    evening: "in the evening",
+    night: "at night",
+  },
+};
+
+const ordinalNumber = (dirtyNumber, _options) => {
+  const number = Number(dirtyNumber);
+
+  // If ordinal numbers depend on context, for example,
+  // if they are different for different grammatical genders,
+  // use `options.unit`.
+  //
+  // `unit` can be 'year', 'quarter', 'month', 'week', 'date', 'dayOfYear',
+  // 'day', 'hour', 'minute', 'second'.
+
+  const rem100 = number % 100;
+  if (rem100 > 20 || rem100 < 10) {
+    switch (rem100 % 10) {
+      case 1:
+        return number + "st";
+      case 2:
+        return number + "nd";
+      case 3:
+        return number + "rd";
     }
+  }
+  return number + "th";
+};
+
+const localize = (exports.localize = {
+  ordinalNumber,
+
+  era: (0, _index.buildLocalizeFn)({
+    values: eraValues,
+    defaultWidth: "wide",
+  }),
+
+  quarter: (0, _index.buildLocalizeFn)({
+    values: quarterValues,
+    defaultWidth: "wide",
+    argumentCallback: (quarter) => quarter - 1,
+  }),
+
+  month: (0, _index.buildLocalizeFn)({
+    values: monthValues,
+    defaultWidth: "wide",
+  }),
+
+  day: (0, _index.buildLocalizeFn)({
+    values: dayValues,
+    defaultWidth: "wide",
+  }),
+
+  dayPeriod: (0, _index.buildLocalizeFn)({
+    values: dayPeriodValues,
+    defaultWidth: "wide",
+    formattingValues: formattingDayPeriodValues,
+    defaultFormattingWidth: "wide",
+  }),
+});
+
+
+/***/ }),
+
+/***/ 6686:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+exports.match = void 0;
+
+var _index = __nccwpck_require__(3277);
+var _index2 = __nccwpck_require__(8009);
+
+const matchOrdinalNumberPattern = /^(\d+)(th|st|nd|rd)?/i;
+const parseOrdinalNumberPattern = /\d+/i;
+
+const matchEraPatterns = {
+  narrow: /^(b|a)/i,
+  abbreviated: /^(b\.?\s?c\.?|b\.?\s?c\.?\s?e\.?|a\.?\s?d\.?|c\.?\s?e\.?)/i,
+  wide: /^(before christ|before common era|anno domini|common era)/i,
+};
+const parseEraPatterns = {
+  any: [/^b/i, /^(a|c)/i],
+};
+
+const matchQuarterPatterns = {
+  narrow: /^[1234]/i,
+  abbreviated: /^q[1234]/i,
+  wide: /^[1234](th|st|nd|rd)? quarter/i,
+};
+const parseQuarterPatterns = {
+  any: [/1/i, /2/i, /3/i, /4/i],
+};
+
+const matchMonthPatterns = {
+  narrow: /^[jfmasond]/i,
+  abbreviated: /^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i,
+  wide: /^(january|february|march|april|may|june|july|august|september|october|november|december)/i,
+};
+const parseMonthPatterns = {
+  narrow: [
+    /^j/i,
+    /^f/i,
+    /^m/i,
+    /^a/i,
+    /^m/i,
+    /^j/i,
+    /^j/i,
+    /^a/i,
+    /^s/i,
+    /^o/i,
+    /^n/i,
+    /^d/i,
+  ],
+
+  any: [
+    /^ja/i,
+    /^f/i,
+    /^mar/i,
+    /^ap/i,
+    /^may/i,
+    /^jun/i,
+    /^jul/i,
+    /^au/i,
+    /^s/i,
+    /^o/i,
+    /^n/i,
+    /^d/i,
+  ],
+};
+
+const matchDayPatterns = {
+  narrow: /^[smtwf]/i,
+  short: /^(su|mo|tu|we|th|fr|sa)/i,
+  abbreviated: /^(sun|mon|tue|wed|thu|fri|sat)/i,
+  wide: /^(sunday|monday|tuesday|wednesday|thursday|friday|saturday)/i,
+};
+const parseDayPatterns = {
+  narrow: [/^s/i, /^m/i, /^t/i, /^w/i, /^t/i, /^f/i, /^s/i],
+  any: [/^su/i, /^m/i, /^tu/i, /^w/i, /^th/i, /^f/i, /^sa/i],
+};
+
+const matchDayPeriodPatterns = {
+  narrow: /^(a|p|mi|n|(in the|at) (morning|afternoon|evening|night))/i,
+  any: /^([ap]\.?\s?m\.?|midnight|noon|(in the|at) (morning|afternoon|evening|night))/i,
+};
+const parseDayPeriodPatterns = {
+  any: {
+    am: /^a/i,
+    pm: /^p/i,
+    midnight: /^mi/i,
+    noon: /^no/i,
+    morning: /morning/i,
+    afternoon: /afternoon/i,
+    evening: /evening/i,
+    night: /night/i,
+  },
+};
+
+const match = (exports.match = {
+  ordinalNumber: (0, _index2.buildMatchPatternFn)({
+    matchPattern: matchOrdinalNumberPattern,
+    parsePattern: parseOrdinalNumberPattern,
+    valueCallback: (value) => parseInt(value, 10),
+  }),
+
+  era: (0, _index.buildMatchFn)({
+    matchPatterns: matchEraPatterns,
+    defaultMatchWidth: "wide",
+    parsePatterns: parseEraPatterns,
+    defaultParseWidth: "any",
+  }),
+
+  quarter: (0, _index.buildMatchFn)({
+    matchPatterns: matchQuarterPatterns,
+    defaultMatchWidth: "wide",
+    parsePatterns: parseQuarterPatterns,
+    defaultParseWidth: "any",
+    valueCallback: (index) => index + 1,
+  }),
+
+  month: (0, _index.buildMatchFn)({
+    matchPatterns: matchMonthPatterns,
+    defaultMatchWidth: "wide",
+    parsePatterns: parseMonthPatterns,
+    defaultParseWidth: "any",
+  }),
+
+  day: (0, _index.buildMatchFn)({
+    matchPatterns: matchDayPatterns,
+    defaultMatchWidth: "wide",
+    parsePatterns: parseDayPatterns,
+    defaultParseWidth: "any",
+  }),
+
+  dayPeriod: (0, _index.buildMatchFn)({
+    matchPatterns: matchDayPeriodPatterns,
+    defaultMatchWidth: "any",
+    parsePatterns: parseDayPeriodPatterns,
+    defaultParseWidth: "any",
+  }),
+});
+
+
+/***/ }),
+
+/***/ 5951:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+exports.startOfDay = startOfDay;
+var _index = __nccwpck_require__(6439);
+
+/**
+ * The {@link startOfDay} function options.
+ */
+
+/**
+ * @name startOfDay
+ * @category Day Helpers
+ * @summary Return the start of a day for the given date.
+ *
+ * @description
+ * Return the start of a day for the given date.
+ * The result will be in the local timezone.
+ *
+ * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
+ * @typeParam ResultDate - The result `Date` type, it is the type returned from the context function if it is passed, or inferred from the arguments.
+ *
+ * @param date - The original date
+ * @param options - The options
+ *
+ * @returns The start of a day
+ *
+ * @example
+ * // The start of a day for 2 September 2014 11:55:00:
+ * const result = startOfDay(new Date(2014, 8, 2, 11, 55, 0))
+ * //=> Tue Sep 02 2014 00:00:00
+ */
+function startOfDay(date, options) {
+  const _date = (0, _index.toDate)(date, options?.in);
+  _date.setHours(0, 0, 0, 0);
+  return _date;
 }
-if (__nccwpck_require__.c[__nccwpck_require__.s] === module) {
-    run();
+
+
+/***/ }),
+
+/***/ 8516:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+exports.startOfISOWeek = startOfISOWeek;
+var _index = __nccwpck_require__(1284);
+
+/**
+ * The {@link startOfISOWeek} function options.
+ */
+
+/**
+ * @name startOfISOWeek
+ * @category ISO Week Helpers
+ * @summary Return the start of an ISO week for the given date.
+ *
+ * @description
+ * Return the start of an ISO week for the given date.
+ * The result will be in the local timezone.
+ *
+ * ISO week-numbering year: http://en.wikipedia.org/wiki/ISO_week_date
+ *
+ * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
+ * @typeParam ResultDate - The result `Date` type, it is the type returned from the context function if it is passed, or inferred from the arguments.
+ *
+ * @param date - The original date
+ * @param options - An object with options
+ *
+ * @returns The start of an ISO week
+ *
+ * @example
+ * // The start of an ISO week for 2 September 2014 11:55:00:
+ * const result = startOfISOWeek(new Date(2014, 8, 2, 11, 55, 0))
+ * //=> Mon Sep 01 2014 00:00:00
+ */
+function startOfISOWeek(date, options) {
+  return (0, _index.startOfWeek)(date, { ...options, weekStartsOn: 1 });
 }
-/* harmony default export */ const createOrUpdateStagingDeploy = (run);
 
 
 /***/ }),
 
-/***/ 9491:
-/***/ ((module) => {
+/***/ 5437:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
-module.exports = require("assert");
+
+exports.startOfISOWeekYear = startOfISOWeekYear;
+var _index = __nccwpck_require__(926);
+var _index2 = __nccwpck_require__(7131);
+var _index3 = __nccwpck_require__(8516);
+
+/**
+ * The {@link startOfISOWeekYear} function options.
+ */
+
+/**
+ * @name startOfISOWeekYear
+ * @category ISO Week-Numbering Year Helpers
+ * @summary Return the start of an ISO week-numbering year for the given date.
+ *
+ * @description
+ * Return the start of an ISO week-numbering year,
+ * which always starts 3 days before the year's first Thursday.
+ * The result will be in the local timezone.
+ *
+ * ISO week-numbering year: http://en.wikipedia.org/wiki/ISO_week_date
+ *
+ * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
+ * @typeParam ResultDate - The result `Date` type, it is the type returned from the context function if it is passed, or inferred from the arguments.
+ *
+ * @param date - The original date
+ * @param options - An object with options
+ *
+ * @returns The start of an ISO week-numbering year
+ *
+ * @example
+ * // The start of an ISO week-numbering year for 2 July 2005:
+ * const result = startOfISOWeekYear(new Date(2005, 6, 2))
+ * //=> Mon Jan 03 2005 00:00:00
+ */
+function startOfISOWeekYear(date, options) {
+  const year = (0, _index2.getISOWeekYear)(date, options);
+  const fourthOfJanuary = (0, _index.constructFrom)(options?.in || date, 0);
+  fourthOfJanuary.setFullYear(year, 0, 4);
+  fourthOfJanuary.setHours(0, 0, 0, 0);
+  return (0, _index3.startOfISOWeek)(fourthOfJanuary);
+}
+
 
 /***/ }),
 
-/***/ 6113:
-/***/ ((module) => {
+/***/ 1284:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
-module.exports = require("crypto");
+
+exports.startOfWeek = startOfWeek;
+var _index = __nccwpck_require__(5586);
+var _index2 = __nccwpck_require__(6439);
+
+/**
+ * The {@link startOfWeek} function options.
+ */
+
+/**
+ * @name startOfWeek
+ * @category Week Helpers
+ * @summary Return the start of a week for the given date.
+ *
+ * @description
+ * Return the start of a week for the given date.
+ * The result will be in the local timezone.
+ *
+ * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
+ * @typeParam ResultDate - The result `Date` type, it is the type returned from the context function if it is passed, or inferred from the arguments.
+ *
+ * @param date - The original date
+ * @param options - An object with options
+ *
+ * @returns The start of a week
+ *
+ * @example
+ * // The start of a week for 2 September 2014 11:55:00:
+ * const result = startOfWeek(new Date(2014, 8, 2, 11, 55, 0))
+ * //=> Sun Aug 31 2014 00:00:00
+ *
+ * @example
+ * // If the week starts on Monday, the start of the week for 2 September 2014 11:55:00:
+ * const result = startOfWeek(new Date(2014, 8, 2, 11, 55, 0), { weekStartsOn: 1 })
+ * //=> Mon Sep 01 2014 00:00:00
+ */
+function startOfWeek(date, options) {
+  const defaultOptions = (0, _index.getDefaultOptions)();
+  const weekStartsOn =
+    options?.weekStartsOn ??
+    options?.locale?.options?.weekStartsOn ??
+    defaultOptions.weekStartsOn ??
+    defaultOptions.locale?.options?.weekStartsOn ??
+    0;
+
+  const _date = (0, _index2.toDate)(date, options?.in);
+  const day = _date.getDay();
+  const diff = (day < weekStartsOn ? 7 : 0) + day - weekStartsOn;
+
+  _date.setDate(_date.getDate() - diff);
+  _date.setHours(0, 0, 0, 0);
+  return _date;
+}
+
 
 /***/ }),
 
-/***/ 3975:
-/***/ ((module) => {
+/***/ 5129:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
-module.exports = require("encoding");
+
+exports.startOfWeekYear = startOfWeekYear;
+var _index = __nccwpck_require__(5586);
+var _index2 = __nccwpck_require__(926);
+var _index3 = __nccwpck_require__(9116);
+var _index4 = __nccwpck_require__(1284);
+
+/**
+ * The {@link startOfWeekYear} function options.
+ */
+
+/**
+ * @name startOfWeekYear
+ * @category Week-Numbering Year Helpers
+ * @summary Return the start of a local week-numbering year for the given date.
+ *
+ * @description
+ * Return the start of a local week-numbering year.
+ * The exact calculation depends on the values of
+ * `options.weekStartsOn` (which is the index of the first day of the week)
+ * and `options.firstWeekContainsDate` (which is the day of January, which is always in
+ * the first week of the week-numbering year)
+ *
+ * Week numbering: https://en.wikipedia.org/wiki/Week#The_ISO_week_date_system
+ *
+ * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
+ * @typeParam ResultDate - The result `Date` type.
+ *
+ * @param date - The original date
+ * @param options - An object with options
+ *
+ * @returns The start of a week-numbering year
+ *
+ * @example
+ * // The start of an a week-numbering year for 2 July 2005 with default settings:
+ * const result = startOfWeekYear(new Date(2005, 6, 2))
+ * //=> Sun Dec 26 2004 00:00:00
+ *
+ * @example
+ * // The start of a week-numbering year for 2 July 2005
+ * // if Monday is the first day of week
+ * // and 4 January is always in the first week of the year:
+ * const result = startOfWeekYear(new Date(2005, 6, 2), {
+ *   weekStartsOn: 1,
+ *   firstWeekContainsDate: 4
+ * })
+ * //=> Mon Jan 03 2005 00:00:00
+ */
+function startOfWeekYear(date, options) {
+  const defaultOptions = (0, _index.getDefaultOptions)();
+  const firstWeekContainsDate =
+    options?.firstWeekContainsDate ??
+    options?.locale?.options?.firstWeekContainsDate ??
+    defaultOptions.firstWeekContainsDate ??
+    defaultOptions.locale?.options?.firstWeekContainsDate ??
+    1;
+
+  const year = (0, _index3.getWeekYear)(date, options);
+  const firstWeek = (0, _index2.constructFrom)(options?.in || date, 0);
+  firstWeek.setFullYear(year, 0, firstWeekContainsDate);
+  firstWeek.setHours(0, 0, 0, 0);
+  const _date = (0, _index4.startOfWeek)(firstWeek, options);
+  return _date;
+}
+
 
 /***/ }),
 
-/***/ 2361:
-/***/ ((module) => {
+/***/ 8537:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
-module.exports = require("events");
+
+exports.startOfYear = startOfYear;
+var _index = __nccwpck_require__(6439);
+
+/**
+ * The {@link startOfYear} function options.
+ */
+
+/**
+ * @name startOfYear
+ * @category Year Helpers
+ * @summary Return the start of a year for the given date.
+ *
+ * @description
+ * Return the start of a year for the given date.
+ * The result will be in the local timezone.
+ *
+ * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
+ * @typeParam ResultDate - The result `Date` type, it is the type returned from the context function if it is passed, or inferred from the arguments.
+ *
+ * @param date - The original date
+ * @param options - The options
+ *
+ * @returns The start of a year
+ *
+ * @example
+ * // The start of a year for 2 September 2014 11:55:00:
+ * const result = startOfYear(new Date(2014, 8, 2, 11, 55, 00))
+ * //=> Wed Jan 01 2014 00:00:00
+ */
+function startOfYear(date, options) {
+  const date_ = (0, _index.toDate)(date, options?.in);
+  date_.setFullYear(date_.getFullYear(), 0, 1);
+  date_.setHours(0, 0, 0, 0);
+  return date_;
+}
+
 
 /***/ }),
 
-/***/ 7147:
-/***/ ((module) => {
+/***/ 6439:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
-module.exports = require("fs");
 
-/***/ }),
+exports.toDate = toDate;
+var _index = __nccwpck_require__(926);
 
-/***/ 3685:
-/***/ ((module) => {
+/**
+ * @name toDate
+ * @category Common Helpers
+ * @summary Convert the given argument to an instance of Date.
+ *
+ * @description
+ * Convert the given argument to an instance of Date.
+ *
+ * If the argument is an instance of Date, the function returns its clone.
+ *
+ * If the argument is a number, it is treated as a timestamp.
+ *
+ * If the argument is none of the above, the function returns Invalid Date.
+ *
+ * Starting from v3.7.0, it clones a date using `[Symbol.for("constructDateFrom")]`
+ * enabling to transfer extra properties from the reference date to the new date.
+ * It's useful for extensions like [`TZDate`](https://github.com/date-fns/tz)
+ * that accept a time zone as a constructor argument.
+ *
+ * **Note**: *all* Date arguments passed to any *date-fns* function is processed by `toDate`.
+ *
+ * @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
+ * @typeParam ResultDate - The result `Date` type, it is the type returned from the context function if it is passed, or inferred from the arguments.
+ *
+ * @param argument - The value to convert
+ *
+ * @returns The parsed date in the local time zone
+ *
+ * @example
+ * // Clone the date:
+ * const result = toDate(new Date(2014, 1, 11, 11, 30, 30))
+ * //=> Tue Feb 11 2014 11:30:30
+ *
+ * @example
+ * // Convert the timestamp to date:
+ * const result = toDate(1392098430000)
+ * //=> Tue Feb 11 2014 11:30:30
+ */
+function toDate(argument, context) {
+  // [TODO] Get rid of `toDate` or `constructFrom`?
+  return (0, _index.constructFrom)(context || argument, argument);
+}
 
-"use strict";
-module.exports = require("http");
-
-/***/ }),
-
-/***/ 5687:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("https");
-
-/***/ }),
-
-/***/ 1808:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("net");
-
-/***/ }),
-
-/***/ 2037:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("os");
-
-/***/ }),
-
-/***/ 1017:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("path");
-
-/***/ }),
-
-/***/ 5477:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("punycode");
-
-/***/ }),
-
-/***/ 2781:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("stream");
-
-/***/ }),
-
-/***/ 4404:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("tls");
-
-/***/ }),
-
-/***/ 7310:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("url");
-
-/***/ }),
-
-/***/ 3837:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("util");
-
-/***/ }),
-
-/***/ 9796:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("zlib");
 
 /***/ }),
 
@@ -15858,8 +16343,8 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			id: moduleId,
-/******/ 			loaded: false,
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
 /******/ 	
@@ -15872,82 +16357,21 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
 /******/ 	
-/******/ 		// Flag the module as loaded
-/******/ 		module.loaded = true;
-/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
-/******/ 	// expose the module cache
-/******/ 	__nccwpck_require__.c = __webpack_module_cache__;
-/******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/compat get default export */
-/******/ 	(() => {
-/******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__nccwpck_require__.n = (module) => {
-/******/ 			var getter = module && module.__esModule ?
-/******/ 				() => (module['default']) :
-/******/ 				() => (module);
-/******/ 			__nccwpck_require__.d(getter, { a: getter });
-/******/ 			return getter;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/harmony module decorator */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.hmd = (module) => {
-/******/ 			module = Object.create(module);
-/******/ 			if (!module.children) module.children = [];
-/******/ 			Object.defineProperty(module, 'exports', {
-/******/ 				enumerable: true,
-/******/ 				set: () => {
-/******/ 					throw new Error('ES Modules may not assign module.exports or exports.*, Use ESM export syntax, instead: ' + module.id);
-/******/ 				}
-/******/ 			});
-/******/ 			return module;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
 /******/ 	
-/******/ 	// module cache are used so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	var __webpack_exports__ = __nccwpck_require__(__nccwpck_require__.s = 564);
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(566);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()
