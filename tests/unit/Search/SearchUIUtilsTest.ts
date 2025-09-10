@@ -2255,6 +2255,8 @@ describe('SearchUIUtils', () => {
                         transactionThreadReportID: '4139222832581831',
                         transactionType: 'cash',
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        convertedAmount: -5000,
+                        convertedCurrency: 'USD',
                     },
                 },
                 search: {
