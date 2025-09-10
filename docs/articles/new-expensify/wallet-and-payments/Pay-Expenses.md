@@ -34,7 +34,7 @@ To send personal payments, you’ll need to [set up your Wallet](https://help.ex
 
 ## How to Pay a Personal Expense
 
-In the navigation tabs (on the left on web, and at the bottom on mobile), select **Reports > To-do > Pay** or click on the notification you received.
+In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Reports > To-do > Pay** or click on the notification you received.
 
 1. You'll be notified via email, in-app alert, or text when someone submits an expense to you.
 2. Click or tap **Pay** to view the details.
