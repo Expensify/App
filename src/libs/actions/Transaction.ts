@@ -804,7 +804,15 @@ function changeTransactionsReport(
         let transactionReimbursable = transaction.reimbursable;
         // 2. Calculate transaction violations if moving transaction to a workspace
         if (isPaidGroupPolicy(policy) && policy?.id) {
-            const violationData = ViolationsUtils.getViolationsOnyxData(transaction, allTransactionViolations, policy, policyTagList, policyCategories, policyHasDependentTags, false);
+            const violationData = ViolationsUtils.getViolationsOnyxData(
+                transaction,
+                currentTransactionViolations[transaction.transactionID],
+                policy,
+                policyTagList,
+                policyCategories,
+                policyHasDependentTags,
+                false,
+            );
             optimisticData.push(violationData);
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1131,7 +1139,15 @@ function changeTransactionsReport(
         if (!isPaidGroupPolicy(policy) || !policy?.id) {
             return;
         }
-        const violationData = ViolationsUtils.getViolationsOnyxData(transaction, allTransactionViolations, policy, policyTagList, policyCategories, policyHasDependentTags, false);
+        const violationData = ViolationsUtils.getViolationsOnyxData(
+            transaction,
+            currentTransactionViolations[transaction.transactionID],
+            policy,
+            policyTagList,
+            policyCategories,
+            policyHasDependentTags,
+            false,
+        );
         const hasOtherViolationsBesideDuplicates =
             Array.isArray(violationData.value) &&
             !violationData.value.every((violation) => {
