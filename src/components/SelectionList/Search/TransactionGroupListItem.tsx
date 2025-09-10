@@ -31,7 +31,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getColumnsToShow, getSections} from '@libs/SearchUIUtils';
+import {getReportAction} from '@libs/ReportActionsUtils';
+import {createAndOpenSearchTransactionThread, getColumnsToShow, getSections} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
@@ -58,12 +59,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
     accountID,
     isOffline,
     areAllOptionalColumnsHidden: areAllOptionalColumnsHiddenProp,
+    violations,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {selectedTransactions} = useSearchContext();
+    const {selectedTransactions, currentSearchHash} = useSearchContext();
     const selectedTransactionIDs = Object.keys(selectedTransactions);
     const selectedTransactionIDsSet = useMemo(() => new Set(selectedTransactionIDs), [selectedTransactionIDs]);
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`, {canBeMissing: true});
@@ -161,6 +163,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
         setActiveTransactionThreadIDs(siblingTransactionThreadIDs).then(() => {
+            // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
+            if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                const iouAction = getReportAction(transactionItem.report.reportID, transactionItem.moneyRequestReportActionID);
+                createAndOpenSearchTransactionThread(transactionItem, iouAction, currentSearchHash, backTo);
+                return;
+            }
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         });
     };
@@ -314,6 +322,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                         key={transaction.transactionID}
                                         report={transaction.report}
                                         transactionItem={transaction}
+                                        violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
                                         isSelected={!!transaction.isSelected}
                                         dateColumnSize={dateColumnSize}
                                         amountColumnSize={amountColumnSize}
