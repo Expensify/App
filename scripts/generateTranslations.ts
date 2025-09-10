@@ -252,8 +252,14 @@ class TranslationGenerator {
             throw new Error('Could not find default export in source file');
         }
         const defaultExportIdentifier = TSCompilerUtils.extractIdentifierFromExpression(defaultExport);
-        const translationsNode = TSCompilerUtils.resolveDeclaration(defaultExportIdentifier ?? '', sourceFile);
-        return translationsNode;
+        const variableDeclaration = TSCompilerUtils.resolveDeclaration(defaultExportIdentifier ?? '', sourceFile);
+
+        // Return the object literal initializer, not the variable declaration
+        if (variableDeclaration && ts.isVariableDeclaration(variableDeclaration) && variableDeclaration.initializer) {
+            return variableDeclaration.initializer;
+        }
+
+        return variableDeclaration;
     }
 
     /**
