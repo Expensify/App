@@ -6,6 +6,7 @@ import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigati
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
+import {createTransactionThreadReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -66,14 +67,13 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID}: MoneyR
         if (iouAction?.childReportID) {
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: iouAction.childReportID, backTo}), {forceReplace: true});
         } else {
-            // TODO: uncomment when https://github.com/Expensify/App/pull/69536 is merged, since it has createTransactionThreadReport method
-            // const transactionThreadReport = createTransactionThreadReport(iouReport, iouAction);
-            // Navigation.navigate(
-            //     ROUTES.SEARCH_REPORT.getRoute({
-            //         reportID: transactionThreadReport.reportID,
-            //         backTo,
-            //     }),
-            // );
+            const transactionThreadReport = createTransactionThreadReport(iouReport, iouAction);
+            Navigation.navigate(
+                ROUTES.SEARCH_REPORT.getRoute({
+                    reportID: transactionThreadReport?.reportID,
+                    backTo,
+                }),
+            );
         }
     };
 
