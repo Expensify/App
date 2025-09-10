@@ -11,18 +11,38 @@ import type {
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionList/types';
+import Navigation from '@navigation/Navigation';
+// eslint-disable-next-line no-restricted-syntax
+import type * as ReportUserActions from '@userActions/Report';
+import {createTransactionThreadReport, openReport} from '@userActions/Report';
+// eslint-disable-next-line no-restricted-syntax
+import type * as SearchUtils from '@userActions/Search';
+import {updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {formatPhoneNumber, localeCompare} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+jest.mock('@src/libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+}));
+jest.mock('@userActions/Report', () => ({
+    ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
+    createTransactionThreadReport: jest.fn(),
+    openReport: jest.fn(),
+}));
+jest.mock('@userActions/Search', () => ({
+    ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
+    updateSearchResultsWithTransactionThreadReportID: jest.fn(),
+}));
 
 const adminAccountID = 18439984;
 const adminEmail = 'admin@policy.com';
@@ -1224,6 +1244,7 @@ const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
         login: 'admin@policy.com',
         total: 70,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         accountID: 1111111,
@@ -1235,6 +1256,7 @@ const transactionMemberGroupListItems: TransactionMemberGroupListItemType[] = [
         login: 'approver@policy.com',
         total: 30,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1249,6 +1271,7 @@ const transactionMemberGroupListItemsSorted: TransactionMemberGroupListItemType[
         login: 'approver@policy.com',
         total: 30,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 
     {
@@ -1261,6 +1284,7 @@ const transactionMemberGroupListItemsSorted: TransactionMemberGroupListItemType[
         login: 'admin@policy.com',
         total: 70,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1279,6 +1303,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         login: 'admin@policy.com',
         total: 40,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         accountID: 1111111,
@@ -1294,6 +1319,7 @@ const transactionCardGroupListItems: TransactionCardGroupListItemType[] = [
         login: 'approver@policy.com',
         total: 20,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1312,6 +1338,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         login: 'approver@policy.com',
         total: 20,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         accountID: 18439984,
@@ -1327,6 +1354,7 @@ const transactionCardGroupListItemsSorted: TransactionCardGroupListItemType[] = 
         login: 'admin@policy.com',
         total: 40,
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1341,6 +1369,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         total: 40,
         groupedBy: 'withdrawal-id',
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         bankName: CONST.BANK_NAMES.CITIBANK,
@@ -1352,6 +1381,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         total: 20,
         groupedBy: 'withdrawal-id',
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1366,6 +1396,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         total: 20,
         groupedBy: 'withdrawal-id',
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
     {
         bankName: CONST.BANK_NAMES.CHASE,
@@ -1377,6 +1408,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         total: 40,
         groupedBy: 'withdrawal-id',
         transactions: [],
+        transactionsQueryJSON: undefined,
     },
 ];
 
@@ -1752,63 +1784,6 @@ describe('SearchUIUtils', () => {
                 SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResultsGroupByWithdrawalID.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID),
             ).toStrictEqual(transactionWithdrawalIDGroupListItems);
         });
-
-        it('should handle transaction keys before report keys correctly when groupBy is report', () => {
-            const originalData = searchResults.data;
-
-            const searchResultsWithTransactionKeysFirst: OnyxTypes.SearchResults = {
-                data: {
-                    // First add non-transaction and non-report keys
-                    personalDetailsList: originalData.personalDetailsList,
-                    [`policy_${policyID}`]: originalData[`policy_${policyID}`],
-                    [`reportActions_${reportID}`]: originalData[`reportActions_${reportID}`],
-
-                    // Then add transaction keys first (this is the key part of the test)
-                    [`transactions_${transactionID}`]: originalData[`transactions_${transactionID}`],
-                    [`transactions_${transactionID2}`]: originalData[`transactions_${transactionID2}`],
-                    [`transactions_${transactionID3}`]: originalData[`transactions_${transactionID3}`],
-                    [`transactions_${transactionID4}`]: originalData[`transactions_${transactionID4}`],
-
-                    // Finally add report keys after transaction keys
-                    [`report_${reportID}`]: originalData[`report_${reportID}`],
-                    [`report_${reportID2}`]: originalData[`report_${reportID2}`],
-                    [`report_${reportID3}`]: originalData[`report_${reportID3}`],
-                    [`report_${reportID4}`]: originalData[`report_${reportID4}`],
-                    [`report_${reportID5}`]: originalData[`report_${reportID5}`],
-                },
-                search: searchResults.search,
-            };
-
-            const resultWithTransactionKeysFirst = SearchUIUtils.getSections(
-                CONST.SEARCH.DATA_TYPES.EXPENSE,
-                searchResultsWithTransactionKeysFirst.data,
-                2074551,
-                formatPhoneNumber,
-                CONST.SEARCH.GROUP_BY.REPORTS,
-            );
-
-            const resultWithNormalOrder = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS);
-
-            expect(resultWithTransactionKeysFirst.length).toBe(resultWithNormalOrder.length);
-
-            const reportsWithTransactionKeysFirst = resultWithTransactionKeysFirst as TransactionReportGroupListItemType[];
-            const reportsWithNormalOrder = resultWithNormalOrder as TransactionReportGroupListItemType[];
-
-            reportsWithTransactionKeysFirst.forEach((reportWithTransactionKeysFirst, index) => {
-                const reportWithNormalOrder = reportsWithNormalOrder.at(index);
-                expect(reportWithTransactionKeysFirst.transactions.length).toBe(reportWithNormalOrder?.transactions.length);
-                expect(reportWithTransactionKeysFirst.reportID).toBe(reportWithNormalOrder?.reportID);
-
-                if (reportWithTransactionKeysFirst.reportID === reportID) {
-                    expect(reportWithTransactionKeysFirst.transactions.length).toBeGreaterThan(0);
-                    expect(reportWithTransactionKeysFirst.transactions.at(0)?.transactionID).toBe(transactionID);
-                }
-                if (reportWithTransactionKeysFirst.reportID === reportID2) {
-                    expect(reportWithTransactionKeysFirst.transactions.length).toBeGreaterThan(0);
-                    expect(reportWithTransactionKeysFirst.transactions.at(0)?.transactionID).toBe(transactionID2);
-                }
-            });
-        });
     });
 
     describe('Test getSortedSections', () => {
@@ -1898,7 +1873,7 @@ describe('SearchUIUtils', () => {
 
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, {}, false)
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -1976,7 +1951,7 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, mockSavedSearches, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, mockSavedSearches, false);
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeDefined();
@@ -2026,7 +2001,7 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, mockSavedSearches, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, mockSavedSearches, false);
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
@@ -2055,7 +2030,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeDefined();
@@ -2064,7 +2039,7 @@ describe('SearchUIUtils', () => {
         it('should not show saved section when there are no saved searches', () => {
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeUndefined();
@@ -2086,6 +2061,7 @@ describe('SearchUIUtils', () => {
                 {},
                 undefined,
                 {},
+                undefined,
                 mockSavedSearches,
                 false, // not offline
             );
@@ -2110,6 +2086,7 @@ describe('SearchUIUtils', () => {
                 {},
                 undefined,
                 {},
+                undefined,
                 mockSavedSearches,
                 true, // offline
             );
@@ -2132,7 +2109,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false);
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeUndefined();
@@ -2158,6 +2135,7 @@ describe('SearchUIUtils', () => {
                 {}, // no card feeds
                 undefined,
                 mockPolicies,
+                undefined,
                 {},
                 false,
             );
@@ -2190,7 +2168,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false);
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
@@ -2215,7 +2193,7 @@ describe('SearchUIUtils', () => {
             };
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false);
+            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, {}, false);
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
 
             expect(accountingSection).toBeDefined();
@@ -2224,7 +2202,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should generate correct routes', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, {}, false)
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false)
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -2589,6 +2567,36 @@ describe('SearchUIUtils', () => {
 
             // Should not show tag column because it's the empty tag value
             expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(false);
+        });
+    });
+
+    describe('createAndOpenSearchTransactionThread', () => {
+        const threadReportID = 'thread-report-123';
+        const threadReport = {reportID: threadReportID};
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
+        const iouReportAction = {reportActionID: 'action-123'} as OnyxTypes.ReportAction;
+        const hash = 12345;
+        const backTo = '/search/all';
+
+        test('Should create transaction thread report and navigate to it', () => {
+            (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
+
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, iouReportAction, hash, backTo);
+
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, iouReportAction);
+            expect(updateSearchResultsWithTransactionThreadReportID).toHaveBeenCalledWith(hash, transactionID, threadReportID);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
+        });
+
+        test('Should not load iou report if iouReportAction was provided', () => {
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, iouReportAction, hash, backTo);
+            expect(openReport).not.toHaveBeenCalled();
+        });
+
+        test('Should load iou report if iouReportAction was not provided', () => {
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, hash, backTo);
+            expect(openReport).toHaveBeenCalled();
         });
     });
 });

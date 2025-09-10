@@ -356,8 +356,13 @@ const styles = (theme: ThemeColors) =>
         appBG: {
             backgroundColor: theme.appBG,
         },
+
         fontSizeLabel: {
             fontSize: variables.fontSizeLabel,
+        },
+
+        fontSizeNormal: {
+            fontSize: variables.fontSizeNormal,
         },
 
         h4: {
@@ -649,6 +654,14 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
             alignItems: 'center',
             paddingHorizontal: 4,
+        },
+
+        /**
+         * Background style applied to navigation tab bar items when they are hovered.
+         * Do not apply for the active/selected state, those already have their own styling.
+         */
+        navigationTabBarItemHovered: {
+            backgroundColor: theme.sidebarHover,
         },
 
         leftNavigationTabBarContainer: {
