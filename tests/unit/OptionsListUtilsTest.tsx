@@ -74,7 +74,6 @@ const renderLocaleContextProvider = () => {
 };
 
 describe('OptionsListUtils', () => {
-
     const policyID = 'ABC123';
 
     const POLICY: Policy = {
