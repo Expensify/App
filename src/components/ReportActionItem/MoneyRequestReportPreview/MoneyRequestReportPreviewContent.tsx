@@ -22,6 +22,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -108,6 +109,7 @@ function MoneyRequestReportPreviewContent({
     onPress,
 }: MoneyRequestReportPreviewContentProps) {
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {canBeMissing: true, allowStaleData: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const shouldShowLoading = !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
     // `hasOnceLoadedReportActions` becomes true before transactions populate fully,
     // so we defer the loading state update to ensure transactions are loaded
@@ -183,6 +185,7 @@ function MoneyRequestReportPreviewContent({
 
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
+    const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {canBeMissing: true});
@@ -210,13 +213,13 @@ function MoneyRequestReportPreviewContent({
             } else if (chatReport && iouReport) {
                 startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
-                    payInvoice(type, chatReport, iouReport, payAsBusiness);
+                    payInvoice(type, chatReport, iouReport, payAsBusiness, existingB2BInvoiceReport);
                 } else {
                     payMoneyRequest(type, chatReport, iouReport);
                 }
             }
         },
-        [chatReport, iouReport, isDelegateAccessRestricted, showDelegateNoAccessModal, startAnimation],
+        [chatReport, iouReport, isDelegateAccessRestricted, showDelegateNoAccessModal, startAnimation, existingB2BInvoiceReport],
     );
 
     const confirmApproval = () => {
@@ -450,11 +453,11 @@ function MoneyRequestReportPreviewContent({
 
     const reportPreviewAction = useMemo(() => {
         // It's necessary to allow payment animation to finish before button is changed
-        if (isPaidAnimationRunning) {
+        if (isPaidAnimationRunning || isApprovedAnimationRunning) {
             return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
         }
         return getReportPreviewAction(violations, isIouReportArchived || isChatReportArchived, iouReport, policy, transactions, invoiceReceiverPolicy);
-    }, [isPaidAnimationRunning, violations, iouReport, policy, transactions, isIouReportArchived, invoiceReceiverPolicy, isChatReportArchived]);
+    }, [isPaidAnimationRunning, isApprovedAnimationRunning, violations, isIouReportArchived, isChatReportArchived, iouReport, policy, transactions, invoiceReceiverPolicy]);
 
     const addExpenseDropdownOptions = useMemo(
         () => getAddExpenseDropdownOptions(iouReport?.reportID, policy, chatReportID, iouReport?.parentReportID),

@@ -7,8 +7,7 @@ import type {ValueOf} from 'type-fest';
 import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
-import BankAccount from '@libs/models/BankAccount';
-import {addTrailingForwardSlash} from '@libs/Url';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -421,6 +420,8 @@ const CONST = {
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     UBER_CONNECT_URL,
+    FREE_TRIAL_MARKDOWN:
+        "# Your free trial has started! Let's get you set up.\n👋 Hey there, I'm your Expensify setup specialist. I've already created a workspace to help manage your team's receipts and expenses. To make the most of your 30-day free trial, just follow the remaining setup steps below!",
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-travel-expense/id471713959',
@@ -549,6 +550,8 @@ const CONST = {
             SETUP: 'SETUP',
             PENDING: 'PENDING',
             OPEN: 'OPEN',
+            DELETED: 'DELETED',
+            LOCKED: 'LOCKED',
         },
         MAX_LENGTH: {
             FULL_SSN: 9,
@@ -1216,6 +1219,7 @@ const CONST = {
                 RETRACTED: 'RETRACTED',
                 REOPENED: 'REOPENED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
+                REROUTE: 'REROUTE',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
                 SHARE: 'SHARE', // OldDot Action
                 STRIPE_PAID: 'STRIPEPAID', // OldDot Action
@@ -1477,6 +1481,10 @@ const CONST = {
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
+        },
+        MOVE_TYPE: {
+            FROM: 'from',
+            TO: 'to',
         },
     },
     EXPORT_TEMPLATE_TYPES: {
@@ -3033,6 +3041,12 @@ const CONST = {
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
             },
+            SUPPORTED_ONLY_ON_OLDDOT: {
+                FINANCIALFORCE: 'financialForce',
+            },
+            UNSUPPORTED_NAMES: {
+                GENERIC_INDIRECT_CONNECTION: 'generic_indirect_connection',
+            },
             ROUTE: {
                 QBO: 'quickbooks-online',
                 XERO: 'xero',
@@ -3711,7 +3725,7 @@ const CONST = {
     },
 
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
-    MAX_COMMENT_LENGTH: 10000,
+    MAX_COMMENT_LENGTH: 15000,
 
     // Use the same value as MAX_COMMENT_LENGTH to ensure the entire comment is parsed. Note that applying markup is very resource-consuming.
     MAX_MARKUP_LENGTH: 10000,
@@ -5645,7 +5659,7 @@ const CONST = {
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
-                state: BankAccount.STATE.SETUP,
+                state: 'SETUP',
             },
             isLoading: false,
             errorFields: {},
@@ -6434,6 +6448,7 @@ const CONST = {
             CHAT: 'chat',
         },
         ACTION_FILTERS: {
+            SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
             EXPORT: 'export',
@@ -6447,6 +6462,9 @@ const CONST = {
             DONE: 'done',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
+        },
+        HAS_VALUES: {
+            RECEIPT: 'receipt',
         },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
@@ -6592,6 +6610,7 @@ const CONST = {
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
             ACTION: 'action',
+            HAS: 'has',
             PURCHASE_AMOUNT: 'purchaseAmount',
             PURCHASE_CURRENCY: 'purchaseCurrency',
             WITHDRAWAL_ID: 'withdrawalID',
@@ -6642,6 +6661,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             ACTION: 'action',
+            HAS: 'has',
             PURCHASE_AMOUNT: 'purchase-amount',
             PURCHASE_CURRENCY: 'purchase-currency',
             WITHDRAWAL_ID: 'withdrawal-id',
