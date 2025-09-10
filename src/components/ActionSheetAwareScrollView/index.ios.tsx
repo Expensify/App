@@ -23,7 +23,7 @@ const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<Scro
         [ref, scrollViewAnimatedRef],
     );
 
-    const {animatedStyle} = useActionSheetKeyboardSpace({scrollViewRef:scrollViewAnimatedRef});
+    const {animatedStyle} = useActionSheetKeyboardSpace({scrollViewRef: scrollViewAnimatedRef});
 
     return (
         <Reanimated.ScrollView

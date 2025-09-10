@@ -2,17 +2,7 @@ import {useContext, useEffect} from 'react';
 import type {ViewProps} from 'react-native';
 import {useKeyboardHandler} from 'react-native-keyboard-controller';
 import type Reanimated from 'react-native-reanimated';
-import {
-    useAnimatedReaction,
-    useAnimatedRef,
-    useAnimatedStyle,
-    useDerivedValue,
-    useScrollViewOffset,
-    useSharedValue,
-    withSequence,
-    withSpring,
-    withTiming,
-} from 'react-native-reanimated';
+import {useAnimatedReaction, useAnimatedRef, useAnimatedStyle, useDerivedValue, useScrollViewOffset, useSharedValue, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {AnimatedRef} from 'react-native-reanimated';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useWindowDimensions from '@hooks/useWindowDimensions';
