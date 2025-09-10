@@ -219,7 +219,9 @@ function MoneyRequestReportTransactionList({
             // to display prev/next arrows in RHP for navigation
             const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
             setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs).then(() => {
-                markReportIDAsExpense(reportIDToNavigate);
+                if (reportIDToNavigate) {
+                    markReportIDAsExpense(reportIDToNavigate);
+                }
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
             });
         },
