@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {ForwardedRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import type {ForwardedRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {SelectionListHandle} from '@components/SelectionList/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -137,9 +137,11 @@ function IOURequestStepAmount({
             }, CONST.ANIMATED_TRANSITION);
 
             return () => {
-                if (focusTimeoutRef.current) {
-                    clearTimeout(focusTimeoutRef.current);
+                if (!focusTimeoutRef.current) {
+                    return;
                 }
+
+                clearTimeout(focusTimeoutRef.current);
             };
         }, [shouldAutoFocusInput]),
     );
