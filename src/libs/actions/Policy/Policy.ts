@@ -2293,6 +2293,9 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         file: clonedFile,
         companySize,
         userReportedIntegration: userReportedIntegration ?? undefined,
+        maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE,
+        maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE,
+        maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
     };
 
     if (
@@ -4519,9 +4522,6 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
             value: {
                 isPendingUpgrade: true,
                 type: CONST.POLICY.TYPE.CORPORATE,
-                maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE,
-                maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
-                maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
                 glCodes: true,
                 harvesting: {
                     enabled: false,
@@ -4548,9 +4548,6 @@ function upgradeToCorporate(policyID: string, featureName?: string) {
             value: {
                 isPendingUpgrade: false,
                 type: policy?.type,
-                maxExpenseAge: policy?.maxExpenseAge ?? null,
-                maxExpenseAmount: policy?.maxExpenseAmount ?? null,
-                maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt ?? null,
                 glCodes: policy?.glCodes ?? null,
                 harvesting: policy?.harvesting ?? null,
                 isAttendeeTrackingEnabled: null,

@@ -16,6 +16,9 @@ type CreateWorkspaceParams = {
     file?: File;
     companySize?: string;
     userReportedIntegration?: string;
+    maxExpenseAge?: number;
+    maxExpenseAmount?: number;
+    maxExpenseAmountNoReceipt?: number;
 };
 
 export default CreateWorkspaceParams;
