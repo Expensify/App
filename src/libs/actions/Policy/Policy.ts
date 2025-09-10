@@ -5673,8 +5673,8 @@ function enableAutoApprovalOptions(policyID: string, enabled: boolean) {
     }
 
     const autoApprovalValues = {
-        auditRate: enabled ? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE : 0,
-        limit: enabled ? 10000 : 0,
+        auditRate: enabled ? CONST.POLICY.RANDOM_AUDIT_SUGGESTED_PERCENTAGE : 0,
+        limit: enabled ? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_SUGGESTED_CENTS : 0,
     };
     const autoApprovalFailureValues = {autoApproval: {limit: policy?.autoApproval?.limit, auditRate: policy?.autoApproval?.auditRate, pendingFields: null}};
     const optimisticData: OnyxUpdate[] = [
@@ -5748,13 +5748,9 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string) {
     const fallbackLimit = limit === '' ? '0' : limit;
     const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
 
-    if (parsedLimit === (policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS)) {
+    if (parsedLimit === (policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS)) {
         return;
     }
-
-    // Don't automatically change the show flag when setting limits from NewDot UI
-    // The show flag should only be controlled by the explicit enable/disable toggle
-    // or by OldDot sync (which will be handled separately)
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -5828,7 +5824,7 @@ function enablePolicyAutoReimbursementLimit(policyID: string, enabled: boolean) 
     }
 
     const autoReimbursementFailureValues = {autoReimbursement: {limit: policy?.autoReimbursement?.limit, pendingFields: null}};
-    const autoReimbursementValues = {limit: enabled ? 10000 : 0};
+    const autoReimbursementValues = {limit: enabled ? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_SUGGESTED_CENTS : CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS};
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
