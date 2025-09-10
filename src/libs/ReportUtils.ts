@@ -5115,6 +5115,10 @@ function getReportName(
     reports?: SearchReport[],
     policies?: SearchPolicy[],
 ): string {
+    if (!report) {
+        return '';
+    }
+
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue =
         report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined && isReportArchived === undefined;
@@ -5407,18 +5411,7 @@ function getSearchReportName(props: GetReportNameParams): string {
     if (isChatThread(report) && policy?.name) {
         return policy.name;
     }
-    return getReportName(
-        report,
-        policy,
-        props.parentReportActionParam,
-        props.personalDetails,
-        props.invoiceReceiverPolicy,
-        undefined,
-        props.transactions,
-        props.isReportArchived,
-        props.reports,
-        props.policies,
-    );
+    return getReportName(report, policy, undefined, props.personalDetails, props.invoiceReceiverPolicy, undefined, props.transactions, props.isReportArchived, props.reports, props.policies);
 }
 
 function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy | SearchPolicy>, invoiceReceiverPolicy?: OnyxEntry<Policy | SearchPolicy>): string {
