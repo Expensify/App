@@ -19,6 +19,9 @@ type TransactionItemRowRBRProps = {
     /** Transaction item */
     transaction: Transaction;
 
+    /** Transaction violations */
+    violations?: TransactionViolation[];
+
     /** Report item */
     report?: Report;
 
@@ -27,12 +30,9 @@ type TransactionItemRowRBRProps = {
 
     /** Error message for missing required fields in the transaction */
     missingFieldError?: string;
-
-    /** Precomputed violations for the transaction */
-    violations?: TransactionViolation[];
 };
 
-function TransactionItemRowRBRWithOnyx({transaction, report, containerStyles, missingFieldError, violations = []}: TransactionItemRowRBRProps) {
+function TransactionItemRowRBRWithOnyx({transaction, violations, report, containerStyles, missingFieldError}: TransactionItemRowRBRProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -45,7 +45,7 @@ function TransactionItemRowRBRWithOnyx({transaction, report, containerStyles, mi
         canBeMissing: true,
     });
 
-    const RBRMessages = ViolationsUtils.getRBRMessages(transaction, violations, translate, missingFieldError, Object.values(transactionThreadActions ?? {}), policyTags);
+    const RBRMessages = ViolationsUtils.getRBRMessages(transaction, violations ?? [], translate, missingFieldError, Object.values(transactionThreadActions ?? {}), policyTags);
 
     return (
         RBRMessages.length > 0 && (

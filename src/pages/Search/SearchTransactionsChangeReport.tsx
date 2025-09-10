@@ -1,9 +1,12 @@
 import React, {useMemo} from 'react';
+import {InteractionManager} from 'react-native';
+import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,6 +23,7 @@ function SearchTransactionsChangeReport() {
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const transactionsReports = useMemo(() => {
         const reports = Object.values(selectedTransactions).reduce((acc, transaction) => {
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
@@ -30,6 +34,9 @@ function SearchTransactionsChangeReport() {
         }, new Set<Report>());
         return [...reports];
     }, [allReports, selectedTransactions]);
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const session = useSession();
 
     const selectReport = (item: TransactionGroupListItem) => {
         if (selectedTransactionsKeys.length === 0) {
@@ -37,8 +44,18 @@ function SearchTransactionsChangeReport() {
         }
 
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.value}`];
-        changeTransactionsReport(selectedTransactionsKeys, item.value, undefined, reportNextStep);
-        clearSelectedTransactions();
+        changeTransactionsReport(
+            selectedTransactionsKeys,
+            item.value,
+            isASAPSubmitBetaEnabled,
+            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            session?.email ?? '',
+            allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+            reportNextStep,
+        );
+        InteractionManager.runAfterInteractions(() => {
+            clearSelectedTransactions();
+        });
 
         Navigation.goBack();
     };
@@ -47,7 +64,7 @@ function SearchTransactionsChangeReport() {
         if (!transactionsReports || selectedTransactionsKeys.length === 0) {
             return;
         }
-        changeTransactionsReport(selectedTransactionsKeys, CONST.REPORT.UNREPORTED_REPORT_ID);
+        changeTransactionsReport(selectedTransactionsKeys, CONST.REPORT.UNREPORTED_REPORT_ID, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
         clearSelectedTransactions();
         Navigation.goBack();
     };
@@ -56,6 +73,7 @@ function SearchTransactionsChangeReport() {
         <IOURequestEditReportCommon
             backTo={undefined}
             transactionsReports={transactionsReports}
+            transactionIds={selectedTransactionsKeys}
             selectReport={selectReport}
             removeFromReport={removeFromReport}
             isEditing

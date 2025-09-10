@@ -3,7 +3,6 @@ title: Expensify Invoicing
 description: Expensify Invoicing allows you to send, receive, and track payments in one location.
 keywords: [Expensify Classic, invoicing]
 ---
-<div id="expensify-classic" markdown="1">
 
 Invoicing lets you create and send invoices, receive payments, and track the status of your invoices, regardless of whether the customer has an Expensify account. This feature is included with all Expensify subscriptions, no matter the plan — you'll just pay the processing fee (2.9%) per transaction.
 
@@ -55,4 +54,3 @@ To delete a report field, click the red trashcan icon on the field under **Setti
 
 Unsent invoices will have a red **X** next to the report field, which you can click to remove before sending the invoice to your customer.
 
-</div>
