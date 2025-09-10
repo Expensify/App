@@ -148,25 +148,14 @@ function InviteMemberListItem<TItem extends ListItem>({
                             )}
                         </View>
                         {!!item.rightElement && item.rightElement}
-                        {!!shouldShowCheckBox && (
+                        {!item.isDisabled && (
                             <Checkbox
                                 style={[styles.ml2]}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 disabled={isDisabled || item.isDisabledCheckbox}
-                                isChecked={item.isSelected ?? false}
-                                accessibilityLabel={CONST.ROLE.CHECKBOX}
-                                onPress={handleCheckboxPress}
-                            />
-                        )}
-                        {!!shouldShowRadio && (
-                            <Checkbox
-                                style={[styles.ml2]}
-                                shouldSelectOnPressEnter
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                disabled={isDisabled || item.isDisabledCheckbox}
-                                containerBorderRadius={999}
-                                accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                containerBorderRadius={canSelectMultiple ? 4 : 999}
                                 isChecked={item.isSelected}
+                                accessibilityLabel={CONST.ROLE.CHECKBOX}
                                 onPress={handleCheckboxPress}
                             />
                         )}
