@@ -204,6 +204,14 @@ class TranslationGenerator {
                     this.extractTranslatedNodes(transformedEnSourceFile, translatedAddedNodes);
                 }
                 transformedEnForAddedPaths.dispose();
+
+                // If we have nodes to add, inject them into the target file
+                if (translatedAddedNodes.size > 0) {
+                    const injectTransformer = this.createIncrementalInjectTransformer(translatedAddedNodes);
+                    const injectResult = ts.transform(transformedSourceFile, [injectTransformer]);
+                    transformedSourceFile = injectResult.transformed.at(0) ?? transformedSourceFile;
+                    injectResult.dispose();
+                }
             } else {
                 // Full transformation for non-incremental mode - transform en.ts
                 const transformer = this.createFullTransformer(translationsForLocale);
@@ -850,6 +858,65 @@ class TranslationGenerator {
                     }
 
                     return this.translateNode(node, translations, currentPath, visitWithPath);
+                }
+
+                return this.visitChildren(node, currentPath, visitWithPath, context);
+            };
+
+            return (sourceFile: ts.SourceFile) => {
+                return (ts.visitNode(sourceFile, visitWithPath) as ts.SourceFile) ?? sourceFile;
+            };
+        };
+    }
+
+    /**
+     * Create a transformer factory for injecting new translated nodes into target files.
+     * Adds nodes from translatedAddedNodes to the appropriate paths in the target AST.
+     */
+    private createIncrementalInjectTransformer(translatedAddedNodes: Map<string, ts.Node>): ts.TransformerFactory<ts.SourceFile> {
+        return (context: ts.TransformationContext) => {
+            const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
+                // Check if this is the main translations node and if we need to add new properties to it
+                if (ts.isObjectLiteralExpression(node)) {
+                    const sourceFile = node.getSourceFile();
+                    // TODO: avoid running this check multiple times unnecessarily
+                    const mainTranslationsNode = this.findTranslationsNode(sourceFile);
+
+                    // Only modify if this is the main translations object
+                    if (node === mainTranslationsNode) {
+                        const newProperties = [...node.properties];
+                        let hasAdditions = false;
+
+                        // Check if any of our translatedAddedNodes should be added to this object
+                        for (const [addPath, translatedNode] of translatedAddedNodes) {
+                            const pathParts = addPath.split('.');
+
+                            // If this is a direct child of the current path
+                            if (pathParts.length === (currentPath ? currentPath.split('.').length + 1 : 1)) {
+                                const expectedParentPath = pathParts.slice(0, -1).join('.');
+
+                                // Check if this object is the correct parent for this path
+                                if (currentPath === expectedParentPath) {
+                                    const propertyName = pathParts[pathParts.length - 1];
+
+                                    // Create a property assignment from the translated node
+                                    if (ts.isPropertyAssignment(translatedNode)) {
+                                        newProperties.push(translatedNode);
+                                        hasAdditions = true;
+                                    } else {
+                                        // If it's not a property assignment, wrap it as one
+                                        const newProperty = ts.factory.createPropertyAssignment(propertyName, translatedNode as ts.Expression);
+                                        newProperties.push(newProperty);
+                                        hasAdditions = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (hasAdditions) {
+                            return ts.factory.createObjectLiteralExpression(newProperties);
+                        }
+                    }
                 }
 
                 return this.visitChildren(node, currentPath, visitWithPath, context);
