@@ -5076,7 +5076,7 @@ const buildReportNameFromParticipantNames = ({report, personalDetails: personalD
             return formattedNames ? `${formattedNames}, ${name}` : name;
         }, '');
 
-function generateReportName(report: OnyxEntry<Report>, isReportArchived: boolean = false): string {
+function generateReportName(report: OnyxEntry<Report>, isReportArchived = false): string {
     if (!report) {
         return '';
     }
