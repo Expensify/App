@@ -561,6 +561,10 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/change-approver` as const, backTo),
     },
+    REPORT_CHANGE_APPROVER_ADD_APPROVER: {
+        route: 'r/:reportID/change-approver/add',
+        getRoute: (reportID: string) => `r/${reportID}/change-approver/add` as const,
+    },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
         getRoute: (reportID: string | undefined, reportActionID: string, backTo?: string) => {
@@ -1850,10 +1854,14 @@ const ROUTES = {
     },
     WORKSPACE_OWNER_CHANGE_SUCCESS: {
         route: 'workspaces/:policyID/change-owner/:accountID/success',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/change-owner/${accountID}/success` as const, backTo),
     },
     WORKSPACE_OWNER_CHANGE_ERROR: {
         route: 'workspaces/:policyID/change-owner/:accountID/failure',
+
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/change-owner/${accountID}/failure` as const, backTo),
     },
     WORKSPACE_OWNER_CHANGE_CHECK: {
@@ -1862,6 +1870,8 @@ const ROUTES = {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_OWNER_CHANGE_CHECK route');
             }
+
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`workspaces/${policyID}/change-owner/${accountID}/${error as string}` as const, backTo);
         },
     },
@@ -2144,15 +2154,11 @@ const ROUTES = {
     },
     WORKSPACE_DUPLICATE: {
         route: 'workspace/:policyID/duplicate',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/duplicate`, backTo),
+        getRoute: (policyID: string) => `workspace/${policyID}/duplicate` as const,
     },
     WORKSPACE_DUPLICATE_SELECT_FEATURES: {
         route: 'workspace/:policyID/duplicate/select-features',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspace/${policyID}/duplicate/select-features`, backTo),
+        getRoute: (policyID: string) => `workspace/${policyID}/duplicate/select-features` as const,
     },
     WORKSPACE_RECEIPT_PARTNERS: {
         route: 'workspaces/:policyID/receipt-partners',
@@ -2446,7 +2452,6 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-invite`, backTo),
     },
-    WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
     TEST_DRIVE_MODAL_ROOT: {
         route: 'onboarding/test-drive',

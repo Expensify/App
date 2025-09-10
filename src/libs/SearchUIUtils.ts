@@ -59,7 +59,8 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
-import {createNewReport} from './actions/Report';
+import {createNewReport, createTransactionThreadReport, openReport} from './actions/Report';
+import {updateSearchResultsWithTransactionThreadReportID} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
@@ -69,7 +70,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
+import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
 import {
     getOriginalMessage,
     getReportActionHtml,
@@ -1276,6 +1277,19 @@ function getTaskSections(
     );
 }
 
+/** Creates transaction thread report and navigates to it from the search page */
+function createAndOpenSearchTransactionThread(item: TransactionListItemType, iouReportAction: OnyxEntry<OnyxTypes.ReportAction>, hash: number, backTo: string) {
+    // We know that iou report action exists, but it wasn't loaded yet. We need to load iou report to have the necessary data in the onyx.
+    if (!iouReportAction) {
+        openReport(item.report.reportID);
+    }
+    const transactionThreadReport = createTransactionThreadReport(item.report, iouReportAction ?? ({reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction));
+    if (transactionThreadReport?.reportID) {
+        updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
+    }
+    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo}));
+}
+
 /**
  * @private
  * Organizes data into List Sections for display, for the ReportActionListItemType of Search Results.
@@ -1445,10 +1459,6 @@ function getReportSections(
                 reportIDToTransactions[reportKey].transactions.push(transaction);
                 reportIDToTransactions[reportKey].from = data.personalDetailsList[data?.[reportKey as ReportKey]?.accountID ?? CONST.DEFAULT_NUMBER_ID];
             } else if (reportIDToTransactions[reportKey]) {
-                reportIDToTransactions[reportKey].transactions = [transaction];
-                reportIDToTransactions[reportKey].from = data.personalDetailsList[data?.[reportKey as ReportKey]?.accountID ?? CONST.DEFAULT_NUMBER_ID];
-            } else {
-                reportIDToTransactions[reportKey] = {} as TransactionReportGroupListItemType;
                 reportIDToTransactions[reportKey].transactions = [transaction];
                 reportIDToTransactions[reportKey].from = data.personalDetailsList[data?.[reportKey as ReportKey]?.accountID ?? CONST.DEFAULT_NUMBER_ID];
             }
@@ -1656,9 +1666,9 @@ function getSortedSections(
 
 /**
  * Compares two values based on a specified sorting order and column.
- * Handles both string and numeric comparisons, with special handling for absolute values when sorting by total amount.
+ * Handles both string and numeric comparisons.
  */
-function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: string, localeCompare: LocaleContextProps['localeCompare']): number {
+function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: string, localeCompare: LocaleContextProps['localeCompare'], shouldCompareOriginalValue = false): number {
     const isAsc = sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
 
     if (a === undefined || b === undefined) {
@@ -1670,8 +1680,8 @@ function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: str
     }
 
     if (typeof a === 'number' && typeof b === 'number') {
-        const aValue = sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT ? Math.abs(a) : a;
-        const bValue = sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT ? Math.abs(b) : b;
+        const aValue = sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT && !shouldCompareOriginalValue ? Math.abs(a) : a;
+        const bValue = sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT && !shouldCompareOriginalValue ? Math.abs(b) : b;
         return isAsc ? aValue - bValue : bValue - aValue;
     }
 
@@ -1853,6 +1863,7 @@ function createTypeMenuSections(
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
     defaultCardFeed: CardFeedForDisplay | undefined,
     policies: OnyxCollection<OnyxTypes.Policy>,
+    activePolicyID: string | undefined,
     savedSearches: OnyxEntry<OnyxTypes.SaveSearch>,
     isOffline: boolean,
 ): SearchTypeMenuSection[] {
@@ -1884,7 +1895,7 @@ function createTypeMenuSections(
                                       buttonText: 'report.newReport.createReport',
                                       buttonAction: () => {
                                           interceptAnonymousUser(() => {
-                                              const activePolicy = getActivePolicy();
+                                              const activePolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
                                               const personalDetails = getPersonalDetailsForAccountID(currentUserAccountID) as OnyxTypes.PersonalDetails;
 
                                               let workspaceIDForReportCreation: string | undefined;
@@ -2308,6 +2319,7 @@ export {
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
     getDatePresets,
+    createAndOpenSearchTransactionThread,
     getWithdrawalTypeOptions,
     getActionOptions,
     getColumnsToShow,
