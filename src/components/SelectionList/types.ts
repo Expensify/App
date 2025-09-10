@@ -340,6 +340,9 @@ type TransactionGroupListItemType = ListItem & {
     /** List of grouped transactions */
     transactions: TransactionListItemType[];
 
+    /** Whether the report has a single transaction */
+    isOneTransactionReport?: boolean;
+
     /** The hash of the query to get the transactions data */
     transactionsQueryJSON?: SearchQueryJSON;
 };

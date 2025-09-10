@@ -29,7 +29,7 @@ let initializationPromise: Promise<void> | null = null;
  * This is called lazily when OptimisticReportNames functionality is first used
  * Returns a Promise that resolves when all connections have received their initial data
  *
- * We use Onyx.connectWithoutView because we do not use this in React components and this logic is not tied to the UI.
+ * We use Onyx.connectWithoutView because we do not use this in React components and this logic is not tied directly to the UI.
  * This is a centralized system that needs access to all objects of several types, so that when any updates affect
  * the computed report names, we can compute the new names according to the formula and add the necessary updates.
  * It wouldn't be possible to do this without connecting to all the data.
@@ -45,7 +45,7 @@ function initialize(): Promise<void> {
     }
 
     initializationPromise = new Promise<void>((resolve) => {
-        const checkAndMarkInitialized = () => {
+        const incrementInitialization = () => {
             connectionsInitializedCount++;
             if (connectionsInitializedCount === totalConnections) {
                 isInitialized = true;
@@ -58,7 +58,7 @@ function initialize(): Promise<void> {
             key: ONYXKEYS.BETAS,
             callback: (val) => {
                 betas = val;
-                checkAndMarkInitialized();
+                incrementInitialization();
             },
         });
 
@@ -67,7 +67,7 @@ function initialize(): Promise<void> {
             key: ONYXKEYS.BETA_CONFIGURATION,
             callback: (val) => {
                 betaConfiguration = val;
-                checkAndMarkInitialized();
+                incrementInitialization();
             },
         });
 
@@ -77,7 +77,7 @@ function initialize(): Promise<void> {
             waitForCollectionCallback: true,
             callback: (val) => {
                 allReports = (val as Record<string, Report>) ?? {};
-                checkAndMarkInitialized();
+                incrementInitialization();
             },
         });
 
@@ -87,7 +87,7 @@ function initialize(): Promise<void> {
             waitForCollectionCallback: true,
             callback: (val) => {
                 allPolicies = (val as Record<string, Policy>) ?? {};
-                checkAndMarkInitialized();
+                incrementInitialization();
             },
         });
 
@@ -97,7 +97,7 @@ function initialize(): Promise<void> {
             waitForCollectionCallback: true,
             callback: (val) => {
                 allReportNameValuePairs = (val as Record<string, ReportNameValuePairs>) ?? {};
-                checkAndMarkInitialized();
+                incrementInitialization();
             },
         });
 
@@ -107,7 +107,7 @@ function initialize(): Promise<void> {
             waitForCollectionCallback: true,
             callback: (val) => {
                 allTransactions = (val as Record<string, Transaction>) ?? {};
-                checkAndMarkInitialized();
+                incrementInitialization();
             },
         });
     });
