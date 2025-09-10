@@ -795,8 +795,8 @@ function changeTransactionsReport(
         let transactionReimbursable = transaction.reimbursable;
         // 2. Calculate transaction violations if moving transaction to a workspace
         if (isPaidGroupPolicy(policy) && policy?.id) {
-            const currentTransactionViolations = allTransactionViolation?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
-            const violationData = ViolationsUtils.getViolationsOnyxData(transaction, currentTransactionViolations, policy, policyTagList, policyCategories, policyHasDependentTags, false);
+            const transactionViolations = allTransactionViolation?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
+            const violationData = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTagList, policyCategories, policyHasDependentTags, false);
             optimisticData.push(violationData);
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
