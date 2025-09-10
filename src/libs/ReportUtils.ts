@@ -5411,7 +5411,18 @@ function getSearchReportName(props: GetReportNameParams): string {
     if (isChatThread(report) && policy?.name) {
         return policy.name;
     }
-    return getReportName(report, policy, undefined, props.personalDetails, props.invoiceReceiverPolicy, undefined, props.transactions, props.isReportArchived, props.reports, props.policies);
+    return getReportName(
+        report,
+        policy,
+        props.parentReportActionParam,
+        props.personalDetails,
+        props.invoiceReceiverPolicy,
+        undefined,
+        props.transactions,
+        props.isReportArchived,
+        props.reports,
+        props.policies,
+    );
 }
 
 function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy | SearchPolicy>, invoiceReceiverPolicy?: OnyxEntry<Policy | SearchPolicy>): string {
