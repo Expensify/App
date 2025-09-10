@@ -660,7 +660,7 @@ function MoneyRequestView({
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('created')}>
                     <MenuItemWithTopDescription
                         description={dateDescription}
-                        title={transactionDate}
+                        title={actualTransactionDate}
                         interactive={canEditDate}
                         shouldShowRightIcon={canEditDate}
                         titleStyle={styles.flex1}

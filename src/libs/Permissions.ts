@@ -39,4 +39,4 @@ export default {
     canUseLinkPreviews,
     isBetaEnabled,
     canUseUnreportedExpense,
-}
+};
