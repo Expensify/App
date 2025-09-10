@@ -1,6 +1,6 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import type {FlashList, FlashListProps, ViewToken} from '@shopify/flash-list';
-import React, {forwardRef, useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
@@ -107,6 +107,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Violations indexed by transaction ID */
     violations?: Record<string, TransactionViolations | undefined> | undefined;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<SearchListHandle>;
 };
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
@@ -146,8 +149,8 @@ function SearchList(
         isMobileSelectionModeEnabled,
         areAllOptionalColumnsHidden,
         violations,
+        ref,
     }: SearchListProps,
-    ref: ForwardedRef<SearchListHandle>,
 ) {
     const styles = useThemeStyles();
 
@@ -459,4 +462,4 @@ function SearchList(
     );
 }
 
-export default forwardRef(SearchList);
+export default SearchList;

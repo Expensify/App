@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -101,6 +101,9 @@ type SearchAutocompleteListProps = {
 
     /** All cards */
     allCards: CardList;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<SelectionListHandle>,
 };
 
 const defaultListOptions = {
@@ -167,8 +170,8 @@ function SearchAutocompleteList(
         reports,
         allFeeds,
         allCards,
+        ref,
     }: SearchAutocompleteListProps,
-    ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -791,6 +794,6 @@ function SearchAutocompleteList(
     );
 }
 
-export default forwardRef(SearchAutocompleteList);
+export default SearchAutocompleteList;
 export {SearchRouterItem};
 export type {GetAdditionalSectionsCallback};
