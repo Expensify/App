@@ -5352,7 +5352,11 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
                     [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {...previousReportTitleField, pendingFields: {defaultValue: null}},
                 },
                 errorFields: {
-                    fieldList: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    fieldList: {
+                        [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
+                            defaultValue: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                        },
+                    },
                 },
             },
         },
