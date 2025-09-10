@@ -5,10 +5,9 @@ import CONST from '@src/CONST';
 function SearchFiltersKeywordPage() {
     return (
         <SearchFiltersTextBase
-            filterKey="keyword"
+            filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD}
             titleKey="search.filters.keyword"
             testID={SearchFiltersKeywordPage.displayName}
-            shouldShowFullPageNotFoundView
             characterLimit={CONST.MAX_COMMENT_LENGTH}
         />
     );

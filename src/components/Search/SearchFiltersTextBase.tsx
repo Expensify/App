@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -35,12 +34,9 @@ type SearchFiltersTextBaseProps = {
 
     /** The character limit for the input */
     characterLimit?: number;
-
-    /** Whether to wrap content with FullPageNotFoundView */
-    shouldShowFullPageNotFoundView?: boolean;
 };
 
-function SearchFiltersTextBase({filterKey, titleKey, testID, shouldShowFullPageNotFoundView = false, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES}: SearchFiltersTextBaseProps) {
+function SearchFiltersTextBase({filterKey, titleKey, testID, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES}: SearchFiltersTextBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -74,36 +70,34 @@ function SearchFiltersTextBase({filterKey, titleKey, testID, shouldShowFullPageN
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
-            <FullPageNotFoundView shouldShow={shouldShowFullPageNotFoundView}>
-                <HeaderWithBackButton
-                    title={translate(titleKey)}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-                    }}
-                />
-                <FormProvider
-                    style={[styles.flex1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
-                    validate={validate}
-                    onSubmit={updateFilter}
-                    submitButtonText={translate('common.save')}
-                    enabledWhenOffline
-                    shouldHideFixErrorsAlert
-                >
-                    <View style={styles.mb5}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={filterKey}
-                            name={filterKey}
-                            defaultValue={currentValue}
-                            label={translate(titleKey)}
-                            accessibilityLabel={translate(titleKey)}
-                            role={CONST.ROLE.PRESENTATION}
-                            ref={inputCallbackRef}
-                        />
-                    </View>
-                </FormProvider>
-            </FullPageNotFoundView>
+            <HeaderWithBackButton
+                title={translate(titleKey)}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+                }}
+            />
+            <FormProvider
+                style={[styles.flex1, styles.ph5]}
+                formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
+                validate={validate}
+                onSubmit={updateFilter}
+                submitButtonText={translate('common.save')}
+                enabledWhenOffline
+                shouldHideFixErrorsAlert
+            >
+                <View style={styles.mb5}>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={filterKey}
+                        name={filterKey}
+                        defaultValue={currentValue}
+                        label={translate(titleKey)}
+                        accessibilityLabel={translate(titleKey)}
+                        role={CONST.ROLE.PRESENTATION}
+                        ref={inputCallbackRef}
+                    />
+                </View>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

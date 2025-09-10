@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 function SearchFiltersReportIDPage() {
     return (
         <SearchFiltersTextBase
-            filterKey="reportID"
+            filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID}
             titleKey="common.reportID"
             testID={SearchFiltersReportIDPage.displayName}
             characterLimit={CONST.MAX_COMMENT_LENGTH}

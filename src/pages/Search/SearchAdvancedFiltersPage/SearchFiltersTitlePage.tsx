@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 function SearchFiltersTitlePage() {
     return (
         <SearchFiltersTextBase
-            filterKey="title"
+            filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE}
             titleKey="common.title"
             testID={SearchFiltersTitlePage.displayName}
             characterLimit={CONST.TASK_TITLE_CHARACTER_LIMIT}
