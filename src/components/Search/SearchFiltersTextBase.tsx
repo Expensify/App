@@ -17,14 +17,12 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import type {SearchTextFilterKeys} from './types';
 
-// Text-based filter keys that accept string input - these are keys from SearchAdvancedFiltersForm that have string values
-type TextFilterKey = keyof Pick<SearchAdvancedFiltersForm, 'merchant' | 'description' | 'reportID' | 'keyword' | 'title' | 'withdrawalID'>;
-
+// Text-based filter keys that accept string input - these are keys from SearchTextFilterKeys that have string values
 type SearchFiltersTextBaseProps = {
     /** The filter key from text-based FILTER_KEYS */
-    filterKey: TextFilterKey;
+    filterKey: SearchTextFilterKeys;
 
     /** The translation key for the page title and input label */
     titleKey: TranslationPaths;
