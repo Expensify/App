@@ -142,6 +142,7 @@ const ROUTES = {
         route: 'bank-account/:stepToOpen?',
         getRoute: (policyID: string | undefined, stepToOpen: ReimbursementAccountStepToOpen = '', backTo?: string) => {
             if (!policyID) {
+                // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
                 return getUrlWithBackToParam(`bank-account/${stepToOpen}`, backTo);
             }
 

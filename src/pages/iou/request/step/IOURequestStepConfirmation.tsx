@@ -919,32 +919,7 @@ function IOURequestStepConfirmation({
 
             requestMoney(selectedParticipants);
         },
-        [
-            iouType,
-            transaction,
-            transactions,
-            isDistanceRequest,
-            isMovingTransactionFromTrackExpense,
-            receiptFiles,
-            isCategorizingTrackExpense,
-            isSharingTrackExpense,
-            isPerDiemRequest,
-            requestMoney,
-            createDistanceRequest,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
-            transactions,
-            report,
-            transactionTaxCode,
-            transactionTaxAmount,
-            policy,
-            policyTags,
-            policyCategories,
-            policyRecentlyUsedCategories,
-            trackExpense,
-            userLocation,
-            submitPerDiemExpense,
-        ],
+        [iouType, transaction, transactions, isDistanceRequest, isMovingTransactionFromTrackExpense, receiptFiles, isCategorizingTrackExpense, isSharingTrackExpense, isPerDiemRequest, requestMoney, createDistanceRequest, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, report, transactionTaxCode, transactionTaxAmount, policy, policyTags, policyCategories, policyRecentlyUsedCategories, trackExpense, userLocation, submitPerDiemExpense],
     );
 
     /**
