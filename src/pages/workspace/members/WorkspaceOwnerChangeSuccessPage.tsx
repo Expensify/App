@@ -1,5 +1,4 @@
 import React, {useCallback} from 'react';
-import {InteractionManager} from 'react-native';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
@@ -25,14 +24,17 @@ function WorkspaceOwnerChangeSuccessPage({route}: WorkspaceOwnerChangeSuccessPag
 
     const accountID = Number(route.params.accountID) ?? -1;
     const policyID = route.params.policyID;
+    const backTo = route.params.backTo;
 
     const closePage = useCallback(() => {
-        Navigation.goBack();
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
-        InteractionManager.runAfterInteractions(() => {
-            clearWorkspaceOwnerChangeFlow(policyID);
-        });
-    }, [accountID, policyID]);
+        clearWorkspaceOwnerChangeFlow(policyID);
+        if (backTo) {
+            Navigation.goBack(backTo);
+        } else {
+            Navigation.goBack();
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+        }
+    }, [accountID, backTo, policyID]);
 
     const policy = usePolicy(policyID);
     const shouldShow = useShouldShowChangeOwnerPage(policy, accountID);

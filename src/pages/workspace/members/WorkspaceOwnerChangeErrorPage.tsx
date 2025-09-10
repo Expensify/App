@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -29,14 +29,17 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
 
     const accountID = Number(route.params.accountID) ?? -1;
     const policyID = route.params.policyID;
+    const backTo = route.params.backTo;
 
     const closePage = useCallback(() => {
-        Navigation.goBack();
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
-        InteractionManager.runAfterInteractions(() => {
-            clearWorkspaceOwnerChangeFlow(policyID);
-        });
-    }, [accountID, policyID]);
+        clearWorkspaceOwnerChangeFlow(policyID);
+        if (backTo) {
+            Navigation.goBack(backTo);
+        } else {
+            Navigation.goBack();
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+        }
+    }, [accountID, backTo, policyID]);
 
     const policy = usePolicy(policyID);
     const shouldShow = useShouldShowChangeOwnerPage(policy, accountID);
