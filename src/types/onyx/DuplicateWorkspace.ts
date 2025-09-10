@@ -10,7 +10,7 @@ type DuplicateWorkspace = {
     name?: string;
 
     /** Workspace avatar */
-    file?: File | CustomRNImageManipulatorResult;
+    fileURI?: string;
 
     /** Whether the data is being fetched from server */
     isLoading?: boolean;

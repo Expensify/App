@@ -245,7 +245,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             file: duplicatedWorkspaceAvatar,
         });
         Navigation.closeRHPFlow();
-    }, [duplicateWorkspace?.file, duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy, policyCategories, selectedItems, translate]);
+    }, [duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy, policyCategories, selectedItems, translate, duplicatedWorkspaceAvatar]);
 
     const confirmDuplicateAndHideModal = useCallback(() => {
         setIsDuplicateModalOpen(false);
@@ -299,11 +299,11 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     // This is because until the request is saved, the avatar file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the duplication process.
     useEffect(() => {
-        if (!duplicateWorkspace?.file?.uri || !policyID) {
+        if (!duplicateWorkspace?.fileURI || !policyID) {
             return;
         }
         readFileAsync(
-            duplicateWorkspace.file.uri,
+            duplicateWorkspace.fileURI,
             'tmpFile',
             (file) => {
                 setDuplicatedWorkspaceAvatar(file);
@@ -312,7 +312,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 Navigation.goBack(ROUTES.WORKSPACE_DUPLICATE.getRoute(policyID));
             },
         );
-    }, [duplicateWorkspace?.file, policyID]);
+    }, [duplicateWorkspace?.fileURI, policyID]);
 
     useEffect(() => {
         if (!items.length) {
