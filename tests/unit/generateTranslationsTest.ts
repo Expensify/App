@@ -1032,7 +1032,7 @@ describe('generateTranslations', () => {
                     {
                         filePath: 'src/languages/en.ts',
                         hunks: [],
-                        addedLines: new Set([7]), // Line with newKey
+                        addedLines: new Set([10]), // Line with newKey
                         removedLines: new Set(),
                         modifiedLines: new Set(),
                     },
