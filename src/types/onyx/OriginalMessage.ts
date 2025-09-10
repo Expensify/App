@@ -905,8 +905,6 @@ type OriginalMessageIntegrationMessage = {
  * Model of Take Control action original message
  */
 type OriginalMessageTakeControl = {
-    /**  Whether the action was taken on newDot or oldDot */
-    isNewDot: boolean;
     /** Time the action was created */
     lastModified: string;
     /** Tagged account IDs of new approvers */
@@ -1030,6 +1028,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REROUTE]: OriginalMessageTakeControl;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessagePolicyChangeLog;
