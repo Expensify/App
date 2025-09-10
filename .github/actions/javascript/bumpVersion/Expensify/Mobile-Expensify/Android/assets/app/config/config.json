@@ -1,7 +1,7 @@
 {
     "meta": {
         "name": "Expensify",
-        "version": "9.2.3-0",
+        "version": "9.2.8-1",
         "beta": false
     },
     "additionalFiles": [
