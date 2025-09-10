@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import type {ViewToken} from 'react-native';
@@ -38,7 +39,13 @@ export default function useReportUnreadMessageScrollTracking({
     keyboardHeight,
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
-    const ref = useRef<{previousViewableItems: ViewToken[]; reportID: string; unreadMarkerReportActionIndex: number}>({reportID, unreadMarkerReportActionIndex, previousViewableItems: []});
+    const isFocused = useIsFocused();
+    const ref = useRef<{previousViewableItems: ViewToken[]; reportID: string; unreadMarkerReportActionIndex: number; isFocused: boolean}>({
+        reportID,
+        unreadMarkerReportActionIndex,
+        previousViewableItems: [],
+        isFocused: true,
+    });
     const wasManuallySetRef = useRef(false);
 
     const setVisibility = useCallback((visible: boolean) => {
@@ -56,6 +63,10 @@ export default function useReportUnreadMessageScrollTracking({
         ref.current.reportID = reportID;
         ref.current.previousViewableItems = [];
     }, [reportID]);
+
+    useEffect(() => {
+        ref.current.isFocused = isFocused;
+    }, [isFocused]);
 
     /**
      * On every scroll event we want to:
@@ -83,6 +94,10 @@ export default function useReportUnreadMessageScrollTracking({
     );
 
     const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+        if (!ref.current.isFocused) {
+            return;
+        }
+
         ref.current.previousViewableItems = viewableItems;
         const viewableIndexes = viewableItems.map((viewableItem) => viewableItem.index).filter((value) => typeof value === 'number');
         const maxIndex = Math.max(...viewableIndexes);
