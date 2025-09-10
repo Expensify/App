@@ -596,6 +596,28 @@ describe('generateTranslations', () => {
                 'utf8',
             );
 
+            // Create existing Italian translation file with some existing translations
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+                const strings = {
+                    greeting: '[it] Hello',
+                    farewell: '[it] Goodbye',
+                    common: {
+                        save: '[it] Old Save Translation',
+                        cancel: '[it] Cancel',
+                    },
+                    errors: {
+                        generic: '[it] Old Error Translation',
+                        network: '[it] Network error',
+                    },
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
             // Override process.argv to specify only certain paths
             process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save,errors.generic'];
 
@@ -604,15 +626,19 @@ describe('generateTranslations', () => {
             await generateTranslations();
             const itContent = fs.readFileSync(IT_PATH, 'utf8');
 
-            // Only the specified paths should be translated
-            expect(itContent).toContain('[it] Save');
-            expect(itContent).toContain('[it] An error occurred');
+            // Only the specified paths should be retranslated with new translations
+            expect(itContent).toContain('[it] Save'); // Should be retranslated
+            expect(itContent).toContain('[it] An error occurred'); // Should be retranslated
 
-            // Other paths should not be translated
-            expect(itContent).not.toContain('[it] Hello');
-            expect(itContent).not.toContain('[it] Goodbye');
-            expect(itContent).not.toContain('[it] Cancel');
-            expect(itContent).not.toContain('[it] Network error');
+            // Other paths should remain unchanged from their existing translations
+            expect(itContent).toContain('[it] Hello'); // Should remain unchanged
+            expect(itContent).toContain('[it] Goodbye'); // Should remain unchanged
+            expect(itContent).toContain('[it] Cancel'); // Should remain unchanged
+            expect(itContent).toContain('[it] Network error'); // Should remain unchanged
+
+            // Old translations should be replaced
+            expect(itContent).not.toContain('[it] Old Save Translation');
+            expect(itContent).not.toContain('[it] Old Error Translation');
 
             expect(translateSpy).toHaveBeenCalledTimes(2);
             expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
@@ -700,6 +726,31 @@ describe('generateTranslations', () => {
 
             expect(translateSpy).toHaveBeenCalledTimes(1);
             expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
+        });
+
+        it('throws error when target file does not exist for --paths', async () => {
+            const strings = {
+                greeting: 'Hello',
+                common: {
+                    save: 'Save',
+                },
+            };
+            mockEn = strings;
+
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = ${JSON.stringify(strings)};
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Don't create IT_PATH - this should cause an error
+
+            process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save'];
+
+            await expect(generateTranslations()).rejects.toThrow('Target file');
         });
 
         it('throws error for invalid paths', async () => {
