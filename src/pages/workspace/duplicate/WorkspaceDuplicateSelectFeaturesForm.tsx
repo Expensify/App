@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import {getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -38,6 +39,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const policy = usePolicy(policyID);
     const isCollect = isCollectPolicy(policy);
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: false});
+    const [duplicatedWorkspaceAvatar, setDuplicatedWorkspaceAvatar] = useState<File | undefined>();
     const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
     const allIds = getMemberAccountIDsForWorkspace(policy?.employeeList);
     const totalMembers = Object.keys(allIds).length;
@@ -219,8 +221,9 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         if (!policy || !duplicateWorkspace?.name || !duplicateWorkspace?.policyID) {
             return;
         }
+
         duplicateWorkspaceAction(policy, {
-            policyName: duplicateWorkspace.name,
+            policyName: duplicateWorkspace.name as string,
             policyID: policy.id,
             targetPolicyID: duplicateWorkspace.policyID,
             welcomeNote: `${translate('workspace.duplicateWorkspace.welcomeNote')} ${duplicateWorkspace.name}`,
@@ -239,7 +242,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 invoices: selectedItems.includes('invoices'),
                 exportLayouts: selectedItems.includes('workflows'),
             },
-            file: duplicateWorkspace?.file,
+            file: duplicatedWorkspaceAvatar,
         });
         Navigation.closeRHPFlow();
     }, [duplicateWorkspace?.file, duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy, policyCategories, selectedItems, translate]);
@@ -291,6 +294,25 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         },
         [items, selectedItems],
     );
+
+    // When the component mounts, if there is a new avatar, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
+    // This is because until the request is saved, the avatar file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
+    // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the duplication process.
+    useEffect(() => {
+        if (!duplicateWorkspace?.file?.uri || !policyID) {
+            return;
+        }
+        readFileAsync(
+            duplicateWorkspace.file.uri,
+            'tmpFile',
+            (file) => {
+                setDuplicatedWorkspaceAvatar(file);
+            },
+            () => {
+                Navigation.goBack(ROUTES.WORKSPACE_DUPLICATE.getRoute(policyID));
+            },
+        );
+    }, [duplicateWorkspace?.file, policyID]);
 
     useEffect(() => {
         if (!items.length) {
