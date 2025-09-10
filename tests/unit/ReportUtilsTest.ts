@@ -1444,64 +1444,50 @@ describe('ReportUtils', () => {
                     });
                 });
 
-                describe('Threads', () => {
-                    const threadReport: Report = {
-                        ...createWorkspaceThread(1),
-                        reportID: '1',
-                        parentReportID: '2',
-                        parentReportActionID: '3',
-                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                        type: CONST.REPORT.TYPE.CHAT,
-                        policyID: policy.id,
-                    };
-                    test('should handle the last text message', () => {
-                        const parentReportAction: ReportAction = {
-                            reportActionID: '2',
-                            created: testDate,
-                            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                            message: [
-                                {
-                                    type: 'COMMENT',
-                                    html: 'Test message',
-                                    text: 'Test message',
-                                },
-                            ],
+                    describe('getSearchReportName', () => {
+                        const baseChatReport = {
+                            reportID: '',
+                            reportName: 'Vikings Report',
+                            type: CONST.REPORT.TYPE.CHAT,
                         };
 
-                        const {
-                            result: {current: isReportArchived},
-                        } = renderHook(() => useReportIsArchived(threadReport.reportID));
-
-                        const params = {
-                            policy,
-                            isReportArchived,
-                            report: threadReport,
-                            parentReportActionParam: parentReportAction,
+                        // Converting the chat report into a thread chat report
+                        const chatThread = {
+                            ...baseChatReport,
+                            parentReportID: '1',
+                            parentReportActionID: '1',
                         };
-                        const reportName = getSearchReportName(params);
 
-                        // Workspace threads should not have archived suffix even when archived
-                        expect(reportName).toBe('Test message');
+                        test('should return the policy name when report is chat thread', () => {
+                            const searchReportName = getSearchReportName({report: chatThread, policy});
+                            expect(searchReportName).toBe('Vikings Policy');
+                        });
+
+                        test('should return a empty string when report is chat thread and policy is undefined', () => {
+                            const searchReportName = getSearchReportName({report: chatThread, policy: undefined});
+                            expect(searchReportName).toBe('');
+                        });
+
+                        test('should return the report name when report is not chat thread', () => {
+                            const searchReportName = getSearchReportName({report: baseChatReport, policy});
+                            expect(searchReportName).toBe('Vikings Report');
+                        });
+
+                        test('should return the report name when report is not chat thread and policy is undefined', () => {
+                            const searchReportName = getSearchReportName({report: baseChatReport, policy: undefined});
+                            expect(searchReportName).toBe('Vikings Report');
+                        });
+
+                        test('should return a empty string when report is undefined ', () => {
+                            const searchReportName = getSearchReportName({report: undefined, policy});
+                            expect(searchReportName).toBe('');
+                        });
+
+                        test('should return a empty string when both report and policy are undefined', () => {
+                            const searchReportName = getSearchReportName({report: undefined, policy: undefined});
+                            expect(searchReportName).toBe('');
+                        });
                     });
-
-                    test('should handle policy change action', () => {
-                        const policyChangeAction: ReportAction = {
-                            reportActionID: '3',
-                            created: testDate,
-                            actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
-                        };
-
-                        const params = {
-                            report: threadReport,
-                            policy,
-                            parentReportActionParam: policyChangeAction,
-                        };
-
-                        const reportName = getSearchReportName(params);
-
-                        expect(reportName).toBe('changed the workspace');
-                    });
-                });
             });
 
             describe('Expenses', () => {

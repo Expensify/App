@@ -5100,13 +5100,6 @@ const buildReportNameFromParticipantNames = ({report, personalDetails: personalD
             return formattedNames ? `${formattedNames}, ${name}` : name;
         }, '');
 
-function generateReportName(report: OnyxEntry<Report>, isReportArchived?: boolean): string {
-    if (!report) {
-        return '';
-    }
-    return getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived);
-}
-
 /**
  * Get the title for a report.
  */
@@ -11801,7 +11794,6 @@ export {
     getMovedTransactionMessage,
     getUnreportedTransactionMessage,
     getExpenseReportStateAndStatus,
-    generateReportName,
     navigateToLinkedReportAction,
     buildOptimisticUnreportedTransactionAction,
     isBusinessInvoiceRoom,
