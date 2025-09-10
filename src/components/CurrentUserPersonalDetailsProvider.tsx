@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useMemo} from 'react';
+import React, {createContext, useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
@@ -14,12 +14,16 @@ const CurrentUserPersonalDetailsContext = createContext<PersonalDetails>(default
 
 function CurrentUserPersonalDetailsProvider({children}: {children: React.ReactNode}) {
     const session = useSession();
-    const userAccountID = useMemo(() => session?.accountID ?? CONST.DEFAULT_NUMBER_ID, [session?.accountID]);
-    const userAccountSelector = useCallback((allPersonalDetails: OnyxEntry<PersonalDetailsList>) => allPersonalDetails?.[userAccountID], [userAccountID]);
-    const [userPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: userAccountSelector, canBeMissing: true});
-
-    const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    const currentUserPersonalDetails: PersonalDetails = useMemo(() => ({...userPersonalDetails, accountID}), [userPersonalDetails, accountID]);
+    const userAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const userAccountSelector = useCallback(
+        (allPersonalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails => {
+            const personalDetailsForUser = allPersonalDetails?.[userAccountID] ?? ({} as PersonalDetails);
+            personalDetailsForUser.accountID = userAccountID;
+            return personalDetailsForUser;
+        },
+        [userAccountID],
+    );
+    const [currentUserPersonalDetails = defaultCurrentUserPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: userAccountSelector, canBeMissing: true});
 
     return <CurrentUserPersonalDetailsContext.Provider value={currentUserPersonalDetails}>{children}</CurrentUserPersonalDetailsContext.Provider>;
 }
