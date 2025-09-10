@@ -16,4 +16,5 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     );
 }
 
+VerifyAccountPage.displayName = 'VerifyAccountPage';
 export default VerifyAccountPage;
