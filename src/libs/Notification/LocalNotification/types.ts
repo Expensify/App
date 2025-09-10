@@ -1,3 +1,4 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type ClearReportNotifications from '@libs/Notification/clearReportNotifications/types';
 import type {Report, ReportAction} from '@src/types/onyx';
 
@@ -10,8 +11,20 @@ type LocalNotificationData = {
 type LocalNotificationModule = {
     showCommentNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) => void;
     showUpdateAvailableNotification: () => void;
-    showModifiedExpenseNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) => void;
+    showModifiedExpenseNotification: (params: LocalNotificationModifiedExpenseParams) => void;
     clearReportNotifications: ClearReportNotifications;
 };
 
-export type {LocalNotificationModule, LocalNotificationClickHandler, LocalNotificationData};
+type LocalNotificationModifiedExpenseParams = {
+    report: Report;
+    reportAction: ReportAction;
+    onClick: LocalNotificationClickHandler;
+    movedFromReport?: OnyxEntry<Report>;
+    movedToReport?: OnyxEntry<Report>;
+};
+
+type LocalNotificationModifiedExpensePushParams = LocalNotificationModifiedExpenseParams & {
+    usesIcon?: boolean;
+};
+
+export type {LocalNotificationModule, LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpenseParams, LocalNotificationModifiedExpensePushParams};
