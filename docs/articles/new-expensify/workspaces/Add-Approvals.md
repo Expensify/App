@@ -14,7 +14,7 @@ Once a member submits an expense, it must be approved by each person in their wo
 
 To enable approvals on a workspace you manage:
 
-1. In the **navigation tabs (on the left on web, and at the bottom on mobile)**, click **Workspaces
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces
 2. Click your workspace name to access the settings for that workspace
 3. In the left menu, click **Workflows**.
 4. Toggle on **Add approvals**.
