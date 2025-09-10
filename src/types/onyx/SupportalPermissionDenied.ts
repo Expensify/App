@@ -4,5 +4,3 @@ type SupportalPermissionDenied = {
 };
 
 export default SupportalPermissionDenied;
-
-
