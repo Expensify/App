@@ -35,6 +35,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {TransactionViolations} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
@@ -103,6 +104,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     isMobileSelectionModeEnabled: boolean;
 
     areAllOptionalColumnsHidden: boolean;
+
+    /** Violations indexed by transaction ID */
+    violations?: Record<string, TransactionViolations | undefined> | undefined;
 };
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
@@ -141,6 +145,7 @@ function SearchList(
         estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
         isMobileSelectionModeEnabled,
         areAllOptionalColumnsHidden,
+        violations,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -299,6 +304,7 @@ function SearchList(
                         userBillingFundID={userBillingFundID}
                         accountID={accountID}
                         isOffline={isOffline}
+                        violations={violations}
                         onFocus={onFocus}
                     />
                 </Animated.View>
@@ -327,6 +333,7 @@ function SearchList(
             accountID,
             isOffline,
             areAllOptionalColumnsHidden,
+            violations,
         ],
     );
 
