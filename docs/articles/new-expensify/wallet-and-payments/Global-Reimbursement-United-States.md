@@ -33,7 +33,7 @@ To comply with financial regulations, the following documents are needed:
 
 # Step 1: Connect Your US Bank Account
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Overview**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Overview**.
 2. Under **Default currency**, select **USD$**.
 3. From the workspace settings navigation tabs (on the left on web, and at the bottom on mobile), click **Workflows > enable Make or track payments**
 4. Under **Connect bank account > Confirm currency and country (United States - USD$)**
