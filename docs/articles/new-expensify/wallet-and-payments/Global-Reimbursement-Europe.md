@@ -97,7 +97,7 @@ Once you agree to the terms, Expensify’s Compliance Team will review your subm
 ⏳**Timeline:** After submitting all required documentation, your account can be approved within 2–6 weeks. Once verified, you can start reimbursing within 2 business days.
 
 To begin reimbursing:
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Make or track payments**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Make or track payments**.
 2. Set the **verified EUR bank account** as the default reimbursement method.
 3. Ask employees to add their personal deposit account.
 
