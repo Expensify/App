@@ -1,5 +1,6 @@
 import React from 'react';
 import SearchFiltersTextBase from '@components/Search/SearchFiltersTextBase';
+import CONST from '@src/CONST';
 
 function SearchFiltersReportIDPage() {
     return (
@@ -7,6 +8,7 @@ function SearchFiltersReportIDPage() {
             filterKey="reportID"
             titleKey="common.reportID"
             testID={SearchFiltersReportIDPage.displayName}
+            characterLimit={CONST.MAX_COMMENT_LENGTH}
         />
     );
 }

@@ -1,5 +1,6 @@
 import React from 'react';
-import SearchFiltersTextBase from '@components/Search/SearchFiltersTextBase';
+import SearchFiltersTextBase from '@components/Search/SearchFiltersTextBase'
+import CONST from '@src/CONST';
 
 function SearchFiltersKeywordPage() {
     return (
@@ -8,6 +9,7 @@ function SearchFiltersKeywordPage() {
             titleKey="search.filters.keyword"
             testID={SearchFiltersKeywordPage.displayName}
             shouldShowFullPageNotFoundView
+            characterLimit={CONST.MAX_COMMENT_LENGTH}
         />
     );
 }

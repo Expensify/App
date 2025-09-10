@@ -1,5 +1,6 @@
 import React from 'react';
 import SearchFiltersTextBase from '@components/Search/SearchFiltersTextBase';
+import CONST from '@src/CONST';
 
 function SearchFiltersWithdrawalIDPage() {
     return (
@@ -7,6 +8,7 @@ function SearchFiltersWithdrawalIDPage() {
             filterKey="withdrawalID"
             titleKey="common.withdrawalID"
             testID={SearchFiltersWithdrawalIDPage.displayName}
+            characterLimit={CONST.MAX_COMMENT_LENGTH}
         />
     );
 }

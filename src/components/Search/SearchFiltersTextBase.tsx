@@ -17,10 +17,11 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import { isValidInputLength } from '@libs/ValidationUtils';
 
 type SearchFiltersTextBaseProps = {
     /** The filter key from FILTER_KEYS */
-    filterKey: string;
+    filterKey: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>;
 
     /** The translation key for the page title and input label */
     titleKey: TranslationPaths;
@@ -28,8 +29,8 @@ type SearchFiltersTextBaseProps = {
     /** Test ID for the screen wrapper */
     testID: string;
 
-    /** Optional validation function */
-    validate?: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>;
+    /** The character limit for the input */
+    characterLimit?: number;
 
     /** Whether to hide fix errors alert */
     shouldHideFixErrorsAlert?: boolean;
@@ -42,20 +43,32 @@ function SearchFiltersTextBase({
     filterKey,
     titleKey,
     testID,
-    validate,
     shouldHideFixErrorsAlert = true,
     shouldShowFullPageNotFoundView = false,
+    characterLimit = CONST.MERCHANT_NAME_MAX_BYTES,
 }: SearchFiltersTextBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
-    const value = searchAdvancedFiltersForm?.[filterKey as keyof typeof searchAdvancedFiltersForm];
+    const value = searchAdvancedFiltersForm?.[filterKey];
     const {inputCallbackRef} = useAutoFocusInput();
 
     const updateFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
         updateAdvancedFilters(values);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+    };
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM> = {};
+        const value = values[filterKey]?.trim();
+        const {isValid, byteLength} = isValidInputLength(value, characterLimit);
+
+        if (!isValid) {
+            errors[filterKey] = translate('common.error.characterLimitExceedCounter', {length: byteLength, limit: characterLimit});
+        }
+
+        return errors;
     };
 
     return (
