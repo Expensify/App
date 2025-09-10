@@ -158,6 +158,7 @@ const SCREENS = {
             DELEGATE_CONFIRM: 'Settings_Delegate_Confirm',
             DELEGATE_CONFIRM_MAGIC_CODE: 'Settings_Delegate_Confirm_Magic_Code',
             UPDATE_DELEGATE_ROLE: 'Settings_Delegate_Update_Role',
+            UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE: 'Settings_Delegate_Update_Role_Confirm_Magic_Code',
         },
         MERGE_ACCOUNTS: {
             ACCOUNT_DETAILS: 'Settings_MergeAccounts_AccountDetails',
