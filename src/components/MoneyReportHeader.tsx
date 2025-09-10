@@ -651,16 +651,14 @@ function MoneyReportHeader({
             },
         };
 
-        if (exportTemplates.length > 0) {
-            for (const template of exportTemplates) {
-                options[template.name] = {
-                    text: template.name,
-                    icon: Expensicons.Table,
-                    value: template.templateName,
-                    description: template.description,
-                    onSelected: () => beginExportWithTemplate(template.templateName, template.type, transactionIDs, template.policyID),
-                };
-            }
+        for (const template of exportTemplates) {
+            options[template.name] = {
+                text: template.name,
+                icon: Expensicons.Table,
+                value: template.templateName,
+                description: template.description,
+                onSelected: () => beginExportWithTemplate(template.templateName, template.type, transactionIDs, template.policyID),
+            };
         }
 
         return options;
@@ -817,7 +815,7 @@ function MoneyReportHeader({
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryExportReportActions(moneyRequestReport, policy, exportTemplates ?? []);
+        return getSecondaryExportReportActions(moneyRequestReport, policy, exportTemplates);
     }, [moneyRequestReport, policy, exportTemplates]);
 
     const secondaryActionsImplementation: Record<

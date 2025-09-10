@@ -201,15 +201,13 @@ function useSelectedTransactionsActions({
 
             // If the user has any custom integration export templates, add them as export options
             const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, policy, includeReportLevelExport);
-            if (exportTemplates.length > 0) {
-                for (const template of exportTemplates) {
-                    exportOptions.push({
-                        text: template.name,
-                        icon: Expensicons.Table,
-                        description: template.description,
-                        onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.policyID),
-                    });
-                }
+            for (const template of exportTemplates) {
+                exportOptions.push({
+                    text: template.name,
+                    icon: Expensicons.Table,
+                    description: template.description,
+                    onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.policyID),
+                });
             }
             return exportOptions;
         };

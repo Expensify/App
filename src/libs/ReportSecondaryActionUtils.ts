@@ -701,7 +701,7 @@ function getSecondaryReportActions({
     return options;
 }
 
-function getSecondaryExportReportActions(report: Report, policy?: Policy, exportTemplates?: ExportTemplate[]): Array<ValueOf<string>> {
+function getSecondaryExportReportActions(report: Report, policy?: Policy, exportTemplates: ExportTemplate[] = []): Array<ValueOf<string>> {
     const options: Array<ValueOf<string>> = [];
     if (isExportAction(report, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
@@ -714,10 +714,8 @@ function getSecondaryExportReportActions(report: Report, policy?: Policy, export
     options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV);
 
     // Add any custom IS templates that have been added to the user's account as export options
-    if (exportTemplates && exportTemplates.length > 0) {
-        for (const template of exportTemplates) {
-            options.push(template.name);
-        }
+    for (const template of exportTemplates) {
+        options.push(template.name);
     }
 
     return options;
