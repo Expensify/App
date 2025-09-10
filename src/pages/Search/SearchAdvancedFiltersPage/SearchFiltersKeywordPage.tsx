@@ -1,5 +1,5 @@
 import React from 'react';
-import SearchFiltersTextBase from '@components/Search/SearchFiltersTextBase'
+import SearchFiltersTextBase from '@components/Search/SearchFiltersTextBase';
 import CONST from '@src/CONST';
 
 function SearchFiltersKeywordPage() {

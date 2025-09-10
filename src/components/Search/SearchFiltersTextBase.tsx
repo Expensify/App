@@ -21,14 +21,7 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 // Text-based filter keys that accept string input - these are keys from SearchAdvancedFiltersForm that have string values
-type TextFilterKey = keyof Pick<SearchAdvancedFiltersForm, 
-    | 'merchant'
-    | 'description' 
-    | 'reportID'
-    | 'keyword'
-    | 'title'
-    | 'withdrawalID'
->;
+type TextFilterKey = keyof Pick<SearchAdvancedFiltersForm, 'merchant' | 'description' | 'reportID' | 'keyword' | 'title' | 'withdrawalID'>;
 
 type SearchFiltersTextBaseProps = {
     /** The filter key from text-based FILTER_KEYS */
@@ -47,13 +40,7 @@ type SearchFiltersTextBaseProps = {
     shouldShowFullPageNotFoundView?: boolean;
 };
 
-function SearchFiltersTextBase({
-    filterKey,
-    titleKey,
-    testID,
-    shouldShowFullPageNotFoundView = false,
-    characterLimit = CONST.MERCHANT_NAME_MAX_BYTES,
-}: SearchFiltersTextBaseProps) {
+function SearchFiltersTextBase({filterKey, titleKey, testID, shouldShowFullPageNotFoundView = false, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES}: SearchFiltersTextBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
