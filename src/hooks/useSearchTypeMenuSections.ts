@@ -38,11 +38,22 @@ const useSearchTypeMenuSections = () => {
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, policySelector), canBeMissing: true});
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => ({email: session?.email, accountID: session?.accountID}), canBeMissing: false});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
 
     const typeMenuSections = useMemo(
-        () => createTypeMenuSections(currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, cardFeedsByPolicy, defaultCardFeed, allPolicies, savedSearches, isOffline),
-        [currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, cardFeedsByPolicy, defaultCardFeed, allPolicies, savedSearches, isOffline],
+        () =>
+            createTypeMenuSections(
+                currentUserLoginAndAccountID?.email,
+                currentUserLoginAndAccountID?.accountID,
+                cardFeedsByPolicy,
+                defaultCardFeed,
+                allPolicies,
+                activePolicyID,
+                savedSearches,
+                isOffline,
+            ),
+        [currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, cardFeedsByPolicy, defaultCardFeed, allPolicies, activePolicyID, savedSearches, isOffline],
     );
 
     return {typeMenuSections};
