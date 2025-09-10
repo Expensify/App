@@ -13,6 +13,7 @@ export default function (): void {
         profilesSampleRate: 1.0,
         replaysSessionSampleRate: 0.1,
         replaysOnErrorSampleRate: 1.0,
+        enableUserInteractionTracing: true,
         integrations: [Sentry.mobileReplayIntegration(), navigationIntegration],
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${pkg.version}`,
