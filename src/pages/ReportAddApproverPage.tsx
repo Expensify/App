@@ -176,7 +176,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             <HeaderWithBackButton
                 title={translate('iou.changeApprover.actions.addApprover')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.REPORT_CHANGE_APPROVER.getRoute(report.reportID));
+                    Navigation.goBack(ROUTES.REPORT_CHANGE_APPROVER.getRoute(report.reportID), {compareParams: false});
                 }}
             />
             <Text style={[styles.ph5, styles.pb3]}>{translate('iou.changeApprover.addApprover.subtitle')}</Text>
