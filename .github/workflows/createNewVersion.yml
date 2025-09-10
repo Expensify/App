@@ -97,7 +97,7 @@ jobs:
           DETACHED_COMMIT=$(git rev-parse HEAD)
           
           # Cherry-pick the version bump commit onto main, to safely handle case where new commits exist on main
-          git checkout main
+          git checkout main && git pull origin main
           git cherry-pick "$DETACHED_COMMIT"
           if ! git push origin main; then
             echo "Race condition! Mobile-Expensify main was updated while this workflow was running, so push failed. Fetching remote, rebasing, and retrying push once."
