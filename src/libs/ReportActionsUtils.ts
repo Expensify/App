@@ -2147,19 +2147,12 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
         });
     }
 
-    // For some integrations (e.g. Intacct, QBD), we do not render direct links because we only have IDs, not URLs
-    const noLinkLabels = new Set<string>([
-        CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.intacct,
-        CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.intacct_other,
-        CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksDesktop,
-    ]);
-    const shouldSuppressLinks = noLinkLabels.has(label ?? '');
-
     if (reimbursableUrls.length === 1) {
         const shouldAddPeriod = nonReimbursableUrls.length === 0;
+        const reimbursableUrl = reimbursableUrls.at(0) ?? '';
         result.push({
             text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink') + (shouldAddPeriod ? '.' : ''),
-            url: !shouldSuppressLinks ? (reimbursableUrls.at(0) ?? '') : '',
+            url: reimbursableUrl.startsWith('https://') ? reimbursableUrl : '',
         });
     }
     if (reimbursableUrls.length === 1 && nonReimbursableUrls.length) {
@@ -2173,7 +2166,8 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
         let url = '';
 
         if (nonReimbursableUrls.length === 1) {
-            url = !shouldSuppressLinks ? (nonReimbursableUrls.at(0) ?? '') : '';
+            const nonReimbursableUrl = nonReimbursableUrls.at(0) ?? '';
+            url = nonReimbursableUrl.startsWith('https://') ? nonReimbursableUrl : '';
         } else {
             switch (label) {
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero:
