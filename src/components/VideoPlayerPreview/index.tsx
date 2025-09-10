@@ -72,7 +72,6 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
     const onSourceLoaded = (event: SourceLoadEventPayload) => {
         const track = event.availableVideoTracks.at(0);
-        console.log(`%%% track`, track);
 
         if (!track) {
             return;
