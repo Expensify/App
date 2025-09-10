@@ -3577,18 +3577,18 @@ function getRepoRoot() {
 }
 // Filepath constants
 const ROOT_DIR = getRepoRoot();
-const PACKAGE_JSON_PATH = __nccwpck_require__.ab + "Expensify/" + ROOT_DIR + '/package.json';
-const BUILD_GRADLE_PATH = __nccwpck_require__.ab + "Expensify/" + ROOT_DIR + '/android/app/build.gradle';
+const PACKAGE_JSON_PATH = __nccwpck_require__.ab + "App/" + ROOT_DIR + '/package.json';
+const BUILD_GRADLE_PATH = __nccwpck_require__.ab + "App/" + ROOT_DIR + '/android/app/build.gradle';
 const PLIST_PATH = external_path_default().resolve(ROOT_DIR, 'ios/NewExpensify/Info.plist');
-const PLIST_PATH_NSE = __nccwpck_require__.ab + "Expensify/" + ROOT_DIR + '/ios/NotificationServiceExtension/Info.plist';
+const PLIST_PATH_NSE = __nccwpck_require__.ab + "App/" + ROOT_DIR + '/ios/NotificationServiceExtension/Info.plist';
 const PLIST_PATH_SHARE = external_path_default().resolve(ROOT_DIR, 'ios/ShareViewController/Info.plist');
 // Filepath constants (submodule)
 const MOBILE_EXPENSIFY_DIR = external_path_default().resolve(ROOT_DIR, 'Mobile-Expensify');
-const MOBILE_EXPENSIFY_CONFIG_JSON_PATH = __nccwpck_require__.ab + "Expensify/" + MOBILE_EXPENSIFY_DIR + '/app/config/config.json';
-const MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH = __nccwpck_require__.ab + "Expensify/" + MOBILE_EXPENSIFY_DIR + '/Android/AndroidManifest.xml';
-const MOBILE_EXPENSIFY_PLIST_PATH = __nccwpck_require__.ab + "Expensify/" + MOBILE_EXPENSIFY_DIR + '/iOS/Expensify/Expensify-Info.plist';
-const MOBILE_EXPENSIFY_PLIST_PATH_NSE = __nccwpck_require__.ab + "Expensify/" + MOBILE_EXPENSIFY_DIR + '/iOS/NotificationServiceExtension/Info.plist';
-const MOBILE_EXPENSIFY_PLIST_PATH_SS = __nccwpck_require__.ab + "Expensify/" + MOBILE_EXPENSIFY_DIR + '/iOS/SmartScanExtension/Info.plist';
+const MOBILE_EXPENSIFY_CONFIG_JSON_PATH = __nccwpck_require__.ab + "App/" + MOBILE_EXPENSIFY_DIR + '/app/config/config.json';
+const MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH = __nccwpck_require__.ab + "App/" + MOBILE_EXPENSIFY_DIR + '/Android/AndroidManifest.xml';
+const MOBILE_EXPENSIFY_PLIST_PATH = __nccwpck_require__.ab + "App/" + MOBILE_EXPENSIFY_DIR + '/iOS/Expensify/Expensify-Info.plist';
+const MOBILE_EXPENSIFY_PLIST_PATH_NSE = __nccwpck_require__.ab + "App/" + MOBILE_EXPENSIFY_DIR + '/iOS/NotificationServiceExtension/Info.plist';
+const MOBILE_EXPENSIFY_PLIST_PATH_SS = __nccwpck_require__.ab + "App/" + MOBILE_EXPENSIFY_DIR + '/iOS/SmartScanExtension/Info.plist';
 /**
  * Pad a number to be two digits (with leading zeros if necessary).
  */
