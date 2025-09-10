@@ -18,14 +18,7 @@ import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getT
 import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {
-    buildOptimisticExpenseReport,
-    getDefaultWorkspaceAvatar,
-    getOutstandingReportsForUser,
-    isMoneyRequestReport,
-    isReportOutstanding,
-    populateOptimisticReportFormula,
-} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
@@ -245,7 +238,7 @@ function MoneyRequestConfirmationListFooter({
     receiptFilename,
     receiptPath,
     reportActionID,
-    reportID,
+    reportID: reportIDProp,
     selectedParticipants,
     shouldDisplayFieldError,
     shouldDisplayReceipt,
@@ -279,6 +272,7 @@ function MoneyRequestConfirmationListFooter({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowMap = isDistanceRequest && !isManualDistanceRequest && !!(hasErrors || hasPendingWaypoints || iouType !== CONST.IOU.TYPE.SPLIT || !isReadOnly);
 
+    const personalWorkspace = useMemo(() => Object.values(allPolicies ?? {}).find((p) => p?.type === CONST.POLICY.TYPE.PERSONAL), [allPolicies]);
     const senderWorkspace = useMemo(() => {
         const senderWorkspaceParticipant = selectedParticipants.find((participant) => participant.isSender);
         return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${senderWorkspaceParticipant?.policyID}`];
@@ -301,16 +295,26 @@ function MoneyRequestConfirmationListFooter({
     const firstOutstandingReport = getOutstandingReportsForUser(policyID, reportOwnerAccountID, allReports ?? {}, undefined, false)
         .sort((a, b) => localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''))
         .at(0);
-    let reportName: string | undefined;
-    if (shouldUseTransactionReport) {
-        reportName = transactionReport.reportName;
-    } else {
-        reportName = firstOutstandingReport?.reportName;
-    }
+    const shouldAutoReport = policy?.autoReporting || personalWorkspace?.autoReporting;
 
-    if (!reportName) {
-        const optimisticReport = buildOptimisticExpenseReport(reportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
-        reportName = populateOptimisticReportFormula(policy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, policy);
+    let reportID: string | undefined;
+    let reportName: string | undefined;
+
+    if (shouldAutoReport) {
+        reportID = reportIDProp;
+
+        if (shouldUseTransactionReport) {
+            reportName = transactionReport.reportName;
+        } else {
+            reportName = firstOutstandingReport?.reportName;
+        }
+
+        if (!reportName) {
+            reportName = 'New report'; // s77rt
+        }
+    } else {
+        reportID = '';
+        reportName = 'None'; // s77rt
     }
 
     // When creating an expense in an individual report, the report field becomes read-only
