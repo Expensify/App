@@ -17,7 +17,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
-import CurrencyPicker from './CurrencyPicker';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from './Form/types';
@@ -26,6 +25,7 @@ import * as Expensicons from './Icon/Expensicons';
 import ScrollView from './ScrollView';
 import Text from './Text';
 import TextInput from './TextInput';
+import WorkspaceCurrencyPicker from './WorkspaceCurrencyPicker';
 
 type WorkspaceConfirmationSubmitFunctionParams = {
     name: string;
@@ -176,7 +176,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
 
                         <View style={[styles.mhn5, styles.mt4]}>
                             <InputWrapper
-                                InputComponent={CurrencyPicker}
+                                InputComponent={WorkspaceCurrencyPicker}
                                 inputID={INPUT_IDS.CURRENCY}
                                 label={translate('workspace.editor.currencyInputLabel')}
                                 defaultValue={userCurrency}
