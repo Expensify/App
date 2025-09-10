@@ -188,36 +188,21 @@ class TranslationGenerator {
                 const existingContent = fs.readFileSync(targetPath, 'utf8');
                 const existingSourceFile = ts.createSourceFile(targetPath, existingContent, ts.ScriptTarget.Latest, true);
 
-                // Transform the existing target file with incremental modify transformer
-                const transformer = this.createIncrementalModifyTransformer(translationsForLocale);
-                const result = ts.transform(existingSourceFile, [transformer]);
-                transformedSourceFile = result.transformed.at(0) ?? existingSourceFile;
-                result.dispose();
+                // Step 2: Transform en.ts with path filtering for pathsToModify and pathsToAdd
+                const enTransformer = this.createIncrementalEnTransformer(translationsForLocale);
+                const enResult = ts.transform(this.sourceFile, [enTransformer]);
+                const transformedEnSourceFile = enResult.transformed.at(0) ?? this.sourceFile;
 
-                // Transform added paths only in en.ts
-                const transformedEnForAddedPaths = ts.transform(this.sourceFile, [this.createIncrementalAddTransformer(translationsForLocale)]);
-                const translatedAddedNodes = new Map<string, ts.Node>();
+                // Step 3: Extract translated nodes from the transformed en.ts
+                const translatedNodeMap = new Map<string, ts.Node>();
+                this.extractTranslatedNodes(transformedEnSourceFile, translatedNodeMap);
+                enResult.dispose();
 
-                // Extract translated nodes for pathsToAdd from the transformed en.ts
-                const transformedEnSourceFile = transformedEnForAddedPaths.transformed.at(0);
-                if (transformedEnSourceFile) {
-                    this.extractTranslatedNodes(transformedEnSourceFile, translatedAddedNodes);
-                }
-                transformedEnForAddedPaths.dispose();
-
-                // If we have nodes to add, inject them into the target file
-                if (translatedAddedNodes.size > 0) {
-                    if (this.verbose) {
-                        console.log(`🔧 Injecting ${translatedAddedNodes.size} translated nodes:`);
-                        for (const [path, node] of translatedAddedNodes) {
-                            console.log(`   ${path}: ${node.getText()}`);
-                        }
-                    }
-                    const injectTransformer = this.createIncrementalInjectTransformer(translatedAddedNodes);
-                    const injectResult = ts.transform(transformedSourceFile, [injectTransformer]);
-                    transformedSourceFile = injectResult.transformed.at(0) ?? transformedSourceFile;
-                    injectResult.dispose();
-                }
+                // Step 4: Transform the target file using the translated node map
+                const targetTransformer = this.createIncrementalTargetTransformer(translatedNodeMap);
+                const targetResult = ts.transform(existingSourceFile, [targetTransformer]);
+                transformedSourceFile = targetResult.transformed.at(0) ?? existingSourceFile;
+                targetResult.dispose();
             } else {
                 // Full transformation for non-incremental mode - transform en.ts
                 const transformer = this.createFullTransformer(translationsForLocale);
@@ -825,8 +810,8 @@ class TranslationGenerator {
      */
     private extractTranslatedNodes(sourceFile: ts.SourceFile, translatedNodes: Map<string, ts.Node>): void {
         const visitWithPath = (node: ts.Node, currentPath = ''): void => {
-            // If this path is in pathsToAdd, collect the full node and don't recurse further
-            if (this.pathsToAdd.has(currentPath as TranslationPaths)) {
+            // If this path is in pathsToAdd or pathsToModify, collect the full node and don't recurse further
+            if (this.pathsToAdd.has(currentPath as TranslationPaths) || this.pathsToModify.has(currentPath as TranslationPaths)) {
                 translatedNodes.set(currentPath, node);
                 return; // Stop recursing into children
             }
@@ -896,21 +881,19 @@ class TranslationGenerator {
      * Create a transformer factory for incremental translations of target files.
      * Handles pathsToModify (retranslate) and pathsToRemove (delete).
      */
-    private createIncrementalModifyTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
+    /**
+     * Create a transformer factory for translating en.ts with path filtering.
+     * Only translates paths that are in pathsToModify or pathsToAdd.
+     */
+    private createIncrementalEnTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
         return (context: ts.TransformationContext) => {
             const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
                 if (this.shouldNodeBeTranslated(node)) {
-                    // Check if this path should be removed
-                    if (currentPath && this.pathsToRemove.has(currentPath as TranslationPaths)) {
-                        return undefined; // Remove this node
+                    // Only translate nodes with paths in pathsToModify or pathsToAdd
+                    if (this.pathsToModify.has(currentPath as TranslationPaths) || this.pathsToAdd.has(currentPath as TranslationPaths)) {
+                        return this.translateNode(node, translations, currentPath, visitWithPath);
                     }
-
-                    // Only translate nodes with paths in pathsToModify
-                    if (!this.pathsToModify.has(currentPath as TranslationPaths)) {
-                        return node; // Keep unchanged
-                    }
-
-                    return this.translateNode(node, translations, currentPath, visitWithPath);
+                    return node; // Keep unchanged
                 }
 
                 return this.visitChildren(node, currentPath, visitWithPath, context);
@@ -923,41 +906,47 @@ class TranslationGenerator {
     }
 
     /**
-     * Create a transformer factory for injecting new translated nodes into target files.
-     * Adds nodes from translatedAddedNodes to the appropriate paths in the target AST.
+     * Create a transformer factory for incremental translations of target files.
+     * Handles pathsToModify (replace) and pathsToRemove (delete) using translated node map.
      */
-    private createIncrementalInjectTransformer(translatedAddedNodes: Map<string, ts.Node>): ts.TransformerFactory<ts.SourceFile> {
+    private createIncrementalTargetTransformer(translatedNodeMap: Map<string, ts.Node>): ts.TransformerFactory<ts.SourceFile> {
         return (context: ts.TransformationContext) => {
             const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
-                // Check if this is the main translations node and if we need to add new properties to it
+                // Check if this path should be removed
+                if (currentPath && this.pathsToRemove.has(currentPath as TranslationPaths)) {
+                    return undefined; // Remove this node
+                }
+
+                // Check if this path should be replaced with a translated node
+                if (currentPath && this.pathsToModify.has(currentPath as TranslationPaths)) {
+                    const translatedNode = translatedNodeMap.get(currentPath);
+                    if (translatedNode) {
+                        return translatedNode;
+                    }
+                }
+
+                // Check if this is the main translations node and we need to add new properties
                 if (ts.isObjectLiteralExpression(node)) {
                     const sourceFile = node.getSourceFile();
-                    // TODO: avoid running this check multiple times unnecessarily
                     const mainTranslationsNode = this.findTranslationsNode(sourceFile);
 
-                    // Only modify if this is the main translations object
                     if (node === mainTranslationsNode) {
                         const newProperties = [...node.properties];
                         let hasAdditions = false;
 
-                        // Check if any of our translatedAddedNodes should be added to this object
-                        for (const [addPath, translatedNode] of translatedAddedNodes) {
-                            const pathParts = addPath.split('.');
+                        // Add properties for pathsToAdd
+                        for (const [addPath, translatedNode] of translatedNodeMap) {
+                            if (this.pathsToAdd.has(addPath as TranslationPaths)) {
+                                const pathParts = addPath.split('.');
 
-                            // If this is a direct child of the current path
-                            if (pathParts.length === (currentPath ? currentPath.split('.').length + 1 : 1)) {
-                                const expectedParentPath = pathParts.slice(0, -1).join('.');
+                                // For top-level additions
+                                if (pathParts.length === 1 && currentPath === '') {
+                                    const propertyName = pathParts[0];
 
-                                // Check if this object is the correct parent for this path
-                                if (currentPath === expectedParentPath) {
-                                    const propertyName = pathParts[pathParts.length - 1];
-
-                                    // Create a property assignment from the translated node
                                     if (ts.isPropertyAssignment(translatedNode)) {
                                         newProperties.push(translatedNode);
                                         hasAdditions = true;
                                     } else {
-                                        // If it's not a property assignment, wrap it as one
                                         const newProperty = ts.factory.createPropertyAssignment(propertyName, translatedNode as ts.Expression);
                                         newProperties.push(newProperty);
                                         hasAdditions = true;
@@ -970,31 +959,6 @@ class TranslationGenerator {
                             return ts.factory.createObjectLiteralExpression(newProperties);
                         }
                     }
-                }
-
-                return this.visitChildren(node, currentPath, visitWithPath, context);
-            };
-
-            return (sourceFile: ts.SourceFile) => {
-                return (ts.visitNode(sourceFile, visitWithPath) as ts.SourceFile) ?? sourceFile;
-            };
-        };
-    }
-
-    /**
-     * Create a transformer factory for incremental translations of en.ts.
-     * Only translates paths that are in pathsToAdd, skips everything else.
-     */
-    private createIncrementalAddTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
-        return (context: ts.TransformationContext) => {
-            const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
-                if (this.shouldNodeBeTranslated(node)) {
-                    // Only translate nodes with paths in pathsToAdd
-                    if (this.pathsToAdd.has(currentPath as TranslationPaths)) {
-                        return this.translateNode(node, translations, currentPath, visitWithPath);
-                    }
-                    // For nodes not in pathsToAdd, return unchanged
-                    return node;
                 }
 
                 return this.visitChildren(node, currentPath, visitWithPath, context);
