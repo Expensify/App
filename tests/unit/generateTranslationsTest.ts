@@ -671,6 +671,29 @@ describe('generateTranslations', () => {
                 'utf8',
             );
 
+            // Create existing Italian translation file
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+                const strings = {
+                    greeting: '[it] Hello (existing)',
+                    common: {
+                        save: '[it] Save (existing)',
+                        cancel: '[it] Cancel (existing)',
+                        nested: {
+                            deep: '[it] Deep value (existing)',
+                        },
+                    },
+                    errors: {
+                        generic: '[it] An error occurred (existing)',
+                    },
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
             // Override process.argv to specify parent path
             process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common'];
 
@@ -679,14 +702,19 @@ describe('generateTranslations', () => {
             await generateTranslations();
             const itContent = fs.readFileSync(IT_PATH, 'utf8');
 
-            // All nested paths under 'common' should be translated
+            // All nested paths under 'common' should be retranslated
             expect(itContent).toContain('[it] Save');
             expect(itContent).toContain('[it] Cancel');
             expect(itContent).toContain('[it] Deep value');
 
-            // Other paths should not be translated
-            expect(itContent).not.toContain('[it] Hello');
-            expect(itContent).not.toContain('[it] An error occurred');
+            // Other paths should remain unchanged from existing translations
+            expect(itContent).toContain('[it] Hello (existing)');
+            expect(itContent).toContain('[it] An error occurred (existing)');
+
+            // Old translations should be replaced
+            expect(itContent).not.toContain('[it] Save (existing)');
+            expect(itContent).not.toContain('[it] Cancel (existing)');
+            expect(itContent).not.toContain('[it] Deep value (existing)');
 
             expect(translateSpy).toHaveBeenCalledTimes(3);
             expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
@@ -712,6 +740,22 @@ describe('generateTranslations', () => {
                 'utf8',
             );
 
+            // Create existing Italian translation file
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+                const strings = {
+                    greeting: '[it] Hello (existing)',
+                    common: {
+                        save: '[it] Save (existing)',
+                    },
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+
             // Override process.argv to specify both paths and compare-ref
             process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it', '--paths', 'common.save', '--compare-ref', 'main'];
 
@@ -720,9 +764,14 @@ describe('generateTranslations', () => {
             await generateTranslations();
             const itContent = fs.readFileSync(IT_PATH, 'utf8');
 
-            // Only the specified path should be translated
+            // Only the specified path should be retranslated
             expect(itContent).toContain('[it] Save');
-            expect(itContent).not.toContain('[it] Hello');
+
+            // Other paths should remain unchanged
+            expect(itContent).toContain('[it] Hello (existing)');
+
+            // Old translation should be replaced
+            expect(itContent).not.toContain('[it] Save (existing)');
 
             expect(translateSpy).toHaveBeenCalledTimes(1);
             expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
@@ -793,6 +842,25 @@ describe('generateTranslations', () => {
                 EN_PATH,
                 dedent(`
                 const strings = ${JSON.stringify(strings)};
+                export default strings;
+            `),
+                'utf8',
+            );
+
+            // Create existing Italian translation file
+            fs.writeFileSync(
+                IT_PATH,
+                dedent(`
+                import type en from './en';
+                const strings = {
+                    greeting: '[it] Hello (existing)',
+                    common: {
+                        save: '[it] Save (existing)',
+                    },
+                    errors: {
+                        generic: '[it] An error occurred (existing)',
+                    },
+                };
                 export default strings;
             `),
                 'utf8',
