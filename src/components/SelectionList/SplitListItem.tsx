@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {Folder, Tag} from '@components/Icon/Expensicons';
@@ -23,6 +23,9 @@ function SplitListItem<TItem extends ListItem>({
     shouldPreventEnterKeySubmit,
     rightHandSideComponent,
     onFocus,
+    index,
+    onInputFocus,
+    onInputBlur,
 }: SplitListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -37,6 +40,17 @@ function SplitListItem<TItem extends ListItem>({
     };
 
     const isBottomVisible = !!splitItem.category || !!splitItem.tags?.at(0);
+
+    const focusHandler = useCallback(() => {
+        if (!onInputFocus) {
+            return;
+        }
+
+        if (!index && index !== 0) {
+            return;
+        }
+        onInputFocus(index);
+    }, [onInputFocus, index]);
 
     return (
         <BaseListItem
@@ -145,6 +159,8 @@ function SplitListItem<TItem extends ListItem>({
                             shouldApplyPaddingToContainer
                             shouldUseDefaultLineHeightForPrefix={false}
                             shouldWrapInputInContainer={false}
+                            onFocus={focusHandler}
+                            onBlur={onInputBlur}
                         />
                     </View>
                     <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>
