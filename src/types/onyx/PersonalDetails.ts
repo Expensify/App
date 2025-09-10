@@ -30,7 +30,7 @@ type Status = {
 /** Model of user personal details */
 type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** ID of the current user from their personal details */
-    accountID: number;
+    accountID: number | undefined;
 
     /** First name of the current user from their personal details */
     firstName?: string;

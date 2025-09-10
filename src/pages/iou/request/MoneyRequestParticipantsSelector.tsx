@@ -5,6 +5,7 @@ import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, us
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import Button from '@components/Button';
 import ContactPermissionModal from '@components/ContactPermissionModal';
@@ -56,6 +57,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {PolicyTagLists} from '@src/types/onyx/PolicyTag';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ImportContactButton from './ImportContactButton';
 
@@ -301,7 +303,7 @@ function MoneyRequestParticipantsSelector(
             chatOptions.userToInvite &&
             !isCurrentUser({
                 ...chatOptions.userToInvite,
-                accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                accountID: chatOptions.userToInvite?.accountID,
                 status: chatOptions.userToInvite?.status ?? undefined,
             }) &&
             !isPerDiemRequest
@@ -309,7 +311,12 @@ function MoneyRequestParticipantsSelector(
             newSections.push({
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
-                    const reportPolicyTags = policyTags?.[participant.policyID ?? ''];
+                    let reportPolicyTags: OnyxEntry<PolicyTagLists>;
+                    if (participant.policyID) {
+                        reportPolicyTags = policyTags?.[participant.policyID];
+                    } else {
+                        reportPolicyTags = {};
+                    }
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportPolicyTags, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                 }),
