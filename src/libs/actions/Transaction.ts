@@ -847,21 +847,21 @@ function changeTransactionsReport(
         const transactionAmount = getAmount(transaction);
 
         if (oldReport) {
-            updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : oldReport?.total ?? 0) + transactionAmount;
+            updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : (oldReport?.total ?? 0)) + transactionAmount;
             updatedReportNonReimbursableTotals[oldReportID] =
-                (updatedReportNonReimbursableTotals[oldReportID] ? updatedReportNonReimbursableTotals[oldReportID] : oldReport?.nonReimbursableTotal ?? 0) +
+                (updatedReportNonReimbursableTotals[oldReportID] ? updatedReportNonReimbursableTotals[oldReportID] : (oldReport?.nonReimbursableTotal ?? 0)) +
                 (transaction?.reimbursable ? 0 : transactionAmount);
             updatedReportUnheldNonReimbursableTotals[oldReportID] =
-                (updatedReportUnheldNonReimbursableTotals[oldReportID] ? updatedReportUnheldNonReimbursableTotals[oldReportID] : oldReport?.unheldNonReimbursableTotal ?? 0) +
+                (updatedReportUnheldNonReimbursableTotals[oldReportID] ? updatedReportUnheldNonReimbursableTotals[oldReportID] : (oldReport?.unheldNonReimbursableTotal ?? 0)) +
                 (transaction?.reimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
         }
         if (reportID && newReport) {
-            updatedReportTotals[targetReportID] = (updatedReportTotals[targetReportID] ? updatedReportTotals[targetReportID] : newReport.total ?? 0) - transactionAmount;
+            updatedReportTotals[targetReportID] = (updatedReportTotals[targetReportID] ? updatedReportTotals[targetReportID] : (newReport.total ?? 0)) - transactionAmount;
             updatedReportNonReimbursableTotals[targetReportID] =
-                (updatedReportNonReimbursableTotals[targetReportID] ? updatedReportNonReimbursableTotals[targetReportID] : newReport.nonReimbursableTotal ?? 0) -
+                (updatedReportNonReimbursableTotals[targetReportID] ? updatedReportNonReimbursableTotals[targetReportID] : (newReport.nonReimbursableTotal ?? 0)) -
                 (transactionReimbursable ? 0 : transactionAmount);
             updatedReportUnheldNonReimbursableTotals[targetReportID] =
-                (updatedReportUnheldNonReimbursableTotals[targetReportID] ? updatedReportUnheldNonReimbursableTotals[targetReportID] : newReport.unheldNonReimbursableTotal ?? 0) -
+                (updatedReportUnheldNonReimbursableTotals[targetReportID] ? updatedReportUnheldNonReimbursableTotals[targetReportID] : (newReport.unheldNonReimbursableTotal ?? 0)) -
                 (transactionReimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
         }
 
