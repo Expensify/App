@@ -37,7 +37,6 @@ import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOpt
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import {shouldOnboardingRedirectToOldDot} from '@libs/OnboardingUtils';
-import onyxSubscribe from '@libs/onyxSubscribe';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
@@ -220,7 +219,6 @@ function AuthScreens() {
     });
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
     const [userReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, {canBeMissing: true});
-    const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
     const [isOnboardingLoading] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: (value) => !!value?.isLoading});
     const prevIsOnboardingLoading = usePrevious(isOnboardingLoading);
