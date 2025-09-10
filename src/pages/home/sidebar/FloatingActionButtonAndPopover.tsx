@@ -104,6 +104,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const [quickActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const policyChatForActivePolicy = useMemo(() => {
         if (isEmptyObject(activePolicy) || !activePolicy?.isPolicyExpenseChatEnabled) {
@@ -127,7 +128,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const prevIsFocused = usePrevious(isFocused);
     const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
     const {isOffline} = useNetwork();
-    const {isBlockedFromSpotnanaTravel, isBetaEnabled} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
+    const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
     const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin, canBeMissing: true});
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
@@ -222,9 +224,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             }
 
             // Start the scan flow directly
-            startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN, false);
+            startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, allTransactionDrafts);
         });
-    }, [shouldRedirectToExpensifyClassic]);
+    }, [shouldRedirectToExpensifyClassic, allTransactionDrafts]);
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -310,11 +312,15 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                             // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                             // for all of the routes in the creation flow.
                             generateReportID(),
+                            undefined,
+                            undefined,
+                            undefined,
+                            allTransactionDrafts,
                         );
                     }),
             },
         ];
-    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout]);
+    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts]);
 
     const quickActionMenuItems = useMemo(() => {
         // Define common properties in baseQuickAction
@@ -365,7 +371,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     }
 
                     const quickActionReportID = policyChatForActivePolicy?.reportID || generateReportID();
-                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
+                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, allTransactionDrafts);
                 });
             };
 
@@ -401,6 +407,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         showDelegateNoAccessModal,
         isReportArchived,
         isManualDistanceTrackingEnabled,
+        allTransactionDrafts,
     ]);
 
     const isTravelEnabled = useMemo(() => {
@@ -482,8 +489,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   Navigation.setNavigationActionToMicrotaskQueue(() => {
                                       Navigation.navigate(
                                           isSearchTopmostFullScreenRoute()
-                                              ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID})
-                                              : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()),
+                                              ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
+                                              : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
                                       );
                                   });
                               } else {
@@ -518,6 +525,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   // When starting to create an invoice from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                                   // for all of the routes in the creation flow.
                                   generateReportID(),
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  allTransactionDrafts,
                               );
                           }),
                   },
