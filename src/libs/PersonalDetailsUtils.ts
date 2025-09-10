@@ -50,18 +50,6 @@ Onyx.connect({
     },
 });
 
-let defaultCountry = '';
-
-Onyx.connect({
-    key: ONYXKEYS.COUNTRY,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        defaultCountry = value;
-    },
-});
-
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
 function getDisplayNameOrDefault(
@@ -390,17 +378,6 @@ function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstN
     return {firstName: '', lastName: ''};
 }
 
-/**
- * Whether personal details is empty
- */
-function isPersonalDetailsEmpty() {
-    return !personalDetails.length;
-}
-
-function getPersonalDetailsLength() {
-    return personalDetails.length;
-}
-
 function getUserNameByEmail(email: string, nameToDisplay: 'firstName' | 'displayName') {
     const userDetails = getPersonalDetailByEmail(email);
     if (userDetails) {
@@ -425,10 +402,6 @@ const getShortMentionIfFound = (displayText: string, userAccountID: string, curr
     return displayText.split('@').at(0);
 };
 
-function getDefaultCountry() {
-    return defaultCountry;
-}
-
 /**
  * Gets the phone number to display for SMS logins
  */
@@ -446,7 +419,6 @@ const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined
 };
 
 export {
-    isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
     getPersonalDetailByEmail,
@@ -461,10 +433,8 @@ export {
     createDisplayName,
     extractFirstAndLastNameFromAvailableDetails,
     getNewAccountIDsAndLogins,
-    getPersonalDetailsLength,
     getUserNameByEmail,
     getShortMentionIfFound,
-    getDefaultCountry,
     getLoginByAccountID,
     getPhoneNumber,
 };

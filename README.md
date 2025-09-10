@@ -26,7 +26,7 @@
 #### Additional Reading
 * [Application Philosophy](contributingGuides/philosophies/INDEX.md)
 * [API Details](contributingGuides/API.md)
-* [Offline First](contributingGuides/OFFLINE_UX.md)
+* [Offline First](contributingGuides/philosophies/OFFLINE.md)
 * [Contributing to Expensify](contributingGuides/CONTRIBUTING.md)
 * [Expensify Code of Conduct](CODE_OF_CONDUCT.md)
 * [Contributor License Agreement](CLA.md)
@@ -181,6 +181,8 @@ variables referenced here get updated since your local `.env` file is ignored.
    see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
 - `E2E_TESTING` (optional) - This needs to be set to `true` when running the e2e tests for performance regression testing.
    This happens usually automatically, read [this](tests/e2e/README.md) for more information
+
+> If your changes to .env aren't having an effect, try `rm -rf .rock`, then re-run `npm run ios` or `npm run android`
 
 ----
 
@@ -441,15 +443,7 @@ Files should be named after the component/function/constants they export, respec
 - All React components should be PascalCase (a.k.a. UpperCamelCase 🐫).
 
 ## Platform-Specific File Extensions
-In most cases, the code written for this repo should be platform-independent. In such cases, each module should have a single file, `index.js`, which defines the module's exports. There are, however, some cases in which a feature is intrinsically tied to the underlying platform. In such cases, the following file extensions can be used to export platform-specific code from a module:
-- Mobile => `index.native.js`
-- iOS Native App/Android Native App => `index.ios.js`/`index.android.js`
-- Web => `index.website.js`
-- Desktop => `index.desktop.js`
-
-**Note:** `index.js` should be the default and only platform-specific implementations should be done in their respective files. i.e: If you have mobile-specific implementation in `index.native.js`, then the desktop/web implementation can be contained in a shared `index.js`.
-
-`index.ios.js` and `index.android.js` are used when the app is running natively on respective platforms. These files are not used when users access the app through mobile browsers, but `index.website.js` is used instead. `index.native.js` are for both iOS and Android native apps. `index.native.js` should not be included in the same module as `index.ios.js` or `index.android.js`.
+This section has moved [here](contributingGuides/philosophies/CROSS-PLATFORM.md).
 
 ## API building
 When adding new API commands (and preferably when starting using a new one that was not yet used in this codebase) always
@@ -628,7 +622,7 @@ This application is built with the following principles.
     6. Go to 1
     ![New Expensify Data Flow Chart](/contributingGuides/data_flow.png)
 1. **Offline first**
-    - Be sure to read [OFFLINE_UX.md](contributingGuides/OFFLINE_UX.md)!
+    - Be sure to read [OFFLINE.md](contributingGuides/philosophies/OFFLINE.md)!
     - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
     - All data that is displayed, comes from persistent storage.
 1. **UI Binds to data on disk**
@@ -657,10 +651,7 @@ This application is built with the following principles.
         5. UI updates with data from the server
 
 1. **Cross Platform 99.9999%**
-    1. A feature isn't done until it works on all platforms.  Accordingly, don't even bother writing a platform-specific code block because you're just going to need to undo it.
-    1. If the reason you can't write cross-platform code is because there is a bug in ReactNative that is preventing it from working, the correct action is to fix RN and submit a PR upstream -- not to hack around RN bugs with platform-specific code paths.
-    1. If there is a feature that simply doesn't exist on all platforms and thus doesn't exist in RN, rather than doing if (platform=iOS) { }, instead write a "shim" library that is implemented with NOOPs on the other platforms.  For example, rather than injecting platform-specific multi-tab code (which can only work on browsers, because it's the only platform with multiple tabs), write a TabManager class that just is NOOP for non-browser platforms.  This encapsulates the platform-specific code into a platform library, rather than sprinkling through the business logic.
-    1. Put all platform specific code in dedicated files and folders, like /platform, and reject any PR that attempts to put platform-specific code anywhere else.  This maintains a strict separation between business logic and platform code.
+See details [here](contributingGuides/philosophies/CROSS-PLATFORM.md).
 
 ----
 

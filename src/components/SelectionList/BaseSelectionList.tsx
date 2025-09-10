@@ -1,8 +1,7 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {
     LayoutChangeEvent,
     NativeSyntheticEvent,
@@ -19,7 +18,6 @@ import FixedFooter from '@components/FixedFooter';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import {PressableWithFeedback} from '@components/Pressable';
 import SectionList from '@components/SectionList';
-import ShowMoreButton from '@components/ShowMoreButton';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useActiveElementRole from '@hooks/useActiveElementRole';
@@ -42,117 +40,116 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import BaseSelectionListItemRenderer from './BaseSelectionListItemRenderer';
 import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
-import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle, SelectionListProps} from './types';
+import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListProps} from './types';
 
 const getDefaultItemHeight = () => variables.optionRowHeight;
 
-function BaseSelectionList<TItem extends ListItem>(
-    {
-        sections,
-        ListItem,
-        shouldUseUserSkeletonView,
-        canSelectMultiple = false,
-        onSelectRow,
-        shouldSingleExecuteRowSelect = false,
-        onCheckboxPress,
-        onSelectAll,
-        onDismissError,
-        getItemHeight = getDefaultItemHeight,
-        textInputLabel = '',
-        textInputPlaceholder = '',
-        textInputValue = '',
-        textInputStyle,
-        textInputHint,
-        textInputMaxLength,
-        inputMode = CONST.INPUT_MODE.TEXT,
-        onChangeText,
-        initiallyFocusedOptionKey = '',
-        onScroll,
-        onScrollBeginDrag,
-        headerMessage = '',
-        confirmButtonText = '',
-        onConfirm,
-        headerContent,
-        footerContent,
-        listFooterContent,
-        footerContentAbovePagination,
-        listEmptyContent,
-        showScrollIndicator = true,
-        showLoadingPlaceholder = false,
-        LoadingPlaceholderComponent = OptionsListSkeletonView,
-        showConfirmButton = false,
-        isConfirmButtonDisabled = false,
-        shouldUseDefaultTheme = false,
-        shouldPreventDefaultFocusOnSelectRow = false,
-        containerStyle,
-        sectionListStyle,
-        disableKeyboardShortcuts = false,
-        children,
-        autoCorrect,
-        shouldStopPropagation = false,
-        shouldPreventDefault = true,
-        shouldShowTooltips = true,
-        shouldUseDynamicMaxToRenderPerBatch = false,
-        rightHandSideComponent,
-        isLoadingNewOptions = false,
-        onLayout,
-        customListHeader,
-        customListHeaderHeight = 0,
-        listHeaderWrapperStyle,
-        isRowMultilineSupported = false,
-        isAlternateTextMultilineSupported = false,
-        alternateTextNumberOfLines = 2,
-        textInputRef,
-        headerMessageStyle,
-        confirmButtonStyles,
-        shouldHideListOnInitialRender = true,
-        textInputIconLeft,
-        sectionTitleStyles,
-        textInputAutoFocus = true,
-        shouldShowTextInputAfterHeader = false,
-        shouldShowHeaderMessageAfterHeader = false,
-        includeSafeAreaPaddingBottom = true,
-        shouldTextInputInterceptSwipe = false,
-        listHeaderContent,
-        onEndReached = () => {},
-        onEndReachedThreshold,
-        windowSize = 5,
-        updateCellsBatchingPeriod = 50,
-        removeClippedSubviews = true,
-        shouldDelayFocus = true,
-        onArrowFocus = () => {},
-        shouldUpdateFocusedIndex = false,
-        onLongPressRow,
-        shouldShowTextInput = !!textInputLabel || !!textInputIconLeft,
-        shouldShowListEmptyContent = true,
-        listItemWrapperStyle,
-        shouldIgnoreFocus = false,
-        scrollEventThrottle,
-        contentContainerStyle,
-        shouldKeepFocusedItemAtTopOfViewableArea = false,
-        shouldDebounceScrolling = false,
-        shouldPreventActiveCellVirtualization = false,
-        shouldScrollToFocusedIndex = true,
-        isSmallScreenWidth,
-        onContentSizeChange,
-        listItemTitleStyles,
-        initialNumToRender = 12,
-        listItemTitleContainerStyles,
-        isScreenFocused = false,
-        shouldSubscribeToArrowKeyEvents = true,
-        shouldClearInputOnSelect = true,
-        addBottomSafeAreaPadding,
-        addOfflineIndicatorBottomSafeAreaPadding,
-        fixedNumItemsForLoader,
-        loaderSpeed,
-        errorText,
-        shouldUseDefaultRightHandSideCheckmark,
-        selectedItems = [],
-        isSelected,
-        canShowProductTrainingTooltip,
-    }: SelectionListProps<TItem>,
-    ref: ForwardedRef<SelectionListHandle>,
-) {
+function BaseSelectionList<TItem extends ListItem>({
+    sections,
+    ListItem,
+    shouldUseUserSkeletonView,
+    canSelectMultiple = false,
+    onSelectRow,
+    shouldSingleExecuteRowSelect = false,
+    onCheckboxPress,
+    onSelectAll,
+    onDismissError,
+    getItemHeight = getDefaultItemHeight,
+    textInputLabel = '',
+    textInputPlaceholder = '',
+    textInputValue = '',
+    textInputStyle,
+    textInputHint,
+    textInputMaxLength,
+    inputMode = CONST.INPUT_MODE.TEXT,
+    onChangeText,
+    initiallyFocusedOptionKey = '',
+    onScroll,
+    onScrollBeginDrag,
+    headerMessage = '',
+    confirmButtonText = '',
+    onConfirm,
+    headerContent,
+    footerContent,
+    listFooterContent,
+    footerContentAbovePagination,
+    listEmptyContent,
+    showScrollIndicator = true,
+    showLoadingPlaceholder = false,
+    LoadingPlaceholderComponent = OptionsListSkeletonView,
+    showConfirmButton = false,
+    isConfirmButtonDisabled = false,
+    shouldUseDefaultTheme = false,
+    shouldPreventDefaultFocusOnSelectRow = false,
+    containerStyle,
+    sectionListStyle,
+    disableKeyboardShortcuts = false,
+    children,
+    autoCorrect,
+    shouldStopPropagation = false,
+    shouldPreventDefault = true,
+    shouldShowTooltips = true,
+    shouldUseDynamicMaxToRenderPerBatch = false,
+    rightHandSideComponent,
+    isLoadingNewOptions = false,
+    onLayout,
+    customListHeader,
+    customListHeaderHeight = 0,
+    listHeaderWrapperStyle,
+    isRowMultilineSupported = false,
+    isAlternateTextMultilineSupported = false,
+    alternateTextNumberOfLines = 2,
+    textInputRef,
+    headerMessageStyle,
+    confirmButtonStyles,
+    shouldHideListOnInitialRender = true,
+    textInputIconLeft,
+    sectionTitleStyles,
+    textInputAutoFocus = true,
+    shouldShowTextInputAfterHeader = false,
+    shouldShowHeaderMessageAfterHeader = false,
+    includeSafeAreaPaddingBottom = true,
+    shouldTextInputInterceptSwipe = false,
+    listHeaderContent,
+    onEndReached,
+    onEndReachedThreshold,
+    windowSize = 5,
+    updateCellsBatchingPeriod = 50,
+    removeClippedSubviews = true,
+    shouldDelayFocus = true,
+    onArrowFocus = () => {},
+    shouldUpdateFocusedIndex = false,
+    onLongPressRow,
+    shouldShowTextInput = !!textInputLabel || !!textInputIconLeft,
+    shouldShowListEmptyContent = true,
+    listItemWrapperStyle,
+    shouldIgnoreFocus = false,
+    scrollEventThrottle,
+    contentContainerStyle,
+    shouldKeepFocusedItemAtTopOfViewableArea = false,
+    shouldDebounceScrolling = false,
+    shouldPreventActiveCellVirtualization = false,
+    shouldScrollToFocusedIndex = true,
+    isSmallScreenWidth,
+    onContentSizeChange,
+    listItemTitleStyles,
+    initialNumToRender = 12,
+    listItemTitleContainerStyles,
+    isScreenFocused = false,
+    shouldSubscribeToArrowKeyEvents = true,
+    shouldClearInputOnSelect = true,
+    addBottomSafeAreaPadding,
+    addOfflineIndicatorBottomSafeAreaPadding,
+    fixedNumItemsForLoader,
+    loaderSpeed,
+    errorText,
+    shouldUseDefaultRightHandSideCheckmark,
+    selectedItems = [],
+    isSelected,
+    canShowProductTrainingTooltip,
+    renderScrollComponent,
+    ref,
+}: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const listRef = useRef<RNSectionList<TItem, SectionWithIndexOffset<TItem>>>(null);
@@ -209,8 +206,6 @@ function BaseSelectionList<TItem extends ListItem>(
             [itemKey]: height,
         }));
     };
-
-    const incrementPage = () => setCurrentPage((prev) => prev + 1);
 
     const canShowProductTrainingTooltipMemo = useMemo(() => {
         return canShowProductTrainingTooltip && isFocused;
@@ -298,9 +293,16 @@ function BaseSelectionList<TItem extends ListItem>(
         };
     }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, itemHeights, getItemHeight]);
 
-    const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
+    const incrementPage = useCallback(() => {
+        if (flattenedSections.allOptions.length <= CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
+            return;
+        }
+        setCurrentPage((prev) => prev + 1);
+    }, [flattenedSections.allOptions.length, currentPage]);
+
+    const slicedSections = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
-        const processedSections = getSectionsWithIndexOffset(
+        return getSectionsWithIndexOffset(
             sections.map((section) => {
                 const data = !isEmpty(section.data) && remainingOptionsLimit > 0 ? section.data.slice(0, remainingOptionsLimit) : [];
                 remainingOptionsLimit -= data.length;
@@ -311,20 +313,6 @@ function BaseSelectionList<TItem extends ListItem>(
                 };
             }),
         );
-
-        const shouldShowMoreButton = flattenedSections.allOptions.length > CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
-        const showMoreButton = shouldShowMoreButton ? (
-            <ShowMoreButton
-                containerStyle={[styles.mt2, styles.mb5]}
-                currentCount={CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage}
-                totalCount={flattenedSections.allOptions.length}
-                onPress={incrementPage}
-            />
-        ) : null;
-        return [processedSections, showMoreButton];
-        // we don't need to add styles here as they change
-        // we don't need to add flattenedSections here as they will change along with sections
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [sections, currentPage]);
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
@@ -377,6 +365,27 @@ function BaseSelectionList<TItem extends ListItem>(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [flattenedSections.allOptions, currentPage],
     );
+
+    // this function is used specifically for scrolling to the focused input to prevent it from appearing below opened keyboard
+    // and ensures the entire list item element is visible, not just the input field inside it
+    const scrollToFocusedInput = useCallback((index: number) => {
+        if (!listRef.current) {
+            return;
+        }
+
+        if (index < 0) {
+            return;
+        }
+
+        // Perform scroll to specific position in SectionList to show entire item
+        listRef.current.scrollToLocation({
+            sectionIndex: 0, // Scroll to first section (index 0) as this function is designed for specific SplitExpenseItem.tsx list
+            itemIndex: index + 2, // Scroll to item at index + 2 (because first two items is reserved for optional header and content above the selectionList)
+            animated: true,
+            viewOffset: 4, // scrollToLocation scrolls 4 pixels more than the specified list item, so we need to subtract this using viewOffset
+            viewPosition: 1.0, // Item position: 1.0 = bottom of screen
+        });
+    }, []);
 
     const [disabledArrowKeyIndexes, setDisabledArrowKeyIndexes] = useState(flattenedSections.disabledArrowKeyOptionsIndexes);
     useEffect(() => {
@@ -475,7 +484,7 @@ function BaseSelectionList<TItem extends ListItem>(
             // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
             if (canSelectMultiple) {
                 if (sections.length > 1 && !isItemSelected(item)) {
-                    // If we're selecting an item, scroll to it's position at the top, so we can see it
+                    // If we're selecting an item, scroll to its position at the top, so we can see it
                     scrollToIndex(0, true);
                 }
 
@@ -917,8 +926,17 @@ function BaseSelectionList<TItem extends ListItem>(
 
     useImperativeHandle(
         ref,
-        () => ({scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput}),
-        [scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput],
+        () => ({
+            scrollAndHighlightItem,
+            clearInputAfterSelect,
+            updateAndScrollToFocusedIndex,
+            updateExternalTextInputFocus,
+            scrollToIndex,
+            getFocusedOption,
+            focusTextInput,
+            scrollToFocusedInput,
+        }),
+        [scrollAndHighlightItem, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, scrollToIndex, getFocusedOption, focusTextInput, scrollToFocusedInput],
     );
 
     /** Selects row when pressing Enter */
@@ -978,6 +996,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 <>
                     {!listHeaderContent && header()}
                     <SectionList
+                        renderScrollComponent={renderScrollComponent}
                         removeClippedSubviews={removeClippedSubviews}
                         ref={listRef}
                         sections={slicedSections}
@@ -1022,10 +1041,10 @@ function BaseSelectionList<TItem extends ListItem>(
                         ListFooterComponent={
                             <>
                                 {footerContentAbovePagination}
-                                {listFooterContent ?? ShowMoreButtonInstance}
+                                {listFooterContent}
                             </>
                         }
-                        onEndReached={onEndReached}
+                        onEndReached={onEndReached ?? incrementPage}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}
                         addBottomSafeAreaPadding={!shouldHideContentBottomSafeAreaPadding && addBottomSafeAreaPadding}
@@ -1069,4 +1088,4 @@ function BaseSelectionList<TItem extends ListItem>(
 
 BaseSelectionList.displayName = 'BaseSelectionList';
 
-export default forwardRef(BaseSelectionList);
+export default BaseSelectionList;

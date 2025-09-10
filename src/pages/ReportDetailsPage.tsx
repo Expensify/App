@@ -7,7 +7,6 @@ import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
-import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -22,7 +21,6 @@ import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
-import TextWithCopy from '@components/TextWithCopy';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -167,7 +165,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.isDebugModeEnabled, canBeMissing: false});
+    const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
@@ -200,18 +198,18 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isArchivedRoom = useMemo(() => isArchivedNonExpenseReport(report, isReportArchived), [report, isReportArchived]);
     const shouldDisableRename = useMemo(() => shouldDisableRenameUtil(report, isReportArchived), [report, isReportArchived]);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => {
-        const subtitle = getChatRoomSubtitle(report);
+        const subtitle = getChatRoomSubtitle(report, false, isReportArchived);
 
         if (subtitle) {
             return subtitle;
         }
 
         return '';
-    }, [report]);
+    }, [isReportArchived, report]);
 
     const isSystemChat = useMemo(() => isSystemChatUtil(report), [report]);
     const isGroupChat = useMemo(() => isGroupChatUtil(report), [report]);
@@ -282,6 +280,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -315,7 +314,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
 
-    const reportName = Parser.htmlToText(getReportName(report));
+    const reportName = Parser.htmlToText(getReportName(report, undefined, undefined, undefined, undefined, reportAttributes));
 
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
@@ -603,7 +602,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 errors={report.errorFields?.avatar ?? null}
                 errorRowStyles={styles.mt6}
                 onErrorClose={() => clearAvatarErrors(report.reportID)}
-                shouldUseStyleUtilityForAnchorPosition
                 style={[styles.w100, styles.mb3]}
             />
         );
@@ -768,7 +766,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
-            deleteTask(report);
+            deleteTask(report, isReportArchived);
             return;
         }
 
@@ -794,6 +792,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         removeTransaction,
         report,
         requestParentReportAction,
+        isReportArchived,
     ]);
 
     // A flag to indicate whether the user chose to delete the transaction or not
@@ -805,7 +804,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             if (!isTransactionDeleted.current) {
                 return;
             }
-
+            isTransactionDeleted.current = false;
             deleteTransaction();
         };
     }, [deleteTransaction]);
@@ -875,6 +874,27 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         </OfflineWithFeedback>
                     )}
 
+                    {isFinancialReportsForBusinesses && (
+                        <>
+                            <MenuItemWithTopDescription
+                                title={base62ReportID}
+                                description={translate('common.reportID')}
+                                copyValue={base62ReportID}
+                                interactive={false}
+                                shouldBlockSelection
+                                copyable
+                            />
+                            <MenuItemWithTopDescription
+                                title={report.reportID}
+                                description={translate('common.longID')}
+                                copyValue={report.reportID}
+                                interactive={false}
+                                shouldBlockSelection
+                                copyable
+                            />
+                        </>
+                    )}
+
                     <PromotedActionsBar
                         containerStyle={styles.mt5}
                         promotedActions={promotedActions}
@@ -900,25 +920,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             title={caseID === CASES.DEFAULT ? translate('common.delete') : translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction})}
                             onPress={() => setIsDeleteModalVisible(true)}
                         />
-                    )}
-
-                    {isFinancialReportsForBusinesses && (
-                        <FixedFooter style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, styles.pt5]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                                <TextWithCopy
-                                    copyValue={base62ReportID}
-                                    style={styles.textMicroSupporting}
-                                >
-                                    {`${translate('common.reportID')}: ${base62ReportID}`}
-                                </TextWithCopy>
-                                <TextWithCopy
-                                    copyValue={report.reportID}
-                                    style={styles.textMicroSupporting}
-                                >
-                                    {`${translate('common.longID')}: ${report.reportID}`}
-                                </TextWithCopy>
-                            </View>
-                        </FixedFooter>
                     )}
                 </ScrollView>
                 <ConfirmModal
