@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -10,6 +10,7 @@ import DropZoneUI from '@components/DropZone/DropZoneUI';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
@@ -90,6 +91,7 @@ function SearchPage({route}: SearchPageProps) {
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
+    const {saveScrollOffset} = useContext(ScrollOffsetContext);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
@@ -468,11 +470,11 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         setIsDeleteExpensesConfirmModalVisible(false);
-        deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
 
         // Translations copy for delete modal depends on amount of selected items,
         // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
         InteractionManager.runAfterInteractions(() => {
+            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
             clearSelectedTransactions();
         });
     };
@@ -602,6 +604,16 @@ function SearchPage({route}: SearchPageProps) {
         }
     }, []);
 
+    const footerData = useMemo(() => {
+        const shouldUseClientTotal = selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected;
+
+        const currency = metadata?.currency;
+        const count = shouldUseClientTotal ? selectedTransactionsKeys.length : metadata?.count;
+        const total = shouldUseClientTotal ? Object.values(selectedTransactions).reduce((acc, transaction) => acc - (transaction.convertedAmount ?? 0), 0) : metadata?.total;
+
+        return {count, total, currency};
+    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);
+
     if (shouldUseNarrowLayout) {
         return (
             <>
@@ -609,9 +621,11 @@ function SearchPage({route}: SearchPageProps) {
                     {PDFValidationComponent}
                     <SearchPageNarrow
                         queryJSON={queryJSON}
+                        metadata={metadata}
                         headerButtonsOptions={headerButtonsOptions}
                         searchResults={searchResults}
                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                        footerData={footerData}
                     />
                     <DragAndDropConsumer onDrop={initScanRequest}>
                         <DropZoneUI
@@ -713,8 +727,21 @@ function SearchPage({route}: SearchPageProps) {
                                     searchResults={searchResults}
                                     handleSearch={handleSearchAction}
                                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                    onSearchListScroll={(e) => {
+                                        if (!e.nativeEvent.contentOffset.y) {
+                                            return;
+                                        }
+
+                                        saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+                                    }}
                                 />
-                                {shouldShowFooter && <SearchPageFooter metadata={metadata} />}
+                                {shouldShowFooter && (
+                                    <SearchPageFooter
+                                        count={footerData.count}
+                                        total={footerData.total}
+                                        currency={footerData.currency}
+                                    />
+                                )}
                                 <DragAndDropConsumer onDrop={initScanRequest}>
                                     <DropZoneUI
                                         icon={Expensicons.SmartScan}
