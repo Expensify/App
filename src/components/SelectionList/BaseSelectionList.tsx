@@ -305,6 +305,7 @@ function BaseSelectionList<TItem extends ListItem>({
             itemLayouts,
             allSelected: selectedOptions.length > 0 && selectedOptions.length === totalSelectable,
             someSelected: selectedOptions.length > 0 && selectedOptions.length < totalSelectable,
+            ListItem,
         };
     }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, itemHeights, getItemHeight]);
 

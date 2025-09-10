@@ -233,7 +233,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
             styles.alignItemsCenter,
             styles.flexBasis100,
             styles.flexRow,
-            styles.flexRowReverse,
             styles.ml0,
             styles.onboardingAccountingItem,
             styles.textStrong,

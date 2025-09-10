@@ -54,9 +54,6 @@ function InviteMemberListItem<TItem extends ListItem>({
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
-    const shouldShowCheckBox = canSelectMultiple && !item.isDisabled;
-    const shouldShowRadio = !canSelectMultiple && !item.isDisabled;
-
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
             onCheckboxPress(item);
@@ -93,7 +90,6 @@ function InviteMemberListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            shouldDisplayRBR={!shouldShowCheckBox}
             testID={item.text}
             shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
             accessibilityState={accessibilityState}
