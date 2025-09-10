@@ -5,7 +5,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadSimpleIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -83,7 +83,7 @@ function WorkspaceTaxesPage({
 
     const enabledRatesCount = selectedTaxesIDs.filter((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled).length;
     const disabledRatesCount = selectedTaxesIDs.length - enabledRatesCount;
-    const {asset: CoinsIcon} = useMemoizedLazyAsset(() => loadSimpleIllustration('Coins'));
+    const {asset: CoinsIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Coins'));
 
     const fetchTaxes = useCallback(() => {
         openPolicyTaxesPage(policyID);

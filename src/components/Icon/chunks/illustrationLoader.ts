@@ -1,200 +1,84 @@
-// Illustration Loader - Utility for dynamically loading illustrations with category-based code splitting
 import type IconAsset from '@src/types/utils/IconAsset';
+import {isCoreIcon} from '@components/Icon/CORE_ICONS';
+import {getCoreIcon} from '@libs/IconPreloader';
+import {getIconChunk} from './smartChunks';
 
-// Define category-specific types (single source of truth)
-type ProductIllustrationNames =
-    | 'BankArrowPink'
-    | 'BankMouseGreen'
-    | 'BankUserGreen'
-    | 'BrokenMagnifyingGlass'
-    | 'ConciergeBlue'
-    | 'ConciergeExclamation'
-    | 'CreditCardsBlue'
-    | 'EmptyStateExpenses'
-    | 'InvoiceOrange'
-    | 'JewelBoxBlue'
-    | 'JewelBoxGreen'
-    | 'JewelBoxPink'
-    | 'JewelBoxYellow'
-    | 'PaymentHands'
-    | 'MoneyEnvelopeBlue'
-    | 'MoneyMousePink'
-    | 'MushroomTopHat'
-    | 'ReceiptsSearchYellow'
-    | 'ReceiptYellow'
-    | 'RocketBlue'
-    | 'RocketOrange'
-    | 'SafeBlue'
-    | 'TadaYellow'
-    | 'TadaBlue'
-    | 'ToddBehindCloud'
-    | 'ToddWithPhones'
-    | 'GpsTrackOrange'
-    | 'HoldExpense'
-    | 'ThreeLeggedLaptopWoman'
-    | 'Hands'
-    | 'SmartScan'
-    | 'TeleScope'
-    | 'FolderWithPapers'
-    | 'EmptyStateTravel'
-    | 'Abracadabra'
-    | 'MagicCode'
-    | 'CardReplacementSuccess'
-    | 'ReceiptsStackedOnPin'
-    | 'ReceiptFairy'
-    | 'RocketDude';
+let expensiconsCache: Record<string, IconAsset> | null = null;
 
-type SimpleIllustrationNames =
-    | 'BigRocket'
-    | 'ChatBubbles'
-    | 'CoffeeMug'
-    | 'EmailAddress'
-    | 'EnvelopeReceipt'
-    | 'FolderOpen'
-    | 'HandCard'
-    | 'HotDogStand'
-    | 'Mailbox'
-    | 'ReceiptWrangler'
-    | 'SanFrancisco'
-    | 'SmallRocket'
-    | 'ShieldYellow'
-    | 'MoneyReceipts'
-    | 'PinkBill'
-    | 'CreditCardsNew'
-    | 'CreditCardsNewGreen'
-    | 'InvoiceBlue'
-    | 'LockOpen'
-    | 'Luggage'
-    | 'MoneyIntoWallet'
-    | 'MoneyWings'
-    | 'OpenSafe'
-    | 'TrackShoe'
-    | 'BankArrow'
-    | 'ConciergeBubble'
-    | 'ConciergeNew'
-    | 'MoneyBadge'
-    | 'TreasureChest'
-    | 'ThumbsUpStars'
-    | 'Hourglass'
-    | 'CommentBubbles'
-    | 'CommentBubblesBlue'
-    | 'TrashCan'
-    | 'Profile'
-    | 'Puzzle'
-    | 'PalmTree'
-    | 'LockClosed'
-    | 'Gears'
-    | 'QRCode'
-    | 'RealtimeReport'
-    | 'ReceiptEnvelope'
-    | 'Approval'
-    | 'WalletAlt'
-    | 'Workflows'
-    | 'House'
-    | 'Building'
-    | 'Buildings'
-    | 'Alert'
-    | 'TeachersUnite'
-    | 'Abacus'
-    | 'Binoculars'
-    | 'CompanyCard'
-    | 'ReceiptUpload'
-    | 'SplitBill'
-    | 'Pillow'
-    | 'Accounting'
-    | 'Car'
-    | 'Coins'
-    | 'Pencil'
-    | 'Tag'
-    | 'CarIce'
-    | 'ReceiptLocationMarker'
-    | 'Lightbulb'
-    | 'Stopwatch'
-    | 'SubscriptionAnnual'
-    | 'SubscriptionPPU'
-    | 'SendMoney'
-    | 'CheckmarkCircle'
-    | 'CreditCardEyes'
-    | 'LockClosedOrange'
-    | 'EmptyState'
-    | 'VirtualCard'
-    | 'Tire'
-    | 'BigVault'
-    | 'Filters'
-    | 'MagnifyingGlassMoney'
-    | 'Rules'
-    | 'RunningTurtle'
-    | 'HandEarth'
-    | 'HeadSet'
-    | 'PaperAirplane'
-    | 'ReportReceipt'
-    | 'PerDiem'
-    | 'ReceiptPartners';
-
-type CompanyCardIllustrationNames =
-    | 'PendingBank'
-    | 'CompanyCardsEmptyState'
-    | 'AmexCompanyCards'
-    | 'MasterCardCompanyCards'
-    | 'VisaCompanyCards'
-    | 'CompanyCardsPendingState'
-    | 'VisaCompanyCardDetail'
-    | 'MasterCardCompanyCardDetail'
-    | 'AmexCardCompanyCardDetail'
-    | 'TurtleInShell'
-    | 'BankOfAmericaCompanyCardDetail'
-    | 'BrexCompanyCardDetail'
-    | 'CapitalOneCompanyCardDetail'
-    | 'ChaseCompanyCardDetail'
-    | 'CitibankCompanyCardDetail'
-    | 'StripeCompanyCardDetail'
-    | 'WellsFargoCompanyCardDetail'
-    | 'AmexCardCompanyCardDetailLarge'
-    | 'BankOfAmericaCompanyCardDetailLarge'
-    | 'BrexCompanyCardDetailLarge'
-    | 'CapitalOneCompanyCardDetailLarge'
-    | 'ChaseCompanyCardDetailLarge'
-    | 'CitibankCompanyCardDetailLarge'
-    | 'MasterCardCompanyCardDetailLarge'
-    | 'StripeCompanyCardDetailLarge'
-    | 'VisaCompanyCardDetailLarge'
-    | 'WellsFargoCompanyCardDetailLarge'
-    | 'PlaidCompanyCardDetail'
-    | 'PlaidCompanyCardDetailLarge';
-
-type OtherAssetNames =
-    | 'EmptyCardState'
-    | 'LaptopWithSecondScreenAndHourglass'
-    | 'ExpensifyCardIllustration'
-    | 'ExpensifyApprovedLogo'
-    | 'ExpensifyApprovedLogoLight'
-    | 'Flash'
-    | 'ExpensifyMobileApp'
-    | 'EmptyShelves'
-    | 'Encryption';
-
-// Combined type for all illustrations (if needed elsewhere)
-type AllIllustrationNames = ProductIllustrationNames | SimpleIllustrationNames | CompanyCardIllustrationNames | OtherAssetNames;
-
-// Clean loader functions - no duplication!
-const loadProductIllustration = (name: ProductIllustrationNames) => {
-    return import(/* webpackChunkName: "product-illustrations" */ './product-illustrations.chunk').then((m) => ({default: m[name] as IconAsset}));
+/**
+ * Set the Expensicons cache (called by IconPreloader)
+ */
+const setExpensiconsCache = (expensicons: Record<string, IconAsset>) => {
+    expensiconsCache = expensicons;
 };
 
-const loadSimpleIllustration = (name: SimpleIllustrationNames) => {
-    return import(/* webpackChunkName: "simple-illustrations" */ './simple-illustrations.chunk').then((m) => ({default: m[name] as IconAsset}));
+// Smart chunk loaders
+const loadInboxIcon = (name: string) => {
+    return import(/* webpackChunkName: "inbox-icons" */ './inbox.chunk').then((m) => {
+        const module = m as Record<string, IconAsset>;
+        return {default: module[name]};
+    });
 };
 
-const loadCompanyCardIllustration = (name: CompanyCardIllustrationNames) => {
-    return import(/* webpackChunkName: "company-cards" */ './company-cards.chunk').then((m) => ({default: m[name] as IconAsset}));
+const loadReportsIcon = (name: string) => {
+    return import(/* webpackChunkName: "reports-icons" */ './reports.chunk').then((m) => {
+        const module = m as Record<string, IconAsset>;
+        return {default: module[name]};
+    });
 };
 
-const loadOtherAsset = (name: OtherAssetNames) => {
-    return import(/* webpackChunkName: "other-assets" */ './other-assets.chunk').then((m) => ({default: m[name] as IconAsset}));
+const loadWorkspaceIcon = (name: string) => {
+    return import(/* webpackChunkName: "workspace-icons" */ './workspace.chunk').then((m) => {
+        const module = m as Record<string, IconAsset>;
+        return {default: module[name]};
+    });
 };
 
-// Export all functions
-export {loadProductIllustration, loadSimpleIllustration, loadCompanyCardIllustration, loadOtherAsset};
+const loadDecorativeIcon = (name: string) => {
+    return import(/* webpackChunkName: "decorative-icons" */ './decorative.chunk').then((m) => {
+        const module = m as Record<string, IconAsset>;
+        return {default: module[name]};
+    });
+};
 
-// Export the types for use in other files
-export type {ProductIllustrationNames, SimpleIllustrationNames, CompanyCardIllustrationNames, OtherAssetNames, AllIllustrationNames};
+const loadSmartIllustration = (name: string) => {
+    if (expensiconsCache?.[name]) {
+        return Promise.resolve({default: expensiconsCache[name]});
+    }
+
+    if (isCoreIcon(name)) {
+        const cachedIcon = getCoreIcon(name);
+        if (cachedIcon) {
+            return Promise.resolve({default: cachedIcon});
+        }
+    }
+
+    const chunk = getIconChunk(name);
+
+    switch (chunk) {
+        case 'inbox':
+            return loadInboxIcon(name);
+        case 'reports':
+            return loadReportsIcon(name);
+        case 'workspace':
+            return loadWorkspaceIcon(name);
+        case 'decorative':
+            return loadDecorativeIcon(name);
+        default:
+            return loadInboxIcon(name);
+    }
+};
+
+const loadProductIllustration = (name: string) => loadSmartIllustration(name);
+const loadSimpleIllustration = (name: string) => loadSmartIllustration(name);
+const loadCompanyCardIllustration = (name: string) => loadSmartIllustration(name);
+const loadOtherAsset = (name: string) => loadSmartIllustration(name);
+
+export {
+    loadSmartIllustration,
+    setExpensiconsCache,
+    loadProductIllustration,
+    loadSimpleIllustration,
+    loadCompanyCardIllustration,
+    loadOtherAsset,
+};

@@ -9,6 +9,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
 
 type WorkspaceCompanyCardsFeedAddedEmptyPageProps = {
     /** Handle assign card action */
@@ -24,6 +26,7 @@ type WorkspaceCompanyCardsFeedAddedEmptyPageProps = {
 function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isDisabledAssignCardButton, shouldShowGBDisclaimer}: WorkspaceCompanyCardsFeedAddedEmptyPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {asset: CompanyCardsEmptyStateIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('CompanyCardsEmptyState'));
 
     return (
         <ScrollView
@@ -33,7 +36,7 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isDisabledAs
             <EmptyStateComponent
                 SkeletonComponent={CardRowSkeleton}
                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                headerMedia={Illustrations.CompanyCardsEmptyState}
+                headerMedia={CompanyCardsEmptyStateIcon}
                 containerStyles={styles.mt5}
                 headerStyles={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart, {backgroundColor: colors.blue700}]}
                 headerContentStyles={styles.emptyStateCardIllustration}

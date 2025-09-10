@@ -2,7 +2,7 @@ import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {ActivityIndicator} from 'react-native';
 import DecisionModal from '@components/DecisionModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
-import {loadSimpleIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
@@ -51,7 +51,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {asset: CompanyCard} = useMemoizedLazyAsset(() => loadSimpleIllustration('CompanyCard'));
+    const {asset: CompanyCard} = useMemoizedLazyAsset(() => loadSmartIllustration('CompanyCard'));
     const policyID = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;

@@ -17,6 +17,8 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
 import {filterInactiveCards, getAllCardsForWorkspace, getCompanyFeeds, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -113,6 +115,16 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const defaultFundID = useDefaultFundID(policyID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
+    const {asset: FolderOpenIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('FolderOpen'));
+    const {asset: AccountingIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Accounting'));
+    const {asset: CompanyCardIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('CompanyCard'));
+    const {asset: WorkflowsIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Workflows'));
+    const {asset: InvoiceBlueIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('InvoiceBlue'));
+    const {asset: RulesIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Rules'));
+    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('HandCard'));
+    const {asset: TagIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Tag'));
+    const {asset: PerDiemIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('PerDiem'));
+    const {asset: CoinsIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Coins'));
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnection) {
@@ -143,7 +155,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             },
         },
         {
-            icon: Illustrations.HandCard,
+            icon: HandCardIcon,
             titleTranslationKey: 'workspace.moreFeatures.expensifyCard.title',
             subtitleTranslationKey: 'workspace.moreFeatures.expensifyCard.subtitle',
             isActive: policy?.areExpensifyCardsEnabled ?? false,
@@ -162,7 +174,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     ];
 
     spendItems.push({
-        icon: Illustrations.CompanyCard,
+        icon: CompanyCardIcon,
         titleTranslationKey: 'workspace.moreFeatures.companyCards.title',
         subtitleTranslationKey: 'workspace.moreFeatures.companyCards.subtitle',
         isActive: policy?.areCompanyCardsEnabled ?? false,
@@ -180,7 +192,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     });
 
     spendItems.push({
-        icon: Illustrations.PerDiem,
+        icon: PerDiemIcon,
         titleTranslationKey: 'workspace.moreFeatures.perDiem.title',
         subtitleTranslationKey: 'workspace.moreFeatures.perDiem.subtitle',
         isActive: policy?.arePerDiemRatesEnabled ?? false,
@@ -199,7 +211,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const manageItems: Item[] = [
         {
-            icon: Illustrations.Workflows,
+            icon: WorkflowsIcon,
             titleTranslationKey: 'workspace.moreFeatures.workflows.title',
             subtitleTranslationKey: 'workspace.moreFeatures.workflows.subtitle',
             isActive: policy?.areWorkflowsEnabled ?? false,
@@ -214,7 +226,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabledAction: onDisabledWorkflowPress,
         },
         {
-            icon: Illustrations.Rules,
+            icon: RulesIcon,
             titleTranslationKey: 'workspace.moreFeatures.rules.title',
             subtitleTranslationKey: 'workspace.moreFeatures.rules.subtitle',
             isActive: policy?.areRulesEnabled ?? false,
@@ -235,7 +247,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const earnItems: Item[] = [
         {
-            icon: Illustrations.InvoiceBlue,
+            icon: InvoiceBlueIcon,
             titleTranslationKey: 'workspace.moreFeatures.invoices.title',
             subtitleTranslationKey: 'workspace.moreFeatures.invoices.subtitle',
             isActive: policy?.areInvoicesEnabled ?? false,
@@ -251,7 +263,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const organizeItems: Item[] = [
         {
-            icon: Illustrations.FolderOpen,
+            icon: FolderOpenIcon,
             titleTranslationKey: 'workspace.moreFeatures.categories.title',
             subtitleTranslationKey: 'workspace.moreFeatures.categories.subtitle',
             isActive: policy?.areCategoriesEnabled ?? false,
@@ -266,7 +278,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             },
         },
         {
-            icon: Illustrations.Tag,
+            icon: TagIcon,
             titleTranslationKey: 'workspace.moreFeatures.tags.title',
             subtitleTranslationKey: 'workspace.moreFeatures.tags.subtitle',
             isActive: policy?.areTagsEnabled ?? false,
@@ -281,7 +293,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             },
         },
         {
-            icon: Illustrations.Coins,
+            icon: CoinsIcon,
             titleTranslationKey: 'workspace.moreFeatures.taxes.title',
             subtitleTranslationKey: 'workspace.moreFeatures.taxes.subtitle',
             isActive: (policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled,
@@ -299,7 +311,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const integrateItems: Item[] = [
         {
-            icon: Illustrations.Accounting,
+            icon: AccountingIcon,
             titleTranslationKey: 'workspace.moreFeatures.connections.title',
             subtitleTranslationKey: 'workspace.moreFeatures.connections.subtitle',
             isActive: isAccountingEnabled,

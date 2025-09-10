@@ -4,7 +4,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
-import {loadOtherAsset, loadSimpleIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import Text from '@components/Text';
 import useDismissModalForUSD from '@hooks/useDismissModalForUSD';
@@ -37,11 +37,11 @@ type WorkspaceExpensifyCardPageEmptyStateProps = {
 } & WithPolicyAndFullscreenLoadingProps;
 
 function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensifyCardPageEmptyStateProps) {
-    const {asset: MoneyReceiptsIcon} = useMemoizedLazyAsset(() => loadSimpleIllustration('MoneyReceipts'));
-    const {asset: CreditCardsNewIcon} = useMemoizedLazyAsset(() => loadSimpleIllustration('CreditCardsNew'));
-    const {asset: MoneyWingsIcon} = useMemoizedLazyAsset(() => loadSimpleIllustration('MoneyWings'));
-    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadSimpleIllustration('HandCard'));
-    const {asset: ExpensifyCardIllustrationIcon} = useMemoizedLazyAsset(() => loadOtherAsset('ExpensifyCardIllustration'));
+    const {asset: MoneyReceiptsIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('MoneyReceipts'));
+    const {asset: CreditCardsNewIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('CreditCardsNew'));
+    const {asset: MoneyWingsIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('MoneyWings'));
+    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('HandCard'));
+    const {asset: ExpensifyCardIllustrationIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('ExpensifyCardIllustration'));
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
