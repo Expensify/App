@@ -317,17 +317,17 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
             filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
             return {filterString: buildFilterValuesString(filterKey, filters), filterKey};
         })
-        .sort()
+        .sort((a, b) => customCollator.compare(a.filterString, b.filterString))
         .forEach(({filterString, filterKey}) => {
             if (!similarSearchIgnoredFilters.has(filterKey)) {
                 filterSet.add(filterKey);
             }
 
             if (similarSearchValueBasedFilters.has(filterKey)) {
-                filterSet.add(filterString);
+                filterSet.add(filterString.trim());
             }
 
-            return (orderedQuery += ` ${filterString}`);
+            orderedQuery += ` ${filterString}`;
         });
 
     const similarSearchHash = hashText(Array.from(filterSet).join(''), 2 ** 32);
