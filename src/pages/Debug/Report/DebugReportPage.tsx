@@ -60,6 +60,7 @@ function DebugReportPage({
         selector: (attributes) => attributes?.reports?.[reportID],
         canBeMissing: true,
     });
+    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
@@ -95,6 +96,7 @@ function DebugReportPage({
             hasRBR,
             isReportArchived,
             isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
+            draftComment,
         });
 
         return [

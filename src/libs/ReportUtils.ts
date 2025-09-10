@@ -8382,7 +8382,7 @@ type ShouldReportBeInOptionListParams = {
     login?: string;
     includeDomainEmail?: boolean;
     isReportArchived?: boolean;
-    draftComment: string | null;
+    draftComment: string | undefined;
 };
 
 function reasonForReportToBeInOptionList({

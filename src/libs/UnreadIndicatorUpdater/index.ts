@@ -37,7 +37,7 @@ Onyx.connect({
     },
 });
 
-function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, currentReportID: string | undefined) {
+function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, currentReportID: string | undefined, draftComment: string | undefined) {
     return Object.values(reports ?? {}).filter((report) => {
         const notificationPreference = ReportUtils.getReportNotificationPreference(report);
         const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
@@ -56,6 +56,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
                 isInFocusMode: false,
                 excludeEmptyChats: false,
                 isReportArchived,
+                draftComment,
             }) &&
             /**
              * Chats with hidden preference remain invisible in the LHN and are not considered "unread."

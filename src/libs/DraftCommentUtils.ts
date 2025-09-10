@@ -2,14 +2,14 @@
  * Returns true if the report has a valid draft comment.
  * A valid draft comment is a non-empty string.
  */
-function isValidDraftComment(comment?: string | null): boolean {
+function isValidDraftComment(comment?: string): boolean {
     return !!comment;
 }
 
 /**
  * Returns true if the report has a valid draft comment.
  */
-function hasValidDraftComment(reportID: string, draftComment: string | null): boolean {
+function hasValidDraftComment(reportID: string, draftComment: string | undefined): boolean {
     return isValidDraftComment(draftComment);
 }
 
