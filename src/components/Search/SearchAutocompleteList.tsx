@@ -229,7 +229,6 @@ function SearchAutocompleteList(
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
     const withdrawalTypes = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
     const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
-    const actionTypes = Object.values(CONST.SEARCH.ACTION_FILTERS);
 
     const cardAutocompleteList = useMemo(() => Object.values(allCards), [allCards]);
     const feedAutoCompleteList = useMemo(() => {
@@ -534,7 +533,6 @@ function SearchAutocompleteList(
         cardAutocompleteList,
         booleanTypes,
         workspaceList,
-        actionTypes,
     ]);
 
     const sortedRecentSearches = useMemo(() => {

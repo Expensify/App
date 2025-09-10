@@ -25,9 +25,9 @@ import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+import {getMoneyRequestSpendBreakdown, isExpenseReport} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
-import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {getAmount, getCategory, getCreated, getMerchant, getTag, getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -36,6 +36,7 @@ import {createTransactionThreadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -55,6 +56,9 @@ type MoneyRequestReportTransactionListProps = {
 
     /** Array of report actions for the report that these transactions belong to */
     reportActions: OnyxTypes.ReportAction[];
+
+    /** Violations indexed by transaction ID */
+    violations?: Record<string, OnyxTypes.TransactionViolation[]>;
 
     /** Whether the report that these transactions belong to has any chat comments */
     hasComments: boolean;
@@ -91,24 +95,30 @@ type SortedTransactions = {
 
 const isSortableColumnName = (key: unknown): key is SortableColumnName => !!sortableColumnNames.find((val) => val === key);
 
-const getTransactionValue = (transaction: OnyxTypes.Transaction, key: SortableColumnName) => {
-    if (key === CONST.SEARCH.TABLE_COLUMNS.DATE) {
-        const dateKey = transaction.modifiedCreated ? 'modifiedCreated' : 'created';
-        return transaction[dateKey];
+const getTransactionValue = (transaction: OnyxTypes.Transaction, key: SortableColumnName, reportToSort: OnyxTypes.Report) => {
+    switch (key) {
+        case CONST.SEARCH.TABLE_COLUMNS.DATE:
+            return getCreated(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
+            return getMerchant(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
+            return getCategory(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.TAG:
+            return getTag(transaction);
+        case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
+            return getAmount(transaction, isExpenseReport(reportToSort), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+        case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
+            return Parser.htmlToText(transaction.comment?.comment ?? '');
+        default:
+            return transaction[key];
     }
-
-    if (key === CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION) {
-        return Parser.htmlToText(transaction.comment?.comment ?? '');
-    }
-
-    return transaction[key];
 };
-
 function MoneyRequestReportTransactionList({
     report,
     transactions,
     newTransactions,
     reportActions,
+    violations,
     hasComments,
     isLoadingInitialReportActions: isLoadingReportActions,
     scrollToNewTransaction,
@@ -172,12 +182,12 @@ function MoneyRequestReportTransactionList({
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions]
-            .sort((a, b) => compareValues(getTransactionValue(a, sortBy), getTransactionValue(b, sortBy), sortOrder, sortBy, localeCompare))
+            .sort((a, b) => compareValues(getTransactionValue(a, sortBy, report), getTransactionValue(b, sortBy, report), sortOrder, sortBy, localeCompare, true))
             .map((transaction) => ({
                 ...transaction,
                 shouldBeHighlighted: newTransactions?.includes(transaction),
             }));
-    }, [newTransactions, sortBy, sortOrder, transactions, localeCompare]);
+    }, [newTransactions, sortBy, sortOrder, transactions, localeCompare, report]);
 
     const columnsToShow = useMemo(() => {
         const columns = getColumnsToShow(session?.accountID, transactions, true);
@@ -320,6 +330,7 @@ function MoneyRequestReportTransactionList({
                         <MoneyRequestReportTransactionItem
                             key={transaction.transactionID}
                             transaction={transaction}
+                            violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
                             columns={columnsToShow}
                             report={report}
                             isSelectionModeEnabled={isMobileSelectionModeEnabled}
