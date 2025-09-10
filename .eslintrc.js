@@ -259,6 +259,11 @@ module.exports = {
                 selector: 'TSEnumDeclaration',
                 message: "Please don't declare enums, use union types instead.",
             },
+            {
+                selector: 'CallExpression[callee.name="getUrlWithBackToParam"]',
+                message:
+                    'Usage of getUrlWithBackToParam function is prohibited. This is legacy code and no new occurrences should be added. Please look into documentation and use alternative routing methods instead.',
+            },
 
             // These are the original rules from AirBnB's style guide, modified to allow for...of loops and for...in loops
             {
