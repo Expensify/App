@@ -3547,6 +3547,52 @@ describe('ReportUtils', () => {
                 });
             });
         });
+
+        describe('bypass approvers scenario', () => {
+            it('should return array containing only the current user when they are the manager (bypassed approvers)', () => {
+                const policyTest: Policy = {
+                    ...createRandomPolicy(0),
+                    approver: 'owner@test.com',
+                    owner: 'owner@test.com',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    employeeList,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0),
+                    ownerAccountID: employeeAccountID,
+                    managerID: currentUserAccountID, // Current user is the manager (bypassed approvers)
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                
+                Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
+                    const result = [currentUserEmail];
+                    expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
+                });
+            });
+
+            it('should return normal approval chain when current user is not the manager', () => {
+                const policyTest: Policy = {
+                    ...createRandomPolicy(0),
+                    approver: 'owner@test.com',
+                    owner: 'owner@test.com',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    employeeList,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0),
+                    ownerAccountID: employeeAccountID,
+                    managerID: 1, // Different user is the manager (normal flow)
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                
+                Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
+                    const result = ['owner@test.com'];
+                    expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
+                });
+            });
+        });
     });
 
     describe('shouldReportShowSubscript', () => {
