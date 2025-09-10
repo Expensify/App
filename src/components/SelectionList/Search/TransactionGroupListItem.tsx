@@ -59,6 +59,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     accountID,
     isOffline,
     areAllOptionalColumnsHidden: areAllOptionalColumnsHiddenProp,
+    violations,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
@@ -322,6 +323,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                         key={transaction.transactionID}
                                         report={transaction.report}
                                         transactionItem={transaction}
+                                        violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
                                         isSelected={!!transaction.isSelected}
                                         dateColumnSize={dateColumnSize}
                                         amountColumnSize={amountColumnSize}

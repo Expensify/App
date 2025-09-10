@@ -4,7 +4,7 @@ import {measureFunction} from 'reassure';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
-import ModifiedExpenseMessage from '../../src/libs/ModifiedExpenseMessage';
+import {getForReportAction} from '../../src/libs/ModifiedExpenseMessage';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -41,7 +41,6 @@ const mockedReportsMap = getMockedReports(1000) as Record<`${typeof ONYXKEYS.COL
 const mockedPoliciesMap = getMockedPolicies(1000) as Record<`${typeof ONYXKEYS.COLLECTION.POLICY}`, Policy>;
 
 test('[ModifiedExpenseMessage] getForReportAction on 1k reports and policies', async () => {
-    const report = createRandomReport(1);
     const reportAction = {
         ...createRandomReportAction(1),
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
@@ -59,5 +58,5 @@ test('[ModifiedExpenseMessage] getForReportAction on 1k reports and policies', a
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}}));
+    await measureFunction(() => getForReportAction({reportAction, policyTags: {}}));
 });

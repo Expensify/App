@@ -162,6 +162,7 @@ import type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    PayAndDowngradeDescriptionParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
@@ -2241,10 +2242,6 @@ const translations = {
             description:
                 'Eine App, um Ihre geschäftlichen und persönlichen Ausgaben mit der Geschwindigkeit des Chats zu verwalten. Probieren Sie es aus und lassen Sie uns wissen, was Sie denken. Es kommt noch viel mehr!',
             secondaryDescription: 'Um zu Expensify Classic zurückzukehren, tippen Sie einfach auf Ihr Profilbild > Gehe zu Expensify Classic.',
-        },
-        welcomeVideo: {
-            title: 'Willkommen bei Expensify',
-            description: 'Eine App, um alle Ihre geschäftlichen und privaten Ausgaben in einem Chat zu verwalten. Entwickelt für Ihr Unternehmen, Ihr Team und Ihre Freunde.',
         },
         getStarted: 'Loslegen',
         whatsYourName: 'Wie heißt du?',
@@ -5620,7 +5617,7 @@ const translations = {
         payAndDowngrade: {
             title: 'Bezahlen & Herabstufen',
             headline: 'Ihre letzte Zahlung',
-            description1: 'Ihre endgültige Rechnung für dieses Abonnement wird sein',
+            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `Ihre endgültige Rechnung für dieses Abonnement beträgt <strong>${formattedAmount}</strong>`,
             description2: ({date}: DateParams) => `Siehe Ihre Aufschlüsselung unten für ${date}:`,
             subscription:
                 'Achtung! Diese Aktion beendet Ihr Expensify-Abonnement, löscht diesen Arbeitsbereich und entfernt alle Mitglieder des Arbeitsbereichs. Wenn Sie diesen Arbeitsbereich behalten und nur sich selbst entfernen möchten, lassen Sie zuerst einen anderen Administrator die Abrechnung übernehmen.',

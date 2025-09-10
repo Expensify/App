@@ -4,13 +4,13 @@ import type {ImageSourcePropType} from 'react-native';
 import {OnyxEntry} from 'react-native-onyx';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 import * as AppUpdate from '@libs/actions/AppUpdate';
-import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
+import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
 import focusApp from './focusApp';
-import type {LocalNotificationClickHandler, LocalNotificationData} from './types';
+import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpensePushParams} from './types';
 
 const notificationCache: Record<string, Notification> = {};
 
@@ -130,9 +130,14 @@ export default {
         push(title, body, icon, data, onClick);
     },
 
-    pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, policyTags: PolicyTagLists, onClick: LocalNotificationClickHandler, usesIcon = false) {
+    pushModifiedExpenseNotification({report, reportAction, movedFromReport, movedToReport, onClick, usesIcon = false, policyTags}: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
-        const body = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags});
+        const body = getForReportAction({
+            reportAction,
+            policyTags,
+            movedFromReport,
+            movedToReport,
+        });
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
         const data = {
             reportID: report.reportID,

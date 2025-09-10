@@ -1,22 +1,175 @@
 import Onyx from 'react-native-onyx';
-import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
+import {getForReportAction, getMovedFromOrToReportMessage, getMovedReportID} from '@libs/ModifiedExpenseMessage';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {translate} from '@src/libs/Localize';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists} from '@src/types/onyx/PolicyTag';
-import type {SearchReport} from '@src/types/onyx/SearchResults';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+const MOVED_TO_REPORT_ID = '1';
+const MOVED_FROM_REPORT_ID = '2';
 
 describe('ModifiedExpenseMessage', () => {
     beforeAll(() => {
         IntlStore.load(CONST.LOCALES.EN);
         return waitForBatchedUpdates();
     });
+
+    beforeEach(() => {
+        // The `getReportName` method is quite complex, and we don't need to test it here
+        jest.spyOn(ReportUtils, 'getReportName').mockImplementation((report) => report?.reportName ?? '');
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    describe('getMovedReportID', () => {
+        describe('when the report action is a modified expense action', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    movedToReportID: MOVED_TO_REPORT_ID,
+                    movedFromReport: MOVED_FROM_REPORT_ID,
+                },
+            };
+
+            it('returns the movedToReportID when type is REPORT_MOVE_TYPE.TO and movedToReportID exists in reportAction', () => {
+                const result = getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO);
+                expect(result).toEqual(MOVED_TO_REPORT_ID);
+            });
+
+            it('returns the movedFromReport when type is REPORT_MOVE_TYPE.FROM and movedFromReport exists in reportAction', () => {
+                const result = getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM);
+                expect(result).toEqual(MOVED_FROM_REPORT_ID);
+            });
+        });
+        describe('when the report action is not a modified expense action', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    movedToReportID: MOVED_TO_REPORT_ID,
+                    movedFromReport: MOVED_FROM_REPORT_ID,
+                },
+            };
+
+            it('returns undefined for REPORT_MOVE_TYPE.TO  type', () => {
+                const result = getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO);
+                expect(result).toBeUndefined();
+            });
+
+            it('returns undefined for REPORT_MOVE_TYPE.FROM type', () => {
+                const result = getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM);
+                expect(result).toBeUndefined();
+            });
+        });
+        describe('when the original message is missing movedToReportID or movedFromReport', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {},
+            };
+
+            it('returns undefined for REPORT_MOVE_TYPE.TO type when movedToReportID is missing', () => {
+                const result = getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO);
+                expect(result).toBeUndefined();
+            });
+
+            it('returns undefined for REPORT_MOVE_TYPE.FROM type when movedFromReport is missing', () => {
+                const result = getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM);
+                expect(result).toBeUndefined();
+            });
+        });
+    });
+
+    describe('getMovedFromOrToReportMessage', () => {
+        describe('when moving to a report', () => {
+            it('returns "moved expense to personal space" message when moving an expense to selfDM', () => {
+                const selfDMReport = {
+                    ...createRandomReport(1),
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                };
+                const result = getMovedFromOrToReportMessage(undefined, selfDMReport);
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToPersonalSpace');
+                expect(result).toEqual(expectedResult);
+            });
+            it('returns "moved expense from personal space to chat with reportName" message when moving an expense to policy expense chat with only reportName', () => {
+                const policyExpenseReport = {
+                    ...createRandomReport(1),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                };
+                const result = getMovedFromOrToReportMessage(undefined, policyExpenseReport);
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
+                    reportName: policyExpenseReport.reportName,
+                });
+                expect(result).toEqual(expectedResult);
+            });
+            it('returns "moved expense from personal space to policyName" message when moving an expense to policy expense chat with reportName and policyName', () => {
+                const policyExpenseReport = {
+                    ...createRandomReport(1),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    policyName: 'Policy',
+                };
+                const result = getMovedFromOrToReportMessage(undefined, policyExpenseReport);
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
+                    reportName: policyExpenseReport.reportName,
+                    workspaceName: policyExpenseReport.policyName,
+                });
+                expect(result).toEqual(expectedResult);
+            });
+            it('returns "changed the expense" message when moving an expense to policy expense chat without reportName', () => {
+                const policyExpenseReport = {
+                    ...createRandomReport(1),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    reportName: '',
+                };
+                const result = getMovedFromOrToReportMessage(undefined, policyExpenseReport);
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.changedTheExpense');
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when moving from a report', () => {
+            const movedFromReport = {
+                ...createRandomReport(1),
+            };
+
+            it('returns "moved expense from reportName" message', () => {
+                const result = getMovedFromOrToReportMessage(movedFromReport, undefined);
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', {
+                    reportName: movedFromReport.reportName ?? '',
+                });
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('returns "moved an expense" when reportName is empty', () => {
+                const reportWithoutName = {
+                    ...createRandomReport(1),
+                    reportName: '',
+                    chatType: undefined,
+                };
+                const result = getMovedFromOrToReportMessage(reportWithoutName, undefined);
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', {
+                    reportName: '',
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        it('returns undefined when neither movedToReport nor movedFromReport is provided', () => {
+            const result = getMovedFromOrToReportMessage(undefined, undefined);
+            expect(result).toBeUndefined();
+        });
+    });
+
     describe('getForAction', () => {
-        const report = createRandomReport(1);
         describe('when the amount is changed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
@@ -32,7 +185,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `changed the amount to $18.00 (previously $12.55)`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -53,7 +206,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `set the amount to $18.00`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -76,7 +229,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = 'changed the amount to $18.00 (previously $12.55)\nremoved the description (previously "this is for the shuttle")';
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -101,7 +254,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = 'changed the amount to $18.00 (previously $12.55)\nset the category to "Benefits"\nremoved the description (previously "this is for the shuttle")';
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -124,7 +277,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = 'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly")';
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -152,7 +305,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult =
                     'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly")\nset the category to "Benefits"\nremoved the description (previously "this is for the shuttle")';
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -178,7 +331,7 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult =
                     'changed the amount to $18.00 (previously $12.55), the description to "I bought it on the way" (previously "from the business trip"), and the merchant to "Taco Bell" (previously "Big Belly")';
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -197,7 +350,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `removed the merchant (previously "Big Belly")`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -216,7 +369,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `set the merchant to "KFC"`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -237,7 +390,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `removed the description (previously "mini shore") and the merchant (previously "Big Belly")`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -260,7 +413,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `removed the description (previously "mini shore"), the merchant (previously "Big Belly"), and the category (previously "Benefits")`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -279,7 +432,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `set the merchant to "Big Belly"`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -300,7 +453,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `set the description to "mini shore" and the merchant to "Big Belly"`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -323,7 +476,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = `set the description to "mini shore", the merchant to "Big Belly", and the category to "Benefits"`;
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -342,7 +495,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = 'changed the date to 2023-12-27 (previously 2023-12-26)';
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -360,7 +513,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = 'changed the expense';
 
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -382,7 +535,7 @@ describe('ModifiedExpenseMessage', () => {
 
             it('then the message says the distance is changed and shows the new and old merchant and amount', () => {
                 const expectedResult = `changed the distance to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $7.00 (previously $0.70)`;
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
                 expect(result).toEqual(expectedResult);
             });
         });
@@ -403,114 +556,27 @@ describe('ModifiedExpenseMessage', () => {
 
             it('then the message says the rate is changed and shows the new and old merchant and amount', () => {
                 const expectedResult = `changed the rate to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $55.80 (previously $39.45)`;
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
                 expect(result).toEqual(expectedResult);
             });
         });
 
         describe('when moving an expense', () => {
-            beforeEach(() => Onyx.clear());
-            it('return the message "moved expense to personal space" when moving an expense from an expense chat or 1:1 DM to selfDM', async () => {
-                // Given the selfDM report and report action
-                const selfDMReport = {
-                    ...report,
-                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
-                };
+            it('returns the movedFromOrToReportMessage message when provided', () => {
                 const reportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                    originalMessage: {
-                        movedToReportID: selfDMReport.reportID,
-                    },
                 };
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`]: selfDMReport});
-                await waitForBatchedUpdates();
 
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToPersonalSpace');
+                const expectedResult = 'moved an expense';
 
-                // When the expense is moved from an expense chat or 1:1 DM to selfDM
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: selfDMReport.reportID, reportAction, policyTags: {}});
-                // Then it should return the correct text message
-                expect(result).toEqual(expectedResult);
-            });
-
-            it('return the message "changed the expense" when reportName and workspace name are empty', async () => {
-                // Given the policyExpenseChat with reportName is empty and report action
-                const policyExpenseChat = {
-                    ...report,
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                const movedFromReport = {
+                    ...createRandomReport(1),
                     reportName: '',
-                    isOwnPolicyExpenseChat: false,
+                    chatType: undefined,
                 };
-                const reportAction = {
-                    ...createRandomReportAction(1),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                    originalMessage: {
-                        movedToReportID: policyExpenseChat.reportID,
-                    },
-                };
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat});
-                await waitForBatchedUpdates();
 
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.changedTheExpense');
-
-                // When the expense is moved to an expense chat with reportName empty
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: policyExpenseChat.reportID, reportAction, policyTags: {}});
-                // Then it should return the correct text message
-                expect(result).toEqual(expectedResult);
-            });
-
-            it('return the message "moved expense from personal space to policyName" when both reportName and policyName are present', async () => {
-                // Given the policyExpenseChat with both reportName and policyName are present and report action
-                const policyExpenseChat = {
-                    ...report,
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                    isOwnPolicyExpenseChat: false,
-                    policyName: 'fake policyName',
-                };
-                const reportAction = {
-                    ...createRandomReportAction(1),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                    originalMessage: {
-                        movedToReportID: policyExpenseChat.reportID,
-                    },
-                };
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat});
-                await waitForBatchedUpdates();
-
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
-                    reportName: policyExpenseChat.reportName,
-                    workspaceName: policyExpenseChat.policyName,
-                });
-
-                // When the expense is moved to an expense chat with both reportName and policyName are present
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: policyExpenseChat.reportID, reportAction, policyTags: {}});
-                // Then it should return the correct text message
-                expect(result).toEqual(expectedResult);
-            });
-
-            it('return the message "moved expense from personal space to chat with reportName" when only reportName is present', async () => {
-                // Given the policyExpenseChat with only reportName is present and report action
-                const policyExpenseChat = {
-                    ...report,
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                    isOwnPolicyExpenseChat: false,
-                };
-                const reportAction = {
-                    ...createRandomReportAction(1),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                    originalMessage: {
-                        movedToReportID: policyExpenseChat.reportID,
-                    },
-                };
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat});
-                await waitForBatchedUpdates();
-
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {reportName: policyExpenseChat.reportName});
-
-                // When the expense is moved to an expense chat with only reportName is present
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: policyExpenseChat.reportID, reportAction, policyTags: {}});
-                // Then it should return the correct text message
+                const result = getForReportAction({reportAction, policyTags: {}, movedFromReport});
                 expect(result).toEqual(expectedResult);
             });
         });
@@ -560,7 +626,7 @@ describe('ModifiedExpenseMessage', () => {
                 };
 
                 const expectedResult = 'changed the Department to "Engineering" (previously "Marketing")';
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags});
+                const result = getForReportAction({reportAction, policyTags});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -576,7 +642,7 @@ describe('ModifiedExpenseMessage', () => {
                 };
 
                 const expectedResult = 'changed the Department to "Engineering" (previously "Marketing") and the Location to "San Francisco" (previously "New York")';
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags});
+                const result = getForReportAction({reportAction, policyTags});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -592,7 +658,7 @@ describe('ModifiedExpenseMessage', () => {
                 };
 
                 const expectedResult = 'set the Department to "Engineering"';
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags});
+                const result = getForReportAction({reportAction, policyTags});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -608,7 +674,7 @@ describe('ModifiedExpenseMessage', () => {
                 };
 
                 const expectedResult = 'removed the Department (previously "Engineering")';
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags});
+                const result = getForReportAction({reportAction, policyTags});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -625,7 +691,7 @@ describe('ModifiedExpenseMessage', () => {
 
                 // When policyTags is empty, the function returns the generic fallback message
                 const expectedResult = 'changed the expense';
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -642,7 +708,7 @@ describe('ModifiedExpenseMessage', () => {
 
                 // When policyTags is undefined, the function returns the generic fallback message
                 const expectedResult = 'changed the expense';
-                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction, policyTags: {}});
+                const result = getForReportAction({reportAction, policyTags: {}});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -699,8 +765,7 @@ describe('ModifiedExpenseMessage', () => {
 
             it('validates unused reportOrID parameter works correctly', () => {
                 // Test that marking reportOrID as unused doesn't break functionality
-                const result = ModifiedExpenseMessage.getForReportAction({
-                    reportOrID: '123', // This parameter is marked as unused but should still be accepted
+                const result = getForReportAction({
                     reportAction,
                     policyTags: {},
                 });
@@ -709,24 +774,8 @@ describe('ModifiedExpenseMessage', () => {
             });
 
             it('validates unused searchReports parameter works correctly', () => {
-                // Test that marking searchReports as unused doesn't break functionality
-                const searchReports: SearchReport[] = [
-                    {
-                        reportID: '123',
-                        reportName: 'Test Report',
-                        total: 3000,
-                        currency: 'USD',
-                        type: CONST.REPORT.TYPE.EXPENSE,
-                        accountID: 1,
-                        policyID: 'policy1',
-                        created: '2024-01-01',
-                    },
-                ];
-
-                const result = ModifiedExpenseMessage.getForReportAction({
-                    reportOrID: '123',
+                const result = getForReportAction({
                     reportAction,
-                    searchReports, // This parameter is marked as unused but should still be accepted
                     policyTags: {},
                 });
 
@@ -734,29 +783,16 @@ describe('ModifiedExpenseMessage', () => {
             });
 
             it('maintains backward compatibility with all parameter combinations', () => {
-                const searchReport: SearchReport = {
-                    reportID: '789',
-                    reportName: 'Backward Compatibility Test',
-                    total: 2500,
-                    currency: 'GBP',
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    accountID: 3,
-                    policyID: 'policy3',
-                    created: '2024-01-03',
-                };
-
                 // Test all possible parameter combinations
                 const combinations = [
                     {reportOrID: '123', searchReports: undefined},
                     {reportOrID: '123', searchReports: []},
-                    {reportOrID: searchReport, searchReports: undefined},
-                    {reportOrID: searchReport, searchReports: []},
                     {reportOrID: undefined, searchReports: undefined},
                     {reportOrID: undefined, searchReports: []},
                 ];
 
                 combinations.forEach((params) => {
-                    const result = ModifiedExpenseMessage.getForReportAction({
+                    const result = getForReportAction({
                         ...params,
                         reportAction,
                         policyTags: {},
@@ -778,10 +814,8 @@ describe('ModifiedExpenseMessage', () => {
                     };
 
                     // Test that policy tags functionality is preserved despite unused parameters
-                    const result = ModifiedExpenseMessage.getForReportAction({
-                        reportOrID: '123', // unused but required for API compatibility
+                    const result = getForReportAction({
                         reportAction: tagModificationAction,
-                        searchReports: [], // unused but required for API compatibility
                         policyTags: testPolicyTags,
                     });
 
@@ -808,8 +842,7 @@ describe('ModifiedExpenseMessage', () => {
                     },
                 };
 
-                const result = ModifiedExpenseMessage.getForReportAction({
-                    reportOrID: '123',
+                const result = getForReportAction({
                     reportAction,
                     policyTags: {},
                 });
@@ -842,30 +875,16 @@ describe('ModifiedExpenseMessage', () => {
                     },
                 };
 
-                const searchReport: SearchReport = {
-                    reportID: '123',
-                    reportName: 'Consistency Test Report',
-                    total: 1000,
-                    currency: 'USD',
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    accountID: 1,
-                    policyID: 'policy1',
-                    created: '2024-01-01',
-                };
-
                 // Test different parameter combinations to validate our unused parameter handling
                 const combinations = [
                     {reportOrID: '123', searchReports: undefined},
-                    {reportOrID: searchReport, searchReports: undefined},
-                    {reportOrID: '123', searchReports: [searchReport]},
-                    {reportOrID: searchReport, searchReports: [searchReport]},
                     {reportOrID: undefined, searchReports: undefined},
                 ];
 
                 const expectedResult = 'changed the Category to "Business" (previously "Personal")';
 
                 combinations.forEach((params) => {
-                    const result = ModifiedExpenseMessage.getForReportAction({
+                    const result = getForReportAction({
                         ...params,
                         reportAction,
                         policyTags: testPolicyTags,

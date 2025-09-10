@@ -2,7 +2,7 @@
 import {beforeAll} from '@jest/globals';
 import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
@@ -42,7 +42,6 @@ import {
     getDisplayNamesWithTooltips,
     getGroupChatName,
     getIconsForParticipants,
-    getInvoiceChatByParticipants,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
     getParentNavigationSubtitle,
@@ -100,7 +99,6 @@ import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/reports';
 import * as NumberUtils from '../../src/libs/NumberUtils';
-import {convertedInvoiceChat} from '../data/Invoice';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
 import {
@@ -2958,20 +2956,6 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getInvoiceChatByParticipants', () => {
-        it('only returns an invoice chat if the receiver type matches', () => {
-            // Given an invoice chat that has been converted from an individual to policy receiver type
-            const reports: OnyxCollection<Report> = {
-                [convertedInvoiceChat.reportID]: convertedInvoiceChat,
-            };
-
-            // When we send another invoice to the individual from global create and call getInvoiceChatByParticipants
-            const invoiceChatReport = getInvoiceChatByParticipants(33, CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, convertedInvoiceChat.policyID, reports);
-
-            // Then no invoice chat should be returned because the receiver type does not match
-            expect(invoiceChatReport).toBeUndefined();
-        });
-    });
     describe('getWorkspaceNameUpdatedMessage', () => {
         it('return the encoded workspace name updated message', () => {
             const action = {
