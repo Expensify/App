@@ -149,12 +149,23 @@ type MovedTransactionParams = {
     reportName?: string;
 };
 
+type MovedActionParams = {
+    shouldHideMovedReportUrl: boolean;
+    movedReportUrl: string;
+    newParentReportUrl: string;
+    toPolicyName: string;
+};
+
 type MovedFromReportParams = {
     reportName: string;
 };
 
 type SettleExpensifyCardParams = {
     formattedAmount: string;
+};
+
+type PhoneErrorRouteParams = {
+    phoneErrorMethodsRoute: string;
 };
 
 type WorkspacesListRouteParams = {
@@ -730,6 +741,11 @@ type CompanyNameParams = {
     companyName: string;
 };
 
+type SignerInfoMessageParams = {
+    bankAccountLastFour: string | undefined;
+    currency: string | undefined;
+};
+
 type CustomUnitRateParams = {
     rate: number;
 };
@@ -821,6 +837,10 @@ type BusinessTaxIDParams = {
     country: string;
 };
 
+type BusinessRegistrationNumberParams = {
+    country: string;
+};
+
 type QBDSetupErrorBodyParams = {
     conciergeLink: string;
 };
@@ -852,6 +872,14 @@ type MergeFailureDescriptionGenericParams = {
     email: string;
 };
 
+type WorkspaceUpgradeNoteParams = {
+    subscriptionLink: string;
+};
+
+type ChangedApproverMessageParams = {managerID: number};
+
+type WorkflowSettingsParam = {workflowSettingLink: string};
+
 type IndividualExpenseRulesSubtitleParams = {
     categoriesPageLink: string;
     tagsPageLink: string;
@@ -880,6 +908,10 @@ type DomainPermissionInfoRestrictionParams = {
 
 type SubmittedWithMemoParams = {
     memo?: string;
+};
+
+type PayAndDowngradeDescriptionParams = {
+    formattedAmount: string;
 };
 
 export type {
@@ -1162,6 +1194,7 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
+    PhoneErrorRouteParams,
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
@@ -1172,6 +1205,10 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    WorkspaceUpgradeNoteParams,
+    ChangedApproverMessageParams,
+    WorkflowSettingsParam,
+    MovedActionParams,
     IndividualExpenseRulesSubtitleParams,
     BillableDefaultDescriptionParams,
     WorkspaceShareNoteParams,
@@ -1179,4 +1216,7 @@ export type {
     UpgradeSuccessMessageParams,
     DomainPermissionInfoRestrictionParams,
     SubmittedWithMemoParams,
+    SignerInfoMessageParams,
+    BusinessRegistrationNumberParams,
+    PayAndDowngradeDescriptionParams,
 };

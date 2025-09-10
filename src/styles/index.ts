@@ -355,8 +355,13 @@ const styles = (theme: ThemeColors) =>
         appBG: {
             backgroundColor: theme.appBG,
         },
+
         fontSizeLabel: {
             fontSize: variables.fontSizeLabel,
+        },
+
+        fontSizeNormal: {
+            fontSize: variables.fontSizeNormal,
         },
 
         h4: {
@@ -648,6 +653,14 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
             alignItems: 'center',
             paddingHorizontal: 4,
+        },
+
+        /**
+         * Background style applied to navigation tab bar items when they are hovered.
+         * Do not apply for the active/selected state, those already have their own styling.
+         */
+        navigationTabBarItemHovered: {
+            backgroundColor: theme.sidebarHover,
         },
 
         leftNavigationTabBarContainer: {
@@ -2018,6 +2031,12 @@ const styles = (theme: ThemeColors) =>
             marginBottom: -20,
         },
 
+        emptyWorkspaceListIllustrationStyle: {
+            marginTop: 12,
+            marginBottom: -20,
+            height: '100%',
+        },
+
         overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
             ({
                 ...positioning.pFixed,
@@ -2659,8 +2678,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.heading,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
-            marginTop: 20,
-            marginBottom: 8,
+            marginVertical: 20,
             textAlign: 'center',
         },
 
@@ -3644,6 +3662,7 @@ const styles = (theme: ThemeColors) =>
         searchAutocompleteInputResults: {
             borderWidth: 1,
             borderColor: theme.border,
+            height: 54,
         },
 
         searchAutocompleteInputResultsFocused: {
@@ -3680,36 +3699,6 @@ const styles = (theme: ThemeColors) =>
             zIndex: variables.searchTopBarZIndex,
             backgroundColor: theme.appBG,
         },
-
-        threeDotsPopoverOffset: (windowWidth: number) =>
-            ({
-                ...getPopOverVerticalOffset(60),
-                horizontal: windowWidth - 60,
-            }) satisfies AnchorPosition,
-
-        threeDotsPopoverOffsetNoCloseButton: (windowWidth: number) =>
-            ({
-                ...getPopOverVerticalOffset(60),
-                horizontal: windowWidth - 10,
-            }) satisfies AnchorPosition,
-
-        threeDotsPopoverOffsetAttachmentModal: (windowWidth: number) =>
-            ({
-                ...getPopOverVerticalOffset(80),
-                horizontal: windowWidth - 140,
-            }) satisfies AnchorPosition,
-
-        popoverMenuOffset: (windowWidth: number) =>
-            ({
-                ...getPopOverVerticalOffset(180),
-                horizontal: windowWidth - 355,
-            }) satisfies AnchorPosition,
-
-        popoverButtonDropdownMenuOffset: (windowWidth: number) =>
-            ({
-                ...getPopOverVerticalOffset(70),
-                horizontal: windowWidth - 20,
-            }) satisfies AnchorPosition,
 
         iPhoneXSafeArea: {
             backgroundColor: theme.appBG,
@@ -4460,9 +4449,9 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: 12,
         },
 
-        tabText: (isSelected: boolean) =>
+        tabText: (isSelected: boolean, hasIcon = false) =>
             ({
-                marginLeft: 8,
+                marginLeft: hasIcon ? 8 : 0,
                 ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
                 color: isSelected ? theme.text : theme.textSupporting,
                 lineHeight: variables.lineHeightLarge,
@@ -5134,6 +5123,7 @@ const styles = (theme: ThemeColors) =>
             flexBasis: '35%',
             marginTop: 12,
         },
+
         onboardingAccountingItem: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,
@@ -5407,6 +5397,11 @@ const styles = (theme: ThemeColors) =>
         expensifyCardIllustrationContainer: {
             width: 680,
             height: 220,
+        },
+
+        uberConfirmationIllustrationContainer: {
+            width: 260,
+            height: 172,
         },
 
         emptyStateCardIllustrationContainer: {
@@ -5723,6 +5718,26 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             paddingHorizontal: 0,
             aspectRatio: 1.7,
+        },
+
+        receiptPreview: {
+            position: 'absolute',
+            left: 60,
+            top: 60,
+            width: 380,
+            maxHeight: 'calc(100vh - 120px)',
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.border,
+            overflow: 'hidden',
+            boxShadow: theme.shadow,
+            backgroundColor: theme.appBG,
+        },
+
+        receiptPreviewEReceiptsContainer: {
+            ...sizing.w100,
+            ...sizing.h100,
+            backgroundColor: colors.green800,
         },
 
         topBarWrapper: {
