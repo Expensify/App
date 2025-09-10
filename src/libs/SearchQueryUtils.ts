@@ -15,7 +15,6 @@ import type {
     SearchQueryString,
     SearchStatus,
     SearchWithdrawalType,
-    SingularSearchStatus,
     UserFriendlyKey,
     UserFriendlyValue,
 } from '@components/Search/types';
@@ -380,7 +379,9 @@ function getGroupByValue(groupBy?: SearchGroupBy | SearchGroupBy[]): SearchGroup
  */
 function getTypeValue(type: SearchDataTypes | SearchDataTypes[]): SearchDataTypes {
     if (Array.isArray(type)) {
-        return type.at(0) as SearchDataTypes;
+        // This parameter can only be an array if there are at least two values, so the first element will always be here.
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return type.at(0)!;
     }
 
     return type;
