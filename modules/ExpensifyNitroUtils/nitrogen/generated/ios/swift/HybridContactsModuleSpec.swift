@@ -18,8 +18,9 @@ public protocol HybridContactsModuleSpec_protocol: HybridObject {
 }
 
 /// See ``HybridContactsModuleSpec``
-public class HybridContactsModuleSpec_base {
+open class HybridContactsModuleSpec_base {
   private weak var cxxWrapper: HybridContactsModuleSpec_cxx? = nil
+  public init() { }
   public func getCxxWrapper() -> HybridContactsModuleSpec_cxx {
   #if DEBUG
     guard self is HybridContactsModuleSpec else {
