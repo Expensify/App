@@ -1696,13 +1696,6 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.appBG,
         },
 
-        sidebarFooter: {
-            display: 'flex',
-            justifyContent: 'center',
-            width: '100%',
-            paddingLeft: 20,
-        },
-
         sidebarAvatar: {
             borderRadius: variables.sidebarAvatarSize,
             height: variables.sidebarAvatarSize,
