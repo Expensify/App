@@ -16,7 +16,7 @@ Before you can pay workspace expenses:
 
 ## How to Pay Workspace Expenses
 
-In the navigation tabs (on the left on web, and at the bottom on mobile), select **Reports > To-do > Pay** or follow the notification prompt.
+In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Reports > To-do > Pay** or follow the notification prompt.
 
 1. You'll receive an email, in-app notification, or text (if your contact method is a phone number).
 2. Click or tap **Pay** to open the expense report in New Expensify.
