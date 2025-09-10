@@ -1323,7 +1323,7 @@ function getReasonForShowingRowInLHN({
     isReportArchived?: boolean;
     isInFocusMode?: boolean;
     betas?: OnyxEntry<Beta[]>;
-    draftComment: string | null;
+    draftComment: string | undefined;
 }): TranslationPaths | null {
     if (!report) {
         return null;

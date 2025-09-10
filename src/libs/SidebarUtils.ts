@@ -280,7 +280,7 @@ type UpdateReportsToDisplayInLHNProps = {
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
-    draftComment: string | null;
+    draftComment: string | undefined;
 };
 
 function updateReportsToDisplayInLHN({

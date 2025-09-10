@@ -253,7 +253,7 @@ function ComposerWithSuggestions(
         return draftComment;
     });
 
-    const commentRef = useRef(value);
+    const commentRef = useRef(value ?? '');
 
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: getPreferredSkinToneIndex, canBeMissing: true});
@@ -272,7 +272,7 @@ function ComposerWithSuggestions(
     const valueRef = useRef(value);
     valueRef.current = value;
 
-    const [selection, setSelection] = useState<TextSelection>(() => ({start: value.length, end: value.length, positionX: 0, positionY: 0}));
+    const [selection, setSelection] = useState<TextSelection>(() => ({start: value?.length ?? 0, end: value?.length ?? 0, positionX: 0, positionY: 0}));
 
     const [composerHeight, setComposerHeight] = useState(0);
 
@@ -374,7 +374,7 @@ function ComposerWithSuggestions(
     const updateComment = useCallback(
         (commentValue: string, shouldDebounceSaveComment?: boolean) => {
             raiseIsScrollLikelyLayoutTriggered();
-            const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
+            const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current ?? '', commentValue);
             const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && containsOnlyEmojis(diff);
             const commentWithSpaceInserted = isEmojiInserted ? insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue;
             const {text: newComment, emojis, cursorPosition} = replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
@@ -480,12 +480,12 @@ function ComposerWithSuggestions(
 
                 // Wales flag has 14 UTF-16 code units. This is the emoji with the largest number of UTF-16 code units we use.
                 const start = Math.max(0, selection.start - 14);
-                const graphemes = Array.from(splitter.segment(lastTextRef.current.substring(start, selection.start)));
+                const graphemes = Array.from(splitter.segment(lastTextRef.current?.substring(start, selection.start) ?? ''));
                 const lastGrapheme = graphemes.at(graphemes.length - 1);
                 const lastGraphemeLength = lastGrapheme?.segment.length ?? 0;
                 if (lastGraphemeLength > 1) {
                     event.preventDefault();
-                    const newText = lastTextRef.current.slice(0, selection.start - lastGraphemeLength) + lastTextRef.current.slice(selection.start);
+                    const newText = (lastTextRef.current?.slice(0, selection.start - lastGraphemeLength) ?? '') + (lastTextRef.current?.slice(selection.start) ?? '');
                     setSelection((prevSelection) => ({
                         start: selection.start - lastGraphemeLength,
                         end: selection.start - lastGraphemeLength,
@@ -703,7 +703,7 @@ function ComposerWithSuggestions(
     );
 
     useEffect(() => {
-        onValueChange(value);
+        onValueChange(value ?? '');
     }, [onValueChange, value]);
 
     const onLayout = useCallback(
@@ -835,7 +835,7 @@ function ComposerWithSuggestions(
                 isGroupPolicyReport={isGroupPolicyReport}
                 policyID={policyID}
                 // Input
-                value={value}
+                value={value ?? ''}
                 selection={selection}
                 setSelection={setSelection}
                 resetKeyboardInput={resetKeyboardInput}
@@ -844,7 +844,7 @@ function ComposerWithSuggestions(
             {isValidReportIDFromPath(reportID) && (
                 <SilentCommentUpdater
                     reportID={reportID}
-                    value={value}
+                    value={value ?? ''}
                     updateComment={updateComment}
                     commentRef={commentRef}
                     isCommentPendingSaved={isCommentPendingSaved}

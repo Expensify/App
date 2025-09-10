@@ -114,7 +114,6 @@ import {
     isInvoiceRoom,
     isMoneyRequest,
     isPolicyAdmin,
-    isValidReport,
     isAdminRoom as reportUtilsIsAdminRoom,
     isAnnounceRoom as reportUtilsIsAnnounceRoom,
     isChatReport as reportUtilsIsChatReport,
@@ -1489,129 +1488,130 @@ function getUserToInviteContactOption({
     return userToInvite;
 }
 
-// function isValidReport(option: SearchOption<Report>, config: GetValidReportsConfig): boolean {
-//     const {
-//         betas = [],
-//         includeMultipleParticipantReports = false,
-//         includeOwnedWorkspaceChats = false,
-//         includeThreads = false,
-//         includeTasks = false,
-//         includeMoneyRequests = false,
-//         includeReadOnly = true,
-//         transactionViolations = {},
-//         includeSelfDM = false,
-//         includeInvoiceRooms = false,
-//         action,
-//         includeP2P = true,
-//         includeDomainEmail = false,
-//         loginsToExclude = {},
-//         excludeNonAdminWorkspaces,
-//     } = config;
-//     const topmostReportId = Navigation.getTopmostReportId();
+function isValidReport(option: SearchOption<Report>, config: GetValidReportsConfig, draftComment: string | undefined): boolean {
+    const {
+        betas = [],
+        includeMultipleParticipantReports = false,
+        includeOwnedWorkspaceChats = false,
+        includeThreads = false,
+        includeTasks = false,
+        includeMoneyRequests = false,
+        includeReadOnly = true,
+        transactionViolations = {},
+        includeSelfDM = false,
+        includeInvoiceRooms = false,
+        action,
+        includeP2P = true,
+        includeDomainEmail = false,
+        loginsToExclude = {},
+        excludeNonAdminWorkspaces,
+    } = config;
+    const topmostReportId = Navigation.getTopmostReportId();
 
-//     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.item.chatReportID}`];
-//     const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(option.item, transactionViolations);
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.item.chatReportID}`];
+    const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(option.item, transactionViolations);
 
-//     const shouldBeInOptionList = shouldReportBeInOptionList({
-//         report: option.item,
-//         chatReport,
-//         currentReportId: topmostReportId,
-//         betas,
-//         doesReportHaveViolations,
-//         isInFocusMode: false,
-//         excludeEmptyChats: false,
-//         includeSelfDM,
-//         login: option.login,
-//         includeDomainEmail,
-//         isReportArchived: !!option.private_isArchived,,
-//     });
+    const shouldBeInOptionList = shouldReportBeInOptionList({
+        report: option.item,
+        chatReport,
+        currentReportId: topmostReportId,
+        betas,
+        doesReportHaveViolations,
+        isInFocusMode: false,
+        excludeEmptyChats: false,
+        includeSelfDM,
+        login: option.login,
+        includeDomainEmail,
+        isReportArchived: !!option.private_isArchived,
+        draftComment,
+    });
 
-//     if (!shouldBeInOptionList) {
-//         return false;
-//     }
+    if (!shouldBeInOptionList) {
+        return false;
+    }
 
-//     const isThread = option.isThread;
-//     const isTaskReport = option.isTaskReport;
-//     const isPolicyExpenseChat = option.isPolicyExpenseChat;
-//     const isMoneyRequestReport = option.isMoneyRequestReport;
-//     const isSelfDM = option.isSelfDM;
-//     const isChatRoom = option.isChatRoom;
-//     const accountIDs = getParticipantsAccountIDsForDisplay(option.item);
+    const isThread = option.isThread;
+    const isTaskReport = option.isTaskReport;
+    const isPolicyExpenseChat = option.isPolicyExpenseChat;
+    const isMoneyRequestReport = option.isMoneyRequestReport;
+    const isSelfDM = option.isSelfDM;
+    const isChatRoom = option.isChatRoom;
+    const accountIDs = getParticipantsAccountIDsForDisplay(option.item);
 
-//     if (excludeNonAdminWorkspaces && !isPolicyAdmin(option.policyID, policies)) {
-//         return false;
-//     }
+    if (excludeNonAdminWorkspaces && !isPolicyAdmin(option.policyID, policies)) {
+        return false;
+    }
 
-//     if (isPolicyExpenseChat && !includeOwnedWorkspaceChats) {
-//         return false;
-//     }
-//     // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to expense chats only.
-//     if (!includeP2P && !isPolicyExpenseChat) {
-//         return false;
-//     }
+    if (isPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+        return false;
+    }
+    // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to expense chats only.
+    if (!includeP2P && !isPolicyExpenseChat) {
+        return false;
+    }
 
-//     if (isSelfDM && !includeSelfDM) {
-//         return false;
-//     }
+    if (isSelfDM && !includeSelfDM) {
+        return false;
+    }
 
-//     if (isThread && !includeThreads) {
-//         return false;
-//     }
+    if (isThread && !includeThreads) {
+        return false;
+    }
 
-//     if (isTaskReport && !includeTasks) {
-//         return false;
-//     }
+    if (isTaskReport && !includeTasks) {
+        return false;
+    }
 
-//     if (isMoneyRequestReport && !includeMoneyRequests) {
-//         return false;
-//     }
+    if (isMoneyRequestReport && !includeMoneyRequests) {
+        return false;
+    }
 
-//     if (!canUserPerformWriteAction(option.item, !!option.private_isArchived) && !includeReadOnly) {
-//         return false;
-//     }
+    if (!canUserPerformWriteAction(option.item, !!option.private_isArchived) && !includeReadOnly) {
+        return false;
+    }
 
-//     // In case user needs to add credit bank account, don't allow them to submit an expense from the workspace.
-//     if (includeOwnedWorkspaceChats && hasIOUWaitingOnCurrentUserBankAccount(option.item)) {
-//         return false;
-//     }
+    // In case user needs to add credit bank account, don't allow them to submit an expense from the workspace.
+    if (includeOwnedWorkspaceChats && hasIOUWaitingOnCurrentUserBankAccount(option.item)) {
+        return false;
+    }
 
-//     if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
-//         return false;
-//     }
+    if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
+        return false;
+    }
 
-//     if (option.login === CONST.EMAIL.NOTIFICATIONS) {
-//         return false;
-//     }
-//     const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
-//         option.isPolicyExpenseChat && option.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !option.private_isArchived;
+    if (option.login === CONST.EMAIL.NOTIFICATIONS) {
+        return false;
+    }
+    const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
+        option.isPolicyExpenseChat && option.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !option.private_isArchived;
 
-//     const shouldShowInvoiceRoom =
-//         includeInvoiceRooms && isInvoiceRoom(option.item) && isPolicyAdmin(option.policyID, policies) && !option.private_isArchived && canSendInvoiceFromWorkspace(option.policyID);
+    const shouldShowInvoiceRoom =
+        includeInvoiceRooms && isInvoiceRoom(option.item) && isPolicyAdmin(option.policyID, policies) && !option.private_isArchived && canSendInvoiceFromWorkspace(option.policyID);
 
-//     /*
-//     Exclude the report option if it doesn't meet any of the following conditions:
-//     - It is not an owned policy expense chat that could be shown
-//     - Multiple participant reports are not included
-//     - It doesn't have a login
-//     - It is not an invoice room that should be shown
-//     */
-//     if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !option.login && !shouldShowInvoiceRoom) {
-//         return false;
-//     }
+    /*
+    Exclude the report option if it doesn't meet any of the following conditions:
+    - It is not an owned policy expense chat that could be shown
+    - Multiple participant reports are not included
+    - It doesn't have a login
+    - It is not an invoice room that should be shown
+    */
+    if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !option.login && !shouldShowInvoiceRoom) {
+        return false;
+    }
 
-//     // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
-//     if (!includeThreads && ((!!option.login && loginsToExclude[option.login]) || loginsToExclude[option.reportID])) {
-//         return false;
-//     }
+    // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
+    if (!includeThreads && ((!!option.login && loginsToExclude[option.login]) || loginsToExclude[option.reportID])) {
+        return false;
+    }
 
-//     if (action === CONST.IOU.ACTION.CATEGORIZE) {
-//         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${option.policyID}`];
-//         if (!reportPolicy?.areCategoriesEnabled) {
-//             return false;
-//         }
-//     }
-//     return true;
-// }
+    if (action === CONST.IOU.ACTION.CATEGORIZE) {
+        const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${option.policyID}`];
+        if (!reportPolicy?.areCategoriesEnabled) {
+            return false;
+        }
+    }
+    return true;
+}
 
 function getValidReports(reports: OptionList['reports'], config: GetValidReportsConfig): GetValidReportsReturnTypeCombined {
     const {
@@ -1750,6 +1750,7 @@ function getValidOptions(
         includeUserToInvite = false,
         ...config
     }: GetOptionsConfig = {},
+    draftComment: string | undefined = undefined,
 ): Options {
     const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest);
 
@@ -1800,16 +1801,20 @@ function getValidOptions(
                 return false;
             }
 
-            return isValidReport(report, {
-                ...getValidReportsConfig,
-                includeP2P,
-                includeDomainEmail,
-                selectedOptions,
-                loginsToExclude,
-                shouldBoldTitleByDefault,
-                shouldSeparateSelfDMChat,
-                shouldSeparateWorkspaceChat,
-            });
+            return isValidReport(
+                report,
+                {
+                    ...getValidReportsConfig,
+                    includeP2P,
+                    includeDomainEmail,
+                    selectedOptions,
+                    loginsToExclude,
+                    shouldBoldTitleByDefault,
+                    shouldSeparateSelfDMChat,
+                    shouldSeparateWorkspaceChat,
+                },
+                draftComment,
+            );
         };
 
         filteredReports = optionsOrderBy(options.reports, recentReportComparator, maxElements, filteringFunction);

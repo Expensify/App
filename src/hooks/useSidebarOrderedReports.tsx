@@ -72,12 +72,12 @@ function SidebarOrderedReportsContextProvider({
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
-
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
     const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
+    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${derivedCurrentReportID}`, {canBeMissing: true});
 
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
     const prevBetas = usePrevious(betas);
@@ -146,18 +146,18 @@ function SidebarOrderedReportsContextProvider({
         let reportsToDisplay = {};
 
         if (shouldDoIncrementalUpdate) {
-            reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN(
-                currentReportsToDisplay,
-                chatReports,
-                updatedReports,
-                derivedCurrentReportID,
-                priorityMode === CONST.PRIORITY_MODE.GSD,
+            reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN({
+                displayedReports: currentReportsToDisplay,
+                reports: chatReports,
+                updatedReportsKeys: updatedReports,
+                currentReportId: derivedCurrentReportID,
+                isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
                 betas,
-                policies,
                 transactionViolations,
                 reportNameValuePairs,
                 reportAttributes,
-            );
+                draftComment,
+            });
         } else {
             reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN(
                 derivedCurrentReportID,
@@ -165,6 +165,7 @@ function SidebarOrderedReportsContextProvider({
                 betas,
                 policies,
                 priorityMode,
+                draftComment,
                 transactionViolations,
                 reportNameValuePairs,
                 reportAttributes,
@@ -182,7 +183,7 @@ function SidebarOrderedReportsContextProvider({
     }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
-        () => SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, reportNameValuePairs, reportAttributes),
+        () => SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, draftComment, reportNameValuePairs, reportAttributes),
         // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [reportsToDisplayInLHN, localeCompare],
