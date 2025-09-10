@@ -50,6 +50,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                 return reportIDs;
             }, new Set<string>());
         },
+        canBeMissing: true,
     });
     const [eligibleTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (transactions) => {

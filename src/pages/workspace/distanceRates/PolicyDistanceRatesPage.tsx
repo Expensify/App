@@ -92,6 +92,7 @@ function PolicyDistanceRatesPage({
                 return reportIDs;
             }, new Set<string>());
         },
+        canBeMissing: true,
     });
 
     const [eligibleTransactionsData] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
