@@ -59,6 +59,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [currentApprovalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
     const [allApprovers, setAllApprovers] = useState<SelectionListApprover[]>([]);
     const shouldShowTextInput = allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
@@ -192,17 +193,18 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
             const accountID = Number(policyMemberEmailsToAccountIDs[selectedApproverEmail] ?? '');
             const {avatar, displayName = selectedApproverEmail} = personalDetails?.[accountID] ?? {};
-            setApprovalWorkflowApprover(
-                {
+            setApprovalWorkflowApprover({
+                approver: {
                     email: selectedApproverEmail,
                     avatar,
                     displayName,
                 },
                 approverIndex,
-                route.params.policyID,
-            );
+                currentApprovalWorkflow,
+                policyID: route.params.policyID,
+            });
         } else {
-            clearApprovalWorkflowApprover(approverIndex);
+            clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow});
         }
 
         if (isInitialCreationFlow) {
@@ -210,7 +212,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         } else {
             goBack();
         }
-    }, [selectedApproverEmail, employeeList, personalDetails, approverIndex, route.params.policyID, isInitialCreationFlow, goBack]);
+    }, [selectedApproverEmail, employeeList, personalDetails, approverIndex, route.params.policyID, isInitialCreationFlow, goBack, currentApprovalWorkflow]);
 
     const button = useMemo(() => {
         let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
