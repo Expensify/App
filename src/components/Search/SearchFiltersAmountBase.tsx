@@ -1,5 +1,5 @@
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
@@ -25,7 +25,7 @@ import type {SearchAmountFilterKeys} from './types';
 function SearchFiltersAmountBase({title, filterKey, testID}: {title: TranslationPaths; filterKey: SearchAmountFilterKeys; testID: string}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef, inputRef} = useAutoFocusInput();
     const [selectedModifier, setSelectedModifier] = useState<string | null>(null);
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
@@ -50,10 +50,13 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
         }
 
         const fieldKey = `${filterKey}${selectedModifier}` as keyof typeof searchAdvancedFiltersForm;
-        const amount = values[fieldKey];
-        const backendAmount = amount ? convertToBackendAmount(Number(amount)) : '';
+        const rawAmount = values[fieldKey] as unknown;
+        const amountStr = rawAmount == null ? '' : String(rawAmount);
+        const isEmpty = amountStr.trim() === '';
+
+        // If empty, clear the value (like reset for this modifier); otherwise, persist formatted amount.
         updateAdvancedFilters({
-            [fieldKey]: backendAmount?.toString(),
+            [fieldKey]: isEmpty ? null : convertToBackendAmount(Number(amountStr)).toString(),
         });
         goBack();
     };
@@ -99,6 +102,16 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
         setSelectedModifier(modifier);
     }, []);
 
+    useEffect(() => {
+        if (!selectedModifier) {
+            return;
+        }
+        const handle = InteractionManager.runAfterInteractions(() => {
+            inputRef.current?.focus?.();
+        });
+        return () => handle.cancel();
+    }, [selectedModifier, inputRef]);
+
     if (!selectedModifier) {
         return (
             <ScreenWrapper testID={testID}>
@@ -108,7 +121,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
                 />
                 <View style={[styles.flex1]}>
                     <MenuItem
-                        title="Equal to"
+                        title={translate('search.filters.amount.equalTo')}
                         description={equalToFormattedAmount}
                         onPress={() => handleModifierSelect(CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO)}
                         shouldShowRightIcon
