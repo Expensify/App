@@ -2113,7 +2113,12 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
 function getHasOptions(type: SearchDataTypes) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            return [{text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT}];
+            return [
+                {text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
+                {text: translateLocal('common.attachments'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+                {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
+                {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
+            ];
         default:
             return [];
     }
