@@ -62,7 +62,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const [isThumbnail, setIsThumbnail] = useState(true);
     const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
-    const {isOnSearch} = useIsOnSearch();
+    const isOnSearch = useIsOnSearch();
     const navigation = useNavigation();
 
     // We want to play the video only when the user is on the page where it was initially rendered

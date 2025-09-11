@@ -3,7 +3,7 @@ import type {DependencyList} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxValue, UseOnyxOptions, UseOnyxResult} from 'react-native-onyx';
-import {Context as SearchContext} from '@components/Search/SearchContext';
+import {SearchContext} from '@components/Search/SearchContext';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,9 +48,11 @@ const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResu
  * Custom hook for accessing and subscribing to Onyx data with search snapshot support
  */
 const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>>(key: TKey, options?: UseOnyxOptions<TKey, TReturnValue>, dependencies?: DependencyList) => {
-    const {isOnSearch} = useIsOnSearch();
+    const isSnapshotCompatibleKey = useMemo(() => !key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) && CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((snapshotKey) => key.startsWith(snapshotKey)), [key]);
+    const isOnSearch = useIsOnSearch();
+
     let currentSearchHash: number | undefined;
-    if (isOnSearch) {
+    if (isOnSearch && isSnapshotCompatibleKey) {
         const {currentSearchHash: searchContextCurrentSearchHash} = use(SearchContext);
         currentSearchHash = searchContextCurrentSearchHash;
     }
@@ -59,9 +61,7 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
     const {selector: selectorProp, ...optionsWithoutSelector} = useOnyxOptions ?? {};
 
     // Determine if we should use snapshot data based on search state and key
-    const shouldUseSnapshot = useMemo(() => {
-        return isOnSearch && !!currentSearchHash && !key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) && CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((snapshotKey) => key.startsWith(snapshotKey));
-    }, [isOnSearch, currentSearchHash, key]);
+    const shouldUseSnapshot = isOnSearch && !!currentSearchHash && isSnapshotCompatibleKey;
 
     // Create selector function that handles both regular and snapshot data
     const selector = useMemo(() => {

@@ -5,7 +5,7 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {SearchContext, SearchContextData, SearchQueryJSON, SelectedTransactions} from './types';
+import type {SearchContextData, SearchContextType, SearchQueryJSON, SelectedTransactions} from './types';
 
 const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
@@ -19,7 +19,7 @@ const defaultSearchContextData: SearchContextData = {
     shouldResetSearchQuery: false,
 };
 
-const defaultSearchContext: SearchContext = {
+const defaultSearchContext: SearchContextType = {
     ...defaultSearchContextData,
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
@@ -37,7 +37,7 @@ const defaultSearchContext: SearchContext = {
     setShouldResetSearchQuery: () => {},
 };
 
-const Context = React.createContext<SearchContext>(defaultSearchContext);
+const SearchContext = React.createContext<SearchContextType>(defaultSearchContext);
 
 function SearchContextProvider({children}: ChildrenProps) {
     const [showSelectAllMatchingItems, shouldShowSelectAllMatchingItems] = useState(false);
@@ -74,7 +74,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         });
     }, []);
 
-    const setSelectedTransactions: SearchContext['setSelectedTransactions'] = useCallback((selectedTransactions, data = []) => {
+    const setSelectedTransactions: SearchContextType['setSelectedTransactions'] = useCallback((selectedTransactions, data = []) => {
         if (selectedTransactions instanceof Array) {
             if (!selectedTransactions.length && areTransactionsEmpty.current) {
                 areTransactionsEmpty.current = true;
@@ -88,7 +88,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         }
 
         // When selecting transactions, we also need to manage the reports to which these transactions belong. This is done to ensure proper exporting to CSV.
-        let selectedReports: SearchContext['selectedReports'] = [];
+        let selectedReports: SearchContextType['selectedReports'] = [];
 
         if (data.length && data.every(isTransactionReportGroupListItemType)) {
             selectedReports = data
@@ -120,7 +120,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         }));
     }, []);
 
-    const clearSelectedTransactions: SearchContext['clearSelectedTransactions'] = useCallback(
+    const clearSelectedTransactions: SearchContextType['clearSelectedTransactions'] = useCallback(
         (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
             if (typeof searchHashOrClearIDsFlag === 'boolean') {
                 setSelectedTransactions([]);
@@ -154,7 +154,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         ],
     );
 
-    const removeTransaction: SearchContext['removeTransaction'] = useCallback(
+    const removeTransaction: SearchContextType['removeTransaction'] = useCallback(
         (transactionID) => {
             if (!transactionID) {
                 return;
@@ -193,7 +193,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         }));
     }, []);
 
-    const searchContext = useMemo<SearchContext>(
+    const searchContext = useMemo<SearchContextType>(
         () => ({
             ...searchContextData,
             removeTransaction,
@@ -227,7 +227,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         ],
     );
 
-    return <Context.Provider value={searchContext}>{children}</Context.Provider>;
+    return <SearchContext.Provider value={searchContext}>{children}</SearchContext.Provider>;
 }
 
 /**
@@ -236,9 +236,9 @@ function SearchContextProvider({children}: ChildrenProps) {
  * IDs should be used if transaction details are not required.
  */
 function useSearchContext() {
-    return useContext(Context);
+    return useContext(SearchContext);
 }
 
 SearchContextProvider.displayName = 'SearchContextProvider';
 
-export {SearchContextProvider, useSearchContext, Context};
+export {SearchContextProvider, useSearchContext, SearchContext};
