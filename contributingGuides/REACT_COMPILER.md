@@ -61,6 +61,7 @@ If you encounter this error, you need to add the `Ref` postfix to the variable n
 If you added a modification to `SharedValue`, you'll likely encounter this error. You can ignore this error for now because the current `react-native-reanimated` API is not compatible with `react-compiler` rules. Once [this PR](https://github.com/software-mansion/react-native-reanimated/pull/6312) is merged, we'll rewrite the code to be compatible with `react-compiler`. Until then, you can ignore this error.
 
 ### Existing manual memoization could not be preserved. [...]
+
 These types of errors usually occur when the calls to `useMemo` that were made manually are too complex for react-compiler to understand. React compiler is still experimental so unfortunately this can happen.
 
 Some specific cases of this error are described below.
