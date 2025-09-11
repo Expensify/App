@@ -166,10 +166,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             screens: {
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
                     screens: {
-                        [SCREENS.SETTINGS.VERIFY_ACCOUNT]: {
-                            // No path - this screen should not change the URL
-                            // URL handling is done in getAdaptedStateFromPath for universal verify-account functionality
-                        },
+                        // [SCREENS.SETTINGS.VERIFY_ACCOUNT]: {
+                        //     // No path - this screen should not change the URL
+                        //     // URL handling is done in getAdaptedStateFromPath for universal verify-account functionality
+                        // },
                         [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: {
                             path: ROUTES.SETTINGS_PRIORITY_MODE,
                             exact: true,

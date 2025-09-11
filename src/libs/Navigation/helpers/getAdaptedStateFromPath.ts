@@ -1,10 +1,9 @@
 import type {NavigationState, PartialState, Route} from '@react-navigation/native';
-import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
+import {findFocusedRoute} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
-import {config} from '@libs/Navigation/linkingConfig/config';
 import {RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
@@ -14,6 +13,8 @@ import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
+// eslint-disable-next-line import/no-cycle
+import getStateFromPath from './getStateFromPath';
 import {isFullScreenName} from './isNavigatorName';
 import replacePathInNestedState from './replacePathInNestedState';
 
@@ -44,7 +45,8 @@ function isRouteWithReportID(route: NavigationPartialRoute): route is Route<stri
 function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
     if (isRouteWithBackToParam(route)) {
-        const stateForBackTo = getStateFromPath(route.params.backTo, config);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        const stateForBackTo = getStateFromPath(route.params.backTo as Route);
 
         // This may happen if the backTo url is invalid.
         const lastRoute = stateForBackTo?.routes.at(-1);
@@ -234,66 +236,7 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
         normalizedPath = '/';
     }
 
-    if (path.includes('/verify-account')) {
-        const pathWithoutVerifyAccount = path.replace('/verify-account', '');
-
-        const baseState = getStateFromPath(pathWithoutVerifyAccount, options) as PartialState<NavigationState<RootNavigatorParamList>>;
-
-        if (baseState === undefined) {
-            throw new Error(`[getAdaptedStateFromPath] Unable to get state from path: ${pathWithoutVerifyAccount}`);
-        }
-
-        const adaptedBaseState = getAdaptedState(baseState);
-
-        if (!adaptedBaseState) {
-            throw new Error(`[getAdaptedStateFromPath] Unable to adapt state from path: ${pathWithoutVerifyAccount}`);
-        }
-
-        const existingRightModalIndex = adaptedBaseState.routes.findIndex((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
-
-        const verifyAccountRoute = {
-            name: SCREENS.SETTINGS.VERIFY_ACCOUNT,
-            path,
-        };
-
-        const verifyAccountSettingsRoute = {
-            name: SCREENS.RIGHT_MODAL.SETTINGS,
-            state: {
-                routes: [verifyAccountRoute],
-                index: 0,
-            },
-        };
-
-        if (existingRightModalIndex !== -1) {
-            const existingModal = adaptedBaseState.routes.at(existingRightModalIndex);
-            const existingRoutes = existingModal?.state?.routes ?? [];
-
-            const updatedRoutes = [...existingRoutes, verifyAccountSettingsRoute];
-
-            adaptedBaseState.routes[existingRightModalIndex] = {
-                name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
-                state: {
-                    routes: updatedRoutes,
-                    index: updatedRoutes.length - 1,
-                },
-            };
-
-            return adaptedBaseState;
-        }
-
-        const rightModalNavigator = {
-            name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
-            state: {
-                routes: [verifyAccountSettingsRoute],
-                index: 0,
-            },
-        };
-
-        const finalState = getRoutesWithIndex([...adaptedBaseState.routes, rightModalNavigator]);
-        return finalState;
-    }
-
-    const state = getStateFromPath(normalizedPath, options) as PartialState<NavigationState<RootNavigatorParamList>>;
+    const state = getStateFromPath(normalizedPath) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {
         replacePathInNestedState(state, normalizedPath);
     }
@@ -305,4 +248,4 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
 };
 
 export default getAdaptedStateFromPath;
-export {getMatchingFullScreenRoute, isFullScreenName};
+export {getMatchingFullScreenRoute, isFullScreenName, getAdaptedState, getRoutesWithIndex};
