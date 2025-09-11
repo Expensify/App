@@ -200,7 +200,8 @@ function ScreenWrapperContainer({
     return (
         <View
             ref={ref}
-            style={[styles.flex1, {minHeight}]}
+            // This style gives the background for the screens. Stack cards are transparent to make different width screens in RHP possible.
+            style={styles.screenWrapperContainer(minHeight)}
             // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
             {...panResponder.panHandlers}
             testID={testID}
