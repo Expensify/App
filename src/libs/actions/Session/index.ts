@@ -45,7 +45,6 @@ import * as SessionUtils from '@libs/SessionUtils';
 import {resetDidUserLogInDuringSession} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import Timers from '@libs/Timers';
-import {CacheAPI} from '@libs/WebWorker';
 import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import {confirmReadyToOpenApp, KEYS_TO_PRESERVE, openApp} from '@userActions/App';
 import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
@@ -861,7 +860,6 @@ function resetNavigationState() {
  * - Clears all current params of the Home route - the login page URL should not contain any parameter
  */
 function cleanupSession() {
-    const startTime = performance.now();
     Pusher.disconnect();
     Timers.clearAll();
     Welcome.resetAllChecks();
@@ -871,12 +869,7 @@ function cleanupSession() {
     NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
     resetNavigationState();
-    CacheAPI.clearAsync();
     clearCache().then(() => {
-        const endTime = performance.now();
-        const duration = endTime - startTime;
-
-        console.log('cleanupsession duration', duration);
         Log.info('Cleared all cache data', true, {}, true);
     });
     clearSoundAssetsCache();
