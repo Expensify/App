@@ -47,6 +47,7 @@ type MoneyRequestReportViewProps = {
     /** Whether Report footer (that includes Composer) should be displayed */
     shouldDisplayReportFooter: boolean;
 
+    /** Whether we should wait for the report to sync */
     shouldWaitForReportSync: boolean;
 
     /** The `backTo` route that should be used when clicking back button */
