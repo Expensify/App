@@ -786,6 +786,7 @@ function getFilterDisplayValue(
     cardList: OnyxTypes.CardList,
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
+    policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>,
 ) {
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
@@ -806,7 +807,10 @@ function getFilterDisplayValue(
         return getCardDescription(cardList?.[cardID]) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
+        return (
+            getReportName({report: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], policyTags: policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${filterValue}`] ?? {}}) ||
+            filterValue
+        );
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
         const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue));
@@ -839,6 +843,7 @@ function buildUserReadableQueryString(
     cardList: OnyxTypes.CardList,
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
+    policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>,
 ) {
     const {type, status, groupBy, policyID} = queryJSON;
     const filters = queryJSON.flatFilters;
@@ -913,7 +918,7 @@ function buildUserReadableQueryString(
         } else {
             displayQueryFilters = queryFilter.map((filter) => ({
                 operator: filter.operator,
-                value: getFilterDisplayValue(key, getUserFriendlyValue(filter.value.toString()), PersonalDetails, reports, cardList, cardFeeds, policies),
+                value: getFilterDisplayValue(key, getUserFriendlyValue(filter.value.toString()), PersonalDetails, reports, cardList, cardFeeds, policies, policyTags),
             }));
         }
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);

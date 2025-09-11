@@ -6,7 +6,19 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {Locale, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    Locale,
+    OnboardingPurpose,
+    PersonalDetailsList,
+    Policy,
+    PolicyTagLists,
+    Report,
+    ReportAction,
+    ReportActions,
+    ReportNameValuePairs,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
@@ -131,6 +143,9 @@ type OptionRowLHNDataProps = {
 
     /** Whether the report is archived */
     isReportArchived: boolean;
+
+    /** The policy tags for the report */
+    policyTags: OnyxEntry<PolicyTagLists>;
 };
 
 type OptionRowLHNProps = {

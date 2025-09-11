@@ -1223,6 +1223,7 @@ function getActions(
 function getTaskSections(
     data: OnyxTypes.SearchResults['data'],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>,
     archivedReportsIDList?: ArchivedReportsIDSet,
 ): TaskListItemType[] {
     return (
@@ -1263,7 +1264,7 @@ function getTaskSections(
                     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                     // eslint-disable-next-line deprecation/deprecation
                     const policy = getPolicy(parentReport.policyID);
-                    const parentReportName = getReportName(parentReport, policy, undefined, undefined);
+                    const parentReportName = getReportName({report: parentReport, policy, policyTags: policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${parentReport.policyID}`] ?? {}});
                     const isParentReportArchived = archivedReportsIDList?.has(parentReport?.reportID);
                     const icons = getIcons(parentReport, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                     const parentReportIcon = icons?.at(0);
@@ -1600,6 +1601,7 @@ function getSections(
     data: OnyxTypes.SearchResults['data'],
     currentAccountID: number | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>,
     groupBy?: SearchGroupBy,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
     currentSearch: SearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES,
@@ -1610,7 +1612,7 @@ function getSections(
         return getReportActionsSections(data);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return getTaskSections(data, formatPhoneNumber, archivedReportsIDList);
+        return getTaskSections(data, formatPhoneNumber, policyTags, archivedReportsIDList);
     }
 
     if (groupBy) {

@@ -1682,11 +1682,11 @@ describe('SearchUIUtils', () => {
 
     describe('Test getSections', () => {
         it('should return getReportActionsSections result when type is CHAT', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.CHAT, searchResults.data, 2074551, formatPhoneNumber)).toStrictEqual(reportActionListItems);
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.CHAT, searchResults.data, 2074551, formatPhoneNumber, undefined)).toStrictEqual(reportActionListItems);
         });
 
         it('should return getTransactionsSections result when groupBy is undefined', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber)).toEqual(transactionsListItems);
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber, undefined)).toEqual(transactionsListItems);
         });
 
         it('should include iouRequestType property for distance transactions', () => {
@@ -1704,7 +1704,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const result = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, testSearchResults.data, 2074551, formatPhoneNumber) as TransactionListItemType[];
+            const result = SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, testSearchResults.data, 2074551, formatPhoneNumber, undefined) as TransactionListItemType[];
 
             const distanceTransaction = result.find((item) => item.transactionID === distanceTransactionID);
 
@@ -1735,6 +1735,7 @@ describe('SearchUIUtils', () => {
                 testSearchResults.data,
                 2074551,
                 formatPhoneNumber,
+                undefined,
                 CONST.SEARCH.GROUP_BY.REPORTS,
             ) as TransactionGroupListItemType[];
 
@@ -1750,38 +1751,38 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return getReportSections result when type is EXPENSE and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResults.data, 2074551, formatPhoneNumber, undefined, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
                 transactionReportGroupListItems,
             );
         });
 
         it('should return getReportSections result when type is TRIP and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, searchResults.data, 2074551, formatPhoneNumber, undefined, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
                 transactionReportGroupListItems,
             );
         });
 
         it('should return getReportSections result when type is INVOICE and groupBy is report', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, searchResults.data, 2074551, formatPhoneNumber, undefined, CONST.SEARCH.GROUP_BY.REPORTS)).toStrictEqual(
                 transactionReportGroupListItems,
             );
         });
 
         it('should return getMemberSections result when type is EXPENSE and groupBy is from', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResultsGroupByFrom.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.FROM)).toStrictEqual(
-                transactionMemberGroupListItems,
-            );
+            expect(
+                SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResultsGroupByFrom.data, 2074551, formatPhoneNumber, undefined, CONST.SEARCH.GROUP_BY.FROM),
+            ).toStrictEqual(transactionMemberGroupListItems);
         });
 
         it('should return getCardSections result when type is EXPENSE and groupBy is card', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResultsGroupByCard.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.CARD)).toStrictEqual(
-                transactionCardGroupListItems,
-            );
+            expect(
+                SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResultsGroupByCard.data, 2074551, formatPhoneNumber, undefined, CONST.SEARCH.GROUP_BY.CARD),
+            ).toStrictEqual(transactionCardGroupListItems);
         });
 
         it('should return getWithdrawalIDSections result when type is EXPENSE and groupBy is withdrawal-id', () => {
             expect(
-                SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResultsGroupByWithdrawalID.data, 2074551, formatPhoneNumber, CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID),
+                SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, searchResultsGroupByWithdrawalID.data, 2074551, formatPhoneNumber, undefined, CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID),
             ).toStrictEqual(transactionWithdrawalIDGroupListItems);
         });
     });

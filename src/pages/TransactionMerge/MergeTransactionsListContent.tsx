@@ -93,7 +93,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         () => (
             <View style={[styles.ph5, styles.pb5]}>
                 <Text style={[styles.textLabel, styles.minHeight5, styles.breakWord, styles.flexRow]}>
-                    <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: getReportName(transactionThreadReport ?? report)})} />
+                    <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: getReportName({report: transactionThreadReport ?? report})})} />
                 </Text>
             </View>
         ),

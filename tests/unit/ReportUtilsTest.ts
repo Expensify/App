@@ -81,7 +81,19 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {
+    Beta,
+    OnyxInputOrEntry,
+    PersonalDetailsList,
+    Policy,
+    PolicyEmployeeList,
+    PolicyTagLists,
+    Report,
+    ReportAction,
+    ReportActions,
+    ReportNameValuePairs,
+    Transaction,
+} from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
@@ -300,6 +312,15 @@ const policy: Policy = {
     owner: '',
     outputCurrency: '',
     isPolicyExpenseChatEnabled: false,
+};
+
+const policyTags: PolicyTagLists = {
+    [policy.id]: {
+        name: 'tags',
+        required: false,
+        orderWeight: 0,
+        tags: {},
+    },
 };
 
 describe('ReportUtils', () => {
@@ -577,8 +598,10 @@ describe('ReportUtils', () => {
             test('with displayName', () => {
                 expect(
                     getReportName({
-                        reportID: '',
-                        participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+                        report: {
+                            reportID: '',
+                            participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+                        },
                     }),
                 ).toBe('Ragnar Lothbrok');
             });
@@ -586,8 +609,10 @@ describe('ReportUtils', () => {
             test('no displayName', () => {
                 expect(
                     getReportName({
-                        reportID: '',
-                        participants: buildParticipantsFromAccountIDs([currentUserAccountID, 2]),
+                        report: {
+                            reportID: '',
+                            participants: buildParticipantsFromAccountIDs([currentUserAccountID, 2]),
+                        },
                     }),
                 ).toBe('floki@vikings.net');
             });
@@ -595,8 +620,10 @@ describe('ReportUtils', () => {
             test('SMS', () => {
                 expect(
                     getReportName({
-                        reportID: '',
-                        participants: buildParticipantsFromAccountIDs([currentUserAccountID, 4]),
+                        report: {
+                            reportID: '',
+                            participants: buildParticipantsFromAccountIDs([currentUserAccountID, 4]),
+                        },
                     }),
                 ).toBe('(833) 240-3627');
             });
@@ -605,8 +632,10 @@ describe('ReportUtils', () => {
         test('Group DM', () => {
             expect(
                 getReportName({
-                    reportID: '',
-                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2, 3, 4]),
+                    report: {
+                        reportID: '',
+                        participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2, 3, 4]),
+                    },
                 }),
             ).toBe('Ragnar, floki@vikings.net, Lagertha, (833) 240-3627');
         });
@@ -627,15 +656,15 @@ describe('ReportUtils', () => {
             };
 
             test('Active', () => {
-                expect(getReportName(baseAdminsRoom)).toBe('#admins');
+                expect(getReportName({report: baseAdminsRoom})).toBe('#admins');
             });
 
             test('Archived', async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`, reportNameValuePairs);
 
-                expect(getReportName(baseAdminsRoom)).toBe('#admins (archived)');
+                expect(getReportName({report: baseAdminsRoom})).toBe('#admins (archived)');
 
-                return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(baseAdminsRoom)).toBe('#admins (archivado)'));
+                return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName({report: baseAdminsRoom})).toBe('#admins (archivado)'));
             });
         });
 
@@ -655,7 +684,7 @@ describe('ReportUtils', () => {
             };
 
             test('Active', () => {
-                expect(getReportName(baseUserCreatedRoom)).toBe('#VikingsChat');
+                expect(getReportName({report: baseUserCreatedRoom})).toBe('#VikingsChat');
             });
 
             test('Archived', async () => {
@@ -665,9 +694,9 @@ describe('ReportUtils', () => {
 
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseUserCreatedRoom.reportID}`, reportNameValuePairs);
 
-                expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
+                expect(getReportName({report: archivedPolicyRoom})).toBe('#VikingsChat (archived)');
 
-                return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archivado)'));
+                return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName({report: archivedPolicyRoom})).toBe('#VikingsChat (archivado)'));
             });
         });
 
@@ -676,11 +705,13 @@ describe('ReportUtils', () => {
                 test('as member', () => {
                     expect(
                         getReportName({
-                            reportID: '',
-                            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                            policyID: policy.id,
-                            isOwnPolicyExpenseChat: true,
-                            ownerAccountID: 1,
+                            report: {
+                                reportID: '',
+                                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                                policyID: policy.id,
+                                isOwnPolicyExpenseChat: true,
+                                ownerAccountID: 1,
+                            },
                         }),
                     ).toBe(`Ragnar Lothbrok's expenses`);
                 });
@@ -688,11 +719,13 @@ describe('ReportUtils', () => {
                 test('as admin', () => {
                     expect(
                         getReportName({
-                            reportID: '',
-                            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                            policyID: policy.id,
-                            isOwnPolicyExpenseChat: false,
-                            ownerAccountID: 1,
+                            report: {
+                                reportID: '',
+                                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                                policyID: policy.id,
+                                isOwnPolicyExpenseChat: false,
+                                ownerAccountID: 1,
+                            },
                         }),
                     ).toBe(`Ragnar Lothbrok's expenses`);
                 });
@@ -719,9 +752,9 @@ describe('ReportUtils', () => {
 
                     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
 
-                    expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
+                    expect(getReportName({report: memberArchivedPolicyExpenseChat})).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
-                    return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`));
+                    return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName({report: memberArchivedPolicyExpenseChat})).toBe(`Ragnar Lothbrok's gastos (archivado)`));
                 });
 
                 test('as admin', async () => {
@@ -730,9 +763,9 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: false,
                     };
 
-                    expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
+                    expect(getReportName({report: adminArchivedPolicyExpenseChat})).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
-                    return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`));
+                    return IntlStore.load(CONST.LOCALES.ES).then(() => expect(getReportName({report: adminArchivedPolicyExpenseChat})).toBe(`Ragnar Lothbrok's gastos (archivado)`));
                 });
             });
         });
@@ -755,7 +788,7 @@ describe('ReportUtils', () => {
                     },
                 } as ReportAction;
 
-                expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('submitted');
+                expect(getReportName({report: threadOfSubmittedReportAction, policy, parentReportActionParam: submittedParentReportAction, policyTags})).toBe('submitted');
             });
 
             test('Invited/Removed Room Member Action', () => {
@@ -774,7 +807,7 @@ describe('ReportUtils', () => {
                     },
                 } as ReportAction;
 
-                expect(getReportName(threadOfRemovedRoomMemberAction, policy, removedParentReportAction)).toBe('removed ragnar@vikings.net');
+                expect(getReportName({report: threadOfRemovedRoomMemberAction, policy, parentReportActionParam: removedParentReportAction, policyTags})).toBe('removed ragnar@vikings.net');
             });
         });
 
@@ -783,12 +816,12 @@ describe('ReportUtils', () => {
 
             it('Should return the text extracted from report name html', () => {
                 const report: Report = {...createRandomReport(1), type: 'task'};
-                expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual('heading with link');
+                expect(getReportName({report: {...report, reportName: htmlTaskTitle}})).toEqual('heading with link');
             });
 
             it('Should return deleted task translations when task is is deleted', () => {
                 const report: Report = {...createRandomReport(1), type: 'task', isDeletedParentAction: true};
-                expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual(translateLocal('parentReportAction.deletedTask'));
+                expect(getReportName({report: {...report, reportName: htmlTaskTitle}})).toEqual(translateLocal('parentReportAction.deletedTask'));
             });
         });
 
@@ -815,7 +848,7 @@ describe('ReportUtils', () => {
             });
 
             test('should return report name from a derived value', () => {
-                expect(getReportName(report)).toEqual("Ragnar Lothbrok's expenses");
+                expect(getReportName({report})).toEqual("Ragnar Lothbrok's expenses");
             });
 
             test('should generate report name if report is not merged in the Onyx', () => {
@@ -830,7 +863,7 @@ describe('ReportUtils', () => {
                     policyID: '1',
                 };
 
-                expect(getReportName(expenseChatReport)).toEqual("Ragnar Lothbrok's expenses");
+                expect(getReportName({report: expenseChatReport})).toEqual("Ragnar Lothbrok's expenses");
             });
         });
     });
@@ -846,7 +879,7 @@ describe('ReportUtils', () => {
                 chatType: undefined,
             };
 
-            const result = getReportName(reportWithFallbackName);
+            const result = getReportName({report: reportWithFallbackName});
             expect(result).toBe('Custom Report Name');
         });
 
@@ -860,7 +893,7 @@ describe('ReportUtils', () => {
                 chatType: undefined,
             };
 
-            const result = getReportName(reportWithoutName);
+            const result = getReportName({report: reportWithoutName});
             expect(result).toBe('');
         });
 
@@ -874,7 +907,7 @@ describe('ReportUtils', () => {
                 chatType: undefined,
             };
 
-            const result = getReportName(reportWithUndefinedName);
+            const result = getReportName({report: reportWithUndefinedName});
             expect(result).toBe('');
         });
 
@@ -891,7 +924,7 @@ describe('ReportUtils', () => {
                 chatType: undefined,
             };
 
-            const result = getReportName(conciergeReport);
+            const result = getReportName({report: conciergeReport});
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
     });
@@ -915,7 +948,7 @@ describe('ReportUtils', () => {
                 },
             } as ReportAction;
 
-            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
+            expect(getReportName({report: expenseReport, policy, parentReportActionParam: submittedParentReportAction, policyTags})).toBe(
                 'approved via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules">workspace rules</a>',
             );
         });
@@ -938,7 +971,7 @@ describe('ReportUtils', () => {
                 },
             } as ReportAction;
 
-            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
+            expect(getReportName({report: expenseReport, policy, parentReportActionParam: submittedParentReportAction, policyTags})).toBe(
                 'approved via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules">workspace rules</a>',
             );
         });
@@ -963,7 +996,7 @@ describe('ReportUtils', () => {
                 },
             } as ReportAction;
 
-            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
+            expect(getReportName({report: expenseReport, policy, parentReportActionParam: submittedParentReportAction, policyTags})).toBe(
                 'submitted via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows">delay submissions</a>',
             );
         });
@@ -986,7 +1019,7 @@ describe('ReportUtils', () => {
                 },
             } as ReportAction;
 
-            expect(getReportName(expenseReport, policy, submittedParentReportAction)).toBe(
+            expect(getReportName({report: expenseReport, policy, parentReportActionParam: submittedParentReportAction, policyTags})).toBe(
                 'submitted via <a href="https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows">delay submissions</a>',
             );
         });
@@ -1022,13 +1055,13 @@ describe('ReportUtils', () => {
         });
 
         it('should return the correct parent navigation subtitle for the archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, true);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, true);
             const normalizedActual = {...actual, reportName: actual.reportName?.replace(/\u00A0/g, ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
         });
 
         it('should return the correct parent navigation subtitle for the non archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, false);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, false);
             const normalizedActual = {...actual, reportName: actual.reportName?.replace(/\u00A0/g, ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok'});
         });
@@ -4067,7 +4100,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, undefined);
             expect(result).toBe(report.reportName);
         });
 
@@ -4080,7 +4113,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, undefined);
             expect(result).toBe(report.reportName);
         });
 
@@ -4093,7 +4126,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.GROUP,
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, undefined);
             expect(result).toBe(report.reportName);
         });
 
@@ -4106,7 +4139,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, undefined);
             // Policies are empty, so the policy name is "Unavailable workspace"
             expect(result).toBe('Unavailable workspace');
         });
@@ -4120,7 +4153,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, undefined);
             expect(result).toBe(report.reportName);
         });
 
@@ -4133,7 +4166,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, undefined);
             expect(result).toBe(report.reportName);
         });
 
@@ -4146,7 +4179,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, undefined);
             // Report with ownerAccountID: 1 corresponds to "Ragnar Lothbrok"
             expect(result).toBe("Ragnar Lothbrok's expenses");
         });
@@ -4160,7 +4193,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, undefined);
             // currentUserAccountID: 5 corresponds to "Lagertha Lothbrok"
             expect(result).toBe('Lagertha Lothbrok (you)');
         });
@@ -4177,7 +4210,7 @@ describe('ReportUtils', () => {
                     1: {notificationPreference: 'hidden'},
                 },
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, undefined);
             // participant accountID: 1 corresponds to "Ragnar Lothbrok"
             expect(result).toBe('Ragnar Lothbrok');
         });
@@ -4195,7 +4228,7 @@ describe('ReportUtils', () => {
                 },
                 chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
             };
-            const result = getMoneyReportPreviewName(action, report);
+            const result = getMoneyReportPreviewName(action, report, undefined);
             // participant accountID: 1, 2 corresponds to "Ragnar", "floki@vikings.net"
             expect(result).toBe('Ragnar, floki@vikings.net');
         });
@@ -4206,7 +4239,7 @@ describe('ReportUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                 childReportName: 'Child Report',
             };
-            const result = getMoneyReportPreviewName(action, undefined);
+            const result = getMoneyReportPreviewName(action, undefined, undefined);
             expect(result).toBe('Child Report');
         });
     });

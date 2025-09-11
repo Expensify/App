@@ -174,6 +174,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
 
     const {singleExecution} = useSingleExecution();
 
@@ -193,6 +194,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
             selectedOptions as OptionData[],
             recentReports,
             personalDetails,
+            policyTags,
             undefined,
             undefined,
             undefined,
@@ -234,7 +236,7 @@ function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
         }
 
         return [sectionsList, firstKey];
-    }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, reportAttributesDerived, translate, userToInvite]);
+    }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, policyTags, reportAttributesDerived, translate, userToInvite]);
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.

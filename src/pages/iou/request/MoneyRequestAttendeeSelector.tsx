@@ -2,6 +2,7 @@ import {deepEqual} from 'fast-equals';
 import lodashReject from 'lodash/reject';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -38,6 +39,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {PolicyTagLists} from '@src/types/onyx/PolicyTag';
 
 type MoneyRequestAttendeesSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -73,6 +75,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         shouldInitialize: didScreenTransitionEnd,
     });
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: (val) => val?.reports});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}`, {canBeMissing: true});
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -148,6 +151,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             })),
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            policyTags,
             personalDetails,
             true,
             undefined,
@@ -175,7 +179,13 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                    let reportPolicyTags: OnyxEntry<PolicyTagLists>;
+                    if (participant.policyID) {
+                        reportPolicyTags = policyTags?.[participant.policyID];
+                    } else {
+                        reportPolicyTags = {};
+                    }
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportPolicyTags, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
@@ -198,8 +208,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         cleanSearchTerm,
         attendees,
         personalDetails,
-        translate,
         reportAttributesDerived,
+        translate,
+        policyTags,
     ]);
 
     const addAttendeeToSelection = useCallback(

@@ -64,9 +64,10 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     const {inputQuery: originalInputQuery} = queryJSON;
     const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
-    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies);
+    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, policyTags);
 
     // The actual input text that the user sees
     const [textInputValue, setTextInputValue] = useState(isDefaultQuery ? '' : queryText);
@@ -110,9 +111,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     }, [isDefaultQuery, queryText]);
 
     useEffect(() => {
-        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, allFeeds, policies);
+        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, allFeeds, policies, policyTags);
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [allFeeds, allCards, originalInputQuery, personalDetails, reports, taxRates, policies]);
+    }, [allFeeds, allCards, originalInputQuery, personalDetails, reports, taxRates, policies, policyTags]);
 
     useEffect(() => {
         if (searchRouterListVisible) {
