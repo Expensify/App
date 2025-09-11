@@ -5,7 +5,7 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {SearchContextData, SearchContextType, SearchQueryJSON, SelectedTransactions} from './types';
+import type {SearchContextData, SearchContextProps, SearchQueryJSON, SelectedTransactions} from './types';
 
 const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
@@ -19,7 +19,7 @@ const defaultSearchContextData: SearchContextData = {
     shouldResetSearchQuery: false,
 };
 
-const defaultSearchContext: SearchContextType = {
+const defaultSearchContext: SearchContextProps = {
     ...defaultSearchContextData,
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
@@ -37,7 +37,7 @@ const defaultSearchContext: SearchContextType = {
     setShouldResetSearchQuery: () => {},
 };
 
-const SearchContext = React.createContext<SearchContextType>(defaultSearchContext);
+const SearchContext = React.createContext<SearchContextProps>(defaultSearchContext);
 
 function SearchContextProvider({children}: ChildrenProps) {
     const [showSelectAllMatchingItems, shouldShowSelectAllMatchingItems] = useState(false);
@@ -74,7 +74,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         });
     }, []);
 
-    const setSelectedTransactions: SearchContextType['setSelectedTransactions'] = useCallback((selectedTransactions, data = []) => {
+    const setSelectedTransactions: SearchContextProps['setSelectedTransactions'] = useCallback((selectedTransactions, data = []) => {
         if (selectedTransactions instanceof Array) {
             if (!selectedTransactions.length && areTransactionsEmpty.current) {
                 areTransactionsEmpty.current = true;
@@ -88,7 +88,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         }
 
         // When selecting transactions, we also need to manage the reports to which these transactions belong. This is done to ensure proper exporting to CSV.
-        let selectedReports: SearchContextType['selectedReports'] = [];
+        let selectedReports: SearchContextProps['selectedReports'] = [];
 
         if (data.length && data.every(isTransactionReportGroupListItemType)) {
             selectedReports = data
@@ -120,7 +120,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         }));
     }, []);
 
-    const clearSelectedTransactions: SearchContextType['clearSelectedTransactions'] = useCallback(
+    const clearSelectedTransactions: SearchContextProps['clearSelectedTransactions'] = useCallback(
         (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
             if (typeof searchHashOrClearIDsFlag === 'boolean') {
                 setSelectedTransactions([]);
@@ -154,7 +154,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         ],
     );
 
-    const removeTransaction: SearchContextType['removeTransaction'] = useCallback(
+    const removeTransaction: SearchContextProps['removeTransaction'] = useCallback(
         (transactionID) => {
             if (!transactionID) {
                 return;
@@ -193,7 +193,7 @@ function SearchContextProvider({children}: ChildrenProps) {
         }));
     }, []);
 
-    const searchContext = useMemo<SearchContextType>(
+    const searchContext = useMemo<SearchContextProps>(
         () => ({
             ...searchContextData,
             removeTransaction,
