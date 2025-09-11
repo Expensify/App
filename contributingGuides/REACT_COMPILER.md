@@ -8,7 +8,32 @@ At Expensify, we are early adopters of this tool and aim to fully leverage its c
 
 ## React Compiler compatibility check
 
-To check if your code can be compiled by React Compiler and hence gets all its optimizations "for free", you can run the `npm run react-compiler-healthcheck-test` locally and analyze the output.
+To check if your code can be compiled by React Compiler and hence gets all its optimizations "for free", you can use the React Compiler Tracker tools:
+
+### Quick Development Checks
+
+```bash
+# Check a specific file
+npm run react-compiler-tracker check-file src/components/MyComponent.tsx
+
+# Quick check with optimization suggestions
+npm run react-compiler-dev-tool suggest src/components/MyComponent.tsx
+
+# Check all changed files (before submitting PR)
+npm run react-compiler-tracker check-changed
+```
+
+### Detailed Analysis
+
+```bash
+# Generate detailed report
+npm run react-compiler-tracker report
+
+# Legacy detailed check (saves to react-compiler-output.txt)
+npm run react-compiler-healthcheck-test
+```
+
+For more information about the React Compiler Tracker tools, see [REACT_COMPILER_TRACKER.md](./REACT_COMPILER_TRACKER.md).
 
 ## How can I check what exactly prevents file from successful optimization or whether my fix for passing `react-compiler` actually works?
 
@@ -96,7 +121,7 @@ return (
         <ToggleSettingOptionRow
             onToggle={item.onToggle}
             // ❌ such code triggers the error - `qboConfig?.pendingFields` is an external variable from the closure
-            // so this code is pretty complicated for `react-compiler` optimizations 
+            // so this code is pretty complicated for `react-compiler` optimizations
             pendingAction={settingsPendingAction([item.subscribedSetting], qboConfig?.pendingFields)}
             // ❌ such code triggers the error - `qboConfig` is an external variable from the closure
             errors={ErrorUtils.getLatestErrorField(qboConfig, item.subscribedSetting)}
