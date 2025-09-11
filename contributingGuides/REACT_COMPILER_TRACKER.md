@@ -1,8 +1,8 @@
-# React Compiler Tracker
+# React Compiler Compliance Checker
 
 ## Overview
 
-The React Compiler Tracker is a comprehensive solution for monitoring and enforcing React Compiler compatibility across the Expensify codebase. It helps engineers understand when React Compiler will automatically optimize their components and when manual memoization is still needed.
+The React Compiler Compliance Checker is a comprehensive solution for monitoring and enforcing React Compiler compatibility across the Expensify codebase. It helps engineers understand when React Compiler will automatically optimize their components and when manual memoization is still needed.
 
 ## Problem Statement
 
@@ -10,7 +10,7 @@ When React Compiler is enabled, it automatically adds invisible `React.memo`, `u
 
 ## Solution
 
-The React Compiler Tracker provides:
+The React Compiler Compliance Checker provides:
 
 1. **CI Enforcement**: Automatically checks that new components follow the Rules of React
 2. **Local Development Tools**: Quick checks and optimization suggestions during development
@@ -19,7 +19,7 @@ The React Compiler Tracker provides:
 
 ## Tools
 
-### 1. React Compiler Tracker (Main Tool)
+### 1. React Compiler Compliance Checker (Main Tool)
 
 The main tracking and CI tool that manages component compilation status.
 
@@ -273,7 +273,7 @@ After removing manual memoization from compilable components:
 
 ## Integration with Existing Tools
 
-The React Compiler Tracker integrates with:
+The React Compiler Compliance Checker integrates with:
 
 - **Existing healthcheck**: Uses the patched `react-compiler-healthcheck` with JSON output
 - **Git workflows**: Tracks changes and new files

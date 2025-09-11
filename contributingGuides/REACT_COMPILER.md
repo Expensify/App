@@ -8,7 +8,7 @@ At Expensify, we are early adopters of this tool and aim to fully leverage its c
 
 ## React Compiler compatibility check
 
-To check if your code can be compiled by React Compiler and hence gets all its optimizations "for free", you can use the React Compiler Tracker tools:
+To check if your code can be compiled by React Compiler and hence gets all its optimizations "for free", you can use the React Compiler Compliance Checker tools:
 
 ### Quick Development Checks
 
@@ -33,7 +33,7 @@ npm run react-compiler-tracker report
 npm run react-compiler-healthcheck-test
 ```
 
-For more information about the React Compiler Tracker tools, see [REACT_COMPILER_TRACKER.md](./REACT_COMPILER_TRACKER.md).
+For more information about the React Compiler Compliance Checker tools, see [REACT_COMPILER_TRACKER.md](./REACT_COMPILER_TRACKER.md).
 
 ## How can I check what exactly prevents file from successful optimization or whether my fix for passing `react-compiler` actually works?
 
