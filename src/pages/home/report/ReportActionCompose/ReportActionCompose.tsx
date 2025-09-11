@@ -45,6 +45,8 @@ import {
     chatIncludesConcierge,
     getParentReport,
     getReportRecipientAccountIDs,
+    isChatRoom,
+    isGroupChat,
     isReportApproved,
     isReportTransactionThread,
     isSelfDM,
@@ -236,8 +238,11 @@ function ReportActionCompose({
     const shouldDisplayDualDropZone = useMemo(() => {
         const parentReport = getParentReport(report);
         const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
-        return (shouldAddOrReplaceReceipt && !isSettledOrApproved) || !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived).length;
-    }, [shouldAddOrReplaceReceipt, report, policy, reportParticipantIDs, isReportArchived]);
+        const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, isReportArchived).length;
+        const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
+        const isRoomOrGroupChat = isChatRoom(report) || isGroupChat(report);
+        return !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions);
+    }, [shouldAddOrReplaceReceipt, report, reportParticipantIDs, policy, isReportArchived]);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
