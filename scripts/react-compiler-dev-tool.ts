@@ -9,15 +9,20 @@
 import {execSync} from 'child_process';
 import {existsSync, readFileSync} from 'fs';
 import {join, relative} from 'path';
-import {ReactCompilerTracker} from './react-compiler-tracker';
+import ReactCompilerTracker from './react-compiler-tracker';
 
-interface ComponentInfo {
+type ComponentInfo = {
     name: string;
     file: string;
     canCompile: boolean;
     lastChecked: string;
     isHook: boolean;
-}
+};
+
+type ReactCompilerUsageInfo = {
+    line: number;
+    content: string;
+};
 
 class ReactCompilerDevTool {
     private tracker: ReactCompilerTracker;
@@ -29,7 +34,6 @@ class ReactCompilerDevTool {
     private getComponentInfo(filePath: string): ComponentInfo | null {
         try {
             const content = readFileSync(filePath, 'utf8');
-            const lines = content.split('\n');
 
             // Look for component definitions
             const componentRegex = /(?:export\s+)?(?:const|function|class)\s+([A-Z][a-zA-Z0-9]*)/g;
@@ -39,12 +43,16 @@ class ReactCompilerDevTool {
             const components: string[] = [];
             const hooks: string[] = [];
 
-            while ((match = componentRegex.exec(content)) !== null) {
+            match = componentRegex.exec(content);
+            while (match !== null) {
                 components.push(match[1]);
+                match = componentRegex.exec(content);
             }
 
-            while ((match = hookRegex.exec(content)) !== null) {
+            match = hookRegex.exec(content);
+            while (match !== null) {
                 hooks.push(match[1]);
+                match = hookRegex.exec(content);
             }
 
             const allIdentifiers = [...components, ...hooks];
@@ -53,7 +61,8 @@ class ReactCompilerDevTool {
             }
 
             // For now, we'll use the first component/hook found
-            const identifier = allIdentifiers[0];
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const identifier = allIdentifiers.at(0)!;
             const isHook = identifier.startsWith('use');
 
             return {
@@ -69,7 +78,7 @@ class ReactCompilerDevTool {
         }
     }
 
-    private findReactFiles(directory: string = 'src'): string[] {
+    private findReactFiles(directory = 'src'): string[] {
         try {
             const output = execSync(`find ${directory} -name "*.tsx" -o -name "*.ts" | grep -v node_modules | grep -v tests`, {
                 encoding: 'utf8',
@@ -84,7 +93,7 @@ class ReactCompilerDevTool {
         }
     }
 
-    public async quickCheck(filePath?: string): Promise<void> {
+    public quickCheck(filePath?: string): void {
         console.log('🔍 React Compiler Quick Check\n');
 
         if (filePath) {
@@ -145,7 +154,7 @@ class ReactCompilerDevTool {
         }
     }
 
-    public async analyzeDirectory(directory: string = 'src'): Promise<void> {
+    public analyzeDirectory(directory = 'src'): void {
         console.log(`🔍 Analyzing React Compiler compatibility in ${directory}/\n`);
 
         const reactFiles = this.findReactFiles(directory);
@@ -199,7 +208,7 @@ class ReactCompilerDevTool {
         }
     }
 
-    public async suggestOptimizations(filePath: string): Promise<void> {
+    public suggestOptimizations(filePath: string): void {
         console.log(`💡 Optimization suggestions for ${filePath}\n`);
 
         const fullPath = join(process.cwd(), filePath);
@@ -212,9 +221,10 @@ class ReactCompilerDevTool {
         const lines = content.split('\n');
 
         // Look for manual memoization that might be unnecessary
-        const memoUsage = [];
-        const useMemoUsage = [];
-        const useCallbackUsage = [];
+
+        const memoUsage: ReactCompilerUsageInfo[] = [];
+        const useMemoUsage: ReactCompilerUsageInfo[] = [];
+        const useCallbackUsage: ReactCompilerUsageInfo[] = [];
 
         lines.forEach((line, index) => {
             if (line.includes('React.memo') || line.includes('memo(')) {
@@ -305,30 +315,33 @@ Related commands:
 }
 
 // CLI interface
-async function main() {
+function main() {
     const args = process.argv.slice(2);
-    const command = args[0];
+    const command = args.at(0);
     const devTool = new ReactCompilerDevTool();
 
     try {
         switch (command) {
             case 'quick-check':
-                const filePath = args[1];
-                await devTool.quickCheck(filePath);
+                // eslint-disable-next-line no-case-declarations
+                const filePath = args.at(1);
+                devTool.quickCheck(filePath);
                 break;
 
             case 'analyze':
-                const directory = args[1] || 'src';
-                await devTool.analyzeDirectory(directory);
+                // eslint-disable-next-line no-case-declarations
+                const directory = args.at(1) ?? 'src';
+                devTool.analyzeDirectory(directory);
                 break;
 
             case 'suggest':
-                const targetFile = args[1];
+                // eslint-disable-next-line no-case-declarations
+                const targetFile = args.at(1);
                 if (!targetFile) {
                     console.error('❌ Please provide a file path: npm run react-compiler-dev-tool suggest <path>');
                     process.exit(1);
                 }
-                await devTool.suggestOptimizations(targetFile);
+                devTool.suggestOptimizations(targetFile);
                 break;
 
             case 'help':
@@ -346,4 +359,4 @@ if (require.main === module) {
     main();
 }
 
-export {ReactCompilerDevTool};
+export default ReactCompilerDevTool;

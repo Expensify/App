@@ -10,22 +10,22 @@ import {execSync} from 'child_process';
 import {existsSync, readFileSync, writeFileSync} from 'fs';
 import {join} from 'path';
 
-interface CompilerResults {
+type CompilerResults = {
     success: string[];
     failure: string[];
-}
+};
 
-interface ComponentStatus {
+type ComponentStatus = {
     file: string;
     canCompile: boolean;
     lastChecked: string;
-}
+};
 
-interface TrackerData {
+type TrackerData = {
     components: Record<string, ComponentStatus>;
     lastFullCheck: string;
     version: string;
-}
+};
 
 const TRACKER_FILE = join(process.cwd(), '.react-compiler-tracker.json');
 const COMPILER_OUTPUT_FILE = join(process.cwd(), 'react-compiler-output.json');
@@ -40,7 +40,7 @@ class ReactCompilerTracker {
     private loadTrackerData(): TrackerData {
         if (existsSync(TRACKER_FILE)) {
             try {
-                return JSON.parse(readFileSync(TRACKER_FILE, 'utf8'));
+                return JSON.parse(readFileSync(TRACKER_FILE, 'utf8')) as TrackerData;
             } catch (error) {
                 console.warn('Failed to parse tracker file, starting fresh:', error);
             }
@@ -57,7 +57,7 @@ class ReactCompilerTracker {
         writeFileSync(TRACKER_FILE, JSON.stringify(this.trackerData, null, 2));
     }
 
-    private runCompilerHealthcheck(): CompilerResults {
+    public runCompilerHealthcheck(): CompilerResults {
         try {
             console.log('🔍 Running React Compiler healthcheck...');
             const output = execSync('npx react-compiler-healthcheck --json', {
@@ -68,7 +68,7 @@ class ReactCompilerTracker {
             // Save raw output for debugging
             writeFileSync(COMPILER_OUTPUT_FILE, output);
 
-            return JSON.parse(output);
+            return JSON.parse(output) as CompilerResults;
         } catch (error) {
             console.error('❌ Failed to run React Compiler healthcheck:', error);
             throw error;
@@ -115,7 +115,7 @@ class ReactCompilerTracker {
         }
     }
 
-    public async runFullCheck(): Promise<void> {
+    public runFullCheck() {
         console.log('🚀 Running full React Compiler check...');
 
         const results = this.runCompilerHealthcheck();
@@ -136,7 +136,7 @@ class ReactCompilerTracker {
         console.log(`✅ Full check completed. Found ${results.success.length} compilable and ${results.failure.length} non-compilable components.`);
     }
 
-    public async checkChangedFiles(): Promise<{passed: boolean; failures: string[]}> {
+    public checkChangedFiles(): {passed: boolean; failures: string[]} {
         console.log('🔍 Checking changed files for React Compiler compliance...');
 
         const changedFiles = this.getChangedFiles();
@@ -257,19 +257,20 @@ class ReactCompilerTracker {
 }
 
 // CLI interface
-async function main() {
+function main() {
     const args = process.argv.slice(2);
-    const command = args[0];
+    const command = args.at(0);
     const tracker = new ReactCompilerTracker();
 
     try {
         switch (command) {
             case 'full-check':
-                await tracker.runFullCheck();
+                tracker.runFullCheck();
                 break;
 
             case 'check-changed':
-                const result = await tracker.checkChangedFiles();
+                // eslint-disable-next-line no-case-declarations
+                const result = tracker.checkChangedFiles();
                 if (!result.passed) {
                     console.log('\n❌ CI Check Failed!');
                     console.log('The following new files cannot be compiled by React Compiler:');
@@ -280,11 +281,13 @@ async function main() {
                 break;
 
             case 'check-file':
-                const filePath = args[1];
+                // eslint-disable-next-line no-case-declarations
+                const filePath = args.at(1);
                 if (!filePath) {
                     console.error('❌ Please provide a file path: npm run react-compiler-tracker check-file <path>');
                     process.exit(1);
                 }
+                // eslint-disable-next-line no-case-declarations
                 const canCompile = tracker.checkSpecificFile(filePath);
                 process.exit(canCompile ? 0 : 1);
                 break;
@@ -330,4 +333,4 @@ if (require.main === module) {
     main();
 }
 
-export {ReactCompilerTracker};
+export default ReactCompilerTracker;
