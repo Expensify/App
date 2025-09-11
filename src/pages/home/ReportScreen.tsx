@@ -80,7 +80,7 @@ import {
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
 import {isNumeric} from '@libs/ValidationUtils';
-import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+import type {ReportsSplitNavigatorParamList, SearchReportParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
 import {
     clearDeleteTransactionNavigateBackUrl,
@@ -106,7 +106,9 @@ import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext} from './ReportScreenContext';
 
-type ReportScreenNavigationProps = PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>;
+type ReportScreenNavigationProps =
+    | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
+    | PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>;
 
 type ReportScreenProps = ReportScreenNavigationProps;
 
@@ -194,7 +196,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        const lastAccessedReportID = findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), !!route.params.openOnAdminRoom)?.reportID;
+        const lastAccessedReportID = findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), 'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom)?.reportID;
 
         // It's possible that reports aren't fully loaded yet
         // in that case the reportID is undefined
@@ -798,7 +800,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const shouldShowWideRHP =
-        // @ts-expect-error @TODO-RHP somebody messed up the types
         route.name === SCREENS.SEARCH.REPORT_RHP &&
         !isSmallScreenWidth &&
         (isTransactionThread(parentReportAction) || parentReportAction?.childType === CONST.REPORT.TYPE.EXPENSE || parentReportAction?.childType === CONST.REPORT.TYPE.IOU);
