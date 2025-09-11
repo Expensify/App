@@ -6142,7 +6142,7 @@ const translations = {
             },
             status: 'Statut',
             keyword: 'Mot-clé',
-            hasKeywords: 'A des mots-clés',
+            keywords: 'Mots-clés',
             currency: 'Devise',
             link: 'Lien',
             pinned: 'Épinglé',

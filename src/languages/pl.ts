@@ -6121,7 +6121,7 @@ const translations = {
             },
             status: 'Status',
             keyword: 'Słowo kluczowe',
-            hasKeywords: 'Ma słowa kluczowe',
+            keywords: 'Słowa kluczowe',
             currency: 'Waluta',
             link: 'Link',
             pinned: 'Przypięte',

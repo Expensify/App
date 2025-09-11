@@ -6100,7 +6100,7 @@ const translations = {
             },
             status: 'ステータス',
             keyword: 'キーワード',
-            hasKeywords: 'キーワードがあります',
+            keywords: 'キーワード',
             currency: '通貨',
             link: 'リンク',
             pinned: '固定済み',

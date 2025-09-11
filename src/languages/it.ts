@@ -6143,7 +6143,7 @@ const translations = {
             },
             status: 'Stato',
             keyword: 'Parola chiave',
-            hasKeywords: 'Contiene parole chiave',
+            keywords: 'Parole chiave',
             currency: 'Valuta',
             link: 'Link',
             pinned: 'Aggiunto ai preferiti',
