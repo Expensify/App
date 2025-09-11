@@ -10,6 +10,23 @@ import {execSync} from 'child_process';
 import {existsSync, readFileSync, writeFileSync} from 'fs';
 import {join} from 'path';
 
+type ReactCompilerConfig = {
+    excludedFolderPatterns: string[];
+    checkedFileEndings: string[];
+};
+
+// Load React Compiler configuration from shared config file
+const reactCompilerConfig = JSON.parse(readFileSync(join(process.cwd(), 'react-compiler-config.json'), 'utf8')) as ReactCompilerConfig;
+
+/**
+ * Check if a file should be processed by React Compiler
+ * Matches the same logic as babel.config.js ReactCompilerConfig.sources
+ */
+function shouldProcessFile(filePath: string): boolean {
+    // Check if file is in any excluded folder
+    return !reactCompilerConfig.excludedFolderPatterns.some((pattern) => filePath.includes(pattern));
+}
+
 type CompilerResults = {
     success: string[];
     failure: string[];
@@ -224,7 +241,9 @@ class ReactCompilerTracker {
             return output
                 .trim()
                 .split('\n')
-                .filter((file) => file.endsWith('.tsx') || file.endsWith('.ts'));
+                .filter((file) => file.length > 0)
+                .filter((file) => reactCompilerConfig.checkedFileEndings.some((ending) => file.endsWith(ending)))
+                .filter((file) => shouldProcessFile(file));
         } catch (error) {
             console.warn('Could not determine changed files:', error);
             return [];
@@ -240,7 +259,9 @@ class ReactCompilerTracker {
             return output
                 .trim()
                 .split('\n')
-                .filter((file) => file.endsWith('.tsx') || file.endsWith('.ts'));
+                .filter((file) => file.length > 0)
+                .filter((file) => reactCompilerConfig.checkedFileEndings.some((ending) => file.endsWith(ending)))
+                .filter((file) => shouldProcessFile(file));
         } catch (error) {
             console.warn('Could not determine new files:', error);
             return [];
@@ -317,6 +338,12 @@ class ReactCompilerTracker {
 
     public checkSpecificFile(filePath: string): boolean {
         console.log(`🔍 Checking specific file: ${filePath}`);
+
+        // Check if file should be processed by React Compiler
+        if (!shouldProcessFile(filePath)) {
+            console.log(`⚠️  ${filePath} is not processed by React Compiler (excluded by babel config)`);
+            return true; // Return true since it's not expected to be compiled
+        }
 
         const results = this.runCompilerHealthcheck();
         const canCompile = results.success.includes(filePath);
@@ -477,3 +504,4 @@ if (require.main === module) {
 }
 
 export default ReactCompilerTracker;
+export {shouldProcessFile};

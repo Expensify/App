@@ -9,7 +9,15 @@
 import {execSync} from 'child_process';
 import {existsSync, readFileSync} from 'fs';
 import {join, relative} from 'path';
-import ReactCompilerTracker from './react-compiler-tracker';
+import ReactCompilerTracker, {shouldProcessFile} from './react-compiler-tracker';
+
+type ReactCompilerConfig = {
+    excludedFolderPatterns: string[];
+    checkedFileEndings: string[];
+};
+
+// Load React Compiler configuration from shared config file
+const reactCompilerConfig = JSON.parse(readFileSync(join(process.cwd(), 'react-compiler-config.json'), 'utf8')) as ReactCompilerConfig;
 
 type ComponentInfo = {
     name: string;
@@ -80,13 +88,15 @@ class ReactCompilerDevTool {
 
     private findReactFiles(directory = 'src'): string[] {
         try {
-            const output = execSync(`find ${directory} -name "*.tsx" -o -name "*.ts" | grep -v node_modules | grep -v tests`, {
+            const fileExtensions = reactCompilerConfig.checkedFileEndings.map((ending) => `-name "*${ending}"`).join(' -o ');
+            const output = execSync(`find ${directory} ${fileExtensions}`, {
                 encoding: 'utf8',
             });
             return output
                 .trim()
                 .split('\n')
-                .filter((file) => file.length > 0);
+                .filter((file) => file.length > 0)
+                .filter((file) => shouldProcessFile(file));
         } catch (error) {
             console.error('Error finding React files:', error);
             return [];
@@ -101,6 +111,13 @@ class ReactCompilerDevTool {
             const fullPath = join(process.cwd(), filePath);
             if (!existsSync(fullPath)) {
                 console.error(`❌ File not found: ${filePath}`);
+                return;
+            }
+
+            // Check if file should be processed by React Compiler
+            if (!shouldProcessFile(filePath)) {
+                console.log(`⚠️  ${filePath} is not processed by React Compiler (excluded by babel config)`);
+                console.log('💡 This file is excluded from React Compiler processing based on babel configuration.');
                 return;
             }
 
@@ -224,6 +241,13 @@ class ReactCompilerDevTool {
         const fullPath = join(process.cwd(), filePath);
         if (!existsSync(fullPath)) {
             console.error(`❌ File not found: ${filePath}`);
+            return;
+        }
+
+        // Check if file should be processed by React Compiler
+        if (!shouldProcessFile(filePath)) {
+            console.log(`⚠️  ${filePath} is not processed by React Compiler (excluded by babel config)`);
+            console.log('💡 This file is excluded from React Compiler processing based on babel configuration.');
             return;
         }
 
