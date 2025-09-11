@@ -66,6 +66,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const [shouldShowLoadingOnSearch, setShouldShowLoadingOnSearch] = useState(false);
     const {selectedTransactions, currentSearchHash} = useSearchContext();
     const selectedTransactionIDs = Object.keys(selectedTransactions);
     const selectedTransactionIDsSet = useMemo(() => new Set(selectedTransactionIDs), [selectedTransactionIDs]);
@@ -130,7 +131,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const shouldDisplayEmptyView = isEmpty && isGroupByReports;
     const isDisabledOrEmpty = isEmpty || isDisabled;
     const shouldDisplayShowMoreButton = !isGroupByReports && !!transactionsSnapshotMetadata?.hasMoreResults;
-    const shouldDisplayLoadingIndicator = !isGroupByReports && !!transactionsSnapshotMetadata?.isLoading;
+    const shouldDisplayLoadingIndicator = !isGroupByReports && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
@@ -188,7 +189,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const pressableRef = useRef<View>(null);
 
     useEffect(() => {
-        if (!newTransactionID || !groupItem.transactionsQueryJSON) {
+        if (!newTransactionID || !groupItem.transactionsQueryJSON || !isExpanded) {
             return;
         }
         search({
@@ -197,7 +198,14 @@ function TransactionGroupListItem<TItem extends ListItem>({
             offset: transactionsSnapshot?.search?.offset ?? 0,
             shouldCalculateTotals: false,
         });
-    }, [groupItem.transactionsQueryJSON, newTransactionID, transactionsSnapshot?.search?.offset]);
+    }, [groupItem.transactionsQueryJSON, newTransactionID, transactionsSnapshot?.search?.offset, isExpanded]);
+
+    useEffect(() => {
+        if (transactionsSnapshotMetadata?.isLoading) {
+            return;
+        }
+        setShouldShowLoadingOnSearch(false);
+    }, []);
 
     const handleToggle = useCallback(() => {
         setIsExpanded(!isExpanded);
@@ -228,6 +236,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const onExpandIconPress = useCallback(() => {
         if (isEmpty && !shouldDisplayEmptyView) {
+            setShouldShowLoadingOnSearch(true);
             onPress();
         } else if (groupItem.transactionsQueryJSON && !isExpanded) {
             search({
@@ -394,6 +403,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                                 if (!!isOffline || !groupItem.transactionsQueryJSON) {
                                                     return;
                                                 }
+                                                setShouldShowLoadingOnSearch(true);
                                                 search({
                                                     queryJSON: groupItem.transactionsQueryJSON,
                                                     searchKey: undefined,
