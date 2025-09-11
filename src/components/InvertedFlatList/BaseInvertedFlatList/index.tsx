@@ -1,7 +1,9 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
+import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList} from 'react-native';
 import FlatList from '@components/FlatList';
+import type {ScrollViewProps} from '@components/ScrollView';
+import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@hooks/useFlatListScrollKey';
 import usePrevious from '@hooks/usePrevious';
 import CONST from '@src/CONST';
 import type {RenderInfo} from './RenderTaskQueue';
@@ -29,8 +31,6 @@ type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem'
     initialScrollKey?: string | null;
     onInitiallyLoaded?: () => void;
 };
-
-const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
 
 function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<RNFlatList>) {
     const {
@@ -73,8 +73,6 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
     }, [currentDataIndex, data, initialNumToRender, isInitialData]);
     const initialNegativeScrollIndex = useRef(negativeScrollIndex);
 
-    const listRef = useRef<(RNFlatList & HTMLElement) | null>(null);
-
     // Queue up updates to the displayed data to avoid adding too many at once and cause jumps in the list.
     const renderQueue = useMemo(() => new RenderTaskQueue(), []);
     useEffect(() => {
@@ -95,6 +93,8 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         },
         [onContentSizeChange],
     );
+
+    const listRef = useRef<RNFlatList | null>(null);
 
     // When we are initially showing a message on the first page of the whole dataset,
     // we don't want to immediately start rendering the list.
@@ -224,7 +224,5 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
 BaseInvertedFlatList.displayName = 'BaseInvertedFlatList';
 
 export default forwardRef(BaseInvertedFlatList);
-
-export {AUTOSCROLL_TO_TOP_THRESHOLD};
 
 export type {BaseInvertedFlatListProps};

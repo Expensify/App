@@ -3,7 +3,6 @@ title: Prohibited Expenses Rule
 description: Learn how to enable and use the Prohibited expenses rule to automatically flag receipts with restricted items such as alcohol, gambling, or tobacco.
 keywords: [New Expensify, prohibited expenses, receipt violation, SmartScan, alcohol, gambling, expense rules, workspace settings, line item compliance]
 ---
-<div id="new-expensify" markdown="1">
 
 Enable the Prohibited Expenses rule to help Workspace Admins enforce compliance by automatically flagging receipts that contain restricted purchases like alcohol, gambling, or tobacco. This rule uses Expensify’s AI-powered SmartScan to review individual line items and alert admins when prohibited categories are detected.
 
@@ -15,11 +14,11 @@ Once set up, SmartScan reviews scanned receipts at the line-item level:
 
 ---
 
-# Set Up Prohibited Expenses Rules 
+# Set Up Prohibited Expenses Rules
 
 To turn on the Prohibited Expenses rule:
 
-1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **Rules**, then **Expenses**.
 4. Scroll to the **Prohibited Expenses** section.
@@ -57,4 +56,3 @@ Only **Workspace Admins** can enable or adjust this rule.
 
 Yes. SmartScan will still extract the merchant, date, and amount. However, it won’t scan for prohibited items unless the rule is enabled.
 
-</div>

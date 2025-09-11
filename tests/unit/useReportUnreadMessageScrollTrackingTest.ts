@@ -1,5 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type Navigation from '@libs/Navigation/Navigation';
 import useReportUnreadMessageScrollTracking from '@pages/home/report/useReportUnreadMessageScrollTracking';
 import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -7,6 +8,14 @@ import CONST from '@src/CONST';
 jest.mock('@userActions/Report', () => {
     return {
         readNewestAction: jest.fn(),
+    };
+});
+
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
+    return {
+        ...actualNav,
+        useIsFocused: jest.fn().mockImplementation(() => true),
     };
 });
 
@@ -63,7 +72,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
 
             // Then
             expect(result.current.isFloatingMessageCounterVisible).toBe(true);
-            expect(onTrackScrollingMockFn).not.toBeCalled();
+            expect(onTrackScrollingMockFn).not.toHaveBeenCalled();
         });
     });
 
@@ -94,7 +103,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
 
             // Then
             expect(result.current.isFloatingMessageCounterVisible).toBe(true);
-            expect(onTrackScrollingMockFn).toBeCalledWith(emptyScrollEventMock);
+            expect(onTrackScrollingMockFn).toHaveBeenCalledWith(emptyScrollEventMock);
         });
 
         it('returns floatingMessage visibility as true when the unread message is not visible in the view port', () => {
@@ -126,7 +135,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
 
             // Then
             expect(result.current.isFloatingMessageCounterVisible).toBe(true);
-            expect(onTrackScrollingMockFn).toBeCalledWith(emptyScrollEventMock);
+            expect(onTrackScrollingMockFn).toHaveBeenCalledWith(emptyScrollEventMock);
         });
 
         it('returns floatingMessage visibility as false when scrolling inside the threshold', () => {
@@ -152,7 +161,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
 
             // Then
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
-            expect(onTrackScrollingMockFn).toBeCalledWith(emptyScrollEventMock);
+            expect(onTrackScrollingMockFn).toHaveBeenCalledWith(emptyScrollEventMock);
         });
 
         it('returns floatingMessage visibility as false when unread message is visible', () => {
@@ -182,7 +191,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
 
             // Then
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
-            expect(onTrackScrollingMockFn).toBeCalledWith(emptyScrollEventMock);
+            expect(onTrackScrollingMockFn).toHaveBeenCalledWith(emptyScrollEventMock);
         });
 
         it('calls readAction when scrolling to an extent the unread message is visible and read action skipped is true', () => {
@@ -207,7 +216,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
             });
 
             expect(result.current.isFloatingMessageCounterVisible).toBe(true);
-            expect(readNewestAction).toBeCalledTimes(0);
+            expect(readNewestAction).toHaveBeenCalledTimes(0);
 
             act(() => {
                 // scrolling so that the unread action is visible, should call readNewestAction
@@ -215,7 +224,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
             });
 
             // Then
-            expect(readNewestAction).toBeCalledTimes(1);
+            expect(readNewestAction).toHaveBeenCalledTimes(1);
             expect(readActionRefFalse.current).toBe(false);
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
         });
