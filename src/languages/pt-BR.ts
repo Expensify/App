@@ -93,6 +93,7 @@ import type {
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
+    DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
@@ -169,6 +170,7 @@ import type {
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    PhoneErrorRouteParams,
     PolicyAddedReportFieldOptionParams,
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
@@ -657,6 +659,7 @@ const translations = {
         submitTo: 'Enviar para',
         forwardTo: 'Encaminhar para',
         merge: 'Mesclar',
+        none: 'Nenhum',
         unstableInternetConnection: 'Conexão de internet instável. Verifique sua rede e tente novamente.',
         enableGlobalReimbursements: 'Ativar reembolsos globais',
         purchaseAmount: 'Valor da compra',
@@ -1413,7 +1416,7 @@ const translations = {
         listPage: {
             header: 'Mesclar despesas',
             noEligibleExpenseFound: 'Nenhuma despesa elegível encontrada',
-            noEligibleExpenseFoundSubtitle: `Você não tem despesas que possam ser mescladas com esta. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Saiba mais</a> sobre despesas elegíveis.`,
+            noEligibleExpenseFoundSubtitle: `<muted-text><centered-text>Você não tem despesas que possam ser mescladas com esta. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Saiba mais</a> sobre despesas elegíveis.</centered-text></muted-text>`,
             selectTransactionToMerge: ({reportName}: {reportName: string}) =>
                 `Selecione uma <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">despesa elegível</a> para mesclar <strong>${reportName}</strong>.`,
         },
@@ -1647,12 +1650,7 @@ const translations = {
         restoreStashed: 'Restaurar login armazenado',
         signOutConfirmationText: 'Você perderá todas as alterações offline se sair.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: 'Leia o',
-            phrase2: 'Termos de Serviço',
-            phrase3: 'e',
-            phrase4: 'Privacidade',
-        },
+        readTheTermsAndPrivacy: `<muted-text-micro>Leia os <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termos de Serviço</a> e <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidade</a>.</muted-text-micro>`,
         help: 'Ajuda',
         whatIsNew: 'O que há de novo',
         accountSettings: 'Configurações da conta',
@@ -3405,11 +3403,8 @@ const translations = {
         tripSummary: 'Resumo da viagem',
         departs: 'Parte',
         errorMessage: 'Algo deu errado. Por favor, tente novamente mais tarde.',
-        phoneError: {
-            phrase1: 'Por favor',
-            link: 'adicione um e-mail de trabalho como seu login principal',
-            phrase2: 'para reservar viagens.',
-        },
+        phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) =>
+            `<rbr><a href="${phoneErrorMethodsRoute}">Adicione um e-mail de trabalho como seu login principal</a> para reservar viagens.</rbr>`,
         domainSelector: {
             title: 'Domínio',
             subtitle: 'Escolha um domínio para a configuração do Expensify Travel.',
@@ -4856,13 +4851,8 @@ const translations = {
             editTags: 'Editar tags',
             findTag: 'Find tag',
             subtitle: 'Tags adicionam maneiras mais detalhadas de classificar custos.',
-            dependentMultiLevelTagsSubtitle: {
-                phrase1: 'Você está usando',
-                phrase2: 'tags dependentes',
-                phrase3: '. Você pode',
-                phrase4: 'reimportar uma planilha',
-                phrase5: 'para atualizar suas tags.',
-            },
+            dependentMultiLevelTagsSubtitle: ({importSpreadsheetLink}: DependentMultiLevelTagsSubtitleParams) =>
+                `<muted-text>Você está usando <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tags dependentes</a>. Você pode <a href="${importSpreadsheetLink}">reimportar uma planilha</a> para atualizar suas tags.</muted-text>`,
             emptyTags: {
                 title: 'Você não criou nenhuma tag',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
@@ -5444,11 +5434,7 @@ const translations = {
             changeOwnerPageTitle: 'Transferir proprietário',
             addPaymentCardTitle: 'Insira seu cartão de pagamento para transferir a propriedade',
             addPaymentCardButtonText: 'Aceitar os termos e adicionar cartão de pagamento',
-            addPaymentCardReadAndAcceptTextPart1: 'Ler e aceitar',
-            addPaymentCardReadAndAcceptTextPart2: 'política para adicionar seu cartão',
-            addPaymentCardTerms: 'termos',
-            addPaymentCardPrivacy: 'privacidade',
-            addPaymentCardAnd: '&',
+            addPaymentCardReadAndAcceptText: `<muted-text-micro>Leia e aceite os <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">termos</a> e a <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">política de privacidade</a> para adicionar seu cartão.</muted-text-micro>`,
             addPaymentCardPciCompliant: 'Compatível com PCI-DSS',
             addPaymentCardBankLevelEncrypt: 'Criptografia de nível bancário',
             addPaymentCardRedundant: 'Infraestrutura redundante',
@@ -5999,6 +5985,7 @@ const translations = {
         memberNotFound: 'Membro não encontrado.',
         useInviteButton: 'Para convidar um novo membro para o chat, por favor, use o botão de convite acima.',
         notAuthorized: `Você não tem acesso a esta página. Se você está tentando entrar nesta sala, peça a um membro da sala para adicioná-lo. Algo mais? Entre em contato com ${CONST.EMAIL.CONCIERGE}`,
+        roomArchived: `Parece que esta sala foi arquivada. Em caso de dúvidas, entre em contato com ${CONST.EMAIL.CONCIERGE}.`,
         removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `Tem certeza de que deseja remover ${memberName} da sala?`,
             other: 'Tem certeza de que deseja remover os membros selecionados da sala?',
