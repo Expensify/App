@@ -45,6 +45,7 @@ function ReanimatedModal({
     swipeThreshold,
     shouldPreventScrollOnFocus,
     initialFocus,
+    shouldIgnoreBackHandlerDuringTransition = false,
     ...props
 }: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -58,12 +59,15 @@ function ReanimatedModal({
     const styles = useThemeStyles();
 
     const onBackButtonPressHandler = useCallback(() => {
+        if (shouldIgnoreBackHandlerDuringTransition && isTransitioning) {
+            return false;
+        }
         if (isVisibleState) {
             onBackButtonPress();
             return true;
         }
         return false;
-    }, [isVisibleState, onBackButtonPress]);
+    }, [isVisibleState, onBackButtonPress, isTransitioning, shouldIgnoreBackHandlerDuringTransition]);
 
     const handleEscape = useCallback(
         (e: KeyboardEvent) => {
@@ -201,7 +205,7 @@ function ReanimatedModal({
                 animationType="none"
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 visible={modalVisibility}
-                onRequestClose={onBackButtonPress}
+                onRequestClose={onBackButtonPressHandler}
                 statusBarTranslucent={statusBarTranslucent}
                 testID={testID}
                 onDismiss={() => {

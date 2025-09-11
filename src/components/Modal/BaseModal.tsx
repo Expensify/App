@@ -66,6 +66,7 @@ function BaseModal(
         hasBackdrop,
         backdropOpacity,
         shouldDisableBottomSafeAreaPadding = false,
+        shouldIgnoreBackHandlerDuringTransition = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -346,6 +347,7 @@ function BaseModal(
                         avoidKeyboard={avoidKeyboard}
                         customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                         type={type}
+                        shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
                     >
                         <Animated.View
                             onLayout={onViewLayout}
