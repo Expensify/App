@@ -18,10 +18,10 @@ function SearchScopeProvider({children}: ChildrenProps) {
     return <SearchScopeContext.Provider value={searchContext}>{children}</SearchScopeContext.Provider>;
 }
 
-const useIsOnSearch = () => {
+function useIsOnSearch() {
     const {isOnSearch} = useContext(SearchScopeContext);
     return isOnSearch;
-};
+}
 
 SearchScopeProvider.displayName = 'SearchScopeProvider';
 
