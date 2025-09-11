@@ -28,6 +28,7 @@ import type {
     InviteWorkspaceEmployeesToUberParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
+    OpenDuplicatePolicyPageParams,
     OpenPolicyEditCardLimitTypePageParams,
     OpenPolicyExpensifyCardsPageParams,
     OpenPolicyInitialPageParams,
@@ -4334,6 +4335,12 @@ function openPolicyProfilePage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE, params);
 }
 
+function openDuplicatePolicyPage(policyID: string) {
+    const params: OpenDuplicatePolicyPageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_DUPLICATE_POLICY_PAGE, params);
+}
+
 function openPolicyInitialPage(policyID: string) {
     const params: OpenPolicyInitialPageParams = {policyID};
 
@@ -6323,6 +6330,7 @@ export {
     calculateBillNewDot,
     payAndDowngrade,
     togglePolicyUberAutoInvite,
+    openDuplicatePolicyPage,
     togglePolicyUberAutoRemove,
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,

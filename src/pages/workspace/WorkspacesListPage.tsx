@@ -246,7 +246,7 @@ function WorkspacesListPage() {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Copy,
                     text: translate('workspace.common.duplicateWorkspace'),
-                    onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID, ROUTES.WORKSPACES_LIST.route)) : undefined),
+                    onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
                 });
             }
 
@@ -350,7 +350,6 @@ function WorkspacesListPage() {
             translate,
             policies,
             fundList,
-            styles.ph5,
             styles.mb2,
             styles.mh5,
             duplicateWorkspace?.policyID,
