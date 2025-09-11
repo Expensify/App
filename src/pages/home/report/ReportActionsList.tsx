@@ -767,19 +767,6 @@ function ReportActionsList({
         loadOlderChats(false);
     }, [loadOlderChats]);
 
-    const contentContainerStyle = useMemo(() => {
-        const baseStyles: StyleProp<ViewStyle> = [styles.chatContentScrollView];
-
-        if (isTransactionThread(parentReportAction)) {
-            // InvertedFlatList applies a scale: -1 transform, so top padding becomes bottom padding and vice versa.
-            // When using FlatList for transaction threads, we need to manually add top padding (pt4) and remove bottom padding (pb0)
-            // to maintain consistent spacing and visual appearance at the top of the list.
-            baseStyles.push(styles.pb0, styles.pt4);
-        }
-
-        return baseStyles;
-    }, [parentReportAction, styles.chatContentScrollView, styles.pb0, styles.pt4]);
-
     return (
         <>
             <FloatingMessageCounter
@@ -798,8 +785,8 @@ function ReportActionsList({
                     style={styles.overscrollBehaviorContain}
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
-                    contentContainerStyle={contentContainerStyle}
                     renderScrollComponent={renderActionSheetAwareScrollView}
+                    contentContainerStyle={styles.chatContentScrollView}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}
