@@ -13,6 +13,7 @@ import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import {PersonalDetailsContext, usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useInitialWindowDimensions from '@hooks/useInitialWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
@@ -21,8 +22,9 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {isSafari} from '@libs/Browser';
+import {isMobileChrome, isSafari} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import FS from '@libs/Fullstory';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
@@ -348,6 +350,14 @@ function ReportActionsList({
     // Display the new message indicator when comment linking and not close to the newest message.
     const reportActionID = route?.params?.reportActionID;
 
+    const safariViewportOffsetTop = useViewportOffsetTop();
+    const {initialHeight} = useInitialWindowDimensions();
+    const flatListVerticalOffset = useRef(0);
+    const prevFlatListVerticalOffset = useRef(0);
+    // initialHeight - windowHeight gives us the height of the keyboard when it's open on mobile Chrome.
+    const topOffset = useMemo(() => safariViewportOffsetTop || (isMobileChrome() ? initialHeight - windowHeight : 0), [safariViewportOffsetTop, initialHeight, windowHeight]);
+    const prevTopOffset = useRef(0);
+
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
         currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
@@ -355,10 +365,19 @@ function ReportActionsList({
         unreadMarkerReportActionIndex,
         isInverted: !isTransactionThreadReport,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+            // On mobile Safari, when the keyboard is open, the content is pushed up then we apply a marginTop to push the page down.
+            // This push caused onScroll to be triggered but we don't want to consider this as user scrolling.
+            // Otherwise, the scrollToOffset would be triggered with the wrong offset.
+            if (safariViewportOffsetTop > 0) {
+                return;
+            }
             if (isTransactionThreadReport) {
                 // For transaction threads, calculate distance from bottom like MoneyRequestReportActionsList
                 const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
                 scrollingVerticalOffset.current = contentSize.height - layoutMeasurement.height - contentOffset.y;
+
+                // We want to keep track of the actual offset of the FlatList so that when the keyboard is opened/closed we can adjust the offset accordingly
+                flatListVerticalOffset.current = contentOffset.y;
             } else {
                 // For regular reports (InvertedFlatList), use raw contentOffset.y
                 scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
@@ -750,12 +769,27 @@ function ReportActionsList({
     const onLayoutInner = useCallback(
         (event: LayoutChangeEvent) => {
             onLayout(event);
+            // We only want to apply the offset adjustment when the topOffset changes, which only happens on mobile browsers because of the virtual keyboards.
+            if (topOffset !== prevTopOffset.current) {
+                // When the keyboard is shown, the topOffset is > 0 and we need to increase the offset to keep the same view.
+                if (topOffset > 0) {
+                    // Store the previous offset before the keyboard was shown.
+                    prevFlatListVerticalOffset.current = flatListVerticalOffset.current;
+                    reportScrollManager.scrollToOffset(flatListVerticalOffset.current + topOffset, false);
+                } else {
+                    // When the keyboard is hidden, the topOffset is 0 and we need to restore the previous offset before the keyboard was shown.
+                    reportScrollManager.scrollToOffset(prevFlatListVerticalOffset.current, false);
+                }
+
+                // Update the previous topOffset value for future comparisons.
+                prevTopOffset.current = topOffset;
+            }
             if (isScrollToBottomEnabled) {
                 scrollToBottom();
                 setIsScrollToBottomEnabled(false);
             }
         },
-        [isScrollToBottomEnabled, onLayout, scrollToBottom],
+        [onLayout, topOffset, isScrollToBottomEnabled, reportScrollManager, scrollToBottom],
     );
 
     const retryLoadNewerChatsError = useCallback(() => {
