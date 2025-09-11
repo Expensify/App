@@ -314,10 +314,10 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
  */
 function selectTargetAndSourceTransactionIDsForMerge(originalTargetTransaction: OnyxEntry<Transaction>, originalSourceTransaction: OnyxEntry<Transaction>) {
     if (isCardTransaction(originalSourceTransaction)) {
-        return {targetTransactionID: originalSourceTransaction?.transactionID, sourceTransactionID: originalTargetTransaction?.transactionID};
+        return {targetTransaction: originalSourceTransaction, sourceTransaction: originalTargetTransaction};
     }
 
-    return {targetTransactionID: originalTargetTransaction?.transactionID, sourceTransactionID: originalSourceTransaction?.transactionID};
+    return {targetTransaction: originalTargetTransaction, sourceTransaction: originalSourceTransaction};
 }
 
 /**

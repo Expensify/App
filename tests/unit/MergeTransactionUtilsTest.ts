@@ -444,8 +444,8 @@ describe('MergeTransactionUtils', () => {
             const result = selectTargetAndSourceTransactionIDsForMerge(undefined, undefined);
 
             expect(result).toEqual({
-                targetTransactionID: undefined,
-                sourceTransactionID: undefined,
+                targetTransaction: undefined,
+                sourceTransaction: undefined,
             });
         });
 
@@ -464,8 +464,8 @@ describe('MergeTransactionUtils', () => {
             const result = selectTargetAndSourceTransactionIDsForMerge(cashTransaction, cardTransaction);
 
             expect(result).toEqual({
-                targetTransactionID: 'card1',
-                sourceTransactionID: 'cash1',
+                targetTransaction: cardTransaction,
+                sourceTransaction: cashTransaction,
             });
         });
 
@@ -484,8 +484,8 @@ describe('MergeTransactionUtils', () => {
             const result = selectTargetAndSourceTransactionIDsForMerge(cardTransaction, cashTransaction);
 
             expect(result).toEqual({
-                targetTransactionID: 'card1',
-                sourceTransactionID: 'cash1',
+                targetTransaction: cardTransaction,
+                sourceTransaction: cashTransaction,
             });
         });
 
@@ -504,8 +504,8 @@ describe('MergeTransactionUtils', () => {
             const result = selectTargetAndSourceTransactionIDsForMerge(cashTransaction1, cashTransaction2);
 
             expect(result).toEqual({
-                targetTransactionID: 'cash1',
-                sourceTransactionID: 'cash2',
+                targetTransaction: cashTransaction1,
+                sourceTransaction: cashTransaction2,
             });
         });
     });

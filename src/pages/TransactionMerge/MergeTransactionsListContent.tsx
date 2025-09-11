@@ -122,23 +122,22 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             openReport(sourceTransaction.reportID);
         }
 
-        const {targetTransactionID: newTargetTransactionID, sourceTransactionID: newSourceTransactionID} = selectTargetAndSourceTransactionIDsForMerge(targetTransaction, sourceTransaction);
-
-        if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
+        const {targetTransaction: newTargetTransaction, sourceTransaction: newSourceTransaction} = selectTargetAndSourceTransactionIDsForMerge(targetTransaction, sourceTransaction);
+        if (shouldNavigateToReceiptReview([newTargetTransaction, newSourceTransaction])) {
             setMergeTransactionKey(transactionID, {
-                targetTransactionID: newTargetTransactionID,
-                sourceTransactionID: newSourceTransactionID,
+                targetTransactionID: newTargetTransaction?.transactionID,
+                sourceTransactionID: newSourceTransaction?.transactionID,
             });
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
         } else {
-            const mergedReceipt = targetTransaction?.receipt?.receiptID ? targetTransaction.receipt : sourceTransaction?.receipt;
+            const mergedReceipt = newTargetTransaction?.receipt?.receiptID ? newTargetTransaction.receipt : newSourceTransaction?.receipt;
             setMergeTransactionKey(transactionID, {
-                targetTransactionID: newTargetTransactionID,
-                sourceTransactionID: newSourceTransactionID,
+                targetTransactionID: newTargetTransaction?.transactionID,
+                sourceTransactionID: newSourceTransaction?.transactionID,
                 receipt: mergedReceipt,
             });
 
-            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction);
+            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(newTargetTransaction, newSourceTransaction);
             if (!conflictFields.length) {
                 // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
                 setMergeTransactionKey(transactionID, mergeableData);
