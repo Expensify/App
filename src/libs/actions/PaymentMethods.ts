@@ -9,6 +9,7 @@ import type {
     AddPaymentCardParams,
     DeletePaymentCardParams,
     MakeDefaultPaymentMethodParams,
+    OpenPaymentsPageParams,
     PaymentCardParams,
     SetInvoicingTransferBankAccountParams,
     TransferWalletBalanceParams,
@@ -53,7 +54,7 @@ function continueSetup(fallbackRoute?: Route) {
     kycWallRef.current.continueAction();
 }
 
-function openWalletPage() {
+function openWalletPage(includePartiallySetupBankAccounts?: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -76,7 +77,7 @@ function openWalletPage() {
         },
     ];
 
-    return API.read(READ_COMMANDS.OPEN_PAYMENTS_PAGE, null, {
+    return API.read(READ_COMMANDS.OPEN_PAYMENTS_PAGE, {includePartiallySetupBankAccounts}, {
         optimisticData,
         successData,
         failureData,
