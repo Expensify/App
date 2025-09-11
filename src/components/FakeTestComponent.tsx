@@ -12,6 +12,7 @@ function FakeTestComponent({testProp = 'default', itemCount = 10}: FakeTestCompo
             {testProp} - Item {index + 1}
         </Text>
     ));
+    console.log('FakeTestComponent');
 
     return (
         <View testID="fake-test-component">
