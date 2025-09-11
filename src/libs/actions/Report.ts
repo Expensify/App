@@ -5442,17 +5442,6 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     const optimisticPolicyExpenseChatReportID = policyExpenseChats.reportCreationData[submitterEmail].reportID;
     const optimisticPolicyExpenseChatCreatedReportActionID = policyExpenseChats.reportCreationData[submitterEmail].reportActionID;
 
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticPolicyExpenseChatReportID}`,
-        value: {isLoadingInitialReportActions: true},
-    });
-    successData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticPolicyExpenseChatReportID}`,
-        value: {isLoadingInitialReportActions: null},
-    });
-
     // Set up optimistic member state
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {
         [submitterLogin]: {
