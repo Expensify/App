@@ -1,10 +1,10 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useState} from 'react';
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList} from 'react-native';
-import FlatList from '@components/FlatList';
+import FlatList from '@components/FlatList/FlatList';
 import useFlatListHandle from '@components/FlatList/useFlatListHandle';
 import type {FlatListInnerRefType} from '@components/FlatList/useFlatListHandle';
-import useFlatListScrollKey from '@hooks/useFlatListScrollKey';
+import useFlatListScrollKey from '@components/FlatList/useFlatListScrollKey';
 import useWithFallbackRef from '@hooks/useWithFallbackRef';
 import CONST from '@src/CONST';
 

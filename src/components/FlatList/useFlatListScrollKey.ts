@@ -1,10 +1,10 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList as RNFlatList} from 'react-native';
-import RenderTaskQueue from '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue';
-import type {RenderInfo} from '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue';
 import type {ScrollViewProps} from '@components/ScrollView';
+import usePrevious from '@hooks/usePrevious';
 import CONST from '@src/CONST';
-import usePrevious from './usePrevious';
+import type {RenderInfo} from './InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue';
+import RenderTaskQueue from './InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue';
 
 const INITIAL_SCROLL_DELAY = 200;
 const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
