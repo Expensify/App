@@ -197,14 +197,17 @@ function IOURequestEditReportCommon({
                 initiallyFocusedOptionKey={transactionsReports.length === 1 ? transactionsReports.at(0)?.reportID : undefined}
                 ListItem={InviteMemberListItem}
                 listFooterContent={
-                    shouldShowRemoveFromReport ? (
-                        <MenuItem
-                            onPress={removeFromReport}
-                            title={translate('iou.removeFromReport')}
-                            description={translate('iou.moveToPersonalSpace')}
-                            icon={Expensicons.Close}
-                        />
-                    ) : createReportOption
+                    <>
+                        {shouldShowRemoveFromReport && (
+                            <MenuItem
+                                onPress={removeFromReport}
+                                title={translate('iou.removeFromReport')}
+                                description={translate('iou.moveToPersonalSpace')}
+                                icon={Expensicons.Close}
+                            />
+                        )}
+                        {createReportOption}
+                    </>
                 }
                 listEmptyContent={createReportOption}
             />
