@@ -19,6 +19,7 @@ import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import useBulkOptions from '@hooks/useBulkOptions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
@@ -96,6 +97,23 @@ function SearchPage({route}: SearchPageProps) {
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
+    const selectedTransactionReportIDs = [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))];
+
+    // Collate a list of policyIDs from the selected transactions
+    const selectedPolicyIDs = [
+        ...new Set(
+            Object.values(selectedTransactions)
+                .map((transaction) => transaction.policyID)
+                .filter(Boolean),
+        ),
+    ];
+
+    const bulkOptions = useBulkOptions({
+        selectedPolicyID: selectedPolicyIDs.at(0),
+        selectedReportID: selectedTransactionReportIDs.at(0),
+        onPress: () => {},
+        lastPaymentMethod: '',
+    });
 
     useEffect(() => {
         confirmReadyToOpenApp();
@@ -122,7 +140,6 @@ function SearchPage({route}: SearchPageProps) {
                 queueExportSearchWithTemplate({templateName, templateType, jsonQuery: JSON.stringify(queryJSON), reportIDList: [], transactionIDList: [], policyID});
             } else {
                 // Otherwise, we will use the selected transactionIDs and reportIDs directly
-                const selectedTransactionReportIDs = [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))];
                 queueExportSearchWithTemplate({
                     templateName,
                     templateType,
@@ -139,7 +156,6 @@ function SearchPage({route}: SearchPageProps) {
     );
 
     const onBulkPaySelected = useCallback(() => {
-        // TODO: Add support for mark as paid in bulk
         if (!hash) {
             return;
         }
@@ -292,15 +308,6 @@ function SearchPage({route}: SearchPageProps) {
                 }
             }
 
-            // Collate a list of policyIDs from the selected transactions
-            const selectedPolicyIDs = [
-                ...new Set(
-                    Object.values(selectedTransactions)
-                        .map((transaction) => transaction.policyID)
-                        .filter(Boolean),
-                ),
-            ];
-
             // If all of the transactions are on the same policy, add the policy-level in-app export templates as export options
             if (selectedPolicyIDs.length === 1) {
                 const policyID = selectedPolicyIDs.at(0);
@@ -406,7 +413,7 @@ function SearchPage({route}: SearchPageProps) {
                 text: translate('search.bulkActions.pay'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
                 shouldCloseModalOnSelect: true,
-                subMenuItems: isFirstTimePayment ? getPayOptionMenuItems() : undefined,
+                subMenuItems: isFirstTimePayment ? bulkOptions : undefined,
                 onSelected: onBulkPaySelected,
             });
         }
@@ -527,6 +534,7 @@ function SearchPage({route}: SearchPageProps) {
         integrationsExportTemplates,
         csvExportLayouts,
         policies,
+        bulkOptions,
     ]);
 
     const handleDeleteExpenses = () => {
