@@ -25,10 +25,6 @@ jobs:
             git config --global user.email "test@test.com"
             git config --global user.name "Test"
 
-      - name: Configure Git to use HTTPS instead of SSH
-        run: |
-            git config --global url."https://github.com/".insteadOf "git@github.com:"
-
       - name: Get common ancestor commit
         run: |
             git fetch origin main
@@ -55,40 +51,17 @@ jobs:
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
           git switch "$BASELINE_BRANCH"
-          echo "=== Getting submodule commit hash from superproject ==="
-          SUBMODULE_COMMIT=$(git ls-tree HEAD Mobile-Expensify | cut -d' ' -f3 | cut -f1)
-          echo "Submodule should be at commit: $SUBMODULE_COMMIT"
-          cd Mobile-Expensify
-          echo "=== Inside Mobile-Expensify, checking out commit: $SUBMODULE_COMMIT ==="
-          git checkout "$SUBMODULE_COMMIT"
-          cd ..
-          git add Mobile-Expensify
           npm install --force || (rm -rf node_modules && npm install --force) 
           NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
           echo "=== Switching to PR branch ==="
           git switch --force --detach "${PR_SHA:-${GITHUB_SHA}}"
           echo "=== Current commit: $(git rev-parse HEAD) ==="
-          echo "=== Mobile-Expensify submodule status before checkout ==="
-          git submodule status Mobile-Expensify || echo "No submodule status available"
-          echo "=== Getting submodule commit hash from superproject ==="
-          SUBMODULE_COMMIT=$(git ls-tree HEAD Mobile-Expensify | cut -d' ' -f3 | cut -f1)
-          echo "Submodule should be at commit: $SUBMODULE_COMMIT"
-          cd Mobile-Expensify
-          echo "=== Inside Mobile-Expensify, checking out commit: $SUBMODULE_COMMIT ==="
-          git checkout "$SUBMODULE_COMMIT"
-          cd ..
-          echo "=== Mobile-Expensify submodule status after checkout ==="
-          git submodule status Mobile-Expensify || echo "No submodule status available"
-          echo "=== Adding Mobile-Expensify to staging ==="
-          git add Mobile-Expensify
-          echo "=== Git status before merge ==="
-          git status
           echo "=== Attempting merge with baseline branch: $BASELINE_BRANCH ==="
-          git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours
-          echo "=== Git status after merge attempt ==="
-          git status
-          echo "=== Checking out our version of all files ==="
+          git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours || true
+          echo "=== Resolving any conflicts by taking our version ==="
           git checkout --ours .
+          echo "=== Adding all changes to staging ==="
+          git add .
           npm install --force || (rm -rf node_modules && npm install --force)
           NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
 
