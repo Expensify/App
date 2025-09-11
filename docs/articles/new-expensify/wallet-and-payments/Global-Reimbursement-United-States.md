@@ -1,6 +1,6 @@
 ---
 title: Global Reimbursement - United States (USD)
-description: An overview of how to set up a US bank account to send global reimbursements. 
+description: An overview of how to set up a US bank account to send global reimbursements.
 keywords: [New Expensify, global reimbursement, United States, USD, international payments]
 ---
 
@@ -33,9 +33,9 @@ To comply with financial regulations, the following documents are needed:
 
 # Step 1: Connect Your US Bank Account
 
-1. In the left-hand menu, select **Workspaces > [Workspace Name] > Overview**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Overview**.
 2. Under **Default currency**, select **USD$**.
-3. From the workspace settings left-hand menu, click **Workflows > enable Make or track payments**
+3. From the workspace settings **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workflows > enable Make or track payments**
 4. Under **Connect bank account > Confirm currency and country (United States - USD$)**
 5. Click **Confirm**.
      - See [this help article](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account) for more details on connecting a US business bank account.
@@ -60,7 +60,7 @@ To comply with financial regulations, the following documents are needed:
      - Upload proof of address and a valid form of identification (PDF, PNG, or JPEG only).
    - If **you are not** a Director/Senior Officer:
      - Enter details for someone who is.
-     - Expensify will send a message to the Director/Senior Officer outlining what's required. 
+     - Expensify will send a message to the Director/Senior Officer outlining what's required.
      - They must also provide ID and proof of address.
 
 Once you agree to the terms, Expensify’s Compliance Team will review your submission. If any additional documentation is needed, our support team will message you.
@@ -81,7 +81,7 @@ Once you agree to the terms, Expensify’s Compliance Team will review your subm
 
 To begin reimbursing:
 
-1. In the left-hand menu, go to **Workspaces > [Workspace Name] > Make or track payments**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Make or track payments**.
 2. Set the verified USD account as the default reimbursement method.
 3. Ask employees to add their personal deposit account.
 

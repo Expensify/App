@@ -11,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import useIsPolicyConnectedToUberReceiptPartner from '@hooks/useIsPolicyConnectedToUberReceiptPartner';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
@@ -50,21 +51,13 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const integrations = policy?.receiptPartners;
     const isAutoRemove = !!integrations?.uber?.autoRemove;
     const isAutoInvite = !!integrations?.uber?.autoInvite;
-    const [isConnected, setIsConnected] = useState(false);
-    const isUberConnected = !!integrations?.uber?.organizationID || isConnected;
+    const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
 
     const startIntegrationFlow = useCallback(
         ({name}: {name: string}) => {
-            // TODO remove this when integration flow will be ready
-            setIsConnected(true);
             switch (name) {
                 case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER: {
-                    const {connectFormData} = integrations?.uber ?? {};
-                    const hash = connectFormData?.hash;
-                    const query = connectFormData?.query;
-                    const userName = connectFormData?.name;
-                    const id = connectFormData?.id;
-                    openExternalLink(`${CONST.UBER_CONNECT_URL}?query=${query}&hash=${hash}&name=${userName}&id=${id}`);
+                    openExternalLink(`${CONST.UBER_CONNECT_URL}?${integrations?.uber?.connectFormData}`);
                     break;
                 }
                 default: {
@@ -147,7 +140,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
             return;
         }
         removePolicyReceiptPartnersConnection(policyID, selectedPartner, integrations?.[selectedPartner]);
-        setIsConnected(false);
         onCloseModal();
     }, [policyID, selectedPartner, integrations, onCloseModal]);
 
