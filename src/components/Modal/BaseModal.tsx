@@ -159,6 +159,7 @@ function BaseModal(
         backdropOpacity,
         shouldUseReanimatedModal = false,
         shouldDisableBottomSafeAreaPadding = false,
+        shouldIgnoreBackHandlerDuringTransition = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -468,6 +469,7 @@ function BaseModal(
                         shouldUseReanimatedModal={shouldUseReanimatedModal}
                         isKeyboardActive={keyboardStateContextValue?.isKeyboardActive}
                         saveFocusState={saveFocusState}
+                        shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
                     >
                         <Animated.View
                             onLayout={onViewLayout}

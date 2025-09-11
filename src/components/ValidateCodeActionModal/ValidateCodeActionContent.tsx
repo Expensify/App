@@ -1,10 +1,9 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import useEffectOnMount from '@hooks/useEffectOnMount';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,12 +29,19 @@ function ValidateCodeActionContent({
     const themeStyles = useThemeStyles();
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
-    useEffectOnMount(() => {
-        if (validateCodeAction?.validateCodeSent) {
+    const firstRenderRef = useRef(true);
+
+    useEffect(() => {
+        if (!firstRenderRef.current || validateCodeAction?.validateCodeSent) {
             return;
         }
+        firstRenderRef.current = false;
+
         sendValidateCode();
-    });
+        // We only want to send validate code on first render not on change of validateCodeSent, so we don't add it as a dependency.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sendValidateCode]);
 
     const hide = useCallback(() => {
         clearError();
