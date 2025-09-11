@@ -42,7 +42,7 @@ const PUBLIC_SCREENS_ROUTES = {
     SAML_SIGN_IN: 'sign-in-with-saml',
 } as const;
 
-// Exported for identifying an url as a verify-account route, associated with a page extending the VerifyAccountPageBase component
+// Exported for identifying a url as a verify-account route, associated with a page extending the VerifyAccountPageBase component
 const VERIFY_ACCOUNT = 'verify-account';
 
 const ROUTES = {
