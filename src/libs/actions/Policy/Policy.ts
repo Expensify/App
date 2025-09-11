@@ -2292,7 +2292,6 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         userReportedIntegration: userReportedIntegration ?? undefined,
     };
 
-    console.log('create new workspace', introSelected, engagementChoice, shouldAddOnboardingTasks);
     if (
         introSelected !== undefined &&
         (introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER || !introSelected?.createWorkspace) &&
