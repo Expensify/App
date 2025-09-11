@@ -98,6 +98,7 @@ function SearchPage({route}: SearchPageProps) {
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
     const selectedTransactionReportIDs = [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))];
+    const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
 
     // Collate a list of policyIDs from the selected transactions
     const selectedPolicyIDs = [
@@ -110,7 +111,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const bulkOptions = useBulkOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
-        selectedReportID: selectedTransactionReportIDs.at(0),
+        selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
         onPress: () => {},
         lastPaymentMethod: '',
     });
@@ -270,8 +271,6 @@ function SearchPage({route}: SearchPageProps) {
             ];
 
             // Determine if only full reports are selected by comparing the reportIDs of the selected transactions and the reportIDs of the selected reports
-            const selectedTransactionReportIDs = [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))];
-            const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
             const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
             const groupByReports = queryJSON?.groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
             const typeInvoice = queryJSON?.type === CONST.REPORT.TYPE.INVOICE;
@@ -409,7 +408,7 @@ function SearchPage({route}: SearchPageProps) {
             const payButtonOption = {
                 icon: Expensicons.MoneyBag,
                 text: translate('search.bulkActions.pay'),
-                rightIcon: Expensicons.ArrowRight,
+                rightIcon: isFirstTimePayment ? Expensicons.ArrowRight : undefined,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
                 shouldCloseModalOnSelect: true,
                 subMenuItems: isFirstTimePayment ? bulkOptions : undefined,
