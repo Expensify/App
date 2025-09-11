@@ -358,6 +358,8 @@ function ReportActionsList({
     const topOffset = useMemo(() => safariViewportOffsetTop || (isMobileChrome() ? initialHeight - windowHeight : 0), [safariViewportOffsetTop, initialHeight, windowHeight]);
     const prevTopOffset = useRef(0);
 
+    const {isInNarrowPaneModal} = useResponsiveLayout();
+
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
         currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
@@ -845,11 +847,16 @@ function ReportActionsList({
             // InvertedFlatList applies a scale: -1 transform, so top padding becomes bottom padding and vice versa.
             // When using FlatList for transaction threads, we need to manually add top padding (pt4) and remove bottom padding (pb0)
             // to maintain consistent spacing and visual appearance at the top of the list.
-            baseStyles.push(styles.pb0, styles.pt4, styles.justifyContentEnd);
+            baseStyles.push(styles.pb0, styles.pt4);
+
+            // In transaction threads, we want the content to be vertically aligned to the bottom of the screen, but only on wide screens.
+            if (!isInNarrowPaneModal) {
+                baseStyles.push(styles.justifyContentEnd);
+            }
         }
 
         return baseStyles;
-    }, [isTransactionThreadReport, styles.chatContentScrollView, styles.justifyContentEnd, styles.pb0, styles.pt4]);
+    }, [isInNarrowPaneModal, isTransactionThreadReport, styles.chatContentScrollView, styles.justifyContentEnd, styles.pb0, styles.pt4]);
 
     /**
      * Wraps the provided renderScrollComponent to pass isInvertedScrollView prop.
