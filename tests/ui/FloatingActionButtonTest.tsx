@@ -42,7 +42,6 @@ describe('FloatingActionButton hover', () => {
                     isActive={false}
                     accessibilityLabel="fab"
                     role={CONST.ROLE.BUTTON}
-                    isTooltipAllowed={false}
                 />
             </NavigationContainer>,
         );
