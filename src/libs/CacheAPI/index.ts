@@ -16,12 +16,17 @@ function init() {
     });
 }
 function put(cacheName: string, key: string, value: Response) {
-    const cacheAPIKeys: string[] = Object.values(CONST.CACHE_API_KEYS);
-    if (!cacheAPIKeys.includes(cacheName)) {
-        throw new Error('Failed to cache, invalid cacheName');
-    }
-    caches.open(cacheName).then((cache) => {
-        cache.put(key, value);
+    return new Promise((resolve, reject) => {
+        const cacheAPIKeys: string[] = Object.values(CONST.CACHE_API_KEYS);
+        if (!cacheAPIKeys.includes(cacheName)) {
+            reject('Failed to cache, invalid cacheName');
+        }
+        caches
+            .open(cacheName)
+            .then((cache) => {
+                cache.put(key, value).then(resolve).catch(reject);
+            })
+            .catch(reject);
     });
 }
 function get(cacheName: string, key: string) {

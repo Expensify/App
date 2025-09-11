@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import CacheAPI from '@libs/CacheAPI';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attachment} from '@src/types/onyx';
@@ -12,16 +13,21 @@ function cacheAttachment(attachmentID: string, uri: string, type?: string) {
     fetch(uri)
         .then((response) => {
             if (!response.ok) {
-                throw new Error('Failed to store attachment');
+                return;
             }
-            CacheAPI.put(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID, response);
-            Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
-                attachmentID,
-                remoteSource: isLocalFile(uri) ? '' : uri,
-            });
+            CacheAPI.put(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID, response)
+                .then(() => {
+                    Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
+                        attachmentID,
+                        remoteSource: isLocalFile(uri) ? '' : uri,
+                    });
+                })
+                .catch((error) => {
+                    Log.warn('Failed to cache attachment', error);
+                });
         })
         .catch(() => {
-            throw new Error('Failed to store attachment');
+            return;
         });
 }
 
