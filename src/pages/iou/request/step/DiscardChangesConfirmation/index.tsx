@@ -86,6 +86,7 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardCha
                 shouldNavigateBack.current = false;
                 onCancel?.();
             }}
+            shouldIgnoreBackHandlerDuringTransition
         />
     );
 }
