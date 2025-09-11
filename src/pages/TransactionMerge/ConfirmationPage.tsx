@@ -67,10 +67,11 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         if (!targetTransaction || !mergeTransaction || !sourceTransaction) {
             return;
         }
+        const reportID = mergeTransaction.reportID;
 
         setIsMergingExpenses(true);
         mergeTransactionRequest(transactionID, mergeTransaction, targetTransaction, sourceTransaction);
-        Navigation.dismissModal();
+        Navigation.dismissModalWithReport({reportID});
     }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID]);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata) || !targetTransactionThreadReport?.reportID) {
