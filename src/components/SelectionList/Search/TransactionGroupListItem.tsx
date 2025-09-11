@@ -34,7 +34,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getSections} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
-import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
+import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -158,11 +158,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
         const backTo = Navigation.getActiveRoute();
 
         const reportID = getReportIDForTransaction(transactionItem);
-        const siblingTransactionThreadIDs = transactions.map(getReportIDForTransaction);
+        const siblingTransactionIDs = transactions.map((transaction) => transaction.transactionID);
 
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
-        setActiveTransactionThreadIDs(siblingTransactionThreadIDs).then(() => {
+        setActiveTransactionIDs(siblingTransactionIDs).then(() => {
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
             if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 const iouAction = getReportAction(transactionItem.report.reportID, transactionItem.moneyRequestReportActionID);
