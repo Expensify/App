@@ -1,10 +1,9 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import {isReportPreviewAction, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Report from '@src/types/onyx/Report';
-import ReportsAndReportAction from './types'
-import useOnyx from '../useOnyx';
-
+import type Report from '@src/types/onyx/Report';
+import type ReportsAndReportAction from './types';
 
 /**
  * Custom hook to retrieve all ancestor reports and their associated report actions for a given reportID.
@@ -14,10 +13,10 @@ import useOnyx from '../useOnyx';
  * @param includeTransactionThreadReportActions - Whether to include transaction-thread actions. Default is true.
  */
 
-function useAncestorReportAndReportActions(
+function useAncestorReportsAndReportActions(
     reportID: string,
-    includeTransactionThreadReportActions = true,
-): {report: Report | undefined; ancestorReportsAndReportActions: ReportsAndReportAction[]} {
+    includeTransactionThreadReportActions = false,
+): {report: OnyxEntry<Report>; ancestorReportsAndReportActions: ReportsAndReportAction[]} {
     const [ancestorReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         canBeMissing: false,
         selector: (allReports) => {
@@ -47,18 +46,26 @@ function useAncestorReportAndReportActions(
 
             while (parentReportID) {
                 const parentReport = ancestorReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
-                if (!parentReport) {
+                const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[`${parentReportActionID}`];
+
+                if (
+                    !parentReport ||
+                    !parentReportAction ||
+                    // We exclude ancestor reports when their parent's ReportAction is a transaction-thread action,
+                    // except for sent-money and report-preview actions. ReportActionsListItemRenderer does not render
+                    // the ReportActionItemParentAction when the parent (first) action is a transaction-thread (unless it's a sent-money action)
+                    // or a report-preview action, so we skip those ancestors to match the renderer's behavior.
+                    (!includeTransactionThreadReportActions &&
+                        ((isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction)) || isReportPreviewAction(parentReportAction)))
+                ) {
                     break;
                 }
 
-                const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]?.[`${parentReportActionID}`];
-
-                // Without reassigning `parentReportID` to the parent's own `parentReportID`, the loop keeps checking the same valid `parentReportID`,
-                // causing an infinite loop and fails to traverses up the report hierarchy.
-                parentReportID = parentReport.parentReportID;
+                // `unshift` to maintain the order from the top-most ancestor down to the immediate parent.
+                reportsAndReportActions.unshift({report: parentReport, reportAction: parentReportAction});
 
                 /*
-                Besides `parentReportID`, as we traverse up the report hierarchy, we also need to reassign `parentReportActionID`
+                As we traverse up the report hierarchy, we need to reassign `parentReportActionID`
                 to the parent's own `parentReportActionID`. Otherwise, the same report action will be pushed repeatedly, causing
                 `ancestorReportsAndReportActions` to contain malformed data.
 
@@ -88,21 +95,9 @@ function useAncestorReportAndReportActions(
                 */
                 parentReportActionID = parentReport.parentReportActionID;
 
-                // When transaction-thread actions are included, we insert the parent report and its action without checking the action type.
-                // We also insert it if the `parentReportAction` is undefined.
-                if (includeTransactionThreadReportActions || !parentReportAction) {
-                    reportsAndReportActions.unshift({report: parentReport, reportAction: parentReportAction});
-                }
-
-                // We exclude ancestor reports when their parent's ReportAction is a transaction-thread action,
-                // except for sent-money and report-preview actions. ReportActionsListItemRenderer does not render
-                // the ReportActionItemParentAction when the parent (first) action is a transaction-thread (unless it's a sent-money action)
-                // or a report-preview action, so we skip those ancestors to match the renderer's behavior.
-                const shouldIncludAncestorReportAndReportAction =
-                    (!isTransactionThread(parentReportAction) || isSentMoneyReportAction(parentReportAction)) && !isReportPreviewAction(parentReportAction);
-                if (shouldIncludAncestorReportAndReportAction) {
-                    reportsAndReportActions.unshift({report: parentReport, reportAction: parentReportAction});
-                }
+                // Without reassigning `parentReportID` to the parent's own `parentReportID`, the loop keeps checking the same valid `parentReportID`,
+                // causing an infinite loop and fails to traverses up the report hierarchy.
+                parentReportID = parentReport.parentReportID;
             }
             return reportsAndReportActions;
         },
@@ -111,4 +106,4 @@ function useAncestorReportAndReportActions(
     return {report: ancestorReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`], ancestorReportsAndReportActions: ancestorReportsAndReportActions ?? []};
 }
 
-export default useAncestorReportAndReportActions;
+export default useAncestorReportsAndReportActions;

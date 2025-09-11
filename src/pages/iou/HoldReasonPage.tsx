@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import useAncestorReportAndReportActions from '@hooks/useAncestorReportsAndReportActions';
+import useAncestorReportsAndReportActions from '@hooks/useAncestorReportsAndReportActions';
 import useLocalize from '@hooks/useLocalize';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,7 +25,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
 
     const {transactionID, reportID, backTo, searchHash} = route.params;
 
-    const {report, ancestorReportsAndReportActions} = useAncestorReportAndReportActions(reportID);
+    const {report, ancestorReportsAndReportActions} = useAncestorReportsAndReportActions(reportID, true);
 
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
     // For personal requests, we need to allow both users to put the request on hold

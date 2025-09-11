@@ -1,9 +1,9 @@
-import ReportAction from "@src/types/onyx/ReportAction";
+import type {Report, ReportAction} from '@src/types/onyx';
+import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 
 type ReportAndReportAction = {
-    report: Report;
+    report: OnyxValueWithOfflineFeedback<Report>;
     reportAction: ReportAction | undefined;
 };
 
-
-export default ReportAndReportAction
+export default ReportAndReportAction;

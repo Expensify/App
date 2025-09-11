@@ -4,7 +4,7 @@ import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import useAncestorReportAndReportActions from '@hooks/useAncestorReportsAndReportActions';
+import useAncestorReportsAndReportActions from '@hooks/useAncestorReportsAndReportActions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
@@ -2155,7 +2155,7 @@ describe('ReportUtils', () => {
 
             expect(canHoldUnholdReportAction(expenseCreatedAction)).toEqual({canHoldRequest: true, canUnholdRequest: false});
 
-            const {result} = renderHook(() => useAncestorReportAndReportActions(expenseReport.reportID));
+            const {result} = renderHook(() => useAncestorReportsAndReportActions(expenseReport.reportID, true));
 
             putOnHold(expenseTransaction.transactionID, 'hold', result.current.ancestorReportsAndReportActions, transactionThreadReport.reportID);
             await waitForBatchedUpdates();

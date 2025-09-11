@@ -28,7 +28,7 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
     const {translate} = useLocalize();
     const context = useSearchContext();
 
-    const {report, ancestorReportsAndReportActions} = useAncestorReportsAndReportActions(reportID);
+    const {report, ancestorReportsAndReportActions} = useAncestorReportsAndReportActions(reportID, true);
     const allReportTransactionsAndViolations = useAllReportsTransactionsAndViolations();
 
     const [selectedTransactionsIOUActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {

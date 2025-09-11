@@ -8,6 +8,7 @@ import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SearchQueryJSON} from '@components/Search/types';
+import type ReportsAndReportAction from '@hooks/useAncestorReportsAndReportActions/types';
 import * as API from '@libs/API';
 import type {
     AddReportApproverParams,
