@@ -47,16 +47,17 @@ type DetailedCompilerResults = {
 
 function runCheck(filesToCheck?: string[]) {
     if (filesToCheck) {
+        if (filesToCheck.length === 0) {
+            console.log('✅ No React files changed, skipping check.');
+            return true;
+        }
+
         console.log(`🔍 Running React Compiler check for ${filesToCheck.length} files...`);
     } else {
         console.log('🔍 Running React Compiler check for all files...');
     }
 
     const {failures} = runCompilerHealthcheck(true);
-    // if (filesToCheck.length === 0) {
-    //     console.log('✅ No React files changed, skipping check.');
-    //     return true;
-    // }
 
     const failedFileNames = new Set<string>();
     failures.forEach((failure) => {
@@ -155,7 +156,6 @@ function runCompilerHealthcheck(detailed: false, src?: string): CompilerResults;
 function runCompilerHealthcheck(detailed: true, src?: string): DetailedCompilerResults;
 function runCompilerHealthcheck(detailed: boolean, src?: string): CompilerResults | DetailedCompilerResults {
     try {
-        console.log('🔍 Running React Compiler healthcheck...');
         const output = execSync(`npx react-compiler-healthcheck --json ${detailed ? '--verbose' : ''} ${src ? `--src ${src}` : ''}`, {
             encoding: 'utf8',
             cwd: process.cwd(),
@@ -272,7 +272,8 @@ function parseCombinedOutput(output: string): DetailedCompilerResults {
 }
 
 function printFailureSummary(failures: CompilerFailure[], failedFileNames: string[]): void {
-    console.log(`❌ Failed to compile ${failures.length} components:`);
+    console.log(`❌ Failed to compile ${failedFileNames.length} files with React Compiler:`);
+    failedFileNames.forEach((file) => console.log(`  - ${file}\n\n`));
 
     // Group failures by file and line to avoid duplicates
     const uniqueFailures = new Map<string, CompilerFailure>();
@@ -287,6 +288,8 @@ function printFailureSummary(failures: CompilerFailure[], failedFileNames: strin
         });
 
     // Print unique failures
+
+    console.log(`❌ Detailed reasons for failures:`);
     Array.from(uniqueFailures.values()).forEach((failure) => {
         const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
         console.log(`  - ${failure.file}${location}`);
@@ -294,9 +297,6 @@ function printFailureSummary(failures: CompilerFailure[], failedFileNames: strin
             console.log(`    Reason: ${failure.reason}`);
         }
     });
-
-    console.log('\n❌ Please fix the following files which cannot be compiled by React Compiler:');
-    failedFileNames.forEach((file) => console.log(`  - ${file}`));
 }
 
 function getMainBranchRemote(): string {
