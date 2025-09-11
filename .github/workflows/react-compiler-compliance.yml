@@ -1,20 +1,11 @@
 name: React Compiler Compliance Check
 
 on:
+  workflow_call:
   pull_request:
-    paths:
-      - 'src/**/*.tsx'
-      - 'src/**/*.ts'
-      - 'scripts/react-compiler-tracker.ts'
-      - 'package.json'
-  push:
-    branches:
-      - main
-    paths:
-      - 'src/**/*.tsx'
-      - 'src/**/*.ts'
-      - 'scripts/react-compiler-tracker.ts'
-      - 'package.json'
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+    paths: ['**.js', '**.ts', '**.tsx', '**.mjs', '**.cjs', 'package.json', 'react-compiler-config.json']
 
 jobs:
   react-compiler-compliance:
@@ -37,4 +28,4 @@ jobs:
         run: npm ci
 
       - name: Run React Compiler Compliance Check
-        run: npm run react-compiler-tracker full-check
+        run: npm run react-compiler-compliance-check check-changed
