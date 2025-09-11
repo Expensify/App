@@ -90,7 +90,7 @@ class ReactCompilerTracker {
     public runDetailedCompilerHealthcheck(): DetailedCompilerResults {
         try {
             console.log('🔍 Running detailed React Compiler healthcheck...');
-            const output = execSync('npx react-compiler-healthcheck --verbose', {
+            const output = execSync('npx react-compiler-healthcheck --verbose --json', {
                 encoding: 'utf8',
                 cwd: process.cwd(),
             });
@@ -99,29 +99,79 @@ class ReactCompilerTracker {
             const verboseOutputFile = join(process.cwd(), 'react-compiler-verbose-output.txt');
             writeFileSync(verboseOutputFile, output);
 
-            return this.parseVerboseOutput(output);
+            return this.parseCombinedOutput(output);
         } catch (error) {
             console.error('❌ Failed to run detailed React Compiler healthcheck:', error);
             throw error;
         }
     }
 
-    private parseVerboseOutput(output: string): DetailedCompilerResults {
+    private parseCombinedOutput(output: string): DetailedCompilerResults {
         const lines = output.split('\n');
         const success: string[] = [];
         const failures: CompilerFailure[] = [];
 
+        // First, try to extract JSON from the output
+        let jsonStart = -1;
+        let jsonEnd = -1;
+        for (let i = 0; i < lines.length; i++) {
+            if (lines.at(i).trim().startsWith('{')) {
+                jsonStart = i;
+            }
+            if (jsonStart !== -1 && lines.at(i).trim().endsWith('}')) {
+                jsonEnd = i;
+                break;
+            }
+        }
+
+        // Parse JSON if found
+        if (jsonStart !== -1 && jsonEnd !== -1) {
+            try {
+                const jsonLines = lines.slice(jsonStart, jsonEnd + 1);
+                const jsonStr = jsonLines.join('\n');
+                const jsonResult: CompilerResults = JSON.parse(jsonStr);
+                success.push(...jsonResult.success);
+                console.log(`📊 Parsed ${jsonResult.success.length} successful compilations from JSON`);
+            } catch (error) {
+                console.warn('Failed to parse JSON from combined output:', error);
+            }
+        } else {
+            console.log('⚠️  No JSON found in combined output, parsing verbose text only');
+        }
+
+        // Parse verbose output for detailed failure information
         let currentFailure: CompilerFailure | null = null;
 
         for (const line of lines) {
-            // Parse successful compilation
+            // Parse successful compilation from verbose output
             const successMatch = line.match(/Successfully compiled (?:hook|component) \[([^\]]+)\]\(([^)]+)\)/);
             if (successMatch) {
-                success.push(successMatch[2]);
+                const filePath = successMatch[2];
+                if (!success.includes(filePath)) {
+                    success.push(filePath);
+                }
                 continue;
             }
 
-            // Parse failed compilation with file and location
+            // Parse failed compilation with file, location, and reason all on one line
+            const failureWithReasonMatch = line.match(/Failed to compile ([^:]+):(\d+):(\d+)\. Reason: (.+)/);
+            if (failureWithReasonMatch) {
+                // Save previous failure if exists
+                if (currentFailure) {
+                    failures.push(currentFailure);
+                }
+
+                failures.push({
+                    file: failureWithReasonMatch[1],
+                    line: parseInt(failureWithReasonMatch[2], 10),
+                    column: parseInt(failureWithReasonMatch[3], 10),
+                    reason: failureWithReasonMatch[4],
+                });
+                currentFailure = null;
+                continue;
+            }
+
+            // Parse failed compilation with file and location only (fallback)
             const failureMatch = line.match(/Failed to compile ([^:]+):(\d+):(\d+)\./);
             if (failureMatch) {
                 // Save previous failure if exists
@@ -138,7 +188,7 @@ class ReactCompilerTracker {
                 continue;
             }
 
-            // Parse reason line
+            // Parse reason line (fallback for multi-line reasons)
             const reasonMatch = line.match(/Reason: (.+)/);
             if (reasonMatch && currentFailure) {
                 currentFailure.reason = reasonMatch[1];
@@ -153,6 +203,7 @@ class ReactCompilerTracker {
             failures.push(currentFailure);
         }
 
+        console.log(`📊 Parsed ${failures.length} failures with detailed reasons`);
         return {success, failures};
     }
 
