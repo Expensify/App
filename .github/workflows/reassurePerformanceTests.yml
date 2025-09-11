@@ -61,12 +61,7 @@ jobs:
           NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
           echo "=== Switching to PR branch ==="
           git switch --force --detach "${PR_SHA:-${GITHUB_SHA}}"
-          if [ -d "Mobile-Expensify" ]; then
-            cd Mobile-Expensify
-            git checkout "$(git rev-parse HEAD)"
-            cd ..
-            git add Mobile-Expensify
-          fi
+
           echo "=== Attempting merge with baseline branch: $BASELINE_BRANCH ==="
           git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours || true
           echo "=== Resolving any conflicts by taking our version ==="
