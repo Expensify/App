@@ -9,15 +9,7 @@
 import {execSync} from 'child_process';
 import {existsSync, readFileSync} from 'fs';
 import {join, relative} from 'path';
-import ReactCompilerTracker, {shouldProcessFile} from './react-compiler-tracker';
-
-type ReactCompilerConfig = {
-    excludedFolderPatterns: string[];
-    checkedFileEndings: string[];
-};
-
-// Load React Compiler configuration from shared config file
-const reactCompilerConfig = JSON.parse(readFileSync(join(process.cwd(), 'react-compiler-config.json'), 'utf8')) as ReactCompilerConfig;
+import ReactCompilerComplianceChecker, {REACT_COMPILER_CONFIG, shouldProcessFile} from './compliance-check';
 
 type ComponentInfo = {
     name: string;
@@ -33,10 +25,10 @@ type ReactCompilerUsageInfo = {
 };
 
 class ReactCompilerDevTool {
-    private tracker: ReactCompilerTracker;
+    private tracker: ReactCompilerComplianceChecker;
 
     constructor() {
-        this.tracker = new ReactCompilerTracker();
+        this.tracker = new ReactCompilerComplianceChecker();
     }
 
     private getComponentInfo(filePath: string): ComponentInfo | null {
@@ -88,7 +80,7 @@ class ReactCompilerDevTool {
 
     private findReactFiles(directory = 'src'): string[] {
         try {
-            const fileExtensions = reactCompilerConfig.checkedFileEndings.map((ending) => `-name "*${ending}"`).join(' -o ');
+            const fileExtensions = REACT_COMPILER_CONFIG.checkedFileEndings.map((ending) => `-name "*${ending}"`).join(' -o ');
             const output = execSync(`find ${directory} ${fileExtensions}`, {
                 encoding: 'utf8',
             });
