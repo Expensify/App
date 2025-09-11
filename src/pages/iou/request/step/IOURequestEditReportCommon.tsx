@@ -37,6 +37,7 @@ type Props = {
     isEditing?: boolean;
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
+    createReport?: () => void;
 };
 
 function IOURequestEditReportCommon({
@@ -49,11 +50,14 @@ function IOURequestEditReportCommon({
     isEditing = false,
     isUnreported,
     shouldShowNotFoundPage: shouldShowNotFoundPageFromProps,
+    createReport,
 }: Props) {
     const {translate, localeCompare} = useLocalize();
     const {options} = useOptionsList();
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const policy = usePolicy(activePolicyID);
     const reportOwnerAccountID = useMemo(
         () => transactionsReports.at(0)?.ownerAccountID ?? currentUserPersonalDetails.accountID,
         [transactionsReports, currentUserPersonalDetails.accountID],
@@ -136,8 +140,27 @@ function IOURequestEditReportCommon({
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
 
+    const createReportOption = useMemo(() => {
+        if (!createReport) {
+            return undefined;
+        }
+
+        return (
+            <MenuItem
+                onPress={createReport}
+                title={translate('report.newReport.createReport')}
+                description={policy?.name}
+                icon={Expensicons.DocumentPlus}
+            />
+        );
+    }, [createReport, translate, policy]);
+
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
+        if (createReport) {
+            return false;
+        }
+
         if (expenseReports.length === 0 || shouldShowNotFoundPageFromProps) {
             return true;
         }
@@ -152,7 +175,7 @@ function IOURequestEditReportCommon({
         const isSubmitter = isReportOwner(transactionReport);
         // If the report is Open, then only submitters, admins can move expenses
         return isOpen && !isAdmin && !isSubmitter;
-    }, [transactionsReports, reportPolicy, expenseReports.length, shouldShowNotFoundPageFromProps]);
+    }, [transactionsReports, reportPolicy, expenseReports.length, shouldShowNotFoundPageFromProps, createReport]);
 
     return (
         <StepScreenWrapper
@@ -181,8 +204,9 @@ function IOURequestEditReportCommon({
                             description={translate('iou.moveToPersonalSpace')}
                             icon={Expensicons.Close}
                         />
-                    ) : undefined
+                    ) : createReportOption
                 }
+                listEmptyContent={createReportOption}
             />
         </StepScreenWrapper>
     );
