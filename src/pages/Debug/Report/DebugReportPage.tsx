@@ -96,7 +96,7 @@ function DebugReportPage({
             hasRBR,
             isReportArchived,
             isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
-            draftComment,
+            draftComment: draftComment,
         });
 
         return [

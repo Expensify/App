@@ -1524,8 +1524,13 @@ describe('SidebarUtils', () => {
 
                 const {reports, reportNameValuePairs, reportAttributes} = createSidebarTestData();
 
+                // Given reportsDrafts contains a draft comment for report '2'
+                const reportsDrafts = {
+                    [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}2`]: 'test',
+                };
+
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, reportNameValuePairs, reportAttributes);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, reportsDrafts, reportNameValuePairs, reportAttributes);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);

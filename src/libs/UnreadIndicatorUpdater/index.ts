@@ -72,7 +72,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
     });
 }
 
-const memoizedGetUnreadReportsForUnreadIndicator = memoize(getUnreadReportsForUnreadIndicator, {maxArgs: 1});
+const memoizedGetUnreadReportsForUnreadIndicator = memoize(getUnreadReportsForUnreadIndicator, {maxArgs: 3});
 
 const triggerUnreadUpdate = debounce(() => {
     const currentReportID = navigationRef?.isReady?.() ? Navigation.getTopmostReportId() : undefined;
