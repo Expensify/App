@@ -5,8 +5,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {openEnablePaymentsPage} from '@libs/actions/Wallet';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -20,8 +20,8 @@ import VerifyIdentity from './VerifyIdentity/VerifyIdentity';
 function EnablePaymentsPage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
     useEffect(() => {
         if (isOffline) {
@@ -29,7 +29,7 @@ function EnablePaymentsPage() {
         }
 
         if (isEmptyObject(userWallet)) {
-            Wallet.openEnablePaymentsPage();
+            openEnablePaymentsPage();
         }
     }, [isOffline, userWallet]);
 
