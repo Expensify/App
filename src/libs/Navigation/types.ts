@@ -1499,7 +1499,12 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
+        /** Whether is categorizing the expense */
+        isCategorizing?: boolean;
+        /** Whether is adding an unreported expense to a report */
         isReporting?: boolean;
+        /** Whether the user starts to categorize expense using Categorize it whisper action */
+        shouldSubmitExpense?: boolean;
     };
     [SCREENS.MONEY_REQUEST.STEP_DESTINATION]: {
         action: IOUAction;
