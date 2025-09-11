@@ -6,7 +6,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportOrDraftReport, getReportTransactions, isCurrentUserSubmitter, isExpenseReport, isIOUReport, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {getAmount, getTransactionViolationsOfTransaction, getUpdatedTransaction, isCardTransaction} from '@src/libs/TransactionUtils';
+import {getAmount, getTransactionViolationsOfTransaction, getUpdatedTransaction, isCardTransaction, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import type {TransactionChanges} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, Report, Transaction} from '@src/types/onyx';
@@ -71,6 +71,7 @@ function getTransactionsForMergingLocally(transactionID: string, targetTransacti
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         return (
             areTransactionsEligibleForMerge(targetTransaction, transaction) &&
+            !isTransactionPendingDelete(transaction) &&
             (isUnreportedExpense || (!!transaction.reportID && isMoneyRequestReportEligibleForMerge(transaction.reportID, false)))
         );
     });
