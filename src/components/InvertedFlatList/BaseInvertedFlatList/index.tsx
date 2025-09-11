@@ -41,25 +41,25 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
     } = props;
 
     const listRef = useRef<(RNFlatList<T> & HTMLElement) | null>(null);
-    const [didInitialContentRender, setDidInitialContentRender] = useState(false);
+    const [isInitialContentRendered, setIsInitialContentRendered] = useState(false);
 
     const {displayedData, maintainVisibleContentPosition, handleStartReached, setCurrentDataId, dataIndexDifference} = useFlatListScrollKey<T>({
+        initialScrollKey,
         listRef,
         data,
         keyExtractor,
-        initialScrollKey,
         initialNumToRender,
         inverted: true,
-        onStartReached,
         shouldEnableAutoScrollToTopThreshold,
-        didInitialContentRender,
+        isInitialContentRendered,
+        onStartReached,
         onInitiallyLoaded,
     });
 
     const handleContentSizeChange = useCallback(
         (contentWidth: number, contentHeight: number) => {
             onContentSizeChange?.(contentWidth, contentHeight);
-            setDidInitialContentRender(true);
+            setIsInitialContentRendered(true);
         },
         [onContentSizeChange],
     );

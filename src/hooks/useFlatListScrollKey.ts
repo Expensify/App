@@ -16,9 +16,9 @@ type FlatListScrollKeyProps<T> = {
     initialScrollKey: string | null | undefined;
     initialNumToRender: number;
     inverted: boolean;
-    onStartReached?: ((info: {distanceFromStart: number}) => void) | null;
     shouldEnableAutoScrollToTopThreshold?: boolean;
-    didInitialContentRender: boolean;
+    isInitialContentRendered: boolean;
+    onStartReached?: ((info: {distanceFromStart: number}) => void) | null;
     onInitiallyLoaded?: () => void;
 };
 
@@ -32,7 +32,7 @@ export default function useFlatListScrollKey<T>({
     shouldEnableAutoScrollToTopThreshold,
     initialNumToRender,
     onInitiallyLoaded,
-    didInitialContentRender,
+    isInitialContentRendered,
 }: FlatListScrollKeyProps<T>) {
     // `initialScrollIndex` doesn't work properly with FlatList, this uses an alternative approach to achieve the same effect.
     // What we do is start rendering the list from `initialScrollKey` and then whenever we reach the start we render more
@@ -89,7 +89,7 @@ export default function useFlatListScrollKey<T>({
     // Instead, we wait for the initial data to be displayed, scroll to the item manually and
     // then start rendering more items.
     useEffect(() => {
-        if (didScroll.current || !isMessageOnFirstPage.current || !didInitialContentRender) {
+        if (didScroll.current || !isMessageOnFirstPage.current || !isInitialContentRendered) {
             return;
         }
 
@@ -101,11 +101,11 @@ export default function useFlatListScrollKey<T>({
             didScroll.current = true;
             renderQueue.start();
         }, INITIAL_SCROLL_DELAY);
-    }, [currentDataIndex, data.length, displayedData.length, didInitialContentRender, initialNumToRender, isInitialData, isMessageOnFirstPage, onInitiallyLoaded, renderQueue, listRef]);
+    }, [currentDataIndex, data.length, displayedData.length, isInitialContentRendered, initialNumToRender, isInitialData, isMessageOnFirstPage, onInitiallyLoaded, renderQueue, listRef]);
 
     const isLoadingData = data.length > displayedData.length;
     const wasLoadingData = usePrevious(isLoadingData);
-    const dataIndexDifference = data.length - displayedData.length;
+    const remainingItemsToDisplay = data.length - displayedData.length;
 
     renderQueue.setHandler((info: RenderInfo) => {
         if (!isLoadingData) {
@@ -143,7 +143,7 @@ export default function useFlatListScrollKey<T>({
     return {
         handleStartReached,
         setCurrentDataId,
-        dataIndexDifference,
+        dataIndexDifference: remainingItemsToDisplay,
         displayedData,
         isInitialData,
         maintainVisibleContentPosition,
