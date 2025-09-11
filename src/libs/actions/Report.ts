@@ -3194,7 +3194,7 @@ function shouldShowReportActionNotification(reportID: string, action: ReportActi
         return false;
     }
 
-    // If the report is a transaction thread and we are currently viewing the associated one-transaction report do no show a notifaction
+    // If the report is a transaction thread and we are currently viewing the associated one-transaction report do no show a notification.
     const topmostReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${topmostReportID}`];
     const topmostReportActions = allReportActions?.[`${topmostReport?.reportID}`];
     const chatTopmostReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${topmostReport?.chatReportID}`];
