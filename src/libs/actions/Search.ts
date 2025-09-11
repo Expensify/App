@@ -8,6 +8,7 @@ import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -28,7 +29,6 @@ import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
-import { convertToDisplayString } from '@libs/CurrencyUtils';
 
 function handleActionButtonPress(
     hash: number,
@@ -589,7 +589,7 @@ function getPayOption(selectedReports: SelectedReports[], selectedTransactions: 
             ? selectedReports.some((report) => !!getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods))
             : Object.keys(selectedTransactions ?? {}).some((transactionIdKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIdKey].policyID, lastPaymentMethods));
     // We will show the bulk option, if all the selected reports have the same action type, report type and policyID.
-            const shouldShowBulkPayOption =
+    const shouldShowBulkPayOption =
         selectedReports.length > 0
             ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY) &&
               selectedReports.every((report) => getReportType(report.reportID) === getReportType(firstReport?.reportID)) &&
@@ -605,10 +605,10 @@ function getPayOption(selectedReports: SelectedReports[], selectedTransactions: 
 }
 
 /**
- * 
- * @param selectedReports 
- * @param selectedTransactions 
- * @param currency 
+ *
+ * @param selectedReports
+ * @param selectedTransactions
+ * @param currency
  * @returns The formatted amount of the selected reports/trasactions.
  */
 function getFormattedAmount(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, currency: string): string {
