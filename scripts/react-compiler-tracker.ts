@@ -115,10 +115,10 @@ class ReactCompilerTracker {
         let jsonStart = -1;
         let jsonEnd = -1;
         for (let i = 0; i < lines.length; i++) {
-            if (lines.at(i).trim().startsWith('{')) {
+            if (lines.at(i)?.trim().startsWith('{')) {
                 jsonStart = i;
             }
-            if (jsonStart !== -1 && lines.at(i).trim().endsWith('}')) {
+            if (jsonStart !== -1 && lines.at(i)?.trim().endsWith('}')) {
                 jsonEnd = i;
                 break;
             }
@@ -129,7 +129,7 @@ class ReactCompilerTracker {
             try {
                 const jsonLines = lines.slice(jsonStart, jsonEnd + 1);
                 const jsonStr = jsonLines.join('\n');
-                const jsonResult: CompilerResults = JSON.parse(jsonStr);
+                const jsonResult = JSON.parse(jsonStr) as CompilerResults;
                 success.push(...jsonResult.success);
                 console.log(`📊 Parsed ${jsonResult.success.length} successful compilations from JSON`);
             } catch (error) {
