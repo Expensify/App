@@ -51,12 +51,6 @@ jobs:
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
           git switch "$BASELINE_BRANCH"
-          if [ -d "Mobile-Expensify" ]; then
-            cd Mobile-Expensify
-            git checkout "$(git rev-parse HEAD)"
-            cd ..
-            git add Mobile-Expensify
-          fi
           npm install --force || (rm -rf node_modules && npm install --force) 
           NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
           echo "=== Switching to PR branch ==="
