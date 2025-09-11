@@ -7,8 +7,8 @@ import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
 import {requestUnlockAccount} from '@userActions/User';
+import ROUTES from '@src/ROUTES';
 
 function UnlockAccountPage() {
     const {translate} = useLocalize();

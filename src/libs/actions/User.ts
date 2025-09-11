@@ -1465,7 +1465,6 @@ function requestUnlockAccount() {
     };
 
     API.read(READ_COMMANDS.REQUEST_UNLOCK_ACCOUNT, params);
-
 }
 
 export {
