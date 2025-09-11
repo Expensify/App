@@ -11145,14 +11145,6 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         return approvalChain;
     }
 
-    // Check if the current user is the manager of the expense report (indicating they bypassed approvers)
-    const managerAccountID = expenseReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    if (managerAccountID === currentUserAccountID) {
-        const currentUserEmailForApproval = currentUserEmail ?? '';
-        // Return an approval chain containing only the current user since they are now the sole approver
-        return currentUserEmailForApproval ? [currentUserEmailForApproval] : [];
-    }
-
     // Get category/tag approver list
     const ruleApprovers = getRuleApprovers(policy, expenseReport);
 
@@ -11183,6 +11175,22 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
     if (fullApprovalChain.at(-1) === submitterEmail && policy?.preventSelfApproval) {
         fullApprovalChain.pop();
     }
+
+    // Check if this is a bypass approvers scenario:
+    // The current user is the manager AND the normal approval chain would suggest a different next approver
+    const managerAccountID = expenseReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const currentUserEmailForApproval = currentUserEmail ?? '';
+    const isCurrentUserManager = managerAccountID === currentUserAccountID;
+    const nextApprover = fullApprovalChain.length > 0 ? fullApprovalChain[0] : null;
+    const shouldCurrentUserBeNextApprover = nextApprover === currentUserEmailForApproval;
+
+    if (isCurrentUserManager && !shouldCurrentUserBeNextApprover && currentUserEmailForApproval) {
+        // This indicates the current user bypassed the normal approval workflow
+        // (they became manager but wouldn't normally be the next approver)
+        return [currentUserEmailForApproval];
+    }
+
+    // Return the normal approval chain for all other cases
     return fullApprovalChain;
 }
 
