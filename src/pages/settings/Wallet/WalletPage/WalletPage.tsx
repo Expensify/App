@@ -334,7 +334,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         if (network.isOffline) {
             return;
         }
-        openWalletPage();
+        openWalletPage(true);
     }, [network.isOffline]);
 
     useLayoutEffect(() => {
