@@ -677,20 +677,23 @@ index 4d87b38..4399e5e 100644
  /**
   * Stores a key–value pair synchronously.
 diff --git a/node_modules/expo-secure-store/ios/SecureStoreModule.swift b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
-index 439b08d..c02be32 100644
+index 439b08d..f5097a8 100644
 --- a/node_modules/expo-secure-store/ios/SecureStoreModule.swift
 +++ b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
-@@ -4,6 +4,37 @@ import LocalAuthentication
+@@ -4,6 +4,42 @@ import LocalAuthentication
  #endif
  import Security
 
-+@available(iOS 11.0, *)
++@available(iOS 11.2, *)
 +public enum AuthType: Int, @unchecked Sendable {
 +  /// The device does not support biometry.
-+  @available(iOS 11.2, *)
 +  case none = 0
 +
++  /// The device supports device credentials
 +  case credentials = 1
++
++  /// Generic type, not specified whether it was a faceID or touchID
++  case biometrics = 2
 +
 +  /// The device supports Face ID.
 +  case faceID = 3
@@ -699,49 +702,47 @@ index 439b08d..c02be32 100644
 +  case touchID = 4
 +
 +  /// The device supports Optic ID
-+  @available(iOS 17.0, *)
 +  case opticID = 5
 +}
 +
-+struct RuntimeError: LocalizedError {
-+  let description: String
-+
-+  init(_ description: String) {
-+    self.description = description
++struct SecureStoreFeedback<T> {
++  var value: T
++  var authType: Int = AuthType.none.rawValue
++  var values: Array<Any> {
++    get { return [value, authType] }
 +  }
++}
 +
-+  var errorDescription: String? {
-+    description
++struct SecureStoreRuntimeError: LocalizedError {
++  let errorDescription: String?
++  init(_ description: String) {
++    self.errorDescription = description
 +  }
 +}
 +
  public final class SecureStoreModule: Module {
    public func definition() -> ModuleDefinition {
      Name("ExpoSecureStore")
-@@ -18,57 +49,163 @@ public final class SecureStoreModule: Module {
+@@ -18,57 +54,135 @@ public final class SecureStoreModule: Module {
        "WHEN_UNLOCKED_THIS_DEVICE_ONLY": SecureStoreAccessible.whenUnlockedThisDeviceOnly.rawValue
      ])
 
 -    AsyncFunction("getValueWithKeyAsync") { (key: String, options: SecureStoreOptions) -> String? in
 -      return try get(with: key, options: options)
-+    AsyncFunction("getValueWithKeyAsync") { (key: String, options: SecureStoreOptions) -> [Any] in
-+      let returnValue = try get(with: key, options: options)
-+
++    AsyncFunction("getValueWithKeyAsync") { (key: String, options: SecureStoreOptions) in
 +      if options.requireAuthentication && options.authOnEveryAction {
 +        try await askForAuth(
 +          prompt: options.authenticationPrompt
 +          ?? "Authentication required"
 +        )
 +      }
-+
-+      return [returnValue as Any, getAuthType().rawValue]
++      return getSecureStoreFeedback(value: try get(with: key, options: options)).values
      }
 
 -    Function("getValueWithKeySync") { (key: String, options: SecureStoreOptions) -> String? in
 -      return try get(with: key, options: options)
-+    Function("getValueWithKeySync") { (key: String, options: SecureStoreOptions) -> [Any] in
-+      let returnValue = try get(with: key, options: options)
-+      return [returnValue as Any, getAuthType().rawValue]
++    Function("getValueWithKeySync") { (key: String, options: SecureStoreOptions) in
++      return getSecureStoreFeedback(value: try get(with: key, options: options)).values
      }
 
 -    AsyncFunction("setValueWithKeyAsync") { (value: String, key: String, options: SecureStoreOptions) -> Bool in
@@ -764,7 +765,7 @@ index 439b08d..c02be32 100644
 +        return AuthType.none.rawValue
 +      }
 +
-+      return getAuthType().rawValue
++      return getSecureStoreFeedback(value: true).authType
      }
 
 -    Function("setValueWithKeySync") {(value: String, key: String, options: SecureStoreOptions) -> Bool in
@@ -780,7 +781,7 @@ index 439b08d..c02be32 100644
 +        return AuthType.none.rawValue
 +      }
 +
-+      return getAuthType().rawValue
++      return getSecureStoreFeedback(value: true).authType
      }
 
      AsyncFunction("deleteValueWithKeyAsync") { (key: String, options: SecureStoreOptions) in
@@ -807,63 +808,48 @@ index 439b08d..c02be32 100644
 +      return areBiometricsEnabled()
 +    }
 +  }
-+
+
+-      if error != nil {
+-        return false
+-      }
+-      return isBiometricsSupported
+-      #endif
 +  private func askForAuth(prompt: String) async throws {
 +    let context = LAContext()
 +    context.localizedReason = prompt
-+    var error: NSError?
-+    let isAuthenticationSupported: Bool = context.canEvaluatePolicy(
-+      LAPolicy.deviceOwnerAuthentication,
-+      error: &error
-+    )
-+    if error != nil {
-+      throw error ?? RuntimeError("No authentication method available")
-+    }
-+    if !isAuthenticationSupported {
-+      throw RuntimeError("No authentication method available")
-+    }
++
++    guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: nil) else {
++      throw SecureStoreRuntimeError("No authentication method available")
+     }
++
 +    let result = try await context.evaluatePolicy(
 +      LAPolicy.deviceOwnerAuthentication,
 +      localizedReason: context.localizedReason
 +    )
-
--      if error != nil {
--        return false
++
 +    if !result {
-+      throw RuntimeError("Unable to authenticate")
++      throw SecureStoreRuntimeError("Unable to authenticate")
 +    }
 +  }
 +
 +  private func getAuthType() -> AuthType {
-+    if !areBiometricsEnabled() {
-+      return AuthType.credentials
-+    }
-+
++    if !areBiometricsEnabled() {return AuthType.credentials}
 +    let biometryType = LAContext().biometryType
 +
-+    if biometryType == LABiometryType.none {
-+      return AuthType.credentials
++    switch biometryType {
++    case .faceID: return .faceID
++    case .touchID: return .touchID
++    case .opticID: return .opticID // available since iOS 17
++    case .none: fallthrough // this one continues to the next line
++    @unknown default: return .credentials
 +    }
-+
-+    if biometryType == LABiometryType.faceID {
-+      return AuthType.faceID
-+    }
-+
-+    if biometryType == LABiometryType.touchID {
-+      return AuthType.touchID
-+    }
-+
-+    if #available(iOS 17.0, *) {
-+      if biometryType == LABiometryType.opticID {
-+        return AuthType.opticID
-       }
--      return isBiometricsSupported
--      #endif
-     }
-+
-+    return AuthType.credentials
 +  }
 +
++  private func getSecureStoreFeedback<T>(value: T) -> SecureStoreFeedback<T> {
++    return SecureStoreFeedback(value: value, authType: getAuthType().rawValue)
+   }
+
+-  private func get(with key: String, options: SecureStoreOptions) throws -> String? {
 +  private func getAccessControl(accessibility: CFString) throws -> SecAccessControl
 +  {
 +    guard
@@ -888,24 +874,16 @@ index 439b08d..c02be32 100644
 +    #if os(tvOS)
 +    return false
 +    #else
-+    let context = LAContext()
-+    var error: NSError?
-+    let isBiometricsSupported: Bool = context.canEvaluatePolicy(LAPolicy.deviceOwnerAuthenticationWithBiometrics, error: &error)
-+
-+    if error != nil {
-+      return false
-+    }
-+    return isBiometricsSupported
++    return LAContext().canEvaluatePolicy(LAPolicy.deviceOwnerAuthenticationWithBiometrics, error: nil)
 +    #endif
-   }
-
--  private func get(with key: String, options: SecureStoreOptions) throws -> String? {
++  }
++
 +  private func get(with key: String, options: SecureStoreOptions) throws -> String?
 +  {
      guard let key = validate(for: key) else {
        throw InvalidKeyException()
      }
-@@ -89,7 +226,7 @@ public final class SecureStoreModule: Module {
+@@ -89,7 +203,7 @@ public final class SecureStoreModule: Module {
    }
 
    private func set(value: String, with key: String, options: SecureStoreOptions) throws -> Bool {
@@ -914,7 +892,7 @@ index 439b08d..c02be32 100644
 
      let valueData = value.data(using: .utf8)
      setItemQuery[kSecValueData as String] = valueData
-@@ -98,17 +235,6 @@ public final class SecureStoreModule: Module {
+@@ -98,17 +212,6 @@ public final class SecureStoreModule: Module {
 
      if !options.requireAuthentication {
        setItemQuery[kSecAttrAccessible as String] = accessibility
@@ -932,7 +910,7 @@ index 439b08d..c02be32 100644
      }
 
      let status = SecItemAdd(setItemQuery as CFDictionary, nil)
-@@ -116,10 +242,13 @@ public final class SecureStoreModule: Module {
+@@ -116,10 +219,13 @@ public final class SecureStoreModule: Module {
      switch status {
      case errSecSuccess:
        // On success we want to remove the other key alias and legacy key (if they exist) to avoid conflicts during reads
@@ -943,12 +921,12 @@ index 439b08d..c02be32 100644
        return true
      case errSecDuplicateItem:
 +      if options.failOnDuplicate {
-+        throw RuntimeError("Key already exists")
++        throw SecureStoreRuntimeError("Key already exists")
 +      }
        return try update(value: value, with: key, options: options)
      default:
        throw KeyChainException(status)
-@@ -127,15 +256,11 @@ public final class SecureStoreModule: Module {
+@@ -127,15 +233,11 @@ public final class SecureStoreModule: Module {
    }
 
    private func update(value: String, with key: String, options: SecureStoreOptions) throws -> Bool {
@@ -965,7 +943,7 @@ index 439b08d..c02be32 100644
      let status = SecItemUpdate(query as CFDictionary, updateDictionary as CFDictionary)
 
      if status == errSecSuccess {
-@@ -146,15 +271,11 @@ public final class SecureStoreModule: Module {
+@@ -146,15 +248,11 @@ public final class SecureStoreModule: Module {
    }
 
    private func searchKeyChain(with key: String, options: SecureStoreOptions, requireAuthentication: Bool? = nil) throws -> Data? {
@@ -982,7 +960,7 @@ index 439b08d..c02be32 100644
      var item: CFTypeRef?
      let status = SecItemCopyMatching(query as CFDictionary, &item)
 
-@@ -171,21 +292,28 @@ public final class SecureStoreModule: Module {
+@@ -171,21 +269,28 @@ public final class SecureStoreModule: Module {
      }
    }
 
