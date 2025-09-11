@@ -337,24 +337,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     }, [isSmallScreenWidth, selectedTransactions, isMobileSelectionModeEnabled]);
 
     useEffect(() => {
-        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-        const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
-
-        if ((!isFocused && !isMigratedModalDisplayed) || isOffline) {
-            return;
-        }
-
-        const results = searchResults
-            ? getSections(type, searchResults.data, accountID, formatPhoneNumber, groupBy).map((element) => element?.reportID ?? CONST.REPORT.DEFAULT_REPORT_ID)
-            : [];
-        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: results.length});
-
-        // We don't need to run the effect on change of isFocused.
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals]);
-
-    useEffect(() => {
         openSearch();
     }, []);
 
@@ -378,25 +360,41 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
-    const data = useMemo(() => {
+    const [data, dataLength] = useMemo(() => {
         if (searchResults === undefined || !isDataLoaded) {
-            return [];
+            return [[], 0];
         }
 
         // Group-by option cannot be used for chats or tasks
         const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
         const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
         if (groupBy && (isChat || isTask)) {
-            return [];
+            return [[], 0];
         }
 
-        return getSections(type, searchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
+        const data1 = getSections(type, searchResults.data, accountID, formatPhoneNumber, groupBy, exportReportActions, searchKey, archivedReportsIdSet, queryJSON);
+        return [data1, data1.length];
     }, [searchKey, exportReportActions, groupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
         setShouldShowFiltersBarLoading(shouldShowLoadingState && lastSearchType !== type);
     }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
+
+    useEffect(() => {
+        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
+        const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
+
+        if ((!isFocused && !isMigratedModalDisplayed) || isOffline) {
+            return;
+        }
+
+        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: dataLength});
+
+        // We don't need to run the effect on change of isFocused.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals]);
 
     // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
     const isRefreshingSelection = useRef(false);
