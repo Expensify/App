@@ -280,7 +280,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     };
 
     const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]);
-    const shouldDisplayWideRHPVersion = wideRHPRouteKeys.length > 0 && !isSmallScreenWidth;
+    const shouldDisplayNarrowMoreButton = !shouldUseNarrowLayout || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
 
     return (
         <View style={[styles.pl0, styles.borderBottom]}>
@@ -304,7 +304,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
             >
-                {(!shouldUseNarrowLayout || shouldDisplayWideRHPVersion) && (
+                {shouldDisplayNarrowMoreButton && (
                     <View style={[styles.flexRow, styles.gap2, shouldDisplayTransactionNavigation && styles.mr3]}>
                         {!!primaryAction && primaryActionImplementation[primaryAction]}
                         {!!applicableSecondaryActions.length && (
@@ -321,7 +321,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 )}
                 {shouldDisplayTransactionNavigation && <MoneyRequestReportTransactionsNavigation currentReportID={reportID} />}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && !shouldDisplayWideRHPVersion && (
+            {!shouldDisplayNarrowMoreButton && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     {!!primaryAction && <View style={[styles.flexGrow4]}>{primaryActionImplementation[primaryAction]}</View>}
                     {!!applicableSecondaryActions.length && (

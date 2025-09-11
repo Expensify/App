@@ -311,7 +311,7 @@ function MoneyReportHeader({
     const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey} = useSearchContext();
 
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
-    const shouldDisplayWideRHPVersion = wideRHPRouteKeys.length > 0 && !isSmallScreenWidth;
+    const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
@@ -1236,7 +1236,7 @@ function MoneyReportHeader({
                 shouldShowBorderBottom={false}
                 shouldEnableDetailPageNavigation
             >
-                {(!shouldDisplayNarrowVersion || shouldDisplayWideRHPVersion) && (
+                {shouldDisplayNarrowMoreButton && (
                     <View style={[styles.flexRow, styles.gap2]}>
                         {!!primaryAction && !shouldShowSelectedTransactionsButton && primaryActionsImplementation[primaryAction]}
                         {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && KYCMoreDropdown}
@@ -1254,7 +1254,7 @@ function MoneyReportHeader({
                     </View>
                 )}
             </HeaderWithBackButton>
-            {shouldDisplayNarrowVersion && !shouldShowSelectedTransactionsButton && !shouldDisplayWideRHPVersion && (
+            {!shouldDisplayNarrowMoreButton && !shouldShowSelectedTransactionsButton && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     {!!primaryAction && <View style={[styles.flex1]}>{primaryActionsImplementation[primaryAction]}</View>}
                     {!!applicableSecondaryActions.length && KYCMoreDropdown}

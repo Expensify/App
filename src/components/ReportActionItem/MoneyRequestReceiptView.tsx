@@ -231,7 +231,7 @@ function MoneyRequestReceiptView({
     // For empty receipt should be fullHeight
     // For the rest, expand to match the content
     return (
-        <View style={[fillSpace ? styles.flex1 : styles.pRelative]}>
+        <View style={fillSpace ? styles.flex1 : styles.pRelative}>
             {shouldShowReceiptAudit && (
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('receipt')}>
                     <ReceiptAudit
