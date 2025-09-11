@@ -72,7 +72,7 @@ jobs:
           variant: ${{ matrix.variant }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           re-sign: true
-          # ad-hoc: true
+          ad-hoc: true
           keystore-base64: ${{ steps.keystore-base64.outputs.keystore_content }}
           keystore-store-file: 'upload-key.keystore'
           keystore-store-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
