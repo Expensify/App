@@ -455,7 +455,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     const isSingleTransaction = reportTransactions.length === 1;
     const isInvoiceReport = isInvoiceReportUtils(report);
     const isCardTransactionWithCorporateLiability =
-        isSingleTransaction && isCardTransactionUtils(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
+        isCardTransactionUtils(transaction) && isSingleTransaction && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
 
     // Transactions with corporate cards cannot be deleted
     if (isCardTransactionWithCorporateLiability) {
