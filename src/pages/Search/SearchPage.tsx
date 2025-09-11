@@ -1,24 +1,25 @@
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { InteractionManager, View } from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import type { DropdownOption } from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import * as Expensicons from '@components/Icon/Expensicons';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type { PaymentMethodType } from '@components/KYCWall/types';
+import type { PopoverMenuItem } from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+import { ScrollOffsetContext } from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
-import {useSearchContext} from '@components/Search/SearchContext';
+import { useSearchContext } from '@components/Search/SearchContext';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
-import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
+import type { SearchHeaderOptionValue } from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type {PaymentData, SearchParams} from '@components/Search/types';
-import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import type { PaymentData, SearchParams } from '@components/Search/types';
+import { usePlaybackContext } from '@components/VideoPlayerContexts/PlaybackContext';
 import useBulkOptions from '@hooks/useBulkOptions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
@@ -29,39 +30,29 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {confirmReadyToOpenApp} from '@libs/actions/App';
-import {searchInServer} from '@libs/actions/Report';
-import {
-    approveMoneyRequestOnSearch,
-    deleteMoneyRequestOnSearch,
-    exportSearchItemsToCSV,
-    getLastPolicyPaymentMethod,
-    getPayOption,
-    payMoneyRequestOnSearch,
-    queueExportSearchItemsToCSV,
-    queueExportSearchWithTemplate,
-    search,
-    unholdMoneyRequestOnSearch,
-} from '@libs/actions/Search';
-import {navigateToParticipantPage} from '@libs/IOUUtils';
+import { confirmReadyToOpenApp } from '@libs/actions/App';
+import { searchInServer } from '@libs/actions/Report';
+import { approveMoneyRequestOnSearch, deleteMoneyRequestOnSearch, exportSearchItemsToCSV, getLastPolicyPaymentMethod, getPayOption, payMoneyRequestOnSearch, queueExportSearchItemsToCSV, queueExportSearchWithTemplate, search, unholdMoneyRequestOnSearch } from '@libs/actions/Search';
+import { navigateToParticipantPage } from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
+import type { SearchFullscreenNavigatorParamList } from '@libs/Navigation/types';
+import { hasVBBA, isPaidGroupPolicy } from '@libs/PolicyUtils';
+import { generateReportID, getPolicyExpenseChat } from '@libs/ReportUtils';
+import { buildCannedSearchQuery, buildSearchQueryJSON } from '@libs/SearchQueryUtils';
+import { shouldRestrictUserBillableActions } from '@libs/SubscriptionUtils';
+import type { ReceiptFile } from '@pages/iou/request/step/IOURequestStepScan/types';
+import type { FileObject } from '@pages/media/AttachmentModalScreen/types';
 import variables from '@styles/variables';
-import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
-import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
+import { initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt } from '@userActions/IOU';
+import { buildOptimisticTransactionAndCreateDraft } from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {SearchResults, Transaction} from '@src/types/onyx';
+import type { SearchResults, Transaction } from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
+
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
@@ -112,9 +103,8 @@ function SearchPage({route}: SearchPageProps) {
     const bulkOptions = useBulkOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
         selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
-        onPress: () => {},
-        lastPaymentMethod: '',
     });
+
 
     useEffect(() => {
         confirmReadyToOpenApp();
@@ -153,10 +143,10 @@ function SearchPage({route}: SearchPageProps) {
 
             setIsExportWithTemplateModalVisible(true);
         },
-        [queryJSON, selectedTransactions, selectedTransactionsKeys, areAllMatchingItemsSelected],
+        [queryJSON, selectedTransactions, selectedTransactionsKeys, areAllMatchingItemsSelected, selectedTransactionReportIDs],
     );
 
-    const onBulkPaySelected = useCallback(() => {
+    const onBulkPaySelected = useCallback((paymentMethod: PaymentMethodType) => {
         if (!hash) {
             return;
         }
@@ -171,7 +161,7 @@ function SearchPage({route}: SearchPageProps) {
 
         for (const item of items) {
             const itemPolicyID = item.policyID;
-            const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(itemPolicyID, lastPaymentMethods);
+            const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(itemPolicyID, lastPaymentMethods) ?? paymentMethod;
 
             if (!lastPolicyPaymentMethod) {
                 Navigation.navigate(
@@ -791,6 +781,8 @@ function SearchPage({route}: SearchPageProps) {
                                     queryJSON={queryJSON}
                                     headerButtonsOptions={headerButtonsOptions}
                                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                    currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
+                                    currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
                                 />
                                 <Search
                                     key={queryJSON.hash}

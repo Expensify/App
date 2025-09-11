@@ -1,8 +1,8 @@
-import isEmpty from 'lodash/isEmpty';
+// import isEmpty from 'lodash/isEmpty';
 import {useMemo} from 'react';
-import {Bank, Building, CheckCircle, User} from '@components/Icon/Expensicons';
+import {Building, CheckCircle, User} from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import {formatPaymentMethods} from '@libs/PaymentUtils';
+// import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {isExpenseReport as isExpenseReportUtil, isInvoiceReport as isInvoiceReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -13,23 +13,23 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
-import useThemeStyles from './useThemeStyles';
+// import useThemeStyles from './useThemeStyles';
 
 type UseBulkOptionProps = {
     selectedPolicyID: string | undefined;
     selectedReportID: string | undefined;
-    lastPaymentMethod: string | undefined;
-    onPress: (paymentType: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod | undefined, policyID?: string) => void;
+    lastPaymentMethod?: string | undefined;
+    onPress?: (paymentType: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod | undefined, policyID?: string) => void;
 };
 
-function useBulkOptions({selectedPolicyID, selectedReportID, lastPaymentMethod, onPress}: UseBulkOptionProps): PopoverMenuItem[] | undefined {
+function useBulkOptions({selectedPolicyID, selectedReportID}: UseBulkOptionProps): PopoverMenuItem[] | undefined {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
+    // const styles = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    // const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    // const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const policy = usePolicy(selectedPolicyID);
 
     const isIOUReport = isIOUReportUtil(selectedReportID);
@@ -40,30 +40,29 @@ function useBulkOptions({selectedPolicyID, selectedReportID, lastPaymentMethod, 
     const canUsePersonalBankAccount = isIOUReport;
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
     const shouldShowBusinessBankAccountOptions = isExpenseReport && !isPersonalOnlyOption;
+    // TODO: We probably need these informations later (for IOU or Invoice), so commented for now.
+    // const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles);
 
-    const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles);
+    // function getLatestBankAccountItem() {
+    //     if (!policy?.achAccount?.bankAccountID) {
+    //         return;
+    //     }
+    //     const policyBankAccounts = formattedPaymentMethods.filter((method) => method.methodID === policy?.achAccount?.bankAccountID);
 
-    function getLatestBankAccountItem() {
-        if (!policy?.achAccount?.bankAccountID) {
-            return;
-        }
-        const policyBankAccounts = formattedPaymentMethods.filter((method) => method.methodID === policy?.achAccount?.bankAccountID);
+    //     return policyBankAccounts.map((formattedPaymentMethod) => {
+    //         const {icon, title, description, methodID} = formattedPaymentMethod ?? {};
 
-        return policyBankAccounts.map((formattedPaymentMethod) => {
-            const {icon, title, description, methodID} = formattedPaymentMethod ?? {};
+    //         return {
+    //             text: title ?? '',
+    //             description: description ?? '',
+    //             icon: typeof icon === 'number' ? Bank : icon,
+    //             methodID,
+    //             value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+    //         };
+    //     });
+    // }
 
-            return {
-                text: title ?? '',
-                description: description ?? '',
-                icon: typeof icon === 'number' ? Bank : icon,
-                onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, true, undefined),
-                methodID,
-                value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-            };
-        });
-    }
-
-    const latestBankItem = getLatestBankAccountItem();
+    // const latestBankItem = getLatestBankAccountItem();
 
     const bulkPayButtonOptions = useMemo(() => {
         const buttonOptions = [];
@@ -90,16 +89,7 @@ function useBulkOptions({selectedPolicyID, selectedReportID, lastPaymentMethod, 
         }
 
         if (shouldShowBusinessBankAccountOptions) {
-            if (!isEmpty(latestBankItem) && latestBankItem) {
-                buttonOptions.push({
-                    text: latestBankItem.at(0)?.text ?? '',
-                    icon: latestBankItem.at(0)?.icon,
-                    value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-                    description: latestBankItem.at(0)?.description,
-                });
-            } else {
-                buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
-            }
+            buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
         }
 
         if (shouldShowPayElsewhereOption) {
