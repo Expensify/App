@@ -60,15 +60,17 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
             onNext={(e) => {
                 const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                markReportIDAsExpense(nextReportID!);
+                if (nextReportID) {
+                    markReportIDAsExpense(nextReportID);
+                }
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
             }}
             onPrevious={(e) => {
                 const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                markReportIDAsExpense(prevReportID!);
+                if (prevReportID) {
+                    markReportIDAsExpense(prevReportID);
+                }
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo}), {forceReplace: true});
             }}
         />
