@@ -191,7 +191,14 @@
 - E/App issue: [#66925](https://github.com/Expensify/App/issues/66925)
 - PR introducing patch: [#66749](https://github.com/Expensify/App/pull/66749)
 
-### [react-native+0.79.2+028+fix-android-tooltip-x-pressability.patch](react-native+0.79.2+028+fix-android-tooltip-x-pressability.patch)
+### [react-native+0.79.2+028+fix-modal-transparent-navigation-bar.patch](react-native+0.79.2+028+fix-modal-transparent-navigation-bar.patch)
+
+- Reason: This patch fixes an issue where it is not possible to enable a transparent navigation bar on Android
+- Upstream PR/issue: 🛑
+- E/App issue: [#69005](https://github.com/Expensify/App/issues/69005)
+- PR introducing patch: [#69004](https://github.com/Expensify/App/pull/69004)
+
+### [react-native+0.79.2+029+fix-android-tooltip-x-pressability.patch](react-native+0.79.2+029+fix-android-tooltip-x-pressability.patch)
 
 - Reason: This patch fixes an issue where on certain samsung devices, the X button inside tooltips are not pressable
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/51835
