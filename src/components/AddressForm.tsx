@@ -185,6 +185,7 @@ function AddressForm({
                         label={translate('common.addressLine', {lineNumber: 1})}
                         onValueChange={(data: unknown, key: unknown) => {
                             onAddressChanged(data, key);
+                            onClearAddressStreetError();
                         }}
                         defaultValue={street1}
                         renamedInputKeys={{
