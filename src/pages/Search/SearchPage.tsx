@@ -215,8 +215,6 @@ function SearchPage({route}: SearchPageProps) {
         });
     }, [clearSelectedTransactions, hash, isOffline, lastPaymentMethods, selectedReports, selectedTransactions]);
 
-    const getPayOptionMenuItems = () => {};
-
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
@@ -408,14 +406,16 @@ function SearchPage({route}: SearchPageProps) {
         const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnableBulkPayOption;
 
         if (shouldShowPayOption) {
-            options.push({
+            const payButtonOption = {
                 icon: Expensicons.MoneyBag,
                 text: translate('search.bulkActions.pay'),
+                rightIcon: Expensicons.ArrowRight,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
                 shouldCloseModalOnSelect: true,
                 subMenuItems: isFirstTimePayment ? bulkOptions : undefined,
                 onSelected: onBulkPaySelected,
-            });
+            }
+            options.push(payButtonOption);
         }
 
         options.push(exportButtonOption);
