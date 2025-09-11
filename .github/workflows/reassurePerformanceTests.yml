@@ -16,8 +16,6 @@ jobs:
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           fetch-depth: 0
-          submodules: recursive
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
@@ -57,7 +55,13 @@ jobs:
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
           git switch "$BASELINE_BRANCH"
-          git submodule update --init --recursive Mobile-Expensify
+          echo "=== Getting submodule commit hash from superproject ==="
+          SUBMODULE_COMMIT=$(git ls-tree HEAD Mobile-Expensify | cut -d' ' -f3 | cut -f1)
+          echo "Submodule should be at commit: $SUBMODULE_COMMIT"
+          cd Mobile-Expensify
+          echo "=== Inside Mobile-Expensify, checking out commit: $SUBMODULE_COMMIT ==="
+          git checkout "$SUBMODULE_COMMIT"
+          cd ..
           git add Mobile-Expensify
           npm install --force || (rm -rf node_modules && npm install --force) 
           NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
@@ -66,9 +70,14 @@ jobs:
           echo "=== Current commit: $(git rev-parse HEAD) ==="
           echo "=== Mobile-Expensify submodule status before checkout ==="
           git submodule status Mobile-Expensify || echo "No submodule status available"
-          echo "=== Updating and initializing submodule ==="
-          git submodule update --init --recursive Mobile-Expensify
-          echo "=== Mobile-Expensify submodule status after update ==="
+          echo "=== Getting submodule commit hash from superproject ==="
+          SUBMODULE_COMMIT=$(git ls-tree HEAD Mobile-Expensify | cut -d' ' -f3 | cut -f1)
+          echo "Submodule should be at commit: $SUBMODULE_COMMIT"
+          cd Mobile-Expensify
+          echo "=== Inside Mobile-Expensify, checking out commit: $SUBMODULE_COMMIT ==="
+          git checkout "$SUBMODULE_COMMIT"
+          cd ..
+          echo "=== Mobile-Expensify submodule status after checkout ==="
           git submodule status Mobile-Expensify || echo "No submodule status available"
           echo "=== Adding Mobile-Expensify to staging ==="
           git add Mobile-Expensify
