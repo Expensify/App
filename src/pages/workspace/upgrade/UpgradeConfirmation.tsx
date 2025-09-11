@@ -12,11 +12,14 @@ import ROUTES from '@src/ROUTES';
 type Props = {
     policyName: string;
     onConfirmUpgrade: () => void;
+    /** Whether is categorizing the expense */
     isCategorizing?: boolean;
+    /** Whether is adding an unreported expense to a report */
+    isReporting?: boolean;
     isTravelUpgrade?: boolean;
 };
 
-function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isTravelUpgrade}: Props) {
+function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isReporting, isTravelUpgrade}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -32,7 +35,7 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isTr
     }, [updateSubscriptionLink]);
 
     const description = useMemo(() => {
-        if (isCategorizing) {
+        if (isCategorizing ?? isReporting) {
             return <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.categorizeMessage')}</Text>;
         }
 
@@ -45,7 +48,7 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isTr
                 <RenderHTML html={translate('workspace.upgrade.completed.successMessage', {policyName, subscriptionLink})} />
             </View>
         );
-    }, [isCategorizing, isTravelUpgrade, policyName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
+    }, [isCategorizing, isReporting, isTravelUpgrade, policyName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
 
     return (
         <ConfirmationPage

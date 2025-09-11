@@ -2,8 +2,11 @@ import React, {useRef, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
+import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
 import Navigation from '@libs/Navigation/Navigation';
@@ -14,6 +17,7 @@ import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
 import {setMoneyRequestParticipants} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -21,16 +25,62 @@ type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigator
 
 function IOURequestStepUpgrade({
     route: {
-        params: {transactionID, action},
+        params: {transactionID, action, reportID, isCategorizing, isReporting, shouldSubmitExpense},
     },
 }: IOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
-    const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING.categories;
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
+    const feature = isReporting ? CONST.UPGRADE_FEATURE_INTRO_MAPPING.reports : CONST.UPGRADE_FEATURE_INTRO_MAPPING.categories;
+
     const [isUpgraded, setIsUpgraded] = useState(false);
+    const [showConfirmationForm, setShowConfirmationForm] = useState(false);
+    const [createdPolicyName, setCreatedPolicyName] = useState('');
     const policyDataRef = useRef<CreateWorkspaceParams | null>(null);
+
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+
+    const onWorkspaceConfirmationSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
+        const policyData = Policy.createWorkspace({
+            policyOwnerEmail: '',
+            makeMeAdmin: false,
+            policyName: params.name,
+            policyID: params.policyID,
+            currency: params.currency,
+            engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+        });
+        policyDataRef.current = policyData;
+        setCreatedPolicyName(params.name);
+        setShowConfirmationForm(false);
+        setIsUpgraded(true);
+    };
+
+    // TODO: remove this after all the changes are applied
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    const onConfirmUpgrade = () => {
+        if (isCategorizing) {
+            if (shouldSubmitExpense) {
+                setMoneyRequestParticipants(transactionID, [
+                    {
+                        selected: true,
+                        accountID: 0,
+                        isPolicyExpenseChat: true,
+                        reportID: policyDataRef.current?.expenseChatReportID,
+                        policyID: policyDataRef.current?.policyID,
+                        searchText: policyDataRef.current?.policyName,
+                    },
+                ]);
+                Navigation.goBack();
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, policyDataRef.current?.expenseChatReportID));
+            } else {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+            }
+        }
+        if (isReporting) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+        }
+    };
 
     return (
         <ScreenWrapper
@@ -38,50 +88,37 @@ function IOURequestStepUpgrade({
             testID="workspaceUpgradePage"
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <HeaderWithBackButton
-                title={translate('common.upgrade')}
-                onBackButtonPress={() => {
-                    Navigation.goBack();
-                }}
-            />
+            {(!!isUpgraded || !showConfirmationForm) && (
+                <HeaderWithBackButton
+                    title={translate('common.upgrade')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+            )}
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!isUpgraded && (
                     <UpgradeConfirmation
-                        onConfirmUpgrade={() => {
-                            setMoneyRequestParticipants(transactionID, [
-                                {
-                                    selected: true,
-                                    accountID: 0,
-                                    isPolicyExpenseChat: true,
-                                    reportID: policyDataRef.current?.expenseChatReportID,
-                                    policyID: policyDataRef.current?.policyID,
-                                    searchText: policyDataRef.current?.policyName,
-                                },
-                            ]);
-                            Navigation.goBack();
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, policyDataRef.current?.expenseChatReportID));
-                        }}
-                        policyName=""
-                        isCategorizing
+                        onConfirmUpgrade={onConfirmUpgrade}
+                        policyName={createdPolicyName}
+                        isCategorizing={isCategorizing}
+                        isReporting={isReporting}
                     />
                 )}
-                {!isUpgraded && (
+                {!isUpgraded && !showConfirmationForm && (
                     <UpgradeIntro
                         feature={feature}
-                        onUpgrade={() => {
-                            const policyData = Policy.createWorkspace({
-                                policyOwnerEmail: '',
-                                makeMeAdmin: false,
-                                policyName: '',
-                                policyID: undefined,
-                                engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
-                            });
-                            setIsUpgraded(true);
-                            policyDataRef.current = policyData;
-                        }}
+                        onUpgrade={() => setShowConfirmationForm(true)}
                         buttonDisabled={isOffline}
                         loading={false}
-                        isCategorizing
+                        isCategorizing={isCategorizing}
+                        isReporting={isReporting}
+                    />
+                )}
+                {!isUpgraded && showConfirmationForm && (
+                    <WorkspaceConfirmationForm
+                        policyOwnerEmail={session?.email ?? ''}
+                        onSubmit={onWorkspaceConfirmationSubmit}
+                        onBackButtonPress={() => setShowConfirmationForm(false)}
+                        addBottomSafeAreaPadding={false}
                     />
                 )}
             </ScrollView>
