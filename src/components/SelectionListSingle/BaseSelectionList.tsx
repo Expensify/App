@@ -2,11 +2,10 @@ import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {TextInput as RNTextInput, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
-import BaseSelectionListItemRenderer from '@components/SelectionList/BaseSelectionListItemRenderer';
 import ShowMoreButton from '@components/ShowMoreButton';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -18,7 +17,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Footer from './components/Footer';
 import SelectionListHeader from './components/ListHeader';
-import type {DataDetailsType, ListItem, SelectionListProps} from './types';
+import ListItemRenderer from './ListItem/ListItemRenderer';
+import type {ListItem} from './ListItem/types';
+import type {DataDetailsType, SelectionListProps} from './types';
 
 const ANIMATED_HIGHLIGHT_DURATION =
     CONST.ANIMATED_HIGHLIGHT_ENTRY_DELAY +
@@ -222,18 +223,14 @@ function BaseSelectionList<TItem extends ListItem>({
         const isDisabled = item.isDisabled;
         const selected = isItemSelected(item);
         const isItemFocused = (!isDisabled || selected) && focusedIndex === index;
-        const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
         return (
-            <BaseSelectionListItemRenderer
+            <ListItemRenderer
                 ListItem={ListItem}
                 selectRow={selectRow}
+                keyForList={item.keyForList}
                 showTooltip={shouldShowTooltips}
-                item={{
-                    shouldAnimateInHighlight: isItemHighlighted,
-                    isSelected: selected,
-                    ...item,
-                }}
+                item={item}
                 setFocusedIndex={setFocusedIndex}
                 index={index}
                 normalizedIndex={index}
@@ -269,10 +266,12 @@ function BaseSelectionList<TItem extends ListItem>({
     const scrollAndHighlightItem = useCallback(
         (items: string[]) => {
             const newItemsToHighlight = new Set<string>(items);
+
             if (deepEqual(itemsToHighlight, newItemsToHighlight)) {
                 return;
             }
-            const index = data.findIndex((option) => newItemsToHighlight.has(option.keyForList ?? ''));
+
+            const index = data.findIndex((option) => newItemsToHighlight.has(option.keyForList));
             scrollToIndex(index);
             setItemsToHighlight(newItemsToHighlight);
 
@@ -285,6 +284,13 @@ function BaseSelectionList<TItem extends ListItem>({
         },
         [data, itemsToHighlight, scrollToIndex],
     );
+
+    useEffect(() => {
+        if (!itemFocusTimeoutRef.current) {
+            return;
+        }
+        clearTimeout(itemFocusTimeoutRef.current);
+    }, []);
 
     const ListFooterComponent = useMemo(() => {
         if (listFooterContent) {
@@ -330,7 +336,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         data={slicedData}
                         renderItem={renderItem}
                         ref={listRef}
-                        keyExtractor={(item, index) => `${item.keyForList}-${index}`}
+                        keyExtractor={(item) => item.keyForList}
                         ListFooterComponent={ListFooterComponent}
                         scrollEnabled={scrollEnabled}
                         indicatorStyle="white"

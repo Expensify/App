@@ -3,7 +3,8 @@ import {isMobileChrome} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import BaseSelectionList from './BaseSelectionList';
-import type {ListItem, SelectionListProps} from './types';
+import type {ListItem} from './ListItem/types';
+import type {SelectionListProps} from './types';
 
 function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListProps<TItem>) {
     const [isScreenTouched, setIsScreenTouched] = useState(false);

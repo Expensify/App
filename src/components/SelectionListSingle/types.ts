@@ -1,10 +1,6 @@
-import type {ReactElement, ReactNode, RefObject} from 'react';
+import type {ReactElement, RefObject} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
-import type RadioListItem from '@components/SelectionList/RadioListItem';
-import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
-// eslint-disable-next-line no-restricted-imports
-import type CursorStyles from '@styles/utils/cursor/types';
-import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ListItem, ValidListItem} from './ListItem/types';
 
 type SelectionListProps<TItem extends ListItem> = {
     /** Array of items to display in the list */
@@ -134,117 +130,6 @@ type SelectionListProps<TItem extends ListItem> = {
     shouldShowTextInput?: boolean;
 };
 
-type ListItem<K extends string | number = string> = {
-    /** Text to display */
-    text?: string;
-
-    /** Alternate text to display */
-    alternateText?: string | null;
-
-    /** Key used internally by React */
-    keyForList?: K | null;
-
-    /** Whether this option is selected */
-    isSelected?: boolean;
-
-    /** Whether the option can show both selected and error indicators */
-    canShowSeveralIndicators?: boolean;
-
-    /** Whether the checkbox should be disabled */
-    isDisabledCheckbox?: boolean;
-
-    /** Whether this option is disabled for selection */
-    isDisabled?: boolean | null;
-
-    /** Whether this item should be interactive at all */
-    isInteractive?: boolean;
-
-    /** List title is bold by default. Use this props to customize it */
-    isBold?: boolean;
-
-    /** User accountID */
-    accountID?: number | null;
-
-    /** User login */
-    login?: string | null;
-
-    /** Element to show on the left side of the item */
-    leftElement?: ReactNode;
-
-    /** Element to show on the right side of the item */
-    rightElement?: ReactNode;
-
-    /** Icons for the user (can be multiple if it's a Workspace) */
-    icons?: Icon[];
-
-    /** Errors that this user may contain */
-    errors?: Errors;
-
-    /** The type of action that's pending  */
-    pendingAction?: PendingAction;
-
-    invitedSecondaryLogin?: string;
-
-    /** Represents the index of the section it came from  */
-    sectionIndex?: number;
-
-    /** Represents the index of the option within the section it came from */
-    index?: number;
-
-    /** ID of the report */
-    reportID?: string;
-
-    /** ID of the policy */
-    policyID?: string;
-
-    /** ID of the group */
-    groupID?: string;
-
-    /** ID of the category */
-    categoryID?: string;
-
-    /** Whether this option should show subscript */
-    shouldShowSubscript?: boolean | null;
-
-    /** Whether to wrap long text up to 2 lines */
-    isMultilineSupported?: boolean;
-
-    /** Whether to wrap the alternate text up to 2 lines */
-    isAlternateTextMultilineSupported?: boolean;
-
-    /** The search value from the selection list */
-    searchText?: string | null;
-
-    /** What text to show inside the badge (if none present the badge will be omitted) */
-    badgeText?: string;
-
-    /** Whether the brick road indicator should be shown */
-    brickRoadIndicator?: BrickRoad | '' | null;
-
-    /** Element to render below the ListItem */
-    footerContent?: ReactNode;
-
-    /** Whether item pressable wrapper should be focusable */
-    tabIndex?: 0 | -1;
-
-    /** The style to override the cursor appearance */
-    cursorStyle?: CursorStyles[keyof CursorStyles];
-
-    /** Determines whether the newly added item should animate in / highlight */
-    shouldAnimateInHighlight?: boolean;
-
-    /** The style to override the default appearance */
-    itemStyle?: StyleProp<ViewStyle>;
-
-    /** Boolean whether to display the right icon */
-    shouldShowRightIcon?: boolean;
-
-    /** Whether product training tooltips can be displayed */
-    canShowProductTrainingTooltip?: boolean;
-};
-
-type ValidListItem = typeof RadioListItem;
-
 type TextInputOptions = {
     /** Called when the text input value changes */
     onChangeText?: (text: string) => void;
@@ -319,4 +204,4 @@ type DataDetailsType<TItem extends ListItem> = {
     disabledArrowKeyIndexes: number[];
 };
 
-export type {DataDetailsType, SelectionListHandle, SelectionListProps, ListItem, TextInputOptions, ValidListItem, ConfirmButtonOptions};
+export type {DataDetailsType, SelectionListHandle, SelectionListProps, TextInputOptions, ConfirmButtonOptions};
