@@ -162,12 +162,14 @@ import type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    PayAndDowngradeDescriptionParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    PhoneErrorRouteParams,
     PolicyAddedReportFieldOptionParams,
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
@@ -656,6 +658,7 @@ const translations = {
         submitTo: '送信先',
         forwardTo: '転送先',
         merge: 'マージ',
+        none: 'なし',
         unstableInternetConnection: 'インターネット接続が不安定です。ネットワークを確認してもう一度お試しください。',
         enableGlobalReimbursements: 'グローバル払い戻しを有効にする',
         purchaseAmount: '購入金額',
@@ -1413,7 +1416,7 @@ const translations = {
         listPage: {
             header: '経費をマージ',
             noEligibleExpenseFound: 'マージ対象となる経費が見つかりません',
-            noEligibleExpenseFoundSubtitle: `この経費とマージできる経費がありません。<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">マージ可能な経費</a>について詳しくはこちら。`,
+            noEligibleExpenseFoundSubtitle: `<muted-text><centered-text>この経費とマージできる経費がありません。<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">マージ可能な経費</a>について詳しくはこちら。</centered-text></muted-text>`,
             selectTransactionToMerge: ({reportName}: {reportName: string}) =>
                 `<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">マージ対象の経費</a>を選択してください <strong>${reportName}</strong>.`,
         },
@@ -1647,12 +1650,7 @@ const translations = {
         restoreStashed: '隠されたログインを復元',
         signOutConfirmationText: 'サインアウトすると、オフラインでの変更が失われます。',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: '読む',
-            phrase2: '利用規約',
-            phrase3: 'および',
-            phrase4: 'プライバシー',
-        },
+        readTheTermsAndPrivacy: `<muted-text-micro><a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">利用規約</a>と<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシー</a>をお読みください。</muted-text-micro>`,
         help: '助けて',
         whatIsNew: '新着情報',
         accountSettings: 'アカウント設定',
@@ -2225,10 +2223,6 @@ const translations = {
             title: 'Expensifyへようこそ',
             description: 'チャットのスピードでビジネスと個人の支出を管理するための1つのアプリ。ぜひお試しいただき、ご意見をお聞かせください。もっと多くの機能が登場予定です！',
             secondaryDescription: 'Expensify Classicに戻るには、プロフィール写真をタップして > Expensify Classicに移動します。',
-        },
-        welcomeVideo: {
-            title: 'Expensifyへようこそ',
-            description: 'チャットでビジネスと個人の支出をすべて管理するための1つのアプリ。あなたのビジネス、チーム、そして友人のために作られました。',
         },
         getStarted: '始めましょう',
         whatsYourName: 'あなたの名前は何ですか？',
@@ -3404,11 +3398,8 @@ const translations = {
         tripSummary: '旅行概要',
         departs: '出発します',
         errorMessage: '問題が発生しました。後でもう一度お試しください。',
-        phoneError: {
-            phrase1: 'お願いします',
-            link: '勤務用メールアドレスをプライマリログインとして追加してください。',
-            phrase2: '旅行を予約するために。',
-        },
+        phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) =>
+            `<rbr>旅行予約のための<a href="${phoneErrorMethodsRoute}">プライマリログインとして、仕事の電子メールを追加して</a>ください。</rbr>`,
         domainSelector: {
             title: 'ドメイン',
             subtitle: 'Expensify Travelのセットアップ用にドメインを選択してください。',
@@ -4865,8 +4856,7 @@ const translations = {
             existingTagError: 'この名前のタグはすでに存在します',
             invalidTagNameError: 'タグ名は0にできません。別の値を選んでください。',
             genericFailureMessage: 'タグの更新中にエラーが発生しました。もう一度お試しください。',
-            importedFromAccountingSoftware: 'タグは次で管理されています:',
-            employeesSeeTagsAs: '従業員にはタグが次のように表示されます: ',
+            importedFromAccountingSoftware: '以下のタグはあなたのからインポートされます',
             glCode: 'GLコード',
             updateGLCodeFailureMessage: 'GLコードの更新中にエラーが発生しました。もう一度お試しください。',
             tagRules: 'Tag rules',
@@ -5421,11 +5411,7 @@ const translations = {
             changeOwnerPageTitle: 'オーナーを移行',
             addPaymentCardTitle: '所有権を移転するために支払いカードを入力してください。',
             addPaymentCardButtonText: '利用規約に同意して支払いカードを追加',
-            addPaymentCardReadAndAcceptTextPart1: '読み取りと承認',
-            addPaymentCardReadAndAcceptTextPart2: 'カードを追加するためのポリシー',
-            addPaymentCardTerms: '利用規約',
-            addPaymentCardPrivacy: 'プライバシー',
-            addPaymentCardAnd: '&',
+            addPaymentCardReadAndAcceptText: `<muted-text-micro><a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">規約</a>と<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシー</a>ポリシーに同意してカードを追加してください。</muted-text-micro>`,
             addPaymentCardPciCompliant: 'PCI-DSS 準拠',
             addPaymentCardBankLevelEncrypt: '銀行レベルの暗号化',
             addPaymentCardRedundant: '冗長インフラストラクチャー',
@@ -5601,7 +5587,7 @@ const translations = {
         payAndDowngrade: {
             title: '支払いとダウングレード',
             headline: '最終支払い',
-            description1: 'このサブスクリプションの最終請求書は',
+            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `このサブスクリプションの最終的な請求額は<strong>${formattedAmount}</strong>です`,
             description2: ({date}: DateParams) => `${date}の内訳を以下に示します：`,
             subscription:
                 'ご注意ください！この操作は、Expensifyのサブスクリプションを終了し、このワークスペースを削除し、すべてのワークスペースメンバーを削除します。このワークスペースを保持し、自分だけを削除したい場合は、別の管理者に請求を引き継いでもらってください。',
@@ -5967,6 +5953,7 @@ const translations = {
         memberNotFound: 'メンバーが見つかりません。',
         useInviteButton: '新しいメンバーをチャットに招待するには、上の招待ボタンを使用してください。',
         notAuthorized: `このページにアクセスする権限がありません。このルームに参加しようとしている場合は、ルームメンバーに追加してもらってください。他に何かお困りですか？${CONST.EMAIL.CONCIERGE}にお問い合わせください。`,
+        roomArchived: `このルームはアーカイブされました。ご不明な点があれば、${CONST.EMAIL.CONCIERGE} までご連絡ください。`,
         removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `このルームから${memberName}を削除してもよろしいですか？`,
             other: '選択したメンバーをルームから削除してもよろしいですか？',
@@ -6155,6 +6142,9 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
             },
+            has: {
+                receipt: '領収書',
+            },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '送信',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '承認',
@@ -6162,6 +6152,7 @@ const translations = {
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
             },
         },
+        has: '含む',
         groupBy: 'グループ',
         moneyRequestReport: {
             emptyStateTitle: 'このレポートには経費がありません。',

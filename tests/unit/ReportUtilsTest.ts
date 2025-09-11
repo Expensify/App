@@ -2,7 +2,7 @@
 import {beforeAll} from '@jest/globals';
 import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePolicyData from '@hooks/usePolicyData';
@@ -45,7 +45,6 @@ import {
     getDisplayNamesWithTooltips,
     getGroupChatName,
     getIconsForParticipants,
-    getInvoiceChatByParticipants,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
     getParentNavigationSubtitle,
@@ -106,7 +105,6 @@ import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions'
 import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
 import * as NumberUtils from '../../src/libs/NumberUtils';
-import {convertedInvoiceChat} from '../data/Invoice';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomPolicyTags from '../utils/collections/policyTags';
@@ -2110,6 +2108,18 @@ describe('ReportUtils', () => {
             };
             expect(isChatUsedForOnboarding(report2)).toBeFalsy();
         });
+
+        it('should return true for admins rooms chat when posting tasks in admins room', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
+            });
+
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+            };
+            expect(isChatUsedForOnboarding(report, CONST.ONBOARDING_CHOICES.MANAGE_TEAM)).toBeTruthy();
+        });
     });
 
     describe('canHoldUnholdReportAction', () => {
@@ -2932,20 +2942,6 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getInvoiceChatByParticipants', () => {
-        it('only returns an invoice chat if the receiver type matches', () => {
-            // Given an invoice chat that has been converted from an individual to policy receiver type
-            const reports: OnyxCollection<Report> = {
-                [convertedInvoiceChat.reportID]: convertedInvoiceChat,
-            };
-
-            // When we send another invoice to the individual from global create and call getInvoiceChatByParticipants
-            const invoiceChatReport = getInvoiceChatByParticipants(33, CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, convertedInvoiceChat.policyID, reports);
-
-            // Then no invoice chat should be returned because the receiver type does not match
-            expect(invoiceChatReport).toBeUndefined();
-        });
-    });
     describe('getWorkspaceNameUpdatedMessage', () => {
         it('return the encoded workspace name updated message', () => {
             const action = {
