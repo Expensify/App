@@ -46,7 +46,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
 
             // Then
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
-            expect(onTrackScrollingMockFn).not.toBeCalled();
+            expect(onTrackScrollingMockFn).not.toHaveBeenCalled();
         });
 
         it('returns floatingMessage visibility that was set to a new value', () => {
