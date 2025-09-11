@@ -3898,7 +3898,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
 
     // STEP 2: If not in the self-DM flow, we need to use the expense report.
     // For this, first use the chatReport.iouReportID property. Build a new optimistic expense report if needed.
-    const shouldUseMoneyReport = !!isPolicyExpenseChat;
+    const shouldUseMoneyReport = !!isPolicyExpenseChat && chatReport.chatType !== CONST.REPORT.CHAT_TYPE.SELF_DM;
 
     let iouReport: OnyxInputValue<OnyxTypes.Report> = null;
     let shouldCreateNewMoneyRequestReport = false;
