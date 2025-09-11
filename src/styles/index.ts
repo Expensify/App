@@ -79,17 +79,13 @@ type MapDirectionStyle = Pick<LineLayerStyleProps, 'lineColor' | 'lineWidth'>;
 
 type MapDirectionLayerStyle = Pick<LineLayer, 'layout' | 'paint'>;
 
-type Styles = Record<
+type Styles = StaticStyles & DynamicStyles;
+
+type StaticStyles = Record<string, ViewStyle | TextStyle | ImageStyle | WebViewStyle | OfflineFeedbackStyle | MapDirectionStyle | MapDirectionLayerStyle>;
+type DynamicStyles = Record<
     string,
-    | ViewStyle
-    | TextStyle
-    | ImageStyle
-    | WebViewStyle
-    | OfflineFeedbackStyle
-    | MapDirectionStyle
-    | MapDirectionLayerStyle
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    | ((...args: any[]) => ViewStyle | TextStyle | ImageStyle | AnchorPosition | CustomPickerStyle)
+    (...args: any[]) => ViewStyle | TextStyle | ImageStyle | AnchorPosition | CustomPickerStyle
 >;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
@@ -5222,18 +5218,15 @@ const staticStyles = (theme: ThemeColors) =>
             ...sizing.h100,
             backgroundColor: colors.green800,
         },
-
         topBarWrapper: {
             zIndex: 15,
         },
-    });
-
-const styles = (theme: ThemeColors) =>
-    ({
-        ...staticStyles(theme),
-
         webViewStyles: webViewStyles(theme),
 
+    }) satisfies StaticStyles;
+
+const dynamicStyles = (theme: ThemeColors) =>
+    ({
         topLevelNavigationTabBar: (shouldDisplayTopLevelNavigationTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
             // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
             // On natives we can use absolute positioning.
@@ -5772,6 +5765,12 @@ const styles = (theme: ThemeColors) =>
                 overflow: 'hidden',
             };
         },
+    }) satisfies DynamicStyles;
+
+const styles = (theme: ThemeColors) =>
+    ({
+        ...staticStyles(theme),
+        ...dynamicStyles(theme),
     }) satisfies Styles;
 
 type ThemeStyles = ReturnType<typeof styles>;
