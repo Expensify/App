@@ -11,6 +11,7 @@ import type {PaymentCardParams} from '@libs/API/parameters';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {addPaymentCard as addPaymentCardAction, clearPaymentCardFormErrorAndSubmit, continueSetup} from '@userActions/PaymentMethods';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function DebitCardPage() {
@@ -44,7 +45,7 @@ function DebitCardPage() {
 
     const addPaymentCard = useCallback(
         (params: PaymentCardParams) => {
-            addPaymentCardAction(accountID ?? 0, params);
+            addPaymentCardAction(accountID ?? CONST.DEFAULT_NUMBER_ID, params);
         },
         [accountID],
     );
