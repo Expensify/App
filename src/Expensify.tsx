@@ -48,6 +48,7 @@ import * as ReportActionContextMenu from './pages/home/report/ContextMenu/Report
 import type {Route} from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
+import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
@@ -94,7 +95,7 @@ function Expensify() {
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {translate, preferredLocale} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE, {canBeMissing: true});
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA, {canBeMissing: true});
     const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, canBeMissing: true});
@@ -121,6 +122,8 @@ function Expensify() {
     }, [isCheckingPublicRoom]);
 
     const isAuthenticated = useIsAuthenticated();
+    const isAuthenticatedRef = useRef(isAuthenticated);
+    isAuthenticatedRef.current = isAuthenticated;
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
     const isSplashReadyToBeHidden = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN;
@@ -185,6 +188,9 @@ function Expensify() {
     }, []);
 
     useEffect(() => {
+        if (isLoadingOnyxValue(sessionMetadata)) {
+            return;
+        }
         setTimeout(() => {
             const appState = AppState.currentState;
             Log.info('[BootSplash] splash screen status', false, {appState, splashScreenState});
@@ -241,7 +247,7 @@ function Expensify() {
             appStateChangeListener.current.remove();
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, []);
+    }, [sessionMetadata?.status]);
 
     // This is being done since we want to play sound even when iOS device is on silent mode, to align with other platforms.
     useEffect(() => {
@@ -276,7 +282,7 @@ function Expensify() {
     }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate]);
 
     // Display a blank page until the onyx migration completes
-    if (!isOnyxMigrated) {
+    if (!isOnyxMigrated || isLoadingOnyxValue(sessionMetadata)) {
         return null;
     }
 
