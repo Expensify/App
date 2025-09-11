@@ -129,7 +129,9 @@ describe('mergeTransactionRequest', () => {
         });
 
         // Verify target transaction is updated with merged values
-        expect(updatedTargetTransaction?.merchant).toBe(mergeTransaction.merchant);
+        expect(updatedTargetTransaction?.modifiedAmount).toBe(mergeTransaction.amount);
+        expect(updatedTargetTransaction?.modifiedCurrency).toBe(mergeTransaction.currency);
+        expect(updatedTargetTransaction?.modifiedMerchant).toBe(mergeTransaction.merchant);
         expect(updatedTargetTransaction?.category).toBe(mergeTransaction.category);
         expect(updatedTargetTransaction?.tag).toBe(mergeTransaction.tag);
         expect(updatedTargetTransaction?.comment?.comment).toBe(mergeTransaction.description);

@@ -4,9 +4,9 @@ import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getReportOrDraftReport, getReportTransactions, isCurrentUserSubmitter, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getReportTransactions, isCurrentUserSubmitter, isExpenseReport, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {getAmount, getTransactionViolationsOfTransaction, isCardTransaction} from '@src/libs/TransactionUtils';
+import {getAmount, getTransactionViolationsOfTransaction, getUpdatedTransaction, isCardTransaction} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, Report, Transaction} from '@src/types/onyx';
 
@@ -148,19 +148,14 @@ function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: M
         reportID: mergeTransaction.reportID,
     };
 
+    const {description, ...transactionChanges} = {...mergeTransaction, comment: mergeTransaction.description};
+    const targetTransactionUpdated = getUpdatedTransaction({transaction: targetTransaction, transactionChanges, isFromExpenseReport: isExpenseReport(mergeTransaction.reportID)});
     // Optimistic update the target transaction with the new values
     const optimisticTargetTransactionData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`,
         value: {
-            merchant: params.merchant,
-            category: params.category,
-            tag: params.tag,
-            comment: {
-                comment: params.comment,
-            },
-            reimbursable: params.reimbursable,
-            billable: params.billable,
+            ...targetTransactionUpdated,
             // Update receipt if receiptID is provided
             ...(params.receiptID && {
                 receipt: {
