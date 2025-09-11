@@ -64,6 +64,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const {environmentURL} = useEnvironment();
     const session = useSession();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT, {canBeMissing: true});
     const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN, {canBeMissing: true});
@@ -130,8 +131,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
      * Returns true if a VBBA exists in any state other than OPEN or LOCKED
      */
     const hasInProgressVBBA = useCallback((): boolean => {
+        if (!policy){
+            return Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.SETUP);
+        }
         return !!achData?.bankAccountID && !!achData?.state && achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN && achData?.state !== CONST.BANK_ACCOUNT.STATE.LOCKED;
-    }, [achData?.bankAccountID, achData?.state]);
+    }, [achData?.bankAccountID, achData?.state, bankAccountList, policy]);
 
     /** Returns true if user passed first step of flow for non USD VBBA */
     const hasInProgressNonUSDVBBA = useCallback((): boolean => {

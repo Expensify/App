@@ -334,6 +334,10 @@ function PaymentMethodList({
                 (paymentMethod) => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(paymentMethod.errors),
             );
         }
+
+        // TODO: temporarily do not show partially set-up bank accounts, we'll add it in https://github.com/Expensify/App/pull/67326
+        combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => (paymentMethod.accountData as AccountData).state !== CONST.BANK_ACCOUNT.STATE.SETUP);
+
         combinedPaymentMethods = combinedPaymentMethods.map((paymentMethod) => {
             const pressHandler = onPress as PaymentMethodPressHandler;
             const isMethodActive = isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, paymentMethod);
