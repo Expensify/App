@@ -639,7 +639,6 @@ const translations = {
         submitTo: 'Enviar a',
         forwardTo: 'Reenviar a',
         merge: 'Fusionar',
-        none: 'Ninguno',
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
         enableGlobalReimbursements: 'Habilitar Reembolsos Globales',
         purchaseAmount: 'Importe de compra',
@@ -1400,7 +1399,7 @@ const translations = {
         listPage: {
             header: 'Fusionar gastos',
             noEligibleExpenseFound: 'No se encontraron gastos válidos',
-            noEligibleExpenseFoundSubtitle: `<muted-text><centered-text>No tienes ningún gasto que pueda fusionarse con éste. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Obtén más información</a> sobre gastos válidos.</centered-text></muted-text>`,
+            noEligibleExpenseFoundSubtitle: `No tienes ningún gasto que pueda fusionarse con éste. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">Obtén más información</a> sobre gastos válidos.`,
             selectTransactionToMerge: ({reportName}: {reportName: string}) =>
                 `Selecciona un <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">gasto válido</a> con el que fusionar <strong>${reportName}</strong>.`,
         },

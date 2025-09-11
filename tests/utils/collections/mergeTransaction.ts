@@ -1,5 +1,4 @@
-import {randAmount, randBoolean, randPastDate, randWord} from '@ngneat/falso';
-import {format} from 'date-fns';
+import {randAmount, randBoolean, randWord} from '@ngneat/falso';
 import CONST from '@src/CONST';
 import type {MergeTransaction} from '@src/types/onyx';
 import createRandomTransaction from './transaction';
@@ -21,7 +20,5 @@ export default function createRandomMergeTransaction(index: number): MergeTransa
         reimbursable: randBoolean(),
         billable: randBoolean(),
         receipt: {},
-        created: format(randPastDate(), CONST.DATE.FNS_DB_FORMAT_STRING),
-        reportID: index.toString(),
     };
 }
