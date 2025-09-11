@@ -16,6 +16,8 @@ jobs:
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           fetch-depth: 0
+          submodules: recursive
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
@@ -24,6 +26,10 @@ jobs:
         run: |
             git config --global user.email "test@test.com"
             git config --global user.name "Test"
+
+      - name: Configure Git to use HTTPS instead of SSH
+        run: |
+            git config --global url."https://github.com/".insteadOf "git@github.com:"
 
       - name: Get common ancestor commit
         run: |
