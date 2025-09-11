@@ -273,7 +273,8 @@ function parseCombinedOutput(output: string): DetailedCompilerResults {
 
 function printFailureSummary(failures: CompilerFailure[], failedFileNames: string[]): void {
     console.log(`❌ Failed to compile ${failedFileNames.length} files with React Compiler:`);
-    failedFileNames.forEach((file) => console.log(`  - ${file}\n\n`));
+    failedFileNames.forEach((file) => console.log(`  - ${file}`));
+    console.log('\n\n');
 
     // Group failures by file and line to avoid duplicates
     const uniqueFailures = new Map<string, CompilerFailure>();
@@ -289,7 +290,7 @@ function printFailureSummary(failures: CompilerFailure[], failedFileNames: strin
 
     // Print unique failures
 
-    console.log(`❌ Detailed reasons for failures:`);
+    console.log(`📜 Detailed reasons for failures:`);
     Array.from(uniqueFailures.values()).forEach((failure) => {
         const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
         console.log(`  - ${failure.file}${location}`);
@@ -297,6 +298,9 @@ function printFailureSummary(failures: CompilerFailure[], failedFileNames: strin
             console.log(`    Reason: ${failure.reason}`);
         }
     });
+
+    console.log('\n\n');
+    console.log(`❌ The files above failed to compile with React Compiler, probably because of Rules of React violations. Please fix the issues and run the check again.`);
 }
 
 function getMainBranchRemote(): string {
