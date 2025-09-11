@@ -23,6 +23,7 @@ import {
     getDefaultWorkspaceAvatar,
     getOutstandingReportsForUser,
     getReportName,
+    isArchivedReport,
     isMoneyRequestReport,
     isReportOutstanding,
     populateOptimisticReportFormula,
@@ -270,8 +271,20 @@ function MoneyRequestConfirmationListFooter({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {
+        canBeMissing: true,
+    });
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
+
+    const allOutstandingReports = useMemo(() => {
+        const outstandingReports = Object.values(outstandingReportsByPolicyID ?? {}).flatMap((policy) => Object.values(policy ?? {}));
+
+        return outstandingReports.filter((report) => {
+            const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
+            return !isArchivedReport(reportNameValuePair);
+        });
+    }, [outstandingReportsByPolicyID]);
 
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
@@ -323,7 +336,7 @@ function MoneyRequestConfirmationListFooter({
 
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
-    const shouldReportBeEditable = availableOutstandingReports.length > 1 && !isMoneyRequestReport(reportID, allReports);
+    const shouldReportBeEditable = (isFromGlobalCreate ? allOutstandingReports.length > 1 : availableOutstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports);
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const taxRates = policy?.taxRates ?? null;
