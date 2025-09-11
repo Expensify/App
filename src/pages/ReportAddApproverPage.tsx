@@ -115,7 +115,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             return;
         }
         addReportApprover(report, selectedApproverEmail, Number(employeeAccountID), currentUserDetails.accountID);
-        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+        Navigation.dismissModal();
     }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID]);
 
     const button = useMemo(() => {
