@@ -15,6 +15,18 @@ type CompilerResults = {
     failure: string[];
 };
 
+type CompilerFailure = {
+    file: string;
+    line?: number;
+    column?: number;
+    reason: string;
+};
+
+type DetailedCompilerResults = {
+    success: string[];
+    failures: CompilerFailure[];
+};
+
 type ComponentStatus = {
     file: string;
     canCompile: boolean;
@@ -73,6 +85,75 @@ class ReactCompilerTracker {
             console.error('❌ Failed to run React Compiler healthcheck:', error);
             throw error;
         }
+    }
+
+    public runDetailedCompilerHealthcheck(): DetailedCompilerResults {
+        try {
+            console.log('🔍 Running detailed React Compiler healthcheck...');
+            const output = execSync('npx react-compiler-healthcheck --verbose', {
+                encoding: 'utf8',
+                cwd: process.cwd(),
+            });
+
+            // Save raw verbose output for debugging
+            const verboseOutputFile = join(process.cwd(), 'react-compiler-verbose-output.txt');
+            writeFileSync(verboseOutputFile, output);
+
+            return this.parseVerboseOutput(output);
+        } catch (error) {
+            console.error('❌ Failed to run detailed React Compiler healthcheck:', error);
+            throw error;
+        }
+    }
+
+    private parseVerboseOutput(output: string): DetailedCompilerResults {
+        const lines = output.split('\n');
+        const success: string[] = [];
+        const failures: CompilerFailure[] = [];
+
+        let currentFailure: CompilerFailure | null = null;
+
+        for (const line of lines) {
+            // Parse successful compilation
+            const successMatch = line.match(/Successfully compiled (?:hook|component) \[([^\]]+)\]\(([^)]+)\)/);
+            if (successMatch) {
+                success.push(successMatch[2]);
+                continue;
+            }
+
+            // Parse failed compilation with file and location
+            const failureMatch = line.match(/Failed to compile ([^:]+):(\d+):(\d+)\./);
+            if (failureMatch) {
+                // Save previous failure if exists
+                if (currentFailure) {
+                    failures.push(currentFailure);
+                }
+
+                currentFailure = {
+                    file: failureMatch[1],
+                    line: parseInt(failureMatch[2], 10),
+                    column: parseInt(failureMatch[3], 10),
+                    reason: '',
+                };
+                continue;
+            }
+
+            // Parse reason line
+            const reasonMatch = line.match(/Reason: (.+)/);
+            if (reasonMatch && currentFailure) {
+                currentFailure.reason = reasonMatch[1];
+                failures.push(currentFailure);
+                currentFailure = null;
+                continue;
+            }
+        }
+
+        // Add any remaining failure
+        if (currentFailure) {
+            failures.push(currentFailure);
+        }
+
+        return {success, failures};
     }
 
     private updateComponentStatus(file: string, canCompile: boolean): void {
@@ -201,6 +282,11 @@ class ReactCompilerTracker {
         return canCompile;
     }
 
+    public getDetailedFailureInfo(filePath: string): CompilerFailure | null {
+        const results = this.runDetailedCompilerHealthcheck();
+        return results.failures.find((failure) => failure.file === filePath) ?? null;
+    }
+
     public getStatus(): void {
         console.log('📊 React Compiler Tracker Status:');
         console.log(`Last full check: ${this.trackerData.lastFullCheck || 'Never'}`);
@@ -221,15 +307,21 @@ class ReactCompilerTracker {
     }
 
     public generateReport(): void {
-        const results = this.runCompilerHealthcheck();
+        const results = this.runDetailedCompilerHealthcheck();
 
         console.log('\n📋 React Compiler Report:');
         console.log(`✅ Successfully compiled: ${results.success.length} components`);
-        console.log(`❌ Failed to compile: ${results.failure.length} components`);
+        console.log(`❌ Failed to compile: ${results.failures.length} components`);
 
-        if (results.failure.length > 0) {
-            console.log('\n❌ Failed components:');
-            results.failure.forEach((file) => console.log(`  - ${file}`));
+        if (results.failures.length > 0) {
+            console.log('\n❌ Failed components with reasons:');
+            results.failures.forEach((failure) => {
+                const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
+                console.log(`  - ${failure.file}${location}`);
+                if (failure.reason) {
+                    console.log(`    Reason: ${failure.reason}`);
+                }
+            });
         }
 
         // Save detailed report
@@ -240,12 +332,12 @@ class ReactCompilerTracker {
                 {
                     timestamp: new Date().toISOString(),
                     summary: {
-                        total: results.success.length + results.failure.length,
+                        total: results.success.length + results.failures.length,
                         success: results.success.length,
-                        failure: results.failure.length,
+                        failure: results.failures.length,
                     },
                     success: results.success,
-                    failure: results.failure,
+                    failures: results.failures,
                 },
                 null,
                 2,

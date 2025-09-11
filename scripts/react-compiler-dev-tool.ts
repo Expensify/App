@@ -121,7 +121,17 @@ class ReactCompilerDevTool {
             } else {
                 console.log('❌ This component cannot be compiled by React Compiler.');
                 console.log('🔧 Consider adding manual memoization or fixing Rules of React violations.');
-                console.log('📖 Run `npm run react-compiler-tracker report` for detailed error information.');
+
+                // Show detailed failure reason if available
+                const failureInfo = this.tracker.getDetailedFailureInfo(filePath);
+                if (failureInfo?.reason) {
+                    const location = failureInfo.line && failureInfo.column ? `:${failureInfo.line}:${failureInfo.column}` : '';
+                    console.log(`\n📋 Detailed failure information:`);
+                    console.log(`   File: ${failureInfo.file}${location}`);
+                    console.log(`   Reason: ${failureInfo.reason}`);
+                } else {
+                    console.log('📖 Run `npm run react-compiler-tracker report` for detailed error information.');
+                }
             }
         } else {
             // Check current directory or common locations
@@ -165,7 +175,7 @@ class ReactCompilerDevTool {
 
         console.log(`📊 Found ${reactFiles.length} React files\n`);
 
-        const results = this.tracker.runCompilerHealthcheck();
+        const results = this.tracker.runDetailedCompilerHealthcheck();
         const currentDir = process.cwd();
 
         let compilableCount = 0;
