@@ -7,7 +7,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import useDelayedAutoFocus from '@hooks/useDelayAutoFocus';
+import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';

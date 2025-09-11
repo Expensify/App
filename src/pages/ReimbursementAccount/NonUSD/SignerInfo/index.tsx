@@ -178,16 +178,26 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         }
     }, [currentSubStep, goToTheLastStep, isEditing, isUserDirector, onBackButtonPress, prevScreen, screenIndex]);
 
+    const shouldSendOnlySecondSignerEmail = currency === CONST.CURRENCY.AUD && isUserDirector;
+
     const handleEmailSubmit = useCallback(
         (values: EmailSubmitParams) => {
-            askForCorpaySignerInformation({
-                signerEmail: values.signerEmail,
-                secondSignerEmail: values.secondSignerEmail,
-                policyID: String(policyID),
-                bankAccountID,
-            });
+            const params = shouldSendOnlySecondSignerEmail
+                ? {
+                      secondSignerEmail: values.secondSignerEmail,
+                      policyID: String(policyID),
+                      bankAccountID,
+                  }
+                : {
+                      signerEmail: values.signerEmail,
+                      secondSignerEmail: values.secondSignerEmail,
+                      policyID: String(policyID),
+                      bankAccountID,
+                  };
+
+            askForCorpaySignerInformation(params);
         },
-        [bankAccountID, policyID],
+        [bankAccountID, policyID, shouldSendOnlySecondSignerEmail],
     );
 
     return (

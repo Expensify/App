@@ -38,13 +38,18 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
     const policy = usePolicy(policyID);
     const currency = policy?.outputCurrency ?? '';
     const shouldGatherBothEmails = currency === CONST.CURRENCY.AUD && !isUserDirector;
+    const shouldGatherOnlySecondSignerEmail = currency === CONST.CURRENCY.AUD && isUserDirector;
     const companyName = reimbursementAccount?.achData?.corpay?.[COMPANY_NAME] ?? '';
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors = getFieldRequiredErrors(values, shouldGatherBothEmails ? [SIGNER_EMAIL, SECOND_SIGNER_EMAIL] : [SIGNER_EMAIL]);
-            if (values[SIGNER_EMAIL] && !Str.isValidEmail(values[SIGNER_EMAIL])) {
+            if (!shouldGatherOnlySecondSignerEmail && values[SIGNER_EMAIL] && !Str.isValidEmail(values[SIGNER_EMAIL])) {
                 errors[SIGNER_EMAIL] = translate('bankAccount.error.email');
+            }
+
+            if (shouldGatherOnlySecondSignerEmail && values[SECOND_SIGNER_EMAIL] && !Str.isValidEmail(String(values[SECOND_SIGNER_EMAIL]))) {
+                errors[SECOND_SIGNER_EMAIL] = translate('bankAccount.error.email');
             }
 
             if (shouldGatherBothEmails && values[SECOND_SIGNER_EMAIL] && !Str.isValidEmail(String(values[SECOND_SIGNER_EMAIL]))) {
@@ -53,7 +58,7 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
 
             return errors;
         },
-        [shouldGatherBothEmails, translate],
+        [shouldGatherBothEmails, shouldGatherOnlySecondSignerEmail, translate],
     );
 
     return (
@@ -73,7 +78,7 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
                 label={shouldGatherBothEmails ? `${translate('common.email')} 1` : translate('common.email')}
                 aria-label={shouldGatherBothEmails ? `${translate('common.email')} 1` : translate('common.email')}
                 role={CONST.ROLE.PRESENTATION}
-                inputID={SIGNER_EMAIL}
+                inputID={shouldGatherOnlySecondSignerEmail ? SECOND_SIGNER_EMAIL : SIGNER_EMAIL}
                 inputMode={CONST.INPUT_MODE.EMAIL}
                 containerStyles={[styles.mt6]}
             />
