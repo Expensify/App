@@ -100,8 +100,9 @@ class ReactCompilerComplianceChecker {
 
         console.log(`📝 Checking ${filesToCheck.length} changed files...`);
 
-        const results = this.runCompilerHealthcheck();
+        const results = this.runDetailedCompilerHealthcheck();
         const failures: string[] = [];
+        const nonCompilableFiles: string[] = [];
 
         // Check each changed file
         for (const file of filesToCheck) {
@@ -113,15 +114,21 @@ class ReactCompilerComplianceChecker {
             // For new files, they must be compilable
             if (isNewFile && !canCompile) {
                 failures.push(file);
-                console.log(`❌ New file ${file} cannot be compiled by React Compiler`);
-            } else if (canCompile) {
-                console.log(`✅ ${file} can be compiled by React Compiler`);
-            } else {
-                console.log(`⚠️  ${file} cannot be compiled by React Compiler (existing file)`);
+                nonCompilableFiles.push(file);
+            } else if (!canCompile) {
+                nonCompilableFiles.push(file);
             }
         }
 
         this.saveTrackerData();
+
+        // Print summary statistics
+        this.printSummaryStats(results.success.length, results.failures.length);
+
+        // Print detailed failure information for non-compilable files
+        if (nonCompilableFiles.length > 0) {
+            this.printDetailedFailures(results.failures, nonCompilableFiles);
+        }
 
         const passed = failures.length === 0;
         if (passed) {
@@ -185,18 +192,14 @@ class ReactCompilerComplianceChecker {
         const results = this.runDetailedCompilerHealthcheck();
 
         console.log('\n📋 React Compiler Report:');
-        console.log(`✅ Successfully compiled: ${results.success.length} components`);
-        console.log(`❌ Failed to compile: ${results.failures.length} components`);
+        this.printSummaryStats(results.success.length, results.failures.length);
 
         if (results.failures.length > 0) {
             console.log('\n❌ Failed components with reasons:');
-            results.failures.forEach((failure) => {
-                const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
-                console.log(`  - ${failure.file}${location}`);
-                if (failure.reason) {
-                    console.log(`    Reason: ${failure.reason}`);
-                }
-            });
+            this.printDetailedFailures(
+                results.failures,
+                results.failures.map((f) => f.file),
+            );
         }
 
         // Save detailed report
@@ -386,6 +389,24 @@ class ReactCompilerComplianceChecker {
             canCompile,
             lastChecked: new Date().toISOString(),
         };
+    }
+
+    private printSummaryStats(successCount: number, failureCount: number): void {
+        console.log(`✅ Successfully compiled: ${successCount} components`);
+        console.log(`❌ Failed to compile: ${failureCount} components`);
+    }
+
+    private printDetailedFailures(failures: CompilerFailure[], filesToShow: string[]): void {
+        console.log('\n❌ Failed components with reasons:');
+        failures
+            .filter((failure) => filesToShow.includes(failure.file))
+            .forEach((failure) => {
+                const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
+                console.log(`  - ${failure.file}${location}`);
+                if (failure.reason) {
+                    console.log(`    Reason: ${failure.reason}`);
+                }
+            });
     }
 
     private getChangedFiles(): string[] {
