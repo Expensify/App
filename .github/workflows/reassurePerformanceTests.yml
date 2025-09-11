@@ -57,12 +57,26 @@ jobs:
           git add Mobile-Expensify
           npm install --force || (rm -rf node_modules && npm install --force) 
           NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+          echo "=== Switching to PR branch ==="
           git switch --force --detach "${PR_SHA:-${GITHUB_SHA}}"
+          echo "=== Current commit: $(git rev-parse HEAD) ==="
+          echo "=== Mobile-Expensify submodule status before checkout ==="
+          git submodule status Mobile-Expensify || echo "No submodule status available"
           cd Mobile-Expensify
+          echo "=== Inside Mobile-Expensify, current commit: $(git rev-parse HEAD) ==="
           git checkout "$(git rev-parse HEAD)"
           cd ..
+          echo "=== Mobile-Expensify submodule status after checkout ==="
+          git submodule status Mobile-Expensify || echo "No submodule status available"
+          echo "=== Adding Mobile-Expensify to staging ==="
           git add Mobile-Expensify
+          echo "=== Git status before merge ==="
+          git status
+          echo "=== Attempting merge with baseline branch: $BASELINE_BRANCH ==="
           git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours
+          echo "=== Git status after merge attempt ==="
+          git status
+          echo "=== Checking out our version of all files ==="
           git checkout --ours .
           npm install --force || (rm -rf node_modules && npm install --force)
           NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
