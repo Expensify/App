@@ -1,22 +1,12 @@
-import {forwardRef} from 'react';
+import {CellContainer} from '@shopify/flash-list';
+import type {CellContainerProps} from '@shopify/flash-list/dist/native/cell-container/CellContainer';
 import type {ForwardedRef} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {forwardRef} from 'react';
+import type {View} from 'react-native';
 
-type OptionRowRendererComponentProps = {
-    /** The index position of this option row in the list */
-    index: number;
-
-    /** Callback function called when the component layout changes */
-    onLayout?: () => void;
-
-    /** Style prop for customizing the option row */
-    style?: StyleProp<ViewStyle>;
-};
-
-function OptionRowRendererComponent(props: OptionRowRendererComponentProps, ref: ForwardedRef<View>) {
+function OptionRowRendererComponent(props: CellContainerProps, ref: ForwardedRef<View>) {
     return (
-        <View
+        <CellContainer
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}

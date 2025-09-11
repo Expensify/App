@@ -6,10 +6,10 @@ import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/InvertedFlatList';
-import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {PersonalDetailsContext, usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@hooks/useFlatListScrollKey';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
@@ -347,7 +347,7 @@ function ReportActionsList({
         if (
             scrollingVerticalOffset.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
             previousLastIndex.current !== lastActionIndex &&
-            reportActionSize.current > sortedVisibleReportActions.length &&
+            reportActionSize.current !== sortedVisibleReportActions.length &&
             hasNewestReportAction
         ) {
             setIsFloatingMessageCounterVisible(false);
@@ -367,7 +367,7 @@ function ReportActionsList({
             return;
         }
 
-        if (isUnread(report, transactionThreadReport) || (lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions))) {
+        if (isUnread(report, transactionThreadReport, isReportArchived) || (lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions))) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
