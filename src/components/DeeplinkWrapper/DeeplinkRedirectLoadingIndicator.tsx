@@ -22,7 +22,7 @@ function DeeplinkRedirectLoadingIndicator({openLinkInBrowser}: DeeplinkRedirectL
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>

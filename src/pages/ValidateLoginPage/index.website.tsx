@@ -7,8 +7,8 @@ import ValidateCodeModal from '@components/ValidateCode/ValidateCodeModal';
 import useOnyx from '@hooks/useOnyx';
 import desktopLoginRedirect from '@libs/desktopLoginRedirect';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as Session from '@userActions/Session';
+import {isValidValidateCode} from '@libs/ValidationUtils';
+import {handleExitToNavigation, initAutoAuthState, signInWithValidateCode} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session as SessionType} from '@src/types/onyx';
@@ -21,9 +21,9 @@ function ValidateLoginPage({
         params: {accountID, validateCode, exitTo},
     },
 }: ValidateLoginPageProps) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
 
     const login = credentials?.login;
     const isSignedIn = !!session?.authToken && session?.authTokenType !== CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
@@ -34,7 +34,7 @@ function ValidateLoginPage({
     const is2FARequired = !!account?.requiresTwoFactorAuth;
     const cachedAccountID = credentials?.accountID;
     const isUserClickedSignIn = !login && isSignedIn && (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
-    const shouldStartSignInWithValidateCode = !isUserClickedSignIn && !isSignedIn && (!!login || !!exitTo) && ValidationUtils.isValidValidateCode(validateCode);
+    const shouldStartSignInWithValidateCode = !isUserClickedSignIn && !isSignedIn && (!!login || !!exitTo) && isValidValidateCode(validateCode);
     const isNavigatingToExitTo = isSignedIn && !!exitTo;
 
     useEffect(() => {
@@ -45,17 +45,17 @@ function ValidateLoginPage({
             });
             return;
         }
-        Session.initAutoAuthState(autoAuthStateWithDefault);
+        initAutoAuthState(autoAuthStateWithDefault);
 
         if (!shouldStartSignInWithValidateCode) {
             if (exitTo) {
-                Session.handleExitToNavigation(exitTo);
+                handleExitToNavigation(exitTo);
             }
             return;
         }
 
         // The user has initiated the sign in process on the same browser, in another tab.
-        Session.signInWithValidateCode(Number(accountID), validateCode);
+        signInWithValidateCode(Number(accountID), validateCode);
 
         // Since on Desktop we don't have multi-tab functionality to handle the login flow,
         // we need to `popToTop` the stack after `signInWithValidateCode` in order to
@@ -67,7 +67,7 @@ function ValidateLoginPage({
     useEffect(() => {
         if (!!login || !cachedAccountID || !is2FARequired) {
             if (exitTo) {
-                Session.handleExitToNavigation(exitTo);
+                handleExitToNavigation(exitTo);
             }
             return;
         }
