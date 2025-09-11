@@ -1288,7 +1288,7 @@ describe('generateTranslations', () => {
                         filePath: 'src/languages/en.ts',
                         hunks: [],
                         addedLines: new Set([6]), // Line with updated value
-                        removedLines: new Set([8, 10, 11, 12, 13]), // Lines where sections were removed
+                        removedLines: new Set([7, 9, 10, 11, 12]), // Lines where sections were removed
                         modifiedLines: new Set(),
                     },
                 ],
