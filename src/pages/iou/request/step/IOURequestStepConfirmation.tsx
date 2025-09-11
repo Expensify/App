@@ -972,16 +972,47 @@ function IOURequestStepConfirmation({
 
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 setIsConfirmed(true);
-                sendMoneyElsewhere(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
+                sendMoneyElsewhere(
+                    report,
+                    transaction.amount,
+                    currency,
+                    trimmedComment,
+                    currentUserPersonalDetails.accountID,
+                    participant,
+                    transaction.created,
+                    transaction.merchant,
+                    receiptFiles[transaction.transactionID],
+                );
                 return;
             }
 
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 setIsConfirmed(true);
-                sendMoneyWithWallet(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
+                sendMoneyWithWallet(
+                    report,
+                    transaction.amount,
+                    currency,
+                    trimmedComment,
+                    currentUserPersonalDetails.accountID,
+                    participant,
+                    transaction.created,
+                    transaction.merchant,
+                    receiptFiles[transaction.transactionID],
+                );
             }
         },
-        [transaction?.amount, transaction?.comment, transaction?.currency, participants, currentUserPersonalDetails.accountID, report],
+        [
+            transaction?.currency,
+            transaction?.comment?.comment,
+            transaction?.amount,
+            transaction?.created,
+            transaction?.merchant,
+            transaction?.transactionID,
+            participants,
+            report,
+            currentUserPersonalDetails.accountID,
+            receiptFiles,
+        ],
     );
 
     const setBillable = useCallback(
@@ -1078,7 +1109,9 @@ function IOURequestStepConfirmation({
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest, isManualDistanceRequest);
 
     const shouldShowSmartScanFields =
-        !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
+        !!transaction?.receipt?.isTestDriveReceipt ||
+        iouType === CONST.IOU.TYPE.PAY ||
+        (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
 
     return (
         <ScreenWrapper
