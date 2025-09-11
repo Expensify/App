@@ -1052,6 +1052,7 @@ function openReport(
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
         transactionID,
+        useLastUnreadReportAction: true,
     };
 
     // This is a legacy transactions that doesn't have either a transaction thread or a money request preview
@@ -1467,7 +1468,7 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
  */
 function getOlderActions(reportID: string | undefined, reportActionID: string | undefined) {
     if (!reportID || !reportActionID) {
-        return;
+        return Promise.resolve();
     }
 
     const optimisticData: OnyxUpdate[] = [
@@ -1507,7 +1508,7 @@ function getOlderActions(reportID: string | undefined, reportActionID: string | 
         reportActionID,
     };
 
-    API.paginate(
+    return API.paginate(
         CONST.API_REQUEST_TYPE.READ,
         READ_COMMANDS.GET_OLDER_ACTIONS,
         parameters,
@@ -1525,7 +1526,7 @@ function getOlderActions(reportID: string | undefined, reportActionID: string | 
  */
 function getNewerActions(reportID: string | undefined, reportActionID: string | undefined) {
     if (!reportID || !reportActionID) {
-        return;
+        return Promise.resolve();
     }
 
     const optimisticData: OnyxUpdate[] = [
@@ -1565,7 +1566,7 @@ function getNewerActions(reportID: string | undefined, reportActionID: string | 
         reportActionID,
     };
 
-    API.paginate(
+    return API.paginate(
         CONST.API_REQUEST_TYPE.READ,
         READ_COMMANDS.GET_NEWER_ACTIONS,
         parameters,
@@ -6037,6 +6038,18 @@ function resolveConciergeCategoryOptions(reportID: string | undefined, actionRep
     } as Partial<ReportActions>);
 }
 
+/**
+ * Resets the oldestUnreadReportActionID stored in Onyx once a report has been loaded, to prevent stale data.
+ * @param reportID - The ID of the report to reset the oldest unread report action ID for.
+ */
+function resetOldestUnreadReportActionID(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${reportID}`, null);
+}
+
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
 
 export {
@@ -6151,4 +6164,5 @@ export {
     removeFailedReport,
     createTransactionThreadReport,
     openUnreportedExpense,
+    resetOldestUnreadReportActionID,
 };

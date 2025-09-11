@@ -11,11 +11,11 @@ import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
+import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/useFlatListScrollKey';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
-import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@hooks/useFlatListScrollKey';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -410,6 +410,7 @@ function MoneyRequestReportActionsList({
         readActionSkippedRef: readActionSkipped,
         unreadMarkerReportActionIndex,
         isInverted: false,
+        hasNewerActions,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
             const fullContentHeight = contentSize.height;
