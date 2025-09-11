@@ -203,7 +203,6 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
                 showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                 footerContent={footerContent}
                 onEndReached={onListEndReached}
-                shouldSkipShowMoreButton
             />
         </ScreenWrapper>
     );
