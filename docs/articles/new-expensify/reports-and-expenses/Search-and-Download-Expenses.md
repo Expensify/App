@@ -1,94 +1,114 @@
 ---
-title: Search and Download Expenses
-description: Learn how to find expenses in New Expensify and export them as a CSV or PDF.
-keywords: [New Expensify, search expenses, download expenses, export CSV, export PDF, download report, download receipt]
----
-<div id="new-expensify" markdown="1">
-
-You can quickly find and download your expenses in New Expensify—either as a spreadsheet-ready CSV or a printable PDF.
-
+title: Export Expenses and Reports
+description: Learn how to export your expenses and reports in CSV or PDF format using default or custom templates in New Expensify.
+keywords: [New Expensify, export expenses, export reports, CSV export, PDF export, download reports, accounting integration, report templates]
 ---
 
-# Search for Expenses
 
-Use filters to quickly locate the expenses you need.
+Expensify offers flexible options to search and export expenses and reports in various formats. You can export them directly to an accounting integration, as a CSV, or as a PDF—right from the web or mobile app.
 
-1. Click **Reports** in the left-hand menu
-2. Select **Expenses**
-3. Use **Filters** to search for expenses by:
-   - Credit card
-   - Category or tag
-   - Date range
-   - Keyword
-   - Expense amount
-   - And more
-4. Click **View results** to display the list of expenses matching your search parameters
+# Export Options
 
----
+- **Accounting integration**: Export directly to your connected accounting software.
+- **CSV export**: Choose a default or custom template.
+- **PDF export**: Download full reports, including receipts and notes.
 
-# Download Expenses as a CSV
+> **Note:** You can export from both the web and mobile apps.
 
-Once you’ve filtered the list:
+# Export as CSV
 
-1. Select the checkbox beside each expense, or choose to **select all** above the expense list.
-2. Click **Selected > Download**.
-3. A CSV file will automatically download to your device (prefixed with “Expensify”).
-4. Open it in your spreadsheet tool.
+## Web
 
-**Included in the CSV:**
-- Date  
-- Merchant  
-- Description  
-- From  
-- To  
-- Category + GL code  
-- Tag + GL code  
-- Tax + Tax code  
-- Amount  
-- Currency  
-- Type (e.g., cash, card, distance)  
-- Receipt URL
+1. In the navigation tabs (on the left on web, and at the bottom on mobile) on the left, select **Reports > Expense Reports**.
+2. Check the box next to the expenses or reports you want to export, or use the top checkbox to select all.
+3. Click **Selected** at the top.
+4. Select **Export** from the dropdown.
+5. Choose one of the following templates:
+   - **Basic Export** – Simplified, essential fields (date, amount, merchant, category, receipt URL).
+   - **All Data – Expense Level Export** – One row per expense with full data.
+   - **All Data – Report Level Export** – One row per report with summary data.
+   - **Custom Templates** – Any template created by you or your Workspace Admin (if available).
 
----
+You’ll receive a message from **Concierge** with the exported file.
 
-# Download a Report (PDF or CSV)
+> **Note:** Report-level templates only appear if you select full reports (i.e., all expenses in the report).
 
-1. In the left-hand menu, select **Reports**
-2. On the **Reports** tab, click the report you want to download
-3. In the upper-right corner, click **More**
-4. Choose either:
-   - **Download as PDF** to generate a printable version
-   - **Download as CSV** to get a spreadsheet version of the report
+## Mobile
 
-**Note:** You can only download one report at a time.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile) at the bottom, select **Reports > Expense Reports**.
+2. Tap the three-line icon in the top-right corner.
+3. Choose between **Reports** or **Expenses**.
+4. Check the box next to the items you want to export, or use the top checkbox to select all.
+5. Tap **Selected**, then choose **Export**.
+6. Choose a default or custom export template as described above.
 
----
+You’ll receive the export in a Concierge message.
+
+> **Note:** Report-level templates only appear when full reports are selected.
+
+# Export as PDF
+
+1. Open the individual report you want to export.
+2. Click **More** in the top-right corner.
+3. Select **Download as PDF**.
+
+The PDF will include:
+- All expenses
+- Attached receipts
+- Report notes
 
 # FAQ
 
+## Can I export one line per report?
+
+Yes, use the **All Data – Report Level Export** template. All other templates will export one line per expense.
+
 ## Can I export in PDF or XLS format?
 
-You can export:
-- CSV for raw expense data
-- PDF for full reports
+- **CSV/XLS** – Available for raw expense data.
+- **PDF** – Available for full reports only.
 
-XLS format is not supported.
+## Can I download individual expenses as a PDF?
 
-## Is it possible to download individual expenses as a PDF?
+No, PDF export is only available for full reports.
 
-No, you can only download a PDF of full reports. 
+## Can I customize the columns in the CSV export?
 
-## Can I customize the columns in the CSV file?
+No, the columns follow a fixed template.
 
-No, the CSV download uses a fixed template and cannot be customized.
+## How do I export to an accounting integration?
 
-## Can I select expenses or reports in bulk?
+Ensure your workspace is connected to a supported accounting platform. [Click here](https://docs.expensify.com) for connection instructions.
 
-Yes! Use **Select multiple** or **Select all** to choose multiple expenses for CSV export.  
-PDFs must be downloaded one at a time.
+## How do I receive my export?
 
-## Why do I see a 404 error when clicking the receipt URL in the CSV?
+- **Basic Export**: Downloads immediately to your device.
+- **All other templates**: Concierge will send the export file to you via direct message.
 
-Make sure you're logged into your Expensify account in the same browser. Receipt links only work when you're signed in.
+## Can I export expenses or reports in bulk?
 
-</div>
+- **CSV export**: Yes, select multiple or all items.
+- **PDF export**: Must be downloaded one at a time.
+
+## Why do I see a 404 error when clicking a receipt URL?
+
+Make sure you're logged into your Expensify account in the same browser when clicking the receipt link.
+
+## The data looks wrong in Excel. How can I fix it?
+
+- Long IDs may appear in scientific notation. To avoid this:
+  1. Open Excel and go to **File > Import**.
+  2. Select your CSV and follow the prompts.
+  3. Format the report/transaction ID column as **Text**.
+
+## Why do the numbers look incorrect in the export?
+
+Switch your spreadsheet program's formatting to **Plain Text** or **Number format** to prevent scientific notation (e.g., `1.79e+308`).
+
+## Why are leading zeros missing in my export?
+
+Excel may remove them automatically. To prevent this:
+1. Open Excel and go to **File > Import**.
+2. Select your CSV.
+3. Set columns with leading zeros to **Text format**.
+

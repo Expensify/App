@@ -3,7 +3,6 @@ title: Workspace Workflows
 description: Configure your workspace approval and submission workflows to match your team's needs.
 keywords: [New Expensify, workflows, approval workflows, delay submission, add approver, connect bank, workspace settings]
 ---
-<div id="new-expensify" markdown="1">
 
 Workflows help you automate how expenses are submitted, approved, and reimbursed in your workspace. Whether you're tracking personal expenses or managing a team, you can adjust workflows to match your use case.
 
@@ -15,7 +14,7 @@ Workflows help you automate how expenses are submitted, approved, and reimbursed
 
 To get started, enable the **Workflows** feature for your workspace.
 
-1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **More Features**.
 4. Under the **Spend** section, toggle on **Workflows**.
@@ -69,4 +68,3 @@ When both **Add Approvals** and **Delay Submission** are enabled, expense report
 If **Delay Submission** is turned off:
 - Reports are submitted immediately and follow this flow: **Processing** → **Approved**
 
-</div>
