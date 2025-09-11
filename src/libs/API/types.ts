@@ -1107,6 +1107,7 @@ const READ_COMMANDS = {
     OPEN_UNREPORTED_EXPENSES_PAGE: 'OpenUnreportedExpensesPage',
     GET_GUIDE_CALL_AVAILABILITY_SCHEDULE: 'GetGuideCallAvailabilitySchedule',
     GET_TRANSACTIONS_FOR_MERGING: 'GetTransactionsForMerging',
+    REQUEST_UNLOCK_ACCOUNT: 'RequestUnlockAccount',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
