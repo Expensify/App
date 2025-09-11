@@ -119,7 +119,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
                     title={translate(title)}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute())}
                 />
-                <View style={[styles.flex1]}>
+                <View style={styles.flex1}>
                     <MenuItem
                         title={translate('search.filters.amount.equalTo')}
                         description={equalToFormattedAmount}
