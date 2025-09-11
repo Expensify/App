@@ -8,7 +8,6 @@ import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SearchQueryJSON} from '@components/Search/types';
-import type {ReportsAndReportActions} from '@hooks/useAncestorReportsAndReportActions';
 import * as API from '@libs/API';
 import type {
     AddReportApproverParams,
@@ -11034,7 +11033,7 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
 /**
  * Put expense on HOLD
  */
-function putOnHold(transactionID: string, comment: string, ancestorReportsAndReportActions: ReportsAndReportActions, initialReportID: string | undefined, searchHash?: number) {
+function putOnHold(transactionID: string, comment: string, ancestorReportsAndReportActions: ReportsAndReportAction[], initialReportID: string | undefined, searchHash?: number) {
     const currentTime = DateUtils.getDBTime();
     const reportID = initialReportID ?? generateReportID();
     const createdReportAction = buildOptimisticHoldReportAction(currentTime);
@@ -11286,7 +11285,7 @@ function putOnHold(transactionID: string, comment: string, ancestorReportsAndRep
 function bulkHold(
     comment: string,
     report: OnyxEntry<OnyxTypes.Report>,
-    ancestorReportsAndReportActions: ReportsAndReportActions,
+    ancestorReportsAndReportActions: ReportsAndReportAction[],
     transactions: OnyxCollection<OnyxTypes.Transaction>,
     transactionsViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
     transactionsIOUActions: Record<string, ReportAction>,
