@@ -20,6 +20,7 @@ function getSubstepValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetai
         [INPUT_IDS.STATE]: personalDetailsDraft?.[INPUT_IDS.STATE] ?? address?.state ?? '',
         [INPUT_IDS.ZIP_POST_CODE]: personalDetailsDraft?.[INPUT_IDS.ZIP_POST_CODE] ?? address?.zip ?? '',
         [INPUT_IDS.COUNTRY]: personalDetailsDraft?.[INPUT_IDS.COUNTRY] ?? address?.country ?? '',
+        [INPUT_IDS.PIN]: personalDetailsDraft?.[INPUT_IDS.PIN] ?? privatePersonalDetails?.pinCode ?? '',
     };
 }
 
@@ -41,6 +42,9 @@ function getInitialSubstep(values: PersonalDetailsForm) {
     }
     if (values[INPUT_IDS.PHONE_NUMBER] === '') {
         return CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.PHONE_NUMBER;
+    }
+    if (values[INPUT_IDS.PIN] === '') {
+        return CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.PIN;
     }
     return CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.CONFIRM;
 }

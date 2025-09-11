@@ -38,6 +38,7 @@ import type {Country} from '@src/CONST';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type {BaseForm} from '@src/types/form/Form';
+import type MagicCodeInput from '@components/MagicCodeInput';
 
 /**
  * This type specifies all the inputs that can be used with `InputWrapper` component. Make sure to update it
@@ -75,7 +76,8 @@ type ValidInputs =
     | typeof UploadFile
     | typeof PushRowWithModal
     | typeof TimeModalPicker
-    | typeof OnboardingCurrencyPicker;
+    | typeof OnboardingCurrencyPicker
+    | typeof MagicCodeInput;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues' | 'entityChart';
 type ValueTypeMap = {

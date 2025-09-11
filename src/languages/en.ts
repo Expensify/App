@@ -379,6 +379,7 @@ const translations = {
         perPerson: 'per person',
         phone: 'Phone',
         phoneNumber: 'Phone number',
+        cardPinCode: 'Card PIN',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
         email: 'Email',
         and: 'and',
