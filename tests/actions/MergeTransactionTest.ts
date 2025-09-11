@@ -48,6 +48,8 @@ describe('mergeTransactionRequest', () => {
         // - Merge transaction containing the final values to keep
         const targetTransaction = {
             ...createRandomTransaction(1),
+            amount: 100,
+            currency: 'USD',
             transactionID: 'target123',
             merchant: 'Original Merchant',
             category: 'Original Category',
@@ -64,6 +66,8 @@ describe('mergeTransactionRequest', () => {
         };
         const mergeTransaction = {
             ...createRandomMergeTransaction(1),
+            amount: 200,
+            currency: 'USD',
             targetTransactionID: 'target123',
             sourceTransactionID: 'source456',
             merchant: 'Updated Merchant',
@@ -130,7 +134,6 @@ describe('mergeTransactionRequest', () => {
 
         // Verify target transaction is updated with merged values
         expect(updatedTargetTransaction?.modifiedAmount).toBe(mergeTransaction.amount);
-        expect(updatedTargetTransaction?.modifiedCurrency).toBe(mergeTransaction.currency);
         expect(updatedTargetTransaction?.modifiedMerchant).toBe(mergeTransaction.merchant);
         expect(updatedTargetTransaction?.category).toBe(mergeTransaction.category);
         expect(updatedTargetTransaction?.tag).toBe(mergeTransaction.tag);

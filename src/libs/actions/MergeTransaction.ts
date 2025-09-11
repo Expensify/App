@@ -7,6 +7,7 @@ import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportOrDraftReport, getReportTransactions, isCurrentUserSubmitter, isExpenseReport, isIOUReport, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import {getAmount, getTransactionViolationsOfTransaction, getUpdatedTransaction, isCardTransaction} from '@src/libs/TransactionUtils';
+import type {TransactionChanges} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, Report, Transaction} from '@src/types/onyx';
 
@@ -128,6 +129,32 @@ function getTransactionsForMerging({
     }
 }
 
+function getOptimisticTargetTransactionData(targetTransaction: Transaction, mergeTransaction: MergeTransaction) {
+    const {description, ...transactionChanges} = {...mergeTransaction, comment: mergeTransaction.description};
+
+    // Compare mergeTransaction with targetTransaction and remove fields with same values
+    const filteredTransactionChanges = Object.fromEntries(
+        Object.entries(transactionChanges).filter(([key, mergeValue]) => {
+            // Special handling for comment field
+            if (key === 'comment') {
+                return mergeValue !== targetTransaction.comment?.comment;
+            }
+
+            // For all other fields, compare directly
+            const targetValue = targetTransaction[key as keyof Transaction];
+            return mergeValue !== targetValue;
+        }),
+    ) as TransactionChanges;
+
+    const targetTransactionUpdated = getUpdatedTransaction({
+        transaction: targetTransaction,
+        transactionChanges: filteredTransactionChanges,
+        isFromExpenseReport: isExpenseReport(mergeTransaction.reportID),
+    });
+
+    return targetTransactionUpdated;
+}
+
 /**
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction
  */
@@ -154,8 +181,8 @@ function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: M
         reportID: mergeTransaction.reportID,
     };
 
-    const {description, ...transactionChanges} = {...mergeTransaction, comment: mergeTransaction.description};
-    const targetTransactionUpdated = getUpdatedTransaction({transaction: targetTransaction, transactionChanges, isFromExpenseReport: isExpenseReport(mergeTransaction.reportID)});
+    const targetTransactionUpdated = getOptimisticTargetTransactionData(targetTransaction, mergeTransaction);
+
     // Optimistic update the target transaction with the new values
     const optimisticTargetTransactionData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
