@@ -616,8 +616,13 @@ class TranslationGenerator {
                 console.log(`🔍 Found ${changedLines.addedLines.size} added lines, ${changedLines.removedLines.size} removed lines`);
             }
 
-            // Traverse the AST and build dot-notation paths for nodes on changed lines
-            this.extractPathsFromChangedLines(translationsNode, changedLines.addedLines, changedLines.removedLines);
+            // Traverse current en.ts for added and modified paths
+            this.extractPathsFromChangedLines(translationsNode, changedLines.addedLines, new Set());
+
+            // For removed paths, we need to traverse the old version of en.ts
+            if (changedLines.removedLines.size > 0) {
+                this.extractRemovedPaths(changedLines.removedLines);
+            }
 
             // Handle the case where the same path has both additions and removals (treat as modified, not deleted)
             // Also check if removed paths still exist in en.ts (partial removal within function)
@@ -669,7 +674,7 @@ class TranslationGenerator {
     /**
      * Extract dot-notation paths from nodes that are on changed lines.
      */
-    private extractPathsFromChangedLines(node: ts.Node, addedLines: Set<number>, removedLines: Set<number>, currentPath = ''): void {
+    private extractPathsFromChangedLines(node: ts.Node, addedLines: Set<number>, removedLines: Set<number>, isOldVersion = false, currentPath = ''): void {
         // Check if this node is on a changed line
         const sourceFile = node.getSourceFile();
         const start = sourceFile.getLineAndCharacterOfPosition(node.getStart());
@@ -685,11 +690,12 @@ class TranslationGenerator {
             // Traverse up the tree to build the dot notation path
             const dotPath = this.buildDotNotationPathFromNode(node);
             if (dotPath) {
-                if (isOnAddedLine) {
-                    this.pathsToModify.add(dotPath as TranslationPaths);
-                }
-                if (isOnRemovedLine) {
+                if (isOldVersion && isOnRemovedLine) {
+                    // When traversing old version, removed lines indicate paths to remove
                     this.pathsToRemove.add(dotPath as TranslationPaths);
+                } else if (!isOldVersion && isOnAddedLine) {
+                    // When traversing current version, added lines indicate paths to modify/add
+                    this.pathsToModify.add(dotPath as TranslationPaths);
                 }
 
                 if (this.verbose) {
@@ -710,7 +716,7 @@ class TranslationGenerator {
                 }
             }
 
-            this.extractPathsFromChangedLines(child, addedLines, removedLines, childPath);
+            this.extractPathsFromChangedLines(child, addedLines, removedLines, isOldVersion, childPath);
         });
     }
 
@@ -854,6 +860,34 @@ class TranslationGenerator {
         };
 
         visitWithPath(sourceFile);
+    }
+
+    /**
+     * Extract removed paths by traversing the old version of en.ts.
+     */
+    private extractRemovedPaths(removedLines: Set<number>): void {
+        try {
+            // Get the old version of en.ts from the compare ref
+            const relativePath = path.relative(process.cwd(), this.sourceFile.fileName);
+            const oldEnContent = Git.show(this.compareRef, relativePath);
+
+            const oldSourceFile = ts.createSourceFile(this.sourceFile.fileName, oldEnContent, ts.ScriptTarget.Latest, true);
+            const oldTranslationsNode = this.findTranslationsNode(oldSourceFile);
+
+            if (!oldTranslationsNode) {
+                if (this.verbose) {
+                    console.warn('⚠️ Could not find translations node in old en.ts');
+                }
+                return;
+            }
+
+            // Traverse the old AST to find nodes on removed lines
+            this.extractPathsFromChangedLines(oldTranslationsNode, new Set(), removedLines, true);
+        } catch (error) {
+            if (this.verbose) {
+                console.warn('⚠️ Error extracting removed paths:', error);
+            }
+        }
     }
 
     /**

@@ -231,6 +231,17 @@ class Git {
             hasChanges: files.length > 0,
         };
     }
+
+    /**
+     * Get the content of a file at a specific git reference.
+     */
+    static show(ref: string, filePath: string): string {
+        try {
+            return execSync(`git show ${ref}:${filePath}`, {encoding: 'utf8'});
+        } catch (error) {
+            throw new Error(`Failed to get file content from git: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
 }
 
 export default Git;

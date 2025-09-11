@@ -29,12 +29,15 @@ jest.mock('@scripts/utils/Git');
 // Mock Git methods
 const mockIsValidRef = jest.fn();
 const mockDiff = jest.fn();
+const mockShow = jest.fn();
 
 // Apply mocks to Git using jest.spyOn (ignore type errors for now)
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
 jest.spyOn(Git as any, 'isValidRef').mockImplementation(mockIsValidRef);
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
 jest.spyOn(Git as any, 'diff').mockImplementation(mockDiff);
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+jest.spyOn(Git as any, 'show').mockImplementation(mockShow);
 
 let tempDir: string;
 let LANGUAGES_DIR: string;
@@ -63,10 +66,14 @@ describe('generateTranslations', () => {
         // Reset Git mocks to default behavior for each test
         mockIsValidRef.mockReset();
         mockDiff.mockReset();
+        mockShow.mockReset();
 
         // Default to invalid ref unless explicitly mocked otherwise
         mockIsValidRef.mockReturnValue(false);
         mockDiff.mockReturnValue({files: [], hasChanges: false});
+        mockShow.mockImplementation(() => {
+            throw new Error('Git show not mocked for this test');
+        });
     });
 
     afterEach(() => {
@@ -1281,12 +1288,32 @@ describe('generateTranslations', () => {
                         filePath: 'src/languages/en.ts',
                         hunks: [],
                         addedLines: new Set([6]), // Line with updated value
-                        removedLines: new Set([10, 15]), // Lines where sections were removed
+                        removedLines: new Set([8, 10, 11, 12, 13]), // Lines where sections were removed
                         modifiedLines: new Set(),
                     },
                 ],
                 hasChanges: true,
             });
+
+            // Mock git show to return the old version of en.ts with the removed sections
+            mockShow.mockReturnValue(
+                dedent(`
+                const strings = {
+                    keep: {
+                        this: 'Keep this section'
+                    },
+                    modify: {
+                        update: 'Old value',
+                        remove: 'Will be removed'
+                    },
+                    deleteEntire: {
+                        gone: 'Entire section removed',
+                        alsoGone: 'Also removed'
+                    }
+                };
+                export default strings;
+            `),
+            );
 
             process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--locales', 'it', '--compare-ref', 'main'];
 
