@@ -117,7 +117,7 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate, UberReceiptPartner} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {NotificationPreference} from '@src/types/onyx/Report';
@@ -5357,7 +5357,7 @@ function setPolicyDefaultReportTitle(policyID: string, customName: string) {
                             defaultValue: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                         },
                     },
-                },
+                } as unknown as ErrorFields,
             },
         },
     ];

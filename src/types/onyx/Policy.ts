@@ -1691,15 +1691,6 @@ type ExpenseRule = {
     id?: string;
 };
 
-/** Policy's report field error fields */
-type PolicyFieldListErrorFields = {
-    /** Report title error field */
-    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: {
-        /** Error field value */
-        defaultValue: OnyxCommon.Errors;
-    };
-};
-
 /** Model of policy data */
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
@@ -1731,7 +1722,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         avatarURL?: string;
 
         /** Error objects keyed by field name containing errors keyed by microtime */
-        errorFields?: OnyxCommon.ErrorFields | Record<'fieldList', PolicyFieldListErrorFields>;
+        errorFields?: OnyxCommon.ErrorFields;
 
         /** A list of errors keyed by microtime */
         errors?: OnyxCommon.Errors;
