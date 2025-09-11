@@ -18,7 +18,7 @@ import {
     getMergeableDataAndConflictFields,
     getSourceTransactionFromMergeTransaction,
     getTransactionThreadReportID,
-    selectTargetAndSourceTransactionIDsForMerge,
+    selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -119,7 +119,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             openReport(sourceTransaction.reportID);
         }
 
-        const {targetTransaction: newTargetTransaction, sourceTransaction: newSourceTransaction} = selectTargetAndSourceTransactionIDsForMerge(targetTransaction, sourceTransaction);
+        const {targetTransaction: newTargetTransaction, sourceTransaction: newSourceTransaction} = selectTargetAndSourceTransactionsForMerge(targetTransaction, sourceTransaction);
         if (shouldNavigateToReceiptReview([newTargetTransaction, newSourceTransaction])) {
             setMergeTransactionKey(transactionID, {
                 targetTransactionID: newTargetTransaction?.transactionID,

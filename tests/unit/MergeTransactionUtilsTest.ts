@@ -7,7 +7,7 @@ import {
     getMergeFieldValue,
     getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
-    selectTargetAndSourceTransactionIDsForMerge,
+    selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
@@ -439,9 +439,9 @@ describe('MergeTransactionUtils', () => {
         });
     });
 
-    describe('selectTargetAndSourceTransactionIDsForMerge', () => {
+    describe('selectTargetAndSourceTransactionsForMerge', () => {
         it('should handle undefined transactions gracefully', () => {
-            const result = selectTargetAndSourceTransactionIDsForMerge(undefined, undefined);
+            const result = selectTargetAndSourceTransactionsForMerge(undefined, undefined);
 
             expect(result).toEqual({
                 targetTransaction: undefined,
@@ -461,7 +461,7 @@ describe('MergeTransactionUtils', () => {
                 managedCard: true,
             };
 
-            const result = selectTargetAndSourceTransactionIDsForMerge(cashTransaction, cardTransaction);
+            const result = selectTargetAndSourceTransactionsForMerge(cashTransaction, cardTransaction);
 
             expect(result).toEqual({
                 targetTransaction: cardTransaction,
@@ -481,7 +481,7 @@ describe('MergeTransactionUtils', () => {
                 managedCard: undefined,
             };
 
-            const result = selectTargetAndSourceTransactionIDsForMerge(cardTransaction, cashTransaction);
+            const result = selectTargetAndSourceTransactionsForMerge(cardTransaction, cashTransaction);
 
             expect(result).toEqual({
                 targetTransaction: cardTransaction,
@@ -501,7 +501,7 @@ describe('MergeTransactionUtils', () => {
                 managedCard: undefined,
             };
 
-            const result = selectTargetAndSourceTransactionIDsForMerge(cashTransaction1, cashTransaction2);
+            const result = selectTargetAndSourceTransactionsForMerge(cashTransaction1, cashTransaction2);
 
             expect(result).toEqual({
                 targetTransaction: cashTransaction1,
