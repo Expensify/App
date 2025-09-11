@@ -24,7 +24,7 @@ import type {OnyxCollectionKey, OnyxCollectionValuesMapping} from '@src/ONYXKEYS
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -33,6 +33,7 @@ import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
+import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import navigationRef from './Navigation/navigationRef';
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
@@ -240,6 +241,17 @@ function getFilters(queryJSON: SearchQueryJSON) {
  * - for personal filters it tries to substitute any user emails with accountIDs
  */
 function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filterValue: string | string[]) {
+    if (AMOUNT_FILTER_KEYS.includes(filterName as SearchAmountFilterKeys)) {
+        if (typeof filterValue === 'string') {
+            const backendAmount = convertToBackendAmount(Number(filterValue));
+            return Number.isNaN(backendAmount) ? filterValue : backendAmount.toString();
+        }
+        return filterValue.map((amount) => {
+            const backendAmount = convertToBackendAmount(Number(amount));
+            return Number.isNaN(backendAmount) ? amount : backendAmount.toString();
+        });
+    }
+
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
@@ -251,17 +263,6 @@ function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FI
         }
 
         return filterValue.map((email) => getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
-    }
-
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL) {
-        if (typeof filterValue === 'string') {
-            const backendAmount = convertToBackendAmount(Number(filterValue));
-            return Number.isNaN(backendAmount) ? filterValue : backendAmount.toString();
-        }
-        return filterValue.map((amount) => {
-            const backendAmount = convertToBackendAmount(Number(amount));
-            return Number.isNaN(backendAmount) ? amount : backendAmount.toString();
-        });
     }
 
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID) {
@@ -302,9 +303,15 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
 
     const filterSet = new Set<string>(orderedQuery);
 
+    // Certain filters shouldn't affect whether two searchers are similar or not, since they dont
+    // actually filter out results
+    const similarSearchIgnoredFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+
     query.flatFilters
         .map((filter) => {
-            filterSet.add(filter.key);
+            if (!similarSearchIgnoredFilters.has(filter.key)) {
+                filterSet.add(filter.key);
+            }
 
             const filters = cloneDeep(filter.filters);
             filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
@@ -524,12 +531,14 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.EXPENSE_TYPE ||
                     filterKey === FILTER_KEYS.TAG ||
                     filterKey === FILTER_KEYS.CURRENCY ||
+                    filterKey === FILTER_KEYS.PURCHASE_CURRENCY ||
                     filterKey === FILTER_KEYS.FROM ||
                     filterKey === FILTER_KEYS.TO ||
                     filterKey === FILTER_KEYS.FEED ||
                     filterKey === FILTER_KEYS.IN ||
                     filterKey === FILTER_KEYS.ASSIGNEE ||
                     filterKey === FILTER_KEYS.POLICY_ID ||
+                    filterKey === FILTER_KEYS.HAS ||
                     filterKey === FILTER_KEYS.EXPORTER) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
@@ -553,7 +562,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         filtersString.push(dateFilter);
     });
 
-    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT].forEach((filterKey) => {
+    AMOUNT_FILTER_KEYS.forEach((filterKey) => {
         const amountFilter = buildAmountFilterQuery(filterKey, supportedFilterValues);
         filtersString.push(amountFilter);
     });
@@ -612,6 +621,10 @@ function buildFilterFormValuesFromQuery(
             const validExpenseTypes = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
             filtersForm[filterKey] = filterValues.filter((expenseType) => validExpenseTypes.has(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
         }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
+            const validHasTypes = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
+            filtersForm[filterKey] = filterValues.filter((hasType) => validHasTypes.has(hasType as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
+        }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
             const validWithdrawalTypes = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
             filtersForm[filterKey] = filterValues
@@ -643,7 +656,7 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {
             filtersForm[filterKey] = filterValues.find((id) => personalDetails && personalDetails[id]);
         }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) {
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY) {
             const validCurrency = new Set(Object.keys(currencyList));
             filtersForm[filterKey] = filterValues.filter((currency) => validCurrency.has(currency));
         }
@@ -689,6 +702,7 @@ function buildFilterFormValuesFromQuery(
                 })
                 .join(' ');
         }
+
         if (DATE_FILTER_KEYS.includes(filterKey as SearchDateFilterKeys)) {
             const beforeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
             const afterKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
@@ -703,14 +717,18 @@ function buildFilterFormValuesFromQuery(
             filtersForm[afterKey] = afterFilter?.value.toString() ?? filtersForm[afterKey];
             filtersForm[onKey] = onFilter?.value.toString() ?? filtersForm[onKey];
         }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL) {
+
+        if (AMOUNT_FILTER_KEYS.includes(filterKey as SearchAmountFilterKeys)) {
+            const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
+            const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
+
             // backend amount is an integer and is 2 digits longer than frontend amount
-            filtersForm[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`] =
+            filtersForm[lessThanKey] =
                 filterList.find((filter) => filter.operator === 'lt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
-                filtersForm[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`];
-            filtersForm[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] =
+                filtersForm[lessThanKey];
+            filtersForm[greaterThanKey] =
                 filterList.find((filter) => filter.operator === 'gt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
-                filtersForm[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
+                filtersForm[greaterThanKey];
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
             const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
@@ -779,7 +797,7 @@ function getFilterDisplayValue(
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
     }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL) {
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
         const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue));
         return Number.isNaN(frontendAmount) ? filterValue : frontendAmount.toString();
     }
@@ -936,7 +954,7 @@ function buildCannedSearchQuery({
  * For example: "type:trip" is a canned query.
  */
 function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
-    return !queryJSON.filters && !queryJSON.policyID;
+    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status;
 }
 
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
@@ -1005,13 +1023,14 @@ function getQueryWithUpdatedValues(query: string) {
 
 function getCurrentSearchQueryJSON() {
     const rootState = navigationRef.getRootState();
-    const lastPolicyRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    const lastSearchNavigator = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
 
-    if (!lastPolicyRoute) {
+    const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
+    if (!lastSearchNavigatorState) {
         return;
     }
 
-    const lastSearchRoute = lastPolicyRoute.state?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
+    const lastSearchRoute = lastSearchNavigatorState.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
     if (!lastSearchRoute || !lastSearchRoute.params) {
         return;
     }

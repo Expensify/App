@@ -162,12 +162,14 @@ import type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    PayAndDowngradeDescriptionParams,
     PayerOwesAmountParams,
     PayerOwesParams,
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    PhoneErrorRouteParams,
     PolicyAddedReportFieldOptionParams,
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
@@ -656,8 +658,10 @@ const translations = {
         submitTo: 'Envoyer à',
         forwardTo: 'Transférer à',
         merge: 'Fusionner',
+        none: 'Aucun',
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
         enableGlobalReimbursements: 'Activer les remboursements globaux',
+        purchaseAmount: "Montant de l'achat",
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -877,17 +881,17 @@ const translations = {
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `Ce salon de discussion est destiné à tout ce qui concerne <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>.`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
-            `Ce chat concerne les factures entre <strong>${invoicePayer}</strong> et <strong>${invoiceReceiver}</strong>. Utilisez le bouton + pour envoyer une facture.`,
+            `Ce chat concerne les factures entre <strong>${invoicePayer}</strong> et <strong>${invoiceReceiver}</strong>. Utilisez le bouton <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji> pour envoyer une facture.`,
         beginningOfChatHistory: 'Ce chat est avec',
         beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
-            `C'est ici que <strong>${submitterDisplayName}</strong> soumettra ses dépenses à <strong>${workspaceName}</strong>. Il suffit d'utiliser le bouton +.`,
+            `C'est ici que <strong>${submitterDisplayName}</strong> soumettra ses dépenses à <strong>${workspaceName}</strong>. Il suffit d'utiliser le bouton <emoji>${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}</emoji>.`,
         beginningOfChatHistorySelfDM: "C'est votre espace personnel. Utilisez-le pour des notes, des tâches, des brouillons et des rappels.",
         beginningOfChatHistorySystemDM: 'Bienvenue ! Commençons votre configuration.',
         chatWithAccountManager: 'Discutez avec votre gestionnaire de compte ici',
         sayHello: 'Dites bonjour !',
         yourSpace: 'Votre espace',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bienvenue dans ${roomName} !`,
-        usePlusButton: ({additionalText}: UsePlusButtonParams) => `Utilisez le bouton + pour ${additionalText} une dépense.`,
+        usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Utilisez le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} pour ${additionalText} une dépense.`,
         askConcierge: 'Posez des questions et obtenez une assistance en temps réel 24h/24 et 7j/7.',
         conciergeSupport: 'Support 24h/24 et 7j/7',
         create: 'créer',
@@ -1418,7 +1422,7 @@ const translations = {
         listPage: {
             header: 'Fusionner les dépenses',
             noEligibleExpenseFound: 'Aucune dépense éligible trouvée',
-            noEligibleExpenseFoundSubtitle: `Vous n’avez aucune dépense pouvant être fusionnée avec celle-ci. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">En savoir plus</a> sur les dépenses éligibles.`,
+            noEligibleExpenseFoundSubtitle: `<muted-text><centered-text>Vous n’avez aucune dépense pouvant être fusionnée avec celle-ci. <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">En savoir plus</a> sur les dépenses éligibles.</centered-text></muted-text>`,
             selectTransactionToMerge: ({reportName}: {reportName: string}) =>
                 `Sélectionnez une <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">dépense éligible</a> à fusionner <strong>${reportName}</strong>.`,
         },
@@ -2246,10 +2250,6 @@ const translations = {
                 'Une application pour gérer vos dépenses professionnelles et personnelles à la vitesse de la conversation. Essayez-la et faites-nous savoir ce que vous en pensez. Beaucoup plus à venir !',
             secondaryDescription: "Pour revenir à Expensify Classic, il suffit d'appuyer sur votre photo de profil > Aller à Expensify Classic.",
         },
-        welcomeVideo: {
-            title: 'Bienvenue sur Expensify',
-            description: 'Une application pour gérer toutes vos dépenses professionnelles et personnelles dans un chat. Conçue pour votre entreprise, votre équipe et vos amis.',
-        },
         getStarted: 'Commencer',
         whatsYourName: 'Quel est votre nom ?',
         peopleYouMayKnow: 'Des personnes que vous connaissez sont déjà ici ! Vérifiez votre e-mail pour les rejoindre.',
@@ -2500,8 +2500,10 @@ const translations = {
         messages: {
             onboardingEmployerOrSubmitMessage: 'Se faire rembourser est aussi simple que d’envoyer un message. Voici les bases.',
             onboardingPersonalSpendMessage: 'Voici comment suivre vos dépenses en quelques clics.',
-            onboardingManageTeamMessage:
-                '# Votre essai gratuit a commencé ! Passons à la configuration.\n👋 Bonjour, je suis votre spécialiste de configuration Expensify. Maintenant que vous avez créé un espace de travail, profitez pleinement de vos 30 jours d’essai gratuit en suivant les étapes ci-dessous !',
+            onboardingManageTeamMessage: ({hasIntroSelected}: {hasIntroSelected: boolean}) =>
+                hasIntroSelected
+                    ? '# Votre essai gratuit a commencé ! Configurons tout cela.\n👋 Bonjour, je suis votre spécialiste de configuration Expensify. Maintenant que vous avez créé un espace de travail, profitez pleinement de votre essai gratuit de 30 jours en suivant les étapes ci-dessous.'
+                    : '# Votre essai gratuit a commencé ! Configurons tout cela.\n👋 Bonjour, je suis votre spécialiste de configuration Expensify. J’ai déjà créé un espace de travail pour vous aider à gérer les reçus et dépenses de votre équipe. Pour profiter pleinement de votre essai gratuit de 30 jours, suivez simplement les étapes de configuration ci-dessous.',
             onboardingTrackWorkspaceMessage:
                 '# Configurons votre espace\n👋 Je suis là pour vous aider ! J’ai personnalisé votre espace pour les entrepreneurs individuels et entreprises similaires. Vous pouvez le modifier via le lien ci-dessous.\n\nVoici comment suivre vos dépenses rapidement :',
             onboardingChatSplitMessage: 'Partager des dépenses entre amis est aussi simple qu’un message. Voici comment faire.',
@@ -2800,6 +2802,7 @@ const translations = {
             formLabel: 'Voir le PDF',
         },
         attachmentNotFound: 'Pièce jointe introuvable',
+        retry: 'Réessayer',
     },
     messages: {
         errorMessageInvalidPhone: `Veuillez entrer un numéro de téléphone valide sans parenthèses ni tirets. Si vous êtes en dehors des États-Unis, veuillez inclure votre indicatif de pays (par exemple, ${CONST.EXAMPLE_PHONE_NUMBER}).`,
@@ -3392,11 +3395,8 @@ const translations = {
         tripSummary: 'Résumé du voyage',
         departs: 'Départs',
         errorMessage: 'Un problème est survenu. Veuillez réessayer plus tard.',
-        phoneError: {
-            phrase1: "S'il vous plaît",
-            link: 'ajoutez un e-mail professionnel comme identifiant principal',
-            phrase2: 'pour réserver un voyage.',
-        },
+        phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) =>
+            `<rbr>Veuillez <a href="${phoneErrorMethodsRoute}">ajouter un courriel professionnel comme identifiant principal</a> pour réserver un voyage.</rbr>`,
         domainSelector: {
             title: 'Domaine',
             subtitle: "Choisissez un domaine pour la configuration d'Expensify Travel.",
@@ -4003,6 +4003,18 @@ const translations = {
             syncReimbursedReportsDescription:
                 "Chaque fois qu'un rapport est payé en utilisant Expensify ACH, le paiement de facture correspondant sera créé dans le compte Sage Intacct ci-dessous.",
             paymentAccount: 'Compte de paiement Sage Intacct',
+            accountingMethods: {
+                label: 'Quand exporter',
+                description: 'Choisissez quand exporter les dépenses :',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Espèces',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Les dépenses hors de la poche seront exportées une fois approuvées définitivement.',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: "Les dépenses personnelles seront exportées lorsqu'elles seront payées.",
+                },
+            },
         },
         netsuite: {
             subsidiary: 'Filiale',
@@ -5401,6 +5413,7 @@ const translations = {
             genericFailureMessage: "Une erreur s'est produite lors de la mise à jour de l'espace de travail. Veuillez réessayer.",
             avatarUploadFailureMessage: "Une erreur s'est produite lors du téléchargement de l'avatar. Veuillez réessayer.",
             addressContext: "Une adresse de l'espace de travail est requise pour activer Expensify Travel. Veuillez entrer une adresse associée à votre entreprise.",
+            policy: 'Politique de dépenses',
         },
         bankAccount: {
             continueWithSetup: 'Continuer la configuration',
@@ -5617,7 +5630,7 @@ const translations = {
         payAndDowngrade: {
             title: 'Payer et rétrograder',
             headline: 'Votre paiement final',
-            description1: 'Votre facture finale pour cet abonnement sera',
+            description1: ({formattedAmount}: PayAndDowngradeDescriptionParams) => `Votre facture finale pour cet abonnement sera de <strong>${formattedAmount}</strong>`,
             description2: ({date}: DateParams) => `Voir votre répartition ci-dessous pour le ${date} :`,
             subscription:
                 "Attention ! Cette action mettra fin à votre abonnement Expensify, supprimera cet espace de travail et retirera tous les membres de l'espace de travail. Si vous souhaitez conserver cet espace de travail et seulement vous retirer, demandez à un autre administrateur de prendre en charge la facturation d'abord.",
@@ -5737,8 +5750,7 @@ const translations = {
             },
             customRules: {
                 title: 'Règles personnalisées',
-                subtitle: 'Description',
-                description: 'Saisir des règles personnalisées pour les rapports de dépenses',
+                cardSubtitle: 'Voici où se trouve la politique de dépenses de votre équipe, afin que tout le monde sache ce qui est couvert.',
             },
         },
         planTypePage: {
@@ -6057,7 +6069,7 @@ const translations = {
         searchResults: {
             emptyResults: {
                 title: 'Rien à afficher',
-                subtitle: "Essayez d'ajuster vos critères de recherche ou de créer quelque chose avec le bouton vert +.",
+                subtitle: `Essayez d'ajuster vos critères de recherche ou de créer quelque chose avec le bouton vert ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE}.`,
             },
             emptyExpenseResults: {
                 title: "Vous n'avez pas encore créé de dépenses.",
@@ -6168,6 +6180,7 @@ const translations = {
             withdrawn: 'Retiré',
             billable: 'Facturable',
             reimbursable: 'Remboursable',
+            purchaseCurrency: "Devise d'achat",
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.REPORTS]: 'Rapport',
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
@@ -6179,7 +6192,17 @@ const translations = {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Remboursement',
             },
+            has: {
+                receipt: 'Reçu',
+            },
+            action: {
+                [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Soumettre',
+                [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approuver',
+                [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Payer',
+                [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporter',
+            },
         },
+        has: 'A',
         groupBy: 'Groupe par',
         moneyRequestReport: {
             emptyStateTitle: "Ce rapport n'a pas de dépenses.",
@@ -6337,7 +6360,7 @@ const translations = {
                     pending: ({label}: ExportedToIntegrationParams) => `a commencé à exporter ce rapport vers ${label}...`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
-                    `échec de l'exportation de ce rapport vers ${label} ("${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
+                    `échec de l'exportation de ce rapport vers ${label} ("${errorMessage}${linkText ? ` <a href="${linkURL}">${linkText}</a>` : ''}")`,
                 managerAttachReceipt: `a ajouté un reçu`,
                 managerDetachReceipt: `a supprimé un reçu`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `payé ${currency}${amount} ailleurs`,
