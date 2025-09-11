@@ -131,9 +131,9 @@ function KYCWall({
                                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newPolicyExpenseChatReportID));
                             }
                         } else {
-                            const {policyExpenseChatReportID} = moveIOUReportToPolicy(iouReport, policy, true) ?? {};
+                            const {policyExpenseChatReportID, useTemporaryOptimisticExpenseChatReportID} = moveIOUReportToPolicy(iouReport, policy, true) ?? {};
                             savePreferredPaymentMethod(iouReport.policyID, policy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[policy.id]);
-                            if (policyExpenseChatReportID) {
+                            if (policyExpenseChatReportID && !useTemporaryOptimisticExpenseChatReportID) {
                                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(policyExpenseChatReportID));
                             }
                         }

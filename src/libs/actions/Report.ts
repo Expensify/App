@@ -5157,7 +5157,7 @@ function deleteAppReport(reportID: string | undefined) {
  * @param policyID - The ID of the policy to move the report to
  * @param isFromSettlementButton - Whether the action is from report preview
  */
-function moveIOUReportToPolicy(iouReport: Report, policy: Policy, isFromSettlementButton?: boolean): {policyExpenseChatReportID?: string} | undefined {
+function moveIOUReportToPolicy(iouReport: Report, policy: Policy, isFromSettlementButton?: boolean): {policyExpenseChatReportID?: string, useTemporaryOptimisticExpenseChatReportID?: boolean} | undefined {
     const reportID = iouReport.reportID;
     const policyID = policy.id;
 
@@ -5373,7 +5373,7 @@ function moveIOUReportToPolicy(iouReport: Report, policy: Policy, isFromSettleme
     };
 
     API.write(WRITE_COMMANDS.MOVE_IOU_REPORT_TO_EXISTING_POLICY, parameters, {optimisticData, successData, failureData});
-    return {policyExpenseChatReportID: optimisticExpenseChatReportID};
+    return {policyExpenseChatReportID: optimisticExpenseChatReportID, useTemporaryOptimisticExpenseChatReportID};
 }
 
 /**
