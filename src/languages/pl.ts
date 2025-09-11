@@ -6661,7 +6661,7 @@ const translations = {
                     ? `Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z bankiem, które ${email} musi naprawić.`
                     : 'Nie można automatycznie dopasować paragonu z powodu przerwanego połączenia z bankiem.';
             }
-            if (!) {
+            if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Poproś ${member}, aby oznaczył jako gotówkę lub poczekaj 7 dni i spróbuj ponownie.` : 'Oczekiwanie na połączenie z transakcją kartową.';
             }
             return '';
