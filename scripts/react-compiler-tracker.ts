@@ -15,8 +15,7 @@ type ReactCompilerConfig = {
     checkedFileEndings: string[];
 };
 
-// Load React Compiler configuration from shared config file
-const reactCompilerConfig = JSON.parse(readFileSync(join(process.cwd(), 'react-compiler-config.json'), 'utf8')) as ReactCompilerConfig;
+const REACT_COMPILER_CONFIG = JSON.parse(readFileSync(join(process.cwd(), 'react-compiler-config.json'), 'utf8')) as ReactCompilerConfig;
 
 /**
  * Check if a file should be processed by React Compiler
@@ -24,7 +23,7 @@ const reactCompilerConfig = JSON.parse(readFileSync(join(process.cwd(), 'react-c
  */
 function shouldProcessFile(filePath: string): boolean {
     // Check if file is in any excluded folder
-    return !reactCompilerConfig.excludedFolderPatterns.some((pattern) => filePath.includes(pattern));
+    return !REACT_COMPILER_CONFIG.excludedFolderPatterns.some((pattern) => filePath.includes(pattern));
 }
 
 type CompilerResults = {
@@ -59,213 +58,11 @@ type TrackerData = {
 const TRACKER_FILE = join(process.cwd(), '.react-compiler-tracker.json');
 const COMPILER_OUTPUT_FILE = join(process.cwd(), 'react-compiler-output.json');
 
-class ReactCompilerTracker {
+class ReactCompilerComplianceChecker {
     private trackerData: TrackerData;
 
     constructor() {
         this.trackerData = this.loadTrackerData();
-    }
-
-    private loadTrackerData(): TrackerData {
-        if (existsSync(TRACKER_FILE)) {
-            try {
-                return JSON.parse(readFileSync(TRACKER_FILE, 'utf8')) as TrackerData;
-            } catch (error) {
-                console.warn('Failed to parse tracker file, starting fresh:', error);
-            }
-        }
-
-        return {
-            components: {},
-            lastFullCheck: '',
-            version: '1.0.0',
-        };
-    }
-
-    private saveTrackerData(): void {
-        writeFileSync(TRACKER_FILE, JSON.stringify(this.trackerData, null, 2));
-    }
-
-    public runCompilerHealthcheck(): CompilerResults {
-        try {
-            console.log('🔍 Running React Compiler healthcheck...');
-            const output = execSync('npx react-compiler-healthcheck --json', {
-                encoding: 'utf8',
-                cwd: process.cwd(),
-            });
-
-            // Save raw output for debugging
-            writeFileSync(COMPILER_OUTPUT_FILE, output);
-
-            return JSON.parse(output) as CompilerResults;
-        } catch (error) {
-            console.error('❌ Failed to run React Compiler healthcheck:', error);
-            throw error;
-        }
-    }
-
-    public runDetailedCompilerHealthcheck(): DetailedCompilerResults {
-        try {
-            console.log('🔍 Running detailed React Compiler healthcheck...');
-            const output = execSync('npx react-compiler-healthcheck --verbose --json', {
-                encoding: 'utf8',
-                cwd: process.cwd(),
-            });
-
-            // Save raw verbose output for debugging
-            const verboseOutputFile = join(process.cwd(), 'react-compiler-verbose-output.txt');
-            writeFileSync(verboseOutputFile, output);
-
-            return this.parseCombinedOutput(output);
-        } catch (error) {
-            console.error('❌ Failed to run detailed React Compiler healthcheck:', error);
-            throw error;
-        }
-    }
-
-    private parseCombinedOutput(output: string): DetailedCompilerResults {
-        const lines = output.split('\n');
-        const success: string[] = [];
-        const failures: CompilerFailure[] = [];
-
-        // First, try to extract JSON from the output
-        let jsonStart = -1;
-        let jsonEnd = -1;
-        for (let i = 0; i < lines.length; i++) {
-            if (lines.at(i)?.trim().startsWith('{')) {
-                jsonStart = i;
-            }
-            if (jsonStart !== -1 && lines.at(i)?.trim().endsWith('}')) {
-                jsonEnd = i;
-                break;
-            }
-        }
-
-        // Parse JSON if found
-        if (jsonStart !== -1 && jsonEnd !== -1) {
-            try {
-                const jsonLines = lines.slice(jsonStart, jsonEnd + 1);
-                const jsonStr = jsonLines.join('\n');
-                const jsonResult = JSON.parse(jsonStr) as CompilerResults;
-                success.push(...jsonResult.success);
-                console.log(`📊 Parsed ${jsonResult.success.length} successful compilations from JSON`);
-            } catch (error) {
-                console.warn('Failed to parse JSON from combined output:', error);
-            }
-        } else {
-            console.log('⚠️  No JSON found in combined output, parsing verbose text only');
-        }
-
-        // Parse verbose output for detailed failure information
-        let currentFailure: CompilerFailure | null = null;
-
-        for (const line of lines) {
-            // Parse successful compilation from verbose output
-            const successMatch = line.match(/Successfully compiled (?:hook|component) \[([^\]]+)\]\(([^)]+)\)/);
-            if (successMatch) {
-                const filePath = successMatch[2];
-                if (!success.includes(filePath)) {
-                    success.push(filePath);
-                }
-                continue;
-            }
-
-            // Parse failed compilation with file, location, and reason all on one line
-            const failureWithReasonMatch = line.match(/Failed to compile ([^:]+):(\d+):(\d+)\. Reason: (.+)/);
-            if (failureWithReasonMatch) {
-                // Save previous failure if exists
-                if (currentFailure) {
-                    failures.push(currentFailure);
-                }
-
-                failures.push({
-                    file: failureWithReasonMatch[1],
-                    line: parseInt(failureWithReasonMatch[2], 10),
-                    column: parseInt(failureWithReasonMatch[3], 10),
-                    reason: failureWithReasonMatch[4],
-                });
-                currentFailure = null;
-                continue;
-            }
-
-            // Parse failed compilation with file and location only (fallback)
-            const failureMatch = line.match(/Failed to compile ([^:]+):(\d+):(\d+)\./);
-            if (failureMatch) {
-                // Save previous failure if exists
-                if (currentFailure) {
-                    failures.push(currentFailure);
-                }
-
-                currentFailure = {
-                    file: failureMatch[1],
-                    line: parseInt(failureMatch[2], 10),
-                    column: parseInt(failureMatch[3], 10),
-                    reason: '',
-                };
-                continue;
-            }
-
-            // Parse reason line (fallback for multi-line reasons)
-            const reasonMatch = line.match(/Reason: (.+)/);
-            if (reasonMatch && currentFailure) {
-                currentFailure.reason = reasonMatch[1];
-                failures.push(currentFailure);
-                currentFailure = null;
-                continue;
-            }
-        }
-
-        // Add any remaining failure
-        if (currentFailure) {
-            failures.push(currentFailure);
-        }
-
-        console.log(`📊 Parsed ${failures.length} failures with detailed reasons`);
-        return {success, failures};
-    }
-
-    private updateComponentStatus(file: string, canCompile: boolean): void {
-        this.trackerData.components[file] = {
-            file,
-            canCompile,
-            lastChecked: new Date().toISOString(),
-        };
-    }
-
-    private getChangedFiles(): string[] {
-        try {
-            // Get files changed in the current branch/commit
-            const output = execSync('git diff --name-only --diff-filter=AMR HEAD~1 HEAD', {
-                encoding: 'utf8',
-            });
-            return output
-                .trim()
-                .split('\n')
-                .filter((file) => file.length > 0)
-                .filter((file) => reactCompilerConfig.checkedFileEndings.some((ending) => file.endsWith(ending)))
-                .filter((file) => shouldProcessFile(file));
-        } catch (error) {
-            console.warn('Could not determine changed files:', error);
-            return [];
-        }
-    }
-
-    private getNewFiles(): string[] {
-        try {
-            // Get files that are new (not in main branch)
-            const output = execSync('git diff --name-only --diff-filter=A origin/main...HEAD', {
-                encoding: 'utf8',
-            });
-            return output
-                .trim()
-                .split('\n')
-                .filter((file) => file.length > 0)
-                .filter((file) => reactCompilerConfig.checkedFileEndings.some((ending) => file.endsWith(ending)))
-                .filter((file) => shouldProcessFile(file));
-        } catch (error) {
-            console.warn('Could not determine new files:', error);
-            return [];
-        }
     }
 
     public runFullCheck() {
@@ -424,13 +221,234 @@ class ReactCompilerTracker {
 
         console.log(`\n📄 Detailed report saved to: ${reportFile}`);
     }
+
+    private runCompilerHealthcheck(): CompilerResults {
+        try {
+            console.log('🔍 Running React Compiler healthcheck...');
+            const output = execSync('npx react-compiler-healthcheck --json', {
+                encoding: 'utf8',
+                cwd: process.cwd(),
+            });
+
+            // Save raw output for debugging
+            writeFileSync(COMPILER_OUTPUT_FILE, output);
+
+            return JSON.parse(output) as CompilerResults;
+        } catch (error) {
+            console.error('❌ Failed to run React Compiler healthcheck:', error);
+            throw error;
+        }
+    }
+
+    private loadTrackerData(): TrackerData {
+        if (existsSync(TRACKER_FILE)) {
+            try {
+                return JSON.parse(readFileSync(TRACKER_FILE, 'utf8')) as TrackerData;
+            } catch (error) {
+                console.warn('Failed to parse tracker file, starting fresh:', error);
+            }
+        }
+
+        return {
+            components: {},
+            lastFullCheck: '',
+            version: '1.0.0',
+        };
+    }
+
+    private saveTrackerData(): void {
+        writeFileSync(TRACKER_FILE, JSON.stringify(this.trackerData, null, 2));
+    }
+
+    public runDetailedCompilerHealthcheck(): DetailedCompilerResults {
+        try {
+            console.log('🔍 Running detailed React Compiler healthcheck...');
+            const output = execSync('npx react-compiler-healthcheck --verbose --json', {
+                encoding: 'utf8',
+                cwd: process.cwd(),
+            });
+
+            // Save raw verbose output for debugging
+            const verboseOutputFile = join(process.cwd(), 'react-compiler-verbose-output.txt');
+            writeFileSync(verboseOutputFile, output);
+
+            return this.parseCombinedOutput(output);
+        } catch (error) {
+            console.error('❌ Failed to run detailed React Compiler healthcheck:', error);
+            throw error;
+        }
+    }
+
+    private parseCombinedOutput(output: string): DetailedCompilerResults {
+        const lines = output.split('\n');
+        const success: string[] = [];
+        const failures: CompilerFailure[] = [];
+
+        // First, try to extract JSON from the output
+        let jsonStart = -1;
+        let jsonEnd = -1;
+        for (let i = 0; i < lines.length; i++) {
+            if (lines.at(i)?.trim().startsWith('{')) {
+                jsonStart = i;
+            }
+            if (jsonStart !== -1 && lines.at(i)?.trim().endsWith('}')) {
+                jsonEnd = i;
+                break;
+            }
+        }
+
+        // Parse JSON if found
+        if (jsonStart !== -1 && jsonEnd !== -1) {
+            try {
+                const jsonLines = lines.slice(jsonStart, jsonEnd + 1);
+                const jsonStr = jsonLines.join('\n');
+                const jsonResult = JSON.parse(jsonStr) as CompilerResults;
+                success.push(...jsonResult.success);
+                console.log(`📊 Parsed ${jsonResult.success.length} successful compilations from JSON`);
+            } catch (error) {
+                console.warn('Failed to parse JSON from combined output:', error);
+            }
+        } else {
+            console.log('⚠️  No JSON found in combined output, parsing verbose text only');
+        }
+
+        // Parse verbose output for detailed failure information
+        let currentFailure: CompilerFailure | null = null;
+
+        for (const line of lines) {
+            // Parse successful compilation from verbose output
+            const successMatch = line.match(/Successfully compiled (?:hook|component) \[([^\]]+)\]\(([^)]+)\)/);
+            if (successMatch) {
+                const filePath = successMatch[2];
+                if (!success.includes(filePath)) {
+                    success.push(filePath);
+                }
+                continue;
+            }
+
+            // Parse failed compilation with file, location, and reason all on one line
+            const failureWithReasonMatch = line.match(/Failed to compile ([^:]+):(\d+):(\d+)\. Reason: (.+)/);
+            if (failureWithReasonMatch) {
+                // Save previous failure if exists
+                if (currentFailure) {
+                    failures.push(currentFailure);
+                }
+
+                failures.push({
+                    file: failureWithReasonMatch[1],
+                    line: parseInt(failureWithReasonMatch[2], 10),
+                    column: parseInt(failureWithReasonMatch[3], 10),
+                    reason: failureWithReasonMatch[4],
+                });
+                currentFailure = null;
+                continue;
+            }
+
+            // Parse failed compilation with file and location only (fallback)
+            const failureMatch = line.match(/Failed to compile ([^:]+):(\d+):(\d+)\./);
+            if (failureMatch) {
+                // Save previous failure if exists
+                if (currentFailure) {
+                    failures.push(currentFailure);
+                }
+
+                currentFailure = {
+                    file: failureMatch[1],
+                    line: parseInt(failureMatch[2], 10),
+                    column: parseInt(failureMatch[3], 10),
+                    reason: '',
+                };
+                continue;
+            }
+
+            // Parse reason line (fallback for multi-line reasons)
+            const reasonMatch = line.match(/Reason: (.+)/);
+            if (reasonMatch && currentFailure) {
+                currentFailure.reason = reasonMatch[1];
+                failures.push(currentFailure);
+                currentFailure = null;
+                continue;
+            }
+        }
+
+        // Add any remaining failure
+        if (currentFailure) {
+            failures.push(currentFailure);
+        }
+
+        console.log(`📊 Parsed ${failures.length} failures with detailed reasons`);
+        return {success, failures};
+    }
+
+    private updateComponentStatus(file: string, canCompile: boolean): void {
+        this.trackerData.components[file] = {
+            file,
+            canCompile,
+            lastChecked: new Date().toISOString(),
+        };
+    }
+
+    private getChangedFiles(): string[] {
+        try {
+            // Get files changed in the current branch/commit
+            // Determine the remote that contains the main branch, fallback to 'origin'
+            let remote = 'origin';
+            try {
+                const remotesOutput = execSync('git remote', {encoding: 'utf8'}).trim().split('\n');
+                for (const r of remotesOutput) {
+                    try {
+                        const branches = execSync(`git ls-remote --heads ${r} main`, {encoding: 'utf8'}).trim();
+                        if (branches.length > 0) {
+                            remote = r;
+                            break;
+                        }
+                    } catch {
+                        // ignore errors for remotes that don't have main
+                    }
+                }
+            } catch {
+                // fallback to 'origin'
+            }
+            // Compare against the main branch on the detected remote
+            const output = execSync(`git diff --name-only --diff-filter=AMR ${remote}/main...HEAD`, {
+                encoding: 'utf8',
+            });
+            return output
+                .trim()
+                .split('\n')
+                .filter((file) => file.length > 0)
+                .filter((file) => REACT_COMPILER_CONFIG.checkedFileEndings.some((ending) => file.endsWith(ending)))
+                .filter((file) => shouldProcessFile(file));
+        } catch (error) {
+            console.warn('Could not determine changed files:', error);
+            return [];
+        }
+    }
+
+    private getNewFiles(): string[] {
+        try {
+            // Get files that are new (not in main branch)
+            const output = execSync('git diff --name-only --diff-filter=A origin/main...HEAD', {
+                encoding: 'utf8',
+            });
+            return output
+                .trim()
+                .split('\n')
+                .filter((file) => file.length > 0)
+                .filter((file) => REACT_COMPILER_CONFIG.checkedFileEndings.some((ending) => file.endsWith(ending)))
+                .filter((file) => shouldProcessFile(file));
+        } catch (error) {
+            console.warn('Could not determine new files:', error);
+            return [];
+        }
+    }
 }
 
 // CLI interface
 function main() {
     const args = process.argv.slice(2);
     const command = args.at(0);
-    const tracker = new ReactCompilerTracker();
+    const tracker = new ReactCompilerComplianceChecker();
 
     try {
         switch (command) {
@@ -503,5 +521,6 @@ if (require.main === module) {
     main();
 }
 
-export default ReactCompilerTracker;
-export {shouldProcessFile};
+export default ReactCompilerComplianceChecker;
+export {shouldProcessFile, REACT_COMPILER_CONFIG};
+export type {ReactCompilerConfig};
