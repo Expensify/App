@@ -38,8 +38,6 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
 
     const listRef = useWithFallbackRef<FlatListInnerRefType<T>, RNFlatList>(ref);
 
-    const [isInitialContentRendered, setIsInitialContentRendered] = useState(false);
-
     const {
         displayedData,
         maintainVisibleContentPosition: maintainVisibleContentPositionProp,
@@ -53,7 +51,7 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
         initialScrollKey,
         listRef,
         initialNumToRender,
-        isInitialContentRendered,
+        isInitialContentRendered: true,
         inverted: false,
         onStartReached,
         shouldEnableAutoScrollToTopThreshold,
@@ -96,7 +94,6 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
     const handleContentSizeChange = useCallback(
         (w: number, h: number) => {
             onContentSizeChange?.(w, h);
-            setIsInitialContentRendered(true);
 
             if (!initialScrollKey) {
                 return;

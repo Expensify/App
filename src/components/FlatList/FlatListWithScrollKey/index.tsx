@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useState} from 'react';
+import React, {forwardRef, useCallback} from 'react';
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList} from 'react-native';
 import useFlatListHandle from '@components/FlatList/useFlatListHandle';
 import type {FlatListInnerRefType} from '@components/FlatList/useFlatListHandle';
@@ -28,7 +28,6 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
         renderItem,
         keyExtractor,
         ListHeaderComponent,
-        onContentSizeChange,
         onScrollToIndexFailed,
         initialNumToRender = CONST.PAGINATION_SIZE,
         ...rest
@@ -36,29 +35,18 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
 
     const listRef = useWithFallbackRef<FlatListInnerRefType<T>, RNFlatList>(ref);
 
-    const [isInitialContentRendered, setIsInitialContentRendered] = useState(false);
-
     const {displayedData, maintainVisibleContentPosition, handleStartReached, isInitialData, remainingItemsToDisplay, setCurrentDataId} = useFlatListScrollKey<T>({
         data,
         keyExtractor,
         initialScrollKey,
         inverted: false,
+        isInitialContentRendered: true,
         listRef,
         onStartReached,
         initialNumToRender,
-        isInitialContentRendered,
         shouldEnableAutoScrollToTopThreshold,
     });
     const dataIndexDifference = data.length - displayedData.length;
-
-    const handleContentSizeChange = useCallback(
-        (contentWidth: number, contentHeight: number) => {
-            onContentSizeChange?.(contentWidth, contentHeight);
-            setIsInitialContentRendered(true);
-        },
-        [onContentSizeChange],
-    );
-
     const handleRenderItem = useCallback(
         ({item, index, separators}: ListRenderItemInfo<T>) => {
             // Adjust the index passed here so it matches the original data.
@@ -81,7 +69,6 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
             data={displayedData}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             onStartReached={handleStartReached}
-            onContentSizeChange={handleContentSizeChange}
             renderItem={handleRenderItem}
             keyExtractor={keyExtractor}
             // Since ListHeaderComponent is always prioritized for rendering before the data,
