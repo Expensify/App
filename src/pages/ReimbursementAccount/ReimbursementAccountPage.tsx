@@ -199,7 +199,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         }
         fetchData();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isPreviousPolicy]); // Only re-run this effect when isPreviousPolicy changes, which happens once when the component first loads
+    }, []); // The empty dependency array ensures this runs only once after the component mounts.
 
     useEffect(() => {
         if (!isPreviousPolicy) {
