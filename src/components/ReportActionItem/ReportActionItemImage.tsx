@@ -131,6 +131,7 @@ function ReportActionItemImage({
     const originalImageSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
+    const isPDF = filename && Str.isPDF(filename);
 
     let propsObj: ReceiptImageProps;
 
@@ -141,8 +142,9 @@ function ReportActionItemImage({
             shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
 
             // PDF won't have originalImage that we can use. Use thumbnail instead
+            // We explicitly want to use || instead of nullish-coalescing because shouldUseThumbnailImage can be false.
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            source: shouldUseThumbnailImage || (filename && Str.isPDF(filename)) ? thumbnailSource : originalImageSource,
+            source: shouldUseThumbnailImage || isPDF ? thumbnailSource : originalImageSource,
             fallbackIcon: Expensicons.Receipt,
             fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
             isAuthTokenRequired: true,
@@ -150,7 +152,7 @@ function ReportActionItemImage({
             // If the image is full height, use initial position to make sure it will grow properly to fill the container
             shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
         };
-    } else if (isLocalFile && filename && Str.isPDF(filename) && typeof originalImageSource === 'string') {
+    } else if (isLocalFile && isPDF && typeof originalImageSource === 'string') {
         propsObj = {isPDFThumbnail: true, source: originalImageSource};
     } else {
         propsObj = {
