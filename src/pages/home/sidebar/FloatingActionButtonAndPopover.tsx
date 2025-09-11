@@ -66,9 +66,6 @@ type FloatingActionButtonAndPopoverProps = {
     /* Callback function before the menu is hidden */
     onHideCreateMenu?: () => void;
 
-    /* If the tooltip is allowed to be shown */
-    isTooltipAllowed: boolean;
-
     /** Reference to the outer element */
     ref?: ForwardedRef<FloatingActionButtonAndPopoverRef>;
 };
@@ -93,7 +90,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
  * Responsible for rendering the {@link PopoverMenu}, and the accompanying
  * FAB that can open or close the menu.
  */
-function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isTooltipAllowed, ref}: FloatingActionButtonAndPopoverProps) {
+function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref}: FloatingActionButtonAndPopoverProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -613,7 +610,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 cancelText={translate('common.cancel')}
             />
             <FloatingActionButton
-                isTooltipAllowed={isTooltipAllowed}
                 accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
                 role={CONST.ROLE.BUTTON}
                 isActive={isCreateMenuActive}
