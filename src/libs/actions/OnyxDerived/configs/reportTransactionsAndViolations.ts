@@ -37,7 +37,7 @@ export default createOnyxDerivedValueConfig({
             const previousReportID = transactionToReportIDMap[transactionKey];
             if (previousReportID && previousReportID !== reportID && reportTransactionsAndViolations[previousReportID]) {
                 delete reportTransactionsAndViolations[previousReportID].transactions[transactionKey];
-                const transactionID = transactionKey.replace(ONYXKEYS.COLLECTION.TRANSACTION, "");
+                const transactionID = transactionKey.replace(ONYXKEYS.COLLECTION.TRANSACTION, '');
                 delete reportTransactionsAndViolations[previousReportID].violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
             }
 
