@@ -183,7 +183,7 @@ function SearchAutocompleteList(
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, betas ?? [], true, true, autocompleteQueryValue, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS, true);
+        return getSearchOptions(options, betas ?? [], true, true, autocompleteQueryValue, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS, true, true, false, true);
     }, [areOptionsInitialized, betas, options, autocompleteQueryValue]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -228,7 +228,6 @@ function SearchAutocompleteList(
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
     const withdrawalTypes = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
     const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
-    const actionTypes = Object.values(CONST.SEARCH.ACTION_FILTERS);
 
     const cardAutocompleteList = useMemo(() => Object.values(allCards), [allCards]);
     const feedAutoCompleteList = useMemo(() => {
@@ -361,7 +360,7 @@ function SearchAutocompleteList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
-                const participants = getSearchOptions(options, betas ?? [], true, true, autocompleteValue, 10, false, false, true).personalDetails.filter(
+                const participants = getSearchOptions(options, betas ?? [], true, true, autocompleteValue, 10, false, false, true, true).personalDetails.filter(
                     (participant) => participant.text && !alreadyAutocompletedKeys.includes(participant.text.toLowerCase()),
                 );
 
@@ -373,7 +372,7 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
-                const filteredReports = getSearchOptions(options, betas ?? [], true, true, autocompleteValue, 10, false, true).recentReports;
+                const filteredReports = getSearchOptions(options, betas ?? [], true, true, autocompleteValue, 10, false, true, false, true).recentReports;
 
                 return filteredReports.map((chat) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
@@ -533,7 +532,6 @@ function SearchAutocompleteList(
         cardAutocompleteList,
         booleanTypes,
         workspaceList,
-        actionTypes,
     ]);
 
     const sortedRecentSearches = useMemo(() => {

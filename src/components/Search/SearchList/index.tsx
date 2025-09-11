@@ -35,6 +35,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {TransactionViolations} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
@@ -103,6 +104,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     isMobileSelectionModeEnabled: boolean;
 
     areAllOptionalColumnsHidden: boolean;
+
+    /** Violations indexed by transaction ID */
+    violations?: Record<string, TransactionViolations | undefined> | undefined;
 };
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
@@ -141,6 +145,7 @@ function SearchList(
         estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
         isMobileSelectionModeEnabled,
         areAllOptionalColumnsHidden,
+        violations,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -267,15 +272,16 @@ function SearchList(
     useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
 
     const renderItem = useCallback(
-        (item: SearchListItem, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
+        (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            const shouldApplyAnimation = shouldAnimate && index < data.length - 1;
 
             return (
                 <Animated.View
-                    exiting={shouldAnimate && isFocused ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
+                    exiting={shouldApplyAnimation && isFocused ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
                     entering={undefined}
                     style={styles.overflowHidden}
-                    layout={shouldAnimate && hasItemsBeingRemoved && isFocused ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
+                    layout={shouldApplyAnimation && hasItemsBeingRemoved && isFocused ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
                 >
                     <ListItem
                         showTooltip
@@ -299,6 +305,7 @@ function SearchList(
                         userBillingFundID={userBillingFundID}
                         accountID={accountID}
                         isOffline={isOffline}
+                        violations={violations}
                         onFocus={onFocus}
                     />
                 </Animated.View>
@@ -307,6 +314,7 @@ function SearchList(
         [
             shouldAnimate,
             isFocused,
+            data.length,
             styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
@@ -327,6 +335,7 @@ function SearchList(
             accountID,
             isOffline,
             areAllOptionalColumnsHidden,
+            violations,
         ],
     );
 
