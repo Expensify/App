@@ -9,7 +9,7 @@
 import {execSync} from 'child_process';
 import {existsSync, readFileSync} from 'fs';
 import {join, relative} from 'path';
-import ReactCompilerComplianceChecker, {REACT_COMPILER_CONFIG, shouldProcessFile} from './compliance-check';
+import ReactCompilerComplianceChecker, {REACT_COMPILER_CONFIG, shouldProcessFile} from './compliance-checker';
 
 type ComponentInfo = {
     name: string;
