@@ -780,15 +780,6 @@ function ReportActionsList({
         return baseStyles;
     }, [parentReportAction, styles.chatContentScrollView, styles.pb0, styles.pt4]);
 
-    const renderScrollComponent = useMemo(() => {
-        if (renderActionSheetAwareScrollView === undefined) {
-            return undefined;
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return (props: ScrollViewProps) => renderActionSheetAwareScrollView!({...props, containerStyle: contentContainerStyle});
-    }, [contentContainerStyle]);
-
     return (
         <>
             <FloatingMessageCounter
@@ -807,7 +798,8 @@ function ReportActionsList({
                     style={styles.overscrollBehaviorContain}
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
-                    renderScrollComponent={renderScrollComponent}
+                    contentContainerStyle={contentContainerStyle}
+                    renderScrollComponent={renderActionSheetAwareScrollView}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}

@@ -6,7 +6,7 @@ import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewPr
 import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
 import useActionSheetKeyboardSpacing from './useActionSheetKeyboardSpacing';
 
-const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScrollViewProps>(({children, containerStyle, ...props}, ref) => {
+const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScrollViewProps>(({style, children, ...props}, ref) => {
     const scrollViewAnimatedRef = useAnimatedRef<Reanimated.ScrollView>();
 
     const onRef = useCallback(
@@ -25,19 +25,18 @@ const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScroll
 
     const spacing = useActionSheetKeyboardSpacing(scrollViewAnimatedRef);
     const animatedStyle = useAnimatedStyle(() => ({
-        paddingBottom: spacing.get(),
+        paddingTop: spacing.get(),
     }));
 
     return (
-        <Reanimated.View style={[containerStyle, animatedStyle]}>
-            <Reanimated.ScrollView
-                ref={onRef}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-            >
-                {children}
-            </Reanimated.ScrollView>
-        </Reanimated.View>
+        <Reanimated.ScrollView
+            ref={onRef}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            style={[style, animatedStyle]}
+        >
+            {children}
+        </Reanimated.ScrollView>
     );
 });
 
