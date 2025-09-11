@@ -326,8 +326,9 @@ function AttachmentModalBaseContent({
             onScaleChanged: () => {},
             onSwipeDown: onClose,
             onAttachmentError: setAttachmentError,
+            onAttachmentLoaded: setAttachmentLoaded,
         }),
-        [onClose, falseSV, sourceForAttachmentView, setAttachmentError],
+        [onClose, falseSV, sourceForAttachmentView, setAttachmentError, setAttachmentLoaded],
     );
 
     return (

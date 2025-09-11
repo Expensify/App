@@ -214,6 +214,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                 uri={url}
                 isAuthTokenRequired={isAuthTokenRequired}
                 onError={onError}
+                onLoad={() => onAttachmentLoaded?.(url, true)}
             />
         );
     }
