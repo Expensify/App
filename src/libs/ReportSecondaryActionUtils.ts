@@ -454,6 +454,13 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     const isReportOpenOrProcessing = isOpenReportUtils(report) || isProcessingReportUtils(report);
     const isSingleTransaction = reportTransactions.length === 1;
     const isInvoiceReport = isInvoiceReportUtils(report);
+    const isCardTransactionWithCorporateLiability =
+        isSingleTransaction && isCardTransactionUtils(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
+
+    // Transactions with corporate cards cannot be deleted
+    if (isCardTransactionWithCorporateLiability) {
+        return false;
+    }
 
     if (reportTransactions.length > 0 && reportTransactions.every((t) => isDemoTransaction(t))) {
         return true;
@@ -474,13 +481,6 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     }
 
     if (isExpenseReport) {
-        const isCardTransactionWithCorporateLiability =
-            isSingleTransaction && isCardTransactionUtils(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
-
-        if (isCardTransactionWithCorporateLiability) {
-            return false;
-        }
-
         const isReportSubmitter = isCurrentUserSubmitter(report);
         const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
         const isForwarded = isProcessingReportUtils(report) && isApprovalEnabled && !isAwaitingFirstLevelApproval(report);
