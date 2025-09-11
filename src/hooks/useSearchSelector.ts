@@ -68,9 +68,9 @@ type UseSearchSelectorReturn = {
     searchOptions: Options;
     /** Available (unselected) options */
     availableOptions: Options;
-    /** Currently selected options */
+    /** Currently selected options. This returns all selected options and are not affected by search term */
     selectedOptions: OptionData[];
-    /** Currently selected options used for list display */
+    /** Currently selected options used for list display. This prop can be used in selection list to display selected options that are filtered by search term */
     selectedOptionsForDisplay: OptionData[];
     /** Function to set selected options */
     setSelectedOptions: (options: OptionData[]) => void;

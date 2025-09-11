@@ -155,7 +155,7 @@ function InviteReportParticipantsPage({report, didScreenTransitionEnd}: InviteRe
             return translate('messages.userIsAlreadyMember', {login: processedLogin, name: reportName ?? ''});
         }
         return getHeaderMessage(
-            selectedOptions.length + availableOptions.recentReports.length + availableOptions.personalDetails.length !== 0,
+            selectedOptionsForDisplay.length + availableOptions.recentReports.length + availableOptions.personalDetails.length !== 0,
             !!availableOptions.userToInvite,
             processedLogin,
         );
