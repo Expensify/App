@@ -2,7 +2,11 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
 import type {FlatListProps, LayoutChangeEvent, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList} from 'react-native';
 import {InteractionManager} from 'react-native';
+import type {FlatListInnerRefType} from '@components/FlatList/types';
+import useFlatListHandle from '@components/FlatList/useFlatListHandle';
 import useFlatListScrollKey from '@hooks/useFlatListScrollKey';
+import useWithFallbackRef from '@hooks/useWithFallbackRef';
+import CONST from '@src/CONST';
 import FlatList from '..';
 
 type FlatListWithScrollKeyProps<T> = Omit<FlatListProps<T>, 'data' | 'initialScrollIndex'> & {
@@ -17,28 +21,50 @@ type FlatListWithScrollKeyProps<T> = Omit<FlatListProps<T>, 'data' | 'initialScr
  * FlatList component that handles initial scroll key.
  */
 function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: ForwardedRef<RNFlatList>) {
-    const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor, ListHeaderComponent, onLayout, onContentSizeChange, ...rest} = props;
+    const {
+        shouldEnableAutoScrollToTopThreshold,
+        initialScrollKey,
+        data,
+        onStartReached,
+        renderItem,
+        keyExtractor,
+        ListHeaderComponent,
+        onLayout,
+        onContentSizeChange,
+        onScrollToIndexFailed,
+        initialNumToRender = CONST.PAGINATION_SIZE,
+        ...rest
+    } = props;
+
+    const listRef = useWithFallbackRef<FlatListInnerRefType<T>, RNFlatList>(ref);
+
+    const [isInitialContentRendered, setIsInitialContentRendered] = useState(false);
+
     const {
         displayedData,
         maintainVisibleContentPosition: maintainVisibleContentPositionProp,
         handleStartReached,
         isInitialData,
+        remainingItemsToDisplay,
+        setCurrentDataId,
     } = useFlatListScrollKey<T>({
         data,
         keyExtractor,
         initialScrollKey,
+        listRef,
+        initialNumToRender,
+        isInitialContentRendered,
         inverted: false,
         onStartReached,
         shouldEnableAutoScrollToTopThreshold,
     });
-    const dataIndexDifference = data.length - displayedData.length;
 
     const handleRenderItem = useCallback(
         ({item, index, separators}: ListRenderItemInfo<T>) => {
             // Adjust the index passed here so it matches the original data.
-            return renderItem({item, index: index + dataIndexDifference, separators});
+            return renderItem({item, index: index + remainingItemsToDisplay, separators});
         },
-        [renderItem, dataIndexDifference],
+        [renderItem, remainingItemsToDisplay],
     );
     const [maintainVisibleContentPosition, setMaintainVisibleContentPosition] = useState<typeof maintainVisibleContentPositionProp | undefined>(maintainVisibleContentPositionProp);
     const flatListRef = useRef<RNFlatList>(null);
@@ -58,7 +84,7 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isInitialData]);
 
-    const onLayoutInner = useCallback(
+    const handleLayout = useCallback(
         (event: LayoutChangeEvent) => {
             onLayout?.(event);
 
@@ -67,13 +93,15 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
         [onLayout],
     );
 
-    const onContentSizeChangeInner = useCallback(
+    const handleContentSizeChange = useCallback(
         (w: number, h: number) => {
             onContentSizeChange?.(w, h);
+            setIsInitialContentRendered(true);
 
             if (!initialScrollKey) {
                 return;
             }
+
             // Since the ListHeaderComponent is only rendered after the data has finished rendering, iOS locks the entire current viewport.
             // As a result, the viewport does not automatically scroll down to fill the gap at the bottom.
             // We will check during the initial render (isInitialData === true). If the content height is less than the layout height,
@@ -91,6 +119,14 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
         },
         [onContentSizeChange, isInitialData, initialScrollKey],
     );
+
+    useFlatListHandle<T>({
+        forwardedRef: ref,
+        listRef,
+        remainingItemsToDisplay,
+        setCurrentDataId,
+        onScrollToIndexFailed,
+    });
 
     return (
         <FlatList
@@ -112,8 +148,8 @@ function FlatListWithScrollKey<T>(props: FlatListWithScrollKeyProps<T>, ref: For
             // it will be rendered once the data has finished loading.
             // This prevents an unnecessary empty space above the highlighted item.
             ListHeaderComponent={!initialScrollKey || (!!initialScrollKey && !isInitialData) ? ListHeaderComponent : undefined}
-            onLayout={onLayoutInner}
-            onContentSizeChange={onContentSizeChangeInner}
+            onLayout={handleLayout}
+            onContentSizeChange={handleContentSizeChange}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />

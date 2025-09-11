@@ -1,8 +1,11 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useState} from 'react';
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList} from 'react-native';
 import FlatList from '@components/FlatList';
+import useFlatListHandle from '@components/FlatList/useFlatListHandle';
+import type {FlatListInnerRefType} from '@components/FlatList/useFlatListHandle';
 import useFlatListScrollKey from '@hooks/useFlatListScrollKey';
+import useWithFallbackRef from '@hooks/useWithFallbackRef';
 import CONST from '@src/CONST';
 
 // Adapted from https://github.com/facebook/react-native/blob/29a0d7c3b201318a873db0d1b62923f4ce720049/packages/virtualized-lists/Lists/VirtualizeUtils.js#L237
@@ -36,14 +39,16 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         keyExtractor = defaultKeyExtractor,
         onInitiallyLoaded,
         onContentSizeChange,
+        onScrollToIndexFailed,
         initialNumToRender = CONST.PAGINATION_SIZE,
         ...rest
     } = props;
 
-    const listRef = useRef<(RNFlatList<T> & HTMLElement) | null>(null);
+    const listRef = useWithFallbackRef<FlatListInnerRefType<T>, RNFlatList>(ref);
+
     const [isInitialContentRendered, setIsInitialContentRendered] = useState(false);
 
-    const {displayedData, maintainVisibleContentPosition, handleStartReached, setCurrentDataId, dataIndexDifference} = useFlatListScrollKey<T>({
+    const {displayedData, maintainVisibleContentPosition, handleStartReached, setCurrentDataId, remainingItemsToDisplay} = useFlatListScrollKey<T>({
         initialScrollKey,
         listRef,
         data,
@@ -67,53 +72,17 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
     const handleRenderItem = useCallback(
         ({item, index, separators}: ListRenderItemInfo<T>) => {
             // Adjust the index passed here so it matches the original data.
-            return renderItem({item, index: index + dataIndexDifference, separators});
+            return renderItem({item, index: index + remainingItemsToDisplay, separators});
         },
-        [renderItem, dataIndexDifference],
+        [renderItem, remainingItemsToDisplay],
     );
 
-    useImperativeHandle(ref, () => {
-        // If we're trying to scroll at the start of the list we need to make sure to
-        // render all items.
-        const scrollToOffsetFn: RNFlatList['scrollToOffset'] = (params) => {
-            if (params.offset === 0) {
-                setCurrentDataId(null);
-            }
-            requestAnimationFrame(() => {
-                listRef.current?.scrollToOffset(params);
-            });
-        };
-
-        const scrollToIndexFn: RNFlatList['scrollToIndex'] = (params) => {
-            const actualIndex = params.index - dataIndexDifference;
-            try {
-                listRef.current?.scrollToIndex({...params, index: actualIndex});
-            } catch (ex) {
-                // It is possible that scrolling fails since the item we are trying to scroll to
-                // has not been rendered yet. In this case, we call the onScrollToIndexFailed.
-                props.onScrollToIndexFailed?.({
-                    index: actualIndex,
-                    // These metrics are not implemented.
-                    averageItemLength: 0,
-                    highestMeasuredFrameIndex: 0,
-                });
-            }
-        };
-
-        return new Proxy(
-            {},
-            {
-                get: (_target, prop) => {
-                    if (prop === 'scrollToOffset') {
-                        return scrollToOffsetFn;
-                    }
-                    if (prop === 'scrollToIndex') {
-                        return scrollToIndexFn;
-                    }
-                    return listRef.current?.[prop as keyof RNFlatList];
-                },
-            },
-        ) as RNFlatList;
+    useFlatListHandle<T>({
+        forwardedRef: ref,
+        listRef,
+        remainingItemsToDisplay,
+        setCurrentDataId,
+        onScrollToIndexFailed,
     });
 
     return (

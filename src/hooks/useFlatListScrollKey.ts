@@ -143,7 +143,7 @@ export default function useFlatListScrollKey<T>({
     return {
         handleStartReached,
         setCurrentDataId,
-        dataIndexDifference: remainingItemsToDisplay,
+        remainingItemsToDisplay,
         displayedData,
         isInitialData,
         maintainVisibleContentPosition,
