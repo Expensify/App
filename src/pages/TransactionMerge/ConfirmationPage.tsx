@@ -19,6 +19,7 @@ import {buildMergedTransactionData, getSourceTransactionFromMergeTransaction, ge
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
@@ -71,8 +72,14 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
         setIsMergingExpenses(true);
         mergeTransactionRequest(transactionID, mergeTransaction, targetTransaction, sourceTransaction);
-        Navigation.dismissModalWithReport({reportID});
-    }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID]);
+
+        const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : targetTransactionThreadReportID;
+        if (reportID !== targetTransaction.reportID && reportIDToDismiss) {
+            Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
+        } else {
+            Navigation.dismissModal();
+        }
+    }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID, targetTransactionThreadReportID]);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata) || !targetTransactionThreadReport?.reportID) {
         return <FullScreenLoadingIndicator />;
