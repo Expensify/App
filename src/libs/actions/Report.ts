@@ -3193,6 +3193,15 @@ function shouldShowReportActionNotification(reportID: string, action: ReportActi
         return false;
     }
 
+    // If the report is a transaction thread and we are currently viewing the associated one-transaction report do no show a notifaction
+    const topmostReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${topmostReportID}`];
+    const topmostReportActions = allReportActions?.[`${topmostReport?.reportID}`];
+    const chatTopmostReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${topmostReport?.chatReportID}`];
+    if (reportID === ReportActionsUtils.getOneTransactionThreadReportID(topmostReport, chatTopmostReport, topmostReportActions) && Visibility.isVisible() && Visibility.hasFocus()) {
+        Log.info(`${tag} No notification because the report is a transaction thread associated with the current one-transaction report`);
+        return false;
+    }
+
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report || (report && report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
         Log.info(`${tag} No notification because the report does not exist or is pending deleted`, false);
