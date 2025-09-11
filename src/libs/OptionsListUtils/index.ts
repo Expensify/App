@@ -1489,7 +1489,7 @@ function getUserToInviteContactOption({
     return userToInvite;
 }
 
-function isValidReport(option: SearchOption<Report>, config: GetValidReportsConfig): boolean {
+function isValidReport(option: SearchOption<Report>, config: GetValidReportsConfig, draftComment: string | undefined): boolean {
     const {
         betas = [],
         includeMultipleParticipantReports = false,
@@ -1524,6 +1524,7 @@ function isValidReport(option: SearchOption<Report>, config: GetValidReportsConf
         login: option.login,
         includeDomainEmail,
         isReportArchived: !!option.private_isArchived,
+        draftComment,
     });
 
     if (!shouldBeInOptionList) {
@@ -1755,6 +1756,7 @@ function getValidOptions(
         includeUserToInvite = false,
         ...config
     }: GetOptionsConfig = {},
+    draftComment: string | undefined = undefined,
 ): Options {
     const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest);
 
@@ -1805,16 +1807,20 @@ function getValidOptions(
                 return false;
             }
 
-            return isValidReport(report, {
-                ...getValidReportsConfig,
-                includeP2P,
-                includeDomainEmail,
-                selectedOptions,
-                loginsToExclude,
-                shouldBoldTitleByDefault,
-                shouldSeparateSelfDMChat,
-                shouldSeparateWorkspaceChat,
-            });
+            return isValidReport(
+                report,
+                {
+                    ...getValidReportsConfig,
+                    includeP2P,
+                    includeDomainEmail,
+                    selectedOptions,
+                    loginsToExclude,
+                    shouldBoldTitleByDefault,
+                    shouldSeparateSelfDMChat,
+                    shouldSeparateWorkspaceChat,
+                },
+                draftComment,
+            );
         };
 
         filteredReports = optionsOrderBy(options.reports, recentReportComparator, maxElements, filteringFunction);

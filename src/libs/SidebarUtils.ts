@@ -169,6 +169,7 @@ function shouldDisplayReportInLHN(
     isInFocusMode: boolean,
     betas: OnyxEntry<Beta[]>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
+    reportsDrafts: OnyxCollection<string> | undefined,
     isReportArchived?: boolean,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
@@ -200,8 +201,14 @@ function shouldDisplayReportInLHN(
 
     // Check if report should override hidden status
     const isSystemChat = isSystemChatUtil(report);
+    const draftComment = reportsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`];
     const shouldOverrideHidden =
-        hasValidDraftComment(report.reportID) || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || !!report.isPinned || reportAttributes?.[report?.reportID]?.requiresAttention;
+        hasValidDraftComment(report.reportID, draftComment) ||
+        hasErrorsOtherThanFailedReceipt ||
+        isFocused ||
+        isSystemChat ||
+        !!report.isPinned ||
+        reportAttributes?.[report?.reportID]?.requiresAttention;
 
     if (isHidden && !shouldOverrideHidden) {
         return {shouldDisplay: false};
@@ -216,6 +223,7 @@ function shouldDisplayReportInLHN(
         betas,
         excludeEmptyChats: true,
         doesReportHaveViolations,
+        draftComment,
         includeSelfDM: true,
         isReportArchived,
     });
@@ -229,6 +237,7 @@ function getReportsToDisplayInLHN(
     betas: OnyxEntry<Beta[]>,
     policies: OnyxCollection<PartialPolicyForSidebar>,
     priorityMode: OnyxEntry<PriorityMode>,
+    reportsDrafts: OnyxCollection<string> | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
@@ -249,6 +258,7 @@ function getReportsToDisplayInLHN(
             isInFocusMode,
             betas,
             transactionViolations,
+            reportsDrafts,
             isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
             reportAttributes,
         );
@@ -261,18 +271,31 @@ function getReportsToDisplayInLHN(
     return reportsToDisplay;
 }
 
-function updateReportsToDisplayInLHN(
-    displayedReports: ReportsToDisplayInLHN,
-    reports: OnyxCollection<Report>,
-    updatedReportsKeys: string[],
-    currentReportId: string | undefined,
-    isInFocusMode: boolean,
-    betas: OnyxEntry<Beta[]>,
-    policies: OnyxCollection<PartialPolicyForSidebar>,
-    transactionViolations: OnyxCollection<TransactionViolation[]>,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
-) {
+type UpdateReportsToDisplayInLHNProps = {
+    displayedReports: ReportsToDisplayInLHN;
+    reports: OnyxCollection<Report>;
+    updatedReportsKeys: string[];
+    currentReportId: string | undefined;
+    isInFocusMode: boolean;
+    betas: OnyxEntry<Beta[]>;
+    transactionViolations: OnyxCollection<TransactionViolation[]>;
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+    reportAttributes?: ReportAttributesDerivedValue['reports'];
+    reportsDrafts: OnyxCollection<string> | undefined;
+};
+
+function updateReportsToDisplayInLHN({
+    displayedReports,
+    reports,
+    updatedReportsKeys,
+    currentReportId,
+    isInFocusMode,
+    betas,
+    transactionViolations,
+    reportNameValuePairs,
+    reportAttributes,
+    reportsDrafts,
+}: UpdateReportsToDisplayInLHNProps) {
     const displayedReportsCopy = {...displayedReports};
     updatedReportsKeys.forEach((reportID) => {
         const report = reports?.[reportID];
@@ -287,7 +310,8 @@ function updateReportsToDisplayInLHN(
             isInFocusMode,
             betas,
             transactionViolations,
-            isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
+            reportsDrafts,
+            isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] ?? {}),
             reportAttributes,
         );
 
@@ -305,6 +329,7 @@ function updateReportsToDisplayInLHN(
  */
 function categorizeReportsForLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
+    reportsDrafts: OnyxCollection<string> | undefined,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
@@ -341,7 +366,8 @@ function categorizeReportsForLHN(
 
         const isPinned = !!report.isPinned;
         const requiresAttention = !!reportAttributes?.[reportID]?.requiresAttention;
-        const hasDraft = reportID ? hasValidDraftComment(reportID) : false;
+        const draftComment = reportsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
+        const hasDraft = reportID ? hasValidDraftComment(reportID, draftComment) : false;
         const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
         const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
         const isArchived = isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived);
@@ -465,6 +491,7 @@ function sortReportsToDisplayInLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
     priorityMode: OnyxEntry<PriorityMode>,
     localeCompare: LocaleContextProps['localeCompare'],
+    reportsDrafts: OnyxCollection<string> | undefined,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string[] {
@@ -484,7 +511,7 @@ function sortReportsToDisplayInLHN(
     //      - Sorted by reportDisplayName in GSD (focus) view mode
 
     // Step 1: Categorize reports
-    const categories = categorizeReportsForLHN(reportsToDisplay, reportNameValuePairs, reportAttributes);
+    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportNameValuePairs, reportAttributes);
 
     // Step 2: Sort each category
     const sortedCategories = sortCategorizedReports(categories, isInDefaultMode, localeCompare);
