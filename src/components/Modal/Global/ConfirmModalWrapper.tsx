@@ -1,6 +1,7 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {ConfirmModalProps} from '@components/ConfirmModal';
 import ConfirmModal from '@components/ConfirmModal';
+import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import CONST from '@src/CONST';
 import type {ModalProps} from './ModalContext';
@@ -13,6 +14,8 @@ type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm'
 // - remove ConfirmModalWrapper
 
 function ConfirmModalWrapper({closeModal, ...props}: ConfirmModalWrapperProps) {
+    const activeElementRole = useActiveElementRole();
+
     const handleConfirm = useCallback(() => {
         closeModal({action: 'CONFIRM'});
     }, [closeModal]);
@@ -21,15 +24,24 @@ function ConfirmModalWrapper({closeModal, ...props}: ConfirmModalWrapperProps) {
         closeModal({action: 'CLOSE'});
     }, [closeModal]);
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, handleConfirm);
+    const shortcutConfig = useMemo(
+        () => ({
+            isActive: activeElementRole !== CONST.ROLE.BUTTON,
+            shouldPreventDefault: false,
+            shouldBubble: false,
+        }),
+        [activeElementRole],
+    );
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, handleConfirm, shortcutConfig);
 
     return (
         <ConfirmModal
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
             isVisible
             onConfirm={handleConfirm}
             onCancel={handleCancel}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
         />
     );
 }
