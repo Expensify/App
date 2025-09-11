@@ -226,7 +226,6 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 }}
                 onEndReached={fetchMoreUnreportedTransactions}
                 onEndReachedThreshold={0.75}
-                shouldSkipShowMoreButton
                 listFooterContent={shouldShowUnreportedTransactionsSkeletons ? <UnreportedExpensesSkeleton fixedNumberOfItems={3} /> : undefined}
             >
                 {!!errorMessage && (
