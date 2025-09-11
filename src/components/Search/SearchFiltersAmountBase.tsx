@@ -167,6 +167,7 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
                 onSubmit={updateAmountFilter}
                 submitButtonText={translate('common.save')}
                 style={[styles.flexGrow1, styles.ph5]}
+                enabledWhenOffline
             >
                 <View style={[styles.mt5]}>
                     <InputWrapper
