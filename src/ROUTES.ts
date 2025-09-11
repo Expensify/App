@@ -416,6 +416,7 @@ const ROUTES = {
             return getUrlWithBackToParam(`${baseRoute}${queryString}` as const, backTo);
         },
     },
+    VERIFY_ACCOUNT: 'verify-account',
     REPORT_AVATAR: {
         route: 'r/:reportID/avatar',
         getRoute: (reportID: string, policyID?: string) => {

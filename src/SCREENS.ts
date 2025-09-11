@@ -96,6 +96,7 @@ const SCREENS = {
         TROUBLESHOOT: 'Settings_Troubleshoot',
         CONSOLE: 'Settings_Console',
         SHARE_LOG: 'Share_Log',
+        VERIFY_ACCOUNT: 'Verify_Account',
 
         PROFILE: {
             ROOT: 'Settings_Profile',

@@ -75,6 +75,19 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     const normalizedPath = normalizePath(path) as Route;
     const normalizedPathAfterRedirection = (getMatchingNewRoute(normalizedPath) ?? normalizedPath) as Route;
 
+    if (normalizedPathAfterRedirection.includes('/verify-account')) {
+        navigation.dispatch(
+            StackActions.push(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, {
+                screen: SCREENS.RIGHT_MODAL.SETTINGS,
+                params: {
+                    screen: SCREENS.SETTINGS.VERIFY_ACCOUNT,
+                    path: normalizedPathAfterRedirection,
+                },
+            }),
+        );
+        return;
+    }
+
     // This is the state generated with the default getStateFromPath function.
     // It won't include the whole state that will be generated for this path but the focused route will be correct.
     // It is necessary because getActionFromState will generate RESET action for whole state generated with our custom getStateFromPath function.
@@ -105,7 +118,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     if (forceReplace) {
         action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
     }
-
     // Attachment screen - This is a special case. We want to navigate to it instead of push. If there is no screen on the stack, it will be pushed.
     // If not, it will be replaced. This way, navigating between one attachment screen and another won't be added to the browser history.
     // Report screen - Also a special case. If we are navigating to the report with same reportID we want to replace it (navigate will do that).

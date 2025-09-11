@@ -134,7 +134,13 @@ const selectPaymentType = (
 
     if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+            const activeRoute = Navigation.getActiveRoute();
+            const [path, params] = activeRoute.split('?');
+            let verifyAccountRoute = path.endsWith('/') ? `${path}verify-account` : `${path}/verify-account`;
+            if (params) {
+                verifyAccountRoute += `?${params}`;
+            }
+            Navigation.navigate(verifyAccountRoute as never);
             return;
         }
         triggerKYCFlow(event, iouPaymentType);
