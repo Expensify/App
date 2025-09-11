@@ -4,7 +4,7 @@ import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getReportOrDraftReport, getReportTransactions, isCurrentUserSubmitter, isExpenseReport, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getReportTransactions, isCurrentUserSubmitter, isExpenseReport, isIOUReport, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import {getAmount, getTransactionViolationsOfTransaction, getUpdatedTransaction, isCardTransaction} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,6 +43,12 @@ function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2
 
     // Do not allow merging two $0 transactions
     if (getAmount(transaction1, false, false) === 0 && getAmount(transaction2, false, false) === 0) {
+        return false;
+    }
+
+    // Temporary exclude IOU reports from eligible list
+    // See: https://github.com/Expensify/App/issues/70329#issuecomment-3277062003
+    if (isIOUReport(transaction1.reportID) || isIOUReport(transaction2.reportID)) {
         return false;
     }
 
