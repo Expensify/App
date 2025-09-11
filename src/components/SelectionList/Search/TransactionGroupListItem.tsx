@@ -66,7 +66,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const [shouldShowLoadingOnSearch, setShouldShowLoadingOnSearch] = useState(false);
     const {selectedTransactions, currentSearchHash} = useSearchContext();
     const selectedTransactionIDs = Object.keys(selectedTransactions);
     const selectedTransactionIDsSet = useMemo(() => new Set(selectedTransactionIDs), [selectedTransactionIDs]);
@@ -131,6 +130,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const shouldDisplayEmptyView = isEmpty && isGroupByReports;
     const isDisabledOrEmpty = isEmpty || isDisabled;
     const shouldDisplayShowMoreButton = !isGroupByReports && !!transactionsSnapshotMetadata?.hasMoreResults;
+    const currentOffset = transactionsSnapshotMetadata?.offset ?? 0;
+    const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
     const shouldDisplayLoadingIndicator = !isGroupByReports && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -200,13 +201,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
         });
     }, [groupItem.transactionsQueryJSON, newTransactionID, transactionsSnapshot?.search?.offset, isExpanded]);
 
-    useEffect(() => {
-        if (transactionsSnapshotMetadata?.isLoading) {
-            return;
-        }
-        setShouldShowLoadingOnSearch(false);
-    }, []);
-
     const handleToggle = useCallback(() => {
         setIsExpanded(!isExpanded);
     }, [isExpanded]);
@@ -236,7 +230,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const onExpandIconPress = useCallback(() => {
         if (isEmpty && !shouldDisplayEmptyView) {
-            setShouldShowLoadingOnSearch(true);
             onPress();
         } else if (groupItem.transactionsQueryJSON && !isExpanded) {
             search({
@@ -403,7 +396,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                                 if (!!isOffline || !groupItem.transactionsQueryJSON) {
                                                     return;
                                                 }
-                                                setShouldShowLoadingOnSearch(true);
                                                 search({
                                                     queryJSON: groupItem.transactionsQueryJSON,
                                                     searchKey: undefined,
