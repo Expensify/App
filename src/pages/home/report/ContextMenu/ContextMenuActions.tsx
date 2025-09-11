@@ -84,7 +84,6 @@ import {
     isReimbursementQueuedAction,
     isRenamedAction,
     isReportActionAttachment,
-    isReportPreviewAction,
     isReportPreviewAction as isReportPreviewActionReportActionsUtils,
     isTagModificationAction,
     isTaskAction as isTaskActionReportActionsUtils,
@@ -857,7 +856,7 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             if (isMoneyRequestAction(moneyRequestAction)) {
                 reportID = getOriginalMessage(moneyRequestAction)?.IOUReportID;
-            } else if (isReportPreviewAction(reportAction)) {
+            } else if (isReportPreviewActionReportActionsUtils(reportAction)) {
                 reportID = reportAction?.childReportID;
             }
             return (
