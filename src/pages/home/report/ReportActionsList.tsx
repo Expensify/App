@@ -786,7 +786,7 @@ function ReportActionsList({
         }
 
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return ({...props}: ScrollViewProps) => renderActionSheetAwareScrollView!({...props, containerStyle: contentContainerStyle});
+        return (props: ScrollViewProps) => renderActionSheetAwareScrollView!({...props, containerStyle: contentContainerStyle});
     }, [contentContainerStyle]);
 
     return (
