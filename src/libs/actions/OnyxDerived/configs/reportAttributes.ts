@@ -1,10 +1,10 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import {generateIsEmptyReport, generateReportAttributes, getReportName, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {PersonalDetailsList, ReportAttributesDerivedValue} from '@src/types/onyx';
 
 let isFullyComputed = false;
