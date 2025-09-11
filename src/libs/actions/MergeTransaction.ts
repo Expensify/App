@@ -4,6 +4,7 @@ import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport, getReportTransactions, isCurrentUserSubmitter, isExpenseReport, isIOUReport, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import {getAmount, getTransactionViolationsOfTransaction, getUpdatedTransaction, isCardTransaction, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
@@ -238,6 +239,33 @@ function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: M
                   },
               ]
             : [];
+    const iouActionOfSourceTransaction = getIOUActionForReportID(sourceTransaction.reportID, sourceTransaction.transactionID);
+    const optimisticSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceTransaction.reportID}`,
+                  value: {
+                      [iouActionOfSourceTransaction.reportActionID]: {
+                          pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                      },
+                  },
+              },
+          ]
+        : [];
+    const failureSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceTransaction.reportID}`,
+                  value: {
+                      [iouActionOfSourceTransaction.reportActionID]: {
+                          pendingAction: null,
+                      },
+                  },
+              },
+          ]
+        : [];
 
     // Optimistic delete the merge transaction
     const optimisticMergeTransactionData: OnyxUpdate = {
@@ -272,9 +300,16 @@ function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: M
         ...optimisticSourceReportData,
         optimisticMergeTransactionData,
         ...optimisticTransactionViolations,
+        ...optimisticSourceReportActionData,
     ];
 
-    const failureData: OnyxUpdate[] = [failureTargetTransactionData, failureSourceTransactionData, ...failureSourceReportData, ...failureTransactionViolations];
+    const failureData: OnyxUpdate[] = [
+        failureTargetTransactionData,
+        failureSourceTransactionData,
+        ...failureSourceReportData,
+        ...failureTransactionViolations,
+        ...failureSourceReportActionData,
+    ];
 
     API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData});
 }
