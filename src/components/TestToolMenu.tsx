@@ -43,6 +43,7 @@ function TestToolMenu() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const platform = getPlatform();
+    const isNative = platform !== CONST.PLATFORM.WEB && platform !== CONST.PLATFORM.MOBILE_WEB;
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
@@ -111,6 +112,7 @@ function TestToolMenu() {
                     </TestToolRow>
 
                     {/* Starts Biometrics test flow -> possible only on native */}
+                    {isNative && (
                         <TestToolRow title={translate(biometricsTitle as TranslationPaths)}>
                             <View style={[styles.flexRow, styles.gap2]}>
                                 <Button
@@ -120,6 +122,7 @@ function TestToolMenu() {
                                 />
                             </View>
                         </TestToolRow>
+                    )}
                     <EnableBiometricsModal
                         isVisible={showBiometricsModal}
                         onCancel={() => setShowBiometricsModal(false)}
