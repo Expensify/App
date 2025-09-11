@@ -1,8 +1,12 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useImperativeHandle, useRef} from 'react';
+import React, {forwardRef, useCallback, useState} from 'react';
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList} from 'react-native';
 import FlatList from '@components/FlatList';
+import useFlatListHandle from '@components/FlatList/useFlatListHandle';
+import type {FlatListInnerRefType} from '@components/FlatList/useFlatListHandle';
 import useFlatListScrollKey from '@hooks/useFlatListScrollKey';
+import useWithFallbackRef from '@hooks/useWithFallbackRef';
+import CONST from '@src/CONST';
 
 // Adapted from https://github.com/facebook/react-native/blob/29a0d7c3b201318a873db0d1b62923f4ce720049/packages/virtualized-lists/Lists/VirtualizeUtils.js#L237
 function defaultKeyExtractor<T>(item: T | {key: string} | {id: string}, index: number): string {
@@ -22,52 +26,63 @@ type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem'
     data: T[];
     renderItem: ListRenderItem<T>;
     initialScrollKey?: string | null;
+    onInitiallyLoaded?: () => void;
 };
 
 function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<RNFlatList>) {
-    const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor = defaultKeyExtractor, ...rest} = props;
-    const {displayedData, maintainVisibleContentPosition, handleStartReached, setCurrentDataId} = useFlatListScrollKey<T>({
+    const {
+        shouldEnableAutoScrollToTopThreshold = false,
+        initialScrollKey,
+        data,
+        onStartReached,
+        renderItem,
+        keyExtractor = defaultKeyExtractor,
+        onInitiallyLoaded,
+        onContentSizeChange,
+        onScrollToIndexFailed,
+        initialNumToRender = CONST.PAGINATION_SIZE,
+        ...rest
+    } = props;
+
+    const listRef = useWithFallbackRef<FlatListInnerRefType<T>, RNFlatList>(ref);
+
+    const [isInitialContentRendered, setIsInitialContentRendered] = useState(false);
+
+    const {displayedData, maintainVisibleContentPosition, handleStartReached, setCurrentDataId, remainingItemsToDisplay} = useFlatListScrollKey<T>({
+        initialScrollKey,
+        listRef,
         data,
         keyExtractor,
-        initialScrollKey,
+        initialNumToRender,
         inverted: true,
-        onStartReached,
         shouldEnableAutoScrollToTopThreshold,
+        isInitialContentRendered,
+        onStartReached,
+        onInitiallyLoaded,
     });
-    const dataIndexDifference = data.length - displayedData.length;
+
+    const handleContentSizeChange = useCallback(
+        (contentWidth: number, contentHeight: number) => {
+            onContentSizeChange?.(contentWidth, contentHeight);
+            setIsInitialContentRendered(true);
+        },
+        [onContentSizeChange],
+    );
 
     const handleRenderItem = useCallback(
         ({item, index, separators}: ListRenderItemInfo<T>) => {
             // Adjust the index passed here so it matches the original data.
-            return renderItem({item, index: index + dataIndexDifference, separators});
+            return renderItem({item, index: index + remainingItemsToDisplay, separators});
         },
-        [renderItem, dataIndexDifference],
+        [renderItem, remainingItemsToDisplay],
     );
 
-    const listRef = useRef<RNFlatList | null>(null);
-    useImperativeHandle(ref, () => {
-        // If we're trying to scroll at the start of the list we need to make sure to
-        // render all items.
-        const scrollToOffsetFn: RNFlatList['scrollToOffset'] = (params) => {
-            if (params.offset === 0) {
-                setCurrentDataId(null);
-            }
-            requestAnimationFrame(() => {
-                listRef.current?.scrollToOffset(params);
-            });
-        };
-
-        return new Proxy(
-            {},
-            {
-                get: (_target, prop) => {
-                    if (prop === 'scrollToOffset') {
-                        return scrollToOffsetFn;
-                    }
-                    return listRef.current?.[prop as keyof RNFlatList];
-                },
-            },
-        ) as RNFlatList;
+    useFlatListHandle<T>({
+        forwardedRef: ref,
+        listRef,
+        remainingItemsToDisplay,
+        setCurrentDataId,
+        onScrollToIndexFailed,
     });
 
     return (
@@ -78,7 +93,9 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             inverted
             data={displayedData}
+            initialNumToRender={initialNumToRender}
             onStartReached={handleStartReached}
+            onContentSizeChange={handleContentSizeChange}
             renderItem={handleRenderItem}
             keyExtractor={keyExtractor}
         />
