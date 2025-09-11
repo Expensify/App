@@ -1,13 +1,13 @@
 #!/usr/bin/env ts-node
 
 /**
- * React Compiler Tracker
+ * React Compiler Compliance Checker
  *
  * This script tracks which components can be compiled by React Compiler and which cannot.
  * It provides both CI and local development tools to enforce Rules of React compliance.
  */
 import {execSync} from 'child_process';
-import {existsSync, readFileSync, writeFileSync} from 'fs';
+import {readFileSync, writeFileSync} from 'fs';
 import {join} from 'path';
 
 type ReactCompilerConfig = {
@@ -49,20 +49,23 @@ type ComponentStatus = {
     lastChecked: string;
 };
 
-type TrackerData = {
+type ComplianceCheckResults = {
     components: Record<string, ComponentStatus>;
     lastFullCheck: string;
     version: string;
 };
 
-const TRACKER_FILE = join(process.cwd(), '.react-compiler-tracker.json');
 const COMPILER_OUTPUT_FILE = join(process.cwd(), 'react-compiler-output.json');
 
 class ReactCompilerComplianceChecker {
-    private trackerData: TrackerData;
+    private complianceCheckResults: ComplianceCheckResults;
 
     constructor() {
-        this.trackerData = this.loadTrackerData();
+        this.complianceCheckResults = {
+            components: {},
+            lastFullCheck: '',
+            version: '1.0.0',
+        };
     }
 
     public runFullCheck() {
@@ -80,8 +83,7 @@ class ReactCompilerComplianceChecker {
             this.updateComponentStatus(file, false);
         });
 
-        this.trackerData.lastFullCheck = now;
-        this.saveTrackerData();
+        this.complianceCheckResults.lastFullCheck = now;
 
         console.log(`✅ Full check completed. Found ${results.success.length} compilable and ${results.failure.length} non-compilable components.`);
     }
@@ -120,8 +122,6 @@ class ReactCompilerComplianceChecker {
             }
         }
 
-        this.saveTrackerData();
-
         // Print summary statistics
         this.printSummaryStats(results.success.length, results.failures.length);
 
@@ -153,7 +153,6 @@ class ReactCompilerComplianceChecker {
         const canCompile = results.success.includes(filePath);
 
         this.updateComponentStatus(filePath, canCompile);
-        this.saveTrackerData();
 
         if (canCompile) {
             console.log(`✅ ${filePath} can be compiled by React Compiler`);
@@ -170,19 +169,19 @@ class ReactCompilerComplianceChecker {
     }
 
     public getStatus(): void {
-        console.log('📊 React Compiler Tracker Status:');
-        console.log(`Last full check: ${this.trackerData.lastFullCheck || 'Never'}`);
-        console.log(`Total tracked components: ${Object.keys(this.trackerData.components).length}`);
+        console.log('📊 React Compiler Compliance Check Status:');
+        console.log(`Last full check: ${this.complianceCheckResults.lastFullCheck || 'Never'}`);
+        console.log(`Total tracked components: ${Object.keys(this.complianceCheckResults.components).length}`);
 
-        const compilable = Object.values(this.trackerData.components).filter((c) => c.canCompile).length;
-        const nonCompilable = Object.values(this.trackerData.components).filter((c) => !c.canCompile).length;
+        const compilable = Object.values(this.complianceCheckResults.components).filter((c) => c.canCompile).length;
+        const nonCompilable = Object.values(this.complianceCheckResults.components).filter((c) => !c.canCompile).length;
 
         console.log(`Compilable: ${compilable}`);
         console.log(`Non-compilable: ${nonCompilable}`);
 
         if (nonCompilable > 0) {
             console.log('\n❌ Non-compilable components:');
-            Object.values(this.trackerData.components)
+            Object.values(this.complianceCheckResults.components)
                 .filter((c) => !c.canCompile)
                 .forEach((c) => console.log(`  - ${c.file} (last checked: ${c.lastChecked})`));
         }
@@ -243,26 +242,6 @@ class ReactCompilerComplianceChecker {
         }
     }
 
-    private loadTrackerData(): TrackerData {
-        if (existsSync(TRACKER_FILE)) {
-            try {
-                return JSON.parse(readFileSync(TRACKER_FILE, 'utf8')) as TrackerData;
-            } catch (error) {
-                console.warn('Failed to parse tracker file, starting fresh:', error);
-            }
-        }
-
-        return {
-            components: {},
-            lastFullCheck: '',
-            version: '1.0.0',
-        };
-    }
-
-    private saveTrackerData(): void {
-        writeFileSync(TRACKER_FILE, JSON.stringify(this.trackerData, null, 2));
-    }
-
     public runDetailedCompilerHealthcheck(): DetailedCompilerResults {
         try {
             console.log('🔍 Running detailed React Compiler healthcheck...');
@@ -270,10 +249,6 @@ class ReactCompilerComplianceChecker {
                 encoding: 'utf8',
                 cwd: process.cwd(),
             });
-
-            // Save raw verbose output for debugging
-            const verboseOutputFile = join(process.cwd(), 'react-compiler-verbose-output.txt');
-            writeFileSync(verboseOutputFile, output);
 
             return this.parseCombinedOutput(output);
         } catch (error) {
@@ -384,7 +359,7 @@ class ReactCompilerComplianceChecker {
     }
 
     private updateComponentStatus(file: string, canCompile: boolean): void {
-        this.trackerData.components[file] = {
+        this.complianceCheckResults.components[file] = {
             file,
             canCompile,
             lastChecked: new Date().toISOString(),
@@ -409,27 +384,32 @@ class ReactCompilerComplianceChecker {
             });
     }
 
+    private getMainBranchRemote(): string {
+        // Determine the remote that contains the main branch, fallback to 'origin'
+        let remote = 'origin';
+        try {
+            const remotesOutput = execSync('git remote', {encoding: 'utf8'}).trim().split('\n');
+            for (const r of remotesOutput) {
+                try {
+                    const branches = execSync(`git ls-remote --heads ${r} main`, {encoding: 'utf8'}).trim();
+                    if (branches.length > 0) {
+                        remote = r;
+                        break;
+                    }
+                } catch {
+                    // ignore errors for remotes that don't have main
+                }
+            }
+        } catch {
+            // fallback to 'origin'
+        }
+        return remote;
+    }
+
     private getChangedFiles(): string[] {
         try {
             // Get files changed in the current branch/commit
-            // Determine the remote that contains the main branch, fallback to 'origin'
-            let remote = 'origin';
-            try {
-                const remotesOutput = execSync('git remote', {encoding: 'utf8'}).trim().split('\n');
-                for (const r of remotesOutput) {
-                    try {
-                        const branches = execSync(`git ls-remote --heads ${r} main`, {encoding: 'utf8'}).trim();
-                        if (branches.length > 0) {
-                            remote = r;
-                            break;
-                        }
-                    } catch {
-                        // ignore errors for remotes that don't have main
-                    }
-                }
-            } catch {
-                // fallback to 'origin'
-            }
+            const remote = this.getMainBranchRemote();
             // Compare against the main branch on the detected remote
             const output = execSync(`git diff --name-only --diff-filter=AMR ${remote}/main...HEAD`, {
                 encoding: 'utf8',
@@ -449,7 +429,8 @@ class ReactCompilerComplianceChecker {
     private getNewFiles(): string[] {
         try {
             // Get files that are new (not in main branch)
-            const output = execSync('git diff --name-only --diff-filter=A origin/main...HEAD', {
+            const remote = this.getMainBranchRemote();
+            const output = execSync(`git diff --name-only --diff-filter=A ${remote}/main...HEAD`, {
                 encoding: 'utf8',
             });
             return output
@@ -469,17 +450,17 @@ class ReactCompilerComplianceChecker {
 function main() {
     const args = process.argv.slice(2);
     const command = args.at(0);
-    const tracker = new ReactCompilerComplianceChecker();
+    const checker = new ReactCompilerComplianceChecker();
 
     try {
         switch (command) {
             case 'full-check':
-                tracker.runFullCheck();
+                checker.runFullCheck();
                 break;
 
             case 'check-changed':
                 // eslint-disable-next-line no-case-declarations
-                const result = tracker.checkChangedFiles();
+                const result = checker.checkChangedFiles();
                 if (!result.passed) {
                     console.log('\n❌ CI Check Failed!');
                     console.log('The following new files cannot be compiled by React Compiler:');
@@ -493,42 +474,42 @@ function main() {
                 // eslint-disable-next-line no-case-declarations
                 const filePath = args.at(1);
                 if (!filePath) {
-                    console.error('❌ Please provide a file path: npm run react-compiler-tracker check-file <path>');
+                    console.error('❌ Please provide a file path: npm run react-compiler-compliance-checker check-file <path>');
                     process.exit(1);
                 }
                 // eslint-disable-next-line no-case-declarations
-                const canCompile = tracker.checkSpecificFile(filePath);
+                const canCompile = checker.checkSpecificFile(filePath);
                 process.exit(canCompile ? 0 : 1);
                 break;
 
             case 'status':
-                tracker.getStatus();
+                checker.getStatus();
                 break;
 
             case 'report':
-                tracker.generateReport();
+                checker.generateReport();
                 break;
 
             default:
                 console.log(`
-🔧 React Compiler Tracker
+🔧 React Compiler Compliance Checker
 
 Usage:
-  npm run react-compiler-tracker <command> [options]
+  npm run react-compiler-compliance-checker <command> [options]
 
 Commands:
   full-check     Run a full check of all components
   check-changed  Check only changed files (for CI)
   check-file     Check a specific file
-  status         Show current tracker status
+  status         Show current compliance checker status
   report         Generate a detailed report
 
 Examples:
-  npm run react-compiler-tracker full-check
-  npm run react-compiler-tracker check-changed
-  npm run react-compiler-tracker check-file src/components/MyComponent.tsx
-  npm run react-compiler-tracker status
-  npm run react-compiler-tracker report
+  npm run react-compiler-compliance-checker full-check
+  npm run react-compiler-compliance-checker check-changed
+  npm run react-compiler-compliance-checker check-file src/components/MyComponent.tsx
+  npm run react-compiler-compliance-checker status
+  npm run react-compiler-compliance-checker report
         `);
                 break;
         }
