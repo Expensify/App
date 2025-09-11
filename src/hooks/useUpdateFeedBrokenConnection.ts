@@ -23,8 +23,8 @@ export default function useUpdateFeedBrokenConnection({policyID, feed}: {policyI
         if (!brokenCardId || !feed) {
             return;
         }
-        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, brokenCardId, feed);
-    }, [brokenCardId, domainOrWorkspaceAccountID, feed]);
+        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, brokenCardId, feed, brokenCard?.lastScrapeResult);
+    }, [brokenCard?.lastScrapeResult, brokenCardId, domainOrWorkspaceAccountID, feed]);
 
     return {updateBrokenConnection, isFeedConnectionBroken};
 }
