@@ -4932,6 +4932,10 @@ function deleteAppReport(reportID: string | undefined) {
             return;
         }
 
+        if (ReportActionsUtils.isDeletedAction(reportAction)) {
+            return;
+        }
+
         const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
         if (originalMessage?.type !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && originalMessage?.type !== CONST.IOU.REPORT_ACTION_TYPE.TRACK) {
             return;
