@@ -155,8 +155,8 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
                     headerMedia={EmptyShelves}
                     title={translate('transactionMerge.listPage.noEligibleExpenseFound')}
                     subtitleText={subTitleContent}
-                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
-                    headerContentStyles={styles.emptyStateCardIllustration}
+                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.mb5]}
+                    headerContentStyles={styles.emptyStateTransactionMergeIllustration}
                 />
             </ScrollView>
         );
