@@ -710,10 +710,10 @@ class TranslationGenerator {
     /**
      * Check if a dot-notation path exists in the given source file.
      */
-    private pathExistsInFile(sourceFile: ts.SourceFile, path: string): boolean {
+    private pathExistsInFile(sourceFile: ts.SourceFile, dotNotationPath: string): boolean {
         const translationsNode = this.findTranslationsNode(sourceFile);
 
-        const pathParts = path.split('.');
+        const pathParts = dotNotationPath.split('.');
         let currentNode: ts.ObjectLiteralExpression = translationsNode;
 
         // Traverse the path parts to see if the full path exists
@@ -725,7 +725,7 @@ class TranslationGenerator {
                     const propertyKey = TSCompilerUtils.extractKeyFromPropertyNode(property);
                     if (propertyKey === pathPart) {
                         // Found this path part
-                        if (pathPart === pathParts[pathParts.length - 1]) {
+                        if (pathPart === pathParts.at(-1)) {
                             // This is the final path part - we found the complete path
                             return true;
                         }
@@ -942,13 +942,17 @@ class TranslationGenerator {
 
                 // Check if this is a property assignment that should be modified (exact match only)
                 if (ts.isPropertyAssignment(node) && currentPath && translatedCodeMap.has(currentPath)) {
-                    const translatedCodeString = translatedCodeMap.get(currentPath)!;
+                    const translatedCodeString = translatedCodeMap.get(currentPath);
+
                     // Parse the code string back to an AST expression
                     const tempSourceFile = ts.createSourceFile('temp.ts', `const temp = ${translatedCodeString};`, ts.ScriptTarget.Latest);
-                    const tempStatement = tempSourceFile.statements[0] as ts.VariableStatement;
+                    const tempStatement = tempSourceFile.statements.at(0);
+                    if (!tempStatement || !ts.isVariableStatement(tempStatement)) {
+                        throw new Error(`'Malformed code string ${tempStatement?.getText()}'`);
+                    }
                     const translatedExpression = tempStatement.declarationList.declarations[0].initializer;
                     if (translatedExpression) {
-                        return ts.factory.createPropertyAssignment(node.name, translatedExpression as ts.Expression);
+                        return ts.factory.createPropertyAssignment(node.name, translatedExpression);
                     }
                 }
 
