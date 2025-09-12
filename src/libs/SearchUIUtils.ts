@@ -785,28 +785,27 @@ function canSubmitReportInSearch(
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
     isReportArchived = false,
 ) {
-    if (transactions.length !== 1 || isReportArchived || !isOpenExpenseReport(report)) {
-        return false;
-    }
-
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isOwner = report?.ownerAccountID === currentUserAccountID;
-    const isManager = report?.managerID === currentUserAccountID;
-    if (!isOwner || !isAdmin || !isManager) {
-        return false;
-    }
-
-    const hasBeenReopenedOrRetracted = hasReportBeenReopened(report, reportActions) || hasReportBeenRetracted(report, reportActions);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
-    if (!(isManualSubmitEnabled || hasBeenReopenedOrRetracted)) {
-        return false;
-    }
-
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, transactionViolations);
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, transactionViolations);
     const hasOnlyPendingCardOrScanFailTransactions = isPendingCardOrScanningTransaction(transactions?.at(0));
 
-    return hasTransactionWithoutRTERViolation && !hasOnlyPendingCardOrScanFailTransactions && !hasAllPendingRTERViolations;
+    const baseCanSubmit =
+        isOpenExpenseReport(report) &&
+        (report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID || isAdmin) &&
+        !hasOnlyPendingCardOrScanFailTransactions &&
+        !hasAllPendingRTERViolations &&
+        hasTransactionWithoutRTERViolation &&
+        !isReportArchived &&
+        transactions.length === 1; // Unlike `ReportUtils.canSumbitReport`, it will only return true when there is one transaction.
+
+    const hasBeenRetracted = hasReportBeenReopened(report, reportActions) || hasReportBeenRetracted(report, reportActions);
+    if (baseCanSubmit && hasBeenRetracted) {
+        return true;
+    }
+
+    return baseCanSubmit && isManualSubmitEnabled;
 }
 
 function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']): {
