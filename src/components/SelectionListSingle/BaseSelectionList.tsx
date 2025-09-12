@@ -17,7 +17,7 @@ import CONST from '@src/CONST';
 import Footer from './components/Footer';
 import ListHeader from './components/ListHeader';
 import ListItemRenderer from './ListItem/ListItemRenderer';
-import type {ConfirmButtonOptions, DataDetailsType, ListItem, SelectionListProps} from './types';
+import type {DataDetailsType, ListItem, SelectionListProps} from './types';
 
 const ANIMATED_HIGHLIGHT_DURATION =
     CONST.ANIMATED_HIGHLIGHT_ENTRY_DELAY +
