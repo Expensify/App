@@ -439,4 +439,76 @@ describe('TSCompilerUtils', () => {
             expect(result).toBe('arrowFunc');
         });
     });
+
+    describe('addImport', () => {
+        it('adds import when it does not exist', () => {
+            const sourceCode = dedent(`
+                const strings = {
+                    greeting: 'Hello'
+                };
+                export default strings;
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            const result = TSCompilerUtils.addImport(sourceFile, 'en', './en', true);
+            const resultCode = ts.createPrinter().printFile(result);
+
+            expect(resultCode).toContain('import type en from "./en";');
+            expect(resultCode).toContain('const strings = {');
+        });
+
+        it('does not add duplicate import when it already exists', () => {
+            const sourceCode = dedent(`
+                import type en from './en';
+                const strings = {
+                    greeting: 'Hello'
+                };
+                export default strings;
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            const result = TSCompilerUtils.addImport(sourceFile, 'en', './en', true);
+            const resultCode = ts.createPrinter().printFile(result);
+
+            // Should not have duplicate imports
+            const importMatches = resultCode.match(/import type en from/g);
+            expect(importMatches).toHaveLength(1);
+        });
+
+        it('distinguishes between type and value imports', () => {
+            const sourceCode = dedent(`
+                import en from './en';
+                const strings = {
+                    greeting: 'Hello'
+                };
+                export default strings;
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            const result = TSCompilerUtils.addImport(sourceFile, 'en', './en', true);
+            const resultCode = ts.createPrinter().printFile(result);
+
+            // Should add type import even though value import exists
+            expect(resultCode).toContain("import en from './en';");
+            expect(resultCode).toContain('import type en from "./en";');
+        });
+
+        it('handles different module paths', () => {
+            const sourceCode = dedent(`
+                import type en from './other';
+                const strings = {
+                    greeting: 'Hello'
+                };
+                export default strings;
+            `);
+
+            const sourceFile = ts.createSourceFile('test.ts', sourceCode, ts.ScriptTarget.Latest, true);
+            const result = TSCompilerUtils.addImport(sourceFile, 'en', './en', true);
+            const resultCode = ts.createPrinter().printFile(result);
+
+            // Should add new import with different path
+            expect(resultCode).toContain("import type en from './other';");
+            expect(resultCode).toContain('import type en from "./en";');
+        });
+    });
 });
