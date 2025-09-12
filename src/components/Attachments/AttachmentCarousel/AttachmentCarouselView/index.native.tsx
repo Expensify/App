@@ -22,6 +22,7 @@ function AttachmentCarouselView({
     cancelAutoHideArrow,
     setShouldShowArrows,
     onAttachmentError,
+    onAttachmentLoaded,
     onNavigate,
     onClose,
     setPage,
@@ -100,6 +101,7 @@ function AttachmentCarouselView({
                         items={attachments}
                         initialPage={page}
                         onAttachmentError={onAttachmentError}
+                        onAttachmentLoaded={onAttachmentLoaded}
                         activeAttachmentID={activeAttachmentID}
                         setShouldShowArrows={setShouldShowArrows}
                         onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}

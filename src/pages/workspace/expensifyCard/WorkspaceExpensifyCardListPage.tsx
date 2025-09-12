@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useMemo} from 'react';
+import React, {useCallback, useContext, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -17,7 +17,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
@@ -83,6 +82,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const isBankAccountVerified = !cardOnWaitlist;
     const {windowHeight} = useWindowDimensions();
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
+    const [footerHeight, setFooterHeight] = useState(0);
 
     const settlementCurrency = useCurrencyForExpensifyCard({policyID});
 
@@ -196,8 +196,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         </>
     );
 
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle();
-
     const handleBackButtonPress = () => {
         Navigation.popToSidebar();
         return true;
@@ -244,18 +242,22 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     addBottomSafeAreaPadding
                     showsVerticalScrollIndicator={false}
                 >
-                    <View style={{height: windowHeight - headerHeight}}>
-                        <FlatList
-                            data={filteredSortedCards}
-                            renderItem={renderItem}
-                            ListHeaderComponent={renderListHeader}
-                            contentContainerStyle={bottomSafeAreaPaddingStyle}
-                            keyboardShouldPersistTaps="handled"
-                        />
-                    </View>
-                    <Text style={[styles.textMicroSupporting, styles.m5]}>
-                        {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
-                    </Text>
+                    <FlatList
+                        data={filteredSortedCards}
+                        renderItem={renderItem}
+                        ListHeaderComponent={renderListHeader}
+                        contentContainerStyle={[styles.flexGrow1, {minHeight: windowHeight - headerHeight + footerHeight}]}
+                        ListFooterComponent={
+                            <Text
+                                style={[styles.textMicroSupporting, styles.p5]}
+                                onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}
+                            >
+                                {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
+                            </Text>
+                        }
+                        ListFooterComponentStyle={[styles.flexGrow1, styles.justifyContentEnd]}
+                        keyboardShouldPersistTaps="handled"
+                    />
                 </ScrollView>
             )}
         </ScreenWrapper>

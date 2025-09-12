@@ -1,12 +1,15 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import {generateIsEmptyReport, generateReportAttributes, generateReportName, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {PersonalDetailsList, ReportAttributesDerivedValue} from '@src/types/onyx';
 
 let isFullyComputed = false;
+let previousDisplayNames: Record<string, string | undefined> = {};
+let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
 
 const prepareReportKeys = (keys: string[]) => {
     return [
@@ -19,6 +22,35 @@ const prepareReportKeys = (keys: string[]) => {
             ),
         ),
     ];
+};
+
+const checkDisplayNamesChanged = (personalDetails: OnyxEntry<PersonalDetailsList>) => {
+    if (!personalDetails) {
+        return false;
+    }
+
+    // Fast path: if reference hasn't changed, display names are definitely the same
+    if (previousPersonalDetails === personalDetails) {
+        return false;
+    }
+
+    const currentDisplayNames = Object.fromEntries(Object.entries(personalDetails).map(([key, value]) => [key, value?.displayName]));
+
+    if (Object.keys(previousDisplayNames).length === 0) {
+        previousDisplayNames = currentDisplayNames;
+        previousPersonalDetails = personalDetails;
+        return false;
+    }
+
+    const currentKeys = Object.keys(currentDisplayNames);
+    const previousKeys = Object.keys(previousDisplayNames);
+
+    const displayNamesChanged = currentKeys.length !== previousKeys.length || currentKeys.some((key) => currentDisplayNames[key] !== previousDisplayNames[key]);
+
+    previousDisplayNames = currentDisplayNames;
+    previousPersonalDetails = personalDetails;
+
+    return displayNamesChanged;
 };
 
 /**
@@ -38,16 +70,27 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
-    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions], {currentValue, sourceValues, areAllConnectionsSet}) => {
+    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails], {currentValue, sourceValues, areAllConnectionsSet}) => {
         if (!areAllConnectionsSet) {
             return {
                 reports: {},
                 locale: null,
             };
         }
+
+        // Check if display names changed when personal details are updated
+        let displayNamesChanged = false;
+        if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
+            displayNamesChanged = checkDisplayNamesChanged(personalDetails);
+
+            if (!displayNamesChanged) {
+                return currentValue ?? {reports: {}, locale: null};
+            }
+        }
+
         // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
         // we need to recompute all report attributes on locale change because the report names are locale dependent
-        if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) || hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
+        if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) || displayNamesChanged) {
             isFullyComputed = false;
         }
 

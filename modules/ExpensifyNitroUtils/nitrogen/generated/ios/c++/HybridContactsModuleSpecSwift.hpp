@@ -19,11 +19,11 @@ namespace margelo::nitro::utils { struct StringHolder; }
 // Forward declaration of `ContactFields` to properly resolve imports.
 namespace margelo::nitro::utils { enum class ContactFields; }
 
-#include "Contact.hpp"
-#include <vector>
 #include <NitroModules/Promise.hpp>
-#include <string>
+#include <vector>
+#include "Contact.hpp"
 #include <optional>
+#include <string>
 #include "StringHolder.hpp"
 #include "ContactFields.hpp"
 
@@ -55,11 +55,9 @@ namespace margelo::nitro::utils {
     }
 
   public:
+    // Get memory pressure
     inline size_t getExternalMemorySize() noexcept override {
       return _swiftPart.getMemorySize();
-    }
-    void dispose() noexcept override {
-      _swiftPart.dispose();
     }
 
   public:
