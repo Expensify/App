@@ -342,7 +342,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         ) : (
                             <>
                                 {isLargeScreenWidth && (
-                                    <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader, styles.bgTransparent, styles.pl9, isGroupByReports ? styles.pr10 : styles.pr3]}>
+                                    <View
+                                        style={[styles.searchListHeaderContainerStyle, styles.listTableHeader, styles.bgTransparent, styles.pl9, isGroupByReports ? styles.pr10 : styles.pr3]}
+                                    >
                                         <SearchTableHeader
                                             canSelectMultiple
                                             type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -360,10 +362,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                     </View>
                                 )}
                                 {transactions.map((transaction) => (
-                                    <View style={[isGroupByReports && styles.pr7]} key={transaction.transactionID}>
-                                        <OfflineWithFeedback
-                                            pendingAction={transaction.pendingAction}
-                                        >
+                                    <View
+                                        style={[isGroupByReports && styles.pr7]}
+                                        key={transaction.transactionID}
+                                    >
+                                        <OfflineWithFeedback pendingAction={transaction.pendingAction}>
                                             <TransactionItemRow
                                                 key={transaction.transactionID}
                                                 report={transaction.report}
