@@ -6120,7 +6120,7 @@ const translations = {
             },
             status: 'Status',
             keyword: 'Schlüsselwort',
-            hasKeywords: 'Hat Schlüsselwörter',
+            keywords: 'Schlüsselwörter',
             currency: 'Währung',
             link: 'Link',
             pinned: 'Angeheftet',

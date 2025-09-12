@@ -6112,7 +6112,7 @@ const translations = {
             },
             status: 'Estado',
             keyword: 'Palabra clave',
-            hasKeywords: 'Tiene palabras clave',
+            keywords: 'Palabras clave',
             currency: 'Divisa',
             link: 'Enlace',
             pinned: 'Fijado',

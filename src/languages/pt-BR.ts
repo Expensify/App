@@ -6125,7 +6125,7 @@ const translations = {
             },
             status: 'Status',
             keyword: 'Palavra-chave',
-            hasKeywords: 'Tem palavras-chave',
+            keywords: 'Palavras-chave',
             currency: 'Moeda',
             link: 'Link',
             pinned: 'Fixado',

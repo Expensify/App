@@ -6091,7 +6091,7 @@ const translations = {
             },
             status: 'Status',
             keyword: 'Keyword',
-            hasKeywords: 'Has keywords',
+            keywords: 'Keywords',
             currency: 'Currency',
             link: 'Link',
             pinned: 'Pinned',

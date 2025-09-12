@@ -6124,7 +6124,7 @@ const translations = {
             },
             status: 'Status',
             keyword: 'Trefwoord',
-            hasKeywords: 'Heeft trefwoorden',
+            keywords: 'Trefwoorden',
             currency: 'Valuta',
             link: 'Link',
             pinned: 'Vastgezet',

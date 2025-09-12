@@ -6005,7 +6005,7 @@ const translations = {
             },
             status: '状态',
             keyword: '关键词',
-            hasKeywords: '有关键词',
+            keywords: '关键词',
             currency: '货币',
             link: '链接',
             pinned: '固定',
