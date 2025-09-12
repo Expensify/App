@@ -58,7 +58,7 @@ import type {
     SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {canApproveIOU, canIOUBePaid} from './actions/IOU';
+import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport, createTransactionThreadReport, openReport} from './actions/Report';
 import {updateSearchResultsWithTransactionThreadReportID} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
@@ -777,35 +777,13 @@ function isTransactionTaxAmountTooLong(transactionItem: TransactionListItemType 
  * @returns True if the report can be submitted, false otherwise
  */
 function canSubmitReportInSearch(
-    currentUserAccountID: number | undefined,
     report: OnyxTypes.Report,
-    reportActions: OnyxTypes.ReportAction[],
     policy: OnyxTypes.Policy,
     transactions: SearchTransaction[],
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
     isReportArchived = false,
 ) {
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, transactionViolations);
-    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, transactionViolations);
-    const hasOnlyPendingCardOrScanFailTransactions = isPendingCardOrScanningTransaction(transactions?.at(0));
-
-    const baseCanSubmit =
-        isOpenExpenseReport(report) &&
-        (report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID || isAdmin) &&
-        !hasOnlyPendingCardOrScanFailTransactions &&
-        !hasAllPendingRTERViolations &&
-        hasTransactionWithoutRTERViolation &&
-        !isReportArchived &&
-        transactions.length === 1; // Unlike `ReportUtils.canSumbitReport`, it returns true when there is only one transaction.
-
-    const hasBeenRetracted = hasReportBeenReopened(report, reportActions) || hasReportBeenRetracted(report, reportActions);
-    if (baseCanSubmit && hasBeenRetracted) {
-        return true;
-    }
-
-    return baseCanSubmit && isManualSubmitEnabled;
+    return canSubmitReport(report, policy, transactions, transactionViolations, isReportArchived) && transactions.length === 1;
 }
 
 function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']): {
@@ -1252,10 +1230,7 @@ function getActions(
     }
 
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
-    if (
-        canSubmitReportInSearch(currentAccountID, report, reportActions, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived) &&
-        isAllowedToApproveExpenseReport
-    ) {
+    if (canSubmitReportInSearch(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived) && isAllowedToApproveExpenseReport) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
