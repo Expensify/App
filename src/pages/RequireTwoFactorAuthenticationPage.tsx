@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {Encryption} from '@components/Icon/Illustrations';
@@ -12,11 +13,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type Account from '@src/types/onyx/Account';
+
+const selector = (account: OnyxEntry<Account>) => account?.validated;
 
 function RequireTwoFactorAuthenticationPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: false});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector, canBeMissing: false});
 
     return (
         <ScreenWrapper testID={RequireTwoFactorAuthenticationPage.displayName}>

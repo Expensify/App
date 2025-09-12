@@ -347,8 +347,8 @@ const ROUTES = {
             getUrlWithBackToParam(forwardTo ? `settings/profile/contact-methods/verify?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/profile/contact-methods/verify', backTo),
     },
     SETTINGS_2FA_VERIFY_ACCOUNT: {
-        route: 'settings/security/two-factor-auth/verify-account',
-        getRoute: (params: {backTo?: string; forwardTo?: string} = {}) => getUrlWithParams('settings/security/two-factor-auth/verify-account', params),
+        route: `settings/security/two-factor-auth/${VERIFY_ACCOUNT}`,
+        getRoute: (params: {backTo?: string; forwardTo?: string} = {}) => getUrlWithParams(`settings/security/two-factor-auth/${VERIFY_ACCOUNT}`, params),
     },
     SETTINGS_2FA_ROOT: {
         route: 'settings/security/two-factor-auth',
