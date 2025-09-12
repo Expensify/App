@@ -1234,8 +1234,8 @@ describe('generateTranslations', () => {
             // eslint-disable-next-line no-template-curly-in-string
             expect(itContent).toContain('Admin ${user.name}');
             expect(itContent).toContain("settings.theme === 'dark'");
-            expect(itContent).toContain("user.name ?? 'Unknown'");
-            expect(itContent).toContain("settings.language || 'English'");
+            expect(itContent).toContain("user.name ?? '[it] Unknown'");
+            expect(itContent).toContain("settings.language || '[it] English'");
             expect(itContent).not.toContain('[it] Old complex template');
         });
 

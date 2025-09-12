@@ -161,6 +161,7 @@ class TranslationGenerator {
             console.log(`   pathsToAdd: ${Array.from(this.pathsToAdd).join(', ')}`);
             console.log(`   pathsToRemove: ${Array.from(this.pathsToRemove).join(', ')}`);
         }
+
         for (const targetLanguage of this.targetLanguages) {
             // Map of translations
             const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
@@ -200,16 +201,20 @@ class TranslationGenerator {
                 const enResult = ts.transform(this.sourceFile, [enTransformer]);
                 const transformedEnSourceFile = enResult.transformed.at(0) ?? this.sourceFile;
 
-                // Step 3: Extract translated nodes from the transformed en.ts
-                const translatedNodeMap = new Map<string, ts.Node>();
-                this.extractTranslatedNodes(transformedEnSourceFile, translatedNodeMap);
+                // Step 3: Extract translated code strings from the transformed en.ts
+                const translatedCodeMap = new Map<string, string>();
+                this.extractTranslatedNodes(transformedEnSourceFile, translatedCodeMap);
                 enResult.dispose();
 
                 // Step 4: Transform the target file using the translated node map
-                const targetTransformer = this.createIncrementalTargetTransformer(translatedNodeMap);
-                const cleanupTransformer = this.createEmptyObjectCleanupTransformer(existingSourceFile);
+                const targetTransformer = this.createIncrementalTargetTransformer(translatedCodeMap);
+                const cleanupTransformer = this.createEmptyObjectCleanupTransformer();
                 const targetResult = ts.transform(existingSourceFile, [targetTransformer, cleanupTransformer]);
-                transformedSourceFile = targetResult.transformed.at(0) ?? existingSourceFile;
+                const transformedTargetResult = targetResult.transformed.at(0);
+                if (!transformedTargetResult) {
+                    throw new Error('Failed to transform target file');
+                }
+                transformedSourceFile = transformedTargetResult;
                 targetResult.dispose();
             } else {
                 // Full transformation for non-incremental mode - transform en.ts
@@ -806,13 +811,12 @@ class TranslationGenerator {
 
             // Recursively translate all complex template expressions first
             const translatedComplexExpressions = new Map<number, ts.Expression>();
-
-            // Template expression is complex:
             for (const span of node.templateSpans) {
                 const expression = span.expression;
                 if (this.isSimpleExpression(expression)) {
                     continue;
                 }
+                // Template expression is complex
                 const hash = hashStr(expression.getText());
                 const translatedExpression = visitWithPath(expression, currentPath);
                 translatedComplexExpressions.set(hash, translatedExpression as ts.Expression);
@@ -826,19 +830,23 @@ class TranslationGenerator {
     }
 
     /**
-     * Extract translated nodes from a transformed AST for the specified paths.
+     * Extract translated code strings from a transformed AST for the specified paths.
      */
-    private extractTranslatedNodes(sourceFile: ts.SourceFile, translatedNodes: Map<string, ts.Node>): void {
+    private extractTranslatedNodes(sourceFile: ts.SourceFile, translatedCodeMap: Map<string, string>): void {
+        const printer = ts.createPrinter();
+
         const visitWithPath = (node: ts.Node, currentPath = ''): void => {
-            // If this path is in pathsToAdd or pathsToModify, collect the appropriate node
+            // If this path is in pathsToAdd or pathsToModify, collect the appropriate code string
             if (this.pathsToAdd.has(currentPath as TranslationPaths) || this.pathsToModify.has(currentPath as TranslationPaths)) {
                 if (this.pathsToAdd.has(currentPath as TranslationPaths)) {
-                    // For pathsToAdd: extract the entire PropertyAssignment (we're adding new properties)
-                    translatedNodes.set(currentPath, node);
+                    // For pathsToAdd: extract the entire PropertyAssignment as code string
+                    const codeString = printer.printNode(ts.EmitHint.Unspecified, node, sourceFile);
+                    translatedCodeMap.set(currentPath, codeString);
                 } else if (this.pathsToModify.has(currentPath as TranslationPaths) && ts.isPropertyAssignment(node)) {
-                    // For pathsToModify: extract only the value (initializer) since we're replacing existing values
+                    // For pathsToModify: extract only the value (initializer) as code string
                     if (node.initializer) {
-                        translatedNodes.set(currentPath, node.initializer);
+                        const codeString = printer.printNode(ts.EmitHint.Expression, node.initializer, sourceFile);
+                        translatedCodeMap.set(currentPath, codeString);
                     }
                 }
                 return; // Stop recursing into children
@@ -1002,9 +1010,9 @@ class TranslationGenerator {
 
     /**
      * Create a transformer factory for incremental translations of target files.
-     * Handles pathsToModify (replace) and pathsToRemove (delete) using translated node map.
+     * Handles pathsToModify (replace) and pathsToRemove (delete) using translated code strings.
      */
-    private createIncrementalTargetTransformer(translatedNodeMap: Map<string, ts.Node>): ts.TransformerFactory<ts.SourceFile> {
+    private createIncrementalTargetTransformer(translatedCodeMap: Map<string, string>): ts.TransformerFactory<ts.SourceFile> {
         return (context: ts.TransformationContext) => {
             const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
                 // Check if this path should be removed
@@ -1014,10 +1022,15 @@ class TranslationGenerator {
 
                 // Check if this is a property assignment that should be modified
                 if (ts.isPropertyAssignment(node) && currentPath && this.pathsToModify.has(currentPath as TranslationPaths)) {
-                    const translatedValue = translatedNodeMap.get(currentPath);
-                    if (translatedValue) {
-                        // Create a new property assignment with the translated value
-                        return ts.factory.createPropertyAssignment(node.name, translatedValue as ts.Expression);
+                    const translatedCodeString = translatedCodeMap.get(currentPath);
+                    if (translatedCodeString) {
+                        // Parse the code string back to an AST expression
+                        const tempSourceFile = ts.createSourceFile('temp.ts', `const temp = ${translatedCodeString};`, ts.ScriptTarget.Latest);
+                        const tempStatement = tempSourceFile.statements[0] as ts.VariableStatement;
+                        const translatedExpression = tempStatement.declarationList.declarations[0].initializer;
+                        if (translatedExpression) {
+                            return ts.factory.createPropertyAssignment(node.name, translatedExpression as ts.Expression);
+                        }
                     }
                 }
 
@@ -1031,20 +1044,19 @@ class TranslationGenerator {
                         let hasAdditions = false;
 
                         // Add properties for pathsToAdd
-                        for (const [addPath, translatedNode] of translatedNodeMap) {
+                        for (const [addPath, translatedCodeString] of translatedCodeMap) {
                             if (this.pathsToAdd.has(addPath as TranslationPaths)) {
                                 const pathParts = addPath.split('.');
 
                                 // For top-level additions
                                 if (pathParts.length === 1 && currentPath === '') {
-                                    const propertyName = pathParts[0];
-
-                                    if (ts.isPropertyAssignment(translatedNode)) {
-                                        newProperties.push(translatedNode);
-                                        hasAdditions = true;
-                                    } else {
-                                        const newProperty = ts.factory.createPropertyAssignment(propertyName, translatedNode as ts.Expression);
-                                        newProperties.push(newProperty);
+                                    // Parse the code string back to a PropertyAssignment
+                                    const tempSourceFile = ts.createSourceFile('temp.ts', `const temp = { ${translatedCodeString} };`, ts.ScriptTarget.Latest);
+                                    const tempStatement = tempSourceFile.statements[0] as ts.VariableStatement;
+                                    const tempObject = tempStatement.declarationList.declarations[0].initializer as ts.ObjectLiteralExpression;
+                                    const propertyAssignment = tempObject.properties[0];
+                                    if (ts.isPropertyAssignment(propertyAssignment)) {
+                                        newProperties.push(propertyAssignment);
                                         hasAdditions = true;
                                     }
                                 }
