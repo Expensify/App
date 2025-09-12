@@ -51,22 +51,39 @@ jobs:
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
           git switch "$BASELINE_BRANCH"
+          echo "=== Baseline branch: Mobile-Expensify submodule status ==="
           if [ -d "Mobile-Expensify" ]; then
+            echo "✓ Mobile-Expensify directory exists"
+            git submodule status Mobile-Expensify 2>/dev/null || echo "⚠ Not a registered submodule"
             cd Mobile-Expensify
+            echo "Inside Mobile-Expensify, current HEAD: $(git rev-parse HEAD 2>/dev/null || echo 'Not a git repo')"
             git checkout "$(git rev-parse HEAD)"
             cd ..
             git add Mobile-Expensify
+            echo "✓ Mobile-Expensify handled and staged"
+          else
+            echo "⚠ Mobile-Expensify directory not found, skipping"
           fi
           npm install --force || (rm -rf node_modules && npm install --force) 
           NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
           echo "=== Switching to PR branch ==="
           git switch --force --detach "${PR_SHA:-${GITHUB_SHA}}"
+          echo "=== Current PR commit: $(git rev-parse HEAD) ==="
+          echo "=== PR branch: Mobile-Expensify submodule status ==="
           if [ -d "Mobile-Expensify" ]; then
+            echo "✓ Mobile-Expensify directory exists"
+            git submodule status Mobile-Expensify 2>/dev/null || echo "⚠ Not a registered submodule"
             cd Mobile-Expensify
+            echo "Inside Mobile-Expensify, current HEAD: $(git rev-parse HEAD 2>/dev/null || echo 'Not a git repo')"
             git checkout "$(git rev-parse HEAD)"
             cd ..
             git add Mobile-Expensify
+            echo "✓ Mobile-Expensify handled and staged"
+          else
+            echo "⚠ Mobile-Expensify directory not found, skipping"
           fi
+          echo "=== Final git status before performance tests ==="
+          git status
           npm install --force || (rm -rf node_modules && npm install --force)
           NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
 
