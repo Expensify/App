@@ -42,6 +42,7 @@ const REANIMATED_MODAL_TYPES: Array<ValueOf<typeof CONST.MODAL.MODAL_TYPE>> = [
     CONST.MODAL.MODAL_TYPE.CENTERED_SMALL,
     CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
     CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT,
+    CONST.MODAL.MODAL_TYPE.CONFIRM,
 ];
 
 type ModalComponentProps = (ReactNativeModalProps | ReanimatedModalProps) & {
@@ -158,6 +159,8 @@ function BaseModal(
         backdropOpacity,
         shouldUseReanimatedModal = false,
         shouldDisableBottomSafeAreaPadding = false,
+        shouldIgnoreBackHandlerDuringTransition = false,
+        forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -467,11 +470,13 @@ function BaseModal(
                         shouldUseReanimatedModal={shouldUseReanimatedModal}
                         isKeyboardActive={keyboardStateContextValue?.isKeyboardActive}
                         saveFocusState={saveFocusState}
+                        shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
                     >
                         <Animated.View
                             onLayout={onViewLayout}
                             style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelAnimatedStyle]}
                             ref={ref}
+                            fsClass={forwardedFSClass}
                         >
                             <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
                         </Animated.View>

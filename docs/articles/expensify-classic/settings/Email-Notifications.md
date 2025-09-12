@@ -3,8 +3,6 @@ title: Expensify Email Notifications
 description: Troubleshooting steps for receiving emails and notifications from Expensify, including Magic Code login emails and unblock procedures.
 keywords: [Expensify Classic, Email notifications, spam settings, magic code not received, login email missing, cannot sign in, expensify email blocked, expensify login help, email deliverability, spam filter, unblock email]
 ---
-<div id="expensify-classic" markdown="1">
-
 Occasionally, members may have trouble receiving Email notifications from Expensify, including Magic Code Emails, account validation Emails, contact method validations, integration Emails, or report action notifications.
 
 ---
@@ -54,7 +52,7 @@ This banner appears when Expensify detects that emails to your address are bounc
 
 ### Step 1: Try the Self-Service Unblock
 
-1. Confirm that the Email address on your Expensify account is valid
+1. Confirm that all Email addresses on your Expensify account are valid (including all Contact Methods and Secondary Logins)
 2. Click the link in the banner labeled **"here"**
 3. If successful, you will see a confirmation that your Email was unblocked
 
@@ -164,5 +162,3 @@ This typically happens when a third-party domain or IP reputation service mistak
 ## What Is the Best Way to Ensure Expensify Emails Are Not Marked as Spam?
 
 For server-level spam detection, the best approach is to verify **DKIM** and **SPF** rather than relying solely on the reputation of the sending IP address.
-
-</div>

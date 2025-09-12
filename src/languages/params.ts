@@ -164,6 +164,10 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
+type PhoneErrorRouteParams = {
+    phoneErrorMethodsRoute: string;
+};
+
 type WorkspacesListRouteParams = {
     workspacesListRoute: string;
 };
@@ -288,8 +292,6 @@ type UpdatedTheDistanceMerchantParams = {translatedChangedField: string; newMerc
 type FormattedMaxLengthParams = {formattedMaxLength: string};
 
 type WalletProgramParams = {walletProgram: string};
-
-type ViolationsAutoReportedRejectedExpenseParams = {rejectedBy: string; rejectReason: string};
 
 type ViolationsCashExpenseWithNoReceiptParams = {formattedLimit?: string} | undefined;
 
@@ -737,6 +739,11 @@ type CompanyNameParams = {
     companyName: string;
 };
 
+type SignerInfoMessageParams = {
+    bankAccountLastFour: string | undefined;
+    currency: string | undefined;
+};
+
 type CustomUnitRateParams = {
     rate: number;
 };
@@ -828,6 +835,10 @@ type BusinessTaxIDParams = {
     country: string;
 };
 
+type BusinessRegistrationNumberParams = {
+    country: string;
+};
+
 type QBDSetupErrorBodyParams = {
     conciergeLink: string;
 };
@@ -857,6 +868,10 @@ type MergeFailureUncreatedAccountDescriptionParams = {
 
 type MergeFailureDescriptionGenericParams = {
     email: string;
+};
+
+type WorkspaceUpgradeNoteParams = {
+    subscriptionLink: string;
 };
 
 type ChangedApproverMessageParams = {managerID: number};
@@ -891,6 +906,14 @@ type DomainPermissionInfoRestrictionParams = {
 
 type SubmittedWithMemoParams = {
     memo?: string;
+};
+
+type DependentMultiLevelTagsSubtitleParams = {
+    importSpreadsheetLink: string;
+};
+
+type PayAndDowngradeDescriptionParams = {
+    formattedAmount: string;
 };
 
 export type {
@@ -1056,7 +1079,6 @@ export type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
-    ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsInvoiceMarkupParams,
@@ -1173,6 +1195,7 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
+    PhoneErrorRouteParams,
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
     BusinessTaxIDParams,
@@ -1183,6 +1206,7 @@ export type {
     MergeSuccessDescriptionParams,
     MergeFailureUncreatedAccountDescriptionParams,
     MergeFailureDescriptionGenericParams,
+    WorkspaceUpgradeNoteParams,
     ChangedApproverMessageParams,
     WorkflowSettingsParam,
     MovedActionParams,
@@ -1193,4 +1217,8 @@ export type {
     UpgradeSuccessMessageParams,
     DomainPermissionInfoRestrictionParams,
     SubmittedWithMemoParams,
+    SignerInfoMessageParams,
+    BusinessRegistrationNumberParams,
+    DependentMultiLevelTagsSubtitleParams,
+    PayAndDowngradeDescriptionParams,
 };

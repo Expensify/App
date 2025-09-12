@@ -16,11 +16,12 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
-import closeReactNativeApp from '@userActions/HybridApp';
+import {closeReactNativeApp} from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,7 +41,8 @@ type ScreenWrapperChildrenProps = {
 };
 
 type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
-    Omit<ScreenWrapperOfflineIndicatorsProps, 'addBottomSafeAreaPadding' | 'addWideScreenBottomSafeAreaPadding'> & {
+    Omit<ScreenWrapperOfflineIndicatorsProps, 'addBottomSafeAreaPadding' | 'addWideScreenBottomSafeAreaPadding'> &
+    ForwardedFSClassProps & {
         /**
          * The navigation prop is passed by the navigator. It is used to trigger the onEntryTransitionEnd callback
          * when the screen transition ends.
@@ -173,7 +175,7 @@ function ScreenWrapper({
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }
-        closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
+        closeReactNativeApp({shouldSetNVP: false});
     });
 
     useEffect(() => {

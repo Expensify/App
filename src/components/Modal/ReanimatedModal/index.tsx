@@ -7,6 +7,7 @@ import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -45,6 +46,7 @@ function ReanimatedModal({
     swipeThreshold,
     shouldPreventScrollOnFocus,
     initialFocus,
+    shouldIgnoreBackHandlerDuringTransition = false,
     ...props
 }: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -58,12 +60,15 @@ function ReanimatedModal({
     const styles = useThemeStyles();
 
     const onBackButtonPressHandler = useCallback(() => {
+        if (shouldIgnoreBackHandlerDuringTransition && isTransitioning) {
+            return false;
+        }
         if (isVisibleState) {
             onBackButtonPress();
             return true;
         }
         return false;
-    }, [isVisibleState, onBackButtonPress]);
+    }, [isVisibleState, onBackButtonPress, isTransitioning, shouldIgnoreBackHandlerDuringTransition]);
 
     const handleEscape = useCallback(
         (e: KeyboardEvent) => {
@@ -115,6 +120,7 @@ function ReanimatedModal({
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillHide();
 
+            blurActiveElement();
             setIsVisibleState(false);
             setIsTransitioning(true);
         }
@@ -140,7 +146,10 @@ function ReanimatedModal({
         if (handleRef.current) {
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
-        if (getPlatform() !== CONST.PLATFORM.IOS) {
+        // Because on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
+        // https://stackoverflow.com/questions/58937956/react-native-modal-ondismiss-not-invoked
+        // Therefore, we manually call onModalHide() here for Android.
+        if (getPlatform() === CONST.PLATFORM.ANDROID) {
             onModalHide();
         }
     }, [onModalHide]);
@@ -197,12 +206,12 @@ function ReanimatedModal({
                 animationType="none"
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 visible={modalVisibility}
-                onRequestClose={onBackButtonPress}
+                onRequestClose={onBackButtonPressHandler}
                 statusBarTranslucent={statusBarTranslucent}
                 testID={testID}
                 onDismiss={() => {
                     onDismiss?.();
-                    if (getPlatform() === CONST.PLATFORM.IOS) {
+                    if (getPlatform() !== CONST.PLATFORM.ANDROID) {
                         onModalHide();
                     }
                 }}

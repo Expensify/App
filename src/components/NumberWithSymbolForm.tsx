@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -51,6 +51,9 @@ type NumberWithSymbolFormProps = {
 
     /** Whether to wrap the input in a container */
     shouldWrapInputInContainer?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<BaseTextInputRef>;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -79,37 +82,35 @@ const NUM_PAD_VIEW_ID = 'numPadView';
  * Can render either a standard TextInput or a number input with BigNumberPad and symbol interaction.
  * Already handles number decimals and input validation.
  */
-function NumberWithSymbolForm(
-    {
-        value: number,
-        symbol = '',
-        symbolPosition = CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX,
-        hideSymbol = false,
-        decimals = 0,
-        maxLength,
-        errorText,
-        onInputChange,
-        onSymbolButtonPress,
-        isSymbolPressable = true,
-        shouldShowBigNumberPad = canUseTouchScreen,
-        displayAsTextInput = false,
-        footer,
-        numberFormRef,
-        label,
-        style,
-        containerStyle,
-        symbolTextStyle,
-        autoGrow = true,
-        disableKeyboard = true,
-        prefixCharacter = '',
-        hideFocusedState = true,
-        shouldApplyPaddingToContainer = false,
-        shouldUseDefaultLineHeightForPrefix = true,
-        shouldWrapInputInContainer = true,
-        ...props
-    }: NumberWithSymbolFormProps,
-    forwardedRef: ForwardedRef<BaseTextInputRef>,
-) {
+function NumberWithSymbolForm({
+    value: number,
+    symbol = '',
+    symbolPosition = CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX,
+    hideSymbol = false,
+    decimals = 0,
+    maxLength,
+    errorText,
+    onInputChange,
+    onSymbolButtonPress,
+    isSymbolPressable = true,
+    shouldShowBigNumberPad = canUseTouchScreen,
+    displayAsTextInput = false,
+    footer,
+    numberFormRef,
+    label,
+    style,
+    containerStyle,
+    symbolTextStyle,
+    autoGrow = true,
+    disableKeyboard = true,
+    prefixCharacter = '',
+    hideFocusedState = true,
+    shouldApplyPaddingToContainer = false,
+    shouldUseDefaultLineHeightForPrefix = true,
+    shouldWrapInputInContainer = true,
+    ref,
+    ...props
+}: NumberWithSymbolFormProps) {
     const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat} = useLocalize();
 
@@ -193,9 +194,9 @@ function NumberWithSymbolForm(
                     setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedNumber.length : prevNumber.length, strippedNumber.length));
                     willSelectionBeUpdatedManually.current = false;
                 }
-                onInputChange?.(strippedNumber);
                 return strippedNumber;
             });
+            onInputChange?.(strippedNumber);
         },
         [decimals, maxLength, onInputChange],
     );
@@ -317,12 +318,12 @@ function NumberWithSymbolForm(
                 accessibilityLabel={label}
                 value={formattedNumber}
                 onChangeText={setFormattedNumber}
-                ref={(ref: BaseTextInputRef) => {
-                    if (typeof forwardedRef === 'function') {
-                        forwardedRef(ref);
-                    } else if (forwardedRef && 'current' in forwardedRef) {
+                ref={(newRef: BaseTextInputRef | null) => {
+                    if (typeof ref === 'function') {
+                        ref(newRef);
+                    } else if (ref && 'current' in ref) {
                         // eslint-disable-next-line no-param-reassign
-                        forwardedRef.current = ref;
+                        ref.current = newRef;
                     }
                 }}
                 prefixCharacter={symbol}
@@ -347,14 +348,14 @@ function NumberWithSymbolForm(
             onChangeAmount={setNewNumber}
             onSymbolButtonPress={onSymbolButtonPress}
             placeholder={numberFormat(0)}
-            ref={(ref: BaseTextInputRef) => {
-                if (typeof forwardedRef === 'function') {
-                    forwardedRef(ref);
-                } else if (forwardedRef && 'current' in forwardedRef) {
+            ref={(newRef: BaseTextInputRef | null) => {
+                if (typeof ref === 'function') {
+                    ref(newRef);
+                } else if (ref && 'current' in ref) {
                     // eslint-disable-next-line no-param-reassign
-                    forwardedRef.current = ref;
+                    ref.current = newRef;
                 }
-                textInput.current = ref;
+                textInput.current = newRef;
             }}
             symbol={symbol}
             hideSymbol={hideSymbol}
@@ -399,6 +400,7 @@ function NumberWithSymbolForm(
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
+            onFocus={props.onFocus}
         />
     );
 
@@ -444,5 +446,5 @@ function NumberWithSymbolForm(
 
 NumberWithSymbolForm.displayName = 'NumberWithSymbolForm';
 
-export default forwardRef(NumberWithSymbolForm);
+export default NumberWithSymbolForm;
 export type {NumberWithSymbolFormProps, NumberWithSymbolFormRef};

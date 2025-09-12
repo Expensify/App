@@ -3,7 +3,6 @@ title: Set Up Your Wallet
 description: Send and receive payments by adding your personal bank account in Expensify Wallet.
 keywords: [New Expensify, wallet, peer-to-peer payments, personal bank account, enable wallet, Plaid, Onfido]
 ---
-<div id="new-expensify" markdown="1">
 
 The Expensify Wallet allows you to send and receive **peer-to-peer payments**, such as expense reimbursements or transfers between colleagues. To use it, you'll need to connect a **personal bank account** and verify your identity.
 
@@ -37,10 +36,10 @@ If you’ve already connected your account, you’ll skip this step.
 
 You’ll be asked to enter the following:
 
-- Full legal name  
-- Residential address  
-- Date of birth  
-- Phone number  
+- Full legal name
+- Residential address
+- Date of birth
+- Phone number
 - Last 4 digits of your **Social Security Number (SSN)**
 
 Click **Save & Continue** to proceed.
@@ -70,4 +69,3 @@ When verification is successful, your Expensify Wallet will be fully enabled. Yo
 - Get reimbursed for expenses
 - Transfer funds with no additional fees
 
-</div>
