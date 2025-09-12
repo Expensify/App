@@ -3385,9 +3385,9 @@ function openReportFromDeepLink(
     currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>,
     onboardingInitialPath: OnyxEntry<string>,
     reports: OnyxCollection<Report>,
+    isAuthenticated: boolean,
 ) {
     const reportID = getReportIDFromLink(url);
-    const isAuthenticated = hasAuthToken();
 
     if (reportID && !isAuthenticated) {
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
