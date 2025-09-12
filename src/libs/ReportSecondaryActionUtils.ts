@@ -51,7 +51,7 @@ import {
 import {getSession} from './SessionUtils';
 import {
     allHavePendingRTERViolation,
-    getOriginalTransactionWithSplitInfo,
+    getTransactionSplitType,
     hasReceipt as hasReceiptTransactionUtils,
     isCardTransaction as isCardTransactionUtils,
     isDemoTransaction,
@@ -72,7 +72,7 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     return canAddTransaction(report, isReportArchived);
 }
 
-function isSplitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+function isSplitAction(report: Report, reportTransactions: Transaction[], originalTransaction: OnyxEntry<Transaction>, policy?: Policy): boolean {
     if (Number(reportTransactions?.length) !== 1) {
         return false;
     }
@@ -89,7 +89,7 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
         return false;
     }
 
-    const {isExpenseSplit, isBillSplit} = getOriginalTransactionWithSplitInfo(reportTransaction);
+    const {isExpenseSplit, isBillSplit} = getTransactionSplitType(reportTransaction, originalTransaction);
     if (isExpenseSplit || isBillSplit) {
         return false;
     }
@@ -595,6 +595,7 @@ function getSecondaryReportActions({
     report,
     chatReport,
     reportTransactions,
+    originalTransaction,
     violations,
     policy,
     reportNameValuePairs,
@@ -605,6 +606,7 @@ function getSecondaryReportActions({
     report: Report;
     chatReport: OnyxEntry<Report>;
     reportTransactions: Transaction[];
+    originalTransaction: OnyxEntry<Transaction>;
     violations: OnyxCollection<TransactionViolation[]>;
     policy?: Policy;
     reportNameValuePairs?: ReportNameValuePairs;
@@ -666,7 +668,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (isSplitAction(report, reportTransactions, policy)) {
+    if (isSplitAction(report, reportTransactions, originalTransaction, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
@@ -733,6 +735,7 @@ function getSecondaryExportReportActions(
 function getSecondaryTransactionThreadActions(
     parentReport: Report,
     reportTransaction: Transaction,
+    originalTransaction: OnyxEntry<Transaction>,
     reportActions: ReportAction[],
     policy: OnyxEntry<Policy>,
     transactionThreadReport?: OnyxEntry<Report>,
@@ -747,7 +750,7 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (isSplitAction(parentReport, [reportTransaction], policy)) {
+    if (isSplitAction(parentReport, [reportTransaction], originalTransaction, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
 
