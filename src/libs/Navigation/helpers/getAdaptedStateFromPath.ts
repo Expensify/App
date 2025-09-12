@@ -260,6 +260,7 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
     if (state === undefined) {
         throw new Error(`[getAdaptedStateFromPath] Unable to get state from path: ${path}`);
     }
+
     return getAdaptedState(state);
 };
 

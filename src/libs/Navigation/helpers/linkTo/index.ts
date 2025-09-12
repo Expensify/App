@@ -132,9 +132,11 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     if (areNamesAndParamsEqual(currentState, stateFromPath) || arePathAndBackToEqual(stateFromPath)) {
         return;
     }
+
     if (forceReplace) {
         action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
     }
+
     // Attachment screen - This is a special case. We want to navigate to it instead of push. If there is no screen on the stack, it will be pushed.
     // If not, it will be replaced. This way, navigating between one attachment screen and another won't be added to the browser history.
     // Report screen - Also a special case. If we are navigating to the report with same reportID we want to replace it (navigate will do that).
