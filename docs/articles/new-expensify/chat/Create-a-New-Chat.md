@@ -5,6 +5,7 @@ redirect_from: articles/other/Everything-About-Chat/
 keywords: [Expensify chat, private chat, group chat, chat rooms, start chat, New Expensify]
 ---
 
+
 Expensify Chat is an instant messaging system that helps you converse with people both inside and outside of your policy about payments, company updates, and more!!! Expensify Chats are held in private chats, groups, and rooms.
 
 • **Private chats** – Private conversations between you and one other user.
