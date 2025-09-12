@@ -13,6 +13,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -31,6 +32,8 @@ type RulesCustomNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamL
 function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [betaConfiguration] = useOnyx(ONYXKEYS.BETA_CONFIGURATION, {canBeMissing: true});
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -75,7 +78,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
     });
 
     const submitForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
-        setPolicyDefaultReportTitle(policyID, values.defaultTitle);
+        setPolicyDefaultReportTitle(policyID, values.defaultTitle, betas, betaConfiguration);
         Navigation.goBack();
     };
 

@@ -9,7 +9,7 @@ import type Report from '@src/types/onyx/Report';
 import type {FormulaContext} from './Formula';
 import {compute, FORMULA_PART_TYPES, parse} from './Formula';
 import Log from './Log';
-import type {WorkingUpdates} from './OptimisticReportNamesCache';
+import type {WorkingUpdates, WorkingUpdateValue} from './OptimisticReportNamesCache';
 import {getCachedPolicyByID, getCachedReportByID, getCachedReportNameValuePairsByID, getCachedTransactionByID} from './OptimisticReportNamesCache';
 import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import Permissions from './Permissions';
@@ -78,12 +78,12 @@ function applyUpdateToCache(workingUpdates: WorkingUpdates, update: OnyxUpdate, 
 
     switch (update.onyxMethod) {
         case Onyx.METHOD.SET:
-            workingUpdates[key] = update.value;
+            workingUpdates[key] = update.value as WorkingUpdateValue;
             break;
         case Onyx.METHOD.MERGE:
             // Get the current value (from cache or original context)
             const currentValue = workingUpdates[key] ?? getOriginalValueByKey(key, context);
-            workingUpdates[key] = {...currentValue, ...update.value};
+            workingUpdates[key] = {...currentValue, ...(update.value as WorkingUpdateValue)} as WorkingUpdateValue;
             break;
         case Onyx.METHOD.CLEAR:
             delete workingUpdates[key];

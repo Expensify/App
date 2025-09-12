@@ -1874,6 +1874,8 @@ function createTypeMenuSections(
     activePolicyID: string | undefined,
     savedSearches: OnyxEntry<OnyxTypes.SaveSearch>,
     isOffline: boolean,
+    betas: OnyxTypes.Beta[],
+    betaConfiguration: OnyxTypes.BetaConfiguration,
 ): SearchTypeMenuSection[] {
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
@@ -1916,7 +1918,7 @@ function createTypeMenuSections(
                                               }
 
                                               if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
-                                                  const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
+                                                  const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation, betas, betaConfiguration);
                                                   Navigation.setNavigationActionToMicrotaskQueue(() => {
                                                       Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
                                                   });
@@ -2293,44 +2295,44 @@ function getColumnsToShow(
 }
 
 export {
-    getSuggestedSearches,
+    compareValues,
+    createAndOpenSearchTransactionThread,
+    createBaseSavedSearchMenuItem,
+    createTypeMenuSections,
+    getActionOptions,
+    getActions,
+    getColumnsToShow,
+    getDatePresets,
+    getExpenseTypeTranslationKey,
+    getFeedOptions,
+    getGroupByOptions,
+    getGroupCurrencyOptions,
+    getHasOptions,
     getListItem,
+    getOverflowMenu,
     getSections,
     getShouldShowMerchant,
     getSortedSections,
-    isTransactionGroupListItemType,
-    isTransactionReportGroupListItemType,
-    isTransactionMemberGroupListItemType,
-    isTransactionCardGroupListItemType,
-    isTransactionWithdrawalIDGroupListItemType,
-    isSearchResultsEmpty,
-    isTransactionListItemType,
-    isReportActionListItemType,
-    shouldShowYear,
-    getExpenseTypeTranslationKey,
-    getOverflowMenu,
+    getStatusOptions,
+    getSuggestedSearches,
+    getTypeOptions,
+    getWideAmountIndicators,
+    getWithdrawalTypeOptions,
     isCorrectSearchUserName,
     isReportActionEntry,
-    isTaskListItemType,
-    getActions,
-    createTypeMenuSections,
-    createBaseSavedSearchMenuItem,
-    shouldShowEmptyState,
-    compareValues,
+    isReportActionListItemType,
     isSearchDataLoaded,
-    getStatusOptions,
-    getTypeOptions,
-    getGroupByOptions,
-    getGroupCurrencyOptions,
-    getFeedOptions,
-    getWideAmountIndicators,
+    isSearchResultsEmpty,
+    isTaskListItemType,
     isTransactionAmountTooLong,
+    isTransactionCardGroupListItemType,
+    isTransactionGroupListItemType,
+    isTransactionListItemType,
+    isTransactionMemberGroupListItemType,
+    isTransactionReportGroupListItemType,
     isTransactionTaxAmountTooLong,
-    getDatePresets,
-    createAndOpenSearchTransactionThread,
-    getWithdrawalTypeOptions,
-    getActionOptions,
-    getColumnsToShow,
-    getHasOptions,
+    isTransactionWithdrawalIDGroupListItemType,
+    shouldShowEmptyState,
+    shouldShowYear,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
+export type {ArchivedReportsIDSet, SavedSearchMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, SearchTypeMenuItem, SearchTypeMenuSection};

@@ -38,6 +38,9 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [betaConfiguration] = useOnyx(ONYXKEYS.BETA_CONFIGURATION, {canBeMissing: true});
+
     const isReportArchived = useReportIsArchived(reportID);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
@@ -54,17 +57,17 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             if (isIOUReport(reportID) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
                 moveIOUReportToPolicyAndInviteSubmitter(reportID, policyID, formatPhoneNumber);
             } else if (isIOUReport(reportID) && isPolicyMember(policy, session?.email)) {
-                moveIOUReportToPolicy(reportID, policyID);
+                moveIOUReportToPolicy(reportID, policyID, betas ?? [], betaConfiguration ?? {});
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 // eslint-disable-next-line deprecation/deprecation
             } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
                 const employeeList = policy?.employeeList;
-                changeReportPolicyAndInviteSubmitter(report, policy, employeeList, formatPhoneNumber, isReportArchived);
+                changeReportPolicyAndInviteSubmitter(report, policy, betas ?? [], betaConfiguration ?? {}, employeeList, formatPhoneNumber, isReportArchived);
             } else {
-                changeReportPolicy(report, policy, reportNextStep, isReportArchived);
+                changeReportPolicy(report, policy, betas ?? [], betaConfiguration ?? {}, reportNextStep, isReportArchived);
             }
         },
-        [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportArchived],
+        [session?.email, route.params, report, reportID, reportNextStep, policies, formatPhoneNumber, isReportArchived, betas, betaConfiguration],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
