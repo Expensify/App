@@ -90,8 +90,7 @@ function checkChangedFiles(): boolean {
     info('Checking changed files for React Compiler compliance...');
 
     const changedFiles = getChangedFiles();
-    const newFiles = getNewFiles();
-    const filesToCheck = [...new Set([...changedFiles, ...newFiles])];
+    const filesToCheck = [...new Set(changedFiles)];
 
     return check(filesToCheck);
 }
@@ -337,31 +336,23 @@ function getMainBranchRemote(): string {
     return remote;
 }
 
+function getMainBaseCommitHash(): string {
+    const remote = getMainBranchRemote();
+    return execSync(`git merge-base ${remote}/main HEAD`, {encoding: 'utf8'}).trim();
+}
+
 function getChangedFiles(): string[] {
     try {
         // Get files changed in the current branch/commit
-        const remote = getMainBranchRemote();
+        const mainBaseCommitHash = getMainBaseCommitHash();
+
         // Compare against the main branch on the detected remote
-        const output = execSync(`git diff --name-only --diff-filter=AMR ${remote}/main...HEAD`, {
+        const output = execSync(`git diff --name-only --diff-filter=AMR ${mainBaseCommitHash} HEAD`, {
             encoding: 'utf8',
         });
         return output.trim().split('\n').filter(shouldProcessFile);
     } catch (error) {
         warn('Could not determine changed files:', error);
-        return [];
-    }
-}
-
-function getNewFiles(): string[] {
-    try {
-        // Get files that are new (not in main branch)
-        const remote = getMainBranchRemote();
-        const output = execSync(`git diff --name-only --diff-filter=A ${remote}/main...HEAD`, {
-            encoding: 'utf8',
-        });
-        return output.trim().split('\n').filter(shouldProcessFile);
-    } catch (error) {
-        warn('Could not determine new files:', error);
         return [];
     }
 }
