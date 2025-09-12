@@ -7,13 +7,11 @@ Perform a comprehensive HelpDot documentation review using subagents:
 
 - helpdot-reviewer
 
-The helpdot-reviewer will analyze all changed files and provide one consolidated review. You must post a single top-level PR comment that summarizes the overall findings.
+The helpdot-reviewer will analyze all changed files and provide comprehensive feedback on HelpDot documentation standards.
 
-Post:
-1. ONE comprehensive review comment covering all files with overall assessment
-2. Specific line issues as inline comments for individual problems
+Post inline comments for specific issues and one top-level summary comment with overall assessment.
 
-Instruct the agent to only provide noteworthy feedback. Once it finishes, review the feedback and post only the feedback that you also deem noteworthy.
+Be thorough in identifying violations of HelpDot rules while maintaining practical, actionable feedback.
 
 <important>
 Keep feedback concise.
