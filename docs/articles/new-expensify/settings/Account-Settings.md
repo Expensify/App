@@ -22,7 +22,7 @@ You can update the following profile settings:
 - **Personal Information** – Add or update your legal name, birth date, and address.
 
 ---
-# Supported Lanuages
+# Supported Languages
 
    - English
    - German (Deutsch)
