@@ -27,21 +27,23 @@ function addImport(sourceFile: ts.SourceFile, identifierName: string, modulePath
         if (ts.isImportDeclaration(statement) && statement.importClause) {
             const importClause = statement.importClause;
             // Check for default import with matching name and module path
+            const existingIsTypeOnly = importClause.phaseModifier === ts.SyntaxKind.TypeKeyword;
             if (
                 importClause.name?.text === identifierName &&
                 statement.moduleSpecifier &&
                 ts.isStringLiteral(statement.moduleSpecifier) &&
                 statement.moduleSpecifier.text === modulePath &&
-                !!importClause.isTypeOnly === isTypeOnly
+                existingIsTypeOnly === isTypeOnly
             ) {
                 return sourceFile; // Import already exists, return unchanged
             }
         }
     }
 
+    const phaseModifier = isTypeOnly ? ts.SyntaxKind.TypeKeyword : undefined;
     const newImport = ts.factory.createImportDeclaration(
         undefined,
-        ts.factory.createImportClause(isTypeOnly, ts.factory.createIdentifier(identifierName), undefined),
+        ts.factory.createImportClause(phaseModifier, ts.factory.createIdentifier(identifierName), undefined),
         ts.factory.createStringLiteral(modulePath),
     );
 
