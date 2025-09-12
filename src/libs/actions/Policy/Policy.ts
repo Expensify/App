@@ -281,6 +281,16 @@ Onyx.connect({
     callback: (value) => (introSelected = value),
 });
 
+let policyCardFeeds: OnyxCollection<CardFeeds>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        policyCardFeeds = value;
+        console.log('policy card feeds', value);
+    },
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  */
@@ -365,13 +375,7 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
 /**
  * Delete the workspace
  */
-function deleteWorkspace(
-    policyID: string,
-    policyName: string,
-    lastAccessedWorkspacePolicyID: string | undefined,
-    policyCardFeeds: CardFeeds | undefined,
-    lastUsedPaymentMethods?: LastPaymentMethod,
-) {
+function deleteWorkspace(policyID: string, policyName: string, lastAccessedWorkspacePolicyID: string | undefined, lastUsedPaymentMethods?: LastPaymentMethod) {
     if (!allPolicies) {
         return;
     }
@@ -381,6 +385,7 @@ function deleteWorkspace(
     const policy = getPolicy(policyID);
     const filteredPolicies = Object.values(allPolicies).filter((p): p is Policy => p?.id !== policyID);
     const workspaceAccountID = policy?.workspaceAccountID;
+    const policyCardFeed = policyCardFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`];
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -429,7 +434,7 @@ function deleteWorkspace(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
-            value: policyCardFeeds,
+            value: policyCardFeed,
         },
     ];
 

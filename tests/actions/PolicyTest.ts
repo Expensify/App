@@ -817,7 +817,7 @@ describe('actions/Policy', () => {
 
             // When deleting a workspace fails
             mockFetch?.fail?.();
-            Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name, undefined, undefined);
+            Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name, undefined);
 
             await waitForBatchedUpdates();
 
@@ -897,7 +897,7 @@ describe('actions/Policy', () => {
                 {name: 'hold', type: CONST.VIOLATION_TYPES.WARNING},
             ]);
 
-            Policy.deleteWorkspace(policyID, 'test', undefined, undefined);
+            Policy.deleteWorkspace(policyID, 'test', undefined);
 
             await waitForBatchedUpdates();
 
@@ -922,7 +922,7 @@ describe('actions/Policy', () => {
 
             jest.spyOn(PolicyUtils, 'getPersonalPolicy').mockReturnValue(personalPolicy);
 
-            Policy.deleteWorkspace(teamPolicy.id, teamPolicy.name, undefined, undefined);
+            Policy.deleteWorkspace(teamPolicy.id, teamPolicy.name, undefined);
             await waitForBatchedUpdates();
 
             const activePolicyID: OnyxEntry<string> = await new Promise((resolve) => {
@@ -946,7 +946,7 @@ describe('actions/Policy', () => {
             await Onyx.merge(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, lastAccessedWorkspacePolicyID);
             await waitForBatchedUpdates();
 
-            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID, undefined);
+            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID);
             await waitForBatchedUpdates();
 
             const lastAccessedWorkspacePolicyIDAfterDelete: OnyxEntry<string> = await new Promise((resolve) => {
@@ -972,7 +972,7 @@ describe('actions/Policy', () => {
             await Onyx.merge(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, lastAccessedWorkspacePolicyID);
             await waitForBatchedUpdates();
 
-            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID, undefined);
+            Policy.deleteWorkspace(policyToDelete.id, policyToDelete.name, lastAccessedWorkspacePolicyID);
             await waitForBatchedUpdates();
 
             const lastAccessedWorkspacePolicyIDAfterDelete: OnyxEntry<string> = await new Promise((resolve) => {
