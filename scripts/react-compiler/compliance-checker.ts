@@ -9,6 +9,8 @@
 import {execSync} from 'child_process';
 import {readFileSync, writeFileSync} from 'fs';
 import {join} from 'path';
+import type {TupleToUnion} from 'type-fest';
+import CLI from '../utils/CLI';
 
 const REACT_COMPILER_CONFIG_FILENAME = 'react-compiler-config.json';
 
@@ -372,10 +374,39 @@ const Checker = {
     generateReport,
 };
 
+const CLI_COMMANDS = ['full-check', 'check-changed', 'check-file', 'report'] as const;
+type CliCommand = TupleToUnion<typeof CLI_COMMANDS>;
+
+function isValidCliCommand(command: string): command is CliCommand {
+    return CLI_COMMANDS.includes(command as CliCommand);
+}
+
 // CLI interface
 function main() {
-    const args = process.argv.slice(2);
-    const command = args.at(0);
+    const cli = new CLI({
+        positionalArgs: [
+            {
+                name: 'command',
+                description: 'Command to run',
+                required: true,
+                parse: (val) => {
+                    if (!isValidCliCommand(val)) {
+                        throw new Error(`Invalid command. Must be one of: ${CLI_COMMANDS.join(', ')}`);
+                    }
+                    return val;
+                },
+            },
+        ],
+        namedArgs: {
+            file: {
+                description: 'File path to check (required for check-file command)',
+                required: false,
+            },
+        },
+    });
+
+    const {command} = cli.positionalArgs;
+    const {file} = cli.namedArgs;
     let isPassed = false;
 
     try {
@@ -391,13 +422,11 @@ function main() {
                 break;
 
             case 'check-file':
-                // eslint-disable-next-line no-case-declarations
-                const filePath = args.at(1);
-                if (!filePath) {
-                    console.error('❌ Please provide a file path: npm run react-compiler-compliance-checker check-file <path>');
+                if (!file) {
+                    console.error('❌ Please provide a file path: npm run react-compiler-compliance-checker check-file --file <path>');
                     process.exit(1);
                 }
-                isPassed = Checker.checkSpecificFile(filePath);
+                isPassed = Checker.checkSpecificFile(file);
                 process.exit(isPassed ? 0 : 1);
                 break;
 
@@ -406,25 +435,8 @@ function main() {
                 break;
 
             default:
-                console.log(`
-🔧 React Compiler Compliance Checker
-
-Usage:
-  npm run react-compiler-compliance-checker <command> [options]
-
-Commands:
-  full-check     Run a full check of all components
-  check-changed  Check only changed files (for CI)
-  check-file     Check a specific file
-  report         Generate a detailed report
-
-Examples:
-  npm run react-compiler-compliance-checker full-check
-  npm run react-compiler-compliance-checker check-changed
-  npm run react-compiler-compliance-checker check-file src/components/MyComponent.tsx
-  npm run react-compiler-compliance-checker report
-        `);
-                break;
+                console.error(`❌ Unknown command: ${String(command)}`);
+                process.exit(1);
         }
     } catch (error) {
         console.error('❌ Error:', error);
@@ -436,5 +448,6 @@ if (require.main === module) {
     main();
 }
 
+export default Checker;
 export {shouldProcessFile, REACT_COMPILER_CONFIG};
 export type {ReactCompilerConfig};
