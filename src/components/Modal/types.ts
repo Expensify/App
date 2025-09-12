@@ -1,10 +1,10 @@
 import type {FocusTrapProps} from 'focus-trap-react';
+import type {ForwardedRef} from 'react';
 import type {GestureResponderEvent, PanResponderGestureState, View, ViewStyle} from 'react-native';
 import type {Direction, ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type CONST from '@src/CONST';
-import type { ForwardedRef } from 'react';
 import type ReanimatedModalProps from './ReanimatedModal/types';
 
 type FocusTrapOptions = Exclude<FocusTrapProps['focusTrapOptions'], undefined>;
