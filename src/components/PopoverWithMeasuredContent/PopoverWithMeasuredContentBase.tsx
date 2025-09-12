@@ -2,6 +2,9 @@ import {circularDeepEqual, deepEqual} from 'fast-equals';
 import React, {useContext, useEffect, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
+import type {PopoverAnchorPosition} from '@components/Modal/types';
+import Popover from '@components/Popover';
 import usePrevious from '@hooks/usePrevious';
 import useSidePanel from '@hooks/useSidePanel';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,31 +13,7 @@ import ComposerFocusManager from '@libs/ComposerFocusManager';
 import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {AnchorDimensions, AnchorPosition} from '@src/styles';
-import * as ActionSheetAwareScrollView from './ActionSheetAwareScrollView';
-import type {PopoverAnchorPosition} from './Modal/types';
-import Popover from './Popover';
-import type PopoverProps from './Popover/types';
-
-type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
-    /** The horizontal and vertical anchors points for the popover */
-    anchorPosition: AnchorPosition;
-
-    /** The dimension of anchor component */
-    anchorDimensions?: AnchorDimensions;
-
-    /** Whether we should change the vertical position if the popover's position is overflow */
-    shouldSwitchPositionIfOverflow?: boolean;
-
-    /** Whether handle navigation back when modal show. */
-    shouldHandleNavigationBack?: boolean;
-
-    /** Whether we should should use top side for the anchor positioning */
-    shouldMeasureAnchorPositionFromTop?: boolean;
-
-    /** Whether to skip re-measurement when becoming visible (for components with static dimensions) */
-    shouldSkipRemeasurement?: boolean;
-};
+import type PopoverWithMeasuredContentProps from './types';
 
 /**
  * This is a convenient wrapper around the regular Popover component that allows us to use a more sophisticated
@@ -43,7 +22,7 @@ type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
  * anchor position.
  */
 
-function PopoverWithMeasuredContent({
+function PopoverWithMeasuredContentBase({
     popoverDimensions = {
         width: CONST.POPOVER_DROPDOWN_WIDTH,
         height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
@@ -86,7 +65,6 @@ function PopoverWithMeasuredContent({
     const prevWindowDimensions = usePrevious({availableWidth, windowHeight});
 
     const hasStaticDimensions = popoverDimensions.width > 0 && popoverDimensions.height > 0;
-
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
 
     useEffect(() => {
@@ -99,7 +77,6 @@ function PopoverWithMeasuredContent({
     if (!prevIsVisible && isVisible && isContentMeasured && !shouldSkipRemeasurement) {
         // Check if anything significant changed that would require re-measurement
         const hasAnchorPositionChanged = !deepEqual(prevAnchorPosition, anchorPosition);
-
         const hasWindowSizeChanged = !deepEqual(prevWindowDimensions, {availableWidth, windowHeight});
 
         // Only reset if:
@@ -183,7 +160,7 @@ function PopoverWithMeasuredContent({
             shouldSwitchPositionIfOverflow,
         );
         return {horizontalShift, verticalShift};
-    }, [adjustedAnchorPosition.left, adjustedAnchorPosition.top, popoverWidth, availableWidth, popoverHeight, windowHeight, anchorDimensions.height, shouldSwitchPositionIfOverflow]);
+    }, [adjustedAnchorPosition.left, adjustedAnchorPosition.top, popoverWidth, popoverHeight, availableWidth, windowHeight, anchorDimensions.height, shouldSwitchPositionIfOverflow]);
 
     const shiftedAnchorPosition: PopoverAnchorPosition = useMemo(() => {
         const result: PopoverAnchorPosition = {
@@ -226,7 +203,7 @@ function PopoverWithMeasuredContent({
             {...props}
             anchorPosition={shiftedAnchorPosition}
         >
-            <View onLayout={measurePopover}>{children}</View>
+            <View onLayout={measurePopover}>{(isVisible || prevIsVisible) && children}</View>
         </Popover>
     ) : (
         /*
@@ -243,13 +220,11 @@ function PopoverWithMeasuredContent({
         </View>
     );
 }
-PopoverWithMeasuredContent.displayName = 'PopoverWithMeasuredContent';
+PopoverWithMeasuredContentBase.displayName = 'PopoverWithMeasuredContentBase';
 
-export default React.memo(PopoverWithMeasuredContent, (prevProps, nextProps) => {
+export default React.memo(PopoverWithMeasuredContentBase, (prevProps, nextProps) => {
     if (prevProps.isVisible === nextProps.isVisible && nextProps.isVisible === false) {
         return true;
     }
     return circularDeepEqual(prevProps, nextProps);
 });
-
-export type {PopoverWithMeasuredContentProps};
