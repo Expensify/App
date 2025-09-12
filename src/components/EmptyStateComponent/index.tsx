@@ -119,6 +119,7 @@ function EmptyStateComponent({
                                 {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style, dropDownOptions}) =>
                                     dropDownOptions ? (
                                         <ButtonWithDropdownMenu
+                                            key={buttonText}
                                             onPress={() => {}}
                                             shouldAlwaysShowDropdownMenu
                                             customText={buttonText}
