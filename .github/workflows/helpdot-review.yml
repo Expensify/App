@@ -18,16 +18,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Read HELPDOT_RULES.md
-        id: read-rules
-        run: |
-          RULES_CONTENT=$(cat "contributingGuides/review/HELPDOT_RULES.md")
-          {
-            echo "content<<EOF"
-            echo "$RULES_CONTENT"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@a3ff61d47aa5118a43b33ae44c4087d9eb51111a
