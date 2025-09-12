@@ -155,9 +155,7 @@ class Git {
 
                 if (firstChar === '+') {
                     // For added lines, use new file line numbers
-                    const addedLinesCount = currentHunk.lines.filter((l) => l.type === 'added').length;
-                    const contextLinesCount = currentHunk.lines.filter((l) => l.type === 'context').length;
-                    const lineNumber = currentHunk.newStart + addedLinesCount + contextLinesCount;
+                    const lineNumber = this.calculateLineNumber(currentHunk, 'added');
 
                     currentHunk.lines.push({
                         lineNumber,
@@ -167,9 +165,7 @@ class Git {
                     currentFile.addedLines.add(lineNumber);
                 } else if (firstChar === '-') {
                     // For removed lines, use old file line numbers
-                    const removedLinesCount = currentHunk.lines.filter((l) => l.type === 'removed').length;
-                    const contextLinesCount = currentHunk.lines.filter((l) => l.type === 'context').length;
-                    const lineNumber = currentHunk.oldStart + removedLinesCount + contextLinesCount;
+                    const lineNumber = this.calculateLineNumber(currentHunk, 'removed');
 
                     currentHunk.lines.push({
                         lineNumber,
@@ -179,9 +175,7 @@ class Git {
                     currentFile.removedLines.add(lineNumber);
                 } else if (firstChar === ' ') {
                     // For context lines, use new file line numbers
-                    const addedLinesCount = currentHunk.lines.filter((l) => l.type === 'added').length;
-                    const contextLinesCount = currentHunk.lines.filter((l) => l.type === 'context').length;
-                    const lineNumber = currentHunk.newStart + addedLinesCount + contextLinesCount;
+                    const lineNumber = this.calculateLineNumber(currentHunk, 'context');
 
                     currentHunk.lines.push({
                         lineNumber,
@@ -230,6 +224,25 @@ class Git {
             files,
             hasChanges: files.length > 0,
         };
+    }
+
+    /**
+     * Calculate the line number for a diff line based on the hunk and line type.
+     */
+    private static calculateLineNumber(hunk: DiffHunk, lineType: 'added' | 'removed' | 'context'): number {
+        const addedCount = hunk.lines.filter((l) => l.type === 'added').length;
+        const contextCount = hunk.lines.filter((l) => l.type === 'context').length;
+        const removedCount = hunk.lines.filter((l) => l.type === 'removed').length;
+
+        switch (lineType) {
+            case 'added':
+            case 'context':
+                return hunk.newStart + addedCount + contextCount;
+            case 'removed':
+                return hunk.oldStart + removedCount + contextCount;
+            default:
+                throw new Error(`Unknown line type: ${String(lineType)}`);
+        }
     }
 
     /**
