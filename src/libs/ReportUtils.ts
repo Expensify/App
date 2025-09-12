@@ -11145,14 +11145,6 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         return approvalChain;
     }
 
-    // Check if the current user is the manager of the expense report (indicating they bypassed approvers)
-    const managerAccountID = expenseReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    if (managerAccountID === currentUserAccountID) {
-        const currentUserEmailForApproval = currentUserEmail ?? '';
-        // Return an approval chain containing only the current user since they are now the sole approver
-        return currentUserEmailForApproval ? [currentUserEmailForApproval] : [];
-    }
-
     // Get category/tag approver list
     const ruleApprovers = getRuleApprovers(policy, expenseReport);
 
