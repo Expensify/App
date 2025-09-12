@@ -98,17 +98,17 @@ function SearchPage({route}: SearchPageProps) {
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
-    const selectedTransactionReportIDs = [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))];
+    const selectedTransactionReportIDs = useMemo(() => [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))], [selectedTransactions]);
     const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
 
     // Collate a list of policyIDs from the selected transactions
-    const selectedPolicyIDs = [
+    const selectedPolicyIDs = useMemo(() => [
         ...new Set(
             Object.values(selectedTransactions)
                 .map((transaction) => transaction.policyID)
                 .filter(Boolean),
         ),
-    ];
+    ], [selectedTransactions]);
 
     const bulkOptions = useBulkOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
@@ -152,7 +152,7 @@ function SearchPage({route}: SearchPageProps) {
 
             setIsExportWithTemplateModalVisible(true);
         },
-        [queryJSON, selectedTransactions, selectedTransactionsKeys, areAllMatchingItemsSelected, selectedTransactionReportIDs],
+        [queryJSON, selectedTransactionsKeys, areAllMatchingItemsSelected, selectedTransactionReportIDs],
     );
 
     const onBulkPaySelected = useCallback(

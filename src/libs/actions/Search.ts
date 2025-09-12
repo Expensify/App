@@ -632,7 +632,7 @@ function getPayOption(selectedReports: SelectedReports[], selectedTransactions: 
  * @param selectedReports
  * @param selectedTransactions
  * @param currency
- * @returns The formatted amount of the selected reports/trasactions.
+ * @returns The formatted amount of the selected reports/transactions.
  */
 function getFormattedAmount(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, currency: string): string {
     const transactionKeys = Object.keys(selectedTransactions ?? {});
