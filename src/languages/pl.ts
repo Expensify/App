@@ -93,6 +93,7 @@ import type {
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
+    DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
@@ -817,9 +818,6 @@ const translations = {
         goBackMessage: ({provider}: GoBackMessageParams) => `Nie chcesz logować się za pomocą ${provider}?`,
         continueWithMyCurrentSession: 'Kontynuuj moją obecną sesję',
         redirectToDesktopMessage: 'Przekierujemy Cię do aplikacji desktopowej po zakończeniu logowania.',
-        signInAgreementMessage: 'Logując się, zgadzasz się na',
-        termsOfService: 'Warunki korzystania z usługi',
-        privacy: 'Prywatność',
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Kontynuuj logowanie za pomocą jednokrotnego logowania:',
@@ -2169,12 +2167,8 @@ const translations = {
         chooseThemeBelowOrSync: 'Wybierz motyw poniżej lub zsynchronizuj z ustawieniami urządzenia.',
     },
     termsOfUse: {
-        phrase1: 'Logując się, zgadzasz się na',
-        phrase2: 'Warunki korzystania z usługi',
-        phrase3: 'i',
-        phrase4: 'Prywatność',
-        phrase5: `Przekazy pieniężne są świadczone przez ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) zgodnie z jego`,
-        phrase6: 'licencje',
+        terms: `<muted-text-xs>Logując się, użytkownik wyraża zgodę na <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Warunki korzystania z usługi</a> i <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Politykę prywatności</a>.</muted-text-xs>`,
+        license: `<muted-text-xs>Transmisja pieniędzy jest świadczona przez ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) zgodnie z jej <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licencjami</a>.</muted-text-xs>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Nie otrzymałeś magicznego kodu?',
@@ -4844,13 +4838,8 @@ const translations = {
             editTags: 'Edytuj tagi',
             findTag: 'Znajdź tag',
             subtitle: 'Tagi dodają bardziej szczegółowe sposoby klasyfikacji kosztów.',
-            dependentMultiLevelTagsSubtitle: {
-                phrase1: 'Używasz',
-                phrase2: 'tagi zależne',
-                phrase3: '. Możesz',
-                phrase4: 'ponownie zaimportuj arkusz kalkulacyjny',
-                phrase5: 'aby zaktualizować swoje tagi.',
-            },
+            dependentMultiLevelTagsSubtitle: ({importSpreadsheetLink}: DependentMultiLevelTagsSubtitleParams) =>
+                `<muted-text>Używane są <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tagi zależne</a>. Możesz <a href="${importSpreadsheetLink}">ponownie zaimportować arkusz kalkulacyjny</a>, aby zaktualizować tagi.</muted-text>`,
             emptyTags: {
                 title: 'Nie utworzyłeś żadnych tagów',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
@@ -6121,7 +6110,7 @@ const translations = {
             },
             status: 'Status',
             keyword: 'Słowo kluczowe',
-            hasKeywords: 'Ma słowa kluczowe',
+            keywords: 'Słowa kluczowe',
             currency: 'Waluta',
             link: 'Link',
             pinned: 'Przypięte',
