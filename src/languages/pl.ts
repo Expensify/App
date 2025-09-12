@@ -1967,6 +1967,8 @@ const translations = {
         validateCardTitle: 'Upewnijmy się, że to Ty',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Proszę wprowadzić magiczny kod wysłany na ${contactMethod}, aby zobaczyć szczegóły swojej karty. Powinien dotrzeć w ciągu minuty lub dwóch.`,
+        missingPrivateDetails: 'Dodaj swoje dane osobowe w Konto > Profil > Prywatne, a następnie spróbuj ponownie.',
+        unexpectedError: 'Wystąpił błąd podczas pobierania szczegółów twojej karty Expensify. Spróbuj ponownie.',
     },
     workflowsPage: {
         workflowTitle: 'Wydatki',

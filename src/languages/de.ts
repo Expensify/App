@@ -1981,6 +1981,8 @@ const translations = {
         validateCardTitle: 'Lassen Sie uns sicherstellen, dass Sie es sind',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Bitte geben Sie den magischen Code ein, der an ${contactMethod} gesendet wurde, um Ihre Kartendetails anzuzeigen. Er sollte in ein bis zwei Minuten ankommen.`,
+        missingPrivateDetails: 'Bitte fügen Sie Ihre persönlichen Daten unter Konto > Profil > Privat hinzu und versuchen Sie es erneut.',
+        unexpectedError: 'Beim Abrufen Ihrer Expensify-Kartendaten ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
     },
     workflowsPage: {
         workflowTitle: 'Ausgaben',
