@@ -11,16 +11,16 @@ on:
         description: 'Build HybridApp artifacts'
         required: false
         type: boolean
-  push:
-    branches:
-      - main
-    paths:
-      - package.json
-      - patches/react-native+*.patch
-      - patches/@react-native+*.patch
-      - patches/react-native/react-native+*.patch
-      - patches/react-native/@react-native+*.patch
-      - Mobile-Expensify
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - package.json
+  #     - patches/react-native+*.patch
+  #     - patches/@react-native+*.patch
+  #     - patches/react-native/react-native+*.patch
+  #     - patches/react-native/@react-native+*.patch
+  #     - Mobile-Expensify
 
 jobs:
   verifyPatches:
