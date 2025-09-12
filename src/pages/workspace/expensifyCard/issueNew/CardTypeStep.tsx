@@ -2,6 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import * as Illustrations from '@components/Icon/Illustrations';
+import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
@@ -28,6 +30,7 @@ type CardTypeStepProps = {
 function CardTypeStep({policyID, stepNames, startStepIndex}: CardTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('HandCard'));
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
 
     const isEditing = issueNewCard?.isEditing;
@@ -71,7 +74,7 @@ function CardTypeStep({policyID, stepNames, startStepIndex}: CardTypeStepProps) 
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.chooseCardType')}</Text>
             <View style={styles.mh5}>
                 <MenuItem
-                    icon={Illustrations.HandCard}
+                    icon={HandCardIcon}
                     title={translate('workspace.card.issueNewCard.physicalCard')}
                     description={translate('workspace.card.issueNewCard.physicalCardDescription')}
                     shouldShowRightIcon

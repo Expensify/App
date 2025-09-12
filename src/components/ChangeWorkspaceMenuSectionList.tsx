@@ -6,6 +6,8 @@ import convertToLTR from '@libs/convertToLTR';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
 import Icon from './Icon';
 import * as Illustrations from './Icon/Illustrations';
 import RenderHTML from './RenderHTML';
@@ -18,20 +20,33 @@ type ChangeWorkspaceMenuSection = {
     titleTranslationKey: TranslationPaths;
 };
 
-const changeWorkspaceMenuSections: ChangeWorkspaceMenuSection[] = [
-    {
-        icon: Illustrations.FolderOpen,
-        titleTranslationKey: 'iou.changePolicyEducational.reCategorize',
-    },
-    {
-        icon: Illustrations.Workflows,
-        titleTranslationKey: 'iou.changePolicyEducational.workflows',
-    },
-];
+// const changeWorkspaceMenuSections: ChangeWorkspaceMenuSection[] = [
+//     {
+//         icon: Illustrations.FolderOpen,
+//         titleTranslationKey: 'iou.changePolicyEducational.reCategorize',
+//     },
+//     {
+//         icon: Illustrations.Workflows,
+//         titleTranslationKey: 'iou.changePolicyEducational.workflows',
+//     },
+// ];
 
 function ChangeWorkspaceMenuSectionList() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {asset: FolderOpenIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('FolderOpen'));
+    const {asset: WorkflowsIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Workflows'));
+
+    const changeWorkspaceMenuSections = [
+        {
+            icon: FolderOpenIcon,
+            titleTranslationKey: 'iou.changePolicyEducational.reCategorize',
+        },
+        {
+            icon: WorkflowsIcon,
+            titleTranslationKey: 'iou.changePolicyEducational.workflows',
+        },
+    ];
 
     return (
         <>

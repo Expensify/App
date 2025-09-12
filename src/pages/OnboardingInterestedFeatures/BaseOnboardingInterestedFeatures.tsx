@@ -21,6 +21,8 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {loadSmartIllustration} from '@components/Icon/chunks/illustrationLoader';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createWorkspace, generatePolicyID, updateInterestedFeatures} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
@@ -44,6 +46,16 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+    const {asset: FolderOpenIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('FolderOpen'));
+    const {asset: AccountingIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Accounting'));
+    const {asset: CompanyCardIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('CompanyCard'));
+    const {asset: WorkflowsIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Workflows'));
+    const {asset: InvoiceBlueIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('InvoiceBlue'));
+    const {asset: RulesIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Rules'));
+    const {asset: CarIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Car'));
+    const {asset: TagIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('Tag'));
+    const {asset: PerDiemIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('PerDiem'));
+    const {asset: HandCardIcon} = useMemoizedLazyAsset(() => loadSmartIllustration('HandCard'));
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -71,66 +83,66 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             {
                 id: FEATURE_IDS.CATEGORIES,
                 title: translate('workspace.moreFeatures.categories.title'),
-                icon: Illustrations.FolderOpen,
+                icon: FolderOpenIcon,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
             },
             {
                 id: FEATURE_IDS.ACCOUNTING,
                 title: translate('workspace.moreFeatures.connections.title'),
-                icon: Illustrations.Accounting,
+                icon: AccountingIcon,
                 enabledByDefault: !!userReportedIntegration,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
             },
             {
                 id: FEATURE_IDS.COMPANY_CARDS,
                 title: translate('workspace.moreFeatures.companyCards.title'),
-                icon: Illustrations.CompanyCard,
+                icon: CompanyCardIcon,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
             },
             {
                 id: FEATURE_IDS.WORKFLOWS,
                 title: translate('workspace.moreFeatures.workflows.title'),
-                icon: Illustrations.Workflows,
+                icon: WorkflowsIcon,
                 enabledByDefault: true,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
             },
             {
                 id: FEATURE_IDS.INVOICES,
                 title: translate('workspace.moreFeatures.invoices.title'),
-                icon: Illustrations.InvoiceBlue,
+                icon: InvoiceBlueIcon,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
             },
             {
                 id: FEATURE_IDS.RULES,
                 title: translate('workspace.moreFeatures.rules.title'),
-                icon: Illustrations.Rules,
+                icon: RulesIcon,
                 apiEndpoint: WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
                 requiresUpdate: true,
             },
             {
                 id: FEATURE_IDS.DISTANCE_RATES,
                 title: translate('workspace.moreFeatures.distanceRates.title'),
-                icon: Illustrations.Car,
+                icon: CarIcon,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES,
             },
             {
                 id: FEATURE_IDS.EXPENSIFY_CARD,
                 title: translate('workspace.moreFeatures.expensifyCard.title'),
-                icon: Illustrations.HandCard,
+                icon: HandCardIcon,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
             },
             {
                 id: FEATURE_IDS.TAGS,
                 title: translate('workspace.moreFeatures.tags.title'),
-                icon: Illustrations.Tag,
+                icon: TagIcon,
                 apiEndpoint: WRITE_COMMANDS.ENABLE_POLICY_TAGS,
             },
             {
                 id: FEATURE_IDS.PER_DIEM,
                 title: translate('workspace.moreFeatures.perDiem.title'),
-                icon: Illustrations.PerDiem,
+                icon: PerDiemIcon,
                 apiEndpoint: WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM,
                 requiresUpdate: true,
             },
