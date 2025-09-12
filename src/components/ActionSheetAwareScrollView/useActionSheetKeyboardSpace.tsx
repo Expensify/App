@@ -162,8 +162,8 @@ function useActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
 
             case States.POPOVER_OPEN: {
                 if (popoverHeight) {
-                  const elementOffsetWithPadding = elementOffset + additionalOffset.get();
-                      if (previousElementOffset !== 0 || elementOffsetWithPadding > previousElementOffset) {
+                    const elementOffsetWithPadding = elementOffset + additionalOffset.get();
+                    if (previousElementOffset !== 0 || elementOffsetWithPadding > previousElementOffset) {
                         const adjustedOffset = elementOffsetWithPadding < 0 ? 0 : elementOffsetWithPadding;
                         return withSpring(adjustedOffset, SPRING_CONFIG);
                     }

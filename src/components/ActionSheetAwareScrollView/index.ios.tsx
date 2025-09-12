@@ -4,9 +4,9 @@ import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
 import type {ScrollView, ScrollViewProps} from 'react-native';
 import {DeviceEventEmitter} from 'react-native';
 import Reanimated, {useAnimatedRef, useScrollViewOffset} from 'react-native-reanimated';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
 import useActionSheetKeyboardSpace from './useActionSheetKeyboardSpace';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 type ActionSheetAwareScrollViewProps = PropsWithChildren<ScrollViewProps> & {
     /** Whether to add top spacing for sticky content in inverted list */
@@ -86,7 +86,7 @@ function renderScrollComponent(props: ScrollViewProps) {
 }
 
 /**
- * This function should be used as renderScrollComponent prop for inverted FlatList 
+ * This function should be used as renderScrollComponent prop for inverted FlatList
  * with sticky content at the top (like in money request report with transactions)
  * @param props - props that will be passed to the ScrollView from FlatList
  * @returns - ActionSheetAwareScrollView with top spacing for sticky content
