@@ -13,8 +13,6 @@ function FakeTestComponent({testProp = 'default', itemCount = 10}: FakeTestCompo
         </Text>
     ));
 
-    // trigger action
-
     return (
         <View testID="fake-test-component">
             <Text>Fake Test Component for Performance Testing</Text>

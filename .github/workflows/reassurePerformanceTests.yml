@@ -14,32 +14,10 @@ jobs:
       - name: Checkout
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-        with:
-          fetch-depth: 0
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
 
-      - name: Set dummy git credentials
-        run: |
-            git config --global user.email "test@test.com"
-            git config --global user.name "Test"
-
-      - name: Get common ancestor commit
-        run: |
-            git fetch origin main
-            common_ancestor=$(git merge-base "${{ github.sha }}" origin/main)
-            echo "COMMIT_HASH=$common_ancestor" >> "$GITHUB_ENV"
-
-      - name: Clean up deleted files
-        run: |
-            DELETED_FILES=$(git diff --name-only --diff-filter=D "$COMMIT_HASH" "${{ github.sha }}")
-            for file in $DELETED_FILES; do
-              if [ -n "$file" ]; then
-                rm -f "$file"
-                echo "Deleted file: $file"
-              fi
-            done
       - name: Capture PR head SHA
         if: ${{ github.event_name == 'pull_request' }}
         run: echo "PR_SHA=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
@@ -51,39 +29,11 @@ jobs:
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
           git switch "$BASELINE_BRANCH"
-          echo "=== Baseline branch: Mobile-Expensify submodule status ==="
-          if [ -d "Mobile-Expensify" ]; then
-            echo "✓ Mobile-Expensify directory exists"
-            git submodule status Mobile-Expensify 2>/dev/null || echo "⚠ Not a registered submodule"
-            cd Mobile-Expensify
-            echo "Inside Mobile-Expensify, current HEAD: $(git rev-parse HEAD 2>/dev/null || echo 'Not a git repo')"
-            git checkout "$(git rev-parse HEAD)"
-            cd ..
-            git add Mobile-Expensify
-            echo "✓ Mobile-Expensify handled and staged"
-          else
-            echo "⚠ Mobile-Expensify directory not found, skipping"
-          fi
-          npm install --force || (rm -rf node_modules && npm install --force) 
+          npm install --force || (rm -rf node_modules && npm install --force)
           NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
-          echo "=== Switching to PR branch ==="
+          
+
           git switch --force --detach "${PR_SHA:-${GITHUB_SHA}}"
-          echo "=== Current PR commit: $(git rev-parse HEAD) ==="
-          echo "=== PR branch: Mobile-Expensify submodule status ==="
-          if [ -d "Mobile-Expensify" ]; then
-            echo "✓ Mobile-Expensify directory exists"
-            git submodule status Mobile-Expensify 2>/dev/null || echo "⚠ Not a registered submodule"
-            cd Mobile-Expensify
-            echo "Inside Mobile-Expensify, current HEAD: $(git rev-parse HEAD 2>/dev/null || echo 'Not a git repo')"
-            git checkout "$(git rev-parse HEAD)"
-            cd ..
-            git add Mobile-Expensify
-            echo "✓ Mobile-Expensify handled and staged"
-          else
-            echo "⚠ Mobile-Expensify directory not found, skipping"
-          fi
-          echo "=== Final git status before performance tests ==="
-          git status
           npm install --force || (rm -rf node_modules && npm install --force)
           NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
 
