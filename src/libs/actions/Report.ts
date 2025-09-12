@@ -76,6 +76,7 @@ import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
+import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
@@ -140,11 +141,13 @@ import {
     getReportLastVisibleActionCreated,
     getReportMetadata,
     getReportNotificationPreference,
+    getReportOrDraftReport,
     getReportPreviewMessage,
     getReportTransactions,
     getReportViolations,
     getRouteFromLink,
     getTitleReportField,
+    hasOutstandingChildRequest,
     isChatThread as isChatThreadReportUtils,
     isConciergeChatReport,
     isExpenseReport,
@@ -2386,13 +2389,16 @@ function clearReportFieldKeyErrors(reportID: string | undefined, fieldKey: strin
     });
 }
 
-function updateReportField(reportID: string, reportField: PolicyReportField, previousReportField: PolicyReportField) {
+function updateReportField(report: Report, reportField: PolicyReportField, previousReportField: PolicyReportField, policy: Policy, shouldFixViolations = false) {
+    const reportID = report.reportID;
     const fieldKey = getReportFieldKey(reportField.fieldID);
     const reportViolations = getReportViolations(reportID);
     const fieldViolation = getFieldViolation(reportViolations, reportField);
     const recentlyUsedValues = allRecentlyUsedReportFields?.[fieldKey] ?? [];
 
     const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField);
+    const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
+    const optimisticNextStep = buildNextStep(report, predictedNextStatus, shouldFixViolations);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2406,6 +2412,11 @@ function updateReportField(reportID: string, reportField: PolicyReportField, pre
                     [fieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+            value: optimisticNextStep,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3220,7 +3231,9 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     const onClick = () => close(() => navigateFromNotification(reportID));
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
-        LocalNotification.showModifiedExpenseNotification(report, reportAction, onClick);
+        const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
+        const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
+        LocalNotification.showModifiedExpenseNotification({report, reportAction, onClick, movedFromReport, movedToReport});
     } else {
         LocalNotification.showCommentNotification(report, reportAction, onClick);
     }
@@ -4909,6 +4922,10 @@ function deleteAppReport(reportID: string | undefined) {
             return;
         }
 
+        if (ReportActionsUtils.isDeletedAction(reportAction)) {
+            return;
+        }
+
         const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
         if (originalMessage?.type !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && originalMessage?.type !== CONST.IOU.REPORT_ACTION_TYPE.TRACK) {
             return;
@@ -5113,11 +5130,14 @@ function deleteAppReport(reportID: string | undefined) {
         });
     }
 
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
-        value: {hasOutstandingChildRequest: false},
-    });
+    const chatReport = getReportOrDraftReport(report?.parentReportID);
+    if (chatReport) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
+            value: {hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, report?.reportID)},
+        });
+    }
 
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
