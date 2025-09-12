@@ -7,7 +7,7 @@ A small, repo-scoped setup for running **agents** (code review, triage, docs che
 ```
 .claude/
   agents/      # One prompt per agent
-  commands/    # Orchestration docs that can call multiple agents/tools
+  commands/    # Orchestration prompts that can call multiple agents and tools
 .github/workflows/
   claude-*.yml # CI workflows that run a command
 ```
