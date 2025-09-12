@@ -11533,7 +11533,7 @@ function generateMarkdownSummary(summary) {
         markdown.push('No SVG files were compressed.');
         return markdown.join('\n');
     }
-    markdown.push(`**COMPRESSION SUMMARY**`);
+    markdown.push(`**Compression Summary**`);
     markdown.push(`Files processed: ${totalFiles}`);
     markdown.push(`Files compressed: ${totalFilesCompressed}`);
     markdown.push(`Original size: ${formatBytes(totalOriginalSize)} KB`);

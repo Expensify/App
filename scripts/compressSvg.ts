@@ -269,14 +269,8 @@ function generateMarkdownSummary(summary: CompressionSummary): string {
     const {totalFiles, totalFilesCompressed, totalOriginalSize, totalCompressedSize, totalSavings, totalSavingsPercent, results} = summary;
     const markdown: string[] = [];
 
-    markdown.push('## SVG Compression Results\n');
+    markdown.push('## SVG Compression Summary\n');
 
-    if (totalFiles === 0) {
-        markdown.push('No SVG files were compressed.');
-        return markdown.join('\n');
-    }
-
-    markdown.push(`**COMPRESSION SUMMARY**`);
     markdown.push(`Files processed: ${totalFiles}`);
     markdown.push(`Files compressed: ${totalFilesCompressed}`);
     markdown.push(`Original size: ${formatBytes(totalOriginalSize)} KB`);
@@ -292,7 +286,6 @@ function generateMarkdownSummary(summary: CompressionSummary): string {
     markdown.push('');
 
     if (results.length) {
-        markdown.push('**Individual Results:**');
         markdown.push('| File | Original | Compressed | Savings |');
         markdown.push('|------|----------|------------|---------|');
 
@@ -422,8 +415,7 @@ if (require.main === module) {
             console.error(`Fatal error: ${errorMessage}`);
             process.exit(1);
         }
-    }
-    else if (firstArg === '--files' || firstArg === '-f') {
+    } else if (firstArg === '--files' || firstArg === '-f') {
         if (args.length < 2) {
             console.error('❌ No files specified after --files flag');
             console.log('');

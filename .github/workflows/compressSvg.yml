@@ -48,8 +48,7 @@ jobs:
           commit-message: "Compress SVG files"
           title: "Compress SVG files"
           body: |
-            This automated PR was created to compress SVG files and reduce repository size.
-            *This PR will be automatically updated if more SVG files are added and need compression.*
+            This PR was created to compress SVG files and reduce repository size.
             ---
             ${{ steps.compress.outputs.markdown }}
             
