@@ -4,12 +4,13 @@ import pick from 'lodash/pick';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
-import {RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route as RouteString} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 // eslint-disable-next-line import/no-cycle
@@ -89,6 +90,13 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         return getInitialSplitNavigatorState({
             name: RHP_TO_SIDEBAR[route.name],
         });
+    }
+
+    if (RHP_TO_WORKSPACES_LIST[route.name]) {
+        return {
+            name: SCREENS.WORKSPACES_LIST,
+            path: ROUTES.WORKSPACES_LIST.route,
+        };
     }
 
     if (RHP_TO_WORKSPACE[route.name]) {
