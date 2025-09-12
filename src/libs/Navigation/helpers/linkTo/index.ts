@@ -75,24 +75,42 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     const normalizedPath = normalizePath(path) as Route;
     const normalizedPathAfterRedirection = (getMatchingNewRoute(normalizedPath) ?? normalizedPath) as Route;
 
-    // if (normalizedPathAfterRedirection.includes('/verify-account')) {
-    //     navigation.dispatch(
-    //         StackActions.push(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, {
-    //             screen: SCREENS.RIGHT_MODAL.SETTINGS,
-    //             params: {
-    //                 screen: SCREENS.SETTINGS.VERIFY_ACCOUNT,
-    //                 path: normalizedPathAfterRedirection,
-    //             },
-    //         }),
-    //     );
-    //     return;
-    // }
-
     // This is the state generated with the default getStateFromPath function.
     // It won't include the whole state that will be generated for this path but the focused route will be correct.
     // It is necessary because getActionFromState will generate RESET action for whole state generated with our custom getStateFromPath function.
     const stateFromPath = getStateFromPath(normalizedPathAfterRedirection) as PartialState<NavigationState<RootNavigatorParamList>>;
     const currentState = navigation.getRootState() as PlatformStackNavigationState<RootNavigatorParamList>;
+
+    if (normalizedPathAfterRedirection.includes('/verify-account')) {
+        const existingRightModalIndex = currentState.routes.findIndex((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+
+        if (existingRightModalIndex !== -1) {
+            navigation.dispatch({
+                type: 'NAVIGATE',
+                payload: {
+                    name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
+                    params: {
+                        screen: SCREENS.RIGHT_MODAL.SETTINGS,
+                        params: {
+                            screen: SCREENS.SETTINGS.VERIFY_ACCOUNT,
+                            path: normalizedPathAfterRedirection,
+                        },
+                    },
+                },
+            });
+        } else {
+            navigation.dispatch(
+                StackActions.push(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, {
+                    screen: SCREENS.RIGHT_MODAL.SETTINGS,
+                    params: {
+                        screen: SCREENS.SETTINGS.VERIFY_ACCOUNT,
+                        path: normalizedPathAfterRedirection,
+                    },
+                }),
+            );
+        }
+        return;
+    }
 
     const focusedRouteFromPath = findFocusedRoute(stateFromPath);
     const currentFocusedRoute = findFocusedRoute(currentState);
@@ -114,7 +132,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     if (areNamesAndParamsEqual(currentState, stateFromPath) || arePathAndBackToEqual(stateFromPath)) {
         return;
     }
-
+    console.log(currentState);
     if (forceReplace) {
         action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
     }

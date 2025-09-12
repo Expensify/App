@@ -379,7 +379,14 @@ function SettlementButton({
 
     const selectPaymentMethod = (event: KYCFlowEvent, triggerKYCFlow: TriggerKYCFlow, paymentMethod?: PaymentMethod, selectedPolicy?: Policy) => {
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+            console.log('cefnev');
+            const activeRoute = Navigation.getActiveRoute();
+            const [path, params] = activeRoute.split('?');
+            let verifyAccountRoute = path.endsWith('/') ? `${path}verify-account` : `${path}/verify-account`;
+            if (params) {
+                verifyAccountRoute += `?${params}`;
+            }
+            Navigation.navigate(verifyAccountRoute as never);
             return;
         }
 

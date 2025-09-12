@@ -14,11 +14,6 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     const normalizedPathAfterRedirection = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
-    if (path.includes('/verify-account')) {
-        const verifyAccountState = addVerifyAccountRoute(normalizedPathAfterRedirection);
-        return verifyAccountState;
-    }
-
     // This function is used in the linkTo function where we want to use default getStateFromPath function.
     const state = RNGetStateFromPath(normalizedPathAfterRedirection, linkingConfig.config);
 
