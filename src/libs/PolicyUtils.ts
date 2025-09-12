@@ -56,17 +56,11 @@ type ConnectionWithLastSyncData = {
 };
 
 let allPolicies: OnyxCollection<Policy>;
-let activePolicyId: OnyxEntry<string>;
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
-});
-
-Onyx.connect({
-    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (value) => (activePolicyId = value),
 });
 
 /**
@@ -316,7 +310,7 @@ function isExpensifyTeam(email: string | undefined): boolean {
 /**
  * Checks if the user with login is an admin of the policy.
  */
-const isUserPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string) => getPolicyRole(policy, login) === CONST.POLICY.ROLE.ADMIN;
+const isUserPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, login?: string) => !!(policy && policy.employeeList && login && policy.employeeList[login]?.role === CONST.POLICY.ROLE.ADMIN);
 
 /**
  * Checks if the current user is of the role "user" on the policy.
@@ -600,10 +594,12 @@ function isControlOnAdvancedApprovalMode(policy: OnyxInputOrEntry<Policy>): bool
 }
 
 /**
- * Whether the policy has active accounting integration connections
+ * Whether the policy has active accounting integration connections.
+ * `getCurrentConnectionName` only returns connections supported in NewDot.
+ * `hasSupportedOnlyOnOldDotIntegration` detects connections that are supported only on OldDot.
  */
 function hasAccountingConnections(policy: OnyxEntry<Policy>) {
-    return !isEmptyObject(policy?.connections);
+    return !!getCurrentConnectionName(policy) || hasSupportedOnlyOnOldDotIntegration(policy);
 }
 
 function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pick<Policy, 'employeeList'>>, currentPolicyID?: string, currentUserAccountID?: number) {
@@ -1280,8 +1276,12 @@ function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration
     return (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled) ?? false;
 }
 
-function hasUnsupportedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
-    return !(accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).some((integration) => !!policy?.connections?.[integration]);
+function hasUnsupportedIntegration(policy: Policy | undefined) {
+    return Object.values(CONST.POLICY.CONNECTIONS.UNSUPPORTED_NAMES).some((integration) => !!(policy?.connections as Record<string, unknown>)?.[integration]);
+}
+
+function hasSupportedOnlyOnOldDotIntegration(policy: Policy | undefined) {
+    return Object.values(CONST.POLICY.CONNECTIONS.SUPPORTED_ONLY_ON_OLDDOT).some((integration) => !!(policy?.connections as Record<string, unknown>)?.[integration]);
 }
 
 function getCurrentConnectionName(policy: Policy | undefined): string | undefined {
@@ -1352,12 +1352,6 @@ function getDomainNameForPolicy(policyID?: string): string {
 
 function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
-}
-
-function getActivePolicy(): OnyxEntry<Policy> {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
-    return getPolicy(activePolicyId);
 }
 
 function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY.TYPE>) {
@@ -1509,6 +1503,9 @@ function isCurrentUserMemberOfAnyPolicy(): boolean {
     return Object.values(allPolicies ?? {}).some((policy) => policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE);
 }
 
+/**
+ * Whether the given policy member is an admin of the given policy
+ */
 function isMemberPolicyAdmin(policy: OnyxEntry<Policy>, memberEmail: string | undefined): boolean {
     if (!policy || !memberEmail) {
         return false;
@@ -1645,9 +1642,9 @@ export {
     getTagApproverRule,
     getDomainNameForPolicy,
     hasUnsupportedIntegration,
+    hasSupportedOnlyOnOldDotIntegration,
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
-    getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
     hasOtherControlWorkspaces,
