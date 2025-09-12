@@ -40,7 +40,8 @@ const useRestartOnReceiptFailure = (transaction: OnyxEntry<Transaction>, reportI
                 return;
             }
 
-            removeDraftTransactions(true).then(() => navigateToStartMoneyRequestStep(requestType, iouType, transaction.transactionID, reportID));
+            removeDraftTransactions(true);
+            navigateToStartMoneyRequestStep(requestType, iouType, transaction.transactionID, reportID);
         });
 
         // We want this hook to run on mounting only
