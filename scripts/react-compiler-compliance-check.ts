@@ -29,7 +29,11 @@ const REACT_COMPILER_CONFIG = JSON.parse(readFileSync(join(process.cwd(), REACT_
  */
 function shouldProcessFile(filePath: string): boolean {
     // Check if file is in any excluded folder
-    return !REACT_COMPILER_CONFIG.excludedFolderPatterns.some((pattern) => filePath.includes(pattern));
+    return (
+        filePath.length > 0 &&
+        !REACT_COMPILER_CONFIG.excludedFolderPatterns.some((pattern) => filePath.includes(pattern)) &&
+        REACT_COMPILER_CONFIG.checkedFileEndings.some((ending) => filePath.endsWith(ending))
+    );
 }
 
 type CompilerResults = {
@@ -262,14 +266,7 @@ function getFailedFileNames(failures: CompilerFailure[], filesToCheck?: string[]
 }
 
 function printSummary({success, failure: failures}: DetailedCompilerResults, failedFileNames: string[]): void {
-    // Only show successful files that are in the failedFileNames list (i.e., files that were checked)
-    const relevantSuccessFiles = success.filter((file) => failedFileNames.includes(file));
-
-    if (relevantSuccessFiles.length > 0) {
-        logSuccess(`Successfully compiled ${relevantSuccessFiles.length} files with React Compiler:`);
-        relevantSuccessFiles.forEach((file) => bold(file));
-        log('\n');
-    }
+    logSuccess(`Successfully compiled ${success.length} files with React Compiler:`);
 
     logError(`Failed to compile ${failedFileNames.length} files with React Compiler:`);
     failedFileNames.forEach((file) => bold(file));
@@ -348,12 +345,7 @@ function getChangedFiles(): string[] {
         const output = execSync(`git diff --name-only --diff-filter=AMR ${remote}/main...HEAD`, {
             encoding: 'utf8',
         });
-        return output
-            .trim()
-            .split('\n')
-            .filter((file) => file.length > 0)
-            .filter((file) => REACT_COMPILER_CONFIG.checkedFileEndings.some((ending) => file.endsWith(ending)))
-            .filter((file) => shouldProcessFile(file));
+        return output.trim().split('\n').filter(shouldProcessFile);
     } catch (error) {
         warn('Could not determine changed files:', error);
         return [];
@@ -367,12 +359,7 @@ function getNewFiles(): string[] {
         const output = execSync(`git diff --name-only --diff-filter=A ${remote}/main...HEAD`, {
             encoding: 'utf8',
         });
-        return output
-            .trim()
-            .split('\n')
-            .filter((file) => file.length > 0)
-            .filter((file) => REACT_COMPILER_CONFIG.checkedFileEndings.some((ending) => file.endsWith(ending)))
-            .filter((file) => shouldProcessFile(file));
+        return output.trim().split('\n').filter(shouldProcessFile);
     } catch (error) {
         warn('Could not determine new files:', error);
         return [];
@@ -453,5 +440,3 @@ if (require.main === module) {
 }
 
 export default Checker;
-export {shouldProcessFile, REACT_COMPILER_CONFIG};
-export type {ReactCompilerConfig};
