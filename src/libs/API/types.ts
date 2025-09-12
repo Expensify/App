@@ -506,6 +506,7 @@ const WRITE_COMMANDS = {
     IMPORT_PLAID_ACCOUNTS: 'ImportPlaidAccounts',
     ASSIGN_REPORT_TO_ME: 'AssignReportToMe',
     ADD_REPORT_APPROVER: 'AddReportApprover',
+    REQUEST_UNLOCK_ACCOUNT: 'RequestUnlockAccount',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -1031,6 +1032,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST]: null;
     [WRITE_COMMANDS.ASSIGN_REPORT_TO_ME]: Parameters.AssignReportToMeParams;
     [WRITE_COMMANDS.ADD_REPORT_APPROVER]: Parameters.AddReportApproverParams;
+    [WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT]: Parameters.LockAccountParams;
 };
 
 const READ_COMMANDS = {
@@ -1107,7 +1109,6 @@ const READ_COMMANDS = {
     OPEN_UNREPORTED_EXPENSES_PAGE: 'OpenUnreportedExpensesPage',
     GET_GUIDE_CALL_AVAILABILITY_SCHEDULE: 'GetGuideCallAvailabilitySchedule',
     GET_TRANSACTIONS_FOR_MERGING: 'GetTransactionsForMerging',
-    REQUEST_UNLOCK_ACCOUNT: 'RequestUnlockAccount',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;

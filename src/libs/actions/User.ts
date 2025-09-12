@@ -1464,7 +1464,7 @@ function requestUnlockAccount() {
         accountID: currentUserAccountID,
     };
 
-    API.read(READ_COMMANDS.REQUEST_UNLOCK_ACCOUNT, params);
+    API.write(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, params);
 }
 
 export {
