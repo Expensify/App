@@ -296,6 +296,9 @@ function applyFunctions(value: string, functions: string[]): string {
             case 'domain':
                 result = getDomainName(result);
                 break;
+            case 'leftpad':
+                result = getLeftPadded(result, args);
+                break;
             default:
                 // Unknown function, leave value as is
                 break;
@@ -349,7 +352,36 @@ function getSubstring(value: string, args: string[]): string {
 }
 
 /**
- * Format a date value with support for multiple date formats
+ * Left pad a value with a character to a specific length
+ */
+function getLeftPadded(value: string, args: string[]): string {
+    const padChar = args.at(0) ?? ' ';
+    const targetLength = parseInt(args.at(1) ?? '', 10) || value.length;
+    
+    return value.padStart(targetLength, padChar);
+}
+
+/**
+ * Get ordinal suffix for a day (st, nd, rd, th)
+ */
+function getOrdinalSuffix(day: number): string {
+    if (day >= 11 && day <= 13) {
+        return 'th';
+    }
+    switch (day % 10) {
+        case 1:
+            return 'st';
+        case 2:
+            return 'nd';
+        case 3:
+            return 'rd';
+        default:
+            return 'th';
+    }
+}
+
+/**
+ * Format a date value with comprehensive token-based date format support
  */
 function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): string {
     if (!dateString) {
@@ -368,29 +400,81 @@ function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): stri
         const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
         const shortMonthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-        switch (format) {
-            case 'M/dd/yyyy':
-                return `${month}/${day.toString().padStart(2, '0')}/${year}`;
-            case 'MMMM dd, yyyy':
-                return `${monthNames.at(month - 1)} ${day.toString().padStart(2, '0')}, ${year}`;
-            case 'dd MMM yyyy':
-                return `${day.toString().padStart(2, '0')} ${shortMonthNames.at(month - 1)} ${year}`;
-            case 'yyyy/MM/dd':
-                return `${year}/${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`;
-            case 'MMMM, yyyy':
-                return `${monthNames.at(month - 1)}, ${year}`;
-            case 'yy/MM/dd':
-                return `${year.toString().slice(-2)}/${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`;
-            case 'dd/MM/yy':
-                return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year.toString().slice(-2)}`;
-            case 'yyyy':
-                return year.toString();
-            case 'MM/dd/yyyy':
-                return `${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}/${year}`;
-            case 'yyyy-MM-dd':
-            default:
-                return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+        // Use a two-phase placeholder system to prevent token conflicts
+        let result = format;
+        
+        // Get time values for time formatting
+        const hours = date.getHours();
+        const minutes = date.getMinutes();
+        const seconds = date.getSeconds();
+        const hours12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+        const ampm = hours >= 12 ? 'pm' : 'am';
+        const AMPM = hours >= 12 ? 'PM' : 'AM';
+        
+        // Phase 1: Replace tokens with unique placeholders
+        const tokens = [
+            // Special combinations first
+            { token: 'jS', value: `${day}${getOrdinalSuffix(day)}` },
+            
+            // Year formats (longest to shortest)
+            { token: 'yyyy', value: year.toString() },
+            { token: 'YYYY', value: year.toString() },
+            { token: 'yy', value: year.toString().slice(-2) },
+            { token: 'Y', value: year.toString() },
+            { token: 'y', value: year.toString().slice(-2) },
+            
+            // Month formats (longest to shortest)
+            { token: 'MMMM', value: monthNames.at(month - 1) ?? '' },
+            { token: 'MMM', value: shortMonthNames.at(month - 1) ?? '' },
+            { token: 'MM', value: month.toString().padStart(2, '0') },
+            { token: 'M', value: month.toString() },
+            { token: 'F', value: monthNames.at(month - 1) ?? '' },
+            { token: 'n', value: month.toString() },
+            
+            // Day formats (longest to shortest) 
+            { token: 'dd', value: day.toString().padStart(2, '0') },
+            { token: 'd', value: day.toString().padStart(2, '0') },
+            { token: 'j', value: day.toString() },
+            { token: 'S', value: getOrdinalSuffix(day) },
+            
+            // Time formats (longest to shortest)
+            { token: 'tt', value: AMPM },
+            { token: 'hh', value: hours12.toString().padStart(2, '0') },
+            { token: 'HH', value: hours.toString().padStart(2, '0') },
+            { token: 'mm', value: minutes.toString().padStart(2, '0') },
+            { token: 'ss', value: seconds.toString().padStart(2, '0') },
+            { token: 'H', value: hours.toString() },
+            { token: 'h', value: hours12.toString() },
+            { token: 'G', value: hours.toString() },
+            { token: 'g', value: hours12.toString() },
+            { token: 'i', value: minutes.toString().padStart(2, '0') },
+            { token: 's', value: seconds.toString().padStart(2, '0') },
+            { token: 'A', value: AMPM },
+            { token: 'a', value: ampm },
+        ];
+        
+        // Sort tokens by length (longest first)
+        tokens.sort((a, b) => b.token.length - a.token.length);
+        
+        // Phase 1: Replace tokens with unique placeholders (using only digits and special chars)
+        const placeholderMap: Record<string, string> = {};
+        for (let i = 0; i < tokens.length; i++) {
+            const { token, value } = tokens[i];
+            const placeholder = `###${i.toString().padStart(3, '0')}###`;
+            const regex = new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+            
+            if (result.includes(token)) {
+                result = result.replace(regex, placeholder);
+                placeholderMap[placeholder] = value;
+            }
         }
+        
+        // Phase 2: Replace placeholders with actual values
+        for (const [placeholder, value] of Object.entries(placeholderMap)) {
+            result = result.replace(new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), value);
+        }
+        
+        return result;
     } catch {
         return '';
     }

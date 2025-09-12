@@ -357,4 +357,138 @@ describe('CustomFormula', () => {
             expect(result).toBe('2025-01-12');
         });
     });
+
+    describe('leftpad function', () => {
+        const mockContextForFunctions: FormulaContext = {
+            report: {
+                reportID: '123',
+                reportName: '',
+                type: 'expense',
+                total: -10000, // -$100.00
+                currency: 'USD',
+                lastVisibleActionCreated: '2025-01-15T10:30:00Z',
+                policyID: 'policy1',
+            } as Report,
+            policy: {
+                name: 'Test Policy',
+            } as Policy,
+        };
+
+        test('should left pad with spaces by default', () => {
+            const result = compute('{report:type|leftpad: :15}', mockContextForFunctions);
+            expect(result).toBe(' Expense Report'); // 1 space + "Expense Report" (14 chars) = 15 chars
+        });
+
+        test('should left pad with specified character', () => {
+            const result = compute('{report:type|leftpad:0:20}', mockContextForFunctions);
+            expect(result).toBe('000000Expense Report'); // 6 zeros + "Expense Report" (14 chars) = 20 chars
+        });
+
+        test('should not pad if string is already long enough', () => {
+            const result = compute('{report:type|leftpad:0:5}', mockContextForFunctions);
+            expect(result).toBe('Expense Report'); // Original string (14 chars) is longer than 5
+        });
+
+        test('should handle single character padding', () => {
+            const result = compute('{report:type|leftpad:X:16}', mockContextForFunctions);
+            expect(result).toBe('XXExpense Report'); // 2 X's + "Expense Report" (14 chars) = 16 chars
+        });
+    });
+
+    describe('Advanced Date Formatting', () => {
+        const testDate = '2025-01-08T15:30:45.123Z'; // Wednesday, January 8, 2025, 3:30:45.123 PM UTC
+        const mockContextWithDate: FormulaContext = {
+            report: {reportID: '123'} as Report,
+            policy: null as unknown as Policy,
+        };
+
+        beforeEach(() => {
+            const mockTransaction = {
+                transactionID: 'trans1',
+                created: testDate,
+                amount: -5000,
+                merchant: 'Test Store',
+            } as Transaction;
+            mockReportUtils.getReportTransactions.mockReturnValue([mockTransaction]);
+
+            const mockReportAction = {
+                created: testDate,
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            } as unknown as ReportActions[string];
+            mockReportActionsUtils.getAllReportActions.mockReturnValue({'action1': mockReportAction});
+        });
+
+        describe('Year Formats', () => {
+            test('should format year as 4-digit (yyyy)', () => {
+                const result = compute('{report:startdate:yyyy}', mockContextWithDate);
+                expect(result).toBe('2025');
+            });
+
+            test('should format year as 2-digit (yy)', () => {
+                const result = compute('{report:startdate:yy}', mockContextWithDate);
+                expect(result).toBe('25');
+            });
+
+            test('should format year as 4-digit alternative (Y)', () => {
+                const result = compute('{report:startdate:Y}', mockContextWithDate);
+                expect(result).toBe('2025');
+            });
+        });
+
+        describe('Month Formats', () => {
+            test('should format full month name (MMMM)', () => {
+                const result = compute('{report:startdate:MMMM}', mockContextWithDate);
+                expect(result).toBe('January');
+            });
+
+            test('should format short month name (MMM)', () => {
+                const result = compute('{report:startdate:MMM}', mockContextWithDate);
+                expect(result).toBe('Jan');
+            });
+
+            test('should format month with leading zero (MM)', () => {
+                const result = compute('{report:startdate:MM}', mockContextWithDate);
+                expect(result).toBe('01');
+            });
+
+            test('should format month without leading zero (M)', () => {
+                const result = compute('{report:startdate:M}', mockContextWithDate);
+                expect(result).toBe('1');
+            });
+        });
+
+        describe('Day Formats', () => {
+            test('should format day with leading zero (dd)', () => {
+                const result = compute('{report:startdate:dd}', mockContextWithDate);
+                expect(result).toBe('08');
+            });
+
+            test('should format day without leading zero (j)', () => {
+                const result = compute('{report:startdate:j}', mockContextWithDate);
+                expect(result).toBe('8');
+            });
+
+            test('should format ordinal suffix (S)', () => {
+                const result = compute('{report:startdate:S}', mockContextWithDate);
+                expect(result).toBe('th');
+            });
+        });
+
+        describe('Complex Format Strings', () => {
+            test('should handle multiple format tokens (MMMM dd, yyyy)', () => {
+                const result = compute('{report:startdate:MMMM dd, yyyy}', mockContextWithDate);
+                expect(result).toBe('January 08, 2025');
+            });
+
+            test('should handle dd MMM yyyy format', () => {
+                const result = compute('{report:startdate:dd MMM yyyy}', mockContextWithDate);
+                expect(result).toBe('08 Jan 2025');
+            });
+
+            test('should handle ordinal suffix combinations (jS)', () => {
+                const result = compute('{report:startdate:jS}', mockContextWithDate);
+                expect(result).toBe('8th');
+            });
+        });
+    });
 });
