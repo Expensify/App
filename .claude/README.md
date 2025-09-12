@@ -21,7 +21,7 @@ A small, repo-scoped setup for running **agents** (code review, triage, docs che
    * `claude_args`: `--allowedTools <comma-separated list>`
 3. The command loads the agent(s). They only get the tools you allow.
 
-## Add an agent (example: code review)
+## Add an agent
 
 1. Create `.claude/agents/<agent>.md`:
 
@@ -48,14 +48,19 @@ A small, repo-scoped setup for running **agents** (code review, triage, docs che
 
    Keep the tool list minimal.
 
-### Commenting back (one-liner)
 
-If an agent needs to write on a PR/issue, use `gh` via **Bash**, e.g.:
-`gh pr comment "$PR_NUMBER" --body "…"`
+If an agent needs to write on a PR/issue, you can use `gh` or github MCP.
+
+## GH cli
+
+You can use `gh` via **Bash**, e.g.:
+`Bash(gh pr comment "$PR_NUMBER" --body "…")`
 
 ## MCP tools
 
-You can attach **MCP** servers so agents can call extra tools. Tool names follow: **`mcp__<server>__<tool>`**.
+You can attach **MCP** servers so agents can call extra tools. Your agent prompt then needs to instruct when to call a tool.
+
+Tool names follow: **`mcp__<server>__<tool>`**.
 
 * Examples:
   `mcp__filesystem__read_file`
@@ -66,12 +71,12 @@ Add them to the same allowlist you pass to the action:
 
 ```yml
 claude_args: |
-  --allowedTools "Read,Glob,Grep,Edit,Write,Bash(gh pr comment:*),mcp__filesystem__read_file,mcp__github__list_issues,mcp__github__get_pull_request"
+  --allowedTools "mcp__filesystem__read_file,mcp__github__list_issues,mcp__github__get_pull_request"
 ```
 
-MCP docs (setup, naming, server wiring): [https://docs.anthropic.com/en/docs/claude-code/mcp](https://docs.anthropic.com/en/docs/claude-code/mcp)
+MCP docs (naming): [https://docs.anthropic.com/en/docs/claude-code/mcp](https://docs.anthropic.com/en/docs/claude-code/mcp)
 
-## Common tools
+## Common tools for claude code
 
 * **Read** – read files
 * **Write** – create files
