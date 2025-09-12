@@ -11,7 +11,7 @@ import {getReportNameValuePairs, getTitleReportField, isChatReport} from './Repo
  */
 function getTitleFieldFromRNVP(reportID: string) {
     const reportNameValuePairs = getReportNameValuePairs(reportID);
-    return reportNameValuePairs?.[CONST.REPORT_FIELD_TITLE_FIELD_ID];
+    return reportNameValuePairs?.[CONST.REPORT.REPORT_TITLE_FIELD];
 }
 
 /**
@@ -37,7 +37,7 @@ function updateTitleFieldToMatchPolicy(reportID: string, policy?: Policy): OnyxU
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
             value: {
-                [CONST.REPORT_FIELD_TITLE_FIELD_ID]: policyTitleField,
+                [CONST.REPORT.REPORT_TITLE_FIELD]: policyTitleField,
             },
         },
     ];
@@ -51,7 +51,7 @@ function updateTitleFieldWithExactValue(reportID: string, policyTitleField: stri
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
             value: {
-                [CONST.REPORT_FIELD_TITLE_FIELD_ID]: policyTitleField,
+                [CONST.REPORT.REPORT_TITLE_FIELD]: policyTitleField,
             },
         },
     ];
@@ -73,7 +73,7 @@ function removeTitleFieldFromReport(reportID: string): OnyxUpdate[] {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
             value: {
-                [CONST.REPORT_FIELD_TITLE_FIELD_ID]: null,
+                [CONST.REPORT.REPORT_TITLE_FIELD]: null,
             },
         },
     ];

@@ -158,7 +158,7 @@ function getReportsForNameComputation(policyID: string, allReports: Record<strin
  */
 function getTitleFieldFromRNVP(reportID: string, context: UpdateContext, workingUpdates: Record<string, any>) {
     const reportNameValuePairs = getCachedReportNameValuePairsByID(reportID, context, workingUpdates);
-    return reportNameValuePairs?.[CONST.REPORT_FIELD_TITLE_FIELD_ID];
+    return reportNameValuePairs?.[CONST.REPORT.REPORT_TITLE_FIELD];
 }
 
 /**
