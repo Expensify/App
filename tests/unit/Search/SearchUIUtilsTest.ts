@@ -2028,7 +2028,7 @@ describe('SearchUIUtils', () => {
                 const manualPolicyForAdmin = {
                     ...basePolicyForAdmin,
                     autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-                    havesting: {
+                    harvesting: {
                         enabled: false,
                     },
                 };
@@ -2036,7 +2036,7 @@ describe('SearchUIUtils', () => {
                 const manualPolicyForUser = {
                     ...basePolicyForUser,
                     autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-                    havesting: {
+                    harvesting: {
                         enabled: false,
                     },
                 };

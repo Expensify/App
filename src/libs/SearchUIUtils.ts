@@ -274,6 +274,8 @@ type SearchTypeMenuItem = {
     };
 };
 
+type SearchDateModifierLower = Lowercase<SearchDateModifier>;
+
 type SearchDateModifier = ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>;
 
 type ArchivedReportsIDSet = ReadonlySet<string>;
@@ -2386,4 +2388,4 @@ export {
     getHasOptions,
 };
 
-export type {SearchKey};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
