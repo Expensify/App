@@ -19,7 +19,7 @@ A small, repo-scoped setup for running **agents** (code review, triage, docs che
 
    * `prompt`: `/command-name REPO:… [ISSUE_NUMBER:… | PR_NUMBER:…]`
    * `claude_args`: `--allowedTools <comma-separated list>`
-3. The command loads the agent(s) and they only get the tools you allow.
+3. The command loads the agent(s). They only get the tools you allow.
 
 ## Add an agent (example: code review)
 
@@ -33,38 +33,43 @@ A small, repo-scoped setup for running **agents** (code review, triage, docs che
    model: inherit
    ---
    # <Agent Name>
-   <!-- short rubric: what to look for / how to respond -->
+   <!-- prompt: what to do and how to do -->
    ```
 2. Create `.claude/commands/<command>.md` describing which agent(s) to run and where to post results.
 3. Wire it up in a workflow:
 
    ```yml
-   with:
-     prompt: "/<command> REPO:${{ github.repository }} PR_NUMBER:${{ github.event.pull_request.number }}"
-     claude_args: |
-       --allowedTools "Read,Glob,Grep,Edit,Write,Bash(gh pr view:*;gh pr comment:*;gh issue comment:*)"
+   - uses: anthropics/claude-code-action@<version-or-sha>
+     with:
+       prompt: "/<command> REPO:${{ github.repository }} PR_NUMBER:${{ github.event.pull_request.number }}"
+       claude_args: |
+         --allowedTools "Read,Glob,Grep,Edit,Write,Bash(gh pr view:*;gh pr comment:*;gh issue comment:*)"
    ```
 
    Keep the tool list minimal.
 
-## Posting comments (issues & PRs, no MCP)
+### Commenting back (one-liner)
 
-Use `gh` via **Bash**:
+If an agent needs to write on a PR/issue, use `gh` via **Bash**, e.g.:
+`gh pr comment "$PR_NUMBER" --body "…"`
 
-* Issue comment: `gh issue comment <num> --body "<text>"`
-* PR summary comment: `gh pr comment <num> --body "<text>"`
-* PR review: `gh pr review <num> --comment --body "<text>"`
-* PR inline comment (file/line):
+## MCP tools
 
-  ```
-  gh api repos/:owner/:repo/pulls/:number/comments \
-    -f path=path/to/file \
-    -f line=123 \
-    -f body="your text" \
-    -f side=RIGHT
-  ```
+You can attach **MCP** servers so agents can call extra tools. Tool names follow: **`mcp__<server>__<tool>`**.
 
-Make sure `GITHUB_TOKEN` and `gh` are available in the job, and that your `Bash(...)` patterns are allowed.
+* Examples:
+  `mcp__filesystem__read_file`
+  `mcp__github__list_issues`
+  `mcp__github__get_pull_request`
+
+Add them to the same allowlist you pass to the action:
+
+```yml
+claude_args: |
+  --allowedTools "Read,Glob,Grep,Edit,Write,Bash(gh pr comment:*),mcp__filesystem__read_file,mcp__github__list_issues,mcp__github__get_pull_request"
+```
+
+MCP docs (setup, naming, server wiring): [https://docs.anthropic.com/en/docs/claude-code/mcp](https://docs.anthropic.com/en/docs/claude-code/mcp)
 
 ## Common tools
 
@@ -76,4 +81,4 @@ Make sure `GITHUB_TOKEN` and `gh` are available in the job, and that your `Bash(
 * **Bash** – run shell/CLIs (e.g., `gh`, linters)
 * **WebFetch / WebSearch** – fetch/search the web (optional)
 
-For full action options and tool behavior, see the [Claude Code GitHub Action docs](https://github.com/anthropics/claude-code-action).
+For action options and tool behavior, see the [Claude Code GitHub Action docs](https://github.com/anthropics/claude-code-action).
