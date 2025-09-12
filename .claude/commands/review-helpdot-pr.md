@@ -3,15 +3,21 @@ allowed-tools: Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)
 description: Review a HelpDot documentation pull request
 ---
 
-Perform a comprehensive HelpDot documentation review using subagents:
+Perform a comprehensive HelpDot documentation review using two specialized subagents:
 
-- helpdot-reviewer
+## Step 1: Inline Review
+Use the helpdot-inline-reviewer agent to:
+- Scan all changed documentation files
+- Create inline comments for specific HelpDot rule violations
+- Focus on line-specific, actionable feedback
 
-The helpdot-reviewer will analyze all changed files and provide comprehensive feedback on HelpDot documentation standards.
+## Step 2: Summary Review  
+Use the helpdot-summary-reviewer agent to:
+- Analyze the overall quality of all changes
+- Provide comprehensive assessment with scoring
+- Post one top-level PR comment with summary and recommendations
 
-Post inline comments for specific issues and one top-level summary comment with overall assessment.
-
-Be thorough in identifying violations of HelpDot rules while maintaining practical, actionable feedback.
+Run both agents and ensure their feedback is posted to the PR.
 
 <important>
 Keep feedback concise.
