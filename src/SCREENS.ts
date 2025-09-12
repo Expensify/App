@@ -81,6 +81,7 @@ const SCREENS = {
         ADVANCED_FILTERS_PURCHASE_AMOUNT_RHP: 'Search_Advanced_Filters_Purchase_Amount_RHP',
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
+        ADVANCED_FILTERS_GENERIC_RHP: 'Search_Advanced_Filters_Generic_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
         TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_RHP',
     },

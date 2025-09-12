@@ -9,12 +9,16 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFilterConfig} from '@libs/SearchFilters/filterConfigs';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SearchAdvancedFiltersParamList} from '@libs/Navigation/types';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+
+type SearchFiltersGenericPageRouteProp = RouteProp<SearchAdvancedFiltersParamList, typeof SCREENS.SEARCH.ADVANCED_FILTERS_GENERIC_RHP>;
 
 function SearchFiltersGenericPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const route = useRoute<RouteProp<{params: {filterKey?: string}}, 'params'>>();
+    const route = useRoute<SearchFiltersGenericPageRouteProp>();
     
     // Extract filter key from route params
     const filterKey = route.params?.filterKey;
