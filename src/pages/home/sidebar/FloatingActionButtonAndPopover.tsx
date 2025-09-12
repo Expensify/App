@@ -57,7 +57,7 @@ import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
-type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
+type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled' | 'autoReporting'>;
 
 type FloatingActionButtonAndPopoverProps = {
     /* Callback function when the menu is shown */
@@ -87,6 +87,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         avatarURL: policy.avatarURL,
         name: policy.name,
         areInvoicesEnabled: policy.areInvoicesEnabled,
+        autoReporting: policy.autoReporting,
     }) as PolicySelector;
 
 /**
@@ -147,7 +148,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         canBeMissing: true,
         selector: (policies) => Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login)),
     });
-
+    const personalPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL), [allPolicies]);
+    const shouldAutoReport = activePolicy?.autoReporting || personalPolicy?.autoReporting;
+    const reportID = useMemo(() => (shouldAutoReport ? generateReportID() : CONST.REPORT.UNREPORTED_REPORT_ID), [shouldAutoReport]);
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
     /**
@@ -224,9 +227,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             }
 
             // Start the scan flow directly
-            startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, allTransactionDrafts);
+            startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, allTransactionDrafts);
         });
-    }, [shouldRedirectToExpensifyClassic, allTransactionDrafts]);
+    }, [shouldRedirectToExpensifyClassic, allTransactionDrafts, reportID]);
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -307,20 +310,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                             setModalVisible(true);
                             return;
                         }
-                        startMoneyRequest(
-                            CONST.IOU.TYPE.CREATE,
-                            // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-                            // for all of the routes in the creation flow.
-                            generateReportID(),
-                            undefined,
-                            undefined,
-                            undefined,
-                            allTransactionDrafts,
-                        );
+                        startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, undefined, undefined, undefined, allTransactionDrafts);
                     }),
             },
         ];
-    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts]);
+    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts, reportID]);
 
     const quickActionMenuItems = useMemo(() => {
         // Define common properties in baseQuickAction
@@ -370,7 +364,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                         return;
                     }
 
-                    const quickActionReportID = policyChatForActivePolicy?.reportID || generateReportID();
+                    const quickActionReportID = policyChatForActivePolicy?.reportID || reportID;
                     startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, allTransactionDrafts);
                 });
             };
@@ -408,6 +402,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         isReportArchived,
         isManualDistanceTrackingEnabled,
         allTransactionDrafts,
+        reportID,
     ]);
 
     const isTravelEnabled = useMemo(() => {
@@ -443,13 +438,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   return;
                               }
                               // Start the flow to start tracking a distance request
-                              startDistanceRequest(
-                                  CONST.IOU.TYPE.CREATE,
-                                  // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-                                  // for all of the routes in the creation flow.
-                                  generateReportID(),
-                                  lastDistanceExpenseType,
-                              );
+                              startDistanceRequest(CONST.IOU.TYPE.CREATE, reportID, lastDistanceExpenseType);
                           });
                       },
                   },
@@ -520,16 +509,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   return;
                               }
 
-                              startMoneyRequest(
-                                  CONST.IOU.TYPE.INVOICE,
-                                  // When starting to create an invoice from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-                                  // for all of the routes in the creation flow.
-                                  generateReportID(),
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  allTransactionDrafts,
-                              );
+                              startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, undefined, undefined, undefined, allTransactionDrafts);
                           }),
                   },
               ]
