@@ -160,6 +160,7 @@ function BaseModal(
         shouldUseReanimatedModal = false,
         shouldDisableBottomSafeAreaPadding = false,
         shouldIgnoreBackHandlerDuringTransition = false,
+        forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -475,6 +476,7 @@ function BaseModal(
                             onLayout={onViewLayout}
                             style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelAnimatedStyle]}
                             ref={ref}
+                            fsClass={forwardedFSClass}
                         >
                             <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
                         </Animated.View>
