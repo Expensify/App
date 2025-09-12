@@ -131,6 +131,22 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         }
 
         hideInboxTooltip();
+        if (shouldUseNarrowLayout) {
+            Navigation.navigate(ROUTES.HOME);
+            return;
+        }
+
+        const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
+        const lastReportNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+        const lastReportNavigatorState = lastReportNavigator && lastReportNavigator.key ? getPreservedNavigatorState(lastReportNavigator?.key) : undefined;
+        const lastReportRoute = lastReportNavigatorState?.routes.findLast((route) => route.name === SCREENS.REPORT);
+
+        if (lastReportRoute) {
+            const {reportID} = lastReportRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+            return;
+        }
+
         Navigation.navigate(ROUTES.HOME);
     }, [hideInboxTooltip, selectedTab]);
 
