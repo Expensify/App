@@ -13,6 +13,7 @@ import type {TupleToUnion} from 'type-fest';
 import CLI from './utils/CLI';
 
 const REACT_COMPILER_CONFIG_FILENAME = 'react-compiler-config.json';
+const DEFAULT_REPORT_FILENAME = 'react-compiler-report.json';
 
 type ReactCompilerConfig = {
     excludedFolderPatterns: string[];
@@ -35,6 +36,11 @@ type CompilerResults = {
     failure: string[];
 };
 
+type DetailedCompilerResults = {
+    success: string[];
+    failure: CompilerFailure[];
+};
+
 type CompilerFailure = {
     file: string;
     line?: number;
@@ -42,43 +48,35 @@ type CompilerFailure = {
     reason: string;
 };
 
-type DetailedCompilerResults = {
-    success: string[];
-    failures: CompilerFailure[];
-};
+/** Commands */
 
-function runCheck(filesToCheck?: string[]) {
+function check(filesToCheck?: string[], shouldGenerateReport = false) {
     if (filesToCheck) {
         if (filesToCheck.length === 0) {
             console.log('✅ No React files changed, skipping check.');
             return true;
         }
 
-        console.log(`🔍 Running React Compiler check for ${filesToCheck.length} files...`);
+        console.log(`🔍 Running React Compiler check for ${filesToCheck.length} file(s)...`);
     } else {
         console.log('🔍 Running React Compiler check for all files...');
     }
 
-    const {failures} = runCompilerHealthcheck(true);
-
-    const failedFileNames = new Set<string>();
-    failures.forEach((failure) => {
-        const isFileToCheck = filesToCheck?.includes(failure.file) ?? true;
-        if (failedFileNames.has(failure.file) || !isFileToCheck) {
-            return;
-        }
-
-        failedFileNames.add(failure.file);
-    });
-
-    const isPassed = failedFileNames.size === 0;
+    const results = runCompilerHealthcheck(true);
+    const {failure: failures} = results;
+    const failedFileNames = getFailedFileNames(failures, filesToCheck);
+    const isPassed = failedFileNames.length === 0;
 
     if (isPassed) {
         console.log('✅ All changed files pass React Compiler compliance check!');
         return true;
     }
 
-    printFailureSummary(failures, Array.from(failedFileNames));
+    printSummary(results, failedFileNames);
+
+    if (shouldGenerateReport) {
+        generateReport(results, DEFAULT_REPORT_FILENAME);
+    }
 
     return false;
 }
@@ -90,69 +88,10 @@ function checkChangedFiles(): boolean {
     const newFiles = getNewFiles();
     const filesToCheck = [...new Set([...changedFiles, ...newFiles])];
 
-    return runCheck(filesToCheck);
+    return check(filesToCheck);
 }
 
-function checkSpecificFile(filePath: string): boolean {
-    console.log(`🔍 Checking ${filePath} for React Compiler compliance...`);
-
-    // Check if file should be processed by React Compiler
-    if (!shouldProcessFile(filePath)) {
-        console.log(`⚠️  ${filePath} is not processed by React Compiler (configured in ${REACT_COMPILER_CONFIG_FILENAME})`);
-        return true; // Return true since it's not expected to be compiled
-    }
-
-    const results = runCompilerHealthcheck(true);
-    const isPassed = results.success.includes(filePath);
-
-    if (isPassed) {
-        console.log(`✅ ${filePath} can be compiled by React Compiler`);
-        return true;
-    }
-
-    console.log(`❌ ${filePath} cannot be compiled by React Compiler`);
-    return false;
-}
-
-function getDetailedFailureInfo(filePath: string): CompilerFailure | null {
-    const results = runCompilerHealthcheck(true);
-    return results.failures.find((failure) => failure.file === filePath) ?? null;
-}
-
-function generateReport(): void {
-    const results = runCompilerHealthcheck(true);
-
-    console.log('\n📋 React Compiler Report:');
-
-    if (results.failures.length > 0) {
-        printFailureSummary(
-            results.failures,
-            results.failures.map((f) => f.file),
-        );
-    }
-
-    // Save detailed report
-    const reportFile = join(process.cwd(), 'react-compiler-report.json');
-    writeFileSync(
-        reportFile,
-        JSON.stringify(
-            {
-                timestamp: new Date().toISOString(),
-                summary: {
-                    total: results.success.length + results.failures.length,
-                    success: results.success.length,
-                    failure: results.failures.length,
-                },
-                success: results.success,
-                failures: results.failures,
-            },
-            null,
-            2,
-        ),
-    );
-
-    console.log(`\n📄 Detailed report saved to: ${reportFile}`);
-}
+/** Helper functions */
 
 function runCompilerHealthcheck(detailed: false, src?: string): CompilerResults;
 function runCompilerHealthcheck(detailed: true, src?: string): DetailedCompilerResults;
@@ -177,7 +116,7 @@ function runCompilerHealthcheck(detailed: boolean, src?: string): CompilerResult
 function parseCombinedOutput(output: string): DetailedCompilerResults {
     const lines = output.split('\n');
     const success: string[] = [];
-    const failures: CompilerFailure[] = [];
+    const failure = new Map<string, CompilerFailure>();
 
     // First, try to extract JSON from the output
     let jsonStart = -1;
@@ -223,17 +162,14 @@ function parseCombinedOutput(output: string): DetailedCompilerResults {
         // Parse failed compilation with file, location, and reason all on one line
         const failureWithReasonMatch = line.match(/Failed to compile ([^:]+):(\d+):(\d+)\. Reason: (.+)/);
         if (failureWithReasonMatch) {
-            // Save previous failure if exists
-            if (currentFailure) {
-                failures.push(currentFailure);
-            }
-
-            failures.push({
+            const newFailure = {
                 file: failureWithReasonMatch[1],
                 line: parseInt(failureWithReasonMatch[2], 10),
                 column: parseInt(failureWithReasonMatch[3], 10),
                 reason: failureWithReasonMatch[4],
-            });
+            };
+
+            failure.set(getUniqueFileKey(newFailure), newFailure);
             currentFailure = null;
             continue;
         }
@@ -243,7 +179,7 @@ function parseCombinedOutput(output: string): DetailedCompilerResults {
         if (failureMatch) {
             // Save previous failure if exists
             if (currentFailure) {
-                failures.push(currentFailure);
+                failure.set(getUniqueFileKey(currentFailure), currentFailure);
             }
 
             currentFailure = {
@@ -259,7 +195,7 @@ function parseCombinedOutput(output: string): DetailedCompilerResults {
         const reasonMatch = line.match(/Reason: (.+)/);
         if (reasonMatch && currentFailure) {
             currentFailure.reason = reasonMatch[1];
-            failures.push(currentFailure);
+            failure.set(getUniqueFileKey(currentFailure), currentFailure);
             currentFailure = null;
             continue;
         }
@@ -267,33 +203,45 @@ function parseCombinedOutput(output: string): DetailedCompilerResults {
 
     // Add any remaining failure
     if (currentFailure) {
-        failures.push(currentFailure);
+        failure.set(getUniqueFileKey(currentFailure), currentFailure);
     }
 
-    return {success, failures};
+    return {success, failure: Array.from(failure.values())};
 }
 
-function printFailureSummary(failures: CompilerFailure[], failedFileNames: string[]): void {
-    console.log(`❌ Failed to compile ${failedFileNames.length} files with React Compiler:`);
+function getUniqueFileKey(failure: CompilerFailure): string {
+    return `${failure.file}:${failure.line}:${failure.column}`;
+}
+
+function getFailedFileNames(failures: CompilerFailure[], filesToCheck?: string[]): string[] {
+    const failedFileNames = new Set<string>();
+    failures.forEach((failure) => {
+        const isFileToCheck = filesToCheck?.includes(failure.file) ?? true;
+        if (failedFileNames.has(failure.file) || !isFileToCheck) {
+            return;
+        }
+
+        failedFileNames.add(failure.file);
+    });
+
+    return Array.from(failedFileNames);
+}
+
+function printSummary({success, failure: failures}: DetailedCompilerResults, failedFileNames: string[]): void {
+    console.log(`✅ Successfully compiled ${success.length} files with React Compiler:`);
+    success.forEach((file) => console.log(`  - ${file}`));
+    console.log('\n\n');
+
+    console.log(`❌ Failed to compile ${failedFileNames.length} files with React Compiler:\n`);
     failedFileNames.forEach((file) => console.log(`  - ${file}`));
     console.log('\n\n');
 
     // Group failures by file and line to avoid duplicates
-    const uniqueFailures = new Map<string, CompilerFailure>();
-
-    failures
-        .filter((failure) => failedFileNames.includes(failure.file))
-        .forEach((failure) => {
-            const key = `${failure.file}:${failure.line}:${failure.column}`;
-            if (!uniqueFailures.has(key)) {
-                uniqueFailures.set(key, failure);
-            }
-        });
 
     // Print unique failures
-
+    console.log('\n\n');
     console.log(`📜 Detailed reasons for failures:`);
-    Array.from(uniqueFailures.values()).forEach((failure) => {
+    failures.forEach((failure) => {
         const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
         console.log(`  - ${failure.file}${location}`);
         if (failure.reason) {
@@ -303,6 +251,32 @@ function printFailureSummary(failures: CompilerFailure[], failedFileNames: strin
 
     console.log('\n\n');
     console.log(`❌ The files above failed to compile with React Compiler, probably because of Rules of React violations. Please fix the issues and run the check again.`);
+}
+
+function generateReport(results: DetailedCompilerResults, outputFileName = DEFAULT_REPORT_FILENAME): void {
+    console.log('\n📋 Creating React Compiler Compliance Check report:');
+
+    // Save detailed report
+    const reportFile = join(process.cwd(), outputFileName);
+    writeFileSync(
+        reportFile,
+        JSON.stringify(
+            {
+                timestamp: new Date().toISOString(),
+                summary: {
+                    total: results.success.length + results.failure.length,
+                    success: results.success.length,
+                    failure: results.failure.length,
+                },
+                success: results.success,
+                failures: results.failure,
+            },
+            null,
+            2,
+        ),
+    );
+
+    console.log(`\n📄 Detailed report saved to: ${reportFile}`);
 }
 
 function getMainBranchRemote(): string {
@@ -367,14 +341,11 @@ function getNewFiles(): string[] {
 }
 
 const Checker = {
-    runCheck,
+    check,
     checkChangedFiles,
-    checkSpecificFile,
-    getDetailedFailureInfo,
-    generateReport,
 };
 
-const CLI_COMMANDS = ['full-check', 'check-changed', 'check', 'report'] as const;
+const CLI_COMMANDS = ['check', 'check-changed'] as const;
 type CliCommand = TupleToUnion<typeof CLI_COMMANDS>;
 
 function isValidCliCommand(command: string): command is CliCommand {
@@ -404,44 +375,37 @@ function main() {
                 parse: (val) => val.split(',').map((f) => f.trim()),
             },
         },
+        flags: {
+            report: {
+                description: 'Generate a report of the results',
+                required: false,
+                default: false,
+            },
+        },
     });
 
     const {command} = cli.positionalArgs;
     const {files} = cli.namedArgs;
-    let isPassed = false;
+    const {report: shouldGenerateReport} = cli.flags;
 
+    let isPassed = false;
     try {
         switch (command) {
-            case 'full-check':
-                isPassed = Checker.runCheck();
-                process.exit(isPassed ? 0 : 1);
+            case 'check':
+                isPassed = Checker.check(files, shouldGenerateReport);
                 break;
-
             case 'check-changed':
                 isPassed = Checker.checkChangedFiles();
-                process.exit(isPassed ? 0 : 1);
                 break;
-
-            case 'check':
-                if (!files || files.length === 0) {
-                    console.error('❌ Please provide file path(s): npm run react-compiler-compliance-checker check --files <path1,path2,...>');
-                    process.exit(1);
-                }
-                isPassed = runCheck(files);
-                process.exit(isPassed ? 0 : 1);
-                break;
-
-            case 'report':
-                Checker.generateReport();
-                break;
-
             default:
                 console.error(`❌ Unknown command: ${String(command)}`);
-                process.exit(1);
+                isPassed = false;
         }
     } catch (error) {
         console.error('❌ Error:', error);
-        process.exit(1);
+        isPassed = false;
+    } finally {
+        process.exit(isPassed ? 0 : 1);
     }
 }
 
