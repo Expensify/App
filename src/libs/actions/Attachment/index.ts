@@ -1,11 +1,9 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import CacheAPI from '@libs/CacheAPI';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Attachment} from '@src/types/onyx';
 import type {CacheAttachmentProps, GetCachedAttachmentProps} from './types';
 
 function cacheAttachment({attachmentID, uri}: CacheAttachmentProps) {
