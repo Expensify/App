@@ -70,7 +70,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getCorrectedAutoReportingFrequency, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
+import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
 import {
     getOriginalMessage,
     getReportActionHtml,
@@ -91,8 +91,6 @@ import {
     hasAnyViolations,
     hasInvoiceReports,
     hasOnlyHeldExpenses,
-    hasReportBeenReopened,
-    hasReportBeenRetracted,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
@@ -106,7 +104,6 @@ import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearc
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
-    allHavePendingRTERViolation,
     getCategory,
     getDescription,
     getTag,
@@ -114,7 +111,6 @@ import {
     getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
-    hasAnyTransactionWithoutRTERViolation,
     isPendingCardOrScanningTransaction,
     isScanning,
     isUnreportedAndHasInvalidDistanceRateTransaction,
@@ -777,13 +773,15 @@ function isTransactionTaxAmountTooLong(transactionItem: TransactionListItemType 
  * @returns True if the report can be submitted, false otherwise
  */
 function canSubmitReportInSearch(
+    currentUserAccountID: number | undefined,
     report: OnyxTypes.Report,
+    reportActions: OnyxTypes.ReportAction[],
     policy: OnyxTypes.Policy,
     transactions: SearchTransaction[],
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
     isReportArchived = false,
 ) {
-    return canSubmitReport(report, policy, transactions, transactionViolations, isReportArchived) && transactions.length === 1;
+    return canSubmitReport(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, report, reportActions, policy, transactions, transactionViolations, isReportArchived) && transactions.length === 1;
 }
 
 function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']): {
@@ -1230,7 +1228,10 @@ function getActions(
     }
 
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
-    if (canSubmitReportInSearch(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived) && isAllowedToApproveExpenseReport) {
+    if (
+        canSubmitReportInSearch(currentAccountID, report, reportActions, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived) &&
+        isAllowedToApproveExpenseReport
+    ) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 

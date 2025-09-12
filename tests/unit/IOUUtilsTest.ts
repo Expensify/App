@@ -10,7 +10,7 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
@@ -263,7 +263,6 @@ describe('hasRTERWithoutViolation', () => {
 
 describe('canSubmitReport', () => {
     test('Return true if report can be submitted', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
         const fakePolicy: Policy = {
             ...createRandomPolicy(6),
             ownerAccountID: currentUserAccountID,
@@ -315,13 +314,10 @@ describe('canSubmitReport', () => {
             ],
         };
 
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
+        expect(canSubmitReport(currentUserAccountID, expenseReport, [], fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
     });
 
     test('Return true if report can be submitted after being reopened', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
         const fakePolicy: Policy = {
             ...createRandomPolicy(6),
             ownerAccountID: currentUserAccountID,
@@ -341,12 +337,12 @@ describe('canSubmitReport', () => {
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         };
-
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+        
+        const expenseReportActions = {
             [expenseReport.reportID]: {
                 actionName: CONST.REPORT.ACTIONS.TYPE.REOPENED,
-            },
-        });
+            }
+        } as ReportActions;
 
         const transactionIDWithViolation = 1;
         const transactionIDWithoutViolation = 2;
@@ -379,13 +375,10 @@ describe('canSubmitReport', () => {
             ],
         };
 
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
+        expect(canSubmitReport(currentUserAccountID, expenseReport, expenseReportActions, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false)).toBe(true);
     });
 
     test('Return false if report can not be submitted', async () => {
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
         const fakePolicy: Policy = {
             ...createRandomPolicy(6),
             ownerAccountID: currentUserAccountID,
@@ -400,7 +393,7 @@ describe('canSubmitReport', () => {
             policyID: fakePolicy.id,
         };
 
-        expect(canSubmitReport(expenseReport, fakePolicy, [], undefined, false)).toBe(false);
+        expect(canSubmitReport(currentUserAccountID, expenseReport, [], fakePolicy, [], undefined, false)).toBe(false);
     });
 
     it('returns false if the report is archived', async () => {
@@ -425,7 +418,7 @@ describe('canSubmitReport', () => {
 
         // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-        expect(canSubmitReport(report, policy, [], undefined, isReportArchived.current)).toBe(false);
+        expect(canSubmitReport(currentUserAccountID, report, [], policy, [], undefined, isReportArchived.current)).toBe(false);
     });
 });
 
