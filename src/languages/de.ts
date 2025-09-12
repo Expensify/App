@@ -275,7 +275,6 @@ import type {
     UserIsAlreadyMemberParams,
     UserSplitParams,
     VacationDelegateParams,
-    ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsCustomRulesParams,
@@ -402,6 +401,7 @@ const translations = {
         contacts: 'Kontakte',
         recents: 'Zuletzt verwendet',
         close: 'Schließen',
+        comment: 'Kommentar',
         download: 'Herunterladen',
         downloading: 'Herunterladen',
         uploading: 'Hochladen',
@@ -494,6 +494,7 @@ const translations = {
         join: 'Beitreten',
         leave: 'Verlassen',
         decline: 'Ablehnen',
+        reject: 'Ablehnen',
         transferBalance: 'Guthaben übertragen',
         cantFindAddress: 'Können Sie Ihre Adresse nicht finden?',
         enterManually: 'Manuell eingeben',
@@ -1399,6 +1400,25 @@ const translations = {
         rates: 'Preise',
         submitsTo: ({name}: SubmitsToParams) => `Übermittelt an ${name}`,
         moveExpenses: () => ({one: 'Ausgabe verschieben', other: 'Ausgaben verschieben'}),
+        reject: {
+            educationalTitle: 'Solltest du halten oder ablehnen?',
+            educationalText: 'Wenn du noch nicht bereit bist, eine Ausgabe zu genehmigen oder zu bezahlen, kannst du sie halten oder ablehnen.',
+            holdExpenseTitle: 'Halte eine Ausgabe zurück, um vor der Genehmigung oder Zahlung weitere Details anzufordern.',
+            heldExpenseLeftBehindTitle: 'Zurückgehaltene Ausgaben bleiben zurück, wenn du einen gesamten Bericht genehmigst.',
+            rejectExpenseTitle: 'Lehne eine Ausgabe ab, die du nicht genehmigen oder bezahlen möchtest.',
+            reasonPageTitle: 'Ausgabe ablehnen',
+            reasonPageDescription1:
+                'Lehne eine Ausgabe ab, wenn du sie niemals genehmigen oder bezahlen möchtest. Andernfalls verwende "Halten", um die Ausgabe zu pausieren und nach mehr Kontext zu fragen.',
+            reasonPageDescription2: 'Wenn du die Ausgabe ablehnen willst, füge bitte einen Kommentar hinzu, um den Grund zu erklären:',
+            rejectReason: 'Ablehnungsgrund',
+            markAsResolved: 'Als gelöst markieren',
+            rejectedStatus:
+                'Diese Ausgabe wurde abgelehnt. Es wird darauf gewartet, dass du das Problem/die Probleme behebst und sie als gelöst markierst, um die Einreichung zu ermöglichen.',
+            reportActions: {
+                rejectedExpense: 'lehnte diese Ausgabe ab',
+                markedAsResolved: 'markierte den Ablehnungsgrund als gelöst',
+            },
+        },
         changeApprover: {
             title: 'Genehmiger ändern',
             subtitle: 'Wählen Sie eine Option, um den Genehmiger für diesen Bericht zu ändern.',
@@ -6595,8 +6615,7 @@ const translations = {
     },
     violations: {
         allTagLevelsRequired: 'Alle Tags erforderlich',
-        autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) =>
-            `${rejectedBy} hat diese Ausgabe mit dem Kommentar "${rejectReason}" abgelehnt.`,
+        autoReportedRejectedExpense: 'Diese Ausgabe wurde abgelehnt.',
         billableExpense: 'Abrechnungsfähig nicht mehr gültig',
         cashExpenseWithNoReceipt: ({formattedLimit}: ViolationsCashExpenseWithNoReceiptParams = {}) => `Beleg erforderlich${formattedLimit ? `über ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Kategorie nicht mehr gültig',
