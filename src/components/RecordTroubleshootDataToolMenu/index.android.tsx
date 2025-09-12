@@ -62,18 +62,6 @@ function RecordTroubleshootDataToolMenu() {
                                 size,
                             });
                         });
-                    })
-                    .catch(() => {
-                        // Fallback: try copying with RNFS (This is optional - Can let if failed if it is not accessible even for internal file)
-                        return RNFS.copyFile(path, accessibleZipPath).then(() => {
-                            return RNFetchBlob.fs.stat(accessibleZipPath).then(({size}) => {
-                                setFile({
-                                    path: accessibleZipPath,
-                                    newFileName: zipFileName,
-                                    size,
-                                });
-                            });
-                        });
                     });
             })
             .catch((error: unknown) => {
