@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import useEReceipt from '@hooks/useEReceipt';
 import useLocalize from '@hooks/useLocalize';
@@ -64,15 +64,16 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
     const primaryTextColorStyle = primaryColor ? StyleUtils.getColorStyle(primaryColor) : undefined;
     const titleTextColorStyle = titleColor ? StyleUtils.getColorStyle(titleColor) : undefined;
 
+    useEffect(() => {
+        if (isLoadedRef.current) {
+            return;
+        }
+        isLoadedRef.current = true;
+        onLoad?.();
+    }, [onLoad]);
+
     return (
         <View
-            onLayout={() => {
-                if (isLoadedRef.current) {
-                    return;
-                }
-                isLoadedRef.current = true;
-                onLoad?.();
-            }}
             style={[
                 styles.eReceiptContainer,
                 primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : undefined,

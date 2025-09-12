@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -48,15 +48,16 @@ function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isIn
         style,
     ];
 
+    useEffect(() => {
+        if (isLoadedRef.current) {
+            return;
+        }
+        isLoadedRef.current = true;
+        onLoad?.();
+    }, [onLoad]);
+
     return (
         <Wrapper
-            onLayout={() => {
-                if (isLoadedRef.current) {
-                    return;
-                }
-                isLoadedRef.current = true;
-                onLoad?.();
-            }}
             accessibilityRole="imagebutton"
             accessibilityLabel={translate('receipt.upload')}
             onPress={onPress}
