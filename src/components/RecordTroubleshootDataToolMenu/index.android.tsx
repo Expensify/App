@@ -44,13 +44,37 @@ function RecordTroubleshootDataToolMenu() {
                 });
             })
             .then((path: string) => {
-                return RNFetchBlob.fs.stat(path).then(({size}) => {
-                    setFile({
-                        path,
-                        newFileName: zipFileName,
-                        size,
+                // On Android API 29+, MediaStore returns content URIs that are not accessible for sharing
+                // Copy the file to an accessible location using the same approach as profile trace
+                const accessibleZipPath = `${RNFS.DownloadDirectoryPath}/${zipFileName}`;
+                const contentUri = path.startsWith('content://') ? path : `content://media${path}`;
+
+                return RNFetchBlob.fs
+                    .readFile(contentUri, 'base64')
+                    .then((data: string) => {
+                        return RNFetchBlob.fs.writeFile(accessibleZipPath, data, 'base64');
+                    })
+                    .then(() => {
+                        return RNFetchBlob.fs.stat(accessibleZipPath).then(({size}) => {
+                            setFile({
+                                path: accessibleZipPath,
+                                newFileName: zipFileName,
+                                size,
+                            });
+                        });
+                    })
+                    .catch(() => {
+                        // Fallback: try copying with RNFS (This is optional - Can let if failed if it is not accessible even for internal file)
+                        return RNFS.copyFile(path, accessibleZipPath).then(() => {
+                            return RNFetchBlob.fs.stat(accessibleZipPath).then(({size}) => {
+                                setFile({
+                                    path: accessibleZipPath,
+                                    newFileName: zipFileName,
+                                    size,
+                                });
+                            });
+                        });
                     });
-                });
             })
             .catch((error: unknown) => {
                 console.error('Failed to write ZIP file:', error);
