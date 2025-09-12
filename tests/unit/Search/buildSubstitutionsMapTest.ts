@@ -102,4 +102,14 @@ describe('buildSubstitutionsMap should return correct substitutions map', () => 
             'feed:American Express': '1234_oauth.americanexpressfdx.com 1001',
         });
     });
+
+    test('when query has a substitution for the current user', () => {
+        const userQuery = 'from:12345';
+
+        const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, cardListMock, cardFeedsMock, {}, 12345);
+
+        expect(result).toStrictEqual({  
+            'from:me': '12345',
+        });
+    });
 });
