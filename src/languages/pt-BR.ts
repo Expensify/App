@@ -93,6 +93,7 @@ import type {
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
+    DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
@@ -817,9 +818,6 @@ const translations = {
         goBackMessage: ({provider}: GoBackMessageParams) => `Não quer entrar com ${provider}?`,
         continueWithMyCurrentSession: 'Continuar com minha sessão atual',
         redirectToDesktopMessage: 'Vamos redirecioná-lo para o aplicativo de desktop assim que você terminar de fazer login.',
-        signInAgreementMessage: 'Ao fazer login, você concorda com o/a/as/os',
-        termsOfService: 'Termos de Serviço',
-        privacy: 'Privacidade',
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Continue fazendo login com single sign-on:',
@@ -2185,12 +2183,8 @@ const translations = {
         chooseThemeBelowOrSync: 'Escolha um tema abaixo ou sincronize com as configurações do seu dispositivo.',
     },
     termsOfUse: {
-        phrase1: 'Ao fazer login, você concorda com o/a/as/os',
-        phrase2: 'Termos de Serviço',
-        phrase3: 'e',
-        phrase4: 'Privacidade',
-        phrase5: `A transmissão de dinheiro é fornecida por ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) de acordo com seu`,
-        phrase6: 'licenças',
+        terms: `<muted-text-xs>Ao fazer o login, você concorda com os <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termos de Serviço</a> e <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidade</a>.</muted-text-xs>`,
+        license: `<muted-text-xs>A transmissão de dinheiro é fornecida pela ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) de acordo com suas <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenças</a>.</muted-text-xs>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Não recebeu um código mágico?',
@@ -4862,13 +4856,8 @@ const translations = {
             editTags: 'Editar tags',
             findTag: 'Find tag',
             subtitle: 'Tags adicionam maneiras mais detalhadas de classificar custos.',
-            dependentMultiLevelTagsSubtitle: {
-                phrase1: 'Você está usando',
-                phrase2: 'tags dependentes',
-                phrase3: '. Você pode',
-                phrase4: 'reimportar uma planilha',
-                phrase5: 'para atualizar suas tags.',
-            },
+            dependentMultiLevelTagsSubtitle: ({importSpreadsheetLink}: DependentMultiLevelTagsSubtitleParams) =>
+                `<muted-text>Você está usando <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tags dependentes</a>. Você pode <a href="${importSpreadsheetLink}">reimportar uma planilha</a> para atualizar suas tags.</muted-text>`,
             emptyTags: {
                 title: 'Você não criou nenhuma tag',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
@@ -6148,7 +6137,7 @@ const translations = {
             },
             status: 'Status',
             keyword: 'Palavra-chave',
-            hasKeywords: 'Tem palavras-chave',
+            keywords: 'Palavras-chave',
             currency: 'Moeda',
             link: 'Link',
             pinned: 'Fixado',
