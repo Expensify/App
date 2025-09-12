@@ -274,9 +274,9 @@ type SearchTypeMenuItem = {
     };
 };
 
-type SearchDateModifierLower = Lowercase<SearchDateModifier>;
-
 type SearchDateModifier = ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>;
+
+type SearchDateModifierLower = Lowercase<SearchDateModifier>;
 
 type ArchivedReportsIDSet = ReadonlySet<string>;
 
@@ -798,7 +798,7 @@ function canSubmitReportInSearch(
         !hasAllPendingRTERViolations &&
         hasTransactionWithoutRTERViolation &&
         !isReportArchived &&
-        transactions.length === 1; // Unlike `ReportUtils.canSumbitReport`, it will only return true when there is one transaction.
+        transactions.length === 1; // Unlike `ReportUtils.canSumbitReport`, it returns true when there is only one transaction.
 
     const hasBeenRetracted = hasReportBeenReopened(report, reportActions) || hasReportBeenRetracted(report, reportActions);
     if (baseCanSubmit && hasBeenRetracted) {
