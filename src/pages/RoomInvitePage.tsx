@@ -208,9 +208,9 @@ function RoomInvitePage({
         });
         if (reportID) {
             inviteToRoomAction(reportID, invitedEmailsToAccountIDs);
+            clearUserSearchPhrase();
+            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID, backTo));
         }
-        clearUserSearchPhrase();
-        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID ?? 0, backTo));
     }, [validate, selectedOptions, reportID, backTo]);
 
     const goBack = useCallback(() => {
