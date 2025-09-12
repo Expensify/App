@@ -47,4 +47,4 @@ function Footer<TItem extends ListItem>({footerContent, confirmButtonConfig, add
 }
 
 Footer.displayName = 'Footer';
-export default React.memo(Footer);
+export default React.memo(Footer) as typeof Footer;

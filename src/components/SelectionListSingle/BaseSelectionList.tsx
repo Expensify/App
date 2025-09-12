@@ -6,7 +6,6 @@ import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, use
 import type {TextInput as RNTextInput, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
-import ShowMoreButton from '@components/ShowMoreButton';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useDebounce from '@hooks/useDebounce';
@@ -16,10 +15,9 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Footer from './components/Footer';
-import SelectionListHeader from './components/ListHeader';
+import ListHeader from './components/ListHeader';
 import ListItemRenderer from './ListItem/ListItemRenderer';
-import type {ListItem} from './ListItem/types';
-import type {DataDetailsType, SelectionListProps} from './types';
+import type {ConfirmButtonOptions, DataDetailsType, ListItem, SelectionListProps} from './types';
 
 const ANIMATED_HIGHLIGHT_DURATION =
     CONST.ANIMATED_HIGHLIGHT_ENTRY_DELAY +
@@ -28,12 +26,6 @@ const ANIMATED_HIGHLIGHT_DURATION =
     CONST.ANIMATED_HIGHLIGHT_START_DURATION +
     CONST.ANIMATED_HIGHLIGHT_END_DELAY +
     CONST.ANIMATED_HIGHLIGHT_END_DURATION;
-
-const PAGE_SIZE = CONST.MAX_SELECTION_LIST_PAGE_LENGTH;
-
-function getStartingPage(index: number) {
-    return index >= 0 ? Math.ceil((index + 1) / PAGE_SIZE) : 1;
-}
 
 function BaseSelectionList<TItem extends ListItem>({
     data,
@@ -91,10 +83,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const initialFocusedIndex = useMemo(() => data.findIndex((i) => i.keyForList === initiallyFocusedItemKey), [data, initiallyFocusedItemKey]);
-    const [currentPage, setCurrentPage] = useState(() => getStartingPage(initialFocusedIndex));
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
-    const incrementPage = () => setCurrentPage((prev) => prev + 1);
-    const hasMoreDataToShow = data.length > PAGE_SIZE * currentPage;
 
     const isItemSelected = useCallback(
         (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
@@ -150,7 +139,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: data.findIndex((item) => item.keyForList === initiallyFocusedItemKey),
-        maxIndex: Math.min(data.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
+        maxIndex: data.length - 1,
         disabledIndexes: dataDetails.disabledArrowKeyIndexes,
         isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
@@ -251,8 +240,6 @@ function BaseSelectionList<TItem extends ListItem>({
         );
     };
 
-    const slicedData = useMemo(() => data.slice(0, PAGE_SIZE * currentPage), [data, currentPage]);
-
     const renderListEmptyContent = () => {
         if (showLoadingPlaceholder) {
             return <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
@@ -292,23 +279,6 @@ function BaseSelectionList<TItem extends ListItem>({
         clearTimeout(itemFocusTimeoutRef.current);
     }, []);
 
-    const ListFooterComponent = useMemo(() => {
-        if (listFooterContent) {
-            return listFooterContent;
-        }
-        if (hasMoreDataToShow) {
-            return (
-                <ShowMoreButton
-                    containerStyle={[styles.mt2, styles.mb5]}
-                    currentCount={PAGE_SIZE * currentPage}
-                    totalCount={data.length}
-                    onPress={incrementPage}
-                />
-            );
-        }
-        return null;
-    }, [listFooterContent, hasMoreDataToShow, styles.mt2, styles.mb5, currentPage, data.length]);
-
     const handleSelectAll = useCallback(() => {
         onSelectAll?.();
         if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
@@ -324,7 +294,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 renderListEmptyContent()
             ) : (
                 <>
-                    <SelectionListHeader
+                    <ListHeader
                         dataDetails={dataDetails}
                         aboveListHeaderMessage={aboveListHeaderMessage}
                         customListHeader={customListHeader}
@@ -333,11 +303,11 @@ function BaseSelectionList<TItem extends ListItem>({
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     />
                     <FlashList
-                        data={slicedData}
+                        data={data}
                         renderItem={renderItem}
                         ref={listRef}
                         keyExtractor={(item) => item.keyForList}
-                        ListFooterComponent={ListFooterComponent}
+                        ListFooterComponent={listFooterContent}
                         scrollEnabled={scrollEnabled}
                         indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
@@ -351,7 +321,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 </>
             )}
 
-            <Footer
+            <Footer<TItem>
                 footerContent={footerContent}
                 confirmButtonConfig={confirmButtonConfig}
                 addBottomSafeAreaPadding={addBottomSafeAreaPadding}
