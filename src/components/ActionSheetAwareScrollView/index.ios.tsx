@@ -12,7 +12,7 @@ type ActionSheetAwareScrollViewProps = PropsWithChildren<ScrollViewProps> & {
     /** Whether to add top spacing for sticky content in inverted list */
     shouldAddTopSpacing?: boolean;
     /** Data array passed from FlatList when used as renderScrollComponent */
-    data?: ReadonlyArray<any>;
+    data?: readonly unknown[];
 };
 
 const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScrollViewProps>(({style, children, shouldAddTopSpacing = false, data, ...rest}, ref) => {
@@ -45,7 +45,7 @@ const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScroll
         spacerRef.current?.measure((_x, _y, _width, height) => {
             DeviceEventEmitter.emit('invertedListHeaderHeight', height);
         });
-    }, [shouldAddTopSpacing, data?.length]);
+    }, [shouldAddTopSpacing, data?.length, spacerRef]);
 
     const topSpacingComponent = useMemo(() => {
         if (!shouldAddTopSpacing || !data || data.length <= 0) {
@@ -58,7 +58,7 @@ const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScroll
                 style={styles.flex1}
             />
         );
-    }, [shouldAddTopSpacing, data]);
+    }, [shouldAddTopSpacing, data, spacerRef, styles.flex1]);
 
     return (
         <Reanimated.ScrollView
@@ -92,9 +92,9 @@ function renderScrollComponent(props: ScrollViewProps) {
  * @returns - ActionSheetAwareScrollView with top spacing for sticky content
  */
 const renderScrollComponentWithTopSpacing = (props: ScrollViewProps) => {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return (
         <ActionSheetAwareScrollView
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             shouldAddTopSpacing
         />

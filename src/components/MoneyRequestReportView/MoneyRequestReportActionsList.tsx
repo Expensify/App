@@ -3,7 +3,7 @@ import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/Vir
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponentWithTopSpacing} from '@components/ActionSheetAwareScrollView';
@@ -635,10 +635,10 @@ function MoneyRequestReportActionsList({
                 />
             </>
         ),
-        [report, policy, transactions, newTransactions, reportActions, reportHasComments, showReportActionsLoadingState, scrollToNewTransaction],
+        [report, policy, transactions, newTransactions, reportActions, violations, reportHasComments, showReportActionsLoadingState, scrollToNewTransaction],
     );
 
-    const listFooterComponentStyle = useMemo(() => [isEmpty(visibleReportActions) ? styles.flex1 : undefined], [visibleReportActions.length, styles.flex1]);
+    const listFooterComponentStyle = useMemo(() => [isEmpty(visibleReportActions) ? styles.flex1 : undefined], [visibleReportActions, styles.flex1]);
 
     // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
     const listEmptyComponent = useMemo(() => (!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton /> : undefined), [isOffline, showReportActionsLoadingState]);
