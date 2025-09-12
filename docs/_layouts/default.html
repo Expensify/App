@@ -88,15 +88,6 @@
             {% endif %}
         </div>
 
-        {% if page.url contains "/articles/" %}
-        <div>
-            <a href="https://github.com/Expensify/App/blob/main/docs{{ page.url | remove: '.html' }}.md" target="_blank" class="edit-article-link">
-                <svg class="edit-article-link__icon" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="Layer_1" x="0" y="0" version="1.1" viewBox="0 0 20 20" style="enable-background:new 0 0 20 20" xml:space="preserve"><path d="M17,8l-5-5l2.3-2.3c0.4-0.4,1-0.4,1.4,0l3.6,3.6c0.4,0.4,0.4,1,0,1.4L17,8z"/><path d="M7.3,16.3l-3.6-3.6c-0.4-0.4-0.4-1,0-1.4l6.6-6.6c0.4-0.4,1-0.4,1.4,0l3.6,3.6c0.4,0.4,0.4,1,0,1.4l-6.6,6.6	C8.3,16.7,7.7,16.7,7.3,16.3z"/><path d="M2,15l-1,4l4-1L2,15z"/></svg>
-                Edit this page
-            </a>
-        </div>
-        {% endif %}
-
         <!-- Concierge button at the bottom of the page -->
         {% include CONST.html %}
         <div class="get-help">
@@ -108,6 +99,15 @@
                 </div>
             </a>
         </div>
+
+        {% if page.url contains "/articles/" %}
+        <div>
+            <a href="https://github.com/Expensify/App/edit/main/docs{{ page.url | remove: '.html' }}.md" target="_blank" class="edit-article-link">
+                <svg class="edit-article-link__icon" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="Layer_1" x="0" y="0" version="1.1" viewBox="0 0 20 20" style="enable-background:new 0 0 20 20" xml:space="preserve"><path d="M17,8l-5-5l2.3-2.3c0.4-0.4,1-0.4,1.4,0l3.6,3.6c0.4,0.4,0.4,1,0,1.4L17,8z"/><path d="M7.3,16.3l-3.6-3.6c-0.4-0.4-0.4-1,0-1.4l6.6-6.6c0.4-0.4,1-0.4,1.4,0l3.6,3.6c0.4,0.4,0.4,1,0,1.4l-6.6,6.6	C8.3,16.7,7.7,16.7,7.3,16.3z"/><path d="M2,15l-1,4l4-1L2,15z"/></svg>
+                Recommend a change to this page
+            </a>
+        </div>
+        {% endif %}
 
         <div id="footer">
             {% include footer.html %}
