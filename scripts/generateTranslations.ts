@@ -360,16 +360,7 @@ class TranslationGenerator {
         // Check if path is in either pathsToModify or pathsToAdd
         const allPathsToTranslate = new Set([...this.pathsToModify, ...this.pathsToAdd]);
         for (const targetPath of allPathsToTranslate) {
-            // Exact match
-            if (currentPath === targetPath) {
-                return true;
-            }
-            // Current path is nested under target path
-            if (currentPath.startsWith(`${targetPath}.`)) {
-                return true;
-            }
-            // Target path is nested under current path (for parent path matching)
-            if (targetPath.startsWith(`${currentPath}.`)) {
+            if (currentPath === targetPath || currentPath.startsWith(`${targetPath}.`)) {
                 return true;
             }
         }
