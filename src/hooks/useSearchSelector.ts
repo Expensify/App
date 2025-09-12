@@ -135,27 +135,27 @@ function useSearchSelector({
         return getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     }, [debouncedSearchTerm, countryCode]);
 
-    // Get optimized options with heap filtering and mark selection state
-    const searchOptions = useMemo(() => {
+    const optionsWithContacts = useMemo(() => {
+        if (!shouldEnableContacts || !areOptionsInitialized) {
+            return options;
+        }
+        const personalDetailsWithContacts = options.personalDetails.concat(memoizedContacts);
+        return {
+            ...options,
+            personalDetails: personalDetailsWithContacts,
+        };
+    }, [areOptionsInitialized, options, memoizedContacts, shouldEnableContacts]);
+
+    const baseOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return getEmptyOptions();
         }
 
-        // Integrate contacts into personalDetails if enabled
-        const personalDetailsWithContacts = shouldEnableContacts ? options.personalDetails.concat(memoizedContacts) : options.personalDetails;
-
-        const optionsWithContacts = {
-            ...options,
-            personalDetails: personalDetailsWithContacts,
-        };
-
-        let baseOptions: Options;
         switch (searchContext) {
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SEARCH:
-                baseOptions = getSearchOptions(optionsWithContacts, betas ?? [], true, true, computedSearchTerm, maxResults, includeUserToInvite);
-                break;
+                return getSearchOptions(optionsWithContacts, betas ?? [], true, true, computedSearchTerm, maxResults, includeUserToInvite);
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
-                baseOptions = getValidOptions(optionsWithContacts, {
+                return getValidOptions(optionsWithContacts, {
                     betas: betas ?? [],
                     includeP2P: true,
                     includeSelectedOptions: false,
@@ -164,9 +164,8 @@ function useSearchSelector({
                     maxElements: maxResults,
                     searchString: computedSearchTerm,
                 });
-                break;
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
-                baseOptions = getValidOptions(optionsWithContacts, {
+                return getValidOptions(optionsWithContacts, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     searchString: computedSearchTerm,
@@ -174,20 +173,22 @@ function useSearchSelector({
                     includeUserToInvite,
                     loginsToExclude: excludeLogins,
                 });
-                break;
             default:
-                baseOptions = getEmptyOptions();
+                return getEmptyOptions();
         }
+    }, [areOptionsInitialized, optionsWithContacts, betas, computedSearchTerm, maxResults, searchContext, includeUserToInvite, excludeLogins, includeRecentReports, getValidOptionsConfig]);
 
-        // Mark selection state on all options
-        const isOptionSelected = (option: OptionData) =>
+    const isOptionSelected = useMemo(() => {
+        return (option: OptionData) =>
             selectedOptions.some(
                 (selected) =>
                     (selected.accountID && selected.accountID === option.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
                     (selected.reportID && selected.reportID === option.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
                     (selected.login && selected.login === option.login),
             );
+    }, [selectedOptions]);
 
+    const searchOptions = useMemo(() => {
         return {
             ...baseOptions,
             personalDetails: baseOptions.personalDetails.map((option) => ({
@@ -205,23 +206,8 @@ function useSearchSelector({
                   }
                 : null,
         };
-    }, [
-        areOptionsInitialized,
-        options,
-        betas,
-        computedSearchTerm,
-        maxResults,
-        searchContext,
-        includeUserToInvite,
-        excludeLogins,
-        includeRecentReports,
-        selectedOptions,
-        shouldEnableContacts,
-        memoizedContacts,
-        getValidOptionsConfig,
-    ]);
+    }, [baseOptions, isOptionSelected]);
 
-    // Available options (unselected items only with proper deduplication)
     const availableOptions = useMemo(() => {
         const unselectedRecentReports = searchOptions.recentReports.filter((option) => !option.isSelected);
 
