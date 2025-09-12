@@ -1,4 +1,4 @@
-name: Compress SVG files (ImgBot-like)
+name: Compress SVG files
 
 on:
   # push:
