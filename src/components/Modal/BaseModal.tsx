@@ -114,7 +114,8 @@ function ModalComponent({
     );
 }
 
-function BaseModal({
+function BaseModal(
+{
     isVisible,
     onClose,
     shouldSetModalVisibility = true,
@@ -158,8 +159,11 @@ function BaseModal({
     backdropOpacity,
     shouldUseReanimatedModal = false,
     shouldDisableBottomSafeAreaPadding = false,
+    shouldIgnoreBackHandlerDuringTransition = false,
+    forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
     ref,
-}: BaseModalProps) {
+}: BaseModalProps,
+) {
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
     const theme = useTheme();
@@ -466,11 +470,13 @@ function BaseModal({
                         shouldUseReanimatedModal={shouldUseReanimatedModal}
                         isKeyboardActive={keyboardStateContextValue?.isKeyboardActive}
                         saveFocusState={saveFocusState}
+                        shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
                     >
                         <Animated.View
                             onLayout={onViewLayout}
                             style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone, sidePanelAnimatedStyle]}
                             ref={ref}
+                            fsClass={forwardedFSClass}
                         >
                             <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
                         </Animated.View>
