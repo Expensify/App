@@ -5,12 +5,11 @@ redirect_from: articles/other/Everything-About-Chat/
 keywords: [Expensify chat, private chat, group chat, chat rooms, start chat, New Expensify]
 ---
 
+Expensify Chat is an instant messaging system that helps you converse with people both inside and outside of your workspace about payments, company updates, and more. Expensify Chats are held in private chats, groups, and rooms.
 
-Expensify Chat is an instant messaging system that helps you converse with people both inside and outside of your policy about payments, company updates, and more!!! Expensify Chats are held in private chats, groups, and rooms.
-
-• **Private chats** – Private conversations between you and one other user.
-• **Groups** – Private conversations with two or more participants.
-• **Rooms** – Public conversations are available to all members of your policy.
+- **Private chats** – Private conversations between you and one other person.
+- **Groups** – Private conversations with two or more participants.
+- **Rooms** – Public conversations are available to all members of your workspace.
 
 ---
 
@@ -29,7 +28,7 @@ Expensify Chat is an instant messaging system that helps you converse with peopl
 1. Click the green **+** button in the navigation tabs and select **Start Chat**.
 2. Enter the name, email, or phone number of each participant and select **Add to group**.
    - Group participants are listed with a green checkmark.
-3. Click or tap **Continue**.
+3. Click or tap **Next**.
 4. Update the group image or name:
    - **Name** – Click or tap **Group Name**, enter the new name, then select **Save**.
    - **Image** – Click or tap the profile image, upload a new image, and select the zoom level.
@@ -43,7 +42,7 @@ Expensify Chat is an instant messaging system that helps you converse with peopl
 2. Click or tap the **#Room** tab at the top.
 3. Enter a unique name for the room.
 4. (Optional) Add a room description.
-5. Select the **Workspace** where it will be hosted.
+5. Select the **Workspace** where the room will be hosted.
 6. Set **Who Can Post**:
    - All members
    - Only Admins
