@@ -1967,6 +1967,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             email: string;
         };
 
+        /** Email address of the technical contact */
+        technicalContact?: string;
+
         /** Indicate whether the Workspace plan can be downgraded */
         canDowngrade?: boolean;
 
