@@ -18,7 +18,7 @@ import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getRequestType, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getRequestType, isCorporateCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {
     navigateToStartStepIfScanFileCannotBeRead,
@@ -348,6 +348,7 @@ function IOURequestStepParticipants({
                     iouType={iouType}
                     action={action}
                     isPerDiemRequest={isPerDiemRequest(initialTransaction)}
+                    isCorporateCardTransaction={isCorporateCardTransaction(initialTransaction)}
                 />
             )}
         </StepScreenWrapper>
