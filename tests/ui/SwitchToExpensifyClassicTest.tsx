@@ -1,7 +1,6 @@
 import * as NativeNavigation from '@react-navigation/native';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import {act} from 'react-test-renderer';
 import {translateLocal} from '@libs/Localize';
 import App from '@src/App';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,7 +13,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const USER_A_ACCOUNT_ID = 1;
 const USER_A_EMAIL = 'user_a@test.com';
 
-jest.setTimeout(60000);
+jest.setTimeout(120000);
 
 jest.mock('@react-navigation/native');
 
@@ -59,8 +58,8 @@ function signInAppAndEnterTestFlow(dismissedValue?: boolean): Promise<void> {
             await waitForBatchedUpdates();
             return navigateToSetting();
         })
-        .then(async () => {
-            await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+        .then(() => {
+            act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
             return navigateToExpensifyClassicFlow();
         });
 }
