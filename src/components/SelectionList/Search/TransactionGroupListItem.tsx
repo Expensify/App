@@ -329,6 +329,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         isExpanded={isExpanded}
                         header={getHeader}
                         onPress={onExpandIconPress}
+                        expandButtonStyle={[styles.pv6]}
                     >
                         {shouldDisplayEmptyView ? (
                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>

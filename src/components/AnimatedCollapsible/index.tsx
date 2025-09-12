@@ -108,11 +108,11 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
     return (
         <View style={style}>
             <View style={[headerStyle, styles.flexRow, styles.alignItemsCenter]}>
-                <View style={[styles.flex1]}>{header}</View>
+                <View style={[styles.collapsibleHeaderStyle]}>{header}</View>
                 <PressableWithFeedback
                     onPress={onPress}
                     disabled={disabled}
-                    style={[styles.p3, styles.justifyContentCenter, styles.alignItemsCenter, styles.pl0, expandButtonStyle]}
+                    style={[styles.p3, styles.justifyContentCenter, styles.alignItemsCenter, expandButtonStyle]}
                     accessibilityRole={CONST.ROLE.BUTTON}
                     accessibilityLabel={isExpanded ? 'Collapse' : 'Expand'}
                 >
