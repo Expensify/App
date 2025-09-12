@@ -358,6 +358,7 @@ const translations = {
         selectMultiple: '选择多个',
         saveChanges: '保存更改',
         submit: '提交',
+        submitted: '已提交',
         rotate: '旋转',
         zoom: 'Zoom',
         password: '密码',

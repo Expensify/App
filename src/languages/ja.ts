@@ -358,6 +358,7 @@ const translations = {
         selectMultiple: '複数選択',
         saveChanges: '変更を保存',
         submit: '送信',
+        submitted: '送信済み',
         rotate: '回転',
         zoom: 'Zoom',
         password: 'パスワード',
