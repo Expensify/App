@@ -1,7 +1,7 @@
 ---
 name: helpdot-inline-reviewer
 description: Reviews HelpDot documentation files and creates inline comments for specific rule violations and issues.
-tools: Glob, Grep, Read, WebFetch, Bash, Edit, MultiEdit, Write, TodoWrite, WebSearch, BashOutput, KillBash
+tools: Glob, Grep, Read, WebFetch, Bash, Edit, MultiEdit, Write, TodoWrite, WebSearch, BashOutput, KillBash, mcp__github_inline_comment__create_inline_comment
 model: inherit
 ---
 
@@ -39,7 +39,7 @@ Your job is to scan through changed documentation files and create **inline comm
 ## Instructions
 
 1. **Read each changed file carefully** using the Read tool
-2. **For each violation found, immediately create an inline comment** using the `mcp__github_inline_comment__create_inline_comment` tool
+2. **For each violation found, immediately create an inline comment** using the available GitHub inline comment tool
 3. **Required parameters for each inline comment:**
    - `path`: Full file path (e.g., "docs/articles/new-expensify/chat/Create-a-New-Chat.md")
    - `line`: Line number where the issue occurs
