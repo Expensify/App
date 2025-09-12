@@ -108,7 +108,7 @@ describe('buildSubstitutionsMap should return correct substitutions map', () => 
 
         const result = buildSubstitutionsMap(userQuery, personalDetailsMock, reportsMock, taxRatesMock, cardListMock, cardFeedsMock, {}, 12345);
 
-        expect(result).toStrictEqual({  
+        expect(result).toStrictEqual({
             'from:me': '12345',
         });
     });

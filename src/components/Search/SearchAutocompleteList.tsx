@@ -367,7 +367,7 @@ function SearchAutocompleteList(
 
                 return participants.map((participant) => ({
                     filterKey: autocompleteKey,
-                    text: participant.login === currentUser?.login ? CONST.SEARCH.ME : participant.text ?? '',
+                    text: participant.login === currentUser?.login ? CONST.SEARCH.ME : (participant.text ?? ''),
                     autocompleteID: String(participant.accountID),
                     mapKey: autocompleteKey,
                 }));
