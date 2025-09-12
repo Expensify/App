@@ -34,6 +34,7 @@ You can update the following profile settings:
    - Portuguese (Português – Brasil)
    - Japanese (日本語)
    - Chinese (中文（简体）)
+
 ---
 
 # How to Update Profile and Preferences
