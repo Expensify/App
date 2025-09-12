@@ -546,7 +546,30 @@ function IOURequestStepScan({
                 navigateToParticipantPage(iouType, initialTransactionID, reportID);
             }
         },
-        [backTo, initialTransaction?.isFromGlobalCreate, initialTransaction?.currency, initialTransaction?.participants, initialTransaction?.reportID, reportNameValuePairs, iouType, activePolicy, report, initialTransactionID, navigateToConfirmationPage, shouldSkipConfirmation, personalDetails, reportAttributesDerived, createTransaction, currentUserPersonalDetails?.login, currentUserPersonalDetails.accountID, reportID, transactionTaxCode, transactionTaxAmount, policy, selfDMReportID],
+        [
+            backTo,
+            initialTransaction?.isFromGlobalCreate,
+            initialTransaction?.currency,
+            initialTransaction?.participants,
+            initialTransaction?.reportID,
+            reportNameValuePairs,
+            iouType,
+            activePolicy,
+            report,
+            initialTransactionID,
+            navigateToConfirmationPage,
+            shouldSkipConfirmation,
+            personalDetails,
+            reportAttributesDerived,
+            createTransaction,
+            currentUserPersonalDetails?.login,
+            currentUserPersonalDetails.accountID,
+            reportID,
+            transactionTaxCode,
+            transactionTaxAmount,
+            policy,
+            selfDMReportID,
+        ],
     );
 
     const updateScanAndNavigate = useCallback(
