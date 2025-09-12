@@ -2091,7 +2091,6 @@ const styles = (theme: ThemeColors) =>
         chatContentScrollView: {
             flexGrow: 1,
             justifyContent: 'flex-start',
-            paddingBottom: 16,
             ...chatContentScrollViewPlatformStyles,
         },
 
@@ -2206,6 +2205,10 @@ const styles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeMedium,
         },
 
+        chatItemComposeBoxTopSpacer: {
+            height: 16,
+        },
+
         chatItemFullComposeBox: {
             ...flex.flex1,
             ...sizing.h100,
@@ -2216,11 +2219,6 @@ const styles = (theme: ThemeColors) =>
             paddingRight: 20,
             display: 'flex',
             backgroundColor: theme.appBG,
-        },
-
-        chatFooterFullCompose: {
-            height: '100%',
-            paddingTop: 20,
         },
 
         chatItemDraft: {
