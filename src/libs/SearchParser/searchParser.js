@@ -414,7 +414,7 @@ function peg$parse(input, options) {
       return buildFilter(op, field, values);
     };
   var peg$f5 = function(k) {
-      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee");
+      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
       return k;
 };
   var peg$f6 = function(parts, empty) {

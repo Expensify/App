@@ -95,7 +95,7 @@ autocompleteKey "key"
 
 filterKey
   = k:autocompleteKey {
-      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee");
+      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
       return k;
 }
 

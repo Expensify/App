@@ -155,7 +155,7 @@ key "key"
 
 filterKey
   = k:key {
-      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee");
+      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
       return k;
 }
 

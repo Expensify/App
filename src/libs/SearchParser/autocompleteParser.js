@@ -388,7 +388,7 @@ function peg$parse(input, options) {
     };
   var peg$f3 = function() { autocomplete = null; };
   var peg$f4 = function(k) {
-      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee");
+      nameOperator = (k === "from" || k === "to" || k === "payer" || k === "exporter" || k === "attendee" || k === "createdBy" || k === "assignee");
       return k;
 };
   var peg$f5 = function(parts, empty) {
