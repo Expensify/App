@@ -3184,6 +3184,10 @@ const ROUTES = {
         route: 'debug/transaction/:transactionID/violations/:index/json',
         getRoute: (transactionID: string, index: string) => `debug/transaction/${transactionID}/violations/${index}/json` as const,
     },
+    REJECT_MONEY_REQUEST_REASON: {
+        route: 'reject/reason/:transactionID',
+        getRoute: (transactionID: string, reportID: string, backTo?: string) => `reject/reason/${transactionID}?reportID=${reportID}&backTo=${backTo}` as const,
+    },
     SCHEDULE_CALL_BOOK: {
         route: 'r/:reportID/schedule-call/book',
         getRoute: (reportID: string) => `r/${reportID}/schedule-call/book` as const,
