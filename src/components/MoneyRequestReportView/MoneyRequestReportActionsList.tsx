@@ -6,7 +6,7 @@ import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
+import {renderScrollComponentWithTopSpacing} from '@components/ActionSheetAwareScrollView';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
@@ -637,25 +637,8 @@ function MoneyRequestReportActionsList({
         ),
         [report, policy, transactions, newTransactions, reportActions, reportHasComments, showReportActionsLoadingState, scrollToNewTransaction],
     );
-    const handleSelectionHeaderLayout = useCallback((event: LayoutChangeEvent) => {
-        const headerHeight = event.nativeEvent.layout.height;
-        if (headerHeight > 0) {
-            DeviceEventEmitter.emit('invertedListHeaderHeight', headerHeight);
-        }
-    }, []);
-
-    const listHeaderComponent = useMemo(
-        () => (
-            <View
-                onLayout={handleSelectionHeaderLayout}
-                style={styles.flex1}
-            />
-        ),
-        [styles.flex1, handleSelectionHeaderLayout],
-    );
 
     const listFooterComponentStyle = useMemo(() => [isEmpty(visibleReportActions) ? styles.flex1 : undefined], [visibleReportActions.length, styles.flex1]);
-    const listHeaderComponentStyle = useMemo(() => [isEmpty(visibleReportActions) ? undefined : styles.flex1], [visibleReportActions.length, styles.flex1]);
 
     // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState
     const listEmptyComponent = useMemo(() => (!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton /> : undefined), [isOffline, showReportActionsLoadingState]);
@@ -742,7 +725,7 @@ function MoneyRequestReportActionsList({
                     style={styles.overscrollBehaviorContain}
                     data={visibleReportActions}
                     renderItem={renderItem}
-                    renderScrollComponent={renderScrollComponent}
+                    renderScrollComponent={renderScrollComponentWithTopSpacing}
                     keyExtractor={keyExtractor}
                     onLayout={recordTimeToMeasureItemLayout}
                     onEndReached={onEndReached}
@@ -750,12 +733,10 @@ function MoneyRequestReportActionsList({
                     onStartReached={onStartReached}
                     onStartReachedThreshold={0.75}
                     ListFooterComponent={listFooterComponent}
-                    ListHeaderComponent={listHeaderComponent}
                     keyboardShouldPersistTaps="handled"
                     onScroll={trackVerticalScrolling}
                     contentContainerStyle={styles.chatContentScrollView}
                     ListFooterComponentStyle={listFooterComponentStyle}
-                    ListHeaderComponentStyle={listHeaderComponentStyle}
                     ref={reportScrollManager.ref}
                     ListEmptyComponent={listEmptyComponent}
                     shouldEnableAutoScrollToTopThreshold
