@@ -59,14 +59,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: ROUTES.CHANGE_POLICY_EDUCATIONAL.route,
             },
         },
-        [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: {
-            screens: {
-                [SCREENS.WELCOME_VIDEO.ROOT]: {
-                    path: ROUTES.WELCOME_VIDEO_ROOT,
-                    exact: true,
-                },
-            },
-        },
         [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.EXPLANATION_MODAL.ROOT]: {
@@ -338,6 +330,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PROFILE.ADDRESS_STATE]: {
                             path: ROUTES.SETTINGS_ADDRESS_STATE.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.DELEGATE.VERIFY_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: {
@@ -1653,6 +1649,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: {
                     screens: {
                         [SCREENS.REPORT_CHANGE_APPROVER.ROOT]: ROUTES.REPORT_CHANGE_APPROVER.route,
+                        [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.route,
                     },
                 },
             },
