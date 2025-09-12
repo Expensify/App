@@ -4762,6 +4762,16 @@ const styles = (theme: ThemeColors) =>
             maxWidth: '100%',
         },
 
+        getMoneyRequestViewImage: (showBorderless: boolean) => ({
+            ...spacing.mh5,
+            overflow: 'hidden',
+            borderWidth: showBorderless ? 0 : 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusLarge,
+            height: 180,
+            maxWidth: '100%',
+        }),
+
         expenseViewImage: {
             maxWidth: 360,
             aspectRatio: 16 / 9,
@@ -5770,6 +5780,32 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
             right: 0,
             width: Animated.add(variables.sideBarWidth, receiptPaneRHPWidth),
+        },
+
+        fullHeight: {
+            height: '100%',
+        },
+
+        flexibleHeight: {
+            height: 'auto',
+            minHeight: 200,
+        },
+
+        receiptCellLoadingContainer: {
+            backgroundColor: theme.activeComponentBG,
+        },
+
+        wideRHPMoneyRequestReceiptViewContainer: {
+            backgroundColor: theme.appBG,
+            width: receiptPaneRHPWidth,
+            height: '100%',
+            borderRightWidth: 1,
+            borderColor: theme.border,
+        },
+
+        wideRHPMoneyRequestReceiptViewScrollView: {
+            paddingTop: 12,
+            minHeight: '100%',
         },
 
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
