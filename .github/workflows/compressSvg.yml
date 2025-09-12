@@ -1,13 +1,10 @@
 name: Compress SVG files (ImgBot-like)
 
 on:
-  push:
-    branches-ignore: [staging, production, compress-svgs-*]
-    paths:
-      - "**/*.svg"
-  schedule:
-    # Run weekly on Sundays at midnight to catch any missed files
-    - cron: '0 0 * * 0'
+  # push:
+  #   branches-ignore: [compress-svgs-*]
+  #   paths:
+  #     - "**/*.svg"
   workflow_dispatch:
 
 jobs:
@@ -26,7 +23,6 @@ jobs:
 
       - name: Check for existing compression PRs
         id: check_existing
-        if: github.event_name == 'schedule'
         run: |
           # Check if there's already an open PR with compression
           EXISTING_PR=$(gh pr list --state open --label "compression" --limit 1 --json number --jq '.[0].number')
@@ -49,21 +45,14 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "🗜️ Compress SVG files (${{ steps.compress.outputs.files_changed }} files, ${{ steps.compress.outputs.savings_kb }} KB saved)"
-          title: "🗜️ Compress SVG files"
+          commit-message: "Compress SVG files"
+          title: "Compress SVG files"
           body: |
+            This automated PR was created to compress SVG files and reduce repository size.
+            *This PR will be automatically updated if more SVG files are added and need compression.*
+            ---
             ${{ steps.compress.outputs.markdown }}
             
-            ---
-            
-            This automated PR was created to compress SVG files and reduce repository size.
-            
-            **Review checklist:**
-            - [ ] Verify that compressed SVGs still render correctly
-            - [ ] Check that file sizes have been reduced without quality loss
-            - [ ] Ensure no important SVG metadata was removed
-            
-            *This PR will be automatically updated if more SVG files are added and need compression.*
           branch: compress-svgs-${{ github.run_number }}
           delete-branch: true
           labels: |

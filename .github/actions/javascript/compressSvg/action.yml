@@ -1,21 +1,13 @@
-name: 'Compress SVG (ImgBot-like)'
-description: 'Automatically compress changed SVG files using SVGO, similar to ImgBot behavior'
+name: 'Compress SVG'
+description: 'Automatically compress changed SVG files using SVGO'
 inputs:
   GITHUB_TOKEN:
     description: 'Auth token for GitHub operations'
-    required: false
+    required: true
     default: ${{ github.token }}
-  target-directory:
-    description: 'Target directory to scan for SVG files (defaults to "assets")'
-    required: false
-    default: 'assets'
 outputs:
   has_changes:
     description: 'Whether any SVG files were compressed (true/false)'
-  files_changed:
-    description: 'Number of SVG files that were compressed'
-  savings_kb:
-    description: 'Total size savings in KB'
   markdown:
     description: 'Markdown summary of compression results for PR body'
 runs:

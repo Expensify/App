@@ -11252,427 +11252,39 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
-const child_process_1 = __nccwpck_require__(2081);
-const fs = __importStar(__nccwpck_require__(7147));
-const path = __importStar(__nccwpck_require__(1017));
-const svgo_1 = __nccwpck_require__(2456);
-const ActionUtils_1 = __nccwpck_require__(6981);
-const CONST_1 = __importDefault(__nccwpck_require__(9873));
-// SVGO configuration for optimal compression
-// Using simple config to avoid TypeScript issues - can be extended with input parameters
-const svgoConfig = {};
-/**
- * Recursively find all SVG files in a directory
- */
-function findSvgFiles(dir) {
-    const svgFiles = [];
-    function scanDirectory(currentDir) {
-        const items = fs.readdirSync(currentDir, { withFileTypes: true });
-        for (const item of items) {
-            const fullPath = path.join(currentDir, item.name);
-            if (item.isDirectory()) {
-                scanDirectory(fullPath);
-            }
-            else if (item.isFile() && path.extname(item.name).toLowerCase() === '.svg') {
-                svgFiles.push(fullPath);
-            }
-        }
-    }
-    scanDirectory(dir);
-    return svgFiles;
-}
-/**
- * Format bytes to KB with 2 decimal places
- */
-function formatBytes(bytes) {
-    return (bytes / 1024).toFixed(2);
-}
-/**
- * Compress a single SVG file
- */
-async function compressSvgFile(filePath) {
-    const originalContent = fs.readFileSync(filePath, 'utf8');
-    const originalSize = Buffer.byteLength(originalContent, 'utf8');
+const compressSvg_1 = __importStar(__nccwpck_require__(6482));
+function run() {
     try {
-        const result = (0, svgo_1.optimize)(originalContent, {
-            path: filePath,
-            ...svgoConfig,
-        });
-        const compressedContent = result.data;
-        const compressedSize = Buffer.byteLength(compressedContent, 'utf8');
-        const savings = originalSize - compressedSize;
-        const savingsPercent = originalSize > 0 ? (savings / originalSize) * 100 : 0;
-        // Write the compressed content back to the file
-        fs.writeFileSync(filePath, compressedContent, 'utf8');
-        return {
-            filePath,
-            originalSize,
-            compressedSize,
-            savings,
-            savingsPercent,
-        };
-    }
-    catch (error) {
-        console.error(`❌ Error compressing ${filePath}:`, error);
-        return {
-            filePath,
-            originalSize,
-            compressedSize: originalSize,
-            savings: 0,
-            savingsPercent: 0,
-        };
-    }
-}
-/**
- * Validate that all provided file paths exist and are SVG files
- */
-function validateSvgFiles(filePaths) {
-    const validFiles = [];
-    const errors = [];
-    for (const filePath of filePaths) {
-        const resolvedPath = path.resolve(filePath);
-        if (!fs.existsSync(resolvedPath)) {
-            errors.push(`❌ File does not exist: ${filePath}`);
-            continue;
-        }
-        const stat = fs.statSync(resolvedPath);
-        if (!stat.isFile()) {
-            errors.push(`❌ Not a file: ${filePath}`);
-            continue;
-        }
-        if (path.extname(filePath).toLowerCase() !== '.svg') {
-            errors.push(`❌ Not an SVG file: ${filePath}`);
-            continue;
-        }
-        validFiles.push(resolvedPath);
-    }
-    if (errors.length > 0) {
-        console.error('Validation errors:');
-        errors.forEach((error) => console.error(`   ${error}`));
-        process.exit(1);
-    }
-    return validFiles;
-}
-/**
- * Get target directory from GitHub Actions inputs or use default
- */
-function getTargetDirectory() {
-    const defaultDirectory = 'assets';
-    return (0, ActionUtils_1.getStringInput)('target-directory', { required: false }, defaultDirectory) ?? defaultDirectory;
-}
-/**
- * Main compression function for directory scanning
- */
-async function compressSvgsFromDirectory(targetDir) {
-    const directory = targetDir || getTargetDirectory();
-    console.log('🔍 Searching for SVG files...\n');
-    const svgFiles = findSvgFiles(directory);
-    if (svgFiles.length === 0) {
-        console.log('❌ No SVG files found in the specified directory.');
-        return {
-            totalFiles: 0,
-            totalOriginalSize: 0,
-            totalCompressedSize: 0,
-            totalSavings: 0,
-            totalSavingsPercent: 0,
-            results: [],
-        };
-    }
-    return await processFiles(svgFiles);
-}
-/**
- * Main compression function for specific file list
- */
-async function compressSvgsFromList(filePaths) {
-    console.log('🔍 Validating provided SVG files...\n');
-    const validatedFiles = validateSvgFiles(filePaths);
-    if (validatedFiles.length === 0) {
-        console.log('❌ No valid SVG files provided.');
-        return {
-            totalFiles: 0,
-            totalOriginalSize: 0,
-            totalCompressedSize: 0,
-            totalSavings: 0,
-            totalSavingsPercent: 0,
-            results: [],
-        };
-    }
-    return await processFiles(validatedFiles);
-}
-/**
- * Process and compress a list of SVG files
- */
-async function processFiles(svgFiles) {
-    // Display files that will be compressed
-    console.log(`📋 Found ${svgFiles.length} SVG file(s) to compress:`);
-    svgFiles.forEach((file, index) => {
-        const relativePath = path.relative(process.cwd(), file);
-        console.log(`   ${index + 1}. ${relativePath}`);
-    });
-    console.log('');
-    // Compress all files
-    console.log('🚀 Starting compression...\n');
-    const results = [];
-    for (let index = 0; index < svgFiles.length; index++) {
-        const file = svgFiles[index];
-        const relativePath = path.relative(process.cwd(), file);
-        console.log(`   Processing ${index + 1}/${svgFiles.length}: ${relativePath}`);
-        const result = await compressSvgFile(file);
-        results.push(result);
-    }
-    // Calculate summary
-    const summary = {
-        totalFiles: results.length,
-        totalOriginalSize: results.reduce((sum, r) => sum + r.originalSize, 0),
-        totalCompressedSize: results.reduce((sum, r) => sum + r.compressedSize, 0),
-        totalSavings: results.reduce((sum, r) => sum + r.savings, 0),
-        totalSavingsPercent: 0,
-        results,
-    };
-    summary.totalSavingsPercent = summary.totalOriginalSize > 0 ? (summary.totalSavings / summary.totalOriginalSize) * 100 : 0;
-    // Display summary
-    console.log('\n' + '='.repeat(60));
-    console.log('📊 COMPRESSION SUMMARY');
-    console.log('='.repeat(60));
-    console.log(`📁 Total files processed: ${summary.totalFiles}`);
-    console.log(`📦 Original total size: ${formatBytes(summary.totalOriginalSize)} KB`);
-    console.log(`🗜️ Compressed total size: ${formatBytes(summary.totalCompressedSize)} KB`);
-    console.log(`💾 Total savings: ${formatBytes(summary.totalSavings)} KB`);
-    console.log(`📈 Total savings: ${summary.totalSavingsPercent.toFixed(2)}%`);
-    console.log('='.repeat(60));
-    // Display individual file results
-    console.log('\n📋 Individual file results:');
-    results.forEach((result, index) => {
-        const relativePath = path.relative(process.cwd(), result.filePath);
-        const savingsDisplay = result.savings > 0 ? `💾 ${formatBytes(result.savings)} KB (${result.savingsPercent.toFixed(2)}%)` : '❌ No savings';
-        console.log(`   ${index + 1}. ${relativePath}`);
-        console.log(`      ${formatBytes(result.originalSize)} KB → ${formatBytes(result.compressedSize)} KB | ${savingsDisplay}`);
-    });
-    console.log('\n✅ SVG compression completed successfully!');
-    return summary;
-}
-/**
- * Main compression function for changed SVG files (ImgBot-like behavior)
- */
-async function compressChangedSvgs() {
-    console.log('🔍 Detecting changed SVG files...\n');
-    const changedSvgFiles = getChangedSvgFiles();
-    if (changedSvgFiles.length === 0) {
-        console.log('❌ No changed SVG files found.');
-        return {
-            totalFiles: 0,
-            totalOriginalSize: 0,
-            totalCompressedSize: 0,
-            totalSavings: 0,
-            totalSavingsPercent: 0,
-            results: [],
-        };
-    }
-    console.log(`📋 Found ${changedSvgFiles.length} changed SVG file(s):`);
-    changedSvgFiles.forEach((file, index) => {
-        const relativePath = path.relative(process.cwd(), file);
-        console.log(`   ${index + 1}. ${relativePath}`);
-    });
-    console.log('');
-    return await processFiles(changedSvgFiles);
-}
-/**
- * Get changed SVG files from git diff
- */
-function getChangedSvgFiles() {
-    try {
-        let gitCommand;
-        let changedFiles = [];
-        // Determine the appropriate git command based on the context using CONST values
-        const eventName = process.env.GITHUB_EVENT_NAME;
-        if (eventName === 'schedule') {
-            // For scheduled runs, look for SVG files modified in the last week
-            console.log('🕒 Scheduled run: checking SVG files modified in the last 7 days');
-            gitCommand = 'git diff --name-only HEAD --since="7 days ago"';
-        }
-        else if (eventName === 'workflow_dispatch') {
-            // For manual triggers, scan all SVGs in assets directory
-            console.log('🔨 Manual trigger: scanning all SVG files in assets directory');
-            return findSvgFiles('assets');
-        }
-        else if (eventName === CONST_1.default.RUN_EVENT.PUSH) {
-            // For push events, compare with the previous commit
-            gitCommand = 'git diff --name-only HEAD~1 HEAD';
+        const summary = (0, compressSvg_1.default)('github');
+        if (summary.totalSavings > 0) {
+            const markdown = (0, compressSvg_1.generateMarkdownSummary)(summary);
+            core.setOutput('markdown', markdown);
+            core.setOutput('has_changes', 'true');
         }
         else {
-            // Fallback for unknown event types
-            console.log(`⚠️ Unknown event type '${eventName}', defaulting to HEAD~1 comparison`);
-            throw new Error(`Unknown event type: ${eventName}`);
+            core.setOutput('markdown', 'No SVG files were compressed.');
+            core.setOutput('has_changes', 'false');
         }
-        const output = (0, child_process_1.execSync)(gitCommand, { encoding: 'utf-8', timeout: 30000 });
-        changedFiles = output.trim().split('\n').filter(Boolean);
-        // If no changed files found in scheduled mode, fallback to scanning assets
-        if (changedFiles.length === 0 && eventName === 'schedule') {
-            console.log('⚠️ No recent changes found, scanning for unoptimized SVGs in assets directory');
-            return findSvgFiles('assets');
-        }
-        // Filter only SVG files that exist (not deleted)
-        const svgFiles = changedFiles
-            .filter((file) => path.extname(file).toLowerCase() === '.svg')
-            .filter((file) => fs.existsSync(file))
-            .map((file) => path.resolve(file));
-        return svgFiles;
     }
     catch (error) {
-        console.error('❌ Error getting changed files:', error);
-        return [];
-    }
-}
-/**
- * Generate markdown summary for PR body
- */
-function generateMarkdownSummary(summary) {
-    const markdown = [];
-    markdown.push('## 🗜️ SVG Compression Results\n');
-    if (summary.totalFiles === 0) {
-        markdown.push('No SVG files were compressed.');
-        return markdown.join('\n');
-    }
-    markdown.push(`**📊 Summary:**`);
-    markdown.push(`- 📁 Files processed: ${summary.totalFiles}`);
-    markdown.push(`- 📦 Original size: ${formatBytes(summary.totalOriginalSize)} KB`);
-    markdown.push(`- 🗜️ Compressed size: ${formatBytes(summary.totalCompressedSize)} KB`);
-    markdown.push(`- 💾 Total savings: ${formatBytes(summary.totalSavings)} KB (${summary.totalSavingsPercent.toFixed(2)}%)`);
-    markdown.push('');
-    if (summary.results.length > 0) {
-        markdown.push('**📋 Individual Results:**');
-        markdown.push('| File | Original | Compressed | Savings |');
-        markdown.push('|------|----------|------------|---------|');
-        summary.results.forEach((result) => {
-            const relativePath = path.relative(process.cwd(), result.filePath);
-            const savingsText = result.savings > 0 ? `${formatBytes(result.savings)} KB (${result.savingsPercent.toFixed(1)}%)` : 'No savings';
-            markdown.push(`| \`${relativePath}\` | ${formatBytes(result.originalSize)} KB | ${formatBytes(result.compressedSize)} KB | ${savingsText} |`);
-        });
-    }
-    markdown.push('');
-    markdown.push('*This compression was performed automatically to optimize SVG file sizes.*');
-    return markdown.join('\n');
-}
-/**
- * Display help information
- */
-function displayHelp() {
-    console.log('🎯 SVG Compression Tool');
-    console.log('');
-    console.log('Usage:');
-    console.log('  Mode 1 - ImgBot-like behavior (default):');
-    console.log('    npm run compress-svg');
-    console.log('    npm run compress-svg --changed');
-    console.log('    Detects changed SVG files based on context (push/schedule/manual)');
-    console.log('');
-    console.log('  Mode 2 - Specific files:');
-    console.log('    npm run compress-svg -- --files file1.svg file2.svg ...');
-    console.log('    Example: npm run compress-svg -- --files assets/icon.svg src/logo.svg');
-    console.log('');
-    console.log('  Mode 3 - Directory scan:');
-    console.log('    npm run compress-svg [directory]');
-    console.log('    Example: npm run compress-svg assets');
-    console.log('');
-    console.log('Options:');
-    console.log('  --help, -h    Show this help message');
-    console.log('  --changed     Detect and compress changed SVG files (default)');
-    console.log('  --files       Compress only the specified files');
-    console.log('');
-    console.log('Context-based behavior:');
-    console.log('  - Push events: Compare with previous commit');
-    console.log('  - Scheduled runs: Check files modified in last 7 days');
-    console.log('  - Manual triggers: Scan all SVGs in assets directory');
-}
-// Main execution
-async function main() {
-    try {
-        const args = process.argv.slice(2);
-        // Show help
-        if (args.includes('--help') || args.includes('-h')) {
-            displayHelp();
+        if (error instanceof Error) {
+            core.setFailed(error);
             return;
         }
-        console.log('🎯 SVG Compression Tool (ImgBot-like)');
-        console.log('');
-        // Mode 1: ImgBot-like behavior - process changed SVG files
-        if (args.length === 0 || args[0] === '--changed') {
-            console.log('📁 Mode: Changed files detection');
-            console.log('');
-            const summary = await compressChangedSvgs();
-            // Output summary for GitHub Actions to use
-            if (summary.totalSavings > 0) {
-                const markdown = generateMarkdownSummary(summary);
-                console.log('\n📋 Markdown summary for PR:');
-                console.log('---');
-                console.log(markdown);
-                console.log('---');
-                // Set GitHub Actions outputs using proper core methods
-                core.setOutput('markdown', markdown);
-                core.setOutput('has_changes', 'true');
-                core.setOutput('files_changed', summary.totalFiles.toString());
-                core.setOutput('savings_kb', formatBytes(summary.totalSavings));
-                console.log('\n📤 GitHub Actions outputs set successfully');
-            }
-            else {
-                // Set GitHub Actions output for no changes
-                core.setOutput('markdown', 'No SVG files were compressed.');
-                core.setOutput('has_changes', 'false');
-                core.setOutput('files_changed', '0');
-                core.setOutput('savings_kb', '0');
-                console.log('\n📤 No changes - GitHub Actions outputs set');
-            }
-            return;
-        }
-        // Mode 2: Specific files (--files flag)
-        if (args[0] === '--files') {
-            if (args.length < 2) {
-                console.error('❌ No files specified after --files flag');
-                console.log('');
-                displayHelp();
-                process.exit(1);
-            }
-            const filePaths = args.slice(1);
-            console.log(`📁 Mode: Specific files (${filePaths.length} files provided)`);
-            console.log('');
-            await compressSvgsFromList(filePaths);
-            return;
-        }
-        // Mode 3: Directory scan
-        const targetDir = args[0];
-        if (!fs.existsSync(targetDir)) {
-            console.error(`❌ Directory '${targetDir}' does not exist.`);
-            process.exit(1);
-        }
-        const stat = fs.statSync(targetDir);
-        if (!stat.isDirectory()) {
-            console.error(`❌ '${targetDir}' is not a directory.`);
-            console.log('💡 Use --files flag to compress specific files');
-            process.exit(1);
-        }
-        console.log(`📂 Mode: Directory scan`);
-        console.log(`📂 Target directory: ${path.resolve(targetDir)}`);
-        console.log('');
-        await compressSvgsFromDirectory(targetDir);
-    }
-    catch (error) {
-        const errorMessage = `Fatal error during SVG compression: ${error instanceof Error ? error.message : String(error)}`;
-        console.error('❌', errorMessage);
-        // Use proper GitHub Actions error handling
-        core.setFailed(errorMessage);
-        process.exit(1);
+        core.setFailed('An unknown error occurred.');
     }
 }
-main();
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+exports["default"] = run;
 
 
 /***/ }),
 
-/***/ 6981:
+/***/ 6482:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -11711,123 +11323,333 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getJSONInput = getJSONInput;
-exports.getStringInput = getStringInput;
-exports.convertToNumber = convertToNumber;
-const core = __importStar(__nccwpck_require__(2186));
-/**
- * Safely parse a JSON input to a GitHub Action.
- *
- * @param name - The name of the input.
- * @param options - Options to pass to core.getInput
- * @param [defaultValue] - A default value to provide for the input.
- *                         Not required if the {required: true} option is given in the second arg to this function.
- */
-function getJSONInput(name, options, defaultValue) {
-    const input = core.getInput(name, options);
-    if (input) {
-        return JSON.parse(input);
-    }
-    return defaultValue;
-}
-/**
- * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
- */
-function getStringInput(name, options, defaultValue) {
-    const input = core.getInput(name, options);
-    if (!input) {
-        return defaultValue;
-    }
-    return input;
-}
-/**
- * Converts a value to a number, returning 0 for non-numeric values.
- */
-function convertToNumber(value) {
-    switch (typeof value) {
-        case 'number':
-            return value;
-        case 'string':
-            if (!Number.isNaN(Number(value))) {
-                return Number(value);
+exports.generateMarkdownSummary = generateMarkdownSummary;
+exports.getFilesFromGithub = getFilesFromGithub;
+// import {execSync} from 'child_process';
+const fs = __importStar(__nccwpck_require__(7147));
+const path = __importStar(__nccwpck_require__(1017));
+const svgo_1 = __nccwpck_require__(2456);
+// SVGO Default plugins
+const svgoConfig = {
+    plugins: [
+        'removeDoctype',
+        'removeXMLProcInst',
+        'removeComments',
+        'removeDeprecatedAttrs',
+        'removeMetadata',
+        'removeEditorsNSData',
+        'cleanupAttrs',
+        'mergeStyles',
+        // 'inlineStyles', // Cause issues with fill on Android
+        'minifyStyles',
+        'cleanupIds',
+        'removeUselessDefs',
+        'cleanupNumericValues',
+        'convertColors',
+        'removeNonInheritableGroupAttrs',
+        'removeUnknownsAndDefaults',
+        'removeUselessStrokeAndFill',
+        'cleanupEnableBackground',
+        'removeHiddenElems',
+        'removeEmptyText',
+        'convertShapeToPath',
+        'convertEllipseToCircle',
+        'moveElemsAttrsToGroup',
+        'moveGroupAttrsToElems',
+        'collapseGroups',
+        'convertPathData',
+        'convertTransform',
+        'removeEmptyAttrs',
+        'removeEmptyContainers',
+        'mergePaths',
+        'removeUnusedNS',
+        'sortAttrs',
+        'sortDefsChildren',
+        'removeDesc',
+    ],
+};
+function findSvgFiles(dir) {
+    const svgFiles = [];
+    function scanDirectory(currentDir) {
+        const items = fs.readdirSync(currentDir, { withFileTypes: true });
+        for (const item of items) {
+            const fullPath = path.join(currentDir, item.name);
+            if (item.isDirectory()) {
+                scanDirectory(fullPath);
             }
-            return 0;
-        default:
-            return 0;
+            else if (item.isFile() && path.extname(item.name).toLowerCase() === '.svg') {
+                svgFiles.push(fullPath);
+            }
+        }
+    }
+    scanDirectory(dir);
+    return svgFiles;
+}
+function formatBytes(bytes) {
+    return (bytes / 1024).toFixed(2);
+}
+function compressSvgFile(filePath) {
+    const originalContent = fs.readFileSync(filePath, 'utf8');
+    const originalSize = Buffer.byteLength(originalContent, 'utf8');
+    try {
+        let currentContent = originalContent;
+        let currentSize = originalSize;
+        let totalSavings = 0;
+        // Perform 5 iterations, as additional savings could be gained with another pass (2–3 are usually enough)
+        const maxPasses = 5;
+        for (let pass = 1; pass <= maxPasses; pass++) {
+            const result = (0, svgo_1.optimize)(currentContent, {
+                path: filePath,
+                ...svgoConfig,
+            });
+            const compressedContent = result.data;
+            const compressedSize = Buffer.byteLength(compressedContent, 'utf8');
+            const passSavings = currentSize - compressedSize;
+            if (passSavings <= 0) {
+                break;
+            }
+            totalSavings += passSavings;
+            currentContent = compressedContent;
+            currentSize = compressedSize;
+            if (pass === maxPasses || passSavings < 10) {
+                break;
+            }
+        }
+        const finalSavingsPercent = originalSize > 0 ? (totalSavings / originalSize) * 100 : 0;
+        fs.writeFileSync(filePath, currentContent, 'utf8');
+        return {
+            filePath,
+            originalSize,
+            compressedSize: currentSize,
+            savings: totalSavings,
+            savingsPercent: finalSavingsPercent,
+        };
+    }
+    catch (error) {
+        console.error(`❌ Error compressing ${filePath}:`, error);
+        return {
+            filePath,
+            originalSize,
+            compressedSize: originalSize,
+            savings: 0,
+            savingsPercent: 0,
+        };
     }
 }
-
-
-/***/ }),
-
-/***/ 9873:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
-const GIT_CONST = {
-    GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER ?? 'Expensify',
-    APP_REPO: (process.env.GITHUB_REPOSITORY ?? 'Expensify/App').split('/').at(1) ?? '',
-    MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
-};
-const CONST = {
-    ...GIT_CONST,
-    APPLAUSE_BOT: 'applausebot',
-    OS_BOTIFY: 'OSBotify',
-    LABELS: {
-        STAGING_DEPLOY: 'StagingDeployCash',
-        DEPLOY_BLOCKER: 'DeployBlockerCash',
-        LOCK_DEPLOY: '🔐 LockCashDeploys 🔐',
-        INTERNAL_QA: 'InternalQA',
-        HELP_WANTED: 'Help Wanted',
-        CP_STAGING: 'CP Staging',
-    },
-    STATE: {
-        OPEN: 'open',
-    },
-    COMMENT: {
-        TYPE_BOT: 'Bot',
-        NAME_GITHUB_ACTIONS: 'github-actions',
-    },
-    ACTIONS: {
-        CREATED: 'created',
-        EDITED: 'edited',
-    },
-    EVENTS: {
-        ISSUE_COMMENT: 'issue_comment',
-    },
-    RUN_EVENT: {
-        PULL_REQUEST: 'pull_request',
-        PULL_REQUEST_TARGET: 'pull_request_target',
-        PUSH: 'push',
-    },
-    RUN_STATUS: {
-        COMPLETED: 'completed',
-        IN_PROGRESS: 'in_progress',
-        QUEUED: 'queued',
-    },
-    RUN_STATUS_CONCLUSION: {
-        SUCCESS: 'success',
-    },
-    TEST_WORKFLOW_NAME: 'Jest Unit Tests',
-    TEST_WORKFLOW_PATH: '.github/workflows/test.yml',
-    PROPOSAL_KEYWORD: 'Proposal',
-    DATE_FORMAT_STRING: 'yyyy-MM-dd',
-    PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
-    ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
-    ISSUE_OR_PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/(?:pull|issues)/([0-9]+).*`),
-    POLL_RATE: 10000,
-    APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
-    APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
-    MOBILE_EXPENSIFY_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.MOBILE_EXPENSIFY_REPO}`,
-    NO_ACTION: 'NO_ACTION',
-    ACTION_EDIT: 'ACTION_EDIT',
-    ACTION_REQUIRED: 'ACTION_REQUIRED',
-    ACTION_HIDE_DUPLICATE: 'ACTION_HIDE_DUPLICATE',
-};
-exports["default"] = CONST;
+function validateSvgFiles(filePaths) {
+    const validFiles = [];
+    const errors = [];
+    for (const filePath of filePaths) {
+        const resolvedPath = path.resolve(filePath);
+        if (!fs.existsSync(resolvedPath)) {
+            errors.push(`❌ File does not exist: ${filePath}`);
+            continue;
+        }
+        const stat = fs.statSync(resolvedPath);
+        if (!stat.isFile()) {
+            errors.push(`❌ Not a file: ${filePath}`);
+            continue;
+        }
+        if (path.extname(filePath).toLowerCase() !== '.svg') {
+            errors.push(`❌ Not an SVG file: ${filePath}`);
+            continue;
+        }
+        validFiles.push(resolvedPath);
+    }
+    if (errors.length > 0) {
+        console.error('Validation errors:');
+        errors.forEach((error) => console.error(`   ${error}`));
+        throw new Error('SVG file validation failed');
+    }
+    return validFiles;
+}
+function createResultsSummary(results) {
+    const totalFilesCompressed = results.filter((r) => !!r.savings).length;
+    const totalOriginalSize = results.reduce((sum, r) => sum + r.originalSize, 0);
+    const totalCompressedSize = results.reduce((sum, r) => sum + r.compressedSize, 0);
+    const totalSavings = results.reduce((sum, r) => sum + r.savings, 0);
+    const totalSavingsPercent = totalOriginalSize > 0 ? (totalSavings / totalOriginalSize) * 100 : 0;
+    return {
+        totalFiles: results.length,
+        totalFilesCompressed,
+        totalOriginalSize,
+        totalCompressedSize,
+        totalSavings,
+        totalSavingsPercent,
+        results,
+    };
+}
+function getSummarySavingString({ prefix, originalSize, compressedSize, savings, savingsPercent, }) {
+    return `${prefix} ${formatBytes(originalSize)} KB → ${formatBytes(compressedSize)} KB | ${`${formatBytes(savings)} KB (${savingsPercent.toFixed(2)}%)`}`;
+}
+function logSummary(summary) {
+    const { totalFiles, totalFilesCompressed, totalOriginalSize, totalCompressedSize, totalSavings, totalSavingsPercent, results } = summary;
+    if (totalFilesCompressed) {
+        console.log('\n📋 Individual file results:');
+        results.forEach((result, index) => {
+            const { compressedSize, originalSize, savings, savingsPercent, filePath } = result;
+            if (!result.savings) {
+                return;
+            }
+            const prefix = `${index + 1}. ${filePath}: ✅`;
+            console.log(getSummarySavingString({
+                prefix,
+                compressedSize,
+                originalSize,
+                savings,
+                savingsPercent,
+            }));
+        });
+    }
+    else {
+        console.log('\n✅ All files already compressed');
+    }
+    console.log('\nCOMPRESSION SUMMARY');
+    console.log(`Files processed: ${totalFiles}`);
+    console.log(`Files compressed: ${totalFilesCompressed}`);
+    console.log(getSummarySavingString({
+        prefix: 'Savings:',
+        originalSize: totalOriginalSize,
+        compressedSize: totalCompressedSize,
+        savings: totalSavings,
+        savingsPercent: totalSavingsPercent,
+    }));
+}
+function processFiles(svgFiles) {
+    console.log(`🚀 Starting compression... ${svgFiles.length} SVG file(s)`);
+    const results = [];
+    for (const file of svgFiles) {
+        const result = compressSvgFile(file);
+        results.push(result);
+    }
+    const summary = createResultsSummary(results);
+    logSummary(summary);
+    return summary;
+}
+function generateMarkdownSummary(summary) {
+    const { totalFiles, totalFilesCompressed, totalOriginalSize, totalCompressedSize, totalSavings, totalSavingsPercent, results } = summary;
+    const markdown = [];
+    markdown.push('## SVG Compression Results\n');
+    if (totalFiles === 0) {
+        markdown.push('No SVG files were compressed.');
+        return markdown.join('\n');
+    }
+    markdown.push(`**COMPRESSION SUMMARY**`);
+    markdown.push(`Files processed: ${totalFiles}`);
+    markdown.push(`Files compressed: ${totalFilesCompressed}`);
+    markdown.push(`Original size: ${formatBytes(totalOriginalSize)} KB`);
+    markdown.push(getSummarySavingString({
+        prefix: 'Savings:',
+        originalSize: totalOriginalSize,
+        compressedSize: totalCompressedSize,
+        savings: totalSavings,
+        savingsPercent: totalSavingsPercent,
+    }));
+    markdown.push('');
+    if (results.length) {
+        markdown.push('**Individual Results:**');
+        markdown.push('| File | Original | Compressed | Savings |');
+        markdown.push('|------|----------|------------|---------|');
+        results.forEach((result) => {
+            const { originalSize, compressedSize, savings, savingsPercent, filePath } = result;
+            const savingsText = savings > 0 ? `${formatBytes(savings)} KB (${savingsPercent.toFixed(1)}%)` : ' --';
+            markdown.push(`| \`${filePath}\` | ${formatBytes(originalSize)} KB | ${formatBytes(compressedSize)} KB | ${savingsText} |`);
+        });
+    }
+    markdown.push('');
+    return markdown.join('\n');
+}
+/**
+ * Get files from GitHub context (push/workflow_dispatch events)
+ */
+function getFilesFromGithub() {
+    try {
+        // const eventName = process.env.GITHUB_EVENT_NAME as string;
+        // if (eventName === 'workflow_dispatch') {
+        console.log('Manual trigger: scanning all SVG files in assets directory');
+        return findSvgFiles('assets');
+        // }
+        // if (eventName === CONST.RUN_EVENT.PUSH) {
+        //     console.log('Push event: comparing with previous commit');
+        //     const gitCommand = 'git diff --name-only HEAD~1 HEAD';
+        //     const output = execSync(gitCommand, {encoding: 'utf-8', timeout: 10000});
+        //     const changedFiles = output.trim().split('\n').filter(Boolean);
+        //     const svgFiles = changedFiles
+        //         .filter((file) => path.extname(file).toLowerCase() === '.svg')
+        //         .filter((file) => fs.existsSync(file))
+        //         .map((file) => path.resolve(file));
+        //     return svgFiles;
+        // }
+        // throw new Error(`Unknown event type: ${eventName}`);
+    }
+    catch (error) {
+        console.error('❌ Error getting files from GitHub:', error);
+        return [];
+    }
+}
+function logHelp() {
+    console.log('');
+    console.log('Usage:');
+    console.log('  Mode 1 - Directory scan:');
+    console.log('    npm run compress-svg -- --dir assets/images');
+    console.log('');
+    console.log('  Mode 2 - Specific files:');
+    console.log('    npm run compress-svg -- --files file1.svg file2.svg ...');
+    console.log('');
+    console.log('Options:');
+    console.log('  --help, -h    Show this help message');
+    console.log('  --dir         Compress all SVG files in specified directory');
+    console.log('  --files       Compress specified SVG files');
+    console.log('');
+}
+function run(mode, options) {
+    console.log('SVG Compression Tool');
+    switch (mode) {
+        case 'directory': {
+            if (!options?.targetDir) {
+                throw new Error('targetDir is required for directory mode');
+            }
+            console.log('🔍 Searching for SVG files...');
+            const svgFiles = findSvgFiles(options.targetDir);
+            if (!svgFiles.length) {
+                console.log('❌ No SVG files found in the specified directory.');
+                return createResultsSummary([]);
+            }
+            return processFiles(svgFiles);
+        }
+        case 'files': {
+            if (!options?.filePaths?.length) {
+                throw new Error('filePaths is required for files mode');
+            }
+            console.log('🔍 Validating provided SVG files...');
+            const validatedFiles = validateSvgFiles(options.filePaths);
+            if (!validatedFiles.length) {
+                console.log('❌ No valid SVG files provided.');
+                return createResultsSummary([]);
+            }
+            return processFiles(validatedFiles);
+        }
+        case 'github': {
+            console.log('Detecting changed SVG files...\n');
+            const changedSvgFiles = getFilesFromGithub();
+            if (changedSvgFiles.length === 0) {
+                console.log('❌ No changed SVG files found.');
+                return createResultsSummary([]);
+            }
+            console.log(`📋 Found ${changedSvgFiles.length} changed SVG file(s):`);
+            changedSvgFiles.forEach((file, index) => {
+                const relativePath = path.relative(process.cwd(), file);
+                console.log(`   ${index + 1}. ${relativePath}`);
+            });
+            console.log('');
+            return processFiles(changedSvgFiles);
+        }
+        default:
+            throw new Error(`Unknown compression mode: ${mode}`);
+    }
+}
+if (false) {}
+exports["default"] = run;
 
 
 /***/ }),
@@ -11856,14 +11678,6 @@ module.exports = webpackEmptyAsyncContext;
 
 "use strict";
 module.exports = require("assert");
-
-/***/ }),
-
-/***/ 2081:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("child_process");
 
 /***/ }),
 
