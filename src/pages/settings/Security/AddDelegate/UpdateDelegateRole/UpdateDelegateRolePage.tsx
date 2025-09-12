@@ -74,7 +74,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                             return;
                         }
                         if (option?.value) {
-                            Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE.getRoute(login, currentRole, option?.value));
+                            Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE.getRoute(login, option?.value));
                         }
                     }}
                     sections={[{data: roleOptions}]}

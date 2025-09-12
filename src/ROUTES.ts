@@ -239,8 +239,8 @@ const ROUTES = {
         getRoute: (login: string, currentRole: string) => `settings/security/delegate/${encodeURIComponent(login)}/update-role/${currentRole}` as const,
     },
     SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE: {
-        route: 'settings/security/delegate/:login/confirm-role/:currentRole/new-role/:newRole',
-        getRoute: (login: string, currentRole: string, newRole: string) => `settings/security/delegate/${encodeURIComponent(login)}/confirm-role/${currentRole}/new-role/${newRole}` as const,
+        route: 'settings/security/delegate/:login/confirm-role/:newRole',
+        getRoute: (login: string, newRole: string) => `settings/security/delegate/${encodeURIComponent(login)}/confirm-role/${newRole}` as const,
     },
     SETTINGS_DELEGATE_CONFIRM: {
         route: 'settings/security/delegate/:login/role/:role/confirm',
