@@ -34,21 +34,24 @@ function useReportScrollManager(): ReportScrollManagerData {
     /**
      * Scroll to the end of the FlatList.
      */
-    const scrollToEnd = useCallback(() => {
-        if (!flatListRef?.current) {
-            return;
-        }
-
-        flatListRef.current.scrollToEnd({animated: false});
-    }, [flatListRef]);
-
-    const scrollToOffset = useCallback(
-        (offset: number) => {
+    const scrollToEnd = useCallback(
+        (animated = false) => {
             if (!flatListRef?.current) {
                 return;
             }
 
-            flatListRef.current.scrollToOffset({animated: true, offset});
+            flatListRef.current.scrollToEnd({animated});
+        },
+        [flatListRef],
+    );
+
+    const scrollToOffset = useCallback(
+        (offset: number, animated = true) => {
+            if (!flatListRef?.current) {
+                return;
+            }
+
+            flatListRef.current.scrollToOffset({animated, offset});
         },
         [flatListRef],
     );
