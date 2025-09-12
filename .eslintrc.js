@@ -14,6 +14,7 @@ const restrictedImportPaths = [
             'Text',
             'ScrollView',
             'Animated',
+            'findNodeHandle',
         ],
         message: [
             '',
@@ -104,6 +105,10 @@ const restrictedImportPaths = [
         name: 'react-native-onyx',
         importNames: ['useOnyx'],
         message: "Please use '@hooks/useOnyx' instead.",
+    },
+    {
+        name: '@src/utils/findNodeHandle',
+        message: "Do not use 'findNodeHandle' as it is no longer supported on web.",
     },
 ];
 
@@ -219,6 +224,7 @@ module.exports = {
         'es/no-optional-chaining': 'off',
         'deprecation/deprecation': 'off',
         'arrow-body-style': 'off',
+        'no-continue': 'off',
 
         // Import specific rules
         'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
@@ -236,7 +242,21 @@ module.exports = {
         'react-native-a11y/has-accessibility-hint': ['off'],
         'react/require-default-props': 'off',
         'react/prop-types': 'off',
+        'react/jsx-key': 'error',
         'react/jsx-no-constructed-context-values': 'error',
+        'react/forbid-component-props': [
+            'error',
+            {
+                forbid: [
+                    {
+                        propName: 'fsClass',
+                        allowedFor: ['View', 'Animated.View', 'Text', 'Pressable'],
+                        message:
+                            "The 'fsClass' prop doesn't work for custom components, only RN's View, Text and Pressable.\nPlease use the 'ForwardedFSClassProps' or 'MultipleFSClassProps' types to pass down the desired 'fsClass' value to the allowed components.",
+                    },
+                ],
+            },
+        ],
         'react-native-a11y/has-valid-accessibility-descriptors': [
             'error',
             {
@@ -251,6 +271,11 @@ module.exports = {
             {
                 selector: 'TSEnumDeclaration',
                 message: "Please don't declare enums, use union types instead.",
+            },
+            {
+                selector: 'CallExpression[callee.name="getUrlWithBackToParam"]',
+                message:
+                    'Usage of getUrlWithBackToParam function is prohibited. This is legacy code and no new occurrences should be added. Please look into documentation and use alternative routing methods instead.',
             },
 
             // These are the original rules from AirBnB's style guide, modified to allow for...of loops and for...in loops

@@ -5,7 +5,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import BankAccount from '@libs/models/BankAccount';
 import getInitialSubStepForPersonalInfo from '@pages/ReimbursementAccount/USD/utils/getInitialSubStepForPersonalInfo';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {updatePersonalInformationForBankAccount} from '@userActions/BankAccounts';
@@ -29,8 +28,8 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfB
 function PersonalInfo({onBackButtonPress}: PersonalInfoProps, ref: React.ForwardedRef<View>) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
 
     const policyID = reimbursementAccount?.achData?.policyID;
     const values = useMemo(() => getSubStepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
@@ -41,7 +40,7 @@ function PersonalInfo({onBackButtonPress}: PersonalInfoProps, ref: React.Forward
         },
         [values, bankAccountID, policyID],
     );
-    const isBankAccountVerifying = reimbursementAccount?.achData?.state === BankAccount.STATE.VERIFYING;
+    const isBankAccountVerifying = reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING;
     const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForPersonalInfo(values)), [values, isBankAccountVerifying]);
 
     const {
@@ -75,7 +74,7 @@ function PersonalInfo({onBackButtonPress}: PersonalInfoProps, ref: React.Forward
             shouldEnableMaxHeight
             headerTitle={translate('personalInfoStep.personalInfo')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={1}
+            startStepIndex={2}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             <SubStep

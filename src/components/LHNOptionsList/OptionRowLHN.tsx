@@ -5,13 +5,12 @@ import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useSession} from '@components/OnyxProvider';
+import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {ProductTrainingTooltipName} from '@components/ProductTrainingContext/TOOLTIPS';
-import SubscriptAvatar from '@components/SubscriptAvatar';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
@@ -260,28 +259,21 @@ function OptionRowLHN({
                             >
                                 <View style={sidebarInnerRowStyle}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                        {!!optionItem.icons?.length &&
-                                            firstIcon &&
-                                            (optionItem.shouldShowSubscript ? (
-                                                <SubscriptAvatar
-                                                    backgroundColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                                    mainAvatar={firstIcon}
-                                                    secondaryAvatar={optionItem.icons.at(1)}
-                                                    size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                                                />
-                                            ) : (
-                                                <MultipleAvatars
-                                                    icons={optionItem.icons}
-                                                    isFocusMode={isInFocusMode}
-                                                    size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                                                    secondAvatarStyle={[
-                                                        StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                                        isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                                        hovered && !isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                                    ]}
-                                                    shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
-                                                />
-                                            ))}
+                                        {!!optionItem.icons?.length && !!firstIcon && (
+                                            <ReportActionAvatars
+                                                subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                                useMidSubscriptSizeForMultipleAvatars={isInFocusMode}
+                                                size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                                secondaryAvatarContainerStyle={[
+                                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                                    isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                                    hovered && !isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                                ]}
+                                                singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+                                                shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
+                                                reportID={optionItem?.reportID}
+                                            />
+                                        )}
                                         <View style={contentContainerStyles}>
                                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                                 <DisplayNames
@@ -318,6 +310,7 @@ function OptionRowLHN({
                                                     style={alternateTextStyle}
                                                     numberOfLines={1}
                                                     accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
+                                                    fsClass={CONST.FULLSTORY.CLASS.MASK}
                                                 >
                                                     {alternateTextContainsCustomEmojiWithText ? (
                                                         <TextWithEmojiFragment
@@ -332,7 +325,10 @@ function OptionRowLHN({
                                             )}
                                         </View>
                                         {optionItem?.descriptiveText ? (
-                                            <View style={[styles.flexWrap]}>
+                                            <View
+                                                style={[styles.flexWrap]}
+                                                fsClass={CONST.FULLSTORY.CLASS.MASK}
+                                            >
                                                 <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
                                             </View>
                                         ) : null}

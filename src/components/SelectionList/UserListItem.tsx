@@ -3,28 +3,20 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
-import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import SubscriptAvatar from '@components/SubscriptAvatar';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
-import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+import ONYXKEYS from '@src/ONYXKEYS';
 import BaseListItem from './BaseListItem';
 import type {ListItem, UserListItemProps} from './types';
-
-const fallbackIcon: IconType = {
-    source: FallbackAvatar,
-    type: CONST.ICON_TYPE_AVATAR,
-    name: '',
-    id: -1,
-};
 
 function UserListItem<TItem extends ListItem>({
     item,
@@ -42,6 +34,7 @@ function UserListItem<TItem extends ListItem>({
     wrapperStyle,
     pressableStyle,
     shouldUseDefaultRightHandSideCheckmark,
+    forwardedFSClass,
 }: UserListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -59,6 +52,20 @@ function UserListItem<TItem extends ListItem>({
             onSelectRow(item);
         }
     }, [item, onCheckboxPress, onSelectRow]);
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {
+        canBeMissing: true,
+        selector: (report) => !!report,
+    });
+
+    const reportExists = isReportInOnyx && !!item.reportID;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const itemAccountID = Number(item.accountID || item.icons?.at(1)?.id) || 0;
+
+    const isThereOnlyWorkspaceIcon = item.icons?.length === 1 && item.icons?.at(0)?.type === CONST.ICON_TYPE_WORKSPACE;
+    const shouldUseIconPolicyID = !item.reportID && !item.accountID && !item.policyID;
+    const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
 
     return (
         <BaseListItem
@@ -109,25 +116,23 @@ function UserListItem<TItem extends ListItem>({
                             </View>
                         </PressableWithFeedback>
                     )}
-                    {!!item.icons &&
-                        (item.shouldShowSubscript ? (
-                            <SubscriptAvatar
-                                mainAvatar={item.icons.at(0) ?? fallbackIcon}
-                                secondaryAvatar={item.icons.at(1)}
-                                showTooltip={showTooltip}
-                                backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                            />
-                        ) : (
-                            <MultipleAvatars
-                                icons={item.icons}
-                                shouldShowTooltip={showTooltip}
-                                secondAvatarStyle={[
-                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                    isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                    hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                ]}
-                            />
-                        ))}
+                    {(!!reportExists || !!itemAccountID || !!policyID) && (
+                        <ReportActionAvatars
+                            subscriptAvatarBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                            shouldShowTooltip={showTooltip}
+                            secondaryAvatarContainerStyle={[
+                                StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                            ]}
+                            reportID={reportExists ? item.reportID : undefined}
+                            /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
+                            accountIDs={!reportExists && !!itemAccountID ? [itemAccountID] : []}
+                            policyID={!reportExists && !!policyID ? policyID : undefined}
+                            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+                            fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
+                        />
+                    )}
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
@@ -145,6 +150,7 @@ function UserListItem<TItem extends ListItem>({
                                 shouldShowTooltip={showTooltip}
                                 text={Str.removeSMSDomain(item.alternateText ?? '')}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                forwardedFSClass={forwardedFSClass}
                             />
                         )}
                     </View>

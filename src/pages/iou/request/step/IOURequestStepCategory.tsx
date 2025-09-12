@@ -13,6 +13,7 @@ import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOURequestPolicyID, setDraftSplitTransaction, setMoneyRequestCategory, updateMoneyRequestCategory} from '@libs/actions/IOU';
@@ -21,9 +22,7 @@ import {isCategoryMissing} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditMoneyRequest, getTransactionDetails, isGroupPolicy, isReportInGroupPolicy} from '@libs/ReportUtils';
-import {areRequiredFieldsEmpty} from '@libs/TransactionUtils';
+import {getTransactionDetails, isGroupPolicy, isReportInGroupPolicy} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -51,17 +50,6 @@ function IOURequestStepCategory({
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, reportReal)}`, {canBeMissing: true});
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${getIOURequestPolicyID(transaction, reportDraft)}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, reportReal)}`, {canBeMissing: true});
-    let reportID = '-1';
-    if (action === CONST.IOU.ACTION.EDIT && reportReal) {
-        if (iouType === CONST.IOU.TYPE.SPLIT) {
-            reportID = reportReal.reportID;
-        } else if (reportReal.parentReportID) {
-            reportID = reportReal.parentReportID;
-        }
-    }
-
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canEvict: false, canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
 
     const report = reportReal ?? reportDraft;
     const policy = policyReal ?? policyDraft;
@@ -79,32 +67,14 @@ function IOURequestStepCategory({
 
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const reportAction = reportActions?.[report?.parentReportActionID || reportActionID] ?? null;
-
     const shouldShowCategory =
         (isReportInGroupPolicy(report) || isGroupPolicy(policy?.type ?? '')) &&
         // The transactionCategory can be an empty string, so to maintain the logic we'd like to keep it in this shape until utils refactor
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (!!categoryForDisplay || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
-    const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
-    const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
-    const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
-    const canEditSplitExpense = isSplitExpense && !!transaction;
-
     // eslint-disable-next-line rulesdir/no-negated-variables
-    let shouldShowNotFoundPage = false;
-
-    if (isEditing) {
-        if (isSplitBill) {
-            shouldShowNotFoundPage = !canEditSplitBill;
-        } else if (isSplitExpense) {
-            shouldShowNotFoundPage = !canEditSplitExpense;
-        } else {
-            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction);
-        }
-    }
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const fetchData = () => {
         if ((!!policy && !!policyCategories) || !report?.policyID) {

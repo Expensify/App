@@ -29,6 +29,27 @@ const HybridAppModule: HybridAppModuleType = {
         console.warn('HybridAppModule: `getHybridAppSettings` should never be called on web');
         return Promise.resolve(null);
     },
+    getInitialURL() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `getInitialURL` should never be called on web');
+        return Promise.resolve(null);
+    },
+    onURLListenerAdded() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `onURLListenerAdded` should never be called on web');
+    },
+    signInToOldDot() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `signInToOldDot` should never be called on web');
+    },
+    signOutFromOldDot() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `signOutFromOldDot` should never be called on web');
+    },
+    clearOldDotAfterSignOut() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `clearOldDotAfterSignOut` should never be called on web');
+    },
 };
 
 export default HybridAppModule;

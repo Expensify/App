@@ -35,7 +35,6 @@ function SearchRouterModal() {
             onModalShow={() => setShouldHideInputCaret(false)}
             shouldApplySidePanelOffset={!shouldUseNarrowLayout}
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldUseReanimatedModal={shouldUseNarrowLayout}
         >
             <ScreenWrapperContainer
                 testID={SearchRouterModal.displayName}

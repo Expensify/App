@@ -445,7 +445,7 @@ index 0000000..bfb5819
 +  public void onPaste(String type, String data);
 +}
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
-index 42f2383..35bfa4d 100644
+index 42f2383..9a98163 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 @@ -9,6 +9,10 @@ package com.facebook.react.views.textinput;
@@ -483,7 +483,7 @@ index 42f2383..35bfa4d 100644
      mTextAttributes = new TextAttributes();
  
      applyTextAttributes();
-@@ -335,8 +342,38 @@ public class ReactEditText extends AppCompatEditText {
+@@ -335,8 +342,40 @@ public class ReactEditText extends AppCompatEditText {
     */
    @Override
    public boolean onTextContextMenuItem(int id) {
@@ -503,12 +503,14 @@ index 42f2383..35bfa4d 100644
 +        if (itemUri != null) {
 +          ContentResolver cr = getReactContext(this).getContentResolver();
 +          type = cr.getType(itemUri);
-+          data = itemUri.toString();
-+          if (mPasteWatcher != null) {
-+            mPasteWatcher.onPaste(type, data);
++          if (type != null && !type.equals(ClipDescription.MIMETYPE_TEXT_PLAIN)) {
++            data = itemUri.toString();
++            if (mPasteWatcher != null) {
++              mPasteWatcher.onPaste(type, data);
++            }
++            // Prevents default behavior to avoid inserting raw binary data into the text field
++            return true;
 +          }
-+          // Prevents default behavior to avoid inserting raw binary data into the text field
-+          return true;
 +        }
 +
 +        if (clipData.getDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)) {
@@ -523,7 +525,7 @@ index 42f2383..35bfa4d 100644
      }
      return super.onTextContextMenuItem(id);
    }
-@@ -417,6 +454,10 @@ public class ReactEditText extends AppCompatEditText {
+@@ -417,6 +456,10 @@ public class ReactEditText extends AppCompatEditText {
      mScrollWatcher = scrollWatcher;
    }
  

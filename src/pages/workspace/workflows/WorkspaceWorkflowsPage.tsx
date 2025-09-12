@@ -11,9 +11,9 @@ import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -61,7 +61,7 @@ type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<Wo
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -73,17 +73,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds);
     const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
-    const policyApproverEmail = policy?.approver;
     const [isUpdateWorkspaceCurrencyModalOpen, setIsUpdateWorkspaceCurrencyModalOpen] = useState(false);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
-                employees: policy?.employeeList ?? {},
-                defaultApprover: policyApproverEmail ?? policy?.owner ?? '',
+                policy,
                 personalDetails: personalDetails ?? {},
+                localeCompare,
             }),
-        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
+        [personalDetails, policy, localeCompare],
     );
     const {isBetaEnabled} = usePermissions();
 
@@ -151,6 +150,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
     }, [policy, route.params.policyID, availableMembers, usedApproverEmails]);
 
+    const filteredApprovalWorkflows = useMemo(() => {
+        if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED) {
+            return approvalWorkflows;
+        }
+        return approvalWorkflows.filter((workflow) => workflow.isDefault);
+    }, [policy?.approvalMode, approvalWorkflows]);
+
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {addressName, bankName, bankAccountID} = policy?.achAccount ?? {};
         const shouldShowBankAccount = !!bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
@@ -199,7 +205,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 },
                 subMenuItems: (
                     <>
-                        {approvalWorkflows.map((workflow, index) => (
+                        {filteredApprovalWorkflows.map((workflow, index) => (
                             <OfflineWithFeedback
                                 // eslint-disable-next-line react/no-array-index-key
                                 key={`workflow-${index}`}
@@ -261,34 +267,28 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 </View>
                             )}
                             <MenuItem
-                                title={shouldShowBankAccount ? addressName : translate('workflowsPage.connectBankAccount')}
-                                titleStyle={shouldShowBankAccount ? undefined : styles.textLabelSupportingEmptyValue}
+                                title={shouldShowBankAccount ? addressName : translate('bankAccount.addBankAccount')}
+                                titleStyle={shouldShowBankAccount ? undefined : styles.textStrong}
                                 description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, policy?.achAccount ?? {})}
                                 onPress={() => {
                                     if (isAccountLocked) {
                                         showLockedAccountModal();
                                         return;
                                     }
-                                    if (
-                                        !isCurrencySupportedForGlobalReimbursement(
-                                            (policy?.outputCurrency ?? '') as CurrencyType,
-                                            isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ?? false,
-                                        )
-                                    ) {
+                                    if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND))) {
                                         setIsUpdateWorkspaceCurrencyModalOpen(true);
                                         return;
                                     }
                                     navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
                                 }}
-                                icon={shouldShowBankAccount ? bankIcon.icon : undefined}
-                                iconHeight={bankIcon.iconHeight ?? bankIcon.iconSize}
-                                iconWidth={bankIcon.iconWidth ?? bankIcon.iconSize}
-                                iconStyles={bankIcon.iconStyles}
+                                icon={shouldShowBankAccount ? bankIcon.icon : Plus}
+                                iconHeight={shouldShowBankAccount ? (bankIcon.iconHeight ?? bankIcon.iconSize) : 20}
+                                iconWidth={shouldShowBankAccount ? (bankIcon.iconWidth ?? bankIcon.iconSize) : 20}
+                                iconStyles={shouldShowBankAccount ? bankIcon.iconStyles : undefined}
                                 disabled={isOffline || !isPolicyAdmin}
                                 shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
-                                shouldShowRightIcon={!isOffline && isPolicyAdmin}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                displayInDefaultIconColor
+                                displayInDefaultIconColor={shouldShowBankAccount}
                                 brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
                             {shouldShowBankAccount && (
@@ -326,7 +326,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         translate,
         onPressAutoReportingFrequency,
         isSmartLimitEnabled,
-        approvalWorkflows,
         addApprovalAction,
         isOffline,
         theme.spinner,
@@ -337,6 +336,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         isBetaEnabled,
         isAccountLocked,
         showLockedAccountModal,
+        filteredApprovalWorkflows,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
@@ -363,10 +363,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     );
 
     const updateWorkspaceCurrencyPrompt = (
-        <Text>
-            {translate('workspace.bankAccount.yourWorkspace')}{' '}
-            <TextLink href={CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}>{translate('workspace.bankAccount.listOfSupportedCurrencies')}</TextLink>.
-        </Text>
+        <View style={[styles.renderHTML, styles.flexRow]}>
+            <RenderHTML html={translate('workspace.bankAccount.yourWorkspace')} />
+        </View>
     );
 
     const isPaidGroupPolicy = isPaidGroupPolicyUtil(policy);

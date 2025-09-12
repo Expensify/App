@@ -1,11 +1,15 @@
 import lodashMapKeys from 'lodash/mapKeys';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
+import type Policy from '@src/types/onyx/Policy';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
+import {getDefaultApprover} from './PolicyUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     members: [],
@@ -14,6 +18,7 @@ const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     usedApproverEmails: [],
     isDefault: false,
     action: CONST.APPROVAL_WORKFLOW.ACTION.CREATE,
+    originalApprovers: [],
 };
 
 type GetApproversParams = {
@@ -68,46 +73,34 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
 }
 
 type PolicyConversionParams = {
-    /**
-     * List of employees in the policy
-     */
-    employees: PolicyEmployeeList;
+    /** Policy data containing employees and approver information */
+    policy: OnyxEntry<Policy>;
 
-    /**
-     * Personal details of the employees
-     */
+    /** Personal details of the employees */
     personalDetails: PersonalDetailsList;
 
-    /**
-     * Email of the default approver for the policy
-     */
-    defaultApprover: string;
-
-    /**
-     * Email of the first approver in current edited workflow
-     */
+    /** Email of the first approver in current edited workflow */
     firstApprover?: string;
+
+    /** Locale comparison function */
+    localeCompare: LocaleContextProps['localeCompare'];
 };
 
 type PolicyConversionResult = {
-    /**
-     * List of approval workflows
-     */
+    /** List of approval workflows */
     approvalWorkflows: ApprovalWorkflow[];
 
-    /**
-     * List of available members that can be selected in the workflow
-     */
+    /** List of available members that can be selected in the workflow */
     availableMembers: Member[];
 
-    /**
-     * Emails that are used as approvers in currently configured workflows
-     */
+    /** Emails that are used as approvers in currently configured workflows */
     usedApproverEmails: string[];
 };
 
 /** Convert a list of policy employees to a list of approval workflows */
-function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, personalDetails, firstApprover}: PolicyConversionParams): PolicyConversionResult {
+function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, firstApprover, localeCompare}: PolicyConversionParams): PolicyConversionResult {
+    const employees = policy?.employeeList ?? {};
+    const defaultApprover = getDefaultApprover(policy);
     const approvalWorkflows: Record<string, ApprovalWorkflow> = {};
 
     // Keep track of used approver emails to display hints in the UI
@@ -158,7 +151,7 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
             return 1;
         }
 
-        return (a.approvers.at(0)?.displayName ?? CONST.DEFAULT_NUMBER_ID).toString().localeCompare((b.approvers.at(0)?.displayName ?? CONST.DEFAULT_NUMBER_ID).toString());
+        return localeCompare(a.approvers.at(0)?.displayName ?? '', b.approvers.at(0)?.displayName ?? '');
     });
 
     // Add a default workflow if one doesn't exist (no employees submit to the default approver)
@@ -171,7 +164,10 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
         });
     }
 
-    return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers: sortedApprovalWorkflows.at(0)?.members ?? []};
+    const availableMembers =
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC ? sortedApprovalWorkflows?.flatMap((workflow) => workflow.members) : (sortedApprovalWorkflows.at(0)?.members ?? []);
+
+    return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers};
 }
 
 type ConvertApprovalWorkflowToPolicyEmployeesParams = {

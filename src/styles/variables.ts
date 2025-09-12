@@ -35,6 +35,7 @@ export default {
     avatarSizeLargeBordered: 88,
     avatarSizeXLarge: 100,
     avatarSizeLarge: 80,
+    avatarSizeMediumLarge: 60,
     avatarSizeMedium: 52,
     avatarSizeHeader: 40,
     avatarSizeNormal: 40,
@@ -99,6 +100,8 @@ export default {
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
+    receiptPaneRHPMaxWidth: 465,
+    minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
@@ -121,7 +124,11 @@ export default {
     lineHeighTaskTitle: getValueUsingPixelRatio(26, 30),
     lineHeightSignInHeroXSmall: getValueUsingPixelRatio(32, 37),
     inputHeight: getValueUsingPixelRatio(52, 72),
+    inputPaddingTop: getValueUsingPixelRatio(15, 21),
+    inputPaddingBottom: getValueUsingPixelRatio(8, 11),
     inputHeightSmall: 28,
+    inputIconMarginTopSmall: getValueUsingPixelRatio(8, 11),
+    inputIconMarginTopLarge: getValueUsingPixelRatio(16, 21),
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
     communicationsLinkHeight: getValueUsingPixelRatio(20, 30),
     alternateTextHeight: getValueUsingPixelRatio(20, 24),
@@ -300,6 +307,9 @@ export default {
 
     scrollToNewTransactionOffset: 300,
 
+    searchAutocompleteInputSkeletonHeight: 8,
+    searchAutocompleteInputSkeletonWidth: 145,
+
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
 
@@ -311,6 +321,7 @@ export default {
     h112: 112,
     h172: 172,
     w12: 12,
+    w16: 16,
     w20: 20,
     w28: 28,
     w36: 36,
@@ -324,7 +335,6 @@ export default {
     w130: 130,
     w184: 184,
     w191: 191,
-
     // Transaction item row heights based on layout types
     // Wide screen (desktop) layout
     optionRowWideItemHeight: 64,

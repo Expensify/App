@@ -2,7 +2,7 @@ import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {translateLocal} from '@libs/Localize';
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -10,12 +10,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-// Wrapper component with OnyxProvider
+// Wrapper component with OnyxListItemProvider
 function Wrapper({children}: {children: React.ReactNode}) {
     return (
-        <OnyxProvider>
+        <OnyxListItemProvider>
             <LocaleContextProvider>{children}</LocaleContextProvider>
-        </OnyxProvider>
+        </OnyxListItemProvider>
     );
 }
 const CURRENT_USER_EMAIL = 'fake@gmail.com';
@@ -52,12 +52,13 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
-                        hash={1}
+                        similarSearchHash={1}
                         type={dataType}
                         hasResults={false}
                     />
                 </Wrapper>,
             );
+            await waitForBatchedUpdates();
 
             // Then it should display create expenses and take a test drive buttons
             expect(await screen.findByText(translateLocal('iou.createExpense'))).toBeVisible();
@@ -75,7 +76,7 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
-                        hash={1}
+                        similarSearchHash={1}
                         type={dataType}
                         hasResults={false}
                     />
@@ -108,7 +109,7 @@ describe('EmptySearchView', () => {
                 const queryString = buildQueryStringFromFilterFormValues({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                    status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                    action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
                     from: [CURRENT_USER_ACCOUNT_ID.toString()],
                 });
                 const queryJSON = buildSearchQueryJSON(queryString);
@@ -117,7 +118,7 @@ describe('EmptySearchView', () => {
                 render(
                     <Wrapper>
                         <EmptySearchView
-                            hash={queryJSON?.hash ?? 1}
+                            similarSearchHash={queryJSON?.similarSearchHash ?? 1}
                             type={dataType}
                             hasResults={false}
                             groupBy={CONST.SEARCH.GROUP_BY.REPORTS}
@@ -142,7 +143,7 @@ describe('EmptySearchView', () => {
                 const queryString = buildQueryStringFromFilterFormValues({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                    status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                    action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
                     from: [CURRENT_USER_ACCOUNT_ID.toString()],
                 });
                 const queryJSON = buildSearchQueryJSON(queryString);
@@ -151,7 +152,7 @@ describe('EmptySearchView', () => {
                 render(
                     <Wrapper>
                         <EmptySearchView
-                            hash={queryJSON?.hash ?? 1}
+                            similarSearchHash={queryJSON?.similarSearchHash ?? 1}
                             type={dataType}
                             hasResults={false}
                             groupBy={CONST.SEARCH.GROUP_BY.REPORTS}
@@ -180,7 +181,7 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
-                        hash={1}
+                        similarSearchHash={1}
                         type={dataType}
                         hasResults={false}
                     />
@@ -203,7 +204,7 @@ describe('EmptySearchView', () => {
             render(
                 <Wrapper>
                     <EmptySearchView
-                        hash={1}
+                        similarSearchHash={1}
                         type={dataType}
                         hasResults={false}
                     />

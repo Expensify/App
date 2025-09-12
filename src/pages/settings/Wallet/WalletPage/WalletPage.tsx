@@ -29,6 +29,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod, FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -59,15 +60,20 @@ type WalletPageProps = {
 function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {
+        canBeMissing: true,
+        selector: (allFunds) => Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true)),
+    });
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const isUserValidated = userAccount?.validated ?? false;
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const {isBetaEnabled} = usePermissions();
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -294,11 +300,19 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
         const fundID = paymentMethod.selectedPaymentMethod.fundID;
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
-            deletePaymentBankAccount(bankAccountID);
+            const bankAccount = bankAccountList?.[paymentMethod.methodID] ?? {};
+            deletePaymentBankAccount(bankAccountID, lastUsedPaymentMethods, bankAccount);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
             deletePaymentCard(fundID);
         }
-    }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType]);
+    }, [
+        paymentMethod.selectedPaymentMethod.bankAccountID,
+        paymentMethod.selectedPaymentMethod.fundID,
+        paymentMethod.selectedPaymentMethodType,
+        lastUsedPaymentMethods,
+        paymentMethod.methodID,
+        bankAccountList,
+    ]);
 
     /**
      * Navigate to the appropriate page after completing the KYC flow, depending on what initiated it
@@ -376,6 +390,11 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         !isCurrentPaymentMethodDefault() &&
         !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
 
+    const shouldShowEnableGlobalReimbursementsButton =
+        isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) &&
+        paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+        !paymentMethod.selectedPaymentMethod?.additionalData?.corpay?.achAuthorizationForm;
+
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || shouldUseNarrowLayout;
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
@@ -440,9 +459,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
                                     buttonRef={addPaymentMethodAnchorRef}
                                     onListContentSizeChange={shouldShowAddPaymentMenu || shouldShowDefaultDeleteMenu ? setMenuPosition : () => {}}
-                                    shouldEnableScroll={false}
                                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                    shouldShowBankAccountSections
                                 />
                             </Section>
 
@@ -459,7 +478,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         shouldShowAddPaymentMethodButton={false}
                                         shouldShowAssignedCards
                                         shouldShowEmptyListMessage={false}
-                                        shouldEnableScroll={false}
                                         onPress={assignedCardPressed}
                                         style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                         listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
@@ -517,7 +535,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 setPersonalBankAccountContinueKYCOnSuccess(ROUTES.SETTINGS_WALLET);
                                             }}
                                             enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
-                                            addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route}
                                             addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                             source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                             shouldIncludeDebitCard={hasActivatedWallet}
@@ -686,6 +703,28 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 }}
                                 wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                             />
+                            {shouldShowEnableGlobalReimbursementsButton && (
+                                <MenuItem
+                                    title={translate('common.enableGlobalReimbursements')}
+                                    icon={Expensicons.Globe}
+                                    onPress={() => {
+                                        if (isActingAsDelegate) {
+                                            closeModal(() => {
+                                                showDelegateNoAccessModal();
+                                            });
+                                            return;
+                                        }
+                                        if (isAccountLocked) {
+                                            closeModal(() => showLockedAccountModal());
+                                            return;
+                                        }
+                                        closeModal(() =>
+                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)),
+                                        );
+                                    }}
+                                    wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
+                                />
+                            )}
                         </View>
                     )}
                 </Popover>
@@ -725,6 +764,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                             icon={Expensicons.MoneySearch}
                             title={translate('workspace.common.viewTransactions')}
                             onPress={() => {
+                                hideCardMenu();
                                 Navigation.navigate(
                                     ROUTES.SEARCH_ROOT.getRoute({
                                         query: buildCannedSearchQuery({

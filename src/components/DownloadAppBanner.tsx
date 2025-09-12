@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import useHasLoggedIntoMobileApp from '@hooks/useHasLoggedIntoMobileApp';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,7 +10,11 @@ import ROUTES from '@src/ROUTES';
 import Button from './Button';
 import {ExpensifyMobileApp} from './Icon/Illustrations';
 
-function DownloadAppBanner() {
+type DownloadAppBannerProps = {
+    onLayout?: (e: LayoutChangeEvent) => void;
+};
+
+function DownloadAppBanner({onLayout}: DownloadAppBannerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {hasLoggedIntoMobileApp, isLastMobileAppLoginLoaded} = useHasLoggedIntoMobileApp();
@@ -19,7 +24,10 @@ function DownloadAppBanner() {
     }
 
     return (
-        <View style={[styles.ph2, styles.mb2, styles.stickToBottom]}>
+        <View
+            style={[styles.ph2, styles.mb2, styles.stickToBottom, styles.pt2]}
+            onLayout={onLayout}
+        >
             <BillingBanner
                 icon={ExpensifyMobileApp}
                 title={translate('common.getTheApp')}

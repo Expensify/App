@@ -35,13 +35,16 @@ const VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
 jest.mock('@libs/ReportUtils', () => ({
     ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
-    hasViolations: jest.fn().mockReturnValue(false),
+    hasAnyViolations: jest.fn().mockReturnValue(false),
     getReportTransactions: jest.fn().mockReturnValue(['mockValue']),
 }));
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
     isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
+}));
+jest.mock('@src/libs/SearchUIUtils', () => ({
+    getSuggestedSearches: jest.fn().mockReturnValue({}),
 }));
 
 describe('getReportPreviewAction', () => {
@@ -287,7 +290,7 @@ describe('getReportPreviewAction', () => {
         } as unknown as Transaction;
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction], undefined, invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction], invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
     it('getReportPreviewAction should return VIEW action for zero value invoice', async () => {
@@ -332,7 +335,7 @@ describe('getReportPreviewAction', () => {
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report.parentReportID));
 
-        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction], undefined, invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction], invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
 
     it('canPay should return false for archived invoice', async () => {
@@ -364,7 +367,7 @@ describe('getReportPreviewAction', () => {
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction], undefined, invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+        expect(getReportPreviewAction(VIOLATIONS, isReportArchived.current, report, policy, [transaction], invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
     it('getReportPreviewAction should return VIEW action for invoice when the chat report is archived', async () => {
@@ -418,7 +421,7 @@ describe('getReportPreviewAction', () => {
     });
 
     it('canReview should return true for reports where there are violations, user is submitter or approver and Workflows are enabled', async () => {
-        (ReportUtils.hasViolations as jest.Mock).mockReturnValue(true);
+        (ReportUtils.hasAnyViolations as jest.Mock).mockReturnValue(true);
         const report: Report = {
             ...createRandomReport(REPORT_ID),
             statusNum: 0,
@@ -452,7 +455,7 @@ describe('getReportPreviewAction', () => {
     });
 
     it('canReview should return true for reports with RTER violations regardless of workspace workflow configuration', async () => {
-        (ReportUtils.hasViolations as jest.Mock).mockReturnValue(true);
+        (ReportUtils.hasAnyViolations as jest.Mock).mockReturnValue(true);
         const report: Report = {
             ...createRandomReport(REPORT_ID),
             statusNum: 0,

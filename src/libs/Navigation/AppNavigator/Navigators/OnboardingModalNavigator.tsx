@@ -1,5 +1,5 @@
 import {CardStyleInterpolators} from '@react-navigation/stack';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
@@ -10,13 +10,15 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import GoogleTagManager from '@libs/GoogleTagManager';
-import useCustomScreenOptions from '@libs/Navigation/AppNavigator/useCustomScreenOptions';
+import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import OnboardingAccounting from '@pages/OnboardingAccounting';
 import OnboardingEmployees from '@pages/OnboardingEmployees';
+import OnboardingInterestedFeatures from '@pages/OnboardingInterestedFeatures';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import OnboardingPrivateDomain from '@pages/OnboardingPrivateDomain';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
@@ -43,7 +45,6 @@ function OnboardingModalNavigator() {
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const isOnPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
-    const customScreenOptions = useCustomScreenOptions();
 
     let initialRouteName: ValueOf<typeof SCREENS.ONBOARDING> = SCREENS.ONBOARDING.PURPOSE;
 
@@ -80,20 +81,27 @@ function OnboardingModalNavigator() {
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleOuterClick, {shouldBubble: true});
 
+    const customInterpolator = useModalCardStyleInterpolator();
+    const defaultScreenOptions = useMemo<PlatformStackNavigationOptions>(() => {
+        return {
+            headerShown: false,
+            animation: Animations.SLIDE_FROM_RIGHT,
+            gestureDirection: 'horizontal',
+            web: {
+                // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
+                cardStyleInterpolator: isMobileSafari() ? (props) => customInterpolator({props}) : CardStyleInterpolators.forHorizontalIOS,
+                gestureDirection: 'horizontal',
+                cardStyle: {
+                    height: '100%',
+                },
+            },
+        };
+    }, [customInterpolator]);
+
     // If the account data is not loaded yet, we don't want to show the onboarding modal
     if (isLoadingOnyxValue(accountMetadata)) {
         return null;
     }
-
-    const defaultScreenOptions: PlatformStackNavigationOptions = {
-        headerShown: false,
-        web: {
-            ...(isMobileSafari() ? customScreenOptions.web : {cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS}),
-            cardStyle: {
-                height: '100%',
-            },
-        },
-    };
 
     return (
         <NoDropZone>
@@ -143,6 +151,10 @@ function OnboardingModalNavigator() {
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.ACCOUNTING}
                                 component={OnboardingAccounting}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.INTERESTED_FEATURES}
+                                component={OnboardingInterestedFeatures}
                             />
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.WORKSPACE_OPTIONAL}

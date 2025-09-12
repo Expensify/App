@@ -37,6 +37,7 @@
         "config",
         "tests",
         "jest",
+        "prompts",
         "__mocks__",
         ".github/**/*",
         ".storybook/**/*",

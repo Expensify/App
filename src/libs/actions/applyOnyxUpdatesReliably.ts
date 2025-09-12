@@ -19,7 +19,7 @@ type ApplyOnyxUpdatesReliablyOptions = {
  * @param shouldRunSync
  * @returns
  */
-export default function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer, {shouldRunSync = false, clientLastUpdateID}: ApplyOnyxUpdatesReliablyOptions = {}) {
+export default function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer, {shouldRunSync = false, clientLastUpdateID}: ApplyOnyxUpdatesReliablyOptions = {}): Promise<void> {
     const fetchMissingUpdates = () => {
         Log.info('[applyOnyxUpdatesReliably] Fetching missing updates');
         // If we got here, that means we are missing some updates on our local storage. To
@@ -28,24 +28,22 @@ export default function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer,
         SequentialQueue.pause();
 
         if (shouldRunSync) {
-            handleMissingOnyxUpdates(updates, clientLastUpdateID);
-        } else {
-            saveUpdateInformation(updates);
+            return handleMissingOnyxUpdates(updates, clientLastUpdateID);
         }
+
+        return Promise.resolve(saveUpdateInformation(updates));
     };
 
     // If a pendingLastUpdateID is was provided, it means that the backend didn't send updates because the payload was too big.
     // In this case, we need to fetch the missing updates up to the pendingLastUpdateID.
     if (updates.shouldFetchPendingUpdates) {
-        fetchMissingUpdates();
-        return;
+        return fetchMissingUpdates();
     }
 
     const previousUpdateID = Number(updates.previousUpdateID) ?? CONST.DEFAULT_NUMBER_ID;
     if (!doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID})) {
-        onyxApply(updates);
-        return;
+        return onyxApply(updates).then();
     }
 
-    fetchMissingUpdates();
+    return fetchMissingUpdates();
 }

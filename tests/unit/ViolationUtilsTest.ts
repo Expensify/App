@@ -282,8 +282,14 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
         });
 
-        it('should not add a category violation when the transaction is partial', () => {
-            const partialTransaction = {...transaction, amount: 0, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, category: undefined};
+        it('should not add a category violation when the transaction is scanning', () => {
+            const partialTransaction = {
+                ...transaction,
+                amount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                category: undefined,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+            };
             const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).not.toContainEqual(missingCategoryViolation);
         });
@@ -306,6 +312,19 @@ describe('getViolationsOnyxData', () => {
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
             expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
+        });
+
+        it('should only return smartscanFailed violation for smart scan failed transactions', () => {
+            const partialTransaction = {
+                ...transaction,
+                amount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                category: undefined,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual([{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}]);
         });
     });
 
@@ -361,8 +380,14 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual([]);
         });
 
-        it('should not add a tag violation when the transaction is partial', () => {
-            const partialTransaction = {...transaction, amount: 0, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, tag: undefined};
+        it('should not add a tag violation when the transaction is scanning', () => {
+            const partialTransaction = {
+                ...transaction,
+                amount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                tag: undefined,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+            };
             const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).not.toContainEqual(missingTagViolation);
         });
@@ -624,21 +649,21 @@ describe('getRBRMessages', () => {
         merchant: 'Test Merchant',
     };
 
-    it('should return all violations and missing field error', () => {
-        const violations: TransactionViolation[] = [
-            {
-                name: CONST.VIOLATIONS.MISSING_CATEGORY,
-                type: CONST.VIOLATION_TYPES.VIOLATION,
-            },
-            {
-                name: CONST.VIOLATIONS.MISSING_TAG,
-                type: CONST.VIOLATION_TYPES.VIOLATION,
-            },
-        ];
+    const mockViolations: TransactionViolation[] = [
+        {
+            name: CONST.VIOLATIONS.MISSING_CATEGORY,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+        },
+        {
+            name: CONST.VIOLATIONS.MISSING_TAG,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+        },
+    ];
 
+    it('should return all violations and missing field error', () => {
         const missingFieldError = 'Missing required field';
 
-        const result = ViolationsUtils.getRBRMessages(mockTransaction, violations, translateLocal, missingFieldError, []);
+        const result = ViolationsUtils.getRBRMessages(mockTransaction, mockViolations, translateLocal, missingFieldError, []);
 
         const expectedResult = `Missing required field. ${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
 
@@ -646,23 +671,7 @@ describe('getRBRMessages', () => {
     });
 
     it('should filter out empty strings', () => {
-        const violations = [
-            {
-                name: CONST.VIOLATIONS.MISSING_CATEGORY,
-                type: CONST.VIOLATION_TYPES.VIOLATION,
-            },
-            {
-                name: '',
-                type: '',
-            },
-            {
-                name: CONST.VIOLATIONS.MISSING_TAG,
-                type: CONST.VIOLATION_TYPES.VIOLATION,
-            },
-        ] as TransactionViolation[];
-
-        const result = ViolationsUtils.getRBRMessages(mockTransaction, violations, translateLocal, undefined, []);
-
+        const result = ViolationsUtils.getRBRMessages(mockTransaction, mockViolations, translateLocal, undefined, []);
         const expectedResult = `${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
 
         expect(result).toBe(expectedResult);
