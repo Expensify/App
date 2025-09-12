@@ -1,9 +1,10 @@
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
 function init() {
     // Exit early if the Cache API is not supported in the current browser.
     if (!('caches' in window)) {
-        throw new Error('Cache API is not supported');
+        Log.warn('Cache API is not supported');
     }
     const keys = Object.values(CONST.CACHE_API_KEYS);
     keys.forEach((key) => {

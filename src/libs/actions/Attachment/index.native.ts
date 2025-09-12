@@ -5,8 +5,9 @@ import {getMimeType} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attachment} from '@src/types/onyx';
+import {CacheAttachmentProps} from './types';
 
-function cacheAttachment(attachmentID: string, uri: string, type?: string) {
+function cacheAttachment({attachmentID, uri, type}: CacheAttachmentProps) {
     const isMarkdownAttachment = !uri.startsWith('file://');
     let mimeType = type;
     let isSuccess = true;
@@ -80,7 +81,7 @@ function cacheAttachment(attachmentID: string, uri: string, type?: string) {
 
 function getCachedAttachment(attachmentID: string, attachment: OnyxEntry<Attachment>, currentSource: string) {
     if (!attachment || (attachment?.remoteSource && attachment.remoteSource !== currentSource)) {
-        cacheAttachment(attachmentID, currentSource);
+        cacheAttachment({attachmentID, uri: currentSource});
         return Promise.resolve(currentSource);
     }
     return Promise.resolve(attachment?.source ?? currentSource);

@@ -6,10 +6,9 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attachment} from '@src/types/onyx';
+import {CacheAttachmentProps} from './types';
 
-// We only need `type` for native platform
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function cacheAttachment(attachmentID: string, uri: string, type?: string) {
+function cacheAttachment({attachmentID, uri}: CacheAttachmentProps) {
     fetch(uri)
         .then((response) => {
             if (!response.ok) {
@@ -33,7 +32,7 @@ function cacheAttachment(attachmentID: string, uri: string, type?: string) {
 
 function getCachedAttachment(attachmentID: string, attachment: OnyxEntry<Attachment>, currentSource: string) {
     if (!attachment || (attachment?.remoteSource && attachment.remoteSource !== currentSource)) {
-        cacheAttachment(attachmentID, currentSource);
+        cacheAttachment({attachmentID, uri: currentSource});
         return Promise.resolve(currentSource);
     }
 
@@ -45,7 +44,7 @@ function getCachedAttachment(attachmentID: string, attachment: OnyxEntry<Attachm
                 return source;
             })
             .catch(() => {
-                throw new Error('Failed to get attachment');
+                Log.warn('Failed to get attachment');
             });
     });
 }
