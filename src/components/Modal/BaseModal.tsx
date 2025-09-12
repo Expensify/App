@@ -114,8 +114,7 @@ function ModalComponent({
     );
 }
 
-function BaseModal(
-{
+function BaseModal({
     isVisible,
     onClose,
     shouldSetModalVisibility = true,
@@ -162,8 +161,7 @@ function BaseModal(
     shouldIgnoreBackHandlerDuringTransition = false,
     forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
     ref,
-}: BaseModalProps,
-) {
+}: BaseModalProps) {
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
     const theme = useTheme();
