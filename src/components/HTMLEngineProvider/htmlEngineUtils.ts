@@ -112,6 +112,19 @@ function isChildOfMutedTextLabel(tnode: TNode): boolean {
 }
 
 /**
+ * @returns Whether the node is a child of muted-text-xs
+ */
+function isChildOfMutedTextXS(tnode: TNode): boolean {
+    if (!tnode.parent) {
+        return false;
+    }
+    if (tnode.parent.tagName === 'muted-text-xs') {
+        return true;
+    }
+    return isChildOfMutedTextXS(tnode.parent);
+}
+
+/**
  * @returns Whether the node is a child of muted-text-label
  */
 function isChildOfMutedTextMicro(tnode: TNode): boolean {
@@ -134,5 +147,6 @@ export {
     isCommentTag,
     getFontSizeOfRBRChild,
     isChildOfMutedTextLabel,
+    isChildOfMutedTextXS,
     isChildOfMutedTextMicro,
 };
