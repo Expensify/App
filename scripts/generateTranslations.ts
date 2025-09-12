@@ -836,13 +836,16 @@ class TranslationGenerator {
         const printer = ts.createPrinter();
 
         const visitWithPath = (node: ts.Node, currentPath = ''): void => {
-            // If this path is in pathsToAdd or pathsToModify, collect the appropriate code string
-            if (this.pathsToAdd.has(currentPath as TranslationPaths) || this.pathsToModify.has(currentPath as TranslationPaths)) {
-                if (this.pathsToAdd.has(currentPath as TranslationPaths)) {
+            // Only extract code strings for exact paths in our sets (not hierarchical matches)
+            const isAddedPath = this.pathsToAdd.has(currentPath as TranslationPaths);
+            const isModifiedPath = this.pathsToModify.has(currentPath as TranslationPaths);
+
+            if (isAddedPath || isModifiedPath) {
+                if (isAddedPath) {
                     // For pathsToAdd: extract the entire PropertyAssignment as code string
                     const codeString = printer.printNode(ts.EmitHint.Unspecified, node, sourceFile);
                     translatedCodeMap.set(currentPath, codeString);
-                } else if (this.pathsToModify.has(currentPath as TranslationPaths) && ts.isPropertyAssignment(node)) {
+                } else if (isModifiedPath && ts.isPropertyAssignment(node)) {
                     // For pathsToModify: extract only the value (initializer) as code string
                     if (node.initializer) {
                         const codeString = printer.printNode(ts.EmitHint.Expression, node.initializer, sourceFile);
@@ -992,8 +995,8 @@ class TranslationGenerator {
         return (context: ts.TransformationContext) => {
             const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
                 if (this.shouldNodeBeTranslated(node)) {
-                    // Only translate nodes with paths in pathsToModify or pathsToAdd
-                    if (this.pathsToModify.has(currentPath as TranslationPaths) || this.pathsToAdd.has(currentPath as TranslationPaths)) {
+                    // Use shouldTranslatePath to handle hierarchical path matching
+                    if (this.shouldTranslatePath(currentPath)) {
                         return this.translateNode(node, translations, currentPath, visitWithPath);
                     }
                     return node; // Keep unchanged
@@ -1020,17 +1023,15 @@ class TranslationGenerator {
                     return undefined; // Remove this node
                 }
 
-                // Check if this is a property assignment that should be modified
-                if (ts.isPropertyAssignment(node) && currentPath && this.pathsToModify.has(currentPath as TranslationPaths)) {
-                    const translatedCodeString = translatedCodeMap.get(currentPath);
-                    if (translatedCodeString) {
-                        // Parse the code string back to an AST expression
-                        const tempSourceFile = ts.createSourceFile('temp.ts', `const temp = ${translatedCodeString};`, ts.ScriptTarget.Latest);
-                        const tempStatement = tempSourceFile.statements[0] as ts.VariableStatement;
-                        const translatedExpression = tempStatement.declarationList.declarations[0].initializer;
-                        if (translatedExpression) {
-                            return ts.factory.createPropertyAssignment(node.name, translatedExpression as ts.Expression);
-                        }
+                // Check if this is a property assignment that should be modified (exact match only)
+                if (ts.isPropertyAssignment(node) && currentPath && translatedCodeMap.has(currentPath)) {
+                    const translatedCodeString = translatedCodeMap.get(currentPath)!;
+                    // Parse the code string back to an AST expression
+                    const tempSourceFile = ts.createSourceFile('temp.ts', `const temp = ${translatedCodeString};`, ts.ScriptTarget.Latest);
+                    const tempStatement = tempSourceFile.statements[0] as ts.VariableStatement;
+                    const translatedExpression = tempStatement.declarationList.declarations[0].initializer;
+                    if (translatedExpression) {
+                        return ts.factory.createPropertyAssignment(node.name, translatedExpression as ts.Expression);
                     }
                 }
 
