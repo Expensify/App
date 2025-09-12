@@ -2,7 +2,15 @@ import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import {buildOptimisticPolicyRecentlyUsedTags, createPolicyTag, deletePolicyTags, renamePolicyTag, renamePolicyTagList, setPolicyRequiresTag, setWorkspaceTagEnabled} from '@libs/actions/Policy/Tag';
+import {
+    buildOptimisticPolicyRecentlyUsedTags,
+    createPolicyTag,
+    deletePolicyTags,
+    renamePolicyTag,
+    renamePolicyTagList,
+    setPolicyRequiresTag,
+    setWorkspaceTagEnabled,
+} from '@libs/actions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
@@ -1027,8 +1035,8 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             function useTestHook() {
-                const [policyTagsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-                const [policyRecentlyUsedTagsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
+                const [policyTagsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+                const [policyRecentlyUsedTagsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {canBeMissing: true});
 
                 return buildOptimisticPolicyRecentlyUsedTags({
                     policyTags: policyTagsFromOnyx ?? {},
