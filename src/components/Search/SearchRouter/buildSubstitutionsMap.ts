@@ -70,6 +70,7 @@ function buildSubstitutionsMap(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER
         ) {
             const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList, cardFeeds, policies);
+            console.log('over here', {filterKey, filterValue, displayValue})
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
             if (displayValue !== filterValue) {
