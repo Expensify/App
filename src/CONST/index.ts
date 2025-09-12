@@ -1116,6 +1116,7 @@ const CONST = {
             DELETE: 'delete',
             RETRACT: 'retract',
             ADD_EXPENSE: 'addExpense',
+            REJECT: 'reject',
             SPLIT: 'split',
             REOPEN: 'reopen',
             EXPORT: 'export',
@@ -1130,12 +1131,14 @@ const CONST = {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
+            MARK_AS_RESOLVED: 'markAsResolved',
             ADD_EXPENSE: 'addExpense',
         },
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
+            MARK_AS_RESOLVED: 'markAsResolved',
         },
         REPORT_PREVIEW_ACTIONS: {
             VIEW: 'view',
@@ -1152,6 +1155,7 @@ const CONST = {
             SPLIT: 'split',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
+            REJECT: 'reject',
             MERGE: 'merge',
         },
         ADD_EXPENSE_OPTIONS: {
@@ -1223,6 +1227,7 @@ const CONST = {
                 RETRACTED: 'RETRACTED',
                 REOPENED: 'REOPENED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
+                REROUTE: 'REROUTE',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
                 SHARE: 'SHARE', // OldDot Action
                 STRIPE_PAID: 'STRIPEPAID', // OldDot Action
@@ -1322,6 +1327,8 @@ const CONST = {
                     LEAVE_ROOM: 'LEAVEROOM',
                     UPDATE_ROOM_DESCRIPTION: 'UPDATEROOMDESCRIPTION',
                 },
+                REJECTEDTRANSACTION_THREAD: 'REJECTEDTRANSACTION_THREAD',
+                REJECTED_TRANSACTION_MARKASRESOLVED: 'REJECTEDTRANSACTIONMARKASRESOLVED',
             },
             THREAD_DISABLED: ['CREATED'],
             LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD: 2000,
@@ -1485,6 +1492,10 @@ const CONST = {
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
         },
+        MOVE_TYPE: {
+            FROM: 'from',
+            TO: 'to',
+        },
     },
     EXPORT_TEMPLATE_TYPES: {
         INTEGRATIONS: 'integrations',
@@ -1561,6 +1572,8 @@ const CONST = {
         APPLY_AIRSHIP_UPDATES: 'apply_airship_updates',
         APPLY_PUSHER_UPDATES: 'apply_pusher_updates',
         APPLY_HTTPS_UPDATES: 'apply_https_updates',
+        COMPUTE_REPORT_NAME: 'compute_report_name',
+        COMPUTE_REPORT_NAME_FOR_NEW_REPORT: 'compute_report_name_for_new_report',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
@@ -2774,7 +2787,7 @@ const CONST = {
             PAY: 'pay',
             CREATE: 'create',
             SPLIT: 'split',
-            DECLINE: 'decline',
+            REJECT: 'reject',
             CANCEL: 'cancel',
             DELETE: 'delete',
             APPROVE: 'approve',
@@ -3039,6 +3052,12 @@ const CONST = {
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
+            },
+            SUPPORTED_ONLY_ON_OLDDOT: {
+                FINANCIALFORCE: 'financialForce',
+            },
+            UNSUPPORTED_NAMES: {
+                GENERIC_INDIRECT_CONNECTION: 'generic_indirect_connection',
             },
             ROUTE: {
                 QBO: 'quickbooks-online',
@@ -6456,6 +6475,9 @@ const CONST = {
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
         },
+        HAS_VALUES: {
+            RECEIPT: 'receipt',
+        },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
             APPROVE: 'approve',
@@ -6600,6 +6622,7 @@ const CONST = {
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
             ACTION: 'action',
+            HAS: 'has',
             PURCHASE_AMOUNT: 'purchaseAmount',
             PURCHASE_CURRENCY: 'purchaseCurrency',
             WITHDRAWAL_ID: 'withdrawalID',
@@ -6650,6 +6673,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             ACTION: 'action',
+            HAS: 'has',
             PURCHASE_AMOUNT: 'purchase-amount',
             PURCHASE_CURRENCY: 'purchase-currency',
             WITHDRAWAL_ID: 'withdrawal-id',
