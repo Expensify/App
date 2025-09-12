@@ -14,6 +14,7 @@ import PriorityModeController from '@components/PriorityModeController';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
+import WideRHPContextProvider from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import useOnyx from '@hooks/useOnyx';
@@ -78,7 +79,6 @@ import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
-import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
@@ -541,7 +541,16 @@ function AuthScreens() {
     }
 
     return (
-        <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, LockedAccountModalProvider, DelegateNoAccessModalProvider]}>
+        <ComposeProviders
+            components={[
+                OptionsListContextProvider,
+                SidebarOrderedReportsContextProvider,
+                SearchContextProvider,
+                LockedAccountModalProvider,
+                DelegateNoAccessModalProvider,
+                WideRHPContextProvider,
+            ]}
+        >
             <RootStack.Navigator
                 persistentScreens={[
                     NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
@@ -703,11 +712,6 @@ function AuthScreens() {
                     options={rootNavigatorScreenOptions.basicModalNavigator}
                     component={FeatureTrainingModalNavigator}
                     listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name={NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR}
-                    options={rootNavigatorScreenOptions.basicModalNavigator}
-                    component={WelcomeVideoModalNavigator}
                 />
                 {(isOnboardingCompleted === false || shouldRenderOnboardingExclusivelyOnHybridApp || shouldRenderOnboardingExclusively) && (
                     <RootStack.Screen
