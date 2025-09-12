@@ -14,6 +14,8 @@ jobs:
       - name: Checkout
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          fetch-depth: 0
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
@@ -33,6 +35,8 @@ jobs:
           NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
           
 
+          echo "Fetching PR commit: ${PR_SHA:-${GITHUB_SHA}}"
+          git fetch origin "${PR_SHA:-${GITHUB_SHA}}" || git fetch origin "+refs/pull/*/head:refs/remotes/origin/pr/*"
           git switch --force --detach "${PR_SHA:-${GITHUB_SHA}}"
           npm install --force || (rm -rf node_modules && npm install --force)
           NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
