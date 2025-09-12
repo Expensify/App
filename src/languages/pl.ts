@@ -1729,6 +1729,7 @@ const translations = {
         domainAdminsDescription: 'Dla administratorów domen: wstrzymuje to również wszystkie działania kart Expensify i działania administracyjne w Twoich domenach.',
         areYouSure: 'Czy na pewno chcesz zablokować swoje konto Expensify?',
         ourTeamWill: 'Nasz zespół zbada sprawę i usunie nieautoryzowany dostęp. Aby odzyskać dostęp, musisz współpracować z Concierge.',
+        onceLocked: 'Po zablokowaniu Twoje konto będzie ograniczone do czasu złożenia prośby o odblokowanie i przeglądu bezpieczeństwa',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Nie udało się zablokować konta',

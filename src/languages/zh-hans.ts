@@ -1712,6 +1712,7 @@ const translations = {
         domainAdminsDescription: '对于域管理员: 这也会暂停您域中所有Expensify卡活动和管理员操作。',
         areYouSure: '您确定要锁定您的Expensify账户吗?',
         ourTeamWill: '我们的团队将调查并移除任何未经授权的访问。若要恢复访问权限, 您需与Concierge协作。',
+        onceLocked: '锁定后，您的账户将受到限制，直到收到解锁请求并完成安全审查',
     },
     failedToLockAccountPage: {
         failedToLockAccount: '无法锁定账户',

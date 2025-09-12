@@ -1731,6 +1731,7 @@ const translations = {
         domainAdminsDescription: 'ドメイン管理者へ：これにより、ドメイン全体のExpensifyカード活動と管理操作も一時停止されます。',
         areYouSure: '本当にExpensifyアカウントをロックしますか？',
         ourTeamWill: 'チームが調査を行い、不正アクセスを削除します。アクセスを回復するには、Conciergeと連携する必要があります。',
+        onceLocked: 'ロックされると、アンロック要求とセキュリティレビューが完了するまでアカウントが制限されます',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'アカウントのロックに失敗しました',
