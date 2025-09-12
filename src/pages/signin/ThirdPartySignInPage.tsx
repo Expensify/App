@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SignInPageLayout from './SignInPageLayout';
+import Terms from './Terms';
 
 type ThirdPartySignInPageProps = {
     /** Which sign in provider we are using. */
@@ -52,23 +53,9 @@ function ThirdPartySignInPage({signInProvider}: ThirdPartySignInPageProps) {
                     >
                         {translate('common.goBack')}.
                     </TextLink>
-                    <Text style={[styles.textExtraSmallSupporting, styles.mt5, styles.mb5]}>
-                        {translate('thirdPartySignIn.signInAgreementMessage')}
-                        <TextLink
-                            style={[styles.textExtraSmallSupporting, styles.link]}
-                            href=""
-                        >
-                            {` ${translate('common.termsOfService')}`}
-                        </TextLink>
-                        {` ${translate('common.and')} `}
-                        <TextLink
-                            style={[styles.textExtraSmallSupporting, styles.link]}
-                            href=""
-                        >
-                            {translate('common.privacy')}
-                        </TextLink>
-                        .
-                    </Text>
+                    <View style={[styles.mt5]}>
+                        <Terms />
+                    </View>
                 </SignInPageLayout>
             )}
         </SafeAreaView>

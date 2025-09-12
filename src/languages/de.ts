@@ -93,6 +93,7 @@ import type {
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
+    DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
@@ -2180,12 +2181,8 @@ const translations = {
         chooseThemeBelowOrSync: 'Wählen Sie ein Thema unten aus oder synchronisieren Sie es mit den Einstellungen Ihres Geräts.',
     },
     termsOfUse: {
-        phrase1: 'Mit der Anmeldung stimmen Sie den',
-        phrase2: 'Nutzungsbedingungen',
-        phrase3: 'und',
-        phrase4: 'Datenschutz',
-        phrase5: `Geldübermittlung wird bereitgestellt von ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) gemäß seiner`,
-        phrase6: 'Lizenzen',
+        terms: `<muted-text-xs>Mit dem Einloggen erklären Sie sich mit den <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Nutzungsbedingungen</a> und dem <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Datenschutz</a> einverstanden.</muted-text-xs>`,
+        license: `<muted-text-xs>Die Geldüberweisung wird von ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) im Rahmen ihrer <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">Lizenzen</a> durchgeführt.</muted-text-xs>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Keinen magischen Code erhalten?',
@@ -4838,13 +4835,8 @@ const translations = {
             editTags: 'Tags bearbeiten',
             findTag: 'Tag finden',
             subtitle: 'Tags bieten detailliertere Möglichkeiten, Kosten zu klassifizieren.',
-            dependentMultiLevelTagsSubtitle: {
-                phrase1: 'Sie verwenden',
-                phrase2: 'abhängige Tags',
-                phrase3: '. You can',
-                phrase4: 'eine Tabelle erneut importieren',
-                phrase5: 'um Ihre Tags zu aktualisieren.',
-            },
+            dependentMultiLevelTagsSubtitle: ({importSpreadsheetLink}: DependentMultiLevelTagsSubtitleParams) =>
+                `<muted-text>Sie verwenden <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">abhängige Tags</a>. Sie können <a href="${importSpreadsheetLink}">eine Kalkulationstabelle neu importieren</a>, um Ihre Tags zu aktualisieren.</muted-text>`,
             emptyTags: {
                 title: 'Sie haben noch keine Tags erstellt.',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
@@ -6128,7 +6120,7 @@ const translations = {
             },
             status: 'Status',
             keyword: 'Schlüsselwort',
-            hasKeywords: 'Hat Schlüsselwörter',
+            keywords: 'Schlüsselwörter',
             currency: 'Währung',
             link: 'Link',
             pinned: 'Angeheftet',
