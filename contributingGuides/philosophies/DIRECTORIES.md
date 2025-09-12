@@ -15,7 +15,7 @@ React components that are re-used in several places across the application are s
 Non-React components that contain the business logic of the app.
 
 ## `/src/pages`
-React components that are organized by the heirarchy of the app. A "page" is the top-most UI controller for a given URL.
+React components that are organized by the hierarchy of the app. A "page" is the top-most UI controller for a given URL.
 
 ### Rules
 #### - Page components MUST have the "Page" suffix (ie. `ConciergePage`)
