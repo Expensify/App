@@ -234,7 +234,7 @@ import {clearByKey as clearPdfByOnyxKey} from './CachedPDFPaths';
 import {buildOptimisticPolicyRecentlyUsedCategories, getPolicyCategoriesData} from './Policy/Category';
 import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from './Policy/Member';
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
-import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData, getPolicyRecentlyUsedTagsData} from './Policy/Tag';
+import {buildOptimisticPolicyRecentlyUsedTags, getPolicyRecentlyUsedTagsData, getPolicyTagsData} from './Policy/Tag';
 import type {GuidedSetupData} from './Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
@@ -4387,7 +4387,7 @@ function getUpdateMoneyRequestParams(
             policyTags: getPolicyTagsData(iouReport?.policyID),
             // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook
             policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(iouReport?.policyID),
-            policyID: iouReport?.policyID ?? '',
+            policyID: iouReport?.policyID,
             transactionTags: transactionChanges.tag,
         });
         if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
@@ -6673,13 +6673,15 @@ function createSplitsAndOnyxData({
         const optimisticRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
 
         // Add tag to optimistic policy recently used tags when a participant is a workspace
-        const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat ? buildOptimisticPolicyRecentlyUsedTags({
-            policyTags: getPolicyTagsData(participant.policyID),
-            // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook
-            policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(participant.policyID),
-            policyID: participant.policyID,
-            transactionTags: tag,
-        }) : {};
+        const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat
+            ? buildOptimisticPolicyRecentlyUsedTags({
+                  policyTags: getPolicyTagsData(participant.policyID),
+                  // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook
+                  policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(participant.policyID),
+                  policyID: participant.policyID,
+                  transactionTags: tag,
+              })
+            : {};
 
         // STEP 5: Build Onyx Data
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest({
