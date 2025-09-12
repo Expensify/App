@@ -102,15 +102,18 @@ function SearchPage({route}: SearchPageProps) {
     const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
 
     // Collate a list of policyIDs from the selected transactions
-    const selectedPolicyIDs = useMemo(() => [
-        ...new Set(
-            Object.values(selectedTransactions)
-                .map((transaction) => transaction.policyID)
-                .filter(Boolean),
-        ),
-    ], [selectedTransactions]);
+    const selectedPolicyIDs = useMemo(
+        () => [
+            ...new Set(
+                Object.values(selectedTransactions)
+                    .map((transaction) => transaction.policyID)
+                    .filter(Boolean),
+            ),
+        ],
+        [selectedTransactions],
+    );
 
-    const bulkOptions = useBulkOptions({
+    const {bulkPayButtonOptions, latestBankItems} = useBulkOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
         selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
     });
@@ -201,12 +204,12 @@ function SearchPage({route}: SearchPageProps) {
                     ? selectedReports.map((report) => ({
                           reportID: report.reportID,
                           amount: report.total,
-                          paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
+                          paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods) ?? paymentMethod,
                       }))
                     : Object.values(selectedTransactions).map((transaction) => ({
                           reportID: transaction.reportID,
                           amount: transaction.amount,
-                          paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods),
+                          paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods) ?? paymentMethod,
                       }))
             ) as PaymentData[];
 
@@ -413,7 +416,7 @@ function SearchPage({route}: SearchPageProps) {
                 rightIcon: isFirstTimePayment ? Expensicons.ArrowRight : undefined,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
                 shouldCloseModalOnSelect: true,
-                subMenuItems: isFirstTimePayment ? bulkOptions : undefined,
+                subMenuItems: isFirstTimePayment ? bulkPayButtonOptions : undefined,
                 onSelected: () => onBulkPaySelected(undefined),
             };
             options.push(payButtonOption);
@@ -535,7 +538,7 @@ function SearchPage({route}: SearchPageProps) {
         integrationsExportTemplates,
         csvExportLayouts,
         policies,
-        bulkOptions,
+        bulkPayButtonOptions,
         onBulkPaySelected,
         selectedPolicyIDs,
         selectedReportIDs,
@@ -795,11 +798,13 @@ function SearchPage({route}: SearchPageProps) {
                                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                 />
                                 <SearchFiltersBar
+                                    latestBankItems={latestBankItems}
                                     queryJSON={queryJSON}
                                     headerButtonsOptions={headerButtonsOptions}
                                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                     currentSelectedPolicyID={selectedPolicyIDs?.at(0)}
                                     currentSelectedReportID={selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0)}
+                                    confirmPayment={onBulkPaySelected}
                                 />
                                 <Search
                                     key={queryJSON.hash}

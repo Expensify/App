@@ -1,14 +1,17 @@
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import type {DropdownOption, PaymentType} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
 import type {PaymentMethodType} from '@components/KYCWall/types';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -22,9 +25,10 @@ import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPo
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchDateValues} from '@components/Search/SearchDatePresetFilterBase';
-import type {SearchDateFilterKeys, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
+import type {BankAccountMenuItem, SearchDateFilterKeys, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -37,7 +41,8 @@ import {updateAdvancedFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllTaxRates, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getAllTaxRates, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isExpenseReport} from '@libs/ReportUtils';
 import {
     buildFilterFormValuesFromQuery,
     buildQueryStringFromFilterFormValues,
@@ -48,6 +53,7 @@ import {
 } from '@libs/SearchQueryUtils';
 import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,6 +64,10 @@ import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFilte
 import type {CurrencyList, Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
+
+type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
+
+type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, paymentMethod?: PaymentMethod, policy?: Policy) => void;
 
 type FilterItem = {
     label: string;
@@ -73,14 +83,24 @@ type SearchFiltersBarProps = {
     currentSelectedPolicyID?: string | undefined;
     currentSelectedReportID?: string | undefined;
     confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
+    latestBankItems?: BankAccountMenuItem[] | undefined;
 };
 
-function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionModeEnabled, currentSelectedPolicyID, currentSelectedReportID, confirmPayment}: SearchFiltersBarProps) {
+function SearchFiltersBar({
+    queryJSON,
+    headerButtonsOptions,
+    isMobileSelectionModeEnabled,
+    currentSelectedPolicyID,
+    currentSelectedReportID,
+    confirmPayment,
+    latestBankItems,
+}: SearchFiltersBarProps) {
     const scrollRef = useRef<RNScrollView>(null);
-    const selectedPolicy = usePolicy(currentSelectedPolicyID);
+    const currentPolicy = usePolicy(currentSelectedPolicyID);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
     const {hash, type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, flatFilters} = queryJSON;
-
+    const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -211,6 +231,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         const value = options.find((option) => option.value === filterFormValues.withdrawalType) ?? null;
         return [options, value];
     }, [translate, filterFormValues.withdrawalType]);
+    const {accountID} = useCurrentUserPersonalDetails();
+    const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, accountID.toString()).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
@@ -403,7 +425,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
      * filter bar
      */
     const filters = useMemo<FilterItem[]>(() => {
-        const fromValue = filterFormValues.from?.map((accountID) => personalDetails?.[accountID]?.displayName ?? accountID) ?? [];
+        const fromValue = filterFormValues.from?.map((currentAccountID) => personalDetails?.[currentAccountID]?.displayName ?? currentAccountID) ?? [];
 
         const shouldDisplayGroupByFilter = !!groupBy?.value && groupBy?.value !== CONST.SEARCH.GROUP_BY.REPORTS;
         const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter && hasMultipleOutputCurrency;
@@ -566,18 +588,57 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         ? translate('search.exportAll.allMatchingItemsSelected')
         : translate('workspace.common.selected', {count: selectedTransactionsKeys.length});
 
-    const handleSubItemSelected = (item: PopoverMenuItem) => {
+    const checkRestrictUserBillingAction = () => {
+        const shouldRestrictUserAction = currentPolicy && shouldRestrictUserBillableActions(currentPolicy.id);
+        if (shouldRestrictUserAction) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(currentPolicy?.id));
+        }
+        return shouldRestrictUserAction;
+    };
+
+    const handleSubItemSelected = (item: PopoverMenuItem, triggerKYCFlow: TriggerKYCFlow) => {
         if (isAccountLocked) {
             showLockedAccountModal();
             return;
         }
 
-        if (selectedPolicy && shouldRestrictUserBillableActions(selectedPolicy?.id)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(selectedPolicy?.id));
+        const shouldRestrictUser = checkRestrictUserBillingAction();
+
+        if (shouldRestrictUser) {
             return;
         }
 
-        // confirmPayment?.(item)
+        const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(item.key as PaymentMethod);
+        const shouldSelectPaymentMethod = isPaymentMethod || !isEmpty(latestBankItems);
+        const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === item.key);
+
+        const paymentMethod = item.key as PaymentMethod;
+        let paymentType;
+        switch (paymentMethod) {
+            case CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT:
+                paymentType = CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
+                break;
+            case CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT:
+                paymentType = CONST.IOU.PAYMENT_TYPE.VBBA;
+                break;
+            default:
+                paymentType = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+                break;
+        }
+
+        if (!!selectedPolicy || shouldSelectPaymentMethod) {
+            if (!isUserValidated) {
+                Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+                return;
+            }
+
+            triggerKYCFlow(undefined, paymentType, paymentMethod, selectedPolicy);
+
+            if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
+                setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
+            }
+        }
+        confirmPayment?.(paymentType as PaymentMethodType);
     };
 
     return (
@@ -586,6 +647,9 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                 <KYCWall
                     chatReportID={currentSelectedReportID}
                     enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                    addBankAccountRoute={
+                        isCurrentSelectedExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(currentSelectedPolicyID, undefined, Navigation.getActiveRoute()) : undefined
+                    }
                     onSuccessfulKYC={(paymentType) => confirmPayment?.(paymentType)}
                 >
                     {(triggerKYCFlow, buttonRef) => (
@@ -596,7 +660,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                                 customText={selectionButtonText}
                                 options={headerButtonsOptions}
-                                onSubItemSelected={(subItem) => handleSubItemSelected(subItem)}
+                                onSubItemSelected={(subItem) => handleSubItemSelected(subItem, triggerKYCFlow)}
                                 isSplitButton={false}
                                 buttonRef={buttonRef}
                                 anchorAlignment={{
