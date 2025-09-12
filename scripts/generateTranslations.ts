@@ -152,7 +152,7 @@ class TranslationGenerator {
         // map of translations for each locale
         const translations = new Map<TranslationTargetLocale, Map<number, string>>();
 
-        if (this.pathsToModify.size === 0 && this.compareRef) {
+        if (this.isIncremental && this.pathsToModify.size === 0) {
             // If compareRef is provided (and no specific paths), use git diff to find changed lines and build dot-notation paths
             this.buildPathsFromGitDiff();
         }
@@ -277,9 +277,9 @@ class TranslationGenerator {
     }
 
     /**
-     * Should the given node be translated?
+     * Should we translate the given node?
      */
-    private shouldNodeBeTranslated(node: ts.Node): node is ts.StringLiteral | ts.TemplateExpression | ts.NoSubstitutionTemplateLiteral {
+    private shouldTranslateNode(node: ts.Node): node is ts.StringLiteral | ts.TemplateExpression | ts.NoSubstitutionTemplateLiteral {
         // We only translate string literals and template expressions
         if (!ts.isStringLiteral(node) && !ts.isTemplateExpression(node) && !ts.isNoSubstitutionTemplateLiteral(node)) {
             return false;
@@ -343,6 +343,36 @@ class TranslationGenerator {
             staticText += span.literal.text;
         }
         return /[a-zA-Z]/.test(staticText);
+    }
+
+    /**
+     * Check if a given translation path should be translated based on the paths filter.
+     * If no paths are specified, all paths should be translated.
+     * If paths are specified, only paths that match exactly or are nested under a specified path should be translated.
+     */
+    private shouldTranslatePath(currentPath: string): boolean {
+        if (this.pathsToModify.size === 0 && this.pathsToAdd.size === 0) {
+            return true;
+        }
+
+        // Check if path is in either pathsToModify or pathsToAdd
+        const allPathsToTranslate = new Set([...this.pathsToModify, ...this.pathsToAdd]);
+        for (const targetPath of allPathsToTranslate) {
+            // Exact match
+            if (currentPath === targetPath) {
+                return true;
+            }
+            // Current path is nested under target path
+            if (currentPath.startsWith(`${targetPath}.`)) {
+                return true;
+            }
+            // Target path is nested under current path (for parent path matching)
+            if (targetPath.startsWith(`${currentPath}.`)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -428,43 +458,13 @@ class TranslationGenerator {
     }
 
     /**
-     * Check if a given translation path should be translated based on the paths filter.
-     * If no paths are specified, all paths should be translated.
-     * If paths are specified, only paths that match exactly or are nested under a specified path should be translated.
-     */
-    private shouldTranslatePath(currentPath: string): boolean {
-        if (this.pathsToModify.size === 0 && this.pathsToAdd.size === 0) {
-            return true;
-        }
-
-        // Check if path is in either pathsToModify or pathsToAdd
-        const allPathsToTranslate = new Set([...this.pathsToModify, ...this.pathsToAdd]);
-        for (const targetPath of allPathsToTranslate) {
-            // Exact match
-            if (currentPath === targetPath) {
-                return true;
-            }
-            // Current path is nested under target path
-            if (currentPath.startsWith(`${targetPath}.`)) {
-                return true;
-            }
-            // Target path is nested under current path (for parent path matching)
-            if (targetPath.startsWith(`${currentPath}.`)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Recursively extract all string literals and templates to translate from the subtree rooted at the given node.
      * Simple templates (as defined by this.isSimpleTemplateExpression) can be translated directly.
      * Complex templates must have each of their spans recursively translated first, so we'll extract all the lowest-level strings to translate.
      * Then complex templates will be serialized with a hash of complex spans in place of the span text, and we'll translate that.
      */
     private extractStringsToTranslate(node: ts.Node, stringsToTranslate: Map<number, StringWithContext>, currentPath = '') {
-        if (this.shouldNodeBeTranslated(node)) {
+        if (this.shouldTranslateNode(node)) {
             // Check if this translation path should be included based on the paths filter
             if (!this.shouldTranslatePath(currentPath)) {
                 return; // Skip this node and its children if the path doesn't match
@@ -692,7 +692,7 @@ class TranslationGenerator {
         const isOnAddedLine = nodeLines.some((lineNumber) => addedLines.has(lineNumber));
         const isOnRemovedLine = nodeLines.some((lineNumber) => removedLines.has(lineNumber));
 
-        if ((isOnAddedLine || isOnRemovedLine) && this.shouldNodeBeTranslated(node)) {
+        if ((isOnAddedLine || isOnRemovedLine) && this.shouldTranslateNode(node)) {
             // This node is on a changed line and should be translated
             // Traverse up the tree to build the dot notation path
             const dotPath = this.buildDotNotationPathFromNode(node);
@@ -930,7 +930,7 @@ class TranslationGenerator {
     private createFullTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
         return (context: ts.TransformationContext) => {
             const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
-                if (this.shouldNodeBeTranslated(node)) {
+                if (this.shouldTranslateNode(node)) {
                     return this.translateNode(node, translations, currentPath, visitWithPath);
                 }
 
@@ -954,7 +954,7 @@ class TranslationGenerator {
     private createIncrementalEnTransformer(translations: Map<number, string>): ts.TransformerFactory<ts.SourceFile> {
         return (context: ts.TransformationContext) => {
             const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
-                if (this.shouldNodeBeTranslated(node)) {
+                if (this.shouldTranslateNode(node)) {
                     // Use shouldTranslatePath to handle hierarchical path matching
                     if (this.shouldTranslatePath(currentPath)) {
                         return this.translateNode(node, translations, currentPath, visitWithPath);
