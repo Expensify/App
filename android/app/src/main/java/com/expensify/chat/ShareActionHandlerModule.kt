@@ -36,7 +36,6 @@ class ShareActionHandlerModule(reactContext: ReactApplicationContext) :
             val shareObject = JSONObject(shareObjectString)
             val content = shareObject.optString("content")
             val mimeType = shareObject.optString("mimeType")
-            val fileUriPath = "file://$content"
             val timestamp = System.currentTimeMillis()
 
             val file = File(content)
@@ -53,6 +52,8 @@ class ShareActionHandlerModule(reactContext: ReactApplicationContext) :
 
             val identifier = file.name
             var aspectRatio = 0.0f
+            val fileUri = android.net.Uri.fromFile(file)
+            val fileUriPath = fileUri.toString()
 
             if (mimeType.startsWith("image/")) {
                 val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }

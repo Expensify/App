@@ -105,6 +105,7 @@ type TransactionItemRowProps = {
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
     areAllOptionalColumnsHidden?: boolean;
+    violations?: TransactionViolation[];
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -143,6 +144,7 @@ function TransactionItemRow({
     shouldHighlightItemWhenSelected = true,
     isDisabled = false,
     areAllOptionalColumnsHidden = false,
+    violations,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -484,6 +486,7 @@ function TransactionItemRow({
                         {shouldShowErrors && (
                             <TransactionItemRowRBRWithOnyx
                                 transaction={transactionItem}
+                                violations={violations}
                                 report={report}
                                 containerStyles={[styles.mt2, styles.minHeight4]}
                                 missingFieldError={missingFieldError}
@@ -533,6 +536,7 @@ function TransactionItemRow({
             {shouldShowErrors && (
                 <TransactionItemRowRBRWithOnyx
                     transaction={transactionItem}
+                    violations={violations}
                     report={report}
                     missingFieldError={missingFieldError}
                 />
