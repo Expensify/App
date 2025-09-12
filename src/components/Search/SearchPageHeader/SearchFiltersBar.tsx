@@ -3,15 +3,13 @@ import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
+import type {ScrollView as RNScrollView, GestureResponderEvent} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DropdownOption, PaymentType} from '@components/ButtonWithDropdownMenu/types';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
-import type {PaymentMethodType} from '@components/KYCWall/types';
-import type {PaymentMethod} from '@components/KYCWall/types';
+import type {PaymentMethodType, PaymentMethod} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
