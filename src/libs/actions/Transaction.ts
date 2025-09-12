@@ -23,8 +23,8 @@ import {
     buildTransactionThread,
     findSelfDMReportID,
     getReportTransactions,
-    shouldEnableNegative,
     hasViolations as hasViolationsReportUtils,
+    shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {getAmount, isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
