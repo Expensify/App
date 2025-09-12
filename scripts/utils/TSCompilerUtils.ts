@@ -201,6 +201,29 @@ function extractKeyFromPropertyNode(node: ts.PropertyAssignment | ts.MethodDecla
     return undefined;
 }
 
+/**
+ * Build a dot-notation path from a node by traversing up the AST to find property assignments.
+ * Useful for building paths like "common.save" from a string literal node.
+ */
+// eslint-disable-next-line rulesdir/no-negated-variables
+function buildDotNotationPath(node: ts.Node, rootNode?: ts.Node): string | null {
+    const pathParts: string[] = [];
+    let current: ts.Node | undefined = node;
+
+    // Traverse up the tree until we reach the root node or source file
+    while (current && current !== rootNode && !ts.isSourceFile(current)) {
+        if (ts.isPropertyAssignment(current)) {
+            const key = extractKeyFromPropertyNode(current);
+            if (key) {
+                pathParts.unshift(key);
+            }
+        }
+        current = current.parent;
+    }
+
+    return pathParts.length > 0 ? pathParts.join('.') : null;
+}
+
 export default {
     findAncestor,
     addImport,
@@ -208,5 +231,6 @@ export default {
     resolveDeclaration,
     extractIdentifierFromExpression,
     extractKeyFromPropertyNode,
+    buildDotNotationPath,
 };
 export type {ExpressionWithType};

@@ -693,7 +693,8 @@ class TranslationGenerator {
         if ((isOnAddedLine || isOnRemovedLine) && this.shouldTranslateNode(node)) {
             // This node is on a changed line and should be translated
             // Traverse up the tree to build the dot notation path
-            const dotPath = this.buildDotNotationPathFromNode(node);
+            const translationsNode = this.findTranslationsNode(node.getSourceFile() ?? this.sourceFile);
+            const dotPath = TSCompilerUtils.buildDotNotationPath(node, translationsNode ?? undefined);
             if (dotPath) {
                 if (isOldVersion && isOnRemovedLine) {
                     // When traversing old version, removed lines indicate paths to remove
@@ -713,27 +714,6 @@ class TranslationGenerator {
         node.forEachChild((child) => {
             this.extractPathsFromChangedLines(child, addedLines, removedLines, isOldVersion);
         });
-    }
-
-    /**
-     * Build a dot notation path from a node by traversing up the AST to the translations root.
-     */
-    private buildDotNotationPathFromNode(node: ts.Node): string | null {
-        const pathParts: string[] = [];
-        let current: ts.Node | undefined = node;
-
-        // Traverse up the tree until we reach the translations object or source file
-        while (current && current !== this.sourceFile) {
-            if (ts.isPropertyAssignment(current)) {
-                const key = TSCompilerUtils.extractKeyFromPropertyNode(current);
-                if (key) {
-                    pathParts.unshift(key);
-                }
-            }
-            current = current.parent;
-        }
-
-        return pathParts.length > 0 ? pathParts.join('.') : null;
     }
 
     /**
