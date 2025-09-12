@@ -82,8 +82,6 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
     [CONST.REPORT.REPORT_TITLE_FIELD]?: {
         /** Default formula value for the title field */
         defaultValue?: string;
-        /** Whether the title field is deletable/editable */
-        deleteable?: boolean;
     };
 }>;
 
