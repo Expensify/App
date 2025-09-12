@@ -11135,6 +11135,61 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
     return isPaidGroupPolicyPolicyUtils(newPolicy) && (isPolicyMember(newPolicy, submitterEmail) || isPolicyAdmin(newPolicy?.id, policies));
 }
 
+/**
+ * Checks if someone took control of the report and if that take control is still valid
+ * A take control is invalidated if there's a SUBMITTED action after it
+ */
+function getBypassApproverIfTakeControl(expenseReport: OnyxEntry<Report>): string | null {
+    if (!expenseReport?.reportID) {
+        return null;
+    }
+
+    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`];
+    if (!reportActions) {
+        return null;
+    }
+
+    const actions = Object.values(reportActions).filter(Boolean);
+
+    // Sort actions by created timestamp to get chronological order
+    const sortedActions = actions.sort((a, b) => {
+        const aTime = new Date(a.created).getTime();
+        const bTime = new Date(b.created).getTime();
+        return aTime - bTime;
+    });
+
+    let lastTakeControlAction: ReportAction | null = null;
+    let lastTakeControlActorAccountID: number | null = null;
+
+    // Look through actions chronologically to find the most recent take control
+    // and check if it's been invalidated by a subsequent SUBMITTED action
+    for (const action of sortedActions) {
+        if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+            lastTakeControlAction = action;
+            lastTakeControlActorAccountID = action.actorAccountID ?? null;
+        }
+
+        // If we find a SUBMITTED or SUBMITTED_AND_CLOSED action after a take control, the take control is invalidated
+        if (lastTakeControlAction && (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED))) {
+            const takeControlTime = new Date(lastTakeControlAction.created).getTime();
+            const submitTime = new Date(action.created).getTime();
+
+            if (submitTime > takeControlTime) {
+                lastTakeControlAction = null;
+                lastTakeControlActorAccountID = null;
+            }
+        }
+    }
+
+    // If we have a valid take control action, return the approver email
+    if (lastTakeControlAction && lastTakeControlActorAccountID) {
+        const approverEmail = getLoginsByAccountIDs([lastTakeControlActorAccountID]).at(0);
+        return approverEmail ?? null;
+    }
+
+    return null;
+}
+
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {
     const approvalChain: string[] = [];
     const fullApprovalChain: string[] = [];
@@ -11143,6 +11198,12 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
 
     if (isSubmitAndClose(policy)) {
         return approvalChain;
+    }
+
+    // Check if someone took control and it's still valid
+    const bypassApprover = getBypassApproverIfTakeControl(expenseReport);
+    if (bypassApprover && bypassApprover !== submitterEmail) {
+        return [bypassApprover];
     }
 
     // Get category/tag approver list
