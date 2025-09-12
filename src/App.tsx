@@ -9,6 +9,7 @@ import {ActionSheetAwareScrollViewProvider} from './components/ActionSheetAwareS
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from './components/CurrentUserPersonalDetailsProvider';
 import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackground';
 import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -26,6 +27,8 @@ import {ProductTrainingContextProvider} from './components/ProductTrainingContex
 import SafeArea from './components/SafeArea';
 import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
 import {SearchRouterContextProvider} from './components/Search/SearchRouter/SearchRouterContext';
+import SidePanelContextProvider from './components/SidePanel/SidePanelContextProvider';
+import SVGDefinitionsProvider from './components/SVGDefinitionsProvider';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesProvider';
@@ -87,9 +90,11 @@ function App() {
                                 <ComposeProviders
                                     components={[
                                         OnyxListItemProvider,
+                                        CurrentUserPersonalDetailsProvider,
                                         ThemeProvider,
                                         ThemeStylesProvider,
                                         ThemeIllustrationsProvider,
+                                        SVGDefinitionsProvider,
                                         HTMLEngineProvider,
                                         PortalProvider,
                                         SafeArea,
@@ -114,6 +119,7 @@ function App() {
                                         InputBlurContextProvider,
                                         FullScreenBlockingViewContextProvider,
                                         FullScreenLoaderContextProvider,
+                                        SidePanelContextProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />
