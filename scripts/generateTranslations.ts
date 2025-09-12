@@ -679,7 +679,7 @@ class TranslationGenerator {
     /**
      * Extract dot-notation paths from nodes that are on changed lines.
      */
-    private extractPathsFromChangedLines(node: ts.Node, addedLines: Set<number>, removedLines: Set<number>, isOldVersion = false, currentPath = ''): void {
+    private extractPathsFromChangedLines(node: ts.Node, addedLines: Set<number>, removedLines: Set<number>, isOldVersion = false): void {
         // Check if this node is on a changed line
         const sourceFile = node.getSourceFile();
         const start = sourceFile.getLineAndCharacterOfPosition(node.getStart());
@@ -711,17 +711,7 @@ class TranslationGenerator {
 
         // Continue traversing children
         node.forEachChild((child) => {
-            let childPath = currentPath;
-
-            // If the child is a property assignment, update the path
-            if (ts.isPropertyAssignment(child)) {
-                const propName = TSCompilerUtils.extractKeyFromPropertyNode(child);
-                if (propName) {
-                    childPath = currentPath ? `${currentPath}.${propName}` : propName;
-                }
-            }
-
-            this.extractPathsFromChangedLines(child, addedLines, removedLines, isOldVersion, childPath);
+            this.extractPathsFromChangedLines(child, addedLines, removedLines, isOldVersion);
         });
     }
 
