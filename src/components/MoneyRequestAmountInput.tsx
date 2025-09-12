@@ -155,7 +155,6 @@ function MoneyRequestAmountInput({
     shouldApplyPaddingToContainer = false,
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
-    forwardedRef,
     isNegative = false,
     allowFlippingAmount = false,
     toggleNegative,

@@ -77,7 +77,6 @@ function MoneyRequestAmountForm({
     chatReportID,
     hideCurrencySymbol = false,
     allowFlippingAmount = false,
-    forwardedRef,
     ref,
 }: MoneyRequestAmountFormProps) {
     const styles = useThemeStyles();

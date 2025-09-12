@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
 import usePrevious from '@hooks/usePrevious';
@@ -17,6 +17,7 @@ import BigNumberPad from './BigNumberPad';
 import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
 import * as Expensicons from './Icon/Expensicons';
+import ScrollView from './ScrollView';
 import TextInput from './TextInput';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
@@ -34,7 +35,7 @@ type NumberWithSymbolFormProps = {
     decimals?: number;
 
     /** Currency of the input */
-    currency: string;
+    currency?: string;
 
     /** Whether the big number pad should be shown */
     shouldShowBigNumberPad?: boolean;
@@ -126,7 +127,6 @@ function NumberWithSymbolForm({
     shouldApplyPaddingToContainer = false,
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
-    forwardedRef,
     isNegative = false,
     allowFlippingAmount = false,
     toggleNegative,
@@ -459,7 +459,7 @@ function NumberWithSymbolForm({
                         {textInputComponent}
                     </View>
 
-                    {isSymbolPressable && !canUseTouchScreen && (
+                    {isSymbolPressable && !!currency && !canUseTouchScreen && (
                         <Button
                             shouldShowRightIcon
                             small
