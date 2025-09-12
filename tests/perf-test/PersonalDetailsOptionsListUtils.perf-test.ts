@@ -37,7 +37,7 @@ const reports = createCollection<Report>(
 
 const accountIDToReportIDMap: Record<number, string> = {};
 for (let i = 0; i < REPORTS_COUNT; i++) {
-    accountIDToReportIDMap[i] = reports[i].reportID;
+    accountIDToReportIDMap[i] = reports[`${ONYXKEYS.COLLECTION.REPORT}${i}`].reportID;
 }
 
 const options = createOptionList(REPORTS_COUNT + 1, personalDetails, accountIDToReportIDMap, reports);
