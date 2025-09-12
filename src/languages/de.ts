@@ -2484,8 +2484,10 @@ const translations = {
                 title: ({workspaceSettingsLink}) => `Überprüfe deine [Workspace-Einstellungen](${workspaceSettingsLink})`,
                 description: ({workspaceSettingsLink}) =>
                     'So überprüfst und aktualisierst du deine Workspace-Einstellungen:\n' +
-                    '1. Klicke auf *Workspaces* > [Dein Workspace].\n' +
-                    `[Zum Workspace](${workspaceSettingsLink}). Wir verfolgen Änderungen im Raum #admins.`,
+                    '1. Klicke auf Workspaces.\n' +
+                    '2. Wähle deinen Workspace aus.\n' +
+                    '3. Überprüfe und aktualisiere deine Einstellungen.\n' +
+                    `[Gehe zu deinem Workspace.](${workspaceSettingsLink})`,
             },
             createReportTask: {
                 title: 'Erstelle deinen ersten Bericht',
