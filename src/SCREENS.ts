@@ -152,6 +152,7 @@ const SCREENS = {
         },
 
         DELEGATE: {
+            VERIFY_ACCOUNT: 'Settings_Delegate_VerifyAccount',
             ADD_DELEGATE: 'Settings_Delegate_Add',
             DELEGATE_ROLE: 'Settings_Delegate_Role',
             DELEGATE_CONFIRM: 'Settings_Delegate_Confirm',
@@ -707,10 +708,6 @@ const SCREENS = {
         WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
     },
 
-    WELCOME_VIDEO: {
-        ROOT: 'Welcome_Video_Root',
-    },
-
     EXPLANATION_MODAL: {
         ROOT: 'Explanation_Modal_Root',
     },
@@ -782,6 +779,7 @@ const SCREENS = {
     },
     REPORT_CHANGE_APPROVER: {
         ROOT: 'Report_Change_Approver_Root',
+        ADD_APPROVER: 'Report_Change_Approver_Add_Approver',
     },
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',
