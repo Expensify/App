@@ -93,6 +93,7 @@ import type {
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
+    DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
@@ -4855,13 +4856,8 @@ const translations = {
             editTags: 'Modifier les balises',
             findTag: 'Trouver une balise',
             subtitle: 'Les étiquettes ajoutent des moyens plus détaillés pour classer les coûts.',
-            dependentMultiLevelTagsSubtitle: {
-                phrase1: 'Vous utilisez',
-                phrase2: 'balises dépendantes',
-                phrase3: '. Vous pouvez',
-                phrase4: 'réimporter une feuille de calcul',
-                phrase5: 'mettre à jour vos tags.',
-            },
+            dependentMultiLevelTagsSubtitle: ({importSpreadsheetLink}: DependentMultiLevelTagsSubtitleParams) =>
+                `<muted-text>Vous utilisez des <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">balises dépendantes</a>. Vous pouvez <a href="${importSpreadsheetLink}">réimporter une feuille de calcul</a> pour mettre à jour vos balises.</muted-text>`,
             emptyTags: {
                 title: "Vous n'avez créé aucun tag",
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
