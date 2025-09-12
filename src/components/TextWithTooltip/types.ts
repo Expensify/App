@@ -1,6 +1,7 @@
 import type {StyleProp, TextStyle} from 'react-native';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
-type TextWithTooltipProps = {
+type TextWithTooltipProps = ForwardedFSClassProps & {
     /** The text to display */
     text: string;
 
@@ -12,9 +13,6 @@ type TextWithTooltipProps = {
 
     /** Custom number of lines for text wrapping */
     numberOfLines?: number;
-
-    /** Whether the supplied text can be markdown */
-    shouldRenderAsHTML?: boolean;
 };
 
 export default TextWithTooltipProps;

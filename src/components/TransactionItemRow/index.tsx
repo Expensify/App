@@ -76,6 +76,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** Precomputed violations */
     violations?: TransactionViolation[];
+
+    /** Used to initiate payment from search page */
+    hash?: number;
 };
 
 type TransactionItemRowProps = {
@@ -101,6 +104,7 @@ type TransactionItemRowProps = {
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
     areAllOptionalColumnsHidden?: boolean;
+    violations?: TransactionViolation[];
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -139,6 +143,7 @@ function TransactionItemRow({
     shouldHighlightItemWhenSelected = true,
     isDisabled = false,
     areAllOptionalColumnsHidden = false,
+    violations,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -260,6 +265,10 @@ function TransactionItemRow({
                             parentAction={transactionItem.parentTransactionID}
                             goToItem={onButtonPress}
                             isLoading={isActionLoading}
+                            reportID={transactionItem.reportID}
+                            policyID={report?.policyID}
+                            hash={transactionItem?.hash}
+                            amount={report?.total}
                         />
                     )}
                 </View>
@@ -288,7 +297,7 @@ function TransactionItemRow({
                             merchantOrDescription={description}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
-                            shouldRenderAsHTML
+                            isDescription
                         />
                     )}
                 </View>
@@ -372,6 +381,8 @@ function TransactionItemRow({
             shouldShowTooltip,
             shouldUseNarrowLayout,
             transactionItem,
+            report?.policyID,
+            report?.total,
             areAllOptionalColumnsHidden,
         ],
     );
@@ -429,6 +440,7 @@ function TransactionItemRow({
                                     merchantOrDescription={merchantOrDescription}
                                     shouldShowTooltip={shouldShowTooltip}
                                     shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    isDescription={!merchant}
                                 />
                                 <TotalCell
                                     transactionItem={transactionItem}
@@ -469,6 +481,7 @@ function TransactionItemRow({
                         {shouldShowErrors && (
                             <TransactionItemRowRBRWithOnyx
                                 transaction={transactionItem}
+                                violations={violations}
                                 report={report}
                                 containerStyles={[styles.mt2, styles.minHeight4]}
                                 missingFieldError={missingFieldError}
@@ -518,6 +531,7 @@ function TransactionItemRow({
             {shouldShowErrors && (
                 <TransactionItemRowRBRWithOnyx
                     transaction={transactionItem}
+                    violations={violations}
                     report={report}
                     missingFieldError={missingFieldError}
                 />
