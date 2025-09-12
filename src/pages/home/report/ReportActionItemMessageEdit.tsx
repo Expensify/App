@@ -66,6 +66,9 @@ type ReportActionItemMessageEditProps = {
     /** ReportID that holds the comment we're editing */
     reportID: string | undefined;
 
+    /** ID of the original report from which the given reportAction is first created */
+    originalReportID: string;
+
     /** PolicyID of the policy the report belongs to */
     policyID?: string;
 
@@ -90,7 +93,7 @@ const DEFAULT_MODAL_VALUE = {
 };
 
 function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
+    {action, draftMessage, reportID, originalReportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
@@ -283,12 +286,12 @@ function ReportActionItemMessageEdit(
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
             textInputRef.current?.blur();
-            ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
+            ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
+        editReportComment(originalReportID ?? reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
-    }, [action, deleteDraft, draft, reportID]);
+    }, [action, deleteDraft, draft, originalReportID, reportID]);
 
     /**
      * @param emoji
