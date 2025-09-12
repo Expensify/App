@@ -5448,6 +5448,11 @@ const styles = (theme: ThemeColors) =>
             ...flex.justifyContentCenter,
         },
 
+        emptyStateTransactionMergeIllustration: {
+            width: 180,
+            height: 220,
+        },
+
         pendingStateCardIllustration: {
             width: 233,
             height: 162,
