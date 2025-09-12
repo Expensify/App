@@ -33,7 +33,7 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={CONST.ROLE.BUTTON}
                 disabled={isPrevButtonDisabled}
-                style={[styles.h10, styles.mr1, styles.alignItemsCenter, styles.justifyContentCenter]}
+                style={[styles.h7, styles.mr1, styles.alignItemsCenter, styles.justifyContentCenter]}
                 onPress={onPrevious}
             >
                 <View style={[styles.reportActionContextMenuMiniButton, {backgroundColor: theme.borderLighter}, isPrevButtonDisabled && styles.buttonOpacityDisabled]}>
@@ -50,7 +50,7 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={CONST.ROLE.BUTTON}
                 disabled={isNextButtonDisabled}
-                style={[styles.h10, styles.alignItemsCenter, styles.justifyContentCenter]}
+                style={[styles.h7, styles.alignItemsCenter, styles.justifyContentCenter]}
                 onPress={onNext}
             >
                 <View style={[styles.reportActionContextMenuMiniButton, {backgroundColor: theme.borderLighter}, isNextButtonDisabled && styles.buttonOpacityDisabled]}>
