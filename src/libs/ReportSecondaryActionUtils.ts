@@ -51,7 +51,7 @@ import {
 import {getSession} from './SessionUtils';
 import {
     allHavePendingRTERViolation,
-    getOriginalTransactionWithSplitInfo,
+    getTransactionSplitType,
     hasReceipt as hasReceiptTransactionUtils,
     isCardTransaction as isCardTransactionUtils,
     isDemoTransaction,
@@ -89,7 +89,7 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], origin
         return false;
     }
 
-    const {isExpenseSplit, isBillSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
+    const {isExpenseSplit, isBillSplit} = getTransactionSplitType(reportTransaction, originalTransaction);
     if (isExpenseSplit || isBillSplit) {
         return false;
     }

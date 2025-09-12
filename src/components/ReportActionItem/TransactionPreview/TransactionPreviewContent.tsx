@@ -108,7 +108,7 @@ function TransactionPreviewContent({
                 reportActions,
                 originalTransaction,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, originalTransaction],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 

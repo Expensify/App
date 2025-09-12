@@ -1832,7 +1832,7 @@ function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction
     return !originalTransaction?.comment?.splits;
 }
 
-const getOriginalTransactionWithSplitInfo = (transaction: OnyxEntry<Transaction>, originalTransaction: OnyxEntry<Transaction>) => {
+const getTransactionSplitType = (transaction: OnyxEntry<Transaction>, originalTransaction: OnyxEntry<Transaction>) => {
     const {originalTransactionID, source, splits} = transaction?.comment ?? {};
 
     if (splits && splits.length > 0) {
@@ -1983,7 +1983,7 @@ export {
     isPendingCardOrScanningTransaction,
     isScanning,
     checkIfShouldShowMarkAsCashButton,
-    getOriginalTransactionWithSplitInfo,
+    getTransactionSplitType,
     getTransactionPendingAction,
     isTransactionPendingDelete,
     createUnreportedExpenseSections,
