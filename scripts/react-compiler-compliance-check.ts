@@ -10,7 +10,7 @@ import {execSync} from 'child_process';
 import {readFileSync, writeFileSync} from 'fs';
 import {join} from 'path';
 import type {TupleToUnion} from 'type-fest';
-import CLI from '../utils/CLI';
+import CLI from './utils/CLI';
 
 const REACT_COMPILER_CONFIG_FILENAME = 'react-compiler-config.json';
 
