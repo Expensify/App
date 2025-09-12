@@ -2977,6 +2977,7 @@ const CONST = {
             ARE_TAXES_ENABLED: 'tax',
             ARE_RULES_ENABLED: 'areRulesEnabled',
             ARE_PER_DIEM_RATES_ENABLED: 'arePerDiemRatesEnabled',
+            IS_ATTENDEE_TRACKING_ENABLED: 'isAttendeeTrackingEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -6626,6 +6627,7 @@ const CONST = {
             PURCHASE_AMOUNT: 'purchaseAmount',
             PURCHASE_CURRENCY: 'purchaseCurrency',
             WITHDRAWAL_ID: 'withdrawalID',
+            ATTENDEE: 'attendee',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
@@ -6677,6 +6679,7 @@ const CONST = {
             PURCHASE_AMOUNT: 'purchase-amount',
             PURCHASE_CURRENCY: 'purchase-currency',
             WITHDRAWAL_ID: 'withdrawal-id',
+            ATTENDEE: 'attendee',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
@@ -7236,6 +7239,7 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
 ] as SearchFilterKey[];
 
 const FEATURE_IDS = {

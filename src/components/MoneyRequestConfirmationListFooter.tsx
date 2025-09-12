@@ -311,7 +311,7 @@ function MoneyRequestConfirmationListFooter({
     );
     const iouReportID = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.iouReportID;
     const outstandingReportID = isPolicyExpenseChat ? (iouReportID ?? availableOutstandingReports.at(0)?.reportID) : reportID;
-    const selectedReportID = shouldUseTransactionReport ? transactionReport.reportID : outstandingReportID;
+    let selectedReportID = shouldUseTransactionReport ? transactionReport.reportID : outstandingReportID;
     const selectedReport = useMemo(() => {
         if (!selectedReportID) {
             return;
