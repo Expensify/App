@@ -1,29 +1,29 @@
 # Agent Framework (Claude Code + GitHub Actions)
 
-Framework for running **agents** (code review, triage, docs checks, etc.) on **issues/PRs** using [Anthropic’s Claude Code GitHub Action](https://github.com/anthropics/claude-code-action).
+A small, repo-scoped setup for running **agents** (code review, triage, docs checks, etc.) on **issues and pull requests** using [Anthropic’s Claude Code GitHub Action](https://github.com/anthropics/claude-code-action).
 
 ## Architecture
 
 ```
 .claude/
-  agents/      # Specialized prompts (one per agent)
-  commands/    # Orchestration commands that can call multiple agents and tools
+  agents/      # One prompt per agent
+  commands/    # Orchestration docs that can call multiple agents/tools
 .github/workflows/
-  claude-*.yml # Workflows that run a command in CI
+  claude-*.yml # CI workflows that run a command
 ```
 
 ## How it works
 
-1. **Events** (workflow dispatch, comment, opened, labeled, etc.) trigger a workflow.
-2. The workflow runs `anthropics/claude-code-action` with:
+1. Workflow events (manual dispatch, new comment, PR opened, label changes, etc.) kick things off.
+2. The workflow calls `anthropics/claude-code-action` with:
 
    * `prompt`: `/command-name REPO:… [ISSUE_NUMBER:… | PR_NUMBER:…]`
-   * `claude_args`: `--allowedTools <list>`
-3. The command loads the target agent(s) and executes **only** the allowed tools.
+   * `claude_args`: `--allowedTools <comma-separated list>`
+3. The command loads the agent(s) and they only get the tools you allow.
 
-## Add a new agent (e.g., code review)
+## Add an agent (example: code review)
 
-1. **Agent** — add `.claude/agents/<agent>.md`:
+1. Create `.claude/agents/<agent>.md`:
 
    ```md
    ---
@@ -33,10 +33,10 @@ Framework for running **agents** (code review, triage, docs checks, etc.) on **i
    model: inherit
    ---
    # <Agent Name>
-   <!-- brief prompt/rubric -->
+   <!-- short rubric: what to look for / how to respond -->
    ```
-2. **Command** — add `.claude/commands/<command>.md` describing which agent(s) to run and how to post results.
-3. **Workflow** — call the action with:
+2. Create `.claude/commands/<command>.md` describing which agent(s) to run and where to post results.
+3. Wire it up in a workflow:
 
    ```yml
    with:
@@ -45,28 +45,35 @@ Framework for running **agents** (code review, triage, docs checks, etc.) on **i
        --allowedTools "Read,Glob,Grep,Edit,Write,Bash(gh pr view:*;gh pr comment:*;gh issue comment:*)"
    ```
 
-   *Principle of least privilege: allow only what’s needed.*
+   Keep the tool list minimal.
 
 ## Posting comments (issues & PRs, no MCP)
 
-Use **Bash** with `gh`:
+Use `gh` via **Bash**:
 
-* **Issue comment:** `gh issue comment <num> --body "<text>"`
-* **PR summary comment:** `gh pr comment <num> --body "<text>"`
-* **PR review (overall):** `gh pr review <num> --comment --body "<text>"`
-* **PR inline (file/line):**
-  `gh api repos/:owner/:repo/pulls/:number/comments -f path=... -f line=... -f body=... -f side=RIGHT`
+* Issue comment: `gh issue comment <num> --body "<text>"`
+* PR summary comment: `gh pr comment <num> --body "<text>"`
+* PR review: `gh pr review <num> --comment --body "<text>"`
+* PR inline comment (file/line):
 
-Ensure `GITHUB_TOKEN`/`gh` are available and the `Bash(...)` patterns are included in `--allowedTools`.
+  ```
+  gh api repos/:owner/:repo/pulls/:number/comments \
+    -f path=path/to/file \
+    -f line=123 \
+    -f body="your text" \
+    -f side=RIGHT
+  ```
 
-## Common tools (one-liners)
+Make sure `GITHUB_TOKEN` and `gh` are available in the job, and that your `Bash(...)` patterns are allowed.
 
-* **Read** – read file contents
+## Common tools
+
+* **Read** – read files
 * **Write** – create files
-* **Edit / MultiEdit** – modify files (single/batch)
-* **Glob** – list files by pattern
-* **Grep** – search within files
-* **Bash** – run shell/CLI (e.g., `gh`, linters)
-* **WebFetch / WebSearch** – fetch or search the web (optional)
+* **Edit / MultiEdit** – change files (single/batch)
+* **Glob** – match files by pattern
+* **Grep** – search in files
+* **Bash** – run shell/CLIs (e.g., `gh`, linters)
+* **WebFetch / WebSearch** – fetch/search the web (optional)
 
-> Full action configuration & tool details: [anthropics/claude-code-action](https://github.com/anthropics/claude-code-action)
+For full action options and tool behavior, see the [Claude Code GitHub Action docs](https://github.com/anthropics/claude-code-action).
