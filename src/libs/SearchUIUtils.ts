@@ -70,7 +70,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
+import {arePaymentsEnabled, canSendInvoice, getCorrectedAutoReportingFrequency, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
 import {
     getOriginalMessage,
     getReportActionHtml,
@@ -83,7 +83,6 @@ import {
 import {canReview} from './ReportPreviewActionUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
-    canSubmitReport,
     getIcons,
     getPersonalDetailsForAccountID,
     getReportName,
@@ -92,6 +91,8 @@ import {
     hasAnyViolations,
     hasInvoiceReports,
     hasOnlyHeldExpenses,
+    hasReportBeenReopened,
+    hasReportBeenRetracted,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
@@ -105,6 +106,7 @@ import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearc
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
+    allHavePendingRTERViolation,
     getCategory,
     getDescription,
     getTag,
@@ -112,6 +114,7 @@ import {
     getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
+    hasAnyTransactionWithoutRTERViolation,
     isPendingCardOrScanningTransaction,
     isScanning,
     isUnreportedAndHasInvalidDistanceRateTransaction,
@@ -272,8 +275,6 @@ type SearchTypeMenuItem = {
 };
 
 type SearchDateModifier = ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>;
-
-type SearchDateModifierLower = Lowercase<SearchDateModifier>;
 
 type ArchivedReportsIDSet = ReadonlySet<string>;
 
@@ -760,6 +761,52 @@ function isTransactionTaxAmountTooLong(transactionItem: TransactionListItemType 
     return isAmountTooLong(taxAmount);
 }
 
+/**
+ * Determines if a report can be submitted in search results.
+ * Similar to `ReportUtils.canSubmitReport` but only allows submission for single-transaction reports.
+ *
+ * @param currentUserAccountID - Current user's account ID
+ * @param report - Report to whether it is eligible can be submitted for submission
+ * @param reportActions - Reports actions associated with the report
+ * @param policy - Policy which the report belongs to
+ * @param transactions - Transactions within the report
+ * @param transactionViolations - Transaction violations associated with the report's transactions
+ * @param isReportArchived - Whether the report is archived
+ * @returns True if the report can be submitted, false otherwise
+ */
+function canSubmitReportInSearch(
+    currentUserAccountID: number | undefined,
+    report: OnyxTypes.Report,
+    reportActions: OnyxTypes.ReportAction[],
+    policy: OnyxTypes.Policy,
+    transactions: SearchTransaction[],
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
+    isReportArchived = false,
+) {
+    if (transactions.length !== 1 || isReportArchived || !isOpenExpenseReport(report)) {
+        return false;
+    }
+
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isOwner = report?.ownerAccountID === currentUserAccountID;
+    const isManager = report?.managerID === currentUserAccountID;
+    if (!isOwner || !isAdmin || !isManager) {
+        return false;
+    }
+
+    const hasBeenReopenedOrRetracted = hasReportBeenReopened(report, reportActions) || hasReportBeenRetracted(report, reportActions);
+    const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
+    if (!(isManualSubmitEnabled || hasBeenReopenedOrRetracted)) {
+        return false;
+    }
+
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, transactionViolations);
+    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, transactionViolations);
+    const hasOnlyPendingCardOrScanFailTransactions = isPendingCardOrScanningTransaction(transactions?.at(0));
+
+    return hasTransactionWithoutRTERViolation && !hasOnlyPendingCardOrScanFailTransactions && !hasAllPendingRTERViolations;
+}
+
 function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']): {
     shouldShowAmountInWideColumn: boolean;
     shouldShowTaxAmountInWideColumn: boolean;
@@ -1204,7 +1251,10 @@ function getActions(
     }
 
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
-    if (canSubmitReport(report, policy, allReportTransactions, allViolations, reportActions, isIOUReportArchived || isChatReportArchived, true) && isAllowedToApproveExpenseReport) {
+    if (
+        canSubmitReportInSearch(currentAccountID, report, reportActions, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived) &&
+        isAllowedToApproveExpenseReport
+    ) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
@@ -2294,6 +2344,7 @@ function getColumnsToShow(
 }
 
 export {
+    canSubmitReportInSearch,
     getSuggestedSearches,
     getListItem,
     getSections,
@@ -2334,4 +2385,5 @@ export {
     getColumnsToShow,
     getHasOptions,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
+
+export type {SearchKey};

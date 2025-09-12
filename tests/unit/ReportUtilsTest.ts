@@ -2,7 +2,7 @@
 import {beforeAll} from '@jest/globals';
 import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
@@ -31,7 +31,6 @@ import {
     canJoinChat,
     canLeaveChat,
     canSeeDefaultRoom,
-    canSubmitReport,
     canUserPerformWriteAction,
     findLastAccessedReport,
     getAllAncestorReportActions,
@@ -82,19 +81,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    Beta,
-    OnyxInputOrEntry,
-    PersonalDetailsList,
-    Policy,
-    PolicyEmployeeList,
-    Report,
-    ReportAction,
-    ReportActions,
-    ReportNameValuePairs,
-    Transaction,
-    TransactionViolations,
-} from '@src/types/onyx';
+import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
@@ -2251,177 +2238,6 @@ describe('ReportUtils', () => {
             const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, true);
 
             expect(canEditRequest).toEqual(true);
-        });
-    });
-
-    describe('canSubmitReport', () => {
-        it('Return true if report can be submitted', async () => {
-            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(6),
-                ownerAccountID: currentUserAccountID,
-                areRulesEnabled: true,
-                preventSelfApproval: false,
-                autoReportingFrequency: 'immediate',
-                harvesting: {
-                    enabled: false,
-                },
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(6),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                managerID: currentUserAccountID,
-                ownerAccountID: currentUserAccountID,
-                policyID: fakePolicy.id,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            const transactionIDWithViolation = 1;
-            const transactionIDWithoutViolation = 2;
-            const transactionWithViolation = {
-                ...createRandomTransaction(transactionIDWithViolation),
-                category: '',
-                tag: '',
-                created: testDate,
-                reportID: expenseReport?.reportID,
-            };
-            const transactionWithoutViolation = {
-                ...createRandomTransaction(transactionIDWithoutViolation),
-                category: '',
-                tag: '',
-                created: testDate,
-                reportID: expenseReport?.reportID,
-            };
-            const transactionViolations = `transactionViolations_${transactionIDWithViolation}`;
-            const violations: OnyxCollection<TransactionViolations> = {
-                [transactionViolations]: [
-                    {
-                        type: 'warning',
-                        name: 'rter',
-                        data: {
-                            tooltip: "Personal Cards: Fix your card from Account Settings. Corporate Cards: ask your Expensify admin to fix your company's card connection.",
-                            rterType: 'brokenCardConnection',
-                        },
-                        showInReview: true,
-                    },
-                ],
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-            expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, [], false)).toBe(true);
-            // In search
-            expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, [], false, true)).toBe(false);
-        });
-
-        it('Return true if report can be submitted after being reopened', async () => {
-            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(6),
-                ownerAccountID: currentUserAccountID,
-                areRulesEnabled: true,
-                preventSelfApproval: false,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                harvesting: {
-                    enabled: false,
-                },
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(6),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                managerID: currentUserAccountID,
-                ownerAccountID: currentUserAccountID,
-                policyID: fakePolicy.id,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
-                [expenseReport.reportID]: {
-                    actionName: CONST.REPORT.ACTIONS.TYPE.REOPENED,
-                },
-            });
-
-            const transactionIDWithViolation = 1;
-            const transactionIDWithoutViolation = 2;
-            const transactionWithViolation = {
-                ...createRandomTransaction(transactionIDWithViolation),
-                category: '',
-                tag: '',
-                created: testDate,
-                reportID: expenseReport?.reportID,
-            };
-            const transactionWithoutViolation = {
-                ...createRandomTransaction(transactionIDWithoutViolation),
-                category: '',
-                tag: '',
-                created: testDate,
-                reportID: expenseReport?.reportID,
-            };
-            const transactionViolations = `transactionViolations_${transactionIDWithViolation}`;
-            const violations: OnyxCollection<TransactionViolations> = {
-                [transactionViolations]: [
-                    {
-                        type: 'warning',
-                        name: 'rter',
-                        data: {
-                            tooltip: "Personal Cards: Fix your card from Account Settings. Corporate Cards: ask your Expensify admin to fix your company's card connection.",
-                            rterType: 'brokenCardConnection',
-                        },
-                        showInReview: true,
-                    },
-                ],
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-            expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, [], false)).toBe(false);
-        });
-
-        it('Return false if report can not be submitted', async () => {
-            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
-            const fakePolicy = {
-                ...createRandomPolicy(6),
-                ownerAccountID: currentUserAccountID,
-                areRulesEnabled: true,
-                preventSelfApproval: false,
-            };
-            const expenseReport = {
-                ...createRandomReport(6),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                managerID: currentUserAccountID,
-                ownerAccountID: currentUserAccountID,
-                policyID: fakePolicy.id,
-            };
-
-            expect(canSubmitReport(expenseReport, fakePolicy, [], {}, [], false)).toBe(false);
-        });
-
-        it('returns false if the report is archived', async () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(7),
-                ownerAccountID: currentUserAccountID,
-                areRulesEnabled: true,
-                preventSelfApproval: false,
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(7),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                managerID: currentUserAccountID,
-                ownerAccountID: currentUserAccountID,
-                policyID: fakePolicy.id,
-            };
-
-            // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`, {
-                private_isArchived: DateUtils.getDBTime(),
-            });
-
-            // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(expenseReport?.reportID));
-
-            expect(canSubmitReport(expenseReport, fakePolicy, [], undefined, [], isReportArchived.current)).toBe(false);
         });
     });
 

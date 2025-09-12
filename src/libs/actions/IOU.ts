@@ -72,6 +72,7 @@ import Permissions from '@libs/Permissions';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
+    getCorrectedAutoReportingFrequency,
     getDistanceRateCustomUnit,
     getDistanceRateCustomUnitRate,
     getMemberAccountIDsForWorkspace,
@@ -155,6 +156,8 @@ import {
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     hasOutstandingChildRequest,
+    hasReportBeenReopened,
+    hasReportBeenRetracted,
     isArchivedReport,
     isClosedReport as isClosedReportUtil,
     isDraftReport,
@@ -188,6 +191,7 @@ import {getSession} from '@libs/SessionUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
+    allHavePendingRTERViolation,
     buildOptimisticTransaction,
     getAmount,
     getCategoryTaxCodeAndAmount,
@@ -195,6 +199,7 @@ import {
     getDistanceInMeters,
     getMerchant,
     getUpdatedTransaction,
+    hasAnyTransactionWithoutRTERViolation,
     hasDuplicateTransactions,
     isCustomUnitRateIDForP2P,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -231,7 +236,7 @@ import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxD
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from './Policy/Tag';
 import type {GuidedSetupData} from './Report';
-import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction} from './Report';
+import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from './TransactionEdit';
@@ -9589,6 +9594,38 @@ function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxE
     return isPayerReportUtils(session, iouReport) && (isSettled(iouReport) || iouReport?.isWaitingOnBankAccount) && isExpenseReport(iouReport);
 }
 
+function canSubmitReport(
+    report: OnyxEntry<OnyxTypes.Report> | SearchReport,
+    policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
+    transactions: OnyxTypes.Transaction[] | SearchTransaction[],
+    allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
+    isReportArchived: boolean,
+) {
+    const currentUserAccountID = getCurrentUserAccountID();
+    const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations);
+    const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
+    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations);
+    const hasOnlyPendingCardOrScanFailTransactions = transactions.length > 0 && transactions.every((t) => isPendingCardOrScanningTransaction(t));
+
+    const baseCanSubmit =
+        isOpenExpenseReport &&
+        (report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID || isAdmin) &&
+        !hasOnlyPendingCardOrScanFailTransactions &&
+        !hasAllPendingRTERViolations &&
+        hasTransactionWithoutRTERViolation &&
+        !isReportArchived &&
+        transactions.length > 0;
+    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? [];
+    const hasBeenRetracted = hasReportBeenReopened(report, reportActions) || hasReportBeenRetracted(report, reportActions);
+    if (baseCanSubmit && hasBeenRetracted) {
+        return true;
+    }
+
+    return baseCanSubmit && isManualSubmitEnabled;
+}
+
 function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, updatedIouReport: OnyxEntry<OnyxTypes.Report>): OnyxEntry<ReportAction> {
     const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
@@ -12656,6 +12693,7 @@ export {
     getIOUReportActionToApproveOrPay,
     getNavigationUrlOnMoneyRequestDelete,
     getNavigationUrlAfterTrackExpenseDelete,
+    canSubmitReport,
     submitPerDiemExpense,
     calculateDiffAmount,
     setMoneyRequestReimbursable,
