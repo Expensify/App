@@ -374,7 +374,7 @@ const Checker = {
     generateReport,
 };
 
-const CLI_COMMANDS = ['full-check', 'check-changed', 'check-file', 'report'] as const;
+const CLI_COMMANDS = ['full-check', 'check-changed', 'check', 'report'] as const;
 type CliCommand = TupleToUnion<typeof CLI_COMMANDS>;
 
 function isValidCliCommand(command: string): command is CliCommand {
@@ -398,15 +398,16 @@ function main() {
             },
         ],
         namedArgs: {
-            file: {
-                description: 'File path to check (required for check-file command)',
+            files: {
+                description: 'File path(s) to check (required for check command)',
                 required: false,
+                parse: (val) => val.split(',').map((f) => f.trim()),
             },
         },
     });
 
     const {command} = cli.positionalArgs;
-    const {file} = cli.namedArgs;
+    const {files} = cli.namedArgs;
     let isPassed = false;
 
     try {
@@ -421,12 +422,12 @@ function main() {
                 process.exit(isPassed ? 0 : 1);
                 break;
 
-            case 'check-file':
-                if (!file) {
-                    console.error('❌ Please provide a file path: npm run react-compiler-compliance-checker check-file --file <path>');
+            case 'check':
+                if (!files || files.length === 0) {
+                    console.error('❌ Please provide file path(s): npm run react-compiler-compliance-checker check --files <path1,path2,...>');
                     process.exit(1);
                 }
-                isPassed = Checker.checkSpecificFile(file);
+                isPassed = runCheck(files);
                 process.exit(isPassed ? 0 : 1);
                 break;
 
