@@ -38,6 +38,7 @@ cardID
   = "cardID"
   / "card"i { return "cardID"; }
 from = "from"i { return "from"; }
+attendee = "attendee"i {return "attendee"}
 expenseType
   = "expenseType"
   / "expense-type"i { return "expenseType"; }
