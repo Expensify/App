@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type {SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
@@ -114,7 +115,9 @@ function useSearchHighlightAndScroll({
             triggeredByHookRef.current = true;
 
             // Trigger the search
-            search({queryJSON, searchKey, offset, shouldCalculateTotals});
+            InteractionManager.runAfterInteractions(() => {
+                search({queryJSON, searchKey, offset, shouldCalculateTotals});
+            });
 
             // Set the ref to prevent further triggers until reset
             searchTriggeredRef.current = true;

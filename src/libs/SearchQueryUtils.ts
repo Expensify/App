@@ -33,6 +33,7 @@ import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
+import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import navigationRef from './Navigation/navigationRef';
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
@@ -306,18 +307,29 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     // actually filter out results
     const similarSearchIgnoredFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
 
+    // Certain filters' values are significant in deciding which search we are on, so we want to include
+    // their value when computing the similarSearchHash
+    const similarSearchValueBasedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION]);
+
     query.flatFilters
         .map((filter) => {
-            if (!similarSearchIgnoredFilters.has(filter.key)) {
-                filterSet.add(filter.key);
-            }
-
+            const filterKey = filter.key;
             const filters = cloneDeep(filter.filters);
             filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
-            return buildFilterValuesString(filter.key, filters);
+            return {filterString: buildFilterValuesString(filterKey, filters), filterKey};
         })
-        .sort()
-        .forEach((filterString) => (orderedQuery += ` ${filterString}`));
+        .sort((a, b) => customCollator.compare(a.filterString, b.filterString))
+        .forEach(({filterString, filterKey}) => {
+            if (!similarSearchIgnoredFilters.has(filterKey)) {
+                filterSet.add(filterKey);
+            }
+
+            if (similarSearchValueBasedFilters.has(filterKey)) {
+                filterSet.add(filterString.trim());
+            }
+
+            orderedQuery += ` ${filterString}`;
+        });
 
     const similarSearchHash = hashText(Array.from(filterSet).join(''), 2 ** 32);
     const recentSearchHash = hashText(orderedQuery, 2 ** 32);
@@ -537,6 +549,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.IN ||
                     filterKey === FILTER_KEYS.ASSIGNEE ||
                     filterKey === FILTER_KEYS.POLICY_ID ||
+                    filterKey === FILTER_KEYS.HAS ||
                     filterKey === FILTER_KEYS.EXPORTER) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
@@ -618,6 +631,10 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
             const validExpenseTypes = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
             filtersForm[filterKey] = filterValues.filter((expenseType) => validExpenseTypes.has(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
+            const validHasTypes = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
+            filtersForm[filterKey] = filterValues.filter((hasType) => validHasTypes.has(hasType as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
             const validWithdrawalTypes = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
@@ -1017,13 +1034,14 @@ function getQueryWithUpdatedValues(query: string) {
 
 function getCurrentSearchQueryJSON() {
     const rootState = navigationRef.getRootState();
-    const lastPolicyRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    const lastSearchNavigator = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
 
-    if (!lastPolicyRoute) {
+    const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
+    if (!lastSearchNavigatorState) {
         return;
     }
 
-    const lastSearchRoute = lastPolicyRoute.state?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
+    const lastSearchRoute = lastSearchNavigatorState.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
     if (!lastSearchRoute || !lastSearchRoute.params) {
         return;
     }
