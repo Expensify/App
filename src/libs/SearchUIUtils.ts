@@ -798,7 +798,7 @@ function canSubmitReportInSearch(
         !hasAllPendingRTERViolations &&
         hasTransactionWithoutRTERViolation &&
         !isReportArchived &&
-        transactions.length === 1; // Unlike `ReportUtils.canSumbitReport`, it returns true when there is only one transaction.
+        transactions.length === 1; // Unlike `ReportUtils.canSubmitReport`, it returns true when there is only one transaction.
 
     const hasBeenRetracted = hasReportBeenReopened(report, reportActions) || hasReportBeenRetracted(report, reportActions);
     if (baseCanSubmit && hasBeenRetracted) {
