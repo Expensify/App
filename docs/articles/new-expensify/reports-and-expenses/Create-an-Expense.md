@@ -13,9 +13,9 @@ Expensify makes it easy to create expenses through SmartScanning a receipt, uplo
 
 Use this option for personal payments. The person receiving the expense will be notified via email or text and can pay directly through Expensify. You can also send expenses within a 1:1 chat.
 
-# When to Submit to a Workspace
+### When to Submit to a Workspace
 
-If you're submitting business expenses, send them to a workspace. This ensures proper coding, review, and approval through your company's configured workflow.
+If you're submitting business expenses, send them to a policy. This ensures proper coding, review, and approval through your company's configured workflow.
 
 ---
 
@@ -51,7 +51,7 @@ This feature helps prevent policy violations and ensures accurate expense tracki
 1. From the navigation tabs, click the green **+** button and select **Create expense**.
 2. Select **Manual**.
 3. Enter the amount and currency, then click **Next**.
-4. Choose a workspace or an individual.
+4. Choose a workspace or an individual. Use this to submit expenses.
 5. Add optional fields like category, tags, or description.
 6. Click **Create expense**.
 

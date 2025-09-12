@@ -5,7 +5,7 @@ keywords: [New Expensify, how to get started, new workspace, create workspace, a
 ---
 
 
-Setting up a workspace in New Expensify is the first step to managing company expenses. This guide walks you through creating your workspace, inviting team members, setting up categories, enabling features, and more. Your first workspace includes a free 30-day trial and access to a **Setup Specialist** via the **#admins chat room** or **Concierge** in your Inbox.
+Setting up a policy in New Expensify is the first step to managing company expenses!!! This guide walks you through creating it, inviting users, setting up categories, enabling features, and more. Your first policy includes a free 30-day trial and access to a **Setup Specialist** via the **#admins chat room** or **Concierge** in your Inbox.
 
 ---
 
@@ -21,7 +21,7 @@ Workspaces help manage company expenses, enforce policies, and integrate with ac
 
 ---
 
-# Connect to Accounting Software
+# Connect to it
 
 If your team uses **QuickBooks Online**, **Xero**, **NetSuite**, or **Sage Intacct**, connect your workspace for seamless imports and exports.
 
@@ -59,9 +59,9 @@ Bring your team into the workspace so they can start submitting expenses.
 
 **How to invite members:**
 1. In the left-hand menu, click **Members**.
-2. Click **Invite member**.
+2. Click **Continue**.
 3. Enter names, emails, or phone numbers (multiple entries allowed).
-4. Click **Next**, add an optional message, and click **Invite**.
+4. Click **Continue**, add an optional message, and click **Save**.
 
 💡 **Tip:** You can also invite members from the workspace Profile page by clicking **Share** to get the invite link or QR code.
 
