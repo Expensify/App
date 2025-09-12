@@ -249,15 +249,14 @@ function SearchAutocompleteList(
     }, [allRecentCategories]);
 
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: false});
+    const [currentUser] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => ({login: session?.email, accountID: session?.accountID}), canBeMissing: false});
 
     const workspaceList = useMemo(
         () =>
             Object.values(policies)
-                .filter((singlePolicy) => !!singlePolicy && shouldShowPolicy(singlePolicy, false, currentUserLogin) && !singlePolicy?.isJoinRequestPending)
+                .filter((singlePolicy) => !!singlePolicy && shouldShowPolicy(singlePolicy, false, currentUser?.login) && !singlePolicy?.isJoinRequestPending)
                 .map((singlePolicy) => ({id: singlePolicy?.id, name: singlePolicy?.name ?? ''})),
-        [policies, currentUserLogin],
+        [policies, currentUser?.login],
     );
 
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
@@ -368,7 +367,7 @@ function SearchAutocompleteList(
 
                 return participants.map((participant) => ({
                     filterKey: autocompleteKey,
-                    text: participant.login === currentUserLogin ? CONST.SEARCH.ME : participant.text ?? '',
+                    text: participant.login === currentUser?.login ? CONST.SEARCH.ME : participant.text ?? '',
                     autocompleteID: String(participant.accountID),
                     mapKey: autocompleteKey,
                 }));
@@ -534,7 +533,7 @@ function SearchAutocompleteList(
         cardAutocompleteList,
         booleanTypes,
         workspaceList,
-        currentUserLogin,
+        currentUser?.login,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
@@ -544,7 +543,7 @@ function SearchAutocompleteList(
     const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
         const searchQueryJSON = buildSearchQueryJSON(query);
         return {
-            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID) : query,
+            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUser?.accountID) : query,
             singleIcon: Expensicons.History,
             searchQuery: query,
             keyForList: timestamp,
