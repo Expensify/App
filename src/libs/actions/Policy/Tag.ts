@@ -1217,6 +1217,7 @@ export {
     importPolicyTags,
     downloadTagsCSV,
     getPolicyTagsData,
+    // eslint-disable-next-line deprecation/deprecation
     getPolicyRecentlyUsedTagsData,
     downloadMultiLevelIndependentTagsCSV,
     cleanPolicyTags,

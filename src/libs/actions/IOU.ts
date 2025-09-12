@@ -3263,6 +3263,7 @@ function getSendInvoiceInformation(
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
         policyTags: getPolicyTagsData(optimisticInvoiceReport.policyID),
         // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook
+        // eslint-disable-next-line deprecation/deprecation
         policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(optimisticInvoiceReport.policyID),
         policyID: optimisticInvoiceReport.policyID,
         transactionTags: tag,
@@ -3486,6 +3487,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
         policyTags: getPolicyTagsData(iouReport.policyID),
         // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook
+        // eslint-disable-next-line deprecation/deprecation
         policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(iouReport.policyID),
         policyID: iouReport.policyID,
         transactionTags: tag,
@@ -3750,6 +3752,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
         policyTags: getPolicyTagsData(iouReport.policyID),
         // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook
+        // eslint-disable-next-line deprecation/deprecation
         policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(iouReport.policyID),
         policyID: iouReport.policyID,
         transactionTags: tag,
@@ -4386,6 +4389,7 @@ function getUpdateMoneyRequestParams(
         const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
             policyTags: getPolicyTagsData(iouReport?.policyID),
             // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook
+            // eslint-disable-next-line deprecation/deprecation
             policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(iouReport?.policyID),
             policyID: iouReport?.policyID,
             transactionTags: transactionChanges.tag,
@@ -6677,6 +6681,7 @@ function createSplitsAndOnyxData({
             ? buildOptimisticPolicyRecentlyUsedTags({
                   policyTags: getPolicyTagsData(participant.policyID),
                   // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook
+                  // eslint-disable-next-line deprecation/deprecation
                   policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(participant.policyID),
                   policyID: participant.policyID,
                   transactionTags: tag,
@@ -7225,6 +7230,7 @@ function startSplitBill({
         const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
             policyTags: getPolicyTagsData(participant.policyID),
             // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook
+            // eslint-disable-next-line deprecation/deprecation
             policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(participant.policyID),
             policyID: participant.policyID,
             transactionTags: tag,
