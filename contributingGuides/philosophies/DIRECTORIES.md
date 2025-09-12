@@ -1,0 +1,42 @@
+# Directory Structure and File Naming Philosophy
+Learn how files are organized in the project.
+
+### RULES
+#### - Directory names MUST be camel-case
+#### - Directory names SHOULD be plural
+
+## `/src`
+All of the source code for the app is here.
+
+## `/src/components`
+React components that are re-used in several places across the application are stored here.
+
+## `/src/libs`
+Non-React components that contain the business logic of the app.
+
+## `/src/pages`
+React components that are organized by the heirarchy of the app. A "page" is the top-most UI controller for a given URL.
+
+### Rules
+#### - Page components MUST have the "Page" suffix (ie. `ConciergePage`)
+#### - Components used in a specific page SHOULD live in it's own sub-directory named after the page
+
+## `/src/styles`
+All the styles used in the application are here.
+
+## `/contributingGuides`
+Guides and insights to aid developers in learning how to contribute to this repo
+
+## `/docs`
+This houses the Expensify Help site. It's a static site that's built with Jekyll and hosted on GitHub Pages.
+
+# File naming/structure
+
+### Rules
+#### - Files MUST be named after the component/function/constants they export, respecting the casing used for it. ie:
+
+- An exported constant named `CONST` is in a file named `CONST`.
+- A component named `Text` is in a file named `Text`.
+- An exported function named `guid` is in a file named `guid`.
+- For files that are utilities that export several functions/classes use the UpperCamelCase version ie: `DateUtils`.
+- [Higher-Order Components](https://reactjs.org/docs/higher-order-components.html) (HOCs) and hooks should be named in camelCase, like `withPolicy` and `useUnyx`.
