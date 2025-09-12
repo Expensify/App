@@ -195,20 +195,19 @@ class TranslationGenerator {
                     throw new Error(`Target file ${targetPath} does not exist for incremental translation`);
                 }
 
-                const existingContent = fs.readFileSync(targetPath, 'utf8');
-                const existingSourceFile = ts.createSourceFile(targetPath, existingContent, ts.ScriptTarget.Latest, true);
-
-                // Step 2: Transform en.ts with path filtering for pathsToModify and pathsToAdd
+                // Transform en.ts with path filtering for pathsToModify and pathsToAdd
                 const enTransformer = this.createIncrementalEnTransformer(translationsForLocale);
                 const enResult = ts.transform(this.sourceFile, [enTransformer]);
                 const transformedEnSourceFile = enResult.transformed.at(0) ?? this.sourceFile;
 
-                // Step 3: Extract translated code strings from the transformed en.ts
+                // Extract translated code strings from the transformed en.ts
                 const translatedCodeMap = new Map<string, string>();
                 this.extractTranslatedNodes(transformedEnSourceFile, translatedCodeMap);
                 enResult.dispose();
 
-                // Step 4: Transform the target file using the translated node map
+                // Transform the target file using the translated node map
+                const existingContent = fs.readFileSync(targetPath, 'utf8');
+                const existingSourceFile = ts.createSourceFile(targetPath, existingContent, ts.ScriptTarget.Latest, true);
                 const targetTransformer = this.createIncrementalTargetTransformer(translatedCodeMap);
                 const cleanupTransformer = this.createEmptyObjectCleanupTransformer();
                 const targetResult = ts.transform(existingSourceFile, [targetTransformer, cleanupTransformer]);
