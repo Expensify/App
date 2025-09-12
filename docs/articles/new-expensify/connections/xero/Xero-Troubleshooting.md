@@ -1,5 +1,5 @@
 ---
-title: Xero Troubleshooting
+
 description: Learn how to resolve common errors that prevent reports from exporting to Xero.
 keywords: [New Expensify, Xero errors, export failure, troubleshoot Xero, manual export]
 ---
