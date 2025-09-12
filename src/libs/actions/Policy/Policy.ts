@@ -28,6 +28,7 @@ import type {
     InviteWorkspaceEmployeesToUberParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
+    OpenDuplicatePolicyPageParams,
     OpenPolicyEditCardLimitTypePageParams,
     OpenPolicyExpensifyCardsPageParams,
     OpenPolicyInitialPageParams,
@@ -2874,7 +2875,7 @@ function togglePolicyUberAutoInvite(policyID: string | undefined, enabled: boole
 
     const params: TogglePolicyUberAutoInvitePageParams = {policyID, enabled};
 
-    API.write(WRITE_COMMANDS.POLICY_UBER_AUTO_INVITE, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.TOGGLE_WORKSPACE_UBER_AUTO_INVITE, params, {optimisticData, successData, failureData});
 }
 
 function togglePolicyUberAutoRemove(policyID: string | undefined, enabled: boolean) {
@@ -2909,7 +2910,7 @@ function togglePolicyUberAutoRemove(policyID: string | undefined, enabled: boole
 
     const params: TogglePolicyUberAutoRemovePageParams = {policyID, enabled};
 
-    API.write(WRITE_COMMANDS.POLICY_UBER_AUTO_REMOVE, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.TOGGLE_WORKSPACE_UBER_AUTO_REMOVE, params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -4328,6 +4329,12 @@ function openPolicyProfilePage(policyID: string) {
     const params: OpenPolicyProfilePageParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE, params);
+}
+
+function openDuplicatePolicyPage(policyID: string) {
+    const params: OpenDuplicatePolicyPageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_DUPLICATE_POLICY_PAGE, params);
 }
 
 function openPolicyInitialPage(policyID: string) {
@@ -6339,6 +6346,7 @@ export {
     calculateBillNewDot,
     payAndDowngrade,
     togglePolicyUberAutoInvite,
+    openDuplicatePolicyPage,
     togglePolicyUberAutoRemove,
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,
