@@ -163,13 +163,13 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
                 title={getTitle()}
             />
             <FormProvider
+                style={[styles.flex1, styles.ph4]}
                 formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
                 onSubmit={updateAmountFilter}
                 submitButtonText={translate('common.save')}
-                style={[styles.flexGrow1, styles.ph5]}
                 enabledWhenOffline
             >
-                <View style={[styles.mt5]}>
+                <View style={[styles.mb5]}>
                     <InputWrapper
                         InputComponent={AmountWithoutCurrencyInput}
                         inputID={`${filterKey}${selectedModifier}`}
