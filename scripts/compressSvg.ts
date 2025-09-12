@@ -336,19 +336,17 @@ function logHelp() {
 
 function run(mode: 'directory' | 'files' | 'github', options?: {targetDir?: string; filePaths?: string[]}): CompressionSummary {
     console.log('SVG Compression Tool');
-
+    console.log('🔍 Searching for SVG files...');
     switch (mode) {
         case 'directory': {
             if (!options?.targetDir) {
                 throw new Error('targetDir is required for directory mode');
             }
 
-            console.log('🔍 Searching for SVG files...');
             const svgFiles = findSvgFiles(options.targetDir);
 
             if (!svgFiles.length) {
                 console.log('❌ No SVG files found in the specified directory.');
-                return createResultsSummary([]);
             }
 
             return processFiles(svgFiles);
@@ -358,34 +356,21 @@ function run(mode: 'directory' | 'files' | 'github', options?: {targetDir?: stri
             if (!options?.filePaths?.length) {
                 throw new Error('filePaths is required for files mode');
             }
-
-            console.log('🔍 Validating provided SVG files...');
             const validatedFiles = validateSvgFiles(options.filePaths);
 
             if (!validatedFiles.length) {
                 console.log('❌ No valid SVG files provided.');
-                return createResultsSummary([]);
             }
 
             return processFiles(validatedFiles);
         }
 
         case 'github': {
-            console.log('Detecting changed SVG files...\n');
-
             const changedSvgFiles = getFilesFromGithub();
 
             if (changedSvgFiles.length === 0) {
                 console.log('❌ No changed SVG files found.');
-                return createResultsSummary([]);
             }
-
-            console.log(`📋 Found ${changedSvgFiles.length} changed SVG file(s):`);
-            changedSvgFiles.forEach((file, index) => {
-                const relativePath = path.relative(process.cwd(), file);
-                console.log(`   ${index + 1}. ${relativePath}`);
-            });
-            console.log('');
 
             return processFiles(changedSvgFiles);
         }

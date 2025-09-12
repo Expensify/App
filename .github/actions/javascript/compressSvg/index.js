@@ -11325,7 +11325,6 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.generateMarkdownSummary = generateMarkdownSummary;
 exports.getFilesFromGithub = getFilesFromGithub;
-// import {execSync} from 'child_process';
 const fs = __importStar(__nccwpck_require__(7147));
 const path = __importStar(__nccwpck_require__(1017));
 const svgo_1 = __nccwpck_require__(2456);
@@ -11559,28 +11558,10 @@ function generateMarkdownSummary(summary) {
     markdown.push('');
     return markdown.join('\n');
 }
-/**
- * Get files from GitHub context (push/workflow_dispatch events)
- */
 function getFilesFromGithub() {
     try {
-        // const eventName = process.env.GITHUB_EVENT_NAME as string;
-        // if (eventName === 'workflow_dispatch') {
         console.log('Manual trigger: scanning all SVG files in assets directory');
         return findSvgFiles('assets');
-        // }
-        // if (eventName === CONST.RUN_EVENT.PUSH) {
-        //     console.log('Push event: comparing with previous commit');
-        //     const gitCommand = 'git diff --name-only HEAD~1 HEAD';
-        //     const output = execSync(gitCommand, {encoding: 'utf-8', timeout: 10000});
-        //     const changedFiles = output.trim().split('\n').filter(Boolean);
-        //     const svgFiles = changedFiles
-        //         .filter((file) => path.extname(file).toLowerCase() === '.svg')
-        //         .filter((file) => fs.existsSync(file))
-        //         .map((file) => path.resolve(file));
-        //     return svgFiles;
-        // }
-        // throw new Error(`Unknown event type: ${eventName}`);
     }
     catch (error) {
         console.error('❌ Error getting files from GitHub:', error);
@@ -11604,16 +11585,15 @@ function logHelp() {
 }
 function run(mode, options) {
     console.log('SVG Compression Tool');
+    console.log('🔍 Searching for SVG files...');
     switch (mode) {
         case 'directory': {
             if (!options?.targetDir) {
                 throw new Error('targetDir is required for directory mode');
             }
-            console.log('🔍 Searching for SVG files...');
             const svgFiles = findSvgFiles(options.targetDir);
             if (!svgFiles.length) {
                 console.log('❌ No SVG files found in the specified directory.');
-                return createResultsSummary([]);
             }
             return processFiles(svgFiles);
         }
@@ -11621,27 +11601,17 @@ function run(mode, options) {
             if (!options?.filePaths?.length) {
                 throw new Error('filePaths is required for files mode');
             }
-            console.log('🔍 Validating provided SVG files...');
             const validatedFiles = validateSvgFiles(options.filePaths);
             if (!validatedFiles.length) {
                 console.log('❌ No valid SVG files provided.');
-                return createResultsSummary([]);
             }
             return processFiles(validatedFiles);
         }
         case 'github': {
-            console.log('Detecting changed SVG files...\n');
             const changedSvgFiles = getFilesFromGithub();
             if (changedSvgFiles.length === 0) {
                 console.log('❌ No changed SVG files found.');
-                return createResultsSummary([]);
             }
-            console.log(`📋 Found ${changedSvgFiles.length} changed SVG file(s):`);
-            changedSvgFiles.forEach((file, index) => {
-                const relativePath = path.relative(process.cwd(), file);
-                console.log(`   ${index + 1}. ${relativePath}`);
-            });
-            console.log('');
             return processFiles(changedSvgFiles);
         }
         default:
