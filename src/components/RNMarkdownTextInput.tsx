@@ -17,12 +17,11 @@ type AnimatedMarkdownTextInputRef = typeof AnimatedMarkdownTextInput & MarkdownT
 
 // Make the parser prop optional for this component because we are always defaulting to `parseExpensiMark`
 type RNMarkdownTextInputWithRefProps = Omit<MarkdownTextInputProps, 'parser'> & {
-    markdownFilterRules?: string[];
     parser?: MarkdownTextInputProps['parser'];
     ref?: ForwardedRef<AnimatedMarkdownTextInputRef>;
 };
 
-function RNMarkdownTextInputWithRef({maxLength, markdownFilterRules, parser, ref, ...props}: RNMarkdownTextInputWithRefProps) {
+function RNMarkdownTextInputWithRef({maxLength, parser, ref, ...props}: RNMarkdownTextInputWithRefProps) {
     const theme = useTheme();
 
     const {availableLoginsList, currentUserMentions} = useShortMentionsList();
@@ -56,9 +55,9 @@ function RNMarkdownTextInputWithRef({maxLength, markdownFilterRules, parser, ref
                 return parser(text);
             }
 
-            return parseExpensiMarkWithShortMentions(text, markdownFilterRules, mentionsSharedVal.get(), currentUserMentions);
+            return parseExpensiMarkWithShortMentions(text, mentionsSharedVal.get(), currentUserMentions);
         },
-        [markdownFilterRules, currentUserMentions, mentionsSharedVal, parser],
+        [currentUserMentions, mentionsSharedVal, parser],
     );
 
     useEffect(() => {

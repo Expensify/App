@@ -54,10 +54,10 @@ function decorateRangesWithShortMentions(ranges: MarkdownRange[], text: string, 
         .filter((maybeRange): maybeRange is MarkdownRange => !!maybeRange);
 }
 
-function parseExpensiMarkWithShortMentions(text: string, markdownFilterRules: string[] | undefined, availableMentions: string[], currentUserMentions?: string[]) {
+function parseExpensiMarkWithShortMentions(text: string, availableMentions: string[], currentUserMentions?: string[]) {
     'worklet';
 
-    const parsedRanges = parseExpensiMark(text, markdownFilterRules);
+    const parsedRanges = parseExpensiMark(text);
     return decorateRangesWithShortMentions(parsedRanges, text, availableMentions, currentUserMentions);
 }
 

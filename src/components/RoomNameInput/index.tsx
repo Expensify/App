@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import type {ForwardedRef} from 'react';
+import type {NativeSyntheticEvent, TextInputChangeEventData} from 'react-native';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import type {Selection} from '@libs/ComposerUtils';
@@ -15,7 +16,8 @@ function RoomNameInput({disabled = false, autoFocus = false, isFocused, value = 
     /**
      * Calls the onChangeText callback with a modified room name
      */
-    const setModifiedRoomName = (roomName: string) => {
+    const setModifiedRoomName = (event: NativeSyntheticEvent<TextInputChangeEventData>) => {
+        const roomName = event.nativeEvent.text;
         const modifiedRoomName = modifyRoomName(roomName);
         onChangeText?.(modifiedRoomName);
 
@@ -53,7 +55,7 @@ function RoomNameInput({disabled = false, autoFocus = false, isFocused, value = 
             onBlur={(event) => isFocused && onBlur?.(event)}
             autoFocus={isFocused && autoFocus}
             autoCapitalize="none"
-            onChangeText={setModifiedRoomName}
+            onChange={setModifiedRoomName}
             onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
             selection={selection}
             spellCheck={false}

@@ -1,5 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React from 'react';
+import type {NativeSyntheticEvent, TextInputChangeEventData} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
@@ -14,7 +15,8 @@ function RoomNameInput({disabled = false, autoFocus = false, isFocused, value, o
     /**
      * Calls the onChangeText callback with a modified room name
      */
-    const setModifiedRoomName = (roomName: string) => {
+    const setModifiedRoomName = (event: NativeSyntheticEvent<TextInputChangeEventData>) => {
+        const roomName = event.nativeEvent.text;
         const modifiedRoomName = modifyRoomName(roomName);
         onChangeText?.(modifiedRoomName);
 
@@ -41,7 +43,7 @@ function RoomNameInput({disabled = false, autoFocus = false, isFocused, value, o
             onBlur={(event) => isFocused && onBlur?.(event)}
             autoFocus={isFocused && autoFocus}
             autoCapitalize="none"
-            onChangeText={setModifiedRoomName}
+            onChange={setModifiedRoomName}
             keyboardType={keyboardType} // this is a bit hacky solution to a RN issue https://github.com/facebook/react-native/issues/27449
         />
     );
