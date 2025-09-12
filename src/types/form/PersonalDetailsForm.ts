@@ -13,7 +13,6 @@ const INPUT_IDS = {
     CITY: 'city',
     ZIP_POST_CODE: 'zipPostCode',
     PHONE_NUMBER: 'phoneNumber',
-    PIN: 'pinCode',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
@@ -31,7 +30,6 @@ type PersonalDetailsForm = Form<
         [INPUT_IDS.CITY]: string;
         [INPUT_IDS.ZIP_POST_CODE]: string;
         [INPUT_IDS.PHONE_NUMBER]: string;
-        [INPUT_IDS.PIN]: string;
     }
 >;
 

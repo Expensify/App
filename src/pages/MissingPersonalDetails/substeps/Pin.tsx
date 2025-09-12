@@ -1,57 +1,47 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import PinStep from '@components/SubStepForms/PinStep';
-import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
-import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
-import PinConfirmationStep from '@components/SubStepForms/PinConfirmationStep';
+import { PinCodeContext } from '@pages/MissingPersonalDetails/MissingPersonalDetailsContent';
+import useLocalize from '@hooks/useLocalize';
 
-const STEP_FIELDS = [INPUT_IDS.PIN];
-
-function Pin({isEditing, onNext, onMove, personalDetailsValues}: CustomSubStepProps) {
-    const [pinCode, setPinCode] = useState('');
-    // const [finalPinCode, setfinalPinCode] = useState('');
+function Pin({isEditing, onNext, onMove}: CustomSubStepProps) {
+    const {translate} = useLocalize();
+    const [firstInputPinCode, setFirstInputPinCode] = useState('');
     const [isFirstPinInputVisible, setFirstPinInputVisibility] = useState(true)
+    const {setFinalPinCode} = useContext(PinCodeContext);
 
-    const handleFirstSubmit = (value: string) => {
-        setPinCode(value);
+    const handleFirstInputSubmit = (value: string) => {
+        setFirstInputPinCode(value);
         setFirstPinInputVisibility(!isFirstPinInputVisible)
     };
 
-    // const handleSecondSubmit = (value: string) => {
-    //     setfinalPinCode(value);
-    //     onNext();
-    // };
-    const handleSecondSubmit = usePersonalDetailsFormSubmit({
-        fieldIds: STEP_FIELDS,
-        onNext,
-        shouldSaveDraft: true,
-    });
+    const handleConfirmationSubmit = (value: string) => {
+        setFinalPinCode(value);
+        onNext();
+    };
 
     return (
         <>
             {isFirstPinInputVisible && (
                 <PinStep
                 formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}
-                formTitle="Set the PIN for your card."
+                formTitle={translate('privatePersonalDetails.enterPinCode')}
                 isEditing={isEditing}
                 onNext={onNext}
                 onMove={onMove}
-                handleSubmit={() => handleFirstSubmit(pinCode)}
+                handleSubmit={handleFirstInputSubmit}
                 />
             )}
             {!isFirstPinInputVisible && (
-                <PinConfirmationStep
+                <PinStep
                 formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}
-                formTitle="Enter your PIN again to confirm"
+                formTitle={translate('privatePersonalDetails.verifyPinCode')}
                 isEditing={isEditing}
                 onNext={onNext}
                 onMove={onMove}
-                handleSubmit={handleSecondSubmit}
-                stepFields={STEP_FIELDS}
-                pinCodeInputID={INPUT_IDS.PIN}
-                defaultValues={personalDetailsValues[INPUT_IDS.PIN]}
-                shouldShowHelpLinks={false}
+                handleSubmit={handleConfirmationSubmit}
+                pinCodeToMatch={firstInputPinCode}
                 />
             )}
         </>

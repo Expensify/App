@@ -66,9 +66,6 @@ type PrivatePersonalDetails = {
     /** User's home address history. The most recent address is the last item in the array */
     addresses?: Address[];
 
-    /** Card's PIN code chosen by the user. */
-    pinCode?: string;
-
     /** Error objects keyed by field name containing errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields;
 

@@ -42,6 +42,9 @@ type PinStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & 
     /** Forwarded inner ref */
     innerRef?: ForwardedRef<PinCodeFormHandle>;
 
+    /** Pin code from the first input  */
+    pinCodeToMatch?: string;
+
     /** Function is called when submitting form  */
     handleSubmit: (value: string) => void;
 };
@@ -51,6 +54,7 @@ function PinStep<TFormID extends keyof OnyxFormValuesMapping>({
     formTitle,
     isEditing,
     innerRef = () => {},
+    pinCodeToMatch,
     handleSubmit,
 }: PinStepProps<TFormID>) {
     const {translate} = useLocalize();
@@ -128,6 +132,7 @@ function PinStep<TFormID extends keyof OnyxFormValuesMapping>({
      */
     const validateAndSubmitForm = useCallback(() => {
         setCanShowError(true);
+
         if (!isRequiredFulfilled(pinCode)) {
             setFormError({pinCode: 'common.error.fieldRequired'});
             return;
@@ -138,9 +143,14 @@ function PinStep<TFormID extends keyof OnyxFormValuesMapping>({
             return;
         }
 
+        if (pinCodeToMatch && pinCodeToMatch !== pinCode) {
+            setFormError({pinCode: 'privatePersonalDetails.error.mismatchOfPinCodes'});
+            return;
+        }
+
         setFormError({});
         handleSubmit(pinCode);
-    }, [pinCode, handleSubmit]);
+    }, [pinCode, pinCodeToMatch, handleSubmit]);
 
     const errorText = useMemo(() => {
         if (!canShowError) {
@@ -180,7 +190,7 @@ function PinStep<TFormID extends keyof OnyxFormValuesMapping>({
             <OfflineWithFeedback>
                 <View style={styles.ph25}>
                     <Button
-                        text={isMasked ? "Reveal PIN" : "Hide PIN"}
+                        text={translate(`privatePersonalDetails.${isMasked ? 'reveal' : 'hide'}Pin`)}
                         onPress={() => setRevealed(!isMasked)}
                         icon={isMasked ? (Expensicons.Eye) : (Expensicons.EyeDisabled)}
                         style={styles.flexShrink1}
@@ -191,6 +201,6 @@ function PinStep<TFormID extends keyof OnyxFormValuesMapping>({
     );
 }
 
-PinStep.displayName = 'RegistrationNumberStep';
+PinStep.displayName = 'PinStep';
 
 export default PinStep;
