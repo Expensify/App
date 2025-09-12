@@ -72,7 +72,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         setTransactionReport(
             transaction.transactionID,
             {
-                reportID: item.value,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID, // s77rt
                 participants,
             },
             true,

@@ -286,8 +286,6 @@ function MoneyRequestConfirmationListFooter({
     const shouldShowMap = isDistanceRequest && !isManualDistanceRequest && !!(hasErrors || hasPendingWaypoints || iouType !== CONST.IOU.TYPE.SPLIT || !isReadOnly);
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
 
-    const personalWorkspace = useMemo(() => Object.values(allPolicies ?? {}).find((p) => p?.type === CONST.POLICY.TYPE.PERSONAL), [allPolicies]);
-
     const senderWorkspace = useMemo(() => {
         const senderWorkspaceParticipant = selectedParticipants.find((participant) => participant.isSender);
         return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${senderWorkspaceParticipant?.policyID}`];
@@ -303,11 +301,11 @@ function MoneyRequestConfirmationListFooter({
      * We need to check if the transaction report exists first in order to prevent the outstanding reports from being used.
      * Also we need to check if transaction report exists in outstanding reports in order to show a correct report name.
      */
+    const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const transactionReport = transaction?.reportID ? Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID) : undefined;
     const policyID = selectedParticipants?.at(0)?.policyID;
     const selectedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, policyID, undefined, false);
-    const shouldAutoReport = selectedPolicy?.autoReporting || personalWorkspace?.autoReporting;
     const availableOutstandingReports = getOutstandingReportsForUser(policyID, selectedParticipants?.at(0)?.ownerAccountID, allReports, reportNameValuePairs, false).sort((a, b) =>
         localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''),
     );
@@ -321,9 +319,9 @@ function MoneyRequestConfirmationListFooter({
         return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`];
     }, [allReports, selectedReportID]);
 
-    let reportName = getReportName(selectedReport, selectedPolicy);
+    let reportName = isUnreported ? 'None' : getReportName(selectedReport, selectedPolicy); // s77rt
     if (!reportName) {
-        reportName = shouldAutoReport ? 'New report' : 'None'; // s77rt
+        reportName = 'New report'; // s77rt
     }
 
     // When creating an expense in an individual report, the report field becomes read-only
