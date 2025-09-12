@@ -54,10 +54,26 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
         const amountStr = rawAmount == null ? '' : String(rawAmount);
         const isEmpty = amountStr.trim() === '';
 
-        // If empty, clear the value (like reset for this modifier); otherwise, persist formatted amount.
-        updateAdvancedFilters({
-            [fieldKey]: isEmpty ? null : convertToBackendAmount(Number(amountStr)).toString(),
-        });
+        // Build updates: clear on empty, otherwise persist formatted amount.
+        const updates: Record<string, string | null> = {
+            [String(fieldKey)]: isEmpty ? null : convertToBackendAmount(Number(amountStr)).toString(),
+        };
+
+        // When setting an Equal To value, clear Greater Than and Less Than to avoid conflicting filters.
+        if (!isEmpty && selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO) {
+            updates[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] = null;
+            updates[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`] = null;
+        }
+
+        // When setting Greater Than or Less Than, clear Equal To to avoid conflicting filters.
+        if (
+            !isEmpty &&
+            (selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN || selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN)
+        ) {
+            updates[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] = null;
+        }
+
+        updateAdvancedFilters(updates);
         goBack();
     };
 
