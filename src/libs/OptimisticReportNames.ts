@@ -9,6 +9,7 @@ import type Report from '@src/types/onyx/Report';
 import type {FormulaContext} from './Formula';
 import {compute, FORMULA_PART_TYPES, parse} from './Formula';
 import Log from './Log';
+import type {WorkingUpdates} from './OptimisticReportNamesCache';
 import {getCachedPolicyByID, getCachedReportByID, getCachedReportNameValuePairsByID, getCachedTransactionByID} from './OptimisticReportNamesCache';
 import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import Permissions from './Permissions';
@@ -72,7 +73,7 @@ function getReportKey(reportID: string): OnyxKey {
 /**
  * Apply an Onyx update to the working updates cache
  */
-function applyUpdateToCache(workingUpdates: Record<string, any>, update: OnyxUpdate, context: UpdateContext): void {
+function applyUpdateToCache(workingUpdates: WorkingUpdates, update: OnyxUpdate, context: UpdateContext): void {
     const key = update.key;
 
     switch (update.onyxMethod) {
@@ -117,7 +118,7 @@ function getOriginalValueByKey(key: string, context: UpdateContext): any {
 /**
  * Get all reports associated with a policy ID
  */
-function getReportsForNameComputation(policyID: string, allReports: Record<string, Report>, context: UpdateContext, workingUpdates: Record<string, any>): Report[] {
+function getReportsForNameComputation(policyID: string, allReports: Record<string, Report>, context: UpdateContext, workingUpdates: WorkingUpdates): Report[] {
     if (policyID === CONST.POLICY.ID_FAKE) {
         return [];
     }
@@ -156,7 +157,7 @@ function getReportsForNameComputation(policyID: string, allReports: Record<strin
 /**
  * Get the title field from report name value pairs
  */
-function getTitleFieldFromRNVP(reportID: string, context: UpdateContext, workingUpdates: Record<string, any>) {
+function getTitleFieldFromRNVP(reportID: string, context: UpdateContext, workingUpdates: WorkingUpdates) {
     const reportNameValuePairs = getCachedReportNameValuePairsByID(reportID, context, workingUpdates);
     return reportNameValuePairs?.[CONST.REPORT.REPORT_TITLE_FIELD];
 }
@@ -164,7 +165,7 @@ function getTitleFieldFromRNVP(reportID: string, context: UpdateContext, working
 /**
  * Get the report associated with a transaction ID
  */
-function getReportByTransactionID(transactionID: string, context: UpdateContext, workingUpdates: Record<string, any>): Report | undefined {
+function getReportByTransactionID(transactionID: string, context: UpdateContext, workingUpdates: WorkingUpdates): Report | undefined {
     if (!transactionID) {
         return undefined;
     }
@@ -182,7 +183,7 @@ function getReportByTransactionID(transactionID: string, context: UpdateContext,
 /**
  * Check if a report should have its name automatically computed
  */
-function shouldComputeReportName(report: Report, policy: Policy | undefined, context: UpdateContext, workingUpdates: Record<string, any>): boolean {
+function shouldComputeReportName(report: Report, policy: Policy | undefined, context: UpdateContext, workingUpdates: WorkingUpdates): boolean {
     // Only compute names for expense reports with policies that have title fields
     if (!report || !policy) {
         return false;
@@ -217,7 +218,7 @@ function isValidReportType(reportType?: string): boolean {
 /**
  * Compute a new report name if needed based on an optimistic update
  */
-function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: OnyxUpdate, context: UpdateContext, workingUpdates: Record<string, any>): string | null {
+function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: OnyxUpdate, context: UpdateContext, workingUpdates: WorkingUpdates): string | null {
     // If no report is provided, extract it from the update (for new reports)
     const targetReport = report ?? (incomingUpdate.value as Report);
 
@@ -297,7 +298,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
     });
 
     const additionalUpdates: OnyxUpdate[] = [];
-    const workingUpdates: Record<string, any> = {};
+    const workingUpdates: WorkingUpdates = {};
 
     for (const update of updates) {
         const objectType = determineObjectTypeByKey(update.key);

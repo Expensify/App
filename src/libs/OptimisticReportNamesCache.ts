@@ -3,10 +3,16 @@ import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type ReportNameValuePairs from '@src/types/onyx/ReportNameValuePairs';
 import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 
+/** Types that can be stored in workingUpdates cache */
+type WorkingUpdateValue = Report | Policy | Transaction | ReportNameValuePairs;
+
+/** Type for the workingUpdates cache */
+type WorkingUpdates = Record<string, WorkingUpdateValue>;
+
 /**
  * Get report by ID, checking working updates cache first
  */
-function getCachedReportByID(reportID: string, context: UpdateContext, workingUpdates: Record<string, any>): Report | undefined {
+function getCachedReportByID(reportID: string, context: UpdateContext, workingUpdates: WorkingUpdates): Report | undefined {
     const key = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
     return workingUpdates[key] ?? context.allReports[key];
 }
@@ -14,7 +20,7 @@ function getCachedReportByID(reportID: string, context: UpdateContext, workingUp
 /**
  * Get policy by ID, checking working updates cache first
  */
-function getCachedPolicyByID(policyID: string | undefined, context: UpdateContext, workingUpdates: Record<string, any>): Policy | undefined {
+function getCachedPolicyByID(policyID: string | undefined, context: UpdateContext, workingUpdates: WorkingUpdates): Policy | undefined {
     if (!policyID) {
         return;
     }
@@ -25,7 +31,7 @@ function getCachedPolicyByID(policyID: string | undefined, context: UpdateContex
 /**
  * Get transaction by ID, checking working updates cache first
  */
-function getCachedTransactionByID(transactionID: string, context: UpdateContext, workingUpdates: Record<string, any>): Transaction | undefined {
+function getCachedTransactionByID(transactionID: string, context: UpdateContext, workingUpdates: WorkingUpdates): Transaction | undefined {
     const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
     return workingUpdates[key] ?? context.allTransactions[key];
 }
@@ -33,9 +39,10 @@ function getCachedTransactionByID(transactionID: string, context: UpdateContext,
 /**
  * Get report name value pairs by report ID, checking working updates cache first
  */
-function getCachedReportNameValuePairsByID(reportID: string, context: UpdateContext, workingUpdates: Record<string, any>): ReportNameValuePairs | undefined {
+function getCachedReportNameValuePairsByID(reportID: string, context: UpdateContext, workingUpdates: WorkingUpdates): ReportNameValuePairs | undefined {
     const key = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
     return workingUpdates[key] ?? context.allReportNameValuePairs[key];
 }
 
-export {getCachedReportByID, getCachedPolicyByID, getCachedTransactionByID, getCachedReportNameValuePairsByID};
+export {getCachedPolicyByID, getCachedReportByID, getCachedReportNameValuePairsByID, getCachedTransactionByID};
+export type {WorkingUpdates, WorkingUpdateValue};

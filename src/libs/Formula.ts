@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import {getCurrencySymbol} from './CurrencyUtils';
 import {getCachedTransactionByID} from './OptimisticReportNamesCache';
+import type {WorkingUpdates} from './OptimisticReportNamesCache';
 import type {UpdateContext} from './OptimisticReportNamesConnectionManager';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getReportTransactions} from './ReportUtils';
@@ -193,7 +194,7 @@ function parsePart(definition: string): FormulaPart {
 /**
  * Compute the value of a formula given a context
  */
-function compute(formula: string, context: FormulaContext, workingUpdates?: Record<string, any>, baseContext?: UpdateContext): string {
+function compute(formula: string, context: FormulaContext, workingUpdates?: WorkingUpdates, baseContext?: UpdateContext): string {
     if (!formula || typeof formula !== 'string') {
         return '';
     }
@@ -234,7 +235,7 @@ function compute(formula: string, context: FormulaContext, workingUpdates?: Reco
 /**
  * Compute the value of a report formula part
  */
-function computeReportPart(part: FormulaPart, context: FormulaContext, workingUpdates?: Record<string, any>, baseContext?: UpdateContext): string {
+function computeReportPart(part: FormulaPart, context: FormulaContext, workingUpdates?: WorkingUpdates, baseContext?: UpdateContext): string {
     const {report, policy} = context;
     const [field, format] = part.fieldPath;
 
@@ -419,7 +420,7 @@ function formatAmount(amount: number | undefined, currency: string | undefined):
 /**
  * Get the date of the oldest report action for a given report
  */
-function getOldestReportActionDate(reportID: string, workingUpdates?: Record<string, any>): string | undefined {
+function getOldestReportActionDate(reportID: string): string | undefined {
     if (!reportID) {
         return undefined;
     }
@@ -470,7 +471,7 @@ function formatType(type: string | undefined): string {
 /**
  * Get the date of the oldest transaction for a given report
  */
-function getOldestTransactionDate(reportID: string, context?: FormulaContext, workingUpdates?: Record<string, any>, baseContext?: UpdateContext): string | undefined {
+function getOldestTransactionDate(reportID: string, context?: FormulaContext, workingUpdates?: WorkingUpdates, baseContext?: UpdateContext): string | undefined {
     if (!reportID) {
         return undefined;
     }
@@ -510,6 +511,6 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext, wo
     return oldestDate;
 }
 
-export {FORMULA_PART_TYPES, compute, extract, parse};
+export {compute, extract, FORMULA_PART_TYPES, parse};
 
 export type {FormulaContext, FormulaPart};
