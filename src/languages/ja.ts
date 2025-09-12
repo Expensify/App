@@ -93,6 +93,7 @@ import type {
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
+    DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
@@ -1650,12 +1651,7 @@ const translations = {
         restoreStashed: '隠されたログインを復元',
         signOutConfirmationText: 'サインアウトすると、オフラインでの変更が失われます。',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: '読む',
-            phrase2: '利用規約',
-            phrase3: 'および',
-            phrase4: 'プライバシー',
-        },
+        readTheTermsAndPrivacy: `<muted-text-micro><a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">利用規約</a>と<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシー</a>をお読みください。</muted-text-micro>`,
         help: '助けて',
         whatIsNew: '新着情報',
         accountSettings: 'アカウント設定',
@@ -4837,13 +4833,8 @@ const translations = {
             editTags: 'タグを編集',
             findTag: 'タグを見つける',
             subtitle: 'タグは、コストをより詳細に分類する方法を追加します。',
-            dependentMultiLevelTagsSubtitle: {
-                phrase1: '使用中です',
-                phrase2: '依存タグ',
-                phrase3: '. You can',
-                phrase4: 'スプレッドシートを再インポートする',
-                phrase5: 'タグを更新するために。',
-            },
+            dependentMultiLevelTagsSubtitle: ({importSpreadsheetLink}: DependentMultiLevelTagsSubtitleParams) =>
+                `<muted-text><a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">依存タグ</a>を使用しています。<a href="${importSpreadsheetLink}">スプレッドシートを再インポート</a>してタグを更新できます。</muted-text>`,
             emptyTags: {
                 title: 'タグが作成されていません',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
@@ -5416,11 +5407,7 @@ const translations = {
             changeOwnerPageTitle: 'オーナーを移行',
             addPaymentCardTitle: '所有権を移転するために支払いカードを入力してください。',
             addPaymentCardButtonText: '利用規約に同意して支払いカードを追加',
-            addPaymentCardReadAndAcceptTextPart1: '読み取りと承認',
-            addPaymentCardReadAndAcceptTextPart2: 'カードを追加するためのポリシー',
-            addPaymentCardTerms: '利用規約',
-            addPaymentCardPrivacy: 'プライバシー',
-            addPaymentCardAnd: '&',
+            addPaymentCardReadAndAcceptText: `<muted-text-micro><a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">規約</a>と<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシー</a>ポリシーに同意してカードを追加してください。</muted-text-micro>`,
             addPaymentCardPciCompliant: 'PCI-DSS 準拠',
             addPaymentCardBankLevelEncrypt: '銀行レベルの暗号化',
             addPaymentCardRedundant: '冗長インフラストラクチャー',
@@ -5962,6 +5949,7 @@ const translations = {
         memberNotFound: 'メンバーが見つかりません。',
         useInviteButton: '新しいメンバーをチャットに招待するには、上の招待ボタンを使用してください。',
         notAuthorized: `このページにアクセスする権限がありません。このルームに参加しようとしている場合は、ルームメンバーに追加してもらってください。他に何かお困りですか？${CONST.EMAIL.CONCIERGE}にお問い合わせください。`,
+        roomArchived: `このルームはアーカイブされました。ご不明な点があれば、${CONST.EMAIL.CONCIERGE} までご連絡ください。`,
         removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `このルームから${memberName}を削除してもよろしいですか？`,
             other: '選択したメンバーをルームから削除してもよろしいですか？',

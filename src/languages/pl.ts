@@ -93,6 +93,7 @@ import type {
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
+    DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
@@ -1648,12 +1649,7 @@ const translations = {
         restoreStashed: 'Przywróć zapisane logowanie',
         signOutConfirmationText: 'Utracisz wszystkie zmiany offline, jeśli się wylogujesz.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: 'Przeczytaj',
-            phrase2: 'Warunki korzystania z usługi',
-            phrase3: 'i',
-            phrase4: 'Prywatność',
-        },
+        readTheTermsAndPrivacy: `<muted-text-micro>Zapoznaj się z <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Warunkami korzystania z usługi</a> i <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Polityką prywatności</a>.</muted-text-micro>`,
         help: 'Pomoc',
         whatIsNew: 'Co nowego',
         accountSettings: 'Ustawienia konta',
@@ -4849,13 +4845,8 @@ const translations = {
             editTags: 'Edytuj tagi',
             findTag: 'Znajdź tag',
             subtitle: 'Tagi dodają bardziej szczegółowe sposoby klasyfikacji kosztów.',
-            dependentMultiLevelTagsSubtitle: {
-                phrase1: 'Używasz',
-                phrase2: 'tagi zależne',
-                phrase3: '. Możesz',
-                phrase4: 'ponownie zaimportuj arkusz kalkulacyjny',
-                phrase5: 'aby zaktualizować swoje tagi.',
-            },
+            dependentMultiLevelTagsSubtitle: ({importSpreadsheetLink}: DependentMultiLevelTagsSubtitleParams) =>
+                `<muted-text>Używane są <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">tagi zależne</a>. Możesz <a href="${importSpreadsheetLink}">ponownie zaimportować arkusz kalkulacyjny</a>, aby zaktualizować tagi.</muted-text>`,
             emptyTags: {
                 title: 'Nie utworzyłeś żadnych tagów',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
@@ -5431,11 +5422,7 @@ const translations = {
             changeOwnerPageTitle: 'Przenieś właściciela',
             addPaymentCardTitle: 'Wprowadź swoją kartę płatniczą, aby przenieść własność',
             addPaymentCardButtonText: 'Zaakceptuj warunki i dodaj kartę płatniczą',
-            addPaymentCardReadAndAcceptTextPart1: 'Przeczytaj i zaakceptuj',
-            addPaymentCardReadAndAcceptTextPart2: 'zasady dodawania karty',
-            addPaymentCardTerms: 'warunki',
-            addPaymentCardPrivacy: 'prywatność',
-            addPaymentCardAnd: '&',
+            addPaymentCardReadAndAcceptText: `<muted-text-micro>Przeczytaj i zaakceptuj <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">warunki</a> i <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">politykę prywatności</a>, aby dodać swoją kartę.</muted-text-micro>`,
             addPaymentCardPciCompliant: 'Zgodny z PCI-DSS',
             addPaymentCardBankLevelEncrypt: 'Szyfrowanie na poziomie bankowym',
             addPaymentCardRedundant: 'Nadmierna infrastruktura',
@@ -5983,6 +5970,7 @@ const translations = {
         memberNotFound: 'Nie znaleziono członka.',
         useInviteButton: 'Aby zaprosić nowego członka do czatu, użyj przycisku zaproszenia powyżej.',
         notAuthorized: `Nie masz dostępu do tej strony. Jeśli próbujesz dołączyć do tego pokoju, poproś członka pokoju, aby Cię dodał. Coś innego? Skontaktuj się z ${CONST.EMAIL.CONCIERGE}`,
+        roomArchived: `Wygląda na to, że ten pokój został zarchiwizowany. W razie pytań skontaktuj się z ${CONST.EMAIL.CONCIERGE}.`,
         removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `Czy na pewno chcesz usunąć ${memberName} z pokoju?`,
             other: 'Czy na pewno chcesz usunąć wybranych członków z pokoju?',

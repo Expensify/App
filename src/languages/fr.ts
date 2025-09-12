@@ -93,6 +93,7 @@ import type {
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
+    DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
@@ -1658,12 +1659,7 @@ const translations = {
         restoreStashed: 'Restaurer la connexion mise en attente',
         signOutConfirmationText: 'Vous perdrez toutes les modifications hors ligne si vous vous déconnectez.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: 'Lire le',
-            phrase2: "Conditions d'utilisation",
-            phrase3: 'et',
-            phrase4: 'Confidentialité',
-        },
+        readTheTermsAndPrivacy: `<muted-text-micro>Lisez les <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Conditions d'utilisation</a> et de <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Confidentialité</a>.</muted-text-micro>`,
         help: 'Aide',
         whatIsNew: 'Quoi de neuf',
         accountSettings: 'Paramètres du compte',
@@ -4860,13 +4856,8 @@ const translations = {
             editTags: 'Modifier les balises',
             findTag: 'Trouver une balise',
             subtitle: 'Les étiquettes ajoutent des moyens plus détaillés pour classer les coûts.',
-            dependentMultiLevelTagsSubtitle: {
-                phrase1: 'Vous utilisez',
-                phrase2: 'balises dépendantes',
-                phrase3: '. Vous pouvez',
-                phrase4: 'réimporter une feuille de calcul',
-                phrase5: 'mettre à jour vos tags.',
-            },
+            dependentMultiLevelTagsSubtitle: ({importSpreadsheetLink}: DependentMultiLevelTagsSubtitleParams) =>
+                `<muted-text>Vous utilisez des <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">balises dépendantes</a>. Vous pouvez <a href="${importSpreadsheetLink}">réimporter une feuille de calcul</a> pour mettre à jour vos balises.</muted-text>`,
             emptyTags: {
                 title: "Vous n'avez créé aucun tag",
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
@@ -5448,11 +5439,7 @@ const translations = {
             changeOwnerPageTitle: 'Transférer le propriétaire',
             addPaymentCardTitle: 'Entrez votre carte de paiement pour transférer la propriété',
             addPaymentCardButtonText: 'Accepter les conditions et ajouter une carte de paiement',
-            addPaymentCardReadAndAcceptTextPart1: 'Lire et accepter',
-            addPaymentCardReadAndAcceptTextPart2: 'politique pour ajouter votre carte',
-            addPaymentCardTerms: 'termes',
-            addPaymentCardPrivacy: 'confidentialité',
-            addPaymentCardAnd: '&',
+            addPaymentCardReadAndAcceptText: `<muted-text-micro>Lisez et acceptez les <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">termes</a> et la <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">politique de confidentialité</a> pour ajouter votre carte.</muted-text-micro>`,
             addPaymentCardPciCompliant: 'Conforme à la norme PCI-DSS',
             addPaymentCardBankLevelEncrypt: 'Chiffrement de niveau bancaire',
             addPaymentCardRedundant: 'Infrastructure redondante',
@@ -6004,6 +5991,7 @@ const translations = {
         memberNotFound: 'Membre non trouvé.',
         useInviteButton: "Pour inviter un nouveau membre à la discussion, veuillez utiliser le bouton d'invitation ci-dessus.",
         notAuthorized: `Vous n'avez pas accès à cette page. Si vous essayez de rejoindre cette salle, demandez simplement à un membre de la salle de vous ajouter. Autre chose ? Contactez ${CONST.EMAIL.CONCIERGE}`,
+        roomArchived: `Il semblerait que cette salle ait été archivée. Si vous avez des questions, contactez ${CONST.EMAIL.CONCIERGE}.`,
         removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `Êtes-vous sûr de vouloir retirer ${memberName} de la salle ?`,
             other: 'Êtes-vous sûr de vouloir supprimer les membres sélectionnés de la salle ?',
