@@ -93,6 +93,7 @@ import type {
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
+    DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
@@ -818,9 +819,6 @@ const translations = {
         goBackMessage: ({provider}: GoBackMessageParams) => `${provider}でサインインしたくないですか？`,
         continueWithMyCurrentSession: '現在のセッションを続ける',
         redirectToDesktopMessage: 'サインインが完了すると、デスクトップアプリにリダイレクトします。',
-        signInAgreementMessage: 'ログインすることにより、あなたは以下に同意したことになります',
-        termsOfService: '利用規約',
-        privacy: 'プライバシー',
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'シングルサインオンでログインを続ける：',
@@ -2178,12 +2176,8 @@ const translations = {
         chooseThemeBelowOrSync: '以下のテーマを選択するか、デバイスの設定と同期してください。',
     },
     termsOfUse: {
-        phrase1: 'ログインすることにより、あなたは以下に同意したことになります',
-        phrase2: '利用規約',
-        phrase3: 'および',
-        phrase4: 'プライバシー',
-        phrase5: `送金は、${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）によって、その`,
-        phrase6: 'ライセンス',
+        terms: `<muted-text-xs>ログインすることで、<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">利用規約</a>および<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシー</a>に同意したものとみなされます。</muted-text-xs>`,
+        license: `<muted-text-xs>送金は${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010)の<a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">ライセンス</a>に基づき提供される。</muted-text-xs>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'マジックコードを受け取っていませんか？',
@@ -4844,13 +4838,8 @@ const translations = {
             editTags: 'タグを編集',
             findTag: 'タグを見つける',
             subtitle: 'タグは、コストをより詳細に分類する方法を追加します。',
-            dependentMultiLevelTagsSubtitle: {
-                phrase1: '使用中です',
-                phrase2: '依存タグ',
-                phrase3: '. You can',
-                phrase4: 'スプレッドシートを再インポートする',
-                phrase5: 'タグを更新するために。',
-            },
+            dependentMultiLevelTagsSubtitle: ({importSpreadsheetLink}: DependentMultiLevelTagsSubtitleParams) =>
+                `<muted-text><a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">依存タグ</a>を使用しています。<a href="${importSpreadsheetLink}">スプレッドシートを再インポート</a>してタグを更新できます。</muted-text>`,
             emptyTags: {
                 title: 'タグが作成されていません',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
@@ -6112,7 +6101,7 @@ const translations = {
             },
             status: 'ステータス',
             keyword: 'キーワード',
-            hasKeywords: 'キーワードがあります',
+            keywords: 'キーワード',
             currency: '通貨',
             link: 'リンク',
             pinned: '固定済み',
