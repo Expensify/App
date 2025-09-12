@@ -18,6 +18,7 @@ import {setPersonalBankAccountContinueKYCOnSuccess} from './actions/BankAccounts
 import {approveMoneyRequest} from './actions/IOU';
 import {translateLocal} from './Localize';
 import BankAccountModel from './models/BankAccount';
+import navigateToVerifyAccount from './Navigation/helpers/navigateToVerifyAccount';
 import Navigation from './Navigation/Navigation';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 
@@ -134,13 +135,7 @@ const selectPaymentType = (
 
     if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
         if (!isUserValidated) {
-            const activeRoute = Navigation.getActiveRoute();
-            const [path, params] = activeRoute.split('?');
-            let verifyAccountRoute = path.endsWith('/') ? `${path}verify-account` : `${path}/verify-account`;
-            if (params) {
-                verifyAccountRoute += `?${params}`;
-            }
-            Navigation.navigate(verifyAccountRoute as never);
+            navigateToVerifyAccount();
             return;
         }
         triggerKYCFlow(event, iouPaymentType);

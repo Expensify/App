@@ -2,8 +2,6 @@ import type {NavigationState, PartialState} from '@react-navigation/native';
 import {getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import type {Route} from '@src/ROUTES';
-// eslint-disable-next-line import/no-cycle
-import addVerifyAccountRoute from './addVerifyAccountRoute';
 import getMatchingNewRoute from './getMatchingNewRoute';
 
 /**

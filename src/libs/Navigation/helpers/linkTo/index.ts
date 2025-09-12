@@ -132,7 +132,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     if (areNamesAndParamsEqual(currentState, stateFromPath) || arePathAndBackToEqual(stateFromPath)) {
         return;
     }
-    console.log(currentState);
     if (forceReplace) {
         action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
     }
