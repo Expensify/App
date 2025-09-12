@@ -196,7 +196,7 @@ export default createOnyxDerivedValueConfig({
             }
 
             acc[report.reportID] = {
-                reportName: getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived),
+                reportName: report ? getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived) : '',
                 isEmpty: generateIsEmptyReport(report, isReportArchived),
                 brickRoadStatus,
                 requiresAttention,

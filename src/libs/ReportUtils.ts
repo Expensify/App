@@ -5115,10 +5115,6 @@ function getReportName(
     reports?: SearchReport[],
     policies?: SearchPolicy[],
 ): string {
-    if (!report) {
-        return '';
-    }
-
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue =
         report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined && isReportArchived === undefined;
