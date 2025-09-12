@@ -39,4 +39,4 @@ This houses the Expensify Help site. It's a static site that's built with Jekyll
 - A component named `Text` is in a file named `Text`.
 - An exported function named `guid` is in a file named `guid`.
 - For files that are utilities that export several functions/classes use the UpperCamelCase version ie: `DateUtils`.
-- [Higher-Order Components](https://reactjs.org/docs/higher-order-components.html) (HOCs) and hooks should be named in camelCase, like `withPolicy` and `useUnyx`.
+- [Higher-Order Components](https://reactjs.org/docs/higher-order-components.html) (HOCs) and hooks should be named in camelCase, like `withPolicy` and `useOnyx`.
