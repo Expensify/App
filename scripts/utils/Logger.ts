@@ -3,6 +3,7 @@ const COLOR_RESET = '\x1b[0m';
 const COLOR_YELLOW = '\x1b[33m';
 const COLOR_RED = '\x1b[31m';
 const COLOR_GREEN = '\x1b[32m';
+const COLOR_BOLD = '\x1b[1m';
 
 const log = (...args: unknown[]) => {
     console.debug(...args);
@@ -10,6 +11,11 @@ const log = (...args: unknown[]) => {
 
 const info = (...args: unknown[]) => {
     log('▶️', ...args);
+};
+
+const bold = (...args: unknown[]) => {
+    const lines = [COLOR_BOLD, ...args, COLOR_RESET];
+    log(...lines);
 };
 
 const success = (...args: unknown[]) => {
@@ -34,4 +40,4 @@ const error = (...args: unknown[]) => {
 
 const formatLink = (name: string | number, url: string) => `\x1b]8;;${url}\x1b\\${name}\x1b]8;;\x1b\\`;
 
-export {log, info, warn, note, error, success, formatLink};
+export {log, info, warn, note, error, success, formatLink, bold};

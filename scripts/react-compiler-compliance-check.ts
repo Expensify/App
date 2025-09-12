@@ -11,6 +11,7 @@ import {readFileSync, writeFileSync} from 'fs';
 import {join} from 'path';
 import type {TupleToUnion} from 'type-fest';
 import CLI from './utils/CLI';
+import {bold, info, log, error as logError, success as logSuccess, note, warn} from './utils/Logger';
 
 const REACT_COMPILER_CONFIG_FILENAME = 'react-compiler-config.json';
 const DEFAULT_REPORT_FILENAME = 'react-compiler-report.json';
@@ -53,13 +54,13 @@ type CompilerFailure = {
 function check(filesToCheck?: string[], shouldGenerateReport = false) {
     if (filesToCheck) {
         if (filesToCheck.length === 0) {
-            console.log('✅ No React files changed, skipping check.');
+            logSuccess('No React files changed, skipping check.');
             return true;
         }
 
-        console.log(`🔍 Running React Compiler check for ${filesToCheck.length} file(s)...`);
+        info(`Running React Compiler check for ${filesToCheck.length} file(s)...`);
     } else {
-        console.log('🔍 Running React Compiler check for all files...');
+        info('Running React Compiler check for all files...');
     }
 
     const results = runCompilerHealthcheck(true);
@@ -68,7 +69,7 @@ function check(filesToCheck?: string[], shouldGenerateReport = false) {
     const isPassed = failedFileNames.length === 0;
 
     if (isPassed) {
-        console.log('✅ All changed files pass React Compiler compliance check!');
+        logSuccess('All changed files pass React Compiler compliance check!');
         return true;
     }
 
@@ -82,7 +83,7 @@ function check(filesToCheck?: string[], shouldGenerateReport = false) {
 }
 
 function checkChangedFiles(): boolean {
-    console.log('🔍 Checking changed files for React Compiler compliance...');
+    info('Checking changed files for React Compiler compliance...');
 
     const changedFiles = getChangedFiles();
     const newFiles = getNewFiles();
@@ -108,7 +109,7 @@ function runCompilerHealthcheck(detailed: boolean, src?: string): CompilerResult
 
         return JSON.parse(output) as CompilerResults;
     } catch (error) {
-        console.error('❌ Failed to run React Compiler healthcheck:', error);
+        logError('Failed to run React Compiler healthcheck:', error);
         throw error;
     }
 }
@@ -139,10 +140,10 @@ function parseCombinedOutput(output: string): DetailedCompilerResults {
             const jsonResult = JSON.parse(jsonStr) as CompilerResults;
             success.push(...jsonResult.success);
         } catch (error) {
-            console.warn('Failed to parse JSON from combined output:', error);
+            warn('Failed to parse JSON from combined output:', error);
         }
     } else {
-        console.log('⚠️  No JSON found in combined output, parsing verbose text only');
+        warn('No JSON found in combined output, parsing verbose text only');
     }
 
     // Parse verbose output for detailed failure information
@@ -261,32 +262,38 @@ function getFailedFileNames(failures: CompilerFailure[], filesToCheck?: string[]
 }
 
 function printSummary({success, failure: failures}: DetailedCompilerResults, failedFileNames: string[]): void {
-    if (success.length > 0) {
-        console.log(`✅ Successfully compiled ${success.length} files with React Compiler:`);
-        success.forEach((file) => console.log(`  - ${file}\n\n`));
+    // Only show successful files that are in the failedFileNames list (i.e., files that were checked)
+    const relevantSuccessFiles = success.filter((file) => failedFileNames.includes(file));
+
+    if (relevantSuccessFiles.length > 0) {
+        logSuccess(`Successfully compiled ${relevantSuccessFiles.length} files with React Compiler:`);
+        relevantSuccessFiles.forEach((file) => bold(file));
+        log('\n');
     }
 
-    console.log(`❌ Failed to compile ${failedFileNames.length} files with React Compiler:\n`);
-    failedFileNames.forEach((file) => console.log(`  - ${file}\n\n`));
+    logError(`Failed to compile ${failedFileNames.length} files with React Compiler:`);
+    failedFileNames.forEach((file) => bold(file));
+    log('\n');
 
     // Print unique failures for the files that were checked
-    console.log(`📜 Detailed reasons for failures:`);
+    info('Detailed reasons for failures:');
     failures
         .filter((failure) => failedFileNames.includes(failure.file))
         .forEach((failure) => {
             const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
-            console.log(`  - ${failure.file}${location}`);
+            bold(`${failure.file}${location}`);
             if (failure.reason) {
-                console.log(`    Reason: ${failure.reason}`);
+                note(`    ${failure.reason}`);
             }
         });
 
-    console.log('\n\n');
-    console.log(`❌ The files above failed to compile with React Compiler, probably because of Rules of React violations. Please fix the issues and run the check again.`);
+    log('\n');
+    logError('The files above failed to compile with React Compiler, probably because of Rules of React violations. Please fix the issues and run the check again.');
 }
 
 function generateReport(results: DetailedCompilerResults, outputFileName = DEFAULT_REPORT_FILENAME): void {
-    console.log('\n📋 Creating React Compiler Compliance Check report:');
+    log('\n');
+    info('Creating React Compiler Compliance Check report:');
 
     // Save detailed report
     const reportFile = join(process.cwd(), outputFileName);
@@ -308,7 +315,7 @@ function generateReport(results: DetailedCompilerResults, outputFileName = DEFAU
         ),
     );
 
-    console.log(`\n📄 Detailed report saved to: ${reportFile}`);
+    logSuccess(`Detailed report saved to: ${reportFile}`);
 }
 
 function getMainBranchRemote(): string {
@@ -348,7 +355,7 @@ function getChangedFiles(): string[] {
             .filter((file) => REACT_COMPILER_CONFIG.checkedFileEndings.some((ending) => file.endsWith(ending)))
             .filter((file) => shouldProcessFile(file));
     } catch (error) {
-        console.warn('Could not determine changed files:', error);
+        warn('Could not determine changed files:', error);
         return [];
     }
 }
@@ -367,7 +374,7 @@ function getNewFiles(): string[] {
             .filter((file) => REACT_COMPILER_CONFIG.checkedFileEndings.some((ending) => file.endsWith(ending)))
             .filter((file) => shouldProcessFile(file));
     } catch (error) {
-        console.warn('Could not determine new files:', error);
+        warn('Could not determine new files:', error);
         return [];
     }
 }
@@ -430,11 +437,11 @@ function main() {
                 isPassed = Checker.checkChangedFiles();
                 break;
             default:
-                console.error(`❌ Unknown command: ${String(command)}`);
+                logError(`Unknown command: ${String(command)}`);
                 isPassed = false;
         }
     } catch (error) {
-        console.error('❌ Error:', error);
+        logError('Error:', error);
         isPassed = false;
     } finally {
         process.exit(isPassed ? 0 : 1);
