@@ -4924,13 +4924,17 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
             minHeight: variables.optionRowHeight,
             backgroundColor: theme.transparent,
-            paddingVertical: 8,
             flex: 1,
             userSelect: 'none',
             alignItems: 'center',
             justifyContent: 'space-between',
             overflow: 'hidden',
             flexDirection: 'row',
+        },
+
+        collapsibleHeaderStyle: {
+            paddingVertical: 6,
+            flex: 1,
         },
 
         searchQueryListItemStyle: {

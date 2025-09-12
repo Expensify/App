@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import Button from '@components/Button';
@@ -59,6 +59,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     accountID,
     isOffline,
     areAllOptionalColumnsHidden: areAllOptionalColumnsHiddenProp,
+    newTransactionID,
     violations,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
@@ -129,7 +130,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const shouldDisplayEmptyView = isEmpty && isGroupByReports;
     const isDisabledOrEmpty = isEmpty || isDisabled;
     const shouldDisplayShowMoreButton = !isGroupByReports && !!transactionsSnapshotMetadata?.hasMoreResults;
-    const shouldDisplayLoadingIndicator = !isGroupByReports && !!transactionsSnapshotMetadata?.isLoading;
+    const currentOffset = transactionsSnapshotMetadata?.offset ?? 0;
+    const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
+    const shouldDisplayLoadingIndicator = !isGroupByReports && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
@@ -156,25 +159,47 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const backTo = Navigation.getActiveRoute();
-
         const reportID = getReportIDForTransaction(transactionItem);
-        const siblingTransactionThreadIDs = transactions.map(getReportIDForTransaction);
 
-        // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
-        // to display prev/next arrows in RHP for navigation
-        setActiveTransactionThreadIDs(siblingTransactionThreadIDs).then(() => {
-            // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
+        const navigateToTransactionThread = () => {
             if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 const iouAction = getReportAction(transactionItem.report.reportID, transactionItem.moneyRequestReportActionID);
                 createAndOpenSearchTransactionThread(transactionItem, iouAction, currentSearchHash, backTo);
                 return;
             }
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+        };
+
+        // The arrow navigation in RHP is only allowed for group-by:reports
+        if (!isGroupByReports) {
+            navigateToTransactionThread();
+            return;
+        }
+
+        const siblingTransactionThreadIDs = transactions.map(getReportIDForTransaction);
+
+        // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
+        // to display prev/next arrows in RHP for navigation
+        setActiveTransactionThreadIDs(siblingTransactionThreadIDs).then(() => {
+            // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
+            navigateToTransactionThread();
         });
     };
 
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
+
+    useEffect(() => {
+        if (!newTransactionID || !groupItem.transactionsQueryJSON || !isExpanded) {
+            return;
+        }
+        search({
+            queryJSON: groupItem.transactionsQueryJSON,
+            searchKey: undefined,
+            offset: transactionsSnapshot?.search?.offset ?? 0,
+            shouldCalculateTotals: false,
+        });
+    }, [groupItem.transactionsQueryJSON, newTransactionID, transactionsSnapshot?.search?.offset, isExpanded]);
 
     const handleToggle = useCallback(() => {
         setIsExpanded(!isExpanded);
@@ -190,8 +215,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [isGroupByReports, transactions.length, onSelectRow, item, handleToggle]);
 
     const onLongPress = useCallback(() => {
+        if (isEmpty) {
+            return;
+        }
         onLongPressRow?.(item);
-    }, [item, onLongPressRow]);
+    }, [isEmpty, item, onLongPressRow]);
 
     const onCheckboxPress = useCallback(
         (val: TItem) => {
@@ -199,6 +227,20 @@ function TransactionGroupListItem<TItem extends ListItem>({
         },
         [onCheckboxPressRow, transactions, isGroupByReports],
     );
+
+    const onExpandIconPress = useCallback(() => {
+        if (isEmpty && !shouldDisplayEmptyView) {
+            onPress();
+        } else if (groupItem.transactionsQueryJSON && !isExpanded) {
+            search({
+                queryJSON: groupItem.transactionsQueryJSON,
+                searchKey: undefined,
+                offset: transactionsSnapshot?.search?.offset ?? 0,
+                shouldCalculateTotals: false,
+            });
+        }
+        handleToggle();
+    }, [isEmpty, shouldDisplayEmptyView, groupItem.transactionsQueryJSON, isExpanded, transactionsSnapshot?.search?.offset, onPress, handleToggle]);
 
     const getHeader = useMemo(() => {
         const headers: Record<SearchGroupBy, React.JSX.Element> = {
@@ -286,12 +328,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     <AnimatedCollapsible
                         isExpanded={isExpanded}
                         header={getHeader}
-                        onPress={() => {
-                            if (isEmpty && !shouldDisplayEmptyView) {
-                                onPress();
-                            }
-                            handleToggle();
-                        }}
+                        onPress={onExpandIconPress}
+                        expandButtonStyle={[styles.pv6]}
                     >
                         {shouldDisplayEmptyView ? (
                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
@@ -305,7 +343,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         ) : (
                             <>
                                 {isLargeScreenWidth && (
-                                    <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader, styles.bgTransparent, styles.pl9, styles.pr3]}>
+                                    <View
+                                        style={[styles.searchListHeaderContainerStyle, styles.listTableHeader, styles.bgTransparent, styles.pl9, isGroupByReports ? styles.pr10 : styles.pr3]}
+                                    >
                                         <SearchTableHeader
                                             canSelectMultiple
                                             type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -323,33 +363,35 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                     </View>
                                 )}
                                 {transactions.map((transaction) => (
-                                    <OfflineWithFeedback
+                                    <View
+                                        style={[isGroupByReports && styles.pr7]}
                                         key={transaction.transactionID}
-                                        pendingAction={transaction.pendingAction}
                                     >
-                                        <TransactionItemRow
-                                            key={transaction.transactionID}
-                                            report={transaction.report}
-                                            transactionItem={transaction}
-                                            violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
-                                            isSelected={!!transaction.isSelected}
-                                            dateColumnSize={dateColumnSize}
-                                            amountColumnSize={amountColumnSize}
-                                            taxAmountColumnSize={taxAmountColumnSize}
-                                            shouldShowTooltip={showTooltip}
-                                            shouldUseNarrowLayout={!isLargeScreenWidth}
-                                            shouldShowCheckbox={!!canSelectMultiple}
-                                            onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                            columns={currentColumns}
-                                            onButtonPress={() => {
-                                                openReportInRHP(transaction);
-                                            }}
-                                            style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
-                                            isReportItemChild
-                                            isInSingleTransactionReport={groupItem.transactions.length === 1}
-                                            areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                                        />
-                                    </OfflineWithFeedback>
+                                        <OfflineWithFeedback pendingAction={transaction.pendingAction}>
+                                            <TransactionItemRow
+                                                key={transaction.transactionID}
+                                                report={transaction.report}
+                                                transactionItem={transaction}
+                                                violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
+                                                isSelected={!!transaction.isSelected}
+                                                dateColumnSize={dateColumnSize}
+                                                amountColumnSize={amountColumnSize}
+                                                taxAmountColumnSize={taxAmountColumnSize}
+                                                shouldShowTooltip={showTooltip}
+                                                shouldUseNarrowLayout={!isLargeScreenWidth}
+                                                shouldShowCheckbox={!!canSelectMultiple}
+                                                onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                                columns={currentColumns}
+                                                onButtonPress={() => {
+                                                    openReportInRHP(transaction);
+                                                }}
+                                                style={[styles.noBorderRadius, shouldUseNarrowLayout ? [styles.p3, styles.pt2] : [styles.ph3, styles.pv1Half]]}
+                                                isReportItemChild
+                                                isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                                            />
+                                        </OfflineWithFeedback>
+                                    </View>
                                 ))}
                                 {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (
                                     <View style={[styles.w100, styles.flexRow, isLargeScreenWidth && styles.pl10]}>
