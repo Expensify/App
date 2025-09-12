@@ -69,7 +69,7 @@ describe('OptimisticReportNames', () => {
 
     describe('shouldComputeReportName()', () => {
         test('should return true for expense report with title field formula', () => {
-            const result = shouldComputeReportName(mockReport, mockPolicy);
+            const result = shouldComputeReportName(mockReport, mockPolicy, mockContext, {});
             expect(result).toBe(true);
         });
 
@@ -82,18 +82,20 @@ describe('OptimisticReportNames', () => {
                     type: 'iou',
                 } as Report,
                 mockPolicy,
+                mockContext,
+                {},
             );
             expect(result).toBe(false);
         });
 
         test('should return false when no policy', () => {
-            const result = shouldComputeReportName(mockReport, undefined);
+            const result = shouldComputeReportName(mockReport, undefined, mockContext, {});
             expect(result).toBe(false);
         });
 
         test('should return false when no title field', () => {
             mockReportUtils.getTitleReportField.mockReturnValue(undefined);
-            const result = shouldComputeReportName(mockReport, mockPolicy);
+            const result = shouldComputeReportName(mockReport, mockPolicy, mockContext, {});
             expect(result).toBe(false);
         });
 
@@ -106,7 +108,7 @@ describe('OptimisticReportNames', () => {
                 },
             } as unknown as Policy;
             mockReportUtils.getTitleReportField.mockReturnValue(policyWithoutFormula.fieldList?.text_title);
-            const result = shouldComputeReportName(mockReport, policyWithoutFormula);
+            const result = shouldComputeReportName(mockReport, policyWithoutFormula, mockContext, {});
             expect(result).toBe(true);
         });
     });
@@ -119,7 +121,7 @@ describe('OptimisticReportNames', () => {
                 value: {total: -20000},
             };
 
-            const result = computeReportNameIfNeeded(mockReport, update, mockContext);
+            const result = computeReportNameIfNeeded(mockReport, update, mockContext, {});
             expect(result).toEqual('Expense Report - $200.00');
         });
 
@@ -137,6 +139,7 @@ describe('OptimisticReportNames', () => {
                 },
                 update,
                 mockContext,
+                {},
             );
             expect(result).toBeNull();
         });
@@ -264,7 +267,7 @@ describe('OptimisticReportNames', () => {
                 value: {total: -10000},
             };
 
-            const result = computeReportNameIfNeeded(undefined, update, mockContext);
+            const result = computeReportNameIfNeeded(undefined, update, mockContext, {});
             expect(result).toBeNull();
         });
     });
@@ -319,14 +322,14 @@ describe('OptimisticReportNames', () => {
                 },
             };
 
-            const result = getReportByTransactionID('abc123', contextWithTransaction);
+            const result = getReportByTransactionID('abc123', contextWithTransaction, {});
 
             expect(result).toEqual(mockReport);
             expect(result?.reportID).toBe('123');
         });
 
         test('getReportByTransactionID should return undefined for missing transaction', () => {
-            const result = getReportByTransactionID('nonexistent', mockContext);
+            const result = getReportByTransactionID('nonexistent', mockContext, {});
             expect(result).toBeUndefined();
         });
 
@@ -345,7 +348,7 @@ describe('OptimisticReportNames', () => {
                 },
             };
 
-            const result = getReportByTransactionID('incomplete', contextWithIncompleteTransaction);
+            const result = getReportByTransactionID('incomplete', contextWithIncompleteTransaction, {});
             expect(result).toBeUndefined();
         });
 

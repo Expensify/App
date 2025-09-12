@@ -91,7 +91,7 @@ function applyUpdateToCache(workingUpdates: WorkingUpdates, update: OnyxUpdate, 
         default:
             // Default to MERGE for safety
             const defaultCurrentValue = workingUpdates[key] ?? getOriginalValueByKey(key, context);
-            workingUpdates[key] = {...defaultCurrentValue, ...update.value};
+            workingUpdates[key] = {...defaultCurrentValue, ...(update.value as WorkingUpdateValue)} as WorkingUpdateValue;
             break;
     }
 }
@@ -99,7 +99,7 @@ function applyUpdateToCache(workingUpdates: WorkingUpdates, update: OnyxUpdate, 
 /**
  * Get original value by key from context collections
  */
-function getOriginalValueByKey(key: string, context: UpdateContext): any {
+function getOriginalValueByKey(key: string, context: UpdateContext): WorkingUpdateValue | undefined {
     if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
         return context.allReports[key];
     }

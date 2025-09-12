@@ -14,7 +14,7 @@ type WorkingUpdates = Record<string, WorkingUpdateValue>;
  */
 function getCachedReportByID(reportID: string, context: UpdateContext, workingUpdates: WorkingUpdates): Report | undefined {
     const key = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-    return workingUpdates[key] ?? context.allReports[key];
+    return (workingUpdates[key] as Report) ?? context.allReports[key];
 }
 
 /**
@@ -25,7 +25,7 @@ function getCachedPolicyByID(policyID: string | undefined, context: UpdateContex
         return;
     }
     const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-    return workingUpdates[key] ?? context.allPolicies[key];
+    return (workingUpdates[key] as Policy) ?? context.allPolicies[key];
 }
 
 /**
@@ -33,7 +33,7 @@ function getCachedPolicyByID(policyID: string | undefined, context: UpdateContex
  */
 function getCachedTransactionByID(transactionID: string, context: UpdateContext, workingUpdates: WorkingUpdates): Transaction | undefined {
     const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-    return workingUpdates[key] ?? context.allTransactions[key];
+    return (workingUpdates[key] as Transaction) ?? context.allTransactions[key];
 }
 
 /**
@@ -41,7 +41,7 @@ function getCachedTransactionByID(transactionID: string, context: UpdateContext,
  */
 function getCachedReportNameValuePairsByID(reportID: string, context: UpdateContext, workingUpdates: WorkingUpdates): ReportNameValuePairs | undefined {
     const key = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
-    return workingUpdates[key] ?? context.allReportNameValuePairs[key];
+    return (workingUpdates[key] as ReportNameValuePairs) ?? context.allReportNameValuePairs[key];
 }
 
 export {getCachedPolicyByID, getCachedReportByID, getCachedReportNameValuePairsByID, getCachedTransactionByID};

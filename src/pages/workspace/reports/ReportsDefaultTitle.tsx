@@ -78,7 +78,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
     });
 
     const submitForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
-        setPolicyDefaultReportTitle(policyID, values.defaultTitle, betas, betaConfiguration);
+        setPolicyDefaultReportTitle(policyID, values.defaultTitle, betas ?? [], betaConfiguration ?? {});
         Navigation.goBack();
     };
 

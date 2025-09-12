@@ -258,7 +258,7 @@ function computeReportPart(part: FormulaPart, context: FormulaContext, workingUp
         case 'created':
             // Backend will always return at least one report action (of type created) and its date is equal to report's creation date
             // We can make it slightly more efficient in the future by ensuring report.created is always present in backend's responses
-            return formatDate(getOldestReportActionDate(report.reportID, workingUpdates), format);
+            return formatDate(getOldestReportActionDate(report.reportID), format);
         default:
             return part.definition;
     }
