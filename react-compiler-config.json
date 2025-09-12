@@ -1,4 +1,4 @@
 {
-    "excludedFolderPatterns": ["tests/", "test/", "__tests__/", "node_modules/", "scripts/", "Mobile-Expensify/"],
+    "excludedFolderPatterns": ["tests/", "node_modules/", "scripts/", "Mobile-Expensify/"],
     "checkedFileEndings": [".tsx", ".ts", ".jsx", ".js"]
 }
