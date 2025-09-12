@@ -142,7 +142,7 @@ const baseFilterConfig = {
     },
     keyword: {
         getTitle: getFilterDisplayTitle,
-        description: 'search.filters.hasKeywords' as const,
+        description: 'search.filters.keywords' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD),
     },
     cardID: {

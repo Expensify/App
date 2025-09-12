@@ -16,7 +16,7 @@ Before you can pay workspace expenses:
 
 ## How to Pay Workspace Expenses
 
-In the left-hand menu, select **Reports > To-do > Pay** or follow the notification prompt.
+In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Reports > To-do > Pay** or follow the notification prompt.
 
 1. You'll receive an email, in-app notification, or text (if your contact method is a phone number).
 2. Click or tap **Pay** to open the expense report in New Expensify.
@@ -34,7 +34,7 @@ To send personal payments, you’ll need to [set up your Wallet](https://help.ex
 
 ## How to Pay a Personal Expense
 
-In the left-hand menu, select **Reports > To-do > Pay** or click on the notification you received.
+In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Reports > To-do > Pay** or click on the notification you received.
 
 1. You'll be notified via email, in-app alert, or text when someone submits an expense to you.
 2. Click or tap **Pay** to view the details.
@@ -48,10 +48,10 @@ In the left-hand menu, select **Reports > To-do > Pay** or click on the notifica
 
 ## Once I pay an expense, how long does it take for the deposit to reach the submitter’s bank account?
 
-- If the payment is coming from a **personal bank account** and is under $100, it will process in one business day. 
-- If the payment is coming from a **business bank account** and the total withdrawal amount has not exceeded $10,000 in the last 24 hours, the payment will process in one business day. 
+- If the payment is coming from a **personal bank account** and is under $100, it will process in one business day.
+- If the payment is coming from a **business bank account** and the total withdrawal amount has not exceeded $10,000 in the last 24 hours, the payment will process in one business day.
 
-Otherwise, the payment will follow the standard bank transfer timeframe, and the recipient can expect to receive their payment within 4-5 business days. 
+Otherwise, the payment will follow the standard bank transfer timeframe, and the recipient can expect to receive their payment within 4-5 business days.
 
 ## Can I pay someone in another currency?
 

@@ -51,6 +51,7 @@ import JewelBoxGreen from '@assets/images/product-illustrations/jewel-box--green
 import JewelBoxPink from '@assets/images/product-illustrations/jewel-box--pink.svg';
 import JewelBoxYellow from '@assets/images/product-illustrations/jewel-box--yellow.svg';
 import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
+import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import MoneyEnvelopeBlue from '@assets/images/product-illustrations/money-envelope--blue.svg';
 import MoneyMousePink from '@assets/images/product-illustrations/money-mouse--pink.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
@@ -152,6 +153,7 @@ import SubscriptionAnnual from '@assets/images/simple-illustrations/simple-illus
 import SubscriptionPPU from '@assets/images/simple-illustrations/simple-illustration__subscription-ppu.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import TeachersUnite from '@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg';
+import ThumbsDown from '@assets/images/simple-illustrations/simple-illustration__thumbsdown.svg';
 import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import Tire from '@assets/images/simple-illustrations/simple-illustration__tire.svg';
 import TrackShoe from '@assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
@@ -326,6 +328,8 @@ export {
     Flash,
     ExpensifyMobileApp,
     ReportReceipt,
+    ModalHoldOrReject,
+    ThumbsDown,
     PlaidCompanyCardDetailLarge,
     PlaidCompanyCardDetail,
     ReceiptsStackedOnPin,

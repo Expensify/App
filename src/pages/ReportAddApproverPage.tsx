@@ -23,7 +23,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getMemberAccountIDsForWorkspace, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getDisplayNameForParticipant, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import {getDisplayNameForParticipant, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -68,7 +68,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                     const isPendingDelete = employeeList?.[accountID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
                     // Filter the current report approver and members which are pending for deletion
-                    if (report.managerID === accountID || isPendingDelete) {
+                    if (report.managerID === accountID || isPendingDelete || !isAllowedToApproveExpenseReport(report, accountID, policy)) {
                         return null;
                     }
 
@@ -105,7 +105,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 shouldShow: true,
             },
         ];
-    }, [employeeList, debouncedSearchTerm, countryCode, localeCompare, report.managerID, personalDetails, selectedApproverEmail, translate]);
+    }, [employeeList, debouncedSearchTerm, countryCode, localeCompare, report, policy, personalDetails, selectedApproverEmail, translate]);
 
     const shouldShowListEmptyContent = !debouncedSearchTerm && !sections.at(0)?.data.length;
 
@@ -115,7 +115,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             return;
         }
         addReportApprover(report, selectedApproverEmail, Number(employeeAccountID), currentUserDetails.accountID);
-        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+        Navigation.dismissModal();
     }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID]);
 
     const button = useMemo(() => {
@@ -176,7 +176,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             <HeaderWithBackButton
                 title={translate('iou.changeApprover.actions.addApprover')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.REPORT_CHANGE_APPROVER.getRoute(report.reportID));
+                    Navigation.goBack(ROUTES.REPORT_CHANGE_APPROVER.getRoute(report.reportID), {compareParams: false});
                 }}
             />
             <Text style={[styles.ph5, styles.pb3]}>{translate('iou.changeApprover.addApprover.subtitle')}</Text>

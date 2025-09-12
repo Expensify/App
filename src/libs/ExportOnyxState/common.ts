@@ -7,20 +7,46 @@ import type {MaskOnyxState} from './types';
 
 const MASKING_PATTERN = '***';
 const keysToMask = [
-    'plaidLinkToken',
-    'plaidAccessToken',
-    'plaidAccountID',
-    'addressName',
     'addressCity',
+    'addressName',
     'addressStreet',
     'addressZipCode',
-    'street',
+    'avatar',
+    'avatarURL',
+    'bank',
+    'cardName',
+    'cardNumber',
     'city',
-    'state',
-    'zip',
+    'comment',
+    'description',
+    'displayName',
     'edits',
+    'firstName',
     'lastMessageHtml',
     'lastMessageText',
+    'lastName',
+    'legalFirstName',
+    'legalLastName',
+    'merchant',
+    'modifiedMerchant',
+    'name',
+    'oldPolicyName',
+    'owner',
+    'phoneNumber',
+    'plaidAccessToken',
+    'plaidAccountID',
+    'plaidLinkToken',
+    'policyAvatar',
+    'policyName',
+    'primaryLogin',
+    'reportName',
+    'routingNumber',
+    'source',
+    'state',
+    'street',
+    'validateCode',
+    'zip',
+    'zipCode',
 ];
 
 const onyxKeysToRemove: Array<ValueOf<typeof ONYXKEYS>> = [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID];
@@ -30,6 +56,22 @@ const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
 const emailMap = new Map<string, string>();
 
 const getRandomLetter = () => String.fromCharCode(97 + Math.floor(Math.random() * 26));
+
+function getRandomString(length: number): string {
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += getRandomLetter();
+    }
+    return result;
+}
+
+function maskValuePreservingLength(value: unknown) {
+    if (typeof value !== 'string') {
+        return MASKING_PATTERN;
+    }
+
+    return getRandomString(value.length);
+}
 
 function stringContainsEmail(text: string) {
     return emailRegex.test(text);
@@ -130,7 +172,7 @@ const maskFragileData = (data: OnyxState | unknown[] | null, parentKey?: string)
             if (Array.isArray(value)) {
                 maskedData[key] = value.map(() => MASKING_PATTERN);
             } else {
-                maskedData[key] = MASKING_PATTERN;
+                maskedData[key] = maskValuePreservingLength(value);
             }
         } else if (typeof value === 'string' && Str.isValidEmail(value)) {
             maskedData[propertyName] = maskEmail(value);

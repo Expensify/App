@@ -26,7 +26,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
 
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
+    const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
@@ -54,7 +54,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     };
 
     const removeFromReport = () => {
-        if (!transactionReport || selectedTransactionIDs.length === 0) {
+        if (!selectedReport || selectedTransactionIDs.length === 0) {
             return;
         }
         changeTransactionsReport(selectedTransactionIDs, CONST.REPORT.UNREPORTED_REPORT_ID, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
@@ -68,8 +68,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
-            transactionsReports={transactionReport ? [transactionReport] : []}
-            transactionIds={selectedTransactionIDs}
+            selectedReportID={reportID}
+            transactionIDs={selectedTransactionIDs}
             selectReport={selectReport}
             removeFromReport={removeFromReport}
             isEditing={action === CONST.IOU.ACTION.EDIT}

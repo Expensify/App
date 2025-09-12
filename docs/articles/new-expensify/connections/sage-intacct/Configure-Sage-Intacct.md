@@ -16,7 +16,7 @@ If your Sage Intacct account supports multiple entities, you can connect each Wo
 
 To change the entity connection:
 
-1. From the left-hand menu, go to **Workspaces > [Workspace Name] > Accounting**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
 2. Under the Sage Intacct connection, select **Entity**
 
 ---
@@ -25,7 +25,7 @@ To change the entity connection:
 
 To configure how data is imported from Sage Intacct:
 
-1. From the left-hand menu, go to **Workspaces > [Workspace Name] > Accounting**
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Accounting**
 2. Click **Import** under the Sage Intacct section
 
 ## Expense Types vs. Chart of Accounts

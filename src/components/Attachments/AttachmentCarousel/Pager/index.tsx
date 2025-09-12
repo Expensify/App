@@ -49,10 +49,13 @@ type AttachmentCarouselPagerProps = {
 
     /** Callback for attachment errors */
     onAttachmentError?: (source: AttachmentSource) => void;
+
+    /** Callback for attachment loaded */
+    onAttachmentLoaded?: (source: AttachmentSource) => void;
 };
 
 function AttachmentCarouselPager(
-    {items, activeAttachmentID, initialPage, setShouldShowArrows, onPageSelected, onClose, reportID, onAttachmentError}: AttachmentCarouselPagerProps,
+    {items, activeAttachmentID, initialPage, setShouldShowArrows, onPageSelected, onClose, reportID, onAttachmentError, onAttachmentLoaded}: AttachmentCarouselPagerProps,
     ref: ForwardedRef<AttachmentCarouselPagerHandle>,
 ) {
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
@@ -97,9 +100,10 @@ function AttachmentCarouselPager(
             onSwipeDown: onClose,
             onScaleChanged: handleScaleChange,
             onAttachmentError,
+            onAttachmentLoaded,
             externalGestureHandler: nativeGestureHandler,
         }),
-        [pagerItems, activePageIndex, isPagerScrolling, isScrollEnabled, handleTap, onClose, handleScaleChange, nativeGestureHandler, onAttachmentError],
+        [pagerItems, activePageIndex, isPagerScrolling, isScrollEnabled, handleTap, onClose, handleScaleChange, nativeGestureHandler, onAttachmentError, onAttachmentLoaded],
     );
 
     const animatedProps = useAnimatedProps(() => ({

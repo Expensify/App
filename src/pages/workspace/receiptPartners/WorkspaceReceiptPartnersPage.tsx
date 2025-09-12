@@ -57,12 +57,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
         ({name}: {name: string}) => {
             switch (name) {
                 case CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER: {
-                    const {connectFormData} = integrations?.uber ?? {};
-                    const hash = connectFormData?.hash;
-                    const query = connectFormData?.query;
-                    const userName = connectFormData?.name;
-                    const id = connectFormData?.id;
-                    openExternalLink(`${CONST.UBER_CONNECT_URL}?query=${query}&hash=${hash}&name=${userName}&id=${id}`);
+                    openExternalLink(`${CONST.UBER_CONNECT_URL}?${integrations?.uber?.connectFormData}`);
                     break;
                 }
                 default: {

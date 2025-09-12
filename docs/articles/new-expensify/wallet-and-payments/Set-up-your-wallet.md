@@ -36,10 +36,10 @@ If you’ve already connected your account, you’ll skip this step.
 
 You’ll be asked to enter the following:
 
-- Full legal name  
-- Residential address  
-- Date of birth  
-- Phone number  
+- Full legal name
+- Residential address
+- Date of birth
+- Phone number
 - Last 4 digits of your **Social Security Number (SSN)**
 
 Click **Save & Continue** to proceed.
