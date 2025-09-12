@@ -1,8 +1,8 @@
 import isEmpty from 'lodash/isEmpty';
 import keyBy from 'lodash/keyBy';
 import reject from 'lodash/reject';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -10,9 +10,10 @@ import {isReceiptError} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
 import {getDistanceRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import {shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 
@@ -611,6 +612,23 @@ const ViolationsUtils = {
         ]
             .filter(Boolean)
             .join(' ');
+    },
+
+    hasVisibleViolationsForUser(report: OnyxEntry<Report>, violations: OnyxCollection<TransactionViolation[]>, policy?: OnyxEntry<Policy>, transactions?: Transaction[]): boolean {
+        if (!report || !violations || !transactions) {
+            return false;
+        }
+
+        return transactions.some((transaction) => {
+            const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+            if (!transactionViolations) {
+                return false;
+            }
+
+            return transactionViolations.some((violation: TransactionViolation) => {
+                return shouldShowViolation(report, policy, violation.name);
+            });
+        });
     },
 };
 
