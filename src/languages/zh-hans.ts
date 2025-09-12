@@ -93,6 +93,7 @@ import type {
     DeleteConfirmationParams,
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
+    DependentMultiLevelTagsSubtitleParams,
     DidSplitAmountMessageParams,
     DomainPermissionInfoRestrictionParams,
     DuplicateTransactionParams,
@@ -816,9 +817,6 @@ const translations = {
         goBackMessage: ({provider}: GoBackMessageParams) => `不想使用${provider}登录？`,
         continueWithMyCurrentSession: '继续我的当前会话',
         redirectToDesktopMessage: '完成登录后，我们会将您重定向到桌面应用程序。',
-        signInAgreementMessage: '通过登录，您同意',
-        termsOfService: '服务条款',
-        privacy: '隐私',
     },
     samlSignIn: {
         welcomeSAMLEnabled: '继续使用单点登录登录：',
@@ -1631,12 +1629,7 @@ const translations = {
         restoreStashed: '恢复暂存的登录信息',
         signOutConfirmationText: '如果您退出登录，任何离线更改都将丢失。',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: '阅读该内容',
-            phrase2: '服务条款',
-            phrase3: '和',
-            phrase4: '隐私',
-        },
+        readTheTermsAndPrivacy: `<muted-text-micro>阅读<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">服务条款</a>和<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私条款</a>。</muted-text-micro>`,
         help: '帮助',
         whatIsNew: '新内容',
         accountSettings: '账户设置',
@@ -2150,12 +2143,8 @@ const translations = {
         chooseThemeBelowOrSync: '选择下面的主题，或与您的设备设置同步。',
     },
     termsOfUse: {
-        phrase1: '通过登录，您同意',
-        phrase2: '服务条款',
-        phrase3: '和',
-        phrase4: '隐私',
-        phrase5: `资金传输由${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）根据其提供`,
-        phrase6: '许可证',
+        terms: `<muted-text-xs>登录后，即表示您同意<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">服务条款</a>和<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私条款</a>。</muted-text-xs>`,
+        license: `<muted-text-xs>${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) 根据其<a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">许可</a>证提供汇款服务。</muted-text-xs>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: '没有收到魔法代码？',
@@ -4769,13 +4758,8 @@ const translations = {
             editTags: '编辑标签',
             findTag: '查找标签',
             subtitle: '标签提供了更详细的方法来分类费用。',
-            dependentMultiLevelTagsSubtitle: {
-                phrase1: '您正在使用',
-                phrase2: '依赖标签',
-                phrase3: '. You can',
-                phrase4: '重新导入电子表格',
-                phrase5: '更新您的标签。',
-            },
+            dependentMultiLevelTagsSubtitle: ({importSpreadsheetLink}: DependentMultiLevelTagsSubtitleParams) =>
+                `<muted-text>您使用的是<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS}">从属标记</a>。您可以<a href="${importSpreadsheetLink}">重新导入电子表格</a>来更新标签。</muted-text>`,
             emptyTags: {
                 title: '您尚未创建任何标签',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
@@ -5347,11 +5331,7 @@ const translations = {
             changeOwnerPageTitle: '转移所有者',
             addPaymentCardTitle: '输入您的支付卡以转移所有权',
             addPaymentCardButtonText: '接受条款并添加支付卡',
-            addPaymentCardReadAndAcceptTextPart1: '阅读并接受',
-            addPaymentCardReadAndAcceptTextPart2: '将卡添加的政策',
-            addPaymentCardTerms: '条款',
-            addPaymentCardPrivacy: '隐私',
-            addPaymentCardAnd: '&',
+            addPaymentCardReadAndAcceptText: `<muted-text-micro>阅读并接受<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">条款</a>和<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私</a> 政策，添加您的会员卡。</muted-text-micro>`,
             addPaymentCardPciCompliant: '符合PCI-DSS标准',
             addPaymentCardBankLevelEncrypt: '银行级加密',
             addPaymentCardRedundant: '冗余基础设施',
@@ -5878,6 +5858,7 @@ const translations = {
         memberNotFound: '未找到成员。',
         useInviteButton: '要邀请新成员加入聊天，请使用上面的邀请按钮。',
         notAuthorized: `您无权访问此页面。如果您想加入此房间，请让房间成员添加您。还有其他问题？请联系${CONST.EMAIL.CONCIERGE}`,
+        roomArchived: `此房间已被存档。如有疑问，请联系 ${CONST.EMAIL.CONCIERGE}。`,
         removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `您确定要将${memberName}从房间中移除吗？`,
             other: '您确定要从房间中移除选定的成员吗？',
