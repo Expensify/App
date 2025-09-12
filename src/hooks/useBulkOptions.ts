@@ -13,6 +13,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
+
 // import useThemeStyles from './useThemeStyles';
 
 type UseBulkOptionProps = {
@@ -40,7 +41,7 @@ function useBulkOptions({selectedPolicyID, selectedReportID}: UseBulkOptionProps
     const canUsePersonalBankAccount = isIOUReport;
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
     const shouldShowBusinessBankAccountOptions = isExpenseReport && !isPersonalOnlyOption;
-    // TODO: We probably need these informations later (for IOU or Invoice), so commented for now.
+    // TODO: We probably need these information later (for IOU or Invoice), so commented for now.
     // const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles);
 
     // function getLatestBankAccountItem() {
@@ -96,7 +97,7 @@ function useBulkOptions({selectedPolicyID, selectedReportID}: UseBulkOptionProps
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
         }
         return buttonOptions;
-    }, [selectedPolicyID, selectedReportID, policy, shouldShowBusinessBankAccountOptions]);
+    }, [selectedPolicyID, selectedReportID, policy, shouldShowBusinessBankAccountOptions, hasActivatedWallet, shouldShowPayElsewhereOption, translate]);
 
     return bulkPayButtonOptions;
 }
