@@ -1,6 +1,6 @@
 # Agent Framework (Claude Code + GitHub Actions)
 
-A small, repo-scoped setup for running **agents** (code review, triage, docs checks, etc.) on **issues and pull requests** using [Anthropic’s Claude Code GitHub Action](https://github.com/anthropics/claude-code-action).
+A setup for running agents (eg: code review, triage etc.) on **issues and pull requests** using [Anthropic’s Claude Code GitHub Action](https://github.com/anthropics/claude-code-action).
 
 ## Architecture
 
