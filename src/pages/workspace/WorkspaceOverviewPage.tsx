@@ -41,7 +41,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getUserFriendlyWorkspaceType, goBackFromInvalidPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
+import {getUserFriendlyWorkspaceType, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
@@ -199,7 +199,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
         deleteWorkspace(policy.id, policyName, lastAccessedWorkspacePolicyID, lastPaymentMethod);
         setIsDeleteModalOpen(false);
-        goBackFromInvalidPolicy();
     }, [policy?.id, policyName, lastAccessedWorkspacePolicyID, lastPaymentMethod]);
 
     useEffect(() => {
