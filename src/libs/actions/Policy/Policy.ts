@@ -285,10 +285,7 @@ let policyCardFeeds: OnyxCollection<CardFeeds>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER,
     waitForCollectionCallback: true,
-    callback: (value) => {
-        policyCardFeeds = value;
-        console.log('policy card feeds', value);
-    },
+    callback: (value) => (policyCardFeeds = value),
 });
 
 /**
