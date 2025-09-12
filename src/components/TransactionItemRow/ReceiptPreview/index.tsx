@@ -32,7 +32,7 @@ type ReceiptPreviewProps = {
 };
 
 function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: ReceiptPreviewProps) {
-    const isDistanceEReceipt = isDistanceRequest(transactionItem) && !isManualDistanceRequest(transactionItem) && !hasReceiptSource(transactionItem);
+    const isDistanceEReceipt = isDistanceRequest(transactionItem) && !isManualDistanceRequest(transactionItem);
     const styles = useThemeStyles();
     const theme = useTheme();
     const [eReceiptScaleFactor, setEReceiptScaleFactor] = useState(0);
