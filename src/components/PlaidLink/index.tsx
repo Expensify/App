@@ -4,8 +4,16 @@ import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link';
 import {usePlaidLink} from 'react-plaid-link';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobileSafari, isSafari} from '@libs/Browser';
 import Log from '@libs/Log';
 import type PlaidLinkProps from './types';
+
+function clearSafariHistoryState() {
+    const isSafariBrowser = isSafari() || isMobileSafari();
+    if (window.history.state === null && isSafariBrowser) {
+        window.history.back();
+    }
+}
 
 function PlaidLink({token, onSuccess = () => {}, onError = () => {}, onExit = () => {}, onEvent, receivedRedirectURI}: PlaidLinkProps) {
     const [isPlaidLoaded, setIsPlaidLoaded] = useState(false);
@@ -13,6 +21,7 @@ function PlaidLink({token, onSuccess = () => {}, onError = () => {}, onExit = ()
     const styles = useThemeStyles();
     const successCallback = useCallback(
         (publicToken: string, metadata: PlaidLinkOnSuccessMetadata) => {
+            clearSafariHistoryState();
             onSuccess({publicToken, metadata});
         },
         [onSuccess],
@@ -23,6 +32,7 @@ function PlaidLink({token, onSuccess = () => {}, onError = () => {}, onExit = ()
         onSuccess: successCallback,
         onExit: (exitError, metadata) => {
             Log.info('[PlaidLink] Exit: ', false, {exitError, metadata});
+            clearSafariHistoryState();
             onExit();
         },
         onEvent: (event, metadata) => {
