@@ -20,7 +20,7 @@ function put(cacheName: string, key: string, value: Response) {
     return new Promise((resolve, reject) => {
         const cacheAPIKeys: string[] = Object.values(CONST.CACHE_API_KEYS);
         if (!cacheAPIKeys.includes(cacheName)) {
-            reject('Failed to cache, invalid cacheName');
+            reject(new Error('Failed to cache, invalid cacheName'));
         }
         caches
             .open(cacheName)

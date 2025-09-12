@@ -5,7 +5,7 @@ import {getMimeType} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attachment} from '@src/types/onyx';
-import {CacheAttachmentProps} from './types';
+import type {CacheAttachmentProps, GetCachedAttachmentProps} from './types';
 
 function cacheAttachment({attachmentID, uri, type}: CacheAttachmentProps) {
     const isMarkdownAttachment = !uri.startsWith('file://');
@@ -23,8 +23,8 @@ function cacheAttachment({attachmentID, uri, type}: CacheAttachmentProps) {
                     source: destPath,
                 });
             })
-            .catch((error) => {
-                Log.warn('Failed to cache attachment', error);
+            .catch(() => {
+                Log.warn('Failed to cache attachment');
             });
     }
 
@@ -70,16 +70,13 @@ function cacheAttachment({attachmentID, uri, type}: CacheAttachmentProps) {
                         source: filePath,
                     });
                 })
-                .catch((error) => {
-                    Log.warn('Failed to cache attachment', error);
+                .catch(() => {
+                    Log.warn('Failed to cache attachment');
                 });
-        })
-        .catch(() => {
-            return;
         });
 }
 
-function getCachedAttachment(attachmentID: string, attachment: OnyxEntry<Attachment>, currentSource: string) {
+function getCachedAttachment({attachmentID, attachment, currentSource}: GetCachedAttachmentProps) {
     if (!attachment || (attachment?.remoteSource && attachment.remoteSource !== currentSource)) {
         cacheAttachment({attachmentID, uri: currentSource});
         return Promise.resolve(currentSource);

@@ -6,31 +6,27 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attachment} from '@src/types/onyx';
-import {CacheAttachmentProps} from './types';
+import type {CacheAttachmentProps, GetCachedAttachmentProps} from './types';
 
 function cacheAttachment({attachmentID, uri}: CacheAttachmentProps) {
-    fetch(uri)
-        .then((response) => {
-            if (!response.ok) {
-                return;
-            }
-            CacheAPI.put(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID, response)
-                .then(() => {
-                    Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
-                        attachmentID,
-                        remoteSource: isLocalFile(uri) ? '' : uri,
-                    });
-                })
-                .catch((error) => {
-                    Log.warn('Failed to cache attachment', error);
-                });
-        })
-        .catch(() => {
+    fetch(uri).then((response) => {
+        if (!response.ok) {
             return;
-        });
+        }
+        CacheAPI.put(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID, response)
+            .then(() => {
+                Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
+                    attachmentID,
+                    remoteSource: isLocalFile(uri) ? '' : uri,
+                });
+            })
+            .catch(() => {
+                Log.warn('Failed to cache attachment');
+            });
+    });
 }
 
-function getCachedAttachment(attachmentID: string, attachment: OnyxEntry<Attachment>, currentSource: string) {
+function getCachedAttachment({attachmentID, attachment, currentSource}: GetCachedAttachmentProps) {
     if (!attachment || (attachment?.remoteSource && attachment.remoteSource !== currentSource)) {
         cacheAttachment({attachmentID, uri: currentSource});
         return Promise.resolve(currentSource);

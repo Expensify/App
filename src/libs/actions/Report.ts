@@ -687,7 +687,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
         const attachment = buildOptimisticAddCommentReportAction({text, file, reportID, attachmentID});
         attachmentAction = attachment.reportAction;
-        cacheAttachment(attachmentID, file.uri ?? '', file.type);
+        cacheAttachment({attachmentID, uri: file.uri ?? '', type: file.type});
     }
 
     if (text && file) {
@@ -719,7 +719,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     });
 
     attachments.forEach((attachment) => {
-        cacheAttachment(attachment.attachmentID, attachment.uri ?? '');
+        cacheAttachment({attachmentID: attachment.attachmentID, uri: attachment.uri ?? ''});
     });
 
     // Always prefer the file as the last action over text
