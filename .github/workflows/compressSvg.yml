@@ -56,3 +56,5 @@ jobs:
           branch: compress-svgs-${{ github.run_number }}
           labels: |
             svg-compression
+          add-paths: |
+            **/*.svg
