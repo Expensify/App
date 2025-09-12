@@ -908,6 +908,10 @@ type SubmittedWithMemoParams = {
     memo?: string;
 };
 
+type DependentMultiLevelTagsSubtitleParams = {
+    importSpreadsheetLink: string;
+};
+
 type PayAndDowngradeDescriptionParams = {
     formattedAmount: string;
 };
@@ -1215,5 +1219,6 @@ export type {
     SubmittedWithMemoParams,
     SignerInfoMessageParams,
     BusinessRegistrationNumberParams,
+    DependentMultiLevelTagsSubtitleParams,
     PayAndDowngradeDescriptionParams,
 };
