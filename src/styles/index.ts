@@ -829,10 +829,6 @@ const styles = (theme: ThemeColors) =>
             borderBottomLeftRadius: 0,
         },
 
-        buttonCTA: {
-            ...spacing.mh4,
-        },
-
         buttonCTAIcon: {
             marginRight: 22,
             marginLeft: 8,
