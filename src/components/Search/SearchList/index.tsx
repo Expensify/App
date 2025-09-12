@@ -440,7 +440,7 @@ function SearchList(
                             accessibilityState={{checked: isSelectAllChecked}}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
-                            <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                            <Text style={[styles.textMicroSupporting, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
                         </PressableWithFeedback>
                     )}
                 </View>
