@@ -37,7 +37,7 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
 
     return (
         <FocusTrap
-            active={isActive}
+            active={isActive && isFocused}
             paused={!isFocused}
             containerElements={focusTrapSettings?.containerElements?.length ? focusTrapSettings.containerElements : undefined}
             focusTrapOptions={{
