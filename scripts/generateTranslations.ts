@@ -256,9 +256,10 @@ class TranslationGenerator {
     }
 
     /**
-     * Each translation file should have an object called translations that's later default-exported. This function takes in a root node, and finds the translations node.
+     * Each translation file should have an object called translations that's later default-exported.
+     * This function finds that object for a given SourceFile
      */
-    private findTranslationsNode(sourceFile: ts.SourceFile): ts.Node | null {
+    private findTranslationsNode(sourceFile: ts.SourceFile): ts.ObjectLiteralExpression {
         const defaultExport = TSCompilerUtils.findDefaultExport(sourceFile);
         if (!defaultExport) {
             throw new Error('Could not find default export in source file');
@@ -266,12 +267,15 @@ class TranslationGenerator {
         const defaultExportIdentifier = TSCompilerUtils.extractIdentifierFromExpression(defaultExport);
         const variableDeclaration = TSCompilerUtils.resolveDeclaration(defaultExportIdentifier ?? '', sourceFile);
 
-        // Return the object literal initializer, not the variable declaration
-        if (variableDeclaration && ts.isVariableDeclaration(variableDeclaration) && variableDeclaration.initializer) {
-            return variableDeclaration.initializer;
+        if (!variableDeclaration || !ts.isVariableDeclaration(variableDeclaration) || !variableDeclaration.initializer) {
+            throw new Error('Could not find translations object literal in source file');
         }
 
-        return variableDeclaration;
+        if (!ts.isObjectLiteralExpression(variableDeclaration.initializer)) {
+            throw new Error('Default export is not an object literal expression');
+        }
+
+        return variableDeclaration.initializer;
     }
 
     /**
@@ -607,9 +611,6 @@ class TranslationGenerator {
 
             // Find the main translation object in en.ts
             const translationsNode = this.findTranslationsNode(this.sourceFile);
-            if (!translationsNode) {
-                throw new Error('Could not find translation node in en.ts');
-            }
 
             // Get changed lines from the diff
             const changedLines = diffResult.files.at(0);
@@ -721,24 +722,44 @@ class TranslationGenerator {
      */
     private pathExistsInFile(sourceFile: ts.SourceFile, path: string): boolean {
         const translationsNode = this.findTranslationsNode(sourceFile);
-        if (!translationsNode) {
-            return false;
+
+        const pathParts = path.split('.');
+        let currentNode: ts.ObjectLiteralExpression = translationsNode;
+
+        // Traverse the path parts to see if the full path exists
+        for (const pathPart of pathParts) {
+            let found = false;
+
+            for (const property of currentNode.properties) {
+                if (ts.isPropertyAssignment(property)) {
+                    const propertyKey = TSCompilerUtils.extractKeyFromPropertyNode(property);
+                    if (propertyKey === pathPart) {
+                        // Found this path part
+                        if (pathPart === pathParts[pathParts.length - 1]) {
+                            // This is the final path part - we found the complete path
+                            return true;
+                        }
+
+                        // Continue traversing - check if the next level is an object
+                        if (ts.isObjectLiteralExpression(property.initializer)) {
+                            currentNode = property.initializer;
+                            found = true;
+                            break;
+                        } else {
+                            // Next level is not an object, so path doesn't exist
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            if (!found) {
+                // Didn't find this path part
+                return false;
+            }
         }
 
-        // Simple implementation: check if the final property name exists in the node text
-        // This could be improved with proper AST traversal, but should work for most cases
-        const finalKey = path.split('.').pop();
-        if (!finalKey) {
-            return false;
-        }
-
-        try {
-            const nodeText = translationsNode.getText();
-            // Look for the key as a property (with colon or parentheses)
-            return nodeText.includes(`${finalKey}:`) || nodeText.includes(`${finalKey}(`);
-        } catch {
-            return false;
-        }
+        return false; // Shouldn't reach here, but just in case
     }
 
     /**
@@ -837,13 +858,6 @@ class TranslationGenerator {
 
             const oldSourceFile = ts.createSourceFile(this.sourceFile.fileName, oldEnContent, ts.ScriptTarget.Latest, true);
             const oldTranslationsNode = this.findTranslationsNode(oldSourceFile);
-
-            if (!oldTranslationsNode) {
-                if (this.verbose) {
-                    console.warn('⚠️ Could not find translations node in old en.ts');
-                }
-                return;
-            }
 
             // Traverse the old AST to find nodes on removed lines
             this.extractPathsFromChangedLines(oldTranslationsNode, new Set(), removedLines, true);
