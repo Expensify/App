@@ -903,45 +903,6 @@ class TranslationGenerator {
     }
 
     /**
-     * Create a transformer factory for cleaning up empty objects in target files.
-     * Removes property assignments that have empty object literals as their initializer.
-     */
-    private createEmptyObjectCleanupTransformer(): ts.TransformerFactory<ts.SourceFile> {
-        return (context: ts.TransformationContext) => {
-            return (sourceFile: ts.SourceFile) => {
-                // Find the main translations node from the current source file
-                const mainTranslationsNode = this.findTranslationsNode(sourceFile);
-
-                const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
-                    // Check if we're in the main translation node
-                    if (ts.isObjectLiteralExpression(node) && node === mainTranslationsNode) {
-                        // Filter out properties that have empty object literals as initializers
-                        const filteredProperties = node.properties.filter((prop) => {
-                            if (ts.isPropertyAssignment(prop) && ts.isObjectLiteralExpression(prop.initializer)) {
-                                const isEmpty = prop.initializer.properties.length === 0;
-                                if (isEmpty && this.verbose) {
-                                    const propName = ts.isIdentifier(prop.name) ? prop.name.text : prop.name.getText();
-                                    console.log(`🧹 [CleanupTransformer] Removing empty object: "${propName}"`);
-                                }
-                                return !isEmpty; // Keep only non-empty objects
-                            }
-                            return true; // Keep all other properties
-                        });
-
-                        if (filteredProperties.length !== node.properties.length) {
-                            return ts.factory.createObjectLiteralExpression(filteredProperties);
-                        }
-                    }
-
-                    return this.visitChildren(node, currentPath, visitWithPath, context);
-                };
-
-                return (ts.visitNode(sourceFile, visitWithPath) as ts.SourceFile) ?? sourceFile;
-            };
-        };
-    }
-
-    /**
      * Continue traversing children, updating path for property assignments.
      */
     private visitChildren(node: ts.Node, currentPath: string, visitWithPath: (node: ts.Node, path: string) => ts.Node | undefined, context: ts.TransformationContext): ts.Node {
@@ -1074,6 +1035,45 @@ class TranslationGenerator {
             };
 
             return (sourceFile: ts.SourceFile) => {
+                return (ts.visitNode(sourceFile, visitWithPath) as ts.SourceFile) ?? sourceFile;
+            };
+        };
+    }
+
+    /**
+     * Create a transformer factory for cleaning up empty objects in target files.
+     * Removes property assignments that have empty object literals as their initializer.
+     */
+    private createEmptyObjectCleanupTransformer(): ts.TransformerFactory<ts.SourceFile> {
+        return (context: ts.TransformationContext) => {
+            return (sourceFile: ts.SourceFile) => {
+                // Find the main translations node from the current source file
+                const mainTranslationsNode = this.findTranslationsNode(sourceFile);
+
+                const visitWithPath = (node: ts.Node, currentPath = ''): ts.Node | undefined => {
+                    // Check if we're in the main translation node
+                    if (ts.isObjectLiteralExpression(node) && node === mainTranslationsNode) {
+                        // Filter out properties that have empty object literals as initializers
+                        const filteredProperties = node.properties.filter((prop) => {
+                            if (ts.isPropertyAssignment(prop) && ts.isObjectLiteralExpression(prop.initializer)) {
+                                const isEmpty = prop.initializer.properties.length === 0;
+                                if (isEmpty && this.verbose) {
+                                    const propName = ts.isIdentifier(prop.name) ? prop.name.text : prop.name.getText();
+                                    console.log(`🧹 [CleanupTransformer] Removing empty object: "${propName}"`);
+                                }
+                                return !isEmpty; // Keep only non-empty objects
+                            }
+                            return true; // Keep all other properties
+                        });
+
+                        if (filteredProperties.length !== node.properties.length) {
+                            return ts.factory.createObjectLiteralExpression(filteredProperties);
+                        }
+                    }
+
+                    return this.visitChildren(node, currentPath, visitWithPath, context);
+                };
+
                 return (ts.visitNode(sourceFile, visitWithPath) as ts.SourceFile) ?? sourceFile;
             };
         };
