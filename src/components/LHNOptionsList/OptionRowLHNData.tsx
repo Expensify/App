@@ -115,7 +115,6 @@ function OptionRowLHNData({
         receiptTransactions,
         invoiceReceiverPolicy,
         lastMessageTextFromReport,
-        reportAttributes,
         card,
         localeCompare,
         isReportArchived,
