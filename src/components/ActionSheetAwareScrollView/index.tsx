@@ -27,5 +27,6 @@ export default ActionSheetAwareScrollView;
  * @returns {React.ReactElement} - ActionSheetAwareScrollView
  */
 const renderScrollComponent = undefined;
+const renderScrollComponentWithTopSpacing = undefined;
 
-export {renderScrollComponent, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider, Actions};
+export {renderScrollComponent, renderScrollComponentWithTopSpacing, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider, Actions};
