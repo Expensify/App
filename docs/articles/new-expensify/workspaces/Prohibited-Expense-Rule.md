@@ -14,11 +14,11 @@ Once set up, SmartScan reviews scanned receipts at the line-item level:
 
 ---
 
-# Set Up Prohibited Expenses Rules 
+# Set Up Prohibited Expenses Rules
 
 To turn on the Prohibited Expenses rule:
 
-1. In the **left-hand navigation bar (LHB)**, click **Workspaces**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **Rules**, then **Expenses**.
 4. Scroll to the **Prohibited Expenses** section.

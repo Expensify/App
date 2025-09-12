@@ -431,6 +431,8 @@ function FeatureTrainingModal({
                 ref={shouldUseScrollView ? scrollViewRef : undefined}
                 onLayout={shouldUseScrollView ? (e: LayoutChangeEvent) => setContainerHeight(e.nativeEvent.layout.height) : undefined}
                 onContentSizeChange={shouldUseScrollView ? (_w: number, h: number) => setContentHeight(h) : undefined}
+                // Wrapper is either a View or ScrollView, which is also a View.
+                // eslint-disable-next-line react/forbid-component-props
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, illustrationOuterContainerStyle]}>

@@ -128,7 +128,7 @@ function AttachmentView({
     const {updateCurrentURLAndReportID} = usePlaybackContext();
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const {onAttachmentError} = attachmentCarouselPagerContext ?? {};
+    const {onAttachmentError, onAttachmentLoaded} = attachmentCarouselPagerContext ?? {};
     const theme = useTheme();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const styles = useThemeStyles();
@@ -318,6 +318,7 @@ function AttachmentView({
                         loadComplete={loadComplete}
                         isImage={isImage}
                         onPress={onPress}
+                        onLoad={() => onAttachmentLoaded?.(source, true)}
                         onError={() => {
                             if (isOffline) {
                                 return;

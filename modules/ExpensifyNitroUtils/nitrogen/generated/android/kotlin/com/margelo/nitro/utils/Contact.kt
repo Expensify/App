@@ -11,7 +11,6 @@ import androidx.annotation.Keep
 import com.facebook.proguard.annotations.DoNotStrip
 import com.margelo.nitro.core.*
 
-
 /**
  * Represents the JavaScript object/struct "Contact".
  */
@@ -21,20 +20,10 @@ data class Contact
   @DoNotStrip
   @Keep
   constructor(
-    @DoNotStrip
-    @Keep
     val firstName: String?,
-    @DoNotStrip
-    @Keep
     val lastName: String?,
-    @DoNotStrip
-    @Keep
     val phoneNumbers: Array<StringHolder>?,
-    @DoNotStrip
-    @Keep
     val emailAddresses: Array<StringHolder>?,
-    @DoNotStrip
-    @Keep
     val imageData: String?
   ) {
   /* main constructor */

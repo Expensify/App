@@ -197,10 +197,7 @@ function SearchAutocompleteInput(
     return (
         <View style={[outerWrapperStyle]}>
             <Animated.View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle, wrapperBorderColorAnimatedStyle]}>
-                <View
-                    style={styles.flex1}
-                    fsClass={CONST.FULLSTORY.CLASS.UNMASK}
-                >
+                <View style={styles.flex1}>
                     <TextInput
                         testID="search-autocomplete-text-input"
                         value={value}
@@ -242,6 +239,7 @@ function SearchAutocompleteInput(
                         shouldShowClearButton={!!value && !isSearchingForReports}
                         shouldHideClearButton={false}
                         onClearInput={clearFilters}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
                     />
                 </View>
             </Animated.View>
