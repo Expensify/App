@@ -98,10 +98,6 @@ const restrictedImportPaths = [
         message: "Please use 'deepEqual' from 'fast-equals' instead.",
     },
     {
-        name: 'react-native-animatable',
-        message: "Please use 'react-native-reanimated' instead.",
-    },
-    {
         name: 'react-native-onyx',
         importNames: ['useOnyx'],
         message: "Please use '@hooks/useOnyx' instead.",
