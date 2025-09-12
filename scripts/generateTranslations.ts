@@ -48,6 +48,8 @@ const GENERATED_FILE_PREFIX = dedent(`
      */
 `);
 
+const tsPrinter = ts.createPrinter();
+
 /**
  * This class encapsulates most of the non-CLI logic to generate translations.
  * The primary reason it exists as a class is so we can import this file with no side effects at the top level of the script.
@@ -230,8 +232,7 @@ class TranslationGenerator {
             }
 
             // Generate translated TypeScript code
-            const printer = ts.createPrinter();
-            const translatedCode = decodeUnicode(printer.printFile(transformedSourceFile));
+            const translatedCode = decodeUnicode(tsPrinter.printFile(transformedSourceFile));
 
             // Write to file
             const outputPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
@@ -833,8 +834,6 @@ class TranslationGenerator {
      * Extract translated code strings from a transformed AST for the specified paths.
      */
     private extractTranslatedNodes(sourceFile: ts.SourceFile, translatedCodeMap: Map<string, string>): void {
-        const printer = ts.createPrinter();
-
         const visitWithPath = (node: ts.Node, currentPath = ''): void => {
             // Only extract code strings for exact paths in our sets (not hierarchical matches)
             const isAddedPath = this.pathsToAdd.has(currentPath as TranslationPaths);
@@ -843,12 +842,12 @@ class TranslationGenerator {
             if (isAddedPath || isModifiedPath) {
                 if (isAddedPath) {
                     // For pathsToAdd: extract the entire PropertyAssignment as code string
-                    const codeString = printer.printNode(ts.EmitHint.Unspecified, node, sourceFile);
+                    const codeString = tsPrinter.printNode(ts.EmitHint.Unspecified, node, sourceFile);
                     translatedCodeMap.set(currentPath, codeString);
                 } else if (isModifiedPath && ts.isPropertyAssignment(node)) {
                     // For pathsToModify: extract only the value (initializer) as code string
                     if (node.initializer) {
-                        const codeString = printer.printNode(ts.EmitHint.Expression, node.initializer, sourceFile);
+                        const codeString = tsPrinter.printNode(ts.EmitHint.Expression, node.initializer, sourceFile);
                         translatedCodeMap.set(currentPath, codeString);
                     }
                 }
