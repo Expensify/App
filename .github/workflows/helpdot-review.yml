@@ -6,12 +6,14 @@ permissions:
 
 on:
   pull_request:
-    types: [opened, labeled]
+    types: [opened]
+    paths:
+      - 'docs/**/*.md'
+      - 'docs/**/*.csv'
 
 jobs:
   helpdot-review:
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'HelpDot Review')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
