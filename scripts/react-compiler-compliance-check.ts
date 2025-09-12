@@ -169,7 +169,12 @@ function parseCombinedOutput(output: string): DetailedCompilerResults {
                 reason: failureWithReasonMatch[4],
             };
 
-            failure.set(getUniqueFileKey(newFailure), newFailure);
+            const key = getUniqueFileKey(newFailure);
+            // Only add if not already exists, or if existing one has no reason
+            const existing = failure.get(key);
+            if (!existing?.reason) {
+                failure.set(key, newFailure);
+            }
             currentFailure = null;
             continue;
         }
@@ -179,7 +184,28 @@ function parseCombinedOutput(output: string): DetailedCompilerResults {
         if (failureMatch) {
             // Save previous failure if exists
             if (currentFailure) {
-                failure.set(getUniqueFileKey(currentFailure), currentFailure);
+                const key = getUniqueFileKey(currentFailure);
+                const existing = failure.get(key);
+                if (!existing?.reason) {
+                    failure.set(key, currentFailure);
+                }
+            }
+
+            const key = getUniqueFileKey({
+                file: failureMatch[1],
+                line: parseInt(failureMatch[2], 10),
+                column: parseInt(failureMatch[3], 10),
+                reason: '',
+            });
+
+            // Only create new failure if it doesn't exist
+            if (failure.has(key)) {
+                // Use existing failure if it exists
+                const existingFailure = failure.get(key);
+                if (existingFailure) {
+                    currentFailure = existingFailure;
+                }
+                continue;
             }
 
             currentFailure = {
@@ -194,8 +220,11 @@ function parseCombinedOutput(output: string): DetailedCompilerResults {
         // Parse reason line (fallback for multi-line reasons)
         const reasonMatch = line.match(/Reason: (.+)/);
         if (reasonMatch && currentFailure) {
-            currentFailure.reason = reasonMatch[1];
-            failure.set(getUniqueFileKey(currentFailure), currentFailure);
+            // Only update reason if it's not already set
+            if (!currentFailure.reason) {
+                currentFailure.reason = reasonMatch[1];
+                failure.set(getUniqueFileKey(currentFailure), currentFailure);
+            }
             currentFailure = null;
             continue;
         }
@@ -203,7 +232,11 @@ function parseCombinedOutput(output: string): DetailedCompilerResults {
 
     // Add any remaining failure
     if (currentFailure) {
-        failure.set(getUniqueFileKey(currentFailure), currentFailure);
+        const key = getUniqueFileKey(currentFailure);
+        const existing = failure.get(key);
+        if (!existing?.reason) {
+            failure.set(key, currentFailure);
+        }
     }
 
     return {success, failure: Array.from(failure.values())};
@@ -228,26 +261,25 @@ function getFailedFileNames(failures: CompilerFailure[], filesToCheck?: string[]
 }
 
 function printSummary({success, failure: failures}: DetailedCompilerResults, failedFileNames: string[]): void {
-    console.log(`✅ Successfully compiled ${success.length} files with React Compiler:`);
-    success.forEach((file) => console.log(`  - ${file}`));
-    console.log('\n\n');
+    if (success.length > 0) {
+        console.log(`✅ Successfully compiled ${success.length} files with React Compiler:`);
+        success.forEach((file) => console.log(`  - ${file}\n\n`));
+    }
 
     console.log(`❌ Failed to compile ${failedFileNames.length} files with React Compiler:\n`);
-    failedFileNames.forEach((file) => console.log(`  - ${file}`));
-    console.log('\n\n');
+    failedFileNames.forEach((file) => console.log(`  - ${file}\n\n`));
 
-    // Group failures by file and line to avoid duplicates
-
-    // Print unique failures
-    console.log('\n\n');
+    // Print unique failures for the files that were checked
     console.log(`📜 Detailed reasons for failures:`);
-    failures.forEach((failure) => {
-        const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
-        console.log(`  - ${failure.file}${location}`);
-        if (failure.reason) {
-            console.log(`    Reason: ${failure.reason}`);
-        }
-    });
+    failures
+        .filter((failure) => failedFileNames.includes(failure.file))
+        .forEach((failure) => {
+            const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
+            console.log(`  - ${failure.file}${location}`);
+            if (failure.reason) {
+                console.log(`    Reason: ${failure.reason}`);
+            }
+        });
 
     console.log('\n\n');
     console.log(`❌ The files above failed to compile with React Compiler, probably because of Rules of React violations. Please fix the issues and run the check again.`);
