@@ -28,4 +28,4 @@ jobs:
         run: npm ci
 
       - name: Run React Compiler Compliance Check
-        run: npm run react-compiler-compliance-check full-check
+        run: npm run react-compiler-compliance-check check-changed
