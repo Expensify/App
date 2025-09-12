@@ -1,7 +1,7 @@
 import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef, RefObject} from 'react';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
@@ -39,13 +39,14 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
+import {getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import variables from '@styles/variables';
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods, openWalletPage} from '@userActions/PaymentMethods';
+import {getCurrentUserEmail} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -70,6 +71,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const isUserValidated = userAccount?.validated ?? false;
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
@@ -99,6 +101,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const hasWallet = !isEmpty(userWallet);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const hasAssignedCard = !isEmpty(cardList);
+
+    const currentUserEmail = getCurrentUserEmail();
+    const isAdmin = useMemo(() => hasActiveAdminWorkspaces(currentUserEmail, allPolicies), [currentUserEmail, allPolicies]);
 
     const isPendingOnfidoResult = userWallet?.isPendingOnfidoResult ?? false;
     const hasFailedOnfido = userWallet?.hasFailedOnfido ?? false;
@@ -255,6 +260,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             return;
         }
         if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
+            if (isAdmin) {
+                Navigation.navigate(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
+                return;
+            }
             openPersonalBankAccountSetupView({});
             return;
         }
