@@ -181,6 +181,7 @@ function mergeTransactionRequest(mergeTransactionID: string, mergeTransaction: M
         tag: mergeTransaction.tag,
         receiptID: mergeTransaction.receipt?.receiptID,
         reportID: mergeTransaction.reportID,
+        attendees: mergeTransaction.attendees ? JSON.stringify(mergeTransaction.attendees) : undefined,
     };
 
     const targetTransactionUpdated = getOptimisticTargetTransactionData(targetTransaction, mergeTransaction);

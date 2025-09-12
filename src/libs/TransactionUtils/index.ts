@@ -804,6 +804,13 @@ function getFormattedAttendees(modifiedAttendees?: Attendee[], attendees?: Atten
 }
 
 /**
+ * Return the list of attendees as a string of display names/logins.
+ */
+function getAttendeesListDisplayString(attendees: Attendee[]): string {
+    return attendees.map((item) => item.displayName ?? item.login).join(', ');
+}
+
+/**
  * Return the reimbursable value. Defaults to true to match BE logic.
  */
 function getReimbursable(transaction: OnyxInputOrEntry<Transaction>): boolean {
@@ -2019,6 +2026,7 @@ export {
     isUnreportedAndHasInvalidDistanceRateTransaction,
     getTransactionViolationsOfTransaction,
     isExpenseSplit,
+    getAttendeesListDisplayString,
 };
 
 export type {TransactionChanges};
