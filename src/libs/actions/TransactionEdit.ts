@@ -99,50 +99,17 @@ function removeDraftSplitTransaction(transactionID: string | undefined) {
 
 function removeDraftTransactions(shouldExcludeInitialTransaction = false, allTransactionDrafts?: OnyxCollection<Transaction>) {
     const draftTransactions = getDraftTransactions(allTransactionDrafts);
-
-    return new Promise<void>((resolve) => {
-        if (!draftTransactions || draftTransactions.length === 0) {
-            // We do not depend on updates on the UI to remove draft transactions
-            // so we are safe to use `connectWithoutView` here.
-            const conn = Onyx.connectWithoutView({
-                key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
-                waitForCollectionCallback: true,
-                callback: (draftTransactionCollection) => {
-                    Onyx.disconnect(conn);
-
-                    if (!draftTransactionCollection) {
-                        resolve();
-                        return;
-                    }
-
-                    const draftTransactionsSet = Object.keys(draftTransactionCollection).reduce(
-                        (acc, key) => {
-                            if (shouldExcludeInitialTransaction && key.replace(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, '') === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
-                                return acc;
-                            }
-                            acc[key] = null;
-                            return acc;
-                        },
-                        {} as Record<string, null>,
-                    );
-                    Onyx.multiSet(draftTransactionsSet).then(() => resolve());
-                },
-            });
-            return;
-        }
-
-        const draftTransactionsSet = draftTransactions.reduce(
-            (acc, item) => {
-                if (shouldExcludeInitialTransaction && item.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
-                    return acc;
-                }
-                acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
+    const draftTransactionsSet = draftTransactions.reduce(
+        (acc, item) => {
+            if (shouldExcludeInitialTransaction && item.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
                 return acc;
-            },
-            {} as Record<string, null>,
-        );
-        Onyx.multiSet(draftTransactionsSet).then(() => resolve());
-    });
+            }
+            acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
+            return acc;
+        },
+        {} as Record<string, null>,
+    );
+    Onyx.multiSet(draftTransactionsSet);
 }
 
 function replaceDefaultDraftTransaction(transaction: OnyxEntry<Transaction>) {
