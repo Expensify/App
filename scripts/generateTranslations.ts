@@ -1008,20 +1008,23 @@ class TranslationGenerator {
                     // Check if we're in the main translation node
                     if (ts.isObjectLiteralExpression(node) && node === mainTranslationsNode) {
                         // Filter out properties that have empty object literals as initializers
-                        const filteredProperties = node.properties.filter((prop) => {
-                            if (ts.isPropertyAssignment(prop) && ts.isObjectLiteralExpression(prop.initializer)) {
-                                const isEmpty = prop.initializer.properties.length === 0;
-                                if (isEmpty && this.verbose) {
-                                    const propName = ts.isIdentifier(prop.name) ? prop.name.text : prop.name.getText();
-                                    console.log(`🧹 [CleanupTransformer] Removing empty object: "${propName}"`);
-                                }
-                                return !isEmpty; // Keep only non-empty objects
+                        const nonEmptyProperties = node.properties.filter((prop) => {
+                            if (!ts.isPropertyAssignment(prop) || !ts.isObjectLiteralExpression(prop.initializer)) {
+                                return true;
                             }
-                            return true; // Keep all other properties
+
+                            const isEmpty = prop.initializer.properties.length === 0;
+                            if (isEmpty && this.verbose) {
+                                const propName = ts.isIdentifier(prop.name) ? prop.name.text : prop.name.getText();
+                                console.log(`🧹 [CleanupTransformer] Removing empty object: "${propName}"`);
+                            }
+
+                            // Keep only non-empty objects
+                            return !isEmpty;
                         });
 
-                        if (filteredProperties.length !== node.properties.length) {
-                            return ts.factory.createObjectLiteralExpression(filteredProperties);
+                        if (nonEmptyProperties.length !== node.properties.length) {
+                            return ts.factory.createObjectLiteralExpression(nonEmptyProperties);
                         }
                     }
 
