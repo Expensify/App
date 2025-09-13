@@ -17,7 +17,7 @@ function useAncestorReportsAndReportActions(
     reportID: string,
     includeTransactionThreadReportActions = false,
 ): {report: OnyxEntry<Report>; ancestorReportsAndReportActions: ReportsAndReportAction[]} {
-    const [ancestorReports] = useOnyx(
+    const [ancestorReports, ancestorReportsMetadata] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT,
         {
             canBeMissing: false,
@@ -33,6 +33,7 @@ function useAncestorReportsAndReportActions(
         },
         [reportID],
     );
+    ancestorReportsMetadata
 
     const [ancestorReportsAndReportActions] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -64,42 +65,42 @@ function useAncestorReportsAndReportActions(
                     reportsAndReportActions.unshift({report: parentReport, reportAction: parentReportAction});
 
                     /*
-                As we traverse up the report hierarchy, we need to reassign `parentReportActionID`
-                to the parent's own `parentReportActionID`. Otherwise, the same report action will be pushed repeatedly, causing
-                `ancestorReportsAndReportActions` to contain malformed data.
+                    As we traverse up the report hierarchy, we need to reassign `parentReportActionID`
+                    to the parent's own `parentReportActionID`. Otherwise, the same report action will be pushed repeatedly, causing
+                    `ancestorReportsAndReportActions` to contain malformed data.
 
-                Example of malformed data, assuming we don't reassign `parentReportActionID` and Report 4 is the report with the reportID provided:
-                Report 4 -> parentReportID = "r_3", parentReportActionID = "a_3": (initially it's okay)
-                Report 3 -> parentReportID = "r_2", parentReportActionID = "a_3": (should be "a_2")
-                Report 2 -> parentReportID = "r_1", parentReportActionID = "a_3": (should be "a_1")
-                Report 1 -> parentReportID = null,  parentReportActionID = "a_3": (should be null)
+                    Example of malformed data, assuming we don't reassign `parentReportActionID` and Report 4 is the report with the reportID provided:
+                    Report 4 -> parentReportID = "r_3", parentReportActionID = "a_3": (initially it's okay)
+                    Report 3 -> parentReportID = "r_2", parentReportActionID = "a_3": (should be "a_2")
+                    Report 2 -> parentReportID = "r_1", parentReportActionID = "a_3": (should be "a_1")
+                    Report 1 -> parentReportID = null,  parentReportActionID = "a_3": (should be null)
 
-                Resulting `ancestorReportsAndReportActions`:
-                [
-                    {"r_1": "a_3"},
-                    {"r_2": "a_3"},
-                    {"r_3": "a_3"},
-                ]
-                
-                Expected `ancestorReportsAndReportActions`:
-                [
-                    {"r_1": null},
-                    {"r_2": "a_1"},
-                    {"r_3": "a_2"},
-                ]
+                    Resulting `ancestorReportsAndReportActions`:
+                    [
+                        {"r_1": "a_3"},
+                        {"r_2": "a_3"},
+                        {"r_3": "a_3"},
+                    ]
+                    
+                    Expected `ancestorReportsAndReportActions`:
+                    [
+                        {"r_1": "a_1"},
+                        {"r_2": "a_2"},
+                        {"r_3": "a_3"},
+                    ]
 
-                Where:
-                    - "r_1" is the Report with reportID = "r_1"
-                    - "a_1" is the ReportAction with reportActionID = "a_1"
+                    Where in `ancestorReportsAndReportActions`:
+                        - "r_1" is the Report with reportID = "r_1"
+                        - "a_1" is the ReportAction with reportActionID = "a_1"
 
-                Problem:
-                    - Every ancestor report is paired with the same report action (e.g., "a_3").
-                    - The ancestor's report action does not reflect the true report-to-action relationship.
+                    Problem:
+                        - Every ancestor report is paired with the same report action (e.g., "a_3").
+                        - The ancestor's report action does not reflect the true report-to-action relationship.
 
-                Expected behavior:
-                    - Each ancestor report should be paired with its own corresponding `parentReportActionID`.
-                    - Ensure `ancestorReportsAndReportActions` reflects the true report-to-action relationships.
-                */
+                    Expected behavior:
+                        - Each ancestor report should be paired with its own corresponding `parentReportActionID`.
+                        - Ensure `ancestorReportsAndReportActions` reflects the true report-to-action relationships.
+                    */
                     parentReportActionID = parentReport.parentReportActionID;
 
                     // Without reassigning `parentReportID` to the parent's own `parentReportID`, the loop keeps checking the same valid `parentReportID`,
