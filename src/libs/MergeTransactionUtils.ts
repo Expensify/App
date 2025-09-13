@@ -1,10 +1,11 @@
+import {deepEqual} from 'fast-equals';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
-import {deepEqual} from 'fast-equals';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {MergeTransaction, Transaction} from '@src/types/onyx';
+import type {Attendee} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {convertToDisplayString} from './CurrencyUtils';
 import Parser from './Parser';
@@ -146,7 +147,7 @@ function getMergeFieldValue(transactionDetails: TransactionDetails | undefined, 
         return '';
     }
 
-    return transactionDetails[field] ?? '';
+    return transactionDetails[field];
 }
 
 /**
@@ -230,7 +231,19 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
             return;
         }
 
-        if (isTargetValueEmpty || isSourceValueEmpty || deepEqual(targetValue, sourceValue)) {
+        if (field === 'attendees') {
+            const targetAttendeeLogins = (targetValue as Attendee[] | undefined)?.map((attendee: Attendee) => attendee.login ?? attendee.email);
+            const sourceAttendeeLogins = (sourceValue as Attendee[] | undefined)?.map((attendee: Attendee) => attendee.login ?? attendee.email);
+
+            if (deepEqual(targetAttendeeLogins, sourceAttendeeLogins)) {
+                mergeableData[field] = targetValue;
+            } else {
+                conflictFields.push(field);
+            }
+            return;
+        }
+
+        if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
             mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
         } else {
             conflictFields.push(field);

@@ -1,4 +1,4 @@
-import type { Attendee } from './IOU';
+import type {Attendee} from './IOU';
 import type Transaction from './Transaction';
 import type {Comment, Receipt} from './Transaction';
 
