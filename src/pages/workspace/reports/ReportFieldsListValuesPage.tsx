@@ -102,13 +102,17 @@ function ReportFieldsListValuesPage({
     const updateReportFieldListValueEnabled = useCallback(
         (value: boolean, valueIndex: number) => {
             if (reportFieldID) {
-                updateReportFieldListValueEnabledReportField(policyID, reportFieldID, [Number(valueIndex)], value);
+                updateReportFieldListValueEnabledReportField({policy, reportFieldID, valueIndexes: [Number(valueIndex)], enabled: value});
                 return;
             }
 
-            setReportFieldsListValueEnabled([valueIndex], value);
+            setReportFieldsListValueEnabled({
+                valueIndexes: [valueIndex],
+                enabled: value,
+                disabledListValues,
+            });
         },
-        [policyID, reportFieldID],
+        [disabledListValues, policyID, reportFieldID],
     );
 
     useSearchBackPress({
@@ -175,9 +179,13 @@ function ReportFieldsListValuesPage({
         }, []);
 
         if (reportFieldID) {
-            removeReportFieldListValue(policyID, reportFieldID, valuesToDelete);
+            removeReportFieldListValue({policy, reportFieldID, valueIndexes: valuesToDelete});
         } else {
-            deleteReportFieldsListValue(valuesToDelete);
+            deleteReportFieldsListValue({
+                valueIndexes: valuesToDelete,
+                listValues,
+                disabledListValues,
+            });
         }
 
         setDeleteValuesConfirmModalVisible(false);
@@ -242,11 +250,15 @@ function ReportFieldsListValuesPage({
                         setSelectedValues({});
 
                         if (reportFieldID) {
-                            updateReportFieldListValueEnabledReportField(policyID, reportFieldID, valuesToDisable, false);
+                            updateReportFieldListValueEnabledReportField({policy, reportFieldID, valueIndexes: valuesToDisable, enabled: false});
                             return;
                         }
 
-                        setReportFieldsListValueEnabled(valuesToDisable, false);
+                        setReportFieldsListValueEnabled({
+                            valueIndexes: valuesToDisable,
+                            enabled: false,
+                            disabledListValues,
+                        });
                     },
                 });
             }
@@ -274,11 +286,15 @@ function ReportFieldsListValuesPage({
                         setSelectedValues({});
 
                         if (reportFieldID) {
-                            updateReportFieldListValueEnabledReportField(policyID, reportFieldID, valuesToEnable, true);
+                            updateReportFieldListValueEnabledReportField({policy, reportFieldID, valueIndexes: valuesToEnable, enabled: true});
                             return;
                         }
 
-                        setReportFieldsListValueEnabled(valuesToEnable, true);
+                        setReportFieldsListValueEnabled({
+                            valueIndexes: valuesToEnable,
+                            enabled: true,
+                            disabledListValues,
+                        });
                     },
                 });
             }

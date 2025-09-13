@@ -66,9 +66,13 @@ function ReportFieldsValueSettingsPage({
     }
     const deleteListValueAndHideModal = () => {
         if (reportFieldID) {
-            removeReportFieldListValue(policyID, reportFieldID, [valueIndex]);
+            removeReportFieldListValue({policy, reportFieldID, valueIndexes: [valueIndex]});
         } else {
-            deleteReportFieldsListValue([valueIndex]);
+            deleteReportFieldsListValue({
+                valueIndexes: [valueIndex],
+                listValues: formDraft?.listValues ?? [],
+                disabledListValues: formDraft?.disabledListValues ?? [],
+            });
         }
         setIsDeleteTagModalOpen(false);
         Navigation.goBack();
@@ -76,11 +80,15 @@ function ReportFieldsValueSettingsPage({
 
     const updateListValueEnabled = (value: boolean) => {
         if (reportFieldID) {
-            updateReportFieldListValueEnabled(policyID, reportFieldID, [Number(valueIndex)], value);
+            updateReportFieldListValueEnabled({policy, reportFieldID, valueIndexes: [Number(valueIndex)], enabled: value});
             return;
         }
 
-        setReportFieldsListValueEnabled([valueIndex], value);
+        setReportFieldsListValueEnabled({
+            valueIndexes: [valueIndex],
+            enabled: value,
+            disabledListValues: formDraft?.disabledListValues ?? [],
+        });
     };
 
     const navigateToEditValue = () => {
