@@ -132,7 +132,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                         }}
                         onInputChange={() => {}}
                     />
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6,styles.ph5]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6, styles.ph5]}>
                         <Icon
                             src={Expensicons.QuestionMark}
                             width={12}

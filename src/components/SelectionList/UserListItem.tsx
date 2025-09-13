@@ -66,7 +66,7 @@ function UserListItem<TItem extends ListItem>({
     const isThereOnlyWorkspaceIcon = item.icons?.length === 1 && item.icons?.at(0)?.type === CONST.ICON_TYPE_WORKSPACE;
     const shouldUseIconPolicyID = !item.reportID && !item.accountID && !item.policyID;
     const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
-    const shouldShowRadio = !!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple ;
+    const shouldShowRadio = !!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple;
     const shouldShowCheckbox = !shouldUseDefaultRightHandSideCheckmark && !canSelectMultiple;
     return (
         <BaseListItem

@@ -57,7 +57,7 @@ function YesNoStep({title, description, defaultValue, onSelectedValue, submitBut
             submitButtonText={translate('common.confirm')}
             onSubmit={handleSubmit}
             style={[styles.flexGrow1]}
-            submitButtonStyles={[styles.ph5,submitButtonStyles]}
+            submitButtonStyles={[styles.ph5, submitButtonStyles]}
             isLoading={isLoading}
             shouldHideFixErrorsAlert
         >
