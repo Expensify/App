@@ -21,9 +21,19 @@ function MoneyRequestReportTransactionsNavigation({currentReportID, parentReport
         canBeMissing: true,
     });
 
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+    const [parentReportActions = new Map<string, string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canBeMissing: true,
-        selector: (reportActions) => Object.values(reportActions ?? {}),
+        selector: (reportActions) => {
+            // Map of childReportID => parentReportActionID
+            const parentActions = new Map<string, string>();
+            for (const action of Object.values(reportActions ?? {})) {
+                if (!action.childReportID) {
+                    continue;
+                }
+                parentActions.set(action.childReportID, action.reportActionID);
+            }
+            return parentActions;
+        },
     });
 
     const {prevReportID, prevParentReportActionID, nextReportID, nextParentReportActionID} = useMemo(() => {
@@ -35,10 +45,13 @@ function MoneyRequestReportTransactionsNavigation({currentReportID, parentReport
 
         const prevID = currentReportIndex > 0 ? reportIDsList.at(currentReportIndex - 1) : undefined;
         const nextID = currentReportIndex <= reportIDsList.length - 1 ? reportIDsList.at(currentReportIndex + 1) : undefined;
-        const prevReportActionID = currentReportIndex > 0 ? parentReportActions?.find((action) => action.childReportID === prevID)?.reportActionID : undefined;
-        const nextReportActionID = currentReportIndex <= reportIDsList.length - 1 ? parentReportActions?.find((action) => action.childReportID === nextID)?.reportActionID : undefined;
 
-        return {prevReportID: prevID, prevParentReportActionID: prevReportActionID, nextReportID: nextID, nextParentReportActionID: nextReportActionID};
+        return {
+            prevReportID: prevID,
+            nextReportID: nextID,
+            prevParentReportActionID: prevID ? parentReportActions.get(prevID) : undefined,
+            nextParentReportActionID: nextID ? parentReportActions.get(nextID) : undefined,
+        };
     }, [currentReportID, parentReportActions, reportIDsList]);
 
     /**
