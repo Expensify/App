@@ -5633,7 +5633,7 @@ describe('ReportUtils', () => {
             };
 
             const result = populateOptimisticReportFormula('{report:total}', reportWithNaNTotal, mockPolicy);
-            expect(result).toBe('New report');
+            expect(result).toBe('{report:total}');
         });
 
         it('should replace {report:total} with formatted amount', () => {
@@ -5660,18 +5660,7 @@ describe('ReportUtils', () => {
             };
 
             const result = populateOptimisticReportFormula('{report:total}', reportWithUndefinedTotal, mockPolicy);
-            expect(result).toBe('New report');
-        });
-
-        it('should return "New report" when result is empty after replacements', () => {
-            const formula = '{report:total}';
-            const reportWithNaNTotal = {
-                ...mockReport,
-                total: NaN,
-            };
-
-            const result = populateOptimisticReportFormula(formula, reportWithNaNTotal, mockPolicy);
-            expect(result).toBe('New report');
+            expect(result).toBe('{report:total}');
         });
 
         it('should handle complex formula with multiple placeholders and some invalid values', () => {
@@ -5680,9 +5669,9 @@ describe('ReportUtils', () => {
                 ...mockReport,
                 total: NaN,
             };
-
+            const expectedId = getBase62ReportID(Number(mockReport.reportID));
             const result = populateOptimisticReportFormula(formula, reportWithNaNTotal, mockPolicy);
-            expect(result).toBe('New report');
+            expect(result).toBe(`ID: ${expectedId}, Total: , Type: Expense Report`);
         });
 
         it('should handle missing total gracefully', () => {
@@ -5692,7 +5681,7 @@ describe('ReportUtils', () => {
             };
 
             const result = populateOptimisticReportFormula('{report:total}', reportWithMissingTotal, mockPolicy);
-            expect(result).toBe('New report');
+            expect(result).toBe('{report:total}');
         });
     });
     describe('canSeeDefaultRoom', () => {

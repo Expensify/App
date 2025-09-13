@@ -6055,9 +6055,9 @@ function getHumanReadableStatus(statusNum: number): string {
  * If after all replacements the formula is empty, the original formula is returned.
  * See {@link https://help.expensify.com/articles/expensify-classic/insights-and-custom-reporting/Custom-Templates}
  */
-function populateOptimisticReportFormula(formula: string, report: OptimisticExpenseReport, policy: OnyxEntry<Policy>): string {
-    // If the report is not finalized yet (not having total value), we should use 'New report' as the report title
-    if (!report.total) {
+function populateOptimisticReportFormula(formula: string, report: OptimisticExpenseReport | OptimisticNewReport, policy: OnyxEntry<Policy>, isMoneyrequestConfirmation = false): string {
+    // If this is a newly created report and it is from money request confirmation, we should use 'New report' as the report title
+    if (!report.parentReportActionID && isMoneyrequestConfirmation) {
         return translateLocal('iou.newReport');
     }
 
