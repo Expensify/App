@@ -106,7 +106,14 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             return transactions;
         }
 
-        return tokenizedSearch(transactions, debouncedSearchValue, (transaction) => [getMerchant(transaction)]);
+        return tokenizedSearch(transactions, debouncedSearchValue, (transaction) => {
+            const merchant = getMerchant(transaction);
+            // Don't include transactions with placeholder merchant value in search
+            if (merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
+                return [];
+            }
+            return [merchant];
+        });
     }, [transactions, debouncedSearchValue]);
 
     const sections: Array<SectionListDataType<Transaction & ListItem>> = useMemo(() => createUnreportedExpenseSections(filteredTransactions), [filteredTransactions]);
