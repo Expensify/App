@@ -1291,6 +1291,7 @@ const translations = {
         addUnreportedExpenseConfirm: 'Añadir al informe',
         heldExpense: 'retuvo este gasto',
         unheldExpense: 'desbloqueó este gasto',
+        newReport: 'Nuevo informe',
         explainHold: 'Explica la razón para retener esta solicitud.',
         retract: 'Retractar',
         reopened: 'reabrir',

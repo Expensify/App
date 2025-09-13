@@ -1124,6 +1124,7 @@ function MoneyRequestConfirmationList({
             currency={currency}
             didConfirm={!!didConfirm}
             distance={distance}
+            iouAmount={amountToBeUsed}
             formattedAmount={formattedAmount}
             formattedAmountPerAttendee={formattedAmountPerAttendee}
             formError={formError}

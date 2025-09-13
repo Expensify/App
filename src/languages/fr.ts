@@ -1315,6 +1315,7 @@ const translations = {
         emptyStateUnreportedExpenseTitle: 'Aucune dépense non déclarée',
         emptyStateUnreportedExpenseSubtitle: "Il semble que vous n'ayez aucune dépense non déclarée. Essayez d'en créer une ci-dessous.",
         addUnreportedExpenseConfirm: 'Ajouter au rapport',
+        newReport: 'Nouveau rapport',
         explainHold: 'Expliquez pourquoi vous retenez cette dépense.',
         retracted: 'retraité',
         retract: 'Retirer',

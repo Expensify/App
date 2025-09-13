@@ -1309,6 +1309,7 @@ const translations = {
         emptyStateUnreportedExpenseTitle: '未報告の経費はありません',
         emptyStateUnreportedExpenseSubtitle: '未報告の経費はないようです。以下で新しく作成してみてください。',
         addUnreportedExpenseConfirm: 'レポートに追加',
+        newReport: '新しいレポート',
         explainHold: 'この経費を保留している理由を説明してください。',
         retracted: '撤回されました',
         retract: '取り消す',
