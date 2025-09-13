@@ -24,7 +24,6 @@ import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 type SearchOptionData = Pick<
     OptionData,
     // Core identification
-    | 'reportID'
     | 'accountID'
     | 'login'
     | 'policyID'
@@ -77,7 +76,9 @@ type SearchOptionData = Pick<
 
     // Legacy properties kept for backwards compatibility
     | 'selected' // Duplicate of isSelected, kept for backwards compatibility
->;
+> & {
+    reportID?: string;
+};
 
 type SearchOption<T> = SearchOptionData & {
     item: T;
