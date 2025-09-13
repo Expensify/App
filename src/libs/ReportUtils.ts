@@ -2405,7 +2405,6 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
     return (
         (report?.policyID === CONST.POLICY.ID_FAKE || !report?.policyID) &&
         !isChatRoom(report) &&
-        !isExpenseRequest(report) &&
         !isMoneyRequestReport(report) &&
         !isPolicyExpenseChat(report) &&
         !isTaskReport(report) &&

@@ -4,7 +4,7 @@ import type {SectionListData} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
+import {usePersonalDetailsOptionsList} from '@components/PersonalDetailsOptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
@@ -25,21 +25,29 @@ import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
+import memoize from '@libs/memoize';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
-import type {MemberForList} from '@libs/OptionsListUtils';
-import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
+import type {OptionData} from '@libs/PersonalDetailsOptionsListUtils';
+import {getHeaderMessage, getValidOptions} from '@libs/PersonalDetailsOptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
-import type {OptionData} from '@libs/ReportUtils';
 import {completeOnboarding as completeOnboardingReport} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {BaseOnboardingWorkspaceInviteProps} from './types';
 
-type MembersSection = SectionListData<MemberForList, Section<MemberForList>>;
+type MembersSection = SectionListData<OptionData, Section<OptionData>>;
+
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'BaseOnboardingWorkspaceInvite.getValidOptions'});
+
+const defaultListOptions = {
+    userToInvite: null,
+    recentOptions: [],
+    personalDetails: [],
+    selectedOptions: [],
+};
 
 function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWorkspaceInviteProps) {
     const styles = useThemeStyles();
@@ -52,17 +60,14 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
-    const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
-    const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
+    const [selectedLogins, setSelectedLogins] = useState<Set<string>>(new Set());
+    const [extraOptions, setExtraOptions] = useState<OptionData[]>([]);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const session = useSession();
     const {isBetaEnabled} = usePermissions();
-    const {options, areOptionsInitialized} = useOptionsList({
+    const {options, areOptionsInitialized} = usePersonalDetailsOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
 
@@ -74,8 +79,8 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const welcomeNote = useMemo(() => translate('workspace.common.welcomeNote'), [translate]);
 
     const excludedUsers = useMemo(() => {
-        const ineligibleInvitees = getIneligibleInvitees(policy?.employeeList);
-        return ineligibleInvitees.reduce(
+        const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
+        return ineligibleInvites.reduce(
             (acc, login) => {
                 acc[login] = true;
                 return acc;
@@ -84,75 +89,45 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         );
     }, [policy?.employeeList]);
 
-    const defaultOptions = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
+    const loginToAccountIDMap = useMemo(() => {
+        const map: Record<string, number> = {};
+        for (const option of extraOptions) {
+            const login = option.login;
+            if (login) {
+                map[login] = option.accountID;
+            }
         }
+        for (const option of options) {
+            const login = option.login;
+            if (login) {
+                map[login] = option.accountID;
+            }
+        }
+        return map;
+    }, [extraOptions, options]);
 
-        const inviteOptions = getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, true);
-
-        return {...inviteOptions, recentReports: [], currentUserOption: null};
-    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
-
-    const inviteOptions = useMemo(
-        () => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, {excludeLogins: excludedUsers}),
-        [debouncedSearchTerm, defaultOptions, excludedUsers, countryCode],
+    const transformedOptions = useMemo(
+        () =>
+            options.map((option) => ({
+                ...option,
+                isSelected: selectedLogins.has(option.login ?? ''),
+            })),
+        [options, selectedLogins],
     );
 
-    useEffect(() => {
+    const optionsList = useMemo(() => {
         if (!areOptionsInitialized) {
-            return;
+            return defaultListOptions;
         }
-
-        const newUsersToInviteDict: Record<number, OptionData> = {};
-        const newPersonalDetailsDict: Record<number, OptionData> = {};
-        const newSelectedOptionsDict: Record<number, MemberForList> = {};
-
-        // Update selectedOptions with the latest personalDetails and policyEmployeeList information
-        const detailsMap: Record<string, MemberForList> = {};
-        inviteOptions.personalDetails.forEach((detail) => {
-            if (!detail.login) {
-                return;
-            }
-
-            detailsMap[detail.login] = formatMemberForList(detail);
+        return memoizedGetValidOptions(transformedOptions, currentUserPersonalDetails.login ?? '', {
+            excludeLogins: excludedUsers,
+            extraOptions,
+            includeRecentReports: false,
+            searchString: debouncedSearchTerm,
+            includeCurrentUser: false,
+            includeUserToInvite: true,
         });
-
-        const newSelectedOptions: MemberForList[] = [];
-        selectedOptions.forEach((option) => {
-            newSelectedOptions.push(option.login && option.login in detailsMap ? {...detailsMap[option.login], isSelected: true} : option);
-        });
-
-        const userToInvite = inviteOptions.userToInvite;
-
-        // Only add the user to the invitees list if it is valid
-        if (typeof userToInvite?.accountID === 'number') {
-            newUsersToInviteDict[userToInvite.accountID] = userToInvite;
-        }
-
-        // Add all personal details to the new dict
-        inviteOptions.personalDetails.forEach((details) => {
-            if (typeof details.accountID !== 'number') {
-                return;
-            }
-            newPersonalDetailsDict[details.accountID] = details;
-        });
-
-        // Add all selected options to the new dict
-        newSelectedOptions.forEach((option) => {
-            if (typeof option.accountID !== 'number') {
-                return;
-            }
-            newSelectedOptionsDict[option.accountID] = option;
-        });
-
-        // Strip out dictionary keys and update arrays
-        setUsersToInvite(Object.values(newUsersToInviteDict));
-        setPersonalDetails(Object.values(newPersonalDetailsDict));
-        setSelectedOptions(Object.values(newSelectedOptionsDict));
-
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [options.personalDetails, policy?.employeeList, betas, debouncedSearchTerm, excludedUsers, areOptionsInitialized, inviteOptions.personalDetails, inviteOptions.userToInvite]);
+    }, [areOptionsInitialized, currentUserPersonalDetails.login, debouncedSearchTerm, excludedUsers, extraOptions, transformedOptions]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArr: MembersSection[] = [];
@@ -161,64 +136,49 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             return [];
         }
 
-        // Filter all options that is a part of the search term or in the personal details
-        let filterSelectedOptions = selectedOptions;
-        if (debouncedSearchTerm !== '') {
-            filterSelectedOptions = selectedOptions.filter((option) => {
-                const accountID = option.accountID;
-                const isOptionInPersonalDetails = Object.values(personalDetails).some((personalDetail) => personalDetail.accountID === accountID);
-
-                const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
-
-                const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
-                return isPartOfSearchTerm || isOptionInPersonalDetails;
+        if (optionsList.userToInvite) {
+            sectionsArr.push({
+                title: undefined,
+                data: [optionsList.userToInvite],
+                shouldShow: true,
             });
-        }
-
-        sectionsArr.push({
-            title: undefined,
-            data: filterSelectedOptions,
-            shouldShow: true,
-        });
-
-        // Filtering out selected users from the search results
-        const selectedLoginsSet = new Set(selectedOptions.map(({login}) => login));
-        const personalDetailsFormatted = Object.values(personalDetails)
-            .filter(({login}) => !selectedLoginsSet.has(login ?? ''))
-            .map(formatMemberForList);
-
-        sectionsArr.push({
-            title: translate('common.contacts'),
-            data: personalDetailsFormatted,
-            shouldShow: !isEmptyObject(personalDetailsFormatted),
-        });
-
-        Object.values(usersToInvite).forEach((userToInvite) => {
-            const hasUnselectedUserToInvite = !selectedLoginsSet.has(userToInvite.login ?? '');
-
-            if (hasUnselectedUserToInvite) {
+        } else {
+            if (optionsList.selectedOptions.length > 0) {
                 sectionsArr.push({
                     title: undefined,
-                    data: [formatMemberForList(userToInvite)],
+                    data: optionsList.selectedOptions,
                     shouldShow: true,
                 });
             }
-        });
-
-        return sectionsArr;
-    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite, countryCode]);
-
-    const toggleOption = (option: MemberForList) => {
-        const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
-
-        let newSelectedOptions: MemberForList[];
-        if (isOptionInList) {
-            newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login);
-        } else {
-            newSelectedOptions = [...selectedOptions, {...option, isSelected: true}];
+            if (optionsList.personalDetails.length > 0) {
+                sectionsArr.push({
+                    title: translate('common.contacts'),
+                    data: optionsList.personalDetails,
+                    shouldShow: true,
+                });
+            }
         }
+        return sectionsArr;
+    }, [areOptionsInitialized, optionsList.userToInvite, optionsList.selectedOptions, optionsList.personalDetails, translate]);
 
-        setSelectedOptions(newSelectedOptions);
+    const existingLogins = useMemo(() => new Set(options.map((option) => option.login ?? '')), [options]);
+
+    const toggleOption = (option: OptionData) => {
+        const isSelected = selectedLogins.has(option.login ?? '');
+
+        if (isSelected) {
+            // If the option is selected, remove it from the selected logins
+            const isInExtraOption = extraOptions.some((extraOption) => extraOption.login === option.login);
+            if (isInExtraOption) {
+                setExtraOptions((prev) => prev.filter((extraOption) => extraOption.login !== option.login));
+            }
+            setSelectedLogins((prev) => new Set([...prev].filter((login) => login !== option.login)));
+        } else {
+            setSelectedLogins((prev) => new Set([...prev, option.login ?? '']));
+            if (!existingLogins.has(option.login ?? '')) {
+                setExtraOptions((prev) => [...prev, {...option, isSelected: true}]);
+            }
+        }
     };
 
     const completeOnboarding = useCallback(() => {
@@ -254,9 +214,11 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         session?.email,
     ]);
 
+    const validSelectedLogins = useMemo(() => Array.from(selectedLogins).filter((login) => !excludedUsers[login]), [excludedUsers, selectedLogins]);
+
     const inviteUser = useCallback(() => {
         let isValid = true;
-        if (selectedOptions.length <= 0) {
+        if (validSelectedLogins.length <= 0) {
             isValid = false;
         }
 
@@ -266,36 +228,32 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
         const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
-        selectedOptions.forEach((option) => {
-            const login = option.login ?? '';
-            const accountID = option.accountID ?? CONST.DEFAULT_NUMBER_ID;
-            if (!login.toLowerCase().trim() || !accountID) {
-                return;
-            }
-            invitedEmailsToAccountIDs[login] = Number(accountID);
-        });
+        for (const login of validSelectedLogins) {
+            const accountID = loginToAccountIDMap[login] ?? CONST.DEFAULT_NUMBER_ID;
+            invitedEmailsToAccountIDs[login] = accountID;
+        }
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         addMembersToWorkspace(invitedEmailsToAccountIDs, `${welcomeNoteSubject}\n\n${welcomeNote}`, onboardingPolicyID, policyMemberAccountIDs, CONST.POLICY.ROLE.USER, formatPhoneNumber);
         completeOnboarding();
-    }, [completeOnboarding, onboardingPolicyID, policy?.employeeList, selectedOptions, welcomeNote, welcomeNoteSubject, formatPhoneNumber]);
+    }, [validSelectedLogins, onboardingPolicyID, policy?.employeeList, welcomeNoteSubject, welcomeNote, formatPhoneNumber, completeOnboarding, loginToAccountIDMap]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
     const headerMessage = useMemo(() => {
+        if (sections.length > 0) {
+            return '';
+        }
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
-        if (usersToInvite.length === 0 && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+        if (CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
             return translate('messages.errorMessageInvalidEmail');
         }
-        if (
-            usersToInvite.length === 0 &&
-            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)) : searchValue]
-        ) {
+        if (excludedUsers[parsePhoneNumber(appendCountryCode(searchValue)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)) : searchValue]) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policy?.name ?? ''});
         }
-        return getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
-    }, [excludedUsers, translate, debouncedSearchTerm, policy?.name, usersToInvite, personalDetails.length]);
+        return getHeaderMessage(translate, searchValue);
+    }, [sections.length, debouncedSearchTerm, excludedUsers, translate, policy?.name]);
 
     const footerContent = useMemo(
         () => (
@@ -313,12 +271,12 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                         large
                         text={translate('common.continue')}
                         onPress={() => inviteUser()}
-                        isDisabled={selectedOptions.length <= 0}
+                        isDisabled={validSelectedLogins.length <= 0}
                     />
                 </View>
             </View>
         ),
-        [completeOnboarding, inviteUser, onboardingIsMediumOrLargerScreenWidth, selectedOptions.length, styles.mb2, styles.mh3, translate],
+        [completeOnboarding, inviteUser, onboardingIsMediumOrLargerScreenWidth, validSelectedLogins.length, styles.mb2, styles.mh3, translate],
     );
 
     return (

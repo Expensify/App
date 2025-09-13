@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
-import keyBy from 'lodash/keyBy';
 import lodashOrderBy from 'lodash/orderBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -21,7 +20,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import Permissions from '@libs/Permissions';
-import {getDisplayNameOrDefault, getPersonalDetailByEmail, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import type {OptionData as PersonalDetailOption} from '@libs/PersonalDetailsOptionsListUtils';
+import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     canSendInvoiceFromWorkspace,
@@ -132,7 +132,6 @@ import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils
 import {generateAccountID} from '@libs/UserUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
-import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
@@ -152,7 +151,7 @@ import type {
     ReportAttributesDerivedValue,
     ReportNameValuePairs,
 } from '@src/types/onyx';
-import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {Participant} from '@src/types/onyx/IOU';
 import type {OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -1393,100 +1392,32 @@ function getUserToInviteOption({
     return userToInvite;
 }
 
-function getUserToInviteContactOption({
-    searchValue = '',
-    optionsToExclude = [],
-    selectedOptions = [],
-    firstName = '',
-    lastName = '',
-    email = '',
-    phone = '',
-    avatar = '',
-}: GetUserToInviteConfig): SearchOption<PersonalDetails> | null {
-    // If email is provided, use it as the primary identifier
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const effectiveSearchValue = email || searchValue;
-
-    // Handle phone number parsing for either provided phone or searchValue
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const phoneToCheck = phone || searchValue;
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(phoneToCheck)));
-
-    const isCurrentUserLogin = isCurrentUser({login: effectiveSearchValue} as PersonalDetails);
-    const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === effectiveSearchValue);
-
-    // Validate email (either provided email or searchValue)
-    const isValidEmail = Str.isValidEmail(effectiveSearchValue) && !Str.isDomainEmail(effectiveSearchValue) && !Str.endsWith(effectiveSearchValue, CONST.SMS.DOMAIN);
-
-    const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
-
-    const isInOptionToExclude =
-        optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === addSMSDomainIfPhoneNumber(effectiveSearchValue).toLowerCase()) !== -1;
-
-    if (!effectiveSearchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber) || isInOptionToExclude) {
-        return null;
-    }
-
-    // Generates an optimistic account ID for new users not yet saved in Onyx
-    const optimisticAccountID = generateAccountID(effectiveSearchValue);
-
-    // Construct display name if firstName/lastName are provided
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const displayName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || effectiveSearchValue;
-
-    // Create the base user details that will be used in both item and participantsList
+function extendPersonalDetailOption(option: PersonalDetailOption): SearchOption<PersonalDetails> {
     const userDetails = {
-        accountID: optimisticAccountID,
+        accountID: option.accountID,
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        avatar: avatar || FallbackAvatar,
-        firstName: firstName ?? '',
-        lastName: lastName ?? '',
-        displayName,
-        login: effectiveSearchValue,
+        avatar: option.icons?.[0].source,
+        displayName: option.text,
+        login: option.login,
         pronouns: '',
-        phoneNumber: phone ?? '',
+        phoneNumber: option.phoneNumber,
         validated: true,
     };
 
-    const userToInvite = {
+    return {
+        ...option,
+        // eslint-disable-next-line rulesdir/no-default-id-values
+        reportID: option.reportID ?? '',
         item: userDetails,
-        text: displayName,
-        displayName,
-        firstName,
-        lastName,
-        alternateText: displayName !== effectiveSearchValue ? effectiveSearchValue : undefined,
-        brickRoadIndicator: null,
-        icons: [
-            {
-                source: userDetails.avatar,
-                type: CONST.ICON_TYPE_AVATAR,
-                name: effectiveSearchValue,
-                id: optimisticAccountID,
-            },
-        ],
-        tooltipText: null,
         participantsList: [userDetails],
-        accountID: optimisticAccountID,
-        login: effectiveSearchValue,
-        reportID: '',
-        phoneNumber: phone ?? '',
-        hasDraftComment: false,
-        keyForList: optimisticAccountID.toString(),
         isDefaultRoom: false,
         isPinned: false,
-        isWaitingOnBankAccount: false,
-        isIOUReportOwner: false,
-        iouReportAmount: 0,
         isChatRoom: false,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
-        isExpenseReport: false,
         lastMessageText: '',
         isBold: true,
-        isOptimisticAccount: true,
     };
-
-    return userToInvite;
 }
 
 function isValidReport(option: SearchOption<Report>, config: GetValidReportsConfig): boolean {
@@ -1997,63 +1928,6 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
     };
 }
 
-function getAttendeeOptions(
-    reports: Array<SearchOption<Report>>,
-    personalDetails: Array<SearchOption<PersonalDetails>>,
-    betas: OnyxEntry<Beta[]>,
-    attendees: Attendee[],
-    recentAttendees: Attendee[],
-    includeOwnedWorkspaceChats = false,
-    includeP2P = true,
-    includeInvoiceRooms = false,
-    action: IOUAction | undefined = undefined,
-) {
-    const personalDetailList = keyBy(
-        personalDetails.map(({item}) => item),
-        'accountID',
-    );
-
-    const recentAttendeeHasCurrentUser = recentAttendees.find((attendee) => attendee.email === currentUserLogin || attendee.login === currentUserLogin);
-    if (!recentAttendeeHasCurrentUser && currentUserLogin) {
-        const details = getPersonalDetailByEmail(currentUserLogin);
-        recentAttendees.push({
-            email: currentUserLogin,
-            login: currentUserLogin,
-            displayName: details?.displayName ?? currentUserLogin,
-            accountID: currentUserAccountID,
-            text: details?.displayName ?? currentUserLogin,
-            searchText: details?.displayName ?? currentUserLogin,
-            avatarUrl: details?.avatarThumbnail ?? '',
-        });
-    }
-
-    const filteredRecentAttendees = recentAttendees
-        .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
-        .map((attendee) => ({
-            ...attendee,
-            login: attendee.email ?? attendee.displayName,
-            ...getPersonalDetailByEmail(attendee.email),
-        }))
-        .map((attendee) => getParticipantsOption(attendee, personalDetailList as never));
-
-    return getValidOptions(
-        {reports, personalDetails},
-        {
-            betas,
-            selectedOptions: attendees.map((attendee) => ({...attendee, login: attendee.email})),
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            includeOwnedWorkspaceChats,
-            includeRecentReports: false,
-            includeP2P,
-            includeSelectedOptions: false,
-            includeSelfDM: false,
-            includeInvoiceRooms,
-            action,
-            recentAttendees: filteredRecentAttendees,
-        },
-    );
-}
-
 /**
  * Build the options for the Share Destination for a Task
  */
@@ -2107,36 +1981,6 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
         icons: member.icons,
         pendingAction: member.pendingAction,
         reportID: member.reportID,
-    };
-}
-
-/**
- * Build the options for the Workspace Member Invite view
- */
-function getMemberInviteOptions(
-    personalDetails: Array<SearchOption<PersonalDetails>>,
-    betas: Beta[] = [],
-    excludeLogins: Record<string, boolean> = {},
-    includeSelectedOptions = false,
-    reports: Array<SearchOption<Report>> = [],
-    includeRecentReports = false,
-): Options {
-    const options = getValidOptions(
-        {reports, personalDetails},
-        {
-            betas,
-            includeP2P: true,
-            excludeLogins,
-            includeSelectedOptions,
-            includeRecentReports,
-        },
-    );
-
-    const orderedOptions = orderOptions(options);
-    return {
-        ...options,
-        personalDetails: orderedOptions.personalDetails,
-        recentReports: orderedOptions.recentReports,
     };
 }
 
@@ -2525,15 +2369,6 @@ function sortAlphabetically<T extends Partial<Record<TKey, string | undefined>>,
     return items.sort((a, b) => localeCompare(a[key]?.toLowerCase() ?? '', b[key]?.toLowerCase() ?? ''));
 }
 
-function getEmptyOptions(): Options {
-    return {
-        recentReports: [],
-        personalDetails: [],
-        userToInvite: null,
-        currentUserOption: null,
-    };
-}
-
 function shouldUseBoldText(report: SearchOptionData): boolean {
     const notificationPreference = report.notificationPreference ?? getReportNotificationPreference(report);
     return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !isHiddenForCurrentUser(notificationPreference);
@@ -2596,9 +2431,7 @@ export {
     formatMemberForList,
     formatSectionsFromSearchTerm,
     getAlternateText,
-    getAttendeeOptions,
     getCurrentUserSearchTerms,
-    getEmptyOptions,
     getFirstKeyForList,
     getHeaderMessage,
     getHeaderMessageForNonUserList,
@@ -2608,7 +2441,6 @@ export {
     getLastActorDisplayName,
     getLastMessageTextForReport,
     getManagerMcTestParticipant,
-    getMemberInviteOptions,
     getParticipantsOption,
     getPersonalDetailSearchTerms,
     getPersonalDetailsForAccountIDs,
@@ -2619,7 +2451,7 @@ export {
     getSearchValueForPhoneOrEmail,
     getShareDestinationOptions,
     getShareLogOptions,
-    getUserToInviteContactOption,
+    extendPersonalDetailOption,
     getUserToInviteOption,
     getValidOptions,
     hasEnabledOptions,
