@@ -18,6 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {setOptimisticTransactionThread} from '@libs/actions/Report';
 import {setActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import FS from '@libs/Fullstory';
@@ -214,6 +215,8 @@ function MoneyRequestReportTransactionList({
                     routeParams.reportID = transactionThreadReport.reportID;
                 }
             }
+
+            setOptimisticTransactionThread(reportIDToNavigate, iouAction?.parentReportID, iouAction?.reportActionID);
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigation
