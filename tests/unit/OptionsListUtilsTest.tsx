@@ -31,6 +31,7 @@ import {
 } from '@libs/OptionsListUtils';
 import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,10 +74,6 @@ const renderLocaleContextProvider = () => {
 };
 
 describe('OptionsListUtils', () => {
-    beforeAll(() => {
-        IntlStore.load(CONST.LOCALES.EN);
-        return waitForBatchedUpdates();
-    });
     const policyID = 'ABC123';
 
     const POLICY: Policy = {
@@ -576,8 +573,17 @@ describe('OptionsListUtils', () => {
         private_isArchived: DateUtils.getDBTime(),
     };
 
+    let OPTIONS: OptionList;
+    let OPTIONS_WITH_CONCIERGE: OptionList;
+    let OPTIONS_WITH_CHRONOS: OptionList;
+    let OPTIONS_WITH_RECEIPTS: OptionList;
+    let OPTIONS_WITH_WORKSPACE_ROOM: OptionList;
+    let OPTIONS_WITH_MANAGER_MCTEST: OptionList;
+
     // Set the currently logged in user, report data, and personal details
-    beforeAll(() => {
+    beforeAll(async () => {
+        IntlStore.load(CONST.LOCALES.EN);
+        initOnyxDerivedValues();
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
@@ -592,19 +598,14 @@ describe('OptionsListUtils', () => {
                 [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: {},
             },
         });
+
         Onyx.registerLogger(() => {});
-        return waitForBatchedUpdates().then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS));
-    });
 
-    let OPTIONS: OptionList;
-    let OPTIONS_WITH_CONCIERGE: OptionList;
-    let OPTIONS_WITH_CHRONOS: OptionList;
-    let OPTIONS_WITH_RECEIPTS: OptionList;
-    let OPTIONS_WITH_WORKSPACE_ROOM: OptionList;
-    let OPTIONS_WITH_MANAGER_MCTEST: OptionList;
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}10`, REPORTS['10'] ?? {});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
+        await waitForBatchedUpdates();
 
-    beforeEach(() => {
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         OPTIONS = createOptionList(PERSONAL_DETAILS, REPORTS);
         OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, REPORTS_WITH_CONCIERGE);
         OPTIONS_WITH_CHRONOS = createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);
