@@ -118,7 +118,8 @@ const ROUTES = {
         getRoute: (accountID?: number, backTo?: string, login?: string) => {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             const baseRoute = getUrlWithBackToParam(`a/${accountID}`, backTo);
-            const loginParam = login ? `?login=${encodeURIComponent(login)}` : '';
+            // If backTo is present, baseRoute already contains a '?', so append with '&' instead of starting a new query string
+            const loginParam = login ? `${baseRoute.includes('?') ? '&' : '?'}login=${encodeURIComponent(login)}` : '';
             return `${baseRoute}${loginParam}` as const;
         },
     },
