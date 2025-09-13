@@ -105,6 +105,7 @@ import type {
     EmployeeInviteMessageParams,
     EmptyCategoriesSubtitleWithAccountingParams,
     EmptyTagsSubtitleWithAccountingParams,
+    EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
@@ -357,6 +358,7 @@ const translations = {
         selectMultiple: 'Wybierz wiele',
         saveChanges: 'Zapisz zmiany',
         submit: 'Prześlij',
+        submitted: 'Przesłano',
         rotate: 'Obróć',
         zoom: 'Zoom',
         password: 'Hasło',
@@ -4669,10 +4671,9 @@ const translations = {
                 cardholder: 'Posiadacz karty',
                 cardName: 'Nazwa karty',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} eksport` : `eksport ${integration}`),
-                integrationExportTitleFirstPart: ({integration}: IntegrationExportParams) => `Wybierz konto ${integration}, do którego transakcje powinny być eksportowane.`,
-                integrationExportTitlePart: 'Wybierz inny',
-                integrationExportTitleLinkPart: 'opcja eksportu',
-                integrationExportTitleSecondPart: 'aby zmienić dostępne konta.',
+                integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Wybierz konto ${integration}, do którego transakcje powinny być eksportowane.`,
+                integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
+                    `Wybierz konto ${integration}, do którego transakcje powinny być eksportowane. Wybierz inną <a href="${exportPageLink}">opcję eksportu</a>, aby zmienić dostępne konta.`,
                 lastUpdated: 'Ostatnia aktualizacja',
                 transactionStartDate: 'Data rozpoczęcia transakcji',
                 updateCard: 'Zaktualizuj kartę',
@@ -5299,7 +5300,8 @@ const translations = {
             continuousReconciliation: 'Ciągła rekonsyliacja',
             saveHoursOnReconciliation:
                 'Zaoszczędź godziny na uzgadnianiu w każdym okresie rozliczeniowym, pozwalając Expensify na ciągłe uzgadnianie wyciągów i rozliczeń z karty Expensify w Twoim imieniu.',
-            enableContinuousReconciliation: 'Aby włączyć Ciągłą Rekoncyliację, proszę włączyć',
+            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
+                `<muted-text-label>Aby włączyć funkcję ciągłego uzgadniania, włącz <a href="${accountingAdvancedSettingsLink}">automatyczną synchronizację</a> dla ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Wybierz konto bankowe, z którym będą uzgadniane płatności kartą Expensify.',
                 accountMatches: 'Upewnij się, że to konto pasuje do Twojego',
