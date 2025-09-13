@@ -83,6 +83,18 @@ function PolicyDistanceRatesPage({
 
     const rateIDs = new Set(Object.keys(selectableRates));
 
+    const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => {
+            return Object.values(reports ?? {}).reduce((reportIDs, report) => {
+                if (report && report.policyID === policyID) {
+                    reportIDs.add(report.reportID);
+                }
+                return reportIDs;
+            }, new Set<string>());
+        },
+        canBeMissing: true,
+    });
+
     const [eligibleTransactionsData] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (transactions) => {
             if (!customUnit?.customUnitID || rateIDs.size === 0) {
@@ -92,6 +104,8 @@ function PolicyDistanceRatesPage({
                 (transactionsData, transaction) => {
                     if (
                         transaction &&
+                        transaction.reportID &&
+                        policyReports?.has(transaction.reportID) &&
                         customUnit?.customUnitID &&
                         transaction?.comment?.customUnit?.customUnitID === customUnit.customUnitID &&
                         transaction?.comment?.customUnit?.customUnitRateID &&
