@@ -807,18 +807,15 @@ class TranslationGenerator {
             const isAddedPath = this.pathsToAdd.has(currentPath as TranslationPaths);
             const isModifiedPath = this.pathsToModify.has(currentPath as TranslationPaths);
 
-            if (isAddedPath || isModifiedPath) {
-                if (isAddedPath) {
-                    // For pathsToAdd: extract the entire PropertyAssignment as code string
-                    const codeString = tsPrinter.printNode(ts.EmitHint.Unspecified, node, sourceFile);
-                    translatedCodeMap.set(currentPath, codeString);
-                } else if (isModifiedPath && ts.isPropertyAssignment(node)) {
-                    // For pathsToModify: extract only the value (initializer) as code string
-                    if (node.initializer) {
-                        const codeString = tsPrinter.printNode(ts.EmitHint.Expression, node.initializer, sourceFile);
-                        translatedCodeMap.set(currentPath, codeString);
-                    }
+            if ((isAddedPath || isModifiedPath) && ts.isPropertyAssignment(node)) {
+                if (!node.initializer) {
+                    throw new Error('Found a dangling property without an initializer in a translation object. This should never happen.');
                 }
+
+                // extract the value (property initializer) as code string
+                const codeString = tsPrinter.printNode(ts.EmitHint.Expression, node.initializer, sourceFile);
+                translatedCodeMap.set(currentPath, codeString);
+
                 return; // Stop recursing into children
             }
 
@@ -976,15 +973,25 @@ class TranslationGenerator {
 
                                 // For top-level additions
                                 if (pathParts.length === 1 && currentPath === '') {
-                                    // Parse the code string back to a PropertyAssignment
-                                    const tempSourceFile = ts.createSourceFile('temp.ts', `const temp = { ${translatedCodeString} };`, ts.ScriptTarget.Latest);
-                                    const tempStatement = tempSourceFile.statements[0] as ts.VariableStatement;
-                                    const tempObject = tempStatement.declarationList.declarations[0].initializer as ts.ObjectLiteralExpression;
-                                    const propertyAssignment = tempObject.properties[0];
-                                    if (ts.isPropertyAssignment(propertyAssignment)) {
-                                        newProperties.push(propertyAssignment);
-                                        hasAdditions = true;
+                                    const propertyName = pathParts.at(0);
+                                    if (!propertyName) {
+                                        throw new Error('An unknown error occurred');
                                     }
+
+                                    // Parse the code string back to an expression (same as pathsToModify)
+                                    const tempSourceFile = ts.createSourceFile('temp.ts', `const temp = ${translatedCodeString};`, ts.ScriptTarget.Latest);
+                                    const tempStatement = tempSourceFile.statements[0];
+                                    if (!ts.isVariableStatement(tempStatement)) {
+                                        throw new Error('Encountered a malformed code string');
+                                    }
+                                    const translatedExpression = tempStatement.declarationList.declarations.at(0)?.initializer;
+                                    if (!translatedExpression) {
+                                        throw new Error('Encountered a malformed code string');
+                                    }
+
+                                    const newProperty = ts.factory.createPropertyAssignment(propertyName, translatedExpression);
+                                    newProperties.push(newProperty);
+                                    hasAdditions = true;
                                 }
                             }
                         }
