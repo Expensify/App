@@ -379,6 +379,27 @@ function getGroupByValue(groupBy?: SearchGroupBy | SearchGroupBy[]): SearchGroup
 }
 
 /**
+ * Normalizes the type value into a single string.
+ * - If it's an array, returns the first element.
+ * - Otherwise, returns the value as is.
+ *
+ * This ensures consistent usage of type across the app,
+ * since we only support filtering by a single valid type key.
+ *
+ * @param type - The raw type value from SearchQueryJSON
+ * @returns The normalized type value
+ */
+function getTypeValue(type: SearchDataTypes | SearchDataTypes[]): SearchDataTypes {
+    if (Array.isArray(type)) {
+        // This parameter can only be an array if there are at least two values, so the first element will always be here.
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return type.at(0)!;
+    }
+
+    return type;
+}
+
+/**
  * Parses a given search query string into a structured `SearchQueryJSON` format.
  * This format of query is most commonly shared between components and also sent to backend to retrieve search results.
  *
@@ -404,6 +425,10 @@ function buildSearchQueryJSON(query: SearchQueryString) {
 
         if (result.groupBy) {
             result.groupBy = getGroupByValue(result.groupBy);
+        }
+
+        if (result.type) {
+            result.type = getTypeValue(result.type);
         }
 
         return result;
