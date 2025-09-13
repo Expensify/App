@@ -1,0 +1,65 @@
+diff --git a/node_modules/react-native/ReactAndroid/publish.gradle b/node_modules/react-native/ReactAndroid/publish.gradle
+index 32287a7..6b085e5 100644
+--- a/node_modules/react-native/ReactAndroid/publish.gradle
++++ b/node_modules/react-native/ReactAndroid/publish.gradle
+@@ -13,7 +13,11 @@ def signingKey = findProperty("SIGNING_KEY")
+ def signingPwd = findProperty("SIGNING_PWD")
+ 
+ def reactAndroidProjectDir = project(':packages:react-native:ReactAndroid').projectDir
+-def mavenTempLocalUrl = "file:///tmp/maven-local"
++
++def s3URL = "s3://${System.getenv("S3_BUCKET")}/"
++def patchedVersion = System.getenv("PATCHED_VERSION")
++def isHybridBuild = System.getenv("IS_HYBRID_BUILD")?.toBoolean()
++def publishingGroupId = isHybridBuild ? "com.expensify.react-hybrid" : "com.expensify.react-standalone"
+ 
+ publishing {
+     publications {
+@@ -26,12 +30,14 @@ publishing {
+                 }
+             }
+ 
++            groupId = publishingGroupId
++
+             // We populate the publishing version using the project version,
+             // appending -SNAPSHOT if on nightly or prerelase.
+             if (isSnapshot) {
+-                version = this.version + "-SNAPSHOT"
++                version = patchedVersion + "-SNAPSHOT"
+             } else {
+-                version = this.version
++                version = patchedVersion
+             }
+ 
+             pom {
+@@ -39,10 +45,14 @@ publishing {
+                 description = "A framework for building native apps with React"
+                 url = "https://github.com/facebook/react-native"
+ 
++                properties = [
++                    "patchesHash": System.getenv("PATCHES_HASH"),
++                ]
++
+                 developers {
+                     developer {
+-                        id = "facebook"
+-                        name = "Facebook"
++                        id = "expensify"
++                        name = "Expensify"
+                     }
+                 }
+ 
+@@ -65,8 +75,11 @@ publishing {
+ 
+     repositories {
+         maven {
+-            name = "mavenTempLocal"
+-            url = mavenTempLocalUrl
++            url = s3URL
++            credentials(AwsCredentials) {
++                accessKey = System.getenv("S3_ACCESS_KEY")
++                secretKey = System.getenv("S3_SECRET_ACCESS_KEY")
++            }
+         }
+     }
+ 
