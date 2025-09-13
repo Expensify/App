@@ -213,8 +213,7 @@ class TranslationGenerator {
                 const existingContent = fs.readFileSync(targetPath, 'utf8');
                 const existingSourceFile = ts.createSourceFile(targetPath, existingContent, ts.ScriptTarget.Latest, true);
                 const targetTransformer = this.createIncrementalTargetTransformer(translatedCodeMap);
-                const cleanupTransformer = this.createEmptyObjectCleanupTransformer();
-                const targetResult = ts.transform(existingSourceFile, [targetTransformer, cleanupTransformer]);
+                const targetResult = ts.transform(existingSourceFile, [targetTransformer]);
                 const transformedTargetResult = targetResult.transformed.at(0);
                 if (!transformedTargetResult) {
                     throw new Error('Failed to transform target file');
@@ -857,6 +856,7 @@ class TranslationGenerator {
      * Create a transformer factory for incremental translations of target files.
      * Injects pathsToAdd and pathsToModify directly into the target file by parsing the code strings for the translated paths.
      * Removes pathsToRemove from the target file.
+     * Also cleans up any empty object literals that result from the removals.
      */
     private createIncrementalTargetTransformer(translatedCodeMap: Map<string, string>): ts.TransformerFactory<ts.SourceFile> {
         let mainTranslationsNode: ts.ObjectLiteralExpression | undefined;
@@ -886,8 +886,8 @@ class TranslationGenerator {
                 };
             }
 
-            // Check if this is the main translations node and we need to add new properties
-            if (ts.isObjectLiteralExpression(node) && node === mainTranslationsNode) {
+            // For any object literal (including the main translations node), handle additions and cleanup
+            if (ts.isObjectLiteralExpression(node)) {
                 return {
                     action: TransformerAction.Replace,
                     newNode: (transformedNode) => {
@@ -895,12 +895,25 @@ class TranslationGenerator {
                             return transformedNode;
                         }
 
-                        const newProperties = [...transformedNode.properties];
-                        let hasAdditions = false;
+                        let properties = [...transformedNode.properties];
 
-                        // Add properties for pathsToAdd
-                        for (const [addPath, translatedCodeString] of translatedCodeMap) {
-                            if (this.pathsToAdd.has(addPath as TranslationPaths)) {
+                        // First, filter out empty object literals (cleanup after removals)
+                        properties = properties.filter((prop) => {
+                            if (!ts.isPropertyAssignment(prop) || !ts.isObjectLiteralExpression(prop.initializer)) {
+                                return true; // Keep non-object properties
+                            }
+
+                            const isEmpty = prop.initializer.properties.length === 0;
+                            if (isEmpty && this.verbose) {
+                                const propName = ts.isIdentifier(prop.name) ? prop.name.text : prop.name.getText();
+                                console.log(`🧹 Removing empty object after incremental update: "${propName}"`);
+                            }
+                            return !isEmpty; // Keep only non-empty objects
+                        });
+
+                        // Then, if this is the main translations node, add new properties
+                        if (node === mainTranslationsNode) {
+                            for (const [addPath, translatedCodeString] of translatedCodeMap) {
                                 const pathParts = addPath.split('.');
 
                                 // For top-level additions
@@ -913,53 +926,12 @@ class TranslationGenerator {
                                     // Parse the code string back to an expression
                                     const translatedExpression = TSCompilerUtils.parseCodeStringToAST(translatedCodeString);
                                     const newProperty = ts.factory.createPropertyAssignment(propertyName, translatedExpression);
-                                    newProperties.push(newProperty);
-                                    hasAdditions = true;
+                                    properties.push(newProperty);
                                 }
                             }
                         }
 
-                        return hasAdditions ? ts.factory.createObjectLiteralExpression(newProperties) : transformedNode;
-                    },
-                };
-            }
-
-            return {action: TransformerAction.Continue};
-        });
-    }
-
-    /**
-     * Create a transformer factory for cleaning up empty objects in target files.
-     * Removes property assignments that have empty object literals as their initializer.
-     */
-    private createEmptyObjectCleanupTransformer(): ts.TransformerFactory<ts.SourceFile> {
-        return TSCompilerUtils.createPathAwareTransformer((node: ts.Node): TransformerResult => {
-            // Check if this is an object literal that might need cleanup
-            if (ts.isObjectLiteralExpression(node)) {
-                return {
-                    action: TransformerAction.Replace,
-                    newNode: (transformedNode) => {
-                        if (!ts.isObjectLiteralExpression(transformedNode)) {
-                            return transformedNode;
-                        }
-
-                        // Filter out properties that have empty object literals as initializers
-                        const nonEmptyProperties = transformedNode.properties.filter((prop) => {
-                            if (!ts.isPropertyAssignment(prop) || !ts.isObjectLiteralExpression(prop.initializer)) {
-                                return true;
-                            }
-
-                            const isEmpty = prop.initializer.properties.length === 0;
-                            if (isEmpty && this.verbose) {
-                                const propName = ts.isIdentifier(prop.name) ? prop.name.text : prop.name.getText();
-                                console.log(`🧹 [CleanupTransformer] Removing empty object: "${propName}"`);
-                            }
-
-                            // Keep only non-empty objects
-                            return !isEmpty;
-                        });
-
-                        return nonEmptyProperties.length !== transformedNode.properties.length ? ts.factory.createObjectLiteralExpression(nonEmptyProperties) : transformedNode;
+                        return ts.factory.createObjectLiteralExpression(properties);
                     },
                 };
             }
